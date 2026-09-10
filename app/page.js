@@ -1,51 +1,5 @@
-const projects = [
-  {
-    number: "01",
-    title: "ClinicFlow",
-    text: "Smarter appointment workflows for clinics.",
-    image:
-      "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    number: "02",
-    title: "Eternal Eggs",
-    text: "A practical venture exploring agriculture and growth.",
-    image:
-      "https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    number: "03",
-    title: "Automation Hub",
-    text: "Systems, integrations, and workflow experiments.",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
-    number: "04",
-    title: "Paulo Maisog",
-    text: "Portfolio, process, and what I’m building next.",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85",
-  },
-];
-
-const process = [
-  ["01", "⌕", "Understand", "Listen, research, and define what actually matters."],
-  ["02", "⚗", "Test", "Try simple solutions, validate assumptions, learn quickly."],
-  ["03", "◇", "Build", "Turn working ideas into useful systems."],
-  ["04", "↻", "Refine", "Improve, simplify, and make it more valuable over time."],
-];
-
-function Logo({ dark = false }) {
-  return (
-    <div className={`logo ${dark ? "dark" : ""}`}>
-      <div className="logo-word">MAISOG</div>
-      <div className="logo-sub">LABS</div>
-      <span className="logo-orbit" />
-      <span className="logo-star" />
-    </div>
-  );
-}
+import Logo from "../components/Logo";
+import { processSteps, projects, site } from "../data/site";
 
 export default function Home() {
   return (
@@ -56,7 +10,7 @@ export default function Home() {
           <Logo />
           <div className="hero-copy">
             <p className="eyebrow light">REAL IDEAS.<br />A BRIGHTER TOMORROW.</p>
-            <h1>Ideas into<br />systems.</h1>
+            <h1>{site.tagline.split(" ")[0]} into<br />systems.</h1>
             <p className="hero-description">
               A small studio exploring automation, digital systems, and practical
               experiments for a larger tomorrow.
@@ -98,11 +52,8 @@ export default function Home() {
 
         <div className="project-grid">
           {projects.map((project) => (
-            <article className="project-card" key={project.number}>
-              <div
-                className="project-image"
-                style={{ backgroundImage: `url("${project.image}")` }}
-              >
+            <article className="project-card" key={project.slug}>
+              <div className="project-image" style={{ backgroundImage: `url("${project.image}")` }}>
                 <div className="project-index">{project.number}<span /></div>
               </div>
               <div className="project-body">
@@ -124,12 +75,12 @@ export default function Home() {
           </div>
 
           <div className="process-grid">
-            {process.map(([num, icon, title, text], idx) => (
-              <div className={`process-item ${idx ? "with-divider" : ""}`} key={num}>
-                <span className="process-num">{num}</span>
-                <span className="process-icon">{icon}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
+            {processSteps.map((step, idx) => (
+              <div className={`process-item ${idx ? "with-divider" : ""}`} key={step.number}>
+                <span className="process-num">{step.number}</span>
+                <span className="process-icon">{step.icon}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
               </div>
             ))}
           </div>
@@ -181,7 +132,7 @@ export default function Home() {
 
         <div className="footer-contact">
           <p>Let’s build brighter systems.<br />
-            <a href="mailto:hello@maisoglabs.com">hello@maisoglabs.com</a>
+            <a href={`mailto:${site.email}`}>{site.email}</a>
           </p>
           <div className="socials">
             <a href="#" aria-label="LinkedIn">in</a>
