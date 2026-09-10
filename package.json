@@ -5,11 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.35.0"
   }
 }
