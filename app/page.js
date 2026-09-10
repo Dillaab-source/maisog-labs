@@ -1,6 +1,8 @@
 import Logo from "../components/Logo";
 import ProjectRail from "../components/ProjectRail";
-import { about, processSteps, projects, site } from "../data/site";
+import content from "../data/site.json";
+
+const { about, processSteps, projects, site } = content;
 
 export default function Home() {
   return (
