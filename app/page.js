@@ -116,7 +116,6 @@ export default function Home() {
             <a href="#about">About</a>
             <a href="#process">Process</a>
             <a href="#lab">Lab</a>
-            <a href="/admin/">Admin</a>
           </div>
         </div>
         <p className="copyright">© 2026 MAISOG LABS. BUILT WITH CURIOSITY.</p>
