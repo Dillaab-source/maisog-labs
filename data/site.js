@@ -1,43 +1,78 @@
+export const site = {
+  name: "Maisog Labs",
+  tagline: "Ideas into systems.",
+  eyebrow: "REAL IDEAS. A BRIGHTER TOMORROW.",
+  description:
+    "A small studio exploring automation, digital systems, and practical experiments for a larger tomorrow.",
+  bridgeLabel: "WHERE HUMAN INTENT MEETS MACHINE CAPABILITY.",
+  email: "hello@maisoglabs.com",
+};
+
 export const projects = [
   {
     number: "01",
     slug: "clinicflow",
     title: "ClinicFlow",
-    text: "Smarter appointment workflows for clinics.",
+    text: "AI-assisted appointment and clinic workflow automation.",
+    tags: ["AI", "N8N", "AUTOMATION"],
     image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=85",
   },
   {
     number: "02",
     slug: "eternal-eggs",
     title: "Eternal Eggs",
-    text: "A practical venture exploring agriculture and growth.",
+    text: "A practical agricultural venture built with systems thinking.",
+    tags: ["FARMING", "SYSTEMS", "SCALABILITY"],
     image: "https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1200&q=85",
   },
   {
     number: "03",
     slug: "automation-hub",
     title: "Automation Hub",
-    text: "Systems, integrations, and workflow experiments.",
+    text: "Experiments with workflows, integrations, AI agents, APIs, and webhooks.",
+    tags: ["AI", "APIS", "WORKFLOWS"],
     image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=85",
   },
   {
     number: "04",
     slug: "paulo-maisog",
     title: "Paulo Maisog",
-    text: "Portfolio, process, and what I’m building next.",
+    text: "Portfolio, process, experiments, and the evolution of Maisog Labs.",
+    tags: ["CAREER", "IDEAS", "BUILDING"],
     image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85",
   },
 ];
 
 export const processSteps = [
-  { number: "01", icon: "⌕", title: "Understand", text: "Listen, research, and define what actually matters." },
-  { number: "02", icon: "⚗", title: "Test", text: "Try simple solutions, validate assumptions, learn quickly." },
-  { number: "03", icon: "◇", title: "Build", text: "Turn working ideas into useful systems." },
-  { number: "04", icon: "↻", title: "Refine", text: "Improve, simplify, and make it more valuable over time." },
+  {
+    number: "01",
+    symbol: "⌕",
+    title: "Understand",
+    text: "Listen, research, and identify what actually needs to be solved.",
+  },
+  {
+    number: "02",
+    symbol: "⚗",
+    title: "Test",
+    text: "Build the simplest version, validate assumptions, and learn quickly.",
+  },
+  {
+    number: "03",
+    symbol: "◇",
+    title: "Build",
+    text: "Connect the right tools, data, and workflows into a working system.",
+  },
+  {
+    number: "04",
+    symbol: "↻",
+    title: "Refine",
+    text: "Improve reliability, remove friction, and make the system more useful over time.",
+  },
 ];
 
-export const site = {
-  name: "Maisog Labs",
-  tagline: "Ideas into systems.",
-  email: "hello@maisoglabs.com",
+export const about = {
+  title:
+    "Resourceful, curious, and focused on turning problems into working systems.",
+  body:
+    "I’m Paulo Maisog, a builder and independent creator exploring automation, digital systems, AI workflows, and practical ventures. Maisog Labs is where I turn ideas into real, useful outcomes.",
 };
