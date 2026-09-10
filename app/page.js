@@ -1,147 +1,124 @@
 import Logo from "../components/Logo";
-import { processSteps, projects, site } from "../data/site";
+import ProjectRail from "../components/ProjectRail";
+import content from "../data/site.json";
+
+const { about, processSteps, projects, site } = content;
 
 export default function Home() {
   return (
-    <main>
-      <section className="hero" id="home">
-        <div className="hero-left">
-          <div className="hero-noise" />
-          <Logo />
-          <div className="hero-copy">
-            <p className="eyebrow light">REAL IDEAS.<br />A BRIGHTER TOMORROW.</p>
-            <h1>{site.tagline.split(" ")[0]} into<br />systems.</h1>
-            <p className="hero-description">
-              A small studio exploring automation, digital systems, and practical
-              experiments for a larger tomorrow.
-            </p>
-            <div className="hero-actions">
-              <a className="btn btn-light" href="#projects">View Projects <span>→</span></a>
-              <a className="btn btn-outline" href="#about">About Paulo</a>
-            </div>
-          </div>
-        </div>
+    <main className="experience-shell">
+      <div className="world" aria-hidden="true">
+        <div className="world-image" />
+        <div className="world-vignette" />
+        <div className="world-grid" />
+        <div className="orbit orbit-a" />
+        <div className="orbit orbit-b" />
+        <div className="contact-glow" />
+      </div>
 
-        <div className="hero-right">
-          <nav className="nav">
-            <a href="#projects">Projects</a>
-            <a href="#about">About</a>
-            <a href="#process">Process</a>
-            <a href="#contact">Contact</a>
-            <span className="nav-line" />
-          </nav>
-          <div className="orbital-line" />
-          <div className="orbital-dot" />
-          <div className="side-copy">IDEAS<br />INTO<br />REALITY<span /></div>
-          <p className="hero-micro">A SMALL STUDIO<br />FOR A LARGER TOMORROW.</p>
-        </div>
-      </section>
-
-      <section className="stone section" id="projects">
-        <div className="section-head">
-          <div>
-            <p className="eyebrow">SELECTED WORK <span className="short-line" /></p>
-            <h2>Projects<br />for a brighter tomorrow.</h2>
-          </div>
-          <p className="section-intro">
-            Independent projects exploring automation, digital systems, and real-world
-            applications across different domains.
-          </p>
-          <a href="#" className="view-all">View all projects <span>→</span></a>
-        </div>
-
-        <div className="project-grid">
-          {projects.map((project) => (
-            <article className="project-card" key={project.slug}>
-              <div className="project-image" style={{ backgroundImage: `url("${project.image}")` }}>
-                <div className="project-index">{project.number}<span /></div>
-              </div>
-              <div className="project-body">
-                <h3>{project.title}</h3>
-                <p>{project.text}</p>
-                <a href="#">View Project <span>→</span></a>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <section className="process" id="process">
-          <div className="process-title-row">
-            <div>
-              <p className="eyebrow">A DISCIPLINED APPROACH</p>
-              <h2>How I Work <span className="title-line" /></h2>
-            </div>
-            <p className="process-motto">SAME CURIOSITY.<br />A MORE USEFUL TOMORROW.</p>
-          </div>
-
-          <div className="process-grid">
-            {processSteps.map((step, idx) => (
-              <div className={`process-item ${idx ? "with-divider" : ""}`} key={step.number}>
-                <span className="process-num">{step.number}</span>
-                <span className="process-icon">{step.icon}</span>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      </section>
-
-      <section className="about" id="about">
-        <div className="portrait-block">
-          <div className="portrait-overlay">
-            <span>REPLACE WITH</span>
-            <strong>PAULO.JPEG</strong>
-          </div>
-        </div>
-
-        <div className="about-copy">
-          <p className="eyebrow">ABOUT <span className="short-line" /></p>
-          <h2>
-            Resourceful, curious, and reliable —
-            <br />
-            focused on turning problems into working systems.
-          </h2>
-          <p>
-            I’m Paulo Maisog, a builder and independent creator exploring automation,
-            digital systems, and practical ventures. MAISOG LABS is where I turn ideas
-            into real, useful outcomes.
-          </p>
-          <a className="btn btn-soft" href="#">Learn More About Me <span>→</span></a>
-        </div>
-
-        <div className="about-architecture">
-          <div className="arch" />
-          <div className="plant">✣</div>
-          <p>SIMPLE SYSTEMS.<br />BRIGHTER<br />POSSIBILITIES.</p>
-        </div>
-      </section>
-
-      <footer className="footer stone" id="contact">
-        <div className="footer-brand">
-          <Logo dark />
-          <p>IDEAS INTO SYSTEMS.</p>
-        </div>
-
-        <div className="footer-links">
+      <header className="topbar">
+        <a className="brand-link" href="#home" aria-label="Maisog Labs home"><Logo /></a>
+        <nav className="nav" aria-label="Primary navigation">
           <a href="#projects">Projects</a>
           <a href="#about">About</a>
           <a href="#process">Process</a>
+          <a href="#lab">Lab</a>
           <a href="#contact">Contact</a>
-        </div>
+        </nav>
+        <a className="talk-link" href={`mailto:${site.email}`}>Let&apos;s Talk <span>→</span></a>
+      </header>
 
-        <div className="footer-contact">
-          <p>Let’s build brighter systems.<br />
-            <a href={`mailto:${site.email}`}>{site.email}</a>
-          </p>
-          <div className="socials">
-            <a href="#" aria-label="LinkedIn">in</a>
-            <a href="#" aria-label="X">X</a>
-            <a href="#" aria-label="YouTube">▶</a>
+      <section className="scene hero-scene" id="home">
+        <div className="hero-copy glass-panel">
+          <p className="eyebrow">{site.eyebrow}</p>
+          <h1>{site.tagline}</h1>
+          <p className="hero-description">{site.description}</p>
+          <div className="hero-actions">
+            <a className="btn btn-primary" href="#projects">View Projects <span>→</span></a>
+            <a className="btn btn-ghost" href="#about">About Paulo</a>
           </div>
         </div>
 
-        <div className="copyright">© 2026 MAISOG LABS. ALL RIGHTS RESERVED.</div>
+        <button className="bridge-point" type="button" aria-label="Human and machine bridge">
+          <span className="bridge-pulse" />
+          <span className="bridge-label">IDEAS<br />INTO<br />REALITY</span>
+        </button>
+
+        <p className="human-note">HUMAN IDEAS<br />HIGHER POSSIBILITIES.</p>
+        <p className="machine-note">SAME CURIOSITY.<br />A BRIGHTER TOMORROW.</p>
+        <p className="bridge-manifesto">{site.bridgeLabel}</p>
+        <a className="scroll-cue" href="#projects">SCROLL <span>↓</span></a>
+      </section>
+
+      <section className="scene floating-section projects-section" id="projects">
+        <div className="section-heading glass-panel compact-panel">
+          <p className="eyebrow">SELECTED WORK</p>
+          <h2>Projects for a brighter tomorrow.</h2>
+          <p>Independent projects exploring automation, intelligent workflows, practical systems, and real-world ventures.</p>
+        </div>
+        <ProjectRail projects={projects} />
+      </section>
+
+      <section className="scene floating-section process-section" id="process">
+        <div className="section-heading glass-panel compact-panel">
+          <p className="eyebrow">A DISCIPLINED APPROACH</p>
+          <h2>How I work.</h2>
+          <p>Good systems rarely begin with complicated technology. They begin with understanding the problem.</p>
+        </div>
+
+        <div className="process-orbit glass-panel">
+          <div className="process-path" aria-hidden="true" />
+          {processSteps.map((step) => (
+            <article className="process-node" key={step.number}>
+              <span className="process-index">{step.number}</span>
+              <span className="process-symbol">{step.symbol}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="scene floating-section about-section" id="about">
+        <div className="about-panel glass-panel">
+          <p className="eyebrow">ABOUT / PAULO MAISOG</p>
+          <h2>{about.title}</h2>
+          <p>{about.body}</p>
+          <a className="text-link" href="#lab">Explore the Lab <span>→</span></a>
+        </div>
+      </section>
+
+      <section className="scene floating-section lab-section" id="lab">
+        <div className="lab-panel glass-panel">
+          <p className="eyebrow">THE LAB</p>
+          <h2>Not everything starts as a business.</h2>
+          <p>
+            Some projects begin as a question. Can this process be automated? Can these tools communicate?
+            Can a small operation become more useful? Maisog Labs exists to explore those questions by building.
+          </p>
+          <p className="lab-statement">Build something real enough to learn from.</p>
+        </div>
+      </section>
+
+      <footer className="scene footer-scene" id="contact">
+        <div className="footer-panel glass-panel">
+          <div>
+            <Logo />
+            <p className="footer-tag">IDEAS INTO SYSTEMS.</p>
+          </div>
+          <div className="footer-cta">
+            <p className="eyebrow">LET&apos;S BUILD</p>
+            <h2>Have an idea worth turning into a system?</h2>
+            <a href={`mailto:${site.email}`}>{site.email} <span>→</span></a>
+          </div>
+          <div className="footer-meta">
+            <a href="#projects">Projects</a>
+            <a href="#about">About</a>
+            <a href="#process">Process</a>
+            <a href="#lab">Lab</a>
+          </div>
+        </div>
+        <p className="copyright">© 2026 MAISOG LABS. BUILT WITH CURIOSITY.</p>
       </footer>
     </main>
   );
