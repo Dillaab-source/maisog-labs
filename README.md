@@ -1,6 +1,35 @@
-# Maisog Labs — Next.js / Cloudflare Pages starter
+# Maisog Labs
 
-This project recreates the visual direction of the approved "Ideas into systems" homepage.
+Maisog Labs is Paulo Maisog's portfolio and experimental studio for automation, AI systems, and practical digital projects.
+
+## Stack
+
+- Next.js App Router
+- React
+- Static export
+- Cloudflare Pages
+
+## Repository structure
+
+```text
+maisog-labs/
+├─ app/                 # Routes and page composition
+│  ├─ globals.css
+│  ├─ layout.js
+│  └─ page.js
+├─ components/          # Reusable UI components
+│  └─ Logo.js
+├─ data/                # Structured editable content
+│  └─ site.js
+├─ docs/                # Architecture and maintenance docs
+│  ├─ ARCHITECTURE.md
+│  └─ CONTENT.md
+├─ public/              # Static assets; add project images here over time
+├─ AGENTS.md            # Instructions for AI coding agents
+├─ next.config.mjs
+├─ package.json
+└─ README.md
+```
 
 ## Run locally
 
@@ -9,28 +38,47 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+Open `http://localhost:3000`.
 
-## Deploy
-
-This project is configured for a static export, so it can be deployed to Cloudflare Pages.
-
-Build command:
+## Build
 
 ```bash
 npm run build
 ```
 
-Output directory:
+The project uses a static export. The generated site is written to:
 
 ```text
 out
 ```
 
+## Cloudflare Pages
+
+Use:
+
+```text
+Build command: npm run build
+Output directory: out
+```
+
+## Where to edit things
+
+- Portfolio/project content: `data/site.js`
+- Reusable UI: `components/`
+- Page composition/routes: `app/`
+- Styling: `app/globals.css`
+- Architecture/deployment decisions: `docs/ARCHITECTURE.md`
+- Content conventions and assets: `docs/CONTENT.md`
+- AI-agent instructions: `AGENTS.md`
+
 ## Before launch
 
-- Replace the temporary portrait image in `app/globals.css` with your real photo.
-- Replace placeholder project links (`href="#"`) with real project routes/pages.
-- Replace social links with your actual URLs.
+- Replace the temporary portrait with Paulo's real approved photo.
+- Move final production imagery into `public/images/`.
+- Replace placeholder project and social links.
 - Confirm the contact email.
-- Replace any remote stock photography with final licensed/self-owned assets if desired.
+- Run `npm run build` and test desktop/mobile layouts.
+
+## Future architecture
+
+Do not add a database or server layer until a feature actually requires one. Planned integrations such as Claude/OpenAI, n8n, MCP, or a database should use secure server-side boundaries such as Cloudflare Workers. Never commit API keys or secrets.
