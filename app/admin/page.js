@@ -3,7 +3,14 @@ import content from "../../data/site.json";
 
 export const metadata = {
   title: "Maisog Labs Admin",
-  description: "Content administration for Maisog Labs.",
+  description: "Private content administration for Maisog Labs.",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    nocache: true,
+    nosnippet: true,
+  },
 };
 
 export default function AdminPage() {
