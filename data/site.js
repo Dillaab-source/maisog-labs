@@ -45,10 +45,12 @@ export const processSteps = [
 ];
 
 export const site = {
+  version: "3.1.1",
   name: "Maisog Labs",
   tagline: "Ideas into systems.",
   eyebrow: "PRACTICAL AUTOMATION · REAL SYSTEMS",
   description:
     "An independent technology lab building practical automation, AI systems, and digital tools for real-world problems.",
   email: "hello@maisoglabs.com",
+  adminEmail: "paulo@maisoglabs.com",
 };
