@@ -1,0 +1,30 @@
+{
+  "brand": {
+    "name": "Maisog Labs",
+    "tagline": "Ideas into systems."
+  },
+  "colors": {
+    "deep_space": "#0B0F14",
+    "warm_ivory": "#F7F5EF",
+    "steel_blue": "#2E4A67",
+    "muted_gold": "#C9A66B",
+    "tech_blue": "#6FA7C8",
+    "success_green": "#38B27D"
+  },
+  "typography": {
+    "editorial_serif": "Cormorant Garamond (recommended)",
+    "ui_sans": "Inter",
+    "technical_mono": "IBM Plex Mono or JetBrains Mono"
+  },
+  "visual_ratio": {
+    "technology_systems": 60,
+    "classical_architectural": 25,
+    "exploration_space": 15
+  },
+  "version": "3.0",
+  "website_direction": {
+    "layout": "immersive cinematic landing canvas",
+    "content": "floating modular glass/system cards",
+    "motion": "subtle parallax and micro-interactions"
+  }
+}
