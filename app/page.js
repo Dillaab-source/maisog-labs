@@ -4,17 +4,14 @@ import { processSteps, projects, site } from "../data/site";
 export default function Home() {
   return (
     <main>
-      <section className="hero" id="home">
+      <section className="hero hero-v2" id="home">
         <div className="hero-left">
           <div className="hero-noise" />
           <Logo />
           <div className="hero-copy">
-            <p className="eyebrow light">REAL IDEAS.<br />A BRIGHTER TOMORROW.</p>
-            <h1>{site.tagline.split(" ")[0]} into<br />systems.</h1>
-            <p className="hero-description">
-              A small studio exploring automation, digital systems, and practical
-              experiments for a larger tomorrow.
-            </p>
+            <p className="eyebrow light">{site.heroEyebrow}</p>
+            <h1>{site.tagline}</h1>
+            <p className="hero-description">{site.heroDescription}</p>
             <div className="hero-actions">
               <a className="btn btn-light" href="#projects">View Projects <span>→</span></a>
               <a className="btn btn-outline" href="#about">About Paulo</a>
@@ -22,7 +19,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-right">
+        <div className="hero-right hero-system-panel">
           <nav className="nav">
             <a href="#projects">Projects</a>
             <a href="#about">About</a>
@@ -30,10 +27,14 @@ export default function Home() {
             <a href="#contact">Contact</a>
             <span className="nav-line" />
           </nav>
-          <div className="orbital-line" />
-          <div className="orbital-dot" />
-          <div className="side-copy">IDEAS<br />INTO<br />REALITY<span /></div>
-          <p className="hero-micro">A SMALL STUDIO<br />FOR A LARGER TOMORROW.</p>
+
+          <div className="system-orbit system-orbit-a" />
+          <div className="system-orbit system-orbit-b" />
+          <div className="system-core">ML</div>
+          <div className="system-label system-label-a">AUTOMATION</div>
+          <div className="system-label system-label-b">SYSTEMS</div>
+          <div className="system-label system-label-c">EXPERIMENTS</div>
+          <p className="hero-micro">CLASSICAL DISCIPLINE<br />FUTURE SYSTEMS.</p>
         </div>
       </section>
 
@@ -44,22 +45,25 @@ export default function Home() {
             <h2>Projects<br />for a brighter tomorrow.</h2>
           </div>
           <p className="section-intro">
-            Independent projects exploring automation, digital systems, and real-world
+            Independent projects exploring automation, digital systems, and practical
             applications across different domains.
           </p>
-          <a href="#" className="view-all">View all projects <span>→</span></a>
+          <a href="#projects" className="view-all">Browse work <span>→</span></a>
         </div>
 
-        <div className="project-grid">
+        <div className="project-grid project-grid-v2">
           {projects.map((project) => (
-            <article className="project-card" key={project.slug}>
-              <div className="project-image" style={{ backgroundImage: `url("${project.image}")` }}>
-                <div className="project-index">{project.number}<span /></div>
+            <article className="project-card project-card-v2" key={project.slug}>
+              <div className="project-card-meta">
+                <span>{project.number}</span>
+                <span>{project.category}</span>
               </div>
+              <div className="project-image" style={{ backgroundImage: `url("${project.image}")` }} />
               <div className="project-body">
                 <h3>{project.title}</h3>
                 <p>{project.text}</p>
-                <a href="#">View Project <span>→</span></a>
+                <div className="project-stack">{project.stack}</div>
+                <a href="#">View case study <span>→</span></a>
               </div>
             </article>
           ))}
@@ -71,7 +75,7 @@ export default function Home() {
               <p className="eyebrow">A DISCIPLINED APPROACH</p>
               <h2>How I Work <span className="title-line" /></h2>
             </div>
-            <p className="process-motto">SAME CURIOSITY.<br />A MORE USEFUL TOMORROW.</p>
+            <p className="process-motto">CURIOUS ENOUGH TO EXPLORE.<br />DISCIPLINED ENOUGH TO SHIP.</p>
           </div>
 
           <div className="process-grid">
@@ -87,12 +91,10 @@ export default function Home() {
         </section>
       </section>
 
-      <section className="about" id="about">
-        <div className="portrait-block">
-          <div className="portrait-overlay">
-            <span>REPLACE WITH</span>
-            <strong>PAULO.JPEG</strong>
-          </div>
+      <section className="about about-v2" id="about">
+        <div className="portrait-placeholder" aria-label="Portrait placeholder">
+          <span>PORTRAIT AREA</span>
+          <strong>UPLOAD LATER</strong>
         </div>
 
         <div className="about-copy">
@@ -103,17 +105,16 @@ export default function Home() {
             focused on turning problems into working systems.
           </h2>
           <p>
-            I’m Paulo Maisog, a builder and independent creator exploring automation,
-            digital systems, and practical ventures. MAISOG LABS is where I turn ideas
-            into real, useful outcomes.
+            I’m Paulo Maisog, an independent builder exploring automation, AI-enabled
+            workflows, and practical digital systems. Maisog Labs is where those ideas
+            become real, testable work.
           </p>
-          <a className="btn btn-soft" href="#">Learn More About Me <span>→</span></a>
+          <a className="btn btn-soft" href="#projects">Explore the work <span>→</span></a>
         </div>
 
         <div className="about-architecture">
           <div className="arch" />
-          <div className="plant">✣</div>
-          <p>SIMPLE SYSTEMS.<br />BRIGHTER<br />POSSIBILITIES.</p>
+          <p>CLASSICAL FORM.<br />MODERN SYSTEMS.</p>
         </div>
       </section>
 
@@ -131,14 +132,10 @@ export default function Home() {
         </div>
 
         <div className="footer-contact">
-          <p>Let’s build brighter systems.<br />
-            <a href={`mailto:${site.email}`}>{site.email}</a>
+          <p>
+            Let’s build brighter systems.<br />
+            <span className="muted-contact">Contact details coming soon.</span>
           </p>
-          <div className="socials">
-            <a href="#" aria-label="LinkedIn">in</a>
-            <a href="#" aria-label="X">X</a>
-            <a href="#" aria-label="YouTube">▶</a>
-          </div>
         </div>
 
         <div className="copyright">© 2026 MAISOG LABS. ALL RIGHTS RESERVED.</div>
