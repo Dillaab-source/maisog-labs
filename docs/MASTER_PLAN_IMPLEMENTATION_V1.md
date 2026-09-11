@@ -19,11 +19,13 @@ These changes do not alter production runtime or Cloudflare infrastructure.
 - [x] Add `.dev.vars` / `.dev.vars.*` to Git ignore rules.
 - [x] Update AI-agent repository guidance so future changes must follow the Master Plan and change log.
 - [x] Add this implementation tracker.
-- [ ] Review current repository files for architecture drift and record findings only; do not modify production behavior from this step.
-- [ ] Prepare a dependency-upgrade checklist, but do not upgrade packages until the project can be built/tested locally on the PC.
-- [ ] Prepare a Cloudflare verification checklist for the home session.
+- [x] Review current repository files for architecture drift and record findings only in `docs/ARCHITECTURE_AUDIT_V1.md`; no production behavior modified.
+- [x] Prepare the dependency/build verification checklist in `docs/HOME_SESSION_CHECKLIST_V1.md`; no package versions changed yet.
+- [x] Prepare the Cloudflare verification checklist in `docs/HOME_SESSION_CHECKLIST_V1.md`.
 
 ### Current safe-stop boundary
+
+**SAFE-NOW PREPARATION COMPLETE. STOP HERE UNTIL CONTROLLED PC/CLOUDFLARE ACCESS IS AVAILABLE.**
 
 Do NOT yet:
 - create production write APIs
@@ -33,6 +35,7 @@ Do NOT yet:
 - enable CMS publishing
 - expose MCP
 - merge this branch to `main`
+- upgrade dependencies without the local build/test environment
 
 ## B. Home session — Phase 1: verify identity/security boundary
 
