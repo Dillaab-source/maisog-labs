@@ -1,0 +1,35 @@
+{
+  "brand": "Maisog Labs",
+  "version": "V3.1",
+  "sourceOfTruth": "Approved V3.1 cinematic landing reference supplied by Paulo",
+  "rules": [
+    "Do not redesign the orbital logo.",
+    "Do not substitute helmet, compass, planet, shield, brain, robot, or badge marks.",
+    "Match approved composition before adding new visual ideas.",
+    "Rebuild UI as live HTML/CSS; do not bake UI text into the background image.",
+    "Preserve Earth-left / classical-architecture-right environment composition."
+  ],
+  "assets": [
+    {
+      "id": "logo-primary-light-bg",
+      "path": "brand/V3/logos/maisog-labs-primary-dark.svg",
+      "role": "PRIMARY_LOGO",
+      "background": "light",
+      "tags": ["canonical", "wordmark", "orbit", "star", "tagline", "light-background"],
+      "usage": "Brand guides, documents, light sections."
+    },
+    {
+      "id": "logo-icon-light-bg",
+      "path": "brand/V3/logos/maisog-labs-icon-dark.svg",
+      "role": "ICON",
+      "background": "light",
+      "tags": ["canonical", "orbit", "star", "favicon", "mark"],
+      "usage": "Favicon, compact mark, app icon."
+    }
+  ],
+  "websitePlacement": {
+    "header": "Small canonical orbital logo at top-left.",
+    "hero": "Large canonical orbital wordmark centered in hero.",
+    "footer": "Compact logo or wordmark only; do not invent a new lockup."
+  }
+}
