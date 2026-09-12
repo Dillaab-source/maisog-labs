@@ -11,7 +11,7 @@ This ledger records approved website changes, security impact, deployment result
 - Preserved foundations: Static Cloudflare export, centralized site content, dependency lockfile, security upgrades, change ledger, and V3 rollback reference.
 - Security: No database, authentication, API, upload, or client-side storage was introduced. The dependency audit remains clean.
 - Rollback reference: Git commit `70ea4df` restores Website V3.1.2; local commit `dfdbd8e` preserves the discarded V4 visual experiment.
-- Deployment result: Static production build passed; publication pending.
+- Deployment result: Static production build passed and the clean foundation was verified live at `https://maisoglabs.com/`.
 
 ## v4.0.0-alpha.1 — V4 visual foundation
 
