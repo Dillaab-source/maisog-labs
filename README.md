@@ -48,6 +48,8 @@ Open `http://localhost:3000`.
 npm run build
 ```
 
+Content contract checks: `npm test`. Public pages consume the validated build-time adapter in `lib/content/local.mjs`; edit the source document in `data/site.js`. See `docs/CONTENT.md` for publishing-state semantics and privacy limitations.
+
 The project uses a static export. The generated site is written to:
 
 ```text

@@ -2,6 +2,18 @@
 
 This ledger records approved website changes, security impact, deployment results, and rollback references.
 
+## v4.0.0-alpha.3 — Local content contract
+
+- Date: 2026-09-12
+- Objective: Finish the in-progress content migration while Cloudflare/admin configuration is skipped.
+- Changes: Centralized public editorial copy and SEO; added async local reader, strict schema 1.0.0 validation, and published-only projection. Updated the page, metadata, logo label, and project rail consumers. No stylesheet or artwork changes.
+- Behavior: Draft/archived collection entries are excluded before client props are created; featured published projects appear on the homepage. Invalid content or an unpublished root document stops the build. Carousel buttons now respect reduced motion.
+- Security: Admin identity removed from public content. Unknown fields and unsafe links are rejected. Draft filtering is NOT confidentiality or authorization; Git source remains public. No account, API, database, or infrastructure changes.
+- Verification: 27 content tests pass; static production build passes. Browser-rendered desktop/mobile QA remains outstanding (the previous browser launch failed because no executable was installed).
+- Database impact: None. D1/R2 integration, audit history, private preview, media management, and CMS writes remain deferred.
+- Rollback: Published GitHub baseline `ef879fde3d84ce632205d77b52ccbafda9f39251`. Earlier clean foundation on GitHub: `34c8b41f3bc3e728ce278980d65e7808266e0af4`.
+- Publication: Approved for commit and push to GitHub main. Cloudflare deployment and admin setup remain pending; alpha.2 was pushed to GitHub but its direct deployment attempt was blocked.
+
 ## v4.0.0-alpha.2 — Public experience rebuild
 
 - Date: 2026-09-12

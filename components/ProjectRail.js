@@ -9,7 +9,7 @@ export default function ProjectRail({ projects }) {
   function move(direction) {
     rail.current?.scrollBy({
       left: direction * Math.min(rail.current.clientWidth * 0.82, 520),
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
     });
   }
 
@@ -20,14 +20,14 @@ export default function ProjectRail({ projects }) {
         <button type="button" onClick={() => move(1)} aria-label="Next project">→</button>
       </div>
       <div className="project-rail" ref={rail}>
-        {projects.map((project) => (
-          <article className={`project-panel tone-${project.accent}`} id={project.slug} key={project.slug}>
-            <span className="panel-index">{project.number}</span>
+        {projects.map((project, index) => (
+          <article className={`project-panel tone-${project.accent}`} id={project.slug} key={project.id}>
+            <span className="panel-index">{String(index + 1).padStart(2, "0")}</span>
             <span className="panel-icon"><BlueprintIcon name={project.icon} size={28} /></span>
             <div className="panel-copy">
               <span>{project.category}</span>
               <h3>{project.title}</h3>
-              <p>{project.text}</p>
+              <p>{project.summary}</p>
             </div>
             <div className="panel-stack">
               {project.stack.map((item) => <span key={item}>{item}</span>)}

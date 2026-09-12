@@ -1,69 +1,134 @@
-export const projects = [
-  {
-    number: "01",
-    slug: "clinicflow",
-    category: "AI AUTOMATION",
-    title: "ClinicFlow",
-    text: "AI receptionist and appointment automation for dental clinics.",
-    stack: ["n8n", "LLM", "Webhooks", "Calendar"],
-    accent: "gold",
+export const siteContent = {
+  meta: {
+    schemaVersion: "1.0.0",
+    contentVersion: "4.0.0-alpha.3",
+    state: "published",
+    locale: "en-PH",
+    updatedAt: "2026-09-12",
   },
-  {
-    number: "02",
-    slug: "automation-hub",
-    category: "SYSTEMS",
-    title: "Automation Hub",
-    text: "Workflows, integrations, and reusable systems for real-world tasks.",
-    stack: ["APIs", "Automation", "AI", "n8n"],
-    accent: "blue",
+  site: {
+    name: "Maisog Labs",
+    location: "Mahaplag, Leyte · Philippines",
+    timezone: "UTC+08",
+    tagline: "Human potential. AI possibilities.",
   },
-  {
-    number: "03",
-    slug: "cybersecurity-lab",
-    category: "CYBERSECURITY",
-    title: "Cybersecurity Lab",
-    text: "Hands-on labs, notes, and practical security experiments.",
-    stack: ["Security", "Detection", "Research"],
-    accent: "steel",
+  seo: {
+    title: "Maisog Labs — Human potential. AI possibilities.",
+    description:
+      "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
+    canonicalUrl: "https://maisoglabs.com",
   },
-  {
-    number: "04",
-    slug: "experimental-projects",
-    category: "EXPERIMENTS",
-    title: "Experimental Projects",
-    text: "A sandbox for useful ideas, prototypes, and what comes next.",
-    stack: ["Agents", "Integrations", "Web", "More"],
-    accent: "gold",
+  navigation: [
+    { id: "nav-projects", label: "Projects", href: "#projects", order: 1, state: "published" },
+    { id: "nav-process", label: "Process", href: "#process", order: 2, state: "published" },
+    { id: "nav-about", label: "About", href: "#about", order: 3, state: "published" },
+  ],
+  hero: {
+    eyebrow: "INDEPENDENT TECHNOLOGY LAB · LEYTE, PHILIPPINES",
+    title: ["Ideas made", "useful."],
+    description:
+      "Maisog Labs turns practical ideas into useful automation, secure systems, and human-centered AI experiences.",
+    primaryAction: { label: "Explore the work", href: "#projects" },
+    secondaryAction: { label: "Contact the lab", href: "mailto:hello@maisoglabs.com" },
+    bridgeLabel: "THE BRIDGE / 01",
+    bridgeStatement: "Technology should extend human capability—not replace human purpose.",
   },
-];
-
-export const processSteps = [
-  { number: "01", icon: "experience", title: "Explore", text: "Start with the real problem and the people living with it." },
-  { number: "02", icon: "lab", title: "Test", text: "Turn assumptions into small, useful prototypes." },
-  { number: "03", icon: "systems", title: "Build", text: "Connect the right tools into a dependable system." },
-  { number: "04", icon: "foundation", title: "Refine", text: "Measure what works, document it, and improve." },
-];
-
-export const site = {
-  version: "4.0.0-alpha.2",
-  name: "Maisog Labs",
-  tagline: "Human potential. AI possibilities.",
-  eyebrow: "INDEPENDENT TECHNOLOGY LAB · LEYTE, PHILIPPINES",
-  description:
-    "Maisog Labs turns practical ideas into useful automation, secure systems, and human-centered AI experiences.",
-  email: "hello@maisoglabs.com",
-  adminEmail: "paulo@maisoglabs.com",
+  foundations: [
+    { id: "foundation", icon: "foundation", label: "Foundation", text: "Identity and structure", href: "#home", order: 1, state: "published" },
+    { id: "experience", icon: "experience", label: "Experience", text: "Responsive and immersive", href: "#projects", order: 2, state: "published" },
+    { id: "systems", icon: "systems", label: "Systems", text: "Automation that works", href: "#process", order: 3, state: "published" },
+    { id: "trust", icon: "security", label: "Trust", text: "Security by design", href: "#about", order: 4, state: "published" },
+  ],
+  projects: [
+    {
+      id: "project-clinicflow",
+      slug: "clinicflow",
+      category: "AI AUTOMATION",
+      title: "ClinicFlow",
+      summary: "AI receptionist and appointment automation for dental clinics.",
+      stack: ["n8n", "LLM", "Webhooks", "Calendar"],
+      accent: "gold",
+      icon: "automation",
+      order: 1,
+      featured: true,
+      state: "published",
+    },
+    {
+      id: "project-automation-hub",
+      slug: "automation-hub",
+      category: "SYSTEMS",
+      title: "Automation Hub",
+      summary: "Workflows, integrations, and reusable systems for real-world tasks.",
+      stack: ["APIs", "Automation", "AI", "n8n"],
+      accent: "blue",
+      icon: "systems",
+      order: 2,
+      featured: true,
+      state: "published",
+    },
+    {
+      id: "project-cybersecurity-lab",
+      slug: "cybersecurity-lab",
+      category: "CYBERSECURITY",
+      title: "Cybersecurity Lab",
+      summary: "Hands-on labs, notes, and practical security experiments.",
+      stack: ["Security", "Detection", "Research"],
+      accent: "red",
+      icon: "security",
+      order: 3,
+      featured: true,
+      state: "published",
+    },
+    {
+      id: "project-experimental-projects",
+      slug: "experimental-projects",
+      category: "EXPERIMENTS",
+      title: "Experimental Projects",
+      summary: "A sandbox for useful ideas, prototypes, and what comes next.",
+      stack: ["Agents", "Integrations", "Web", "More"],
+      accent: "violet",
+      icon: "lab",
+      order: 4,
+      featured: true,
+      state: "published",
+    },
+  ],
+  services: [
+    { id: "service-automation", title: "Workflow automation", summary: "Connected workflows that reduce repetitive work.", order: 1, state: "published" },
+    { id: "service-ai", title: "Human-centered AI", summary: "AI experiences designed around real user needs and clear boundaries.", order: 2, state: "published" },
+    { id: "service-systems", title: "Secure digital systems", summary: "Practical systems built with reliability and security in mind.", order: 3, state: "published" },
+  ],
+  process: {
+    kicker: "METHOD / REPEATABLE BY DESIGN",
+    title: "From question to system.",
+    steps: [
+      { id: "process-explore", icon: "experience", title: "Explore", text: "Start with the real problem and the people living with it.", order: 1, state: "published" },
+      { id: "process-test", icon: "lab", title: "Test", text: "Turn assumptions into small, useful prototypes.", order: 2, state: "published" },
+      { id: "process-build", icon: "systems", title: "Build", text: "Connect the right tools into a dependable system.", order: 3, state: "published" },
+      { id: "process-refine", icon: "foundation", title: "Refine", text: "Measure what works, document it, and improve.", order: 4, state: "published" },
+    ],
+  },
+  about: {
+    kicker: "ABOUT MAISOG LABS",
+    title: ["Brave enough to explore.", "Disciplined enough to build."],
+    body:
+      "Maisog means brave. The lab is an independent practice by Paulo Maisog—building useful automation, learning security through real systems, and documenting the work honestly.",
+    quote: "Not a replacement for humanity, but a force multiplier for what’s possible.",
+    quoteAttribution: "MAISOG LABS",
+  },
+  contact: {
+    headerLabel: "Start a conversation",
+    email: "hello@maisoglabs.com",
+    callToAction: "Let’s build something useful",
+  },
+  footer: {
+    statement: "Ideas today. A brighter tomorrow.",
+    copyright: "© 2026 MAISOG LABS",
+  },
+  projectSection: {
+    kicker: "SELECTED SYSTEMS",
+    title: "Work in motion.",
+    description: "Practical experiments where people, automation, and resilient technology meet.",
+    emptyMessage: "New work is taking shape. Check back soon.",
+  },
 };
-
-export const navigation = [
-  { label: "Projects", href: "#projects" },
-  { label: "Process", href: "#process" },
-  { label: "About", href: "#about" },
-];
-
-export const foundations = [
-  { icon: "foundation", label: "Foundation", text: "Identity and structure", href: "#home" },
-  { icon: "experience", label: "Experience", text: "Responsive and immersive", href: "#projects" },
-  { icon: "systems", label: "Systems", text: "Automation that works", href: "#process" },
-  { icon: "security", label: "Trust", text: "Security by design", href: "#about" },
-];

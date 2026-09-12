@@ -1,20 +1,25 @@
 import "./globals.css";
+import { getPublicContent } from "../lib/content/local.mjs";
 
-export const metadata = {
-  title: "Maisog Labs — Human potential. AI possibilities.",
-  description:
-    "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
-  metadataBase: new URL("https://maisoglabs.com"),
-  openGraph: {
-    title: "Maisog Labs",
-    description: "Practical automation, secure systems, and human-centered AI experiences.",
-    type: "website",
-  },
-};
+export async function generateMetadata() {
+  const { seo, site } = await getPublicContent();
+  return {
+    title: seo.title,
+    description: seo.description,
+    metadataBase: new URL(seo.canonicalUrl),
+    alternates: { canonical: seo.canonicalUrl },
+    openGraph: {
+      title: site.name,
+      description: seo.description,
+      type: "website",
+    },
+  };
+}
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const { meta } = await getPublicContent();
   return (
-    <html lang="en">
+    <html lang={meta.locale}>
       <body>{children}</body>
     </html>
   );
