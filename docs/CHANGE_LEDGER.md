@@ -2,6 +2,20 @@
 
 This ledger records approved website changes, security impact, deployment results, and rollback references.
 
+## v4.0.0-alpha.2 — Public experience rebuild
+
+- Date: 2026-09-12
+- Objective: Continue Phase 1 from the clean baseline without introducing future CMS or security conflicts.
+- Public experience: Added the clean human–AI cosmic background, blueprint framing, responsive floating navigation, swipeable project cards, process, about, and contact paths.
+- Brand: Applied the selected 4B horizontal Signature Fusion header in the Lunar Tech palette (cosmic navy, lunar ivory, and cobalt). The source remains provisional and isolated in `components/Logo.js` so the final production vector can replace it safely.
+- Content: Homepage navigation, project information, process copy, site identity, and foundation links remain centralized in `data/site.js`.
+- Accessibility: Added a skip link, semantic landmarks, visible focus states, labelled carousel controls, touch scroll snapping, and reduced-motion behavior.
+- Performance: Reused the previously optimized 163 KB WebP artwork and system font stacks; no remote font or image dependency was added.
+- Security: No authentication, API, database, upload, form-processing, client-side storage, or secret-handling surface was introduced.
+- Database impact: None.
+- Rollback reference: Git commit `669e71a` restores the deployed clean foundation; `70ea4df` restores Website V3.1.2.
+- Deployment result: Static production build passed; publication pending.
+
 ## v4.0.0-foundation — Clean design baseline
 
 - Date: 2026-09-12

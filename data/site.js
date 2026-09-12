@@ -38,19 +38,32 @@ export const projects = [
 ];
 
 export const processSteps = [
-  { number: "01", icon: "⌕", title: "Explore", text: "Ask better questions." },
-  { number: "02", icon: "⚗", title: "Test", text: "Turn ideas into prototypes." },
-  { number: "03", icon: "◇", title: "Build", text: "Create useful systems." },
-  { number: "04", icon: "↻", title: "Refine", text: "Learn. Improve. Repeat." },
+  { number: "01", icon: "experience", title: "Explore", text: "Start with the real problem and the people living with it." },
+  { number: "02", icon: "lab", title: "Test", text: "Turn assumptions into small, useful prototypes." },
+  { number: "03", icon: "systems", title: "Build", text: "Connect the right tools into a dependable system." },
+  { number: "04", icon: "foundation", title: "Refine", text: "Measure what works, document it, and improve." },
 ];
 
 export const site = {
-  version: "3.1.2",
+  version: "4.0.0-alpha.2",
   name: "Maisog Labs",
-  tagline: "Ideas into systems.",
-  eyebrow: "PRACTICAL AUTOMATION · REAL SYSTEMS",
+  tagline: "Human potential. AI possibilities.",
+  eyebrow: "INDEPENDENT TECHNOLOGY LAB · LEYTE, PHILIPPINES",
   description:
-    "An independent technology lab building practical automation, AI systems, and digital tools for real-world problems.",
+    "Maisog Labs turns practical ideas into useful automation, secure systems, and human-centered AI experiences.",
   email: "hello@maisoglabs.com",
   adminEmail: "paulo@maisoglabs.com",
 };
+
+export const navigation = [
+  { label: "Projects", href: "#projects" },
+  { label: "Process", href: "#process" },
+  { label: "About", href: "#about" },
+];
+
+export const foundations = [
+  { icon: "foundation", label: "Foundation", text: "Identity and structure", href: "#home" },
+  { icon: "experience", label: "Experience", text: "Responsive and immersive", href: "#projects" },
+  { icon: "systems", label: "Systems", text: "Automation that works", href: "#process" },
+  { icon: "security", label: "Trust", text: "Security by design", href: "#about" },
+];

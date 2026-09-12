@@ -2,7 +2,7 @@
 
 Maisog Labs is Paulo Maisog's portfolio and experimental studio for automation, AI systems, and practical digital projects.
 
-The current branch contains the minimal V4 foundation. It deliberately avoids committing to a logo or visual system until the final brand direction is approved.
+The current branch contains the V4 public foundation: a cinematic human–AI background, accessible floating content panels, and a local content layer. The header uses a provisional Signature Fusion lockup that can be replaced without changing page composition.
 
 ## Stack
 
@@ -74,10 +74,10 @@ Output directory: out
 - Version history and rollback references: `docs/CHANGE_LEDGER.md`
 - AI-agent instructions: `AGENTS.md`
 
-## Before launch
+## Before the final V4 release
 
-- Replace the temporary portrait with Paulo's real approved photo.
-- Move final production imagery into `public/images/`.
+- Replace the provisional signature bitmap with the approved production vector.
+- Confirm the final logo spacing at small header and favicon sizes.
 - Replace placeholder project and social links.
 - Confirm the contact email.
 - Run `npm run build` and test desktop/mobile layouts.

@@ -1,10 +1,9 @@
-export default function Logo({ dark = false }) {
+export default function Logo({ compact = false }) {
   return (
-    <div className={`logo ${dark ? "dark" : ""}`}>
-      <div className="logo-word">MAISOG</div>
-      <div className="logo-sub">LABS</div>
-      <span className="logo-orbit" />
-      <span className="logo-star" />
-    </div>
+    <span className={`brand-lockup${compact ? " brand-lockup--compact" : ""}`}>
+      <span className="signature-mark" aria-hidden="true" />
+      <span className="brand-divider" aria-hidden="true" />
+      <span className="brand-word">MAISOGLABS</span>
+    </span>
   );
 }

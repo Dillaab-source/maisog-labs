@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-Maisog Labs V4 is a statically exported Next.js portfolio deployed to Cloudflare. The current foundation is deliberately minimal while the final brand and logo are undecided.
+Maisog Labs V4 is a statically exported Next.js portfolio deployed to Cloudflare. Phase 1 now includes the approved cosmic visual direction while keeping the final production logo independently replaceable.
 
 ## Runtime flow
 Visitor → Cloudflare Pages → statically generated Next.js site.
@@ -10,10 +10,12 @@ There is no database and no server-side application dependency in Phase 1.
 
 ## V4 foundation presentation layer
 
-1. `app/page.js` contains only the minimal public composition.
-2. `app/globals.css` provides a small responsive design baseline without imagery or animation.
+1. `app/page.js` composes the public homepage, project rail, process, about, and contact paths.
+2. `app/globals.css` owns the responsive Lunar Tech presentation, background layering, glass panels, and reduced-motion behavior.
 3. `data/site.js` remains the local source for reusable public content until a later CMS phase.
-4. The header uses a temporary text wordmark. A final logo must be approved before a graphic brand asset is integrated.
+4. `components/Logo.js` contains the replaceable 4B-style header lockup. Its signature source is provisional until the final vector is approved.
+5. `components/ProjectRail.js` is the only client component; the rest of the page remains statically rendered.
+6. The clean cinematic artwork is a local optimized WebP asset. The original infographic is not used as a page background.
 
 ## Planned evolution
 Future features may add:

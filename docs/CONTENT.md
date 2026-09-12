@@ -14,6 +14,8 @@ Edit `data/site.js` for:
 ## Images
 Production assets should eventually be stored under `public/` rather than depending permanently on remote image URLs.
 
+The V4 cosmic background is stored locally at `public/images/maisog-v4-cosmic-background.webp`. The provisional signature source used by the replaceable header lockup is stored at `public/brand/paulo-signature-source.png`; replace it with an approved vector before the final V4 release.
+
 Recommended structure:
 
 ```text
