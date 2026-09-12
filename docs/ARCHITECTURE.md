@@ -1,12 +1,19 @@
 # Architecture
 
 ## Overview
-Maisog Labs is currently a statically exported Next.js portfolio deployed to Cloudflare Pages.
+Maisog Labs V4 is a statically exported Next.js portfolio deployed to Cloudflare. The current foundation is deliberately minimal while the final brand and logo are undecided.
 
 ## Runtime flow
 Visitor → Cloudflare Pages → statically generated Next.js site.
 
-There is no database and no server-side application dependency in V1.
+There is no database and no server-side application dependency in Phase 1.
+
+## V4 foundation presentation layer
+
+1. `app/page.js` contains only the minimal public composition.
+2. `app/globals.css` provides a small responsive design baseline without imagery or animation.
+3. `data/site.js` remains the local source for reusable public content until a later CMS phase.
+4. The header uses a temporary text wordmark. A final logo must be approved before a graphic brand asset is integrated.
 
 ## Planned evolution
 Future features may add:

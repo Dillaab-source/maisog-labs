@@ -2,6 +2,8 @@
 
 Maisog Labs is Paulo Maisog's portfolio and experimental studio for automation, AI systems, and practical digital projects.
 
+The current branch contains the minimal V4 foundation. It deliberately avoids committing to a logo or visual system until the final brand direction is approved.
+
 ## Stack
 
 - Next.js App Router
@@ -69,6 +71,7 @@ Output directory: out
 - Styling: `app/globals.css`
 - Architecture/deployment decisions: `docs/ARCHITECTURE.md`
 - Content conventions and assets: `docs/CONTENT.md`
+- Version history and rollback references: `docs/CHANGE_LEDGER.md`
 - AI-agent instructions: `AGENTS.md`
 
 ## Before launch

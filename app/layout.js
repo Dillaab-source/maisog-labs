@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Maisog Labs — Ideas into systems",
+  title: "Maisog Labs — Ideas into useful systems",
   description:
-    "Independent projects exploring automation, digital systems, and practical experiments for a brighter tomorrow.",
+    "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
 };
 
 export default function RootLayout({ children }) {
