@@ -144,6 +144,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .panel-copy { margin-top: auto; }.panel-copy > span { color: var(--tone); font-size: 0.57rem; }
 .panel-copy h3 { margin: 8px 0; font: 500 2rem / 1.05 var(--serif); }.panel-copy p { max-width: 340px; min-height: 50px; margin: 0; color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
 .panel-stack { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }.panel-stack span { padding: 5px 8px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px; color: rgba(243, 237, 224, 0.7); font: 0.59rem var(--mono); }
+.project-link { position: relative; z-index: 1; width: fit-content; margin-top: 18px; color: var(--tone); font: 0.66rem var(--mono); letter-spacing: 0.08em; text-decoration: none; text-transform: uppercase; }
+.project-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .rail-controls { position: absolute; z-index: 5; top: -64px; right: 0; display: flex; gap: 7px; }.rail-controls button { width: 42px; height: 38px; border: 1px solid var(--line); background: rgba(5, 11, 24, 0.8); color: var(--ivory); cursor: pointer; font-size: 1rem; }.rail-controls button:hover { border-color: var(--cobalt-soft); color: var(--cobalt-soft); }
 .swipe-note { margin: 8px 0 0; color: rgba(174, 184, 200, 0.58); font-size: 0.56rem; text-align: right; }
 
