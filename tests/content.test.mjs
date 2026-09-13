@@ -55,6 +55,7 @@ for (const [name, mutate] of [
   ["email header injection", c => c.hero.secondaryAction.href = "mailto:a@example.com?bcc=b@example.com"],
   ["malformed email", c => c.contact.email = "not-an-email"],
   ["insecure canonical", c => c.seo.canonicalUrl = "http://example.com"],
+  ["insecure project URL", c => c.projects[0].projectUrl = "http://example.com"],
   ["credential URL", c => c.seo.canonicalUrl = "https://user:pass@example.com"],
   ["invalid date", c => c.meta.updatedAt = "2026-02-30"],
   ["negative order", c => c.projects[0].order = -1],
