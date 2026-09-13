@@ -28,6 +28,13 @@ This repository is the source for the Maisog Labs portfolio website.
 6. Before major changes, update `docs/ARCHITECTURE.md` if the structure or deployment model changes.
 7. Keep commits focused and use clear messages.
 
+## Cloudflare operations
+- Before performing Cloudflare setup or account-level operations, read `docs/CLOUDFLARE_AGENT_SETUP.md` and re-check the current official Cloudflare agent documentation when needed.
+- Prefer the official Cloudflare plugin/Skills plus Cloudflare MCP for account resources and use Wrangler for local development, Workers deploys, migrations, and product-specific CLI tasks.
+- Never commit Cloudflare credentials, OAuth tokens, API tokens, service tokens, or secrets.
+- Use least-privilege authorization and preview/branch deployments before production changes.
+- Treat DNS, custom-domain, Zero Trust/Access, WAF, D1 migrations, R2 deletion, and production deployment actions as privileged changes requiring review.
+
 ## Validation checklist
 - `npm install`
 - `npm run build`
@@ -41,3 +48,4 @@ This repository is the source for the Maisog Labs portfolio website.
 - Inspect existing components and data modules before creating duplicates.
 - Make the smallest coherent change that satisfies the task.
 - Explain architectural changes in the commit or PR description.
+- For Cloudflare work, follow `docs/CLOUDFLARE_AGENT_SETUP.md`.
