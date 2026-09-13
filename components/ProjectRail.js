@@ -32,6 +32,11 @@ export default function ProjectRail({ projects }) {
             <div className="panel-stack">
               {project.stack.map((item) => <span key={item}>{item}</span>)}
             </div>
+            {project.projectUrl ? (
+              <a className="project-link" href={project.projectUrl} target="_blank" rel="noopener noreferrer">
+                Open live dashboard <span aria-hidden="true">↗</span>
+              </a>
+            ) : null}
           </article>
         ))}
       </div>
