@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S0-ARCHITECTURE-FREEZE
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
+TURN: CLAUDE
+STATUS: WAITING_FOR_IMPLEMENTER
 AUTHORIZED_SCOPE: SENTINEL_S0_ARCHITECTURE_FREEZE_DOCS_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 4760134f28efec80a25245162a596598e46c540a
 LAST_ARCHITECT_REVIEWED_SHA: 4760134f28efec80a25245162a596598e46c540a
 CURRENT_REMEDIATION_CYCLE: 0
@@ -30,36 +30,42 @@ Allowed primary states:
 
 ## Current authorization
 
-Paulo authorized **MaisogLabs DevOS v1.2.0 — SENTINEL, S0 Architecture Freeze only**, following Architect Sync `ML-DEVOS-AS-001` and Decision Log entry `D-010`.
+Paulo has amended the Sentinel topology through Decision Log `D-011`.
 
-S0 remains documentation/bootstrap-only. No later Sentinel phase is authorized.
+The existing `Dillaab-source/maisog-labs` repository is now the approved target Sentinel/DevOS monorepo. The previous requirement for a separate `Dillaab-source/maisoglabs-devos` repository is superseded.
 
-## Architect review result
+S0 remains architecture/governance documentation only. No later Sentinel phase is authorized.
 
-Architect reviewed implementer handoff commit:
+## Authorized S0 action now
 
-`4760134f28efec80a25245162a596598e46c540a`
+Claude may commit the exact S0 freeze documentation artifacts into a documentation-only `devos/` structure in this repository, then update the handoff/state and return control to the Architect.
 
-Verdict:
+Expected artifacts:
 
-`SENTINEL S0 STAGE GATE: NOT YET APPROVED — PAULO ACTION REQUIRED`
+- `devos/architecture/ML-DEVOS-ARCH-001.md`
+- `devos/plans/ML-DEVOS-SIP-001.md`
+- `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`
+- `devos/governance/TRUST_BOUNDARIES.md`
+- `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`
+- `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`
+- `devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md`
+- `devos/handoffs/ML-DEVOS-S0-HANDOFF.md`
 
-The approved K-1…K-7 direction remains valid. The gate is blocked because the actual eight freeze documents are not yet independently reviewable in the target repository or current conversation file surface, and the permanent target repository is not yet available through the current integration.
+Exact filenames/paths may vary only if needed for a coherent documentation hierarchy; no runtime/control-plane code may be added.
 
-See `coordination/ARCHITECT_REVIEW.md` for the full review and explicit `AS0-001`…`AS0-012` findings.
+## Architecture decisions in force
 
-## Paulo decision/action gate
+- D-011 / AS0-001A: `maisog-labs` is repurposed as the Sentinel monorepo.
+- Existing website code and Git history are preserved during S0.
+- Sentinel remains the cross-project meta-system.
+- Per-project/per-task namespaced state remains the target; this file is bootstrap-only state.
+- Five actors: Paulo, Architect, Builder, QA, Independent Reviewer.
+- Evidence Gate and related engines are system mechanisms, not decision authorities.
+- Evidence provenance remains provider-independent: `ACTOR_REPORTED`, `INDEPENDENTLY_INSPECTED`, `INDEPENDENTLY_REPRODUCED`, `CI_ATTESTED`, `RUNTIME_OBSERVED`.
+- QA automation, CI, GitHub rulesets, Evidence Gate execution, and other runtime enforcement remain later-phase work.
+- After the exact freeze artifacts are committed here and Architect-approved, this repository becomes the authoritative Sentinel source of truth.
 
-Paulo must resolve the bootstrap availability issue by doing one of the following:
-
-1. create `Dillaab-source/maisoglabs-devos` manually and connect/authorize it so the S0 documents can be committed there; or
-2. connect tooling with permission to create/access that repository.
-
-The exact eight S0 freeze documents must then be made available to the Architect for independent inspection before S0 can be approved.
-
-If the documents are provided directly before repository creation, the Architect may review those exact versions, but the approved versions must later be committed unchanged to `maisoglabs-devos` or be re-reviewed if they differ.
-
-## Explicitly prohibited while waiting
+## Explicitly prohibited in S0
 
 - no DevOS control-plane/runtime implementation
 - no Task Engine implementation
@@ -70,14 +76,22 @@ If the documents are provided directly before repository creation, the Architect
 - no website/admin implementation
 - no production deployment
 - no merge to website `main`
-- no migration of the current website pilot into Sentinel
+- no application/runtime migration or directory restructuring
+- no deletion or movement of existing website files
+- no destructive rewrite of repository history
 
-## Loop guard
+## Required handoff
 
-Automatic remediation cycles remain capped at `MAX_REMEDIATION_CYCLES`.
+After committing the freeze documents, Claude must:
 
-No remediation cycle is currently assigned because the outstanding issue is a Paulo/tooling bootstrap action, not an implementation defect.
+1. report the exact commit SHA containing the eight freeze artifacts;
+2. list every file created/modified;
+3. map the documents to D-010 K-2…K-7, D-011 / AS0-001A, and AS0-002…AS0-012;
+4. verify that only documentation/bootstrap files changed;
+5. update `coordination/IMPLEMENTER_HANDOFF.md`;
+6. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`;
+7. stop for independent Architect review.
 
 ## Current gate
 
-`TURN: PAULO`.
+Sentinel S0 monorepo topology amendment is approved. Claude owns the next documentation-only action.
