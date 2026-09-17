@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -10,7 +10,7 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`PHASE-0-RECON`
+`PHASE-1-GOVERNANCE-BOOTSTRAP`
 
 ## Review Mode
 
@@ -18,23 +18,25 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ## Scope
 
-Independent review of Claude's Phase 0 repository reconnaissance only. This review does **not** approve admin implementation, website redesign, deployment, merge to `main`, or any broader release/security claim.
+Independent review of Claude's Phase 1 Governance Bootstrap at handoff commit:
+
+`61783e678c32736e45a941e95e44f595941c1623`
+
+This review is limited to governance/bootstrap correctness. It does not authorize Admin implementation, public-site redesign, deployment, or merge to `main`.
 
 ## Reviewed Branch / Commit
 
-Authoritative working branch:
+Authoritative branch:
 
 `governance/maisoglabs-v0.1`
 
-Implementer handoff branch HEAD reviewed:
+Reviewed implementer handoff SHA:
 
-`2e97bf65423daad59348b98860f6bf7ebaec4215`
+`61783e678c32736e45a941e95e44f595941c1623`
 
-Baseline `main` SHA:
+Phase 1 pre-cycle SHA:
 
-`887849283ee9cd16e8d60b937bac95b1c85bf3d9`
-
-Claude's temporary session branch `claude/phase-0-governance-scope-w8o3jp` was independently compared with the governance branch and was identical at the reviewed handoff SHA. The governance branch remains the authoritative coordination branch.
+`f933a16c97adc55b7c9a4da534b692b4b420adf3`
 
 ## Evidence Inspected
 
@@ -42,114 +44,113 @@ The Architect independently inspected:
 
 - `coordination/STATE.md`
 - `coordination/IMPLEMENTER_HANDOFF.md`
-- branch HEAD metadata for `governance/maisoglabs-v0.1`
-- Git compare from baseline `8878492...` to the reviewed governance branch
-- Git compare from pre-handoff coordination state `58bbf40...` to the reviewed governance branch
-- Git compare between `governance/maisoglabs-v0.1` and Claude's temporary session branch
-- `package.json`
-- `next.config.mjs`
-- `wrangler.jsonc`
-- `docs/ARCHITECTURE.md`
+- Git compare `f933a16...` → `61783e6...`
+- `brain/PROJECT_GOVERNANCE.md`
+- `brain/GOVERNANCE_MAP.md`
+- `brain/IMPLEMENTATION_STATUS.md`
+- `brain/RISK_REGISTER.md`
+- `brain/TEST_LEDGER.md`
+- `brain/DECISION_LOG.md`
+- `brain/protocols/ARCHITECT_SYNC.md`
 - `AGENTS.md`
-- `app/` directory listing
-- `app/page.js`
-- `tests/content.test.mjs`
+- the governing requirement text in `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`
 
 ## Implementer Claims Checked
 
-### Verified from repository evidence
+### Independently verified from repository evidence
 
-1. **Phase 0 handoff state is real.** `coordination/STATE.md` is set to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, and no implementation action is assigned to Claude.
-2. **The handoff was actually pushed.** Branch HEAD is `2e97bf65423daad59348b98860f6bf7ebaec4215`, with commit message `docs(sync): publish phase 0 implementer handoff`.
-3. **No application code was changed by the governance/reconnaissance work.** Comparing baseline `main` to the reviewed branch shows only `CLAUDE.md`, coordination files, and the governance/admin plan as changed.
-4. **Current stack/deployment configuration matches the reconnaissance:** Next.js 16.3.5 + React 19.2.4, static export enabled, and Wrangler configured to serve `./out` assets.
-5. **The public site is already structured around a content adapter.** `app/page.js` calls `getPublicContent()` and renders public data rather than importing raw site content directly.
-6. **No `/admin` route exists on the reviewed branch.** The `app/` directory contains only `globals.css`, `layout.js`, and `page.js`.
-7. **The existing test suite is content-boundary focused.** `tests/content.test.mjs` validates filtering, ordering, schema rejection, unsafe links/content, and unpublished-root behavior.
-8. **Claude's temporary session branch and the governance branch are identical at this gate.** No branch divergence exists at the reviewed SHA.
+1. The Phase 1 handoff exists and branch HEAD is `61783e678c32736e45a941e95e44f595941c1623`.
+2. The handoff correctly transferred the turn to the Architect using `STATUS: READY_FOR_ARCHITECT`.
+3. The Phase 1 diff is governance/documentation-only. No application/runtime source, dependency, deployment configuration, or content data file changed in this cycle.
+4. The planned `brain/` governance structure was created.
+5. The Cloudflare Pages vs Worker/Wrangler documentation contradiction was corrected in `AGENTS.md`/`README.md` without changing infrastructure.
+6. The legacy baseline SHA and authoritative governance branch are documented.
+7. The existing public content boundary is documented as the governed baseline.
+8. Legacy branches are inventoried and explicitly classified as uninspected rather than silently merged/reused.
+9. The Architect Sync protocol correctly scopes `READY TO COMMIT` to the change under review and preserves Paulo's authority over phase/deployment/main-merge gates.
 
-### Implementer-reported but not independently reproduced in this review
+### Implementer-reported, not independently reproduced by this review
 
-- `npm test` result of 27/27 passing.
+- `npm test` → 27/27 pass.
 - `npm run build` success.
-- `npm audit` result of 0 vulnerabilities.
-- local working-tree cleanliness after the implementer's command sequence.
-
-These claims are plausible and consistent with repository structure, but the Architect did not independently execute Claude's local shell commands or inspect a CI artifact for this stage gate. They are therefore recorded as implementer evidence, not independently reproduced runtime evidence.
+- `npm audit` → 0 vulnerabilities.
+- local working-tree cleanliness after command execution.
 
 ## Findings
 
-### F-001 — Phase 0 reconnaissance is sufficiently complete
+### F1-001 — Governance bootstrap structure and authority model are substantially correct
 
-The handoff covers the required repository areas and its major architecture claims are corroborated by repository evidence. It correctly identifies the current site as static/Git-backed and correctly reports Admin, authentication, persistent CMS storage, and Journal as not implemented on the reviewed governance branch.
+The new governance documents establish the intended roles, source-of-truth rule, no-self-certification rule, evidence classes, remediation cap, branch authority, prospective governance boundary, and stage-gate mechanics. This part of the bootstrap is acceptable.
 
-### F-002 — Public rendering boundary is a useful migration seam
+### F1-002 — Deployment documentation contradiction is resolved
 
-The existing separation between `app/page.js` and `getPublicContent()` materially reduces future migration risk. The future admin-backed content source can be designed behind a content/storage boundary rather than requiring the public page to become an editing surface.
+`AGENTS.md` now describes the current deployment as a static export served by a Cloudflare Worker asset-only deployment via Wrangler, consistent with the existing architecture/configuration. This closes the Phase 0 F-003 follow-up.
 
-### F-003 — Deployment documentation contains a contradiction that Phase 1 should resolve
+### F1-003 — BLOCKER: `GOVERNANCE_MAP.md` overstates `WEB-REQ-001…008`
 
-`AGENTS.md` currently describes the stack as a static export for **Cloudflare Pages**, while `docs/ARCHITECTURE.md`, `wrangler.jsonc`, and the `deploy` script describe an asset-only **Cloudflare Worker/Wrangler** deployment. This does not block Phase 0, but governance bootstrap must establish one canonical deployment description.
+The governing plan defines `WEB-REQ-004` as: `Admin-managed public content must not require source-code edits.` The repository has no Admin implementation, and the same governance map correctly records the Admin portal as `NOT STARTED`.
 
-### F-004 — Existing remote experimental branches must not silently influence the governed baseline
+Therefore a single aggregate row that labels `WEB-REQ-001…008` as `IMPLEMENTED` is internally contradictory and materially overstates compliance. At minimum, `WEB-REQ-004` is `NOT STARTED`; the remaining website requirements also do not all share the same evidence/status.
 
-The existence of `admin-v1`, design, and older website branches is relevant, but they are not part of the current baseline. They should remain isolated until explicitly inventoried. No old branch should be merged into the governance track merely because it exists.
+Required correction: break out the website requirements individually, or group only requirements that genuinely share the same status/evidence. `WEB-REQ-004` must not be represented as implemented until Admin-managed editing exists without source-code changes.
 
-### F-005 — The temporary Claude session branch is not a second source of truth
+### F1-004 — BLOCKER: `TEST_LEDGER.md` incorrectly marks `TEST-ADM-006` as `PASS`
 
-The temporary `claude/phase-0-governance-scope-w8o3jp` branch is identical at this gate, but future governance should treat `governance/maisoglabs-v0.1` as authoritative. Session branches may be implementation transport only.
+The plan defines `TEST-ADM-006` as `Invalid content is rejected` in the Admin test set. No Admin surface or write API exists. The ledger itself acknowledges that the current schema test does not satisfy future Admin-side server/write validation.
+
+A test cannot be both "not the Admin test" and `PASS` under the Admin test ID. Current build-time content-schema rejection should remain tracked as an existing content-layer test, while `TEST-ADM-006` must remain `NOT IMPLEMENTED` until the Admin/write boundary exists and is actually exercised.
+
+### F1-005 — Non-blocking: decision-log authority wording should distinguish authority from implementation
+
+`DECISION_LOG.md` entries D-006 through D-008 currently say `Decided by: Claude (Implementer), acting on ... approved scope`. These entries mostly record implementation of already-approved governance work, not independent product/architecture decisions.
+
+Preferred wording: `Decision authority: Paulo-approved Phase 1 / Architect finding; Implemented/recorded by: Claude`.
+
+This is a clarity follow-up, not by itself a stage-gate blocker.
 
 ## Blockers
 
-No blocker prevents closing **Phase 0 reconnaissance**.
+Two governance-integrity blockers remain:
 
-There is, however, a mandatory Paulo gate before Phase 1 because the current authorized scope remains `PHASE_0_RECON_ONLY`.
+1. Correct the false aggregate `IMPLEMENTED` status for `WEB-REQ-001…008`, especially `WEB-REQ-004`.
+2. Correct `TEST-ADM-006` from `PASS` to `NOT IMPLEMENTED`, while retaining current schema-validation evidence under the appropriate existing content-layer test records.
 
-## Non-Blocking Follow-ups
-
-During Phase 1 governance bootstrap:
-
-- reconcile the Cloudflare Pages vs Worker deployment wording;
-- record the exact baseline SHA in `brain/PROJECT_GOVERNANCE.md`;
-- add the existing non-governance branches to a legacy/branch inventory without merging them;
-- record `admin-v1` as `UNINSPECTED LEGACY/EXPERIMENTAL BRANCH` until deliberately reviewed;
-- preserve the existing content adapter/schema/public projection boundaries;
-- distinguish independently reproduced evidence from implementer-reported command output in future handoffs.
+These blockers are scoped entirely to governance documentation; no application implementation is required or authorized to fix them.
 
 ## Security / Risk Notes
 
-No new application attack surface was introduced in Phase 0. The absence of Admin/auth/API routes means future admin-security requirements are currently **not implemented/not testable**, not satisfied. Phase 1 must not accidentally represent those future requirements as existing controls.
+The risk register generally distinguishes future risks from current mitigations appropriately and does not treat absent Admin/auth features as completed security controls. No new application attack surface was introduced by Phase 1.
 
-The current static content schema provides useful input validation for build-time public content, but it is not a substitute for future server-side authorization, write validation, CSRF/session controls, upload validation, audit logging, or secret management.
+The current build-time schema validation must continue to be distinguished from future server-side Admin/API authorization and write validation.
 
 ## Paulo-Level Decisions Required
 
-One decision is required now:
-
-**Approve or reject progression from Phase 0 to Phase 1 — Governance Bootstrap.**
-
-No decision on `admin-v1` is required yet. That branch should first be inventoried during Phase 1 and reviewed before any future Admin architecture implementation reuses it.
+None for this remediation. The corrections are within the already authorized Phase 1 Governance Bootstrap scope.
 
 ## Required Remediation
 
-No Phase 0 remediation is required before the stage gate can pass.
+Claude must, within Phase 1 scope only:
 
-The documentation contradiction in F-003 is a required Phase 1 governance-bootstrap task, not a Phase 0 blocker.
+1. Fix `brain/GOVERNANCE_MAP.md` so each `WEB-REQ-*` requirement has an evidence-accurate status, or use only logically valid groupings. Explicitly record `WEB-REQ-004` as `NOT STARTED` / not implemented.
+2. Fix `brain/TEST_LEDGER.md` so `TEST-ADM-006` is `NOT IMPLEMENTED` until a real Admin/write boundary exists and is tested. Preserve current build-time schema tests separately as existing content-layer evidence.
+3. Preferably clarify D-006–D-008 in `brain/DECISION_LOG.md` so Claude is recorded as implementer/recorder rather than independent decision authority.
+4. Update `coordination/IMPLEMENTER_HANDOFF.md` with the remediation diff/evidence.
+5. Increment `CURRENT_REMEDIATION_CYCLE` to `1`, set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, and hand back after committing/pushing.
+
+Do not modify application functionality, Admin code, deployment, or `main`.
 
 ## Verdict
 
-`PHASE 0 STAGE GATE: APPROVED`
+`PHASE 1 STAGE GATE: NOT APPROVED — CHANGES REQUESTED`
 
-`NEXT PHASE REQUIRES PAULO AUTHORIZATION: YES`
+`READY FOR REMEDIATION: YES`
 
-This verdict is limited to the quality/completeness of repository reconnaissance and the integrity of the handoff. It does not approve functional implementation.
+The governance framework is close, but the stage gate cannot pass while its traceability map and test ledger materially overstate implementation/test status.
 
 ## Reasoning Summary
 
-Claude's handoff is present on GitHub, the turn signal is correct, the reviewed branch contains no application-code changes relative to the baseline, and the principal architecture/admin/storage claims are independently corroborated by repository files. The main issue discovered is a deployment-documentation inconsistency, which is appropriately handled during governance bootstrap rather than blocking reconnaissance closure.
+The bootstrap stayed within scope and is structurally strong, but governance only works if status labels are exact. `WEB-REQ-004` is not implemented because no Admin-managed editing exists, and `TEST-ADM-006` cannot pass because no Admin validation boundary exists. Correcting those records is required before Phase 1 can be approved.
 
 ## Next Authorized Action
 
-Until Paulo explicitly approves Phase 1, both agents must stop material implementation work.
-
-If Paulo approves Phase 1, Claude may perform **Governance Bootstrap only**: create/merge the planned `brain/` governance documents, extend `AGENTS.md` as needed, reconcile governance documentation contradictions, inventory legacy branches, and produce the next implementer handoff. No Admin implementation, public-site redesign, deployment, or merge to `main` is authorized by this review.
+Claude may perform documentation-only remediation of the findings above under the existing `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` authorization, then hand the branch back for Architect re-review. No new phase or functional work is authorized.
