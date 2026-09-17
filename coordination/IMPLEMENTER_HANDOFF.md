@@ -8,81 +8,84 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`SENTINEL-S0-ARCHITECTURE-FREEZE`
+`SENTINEL-S0-ARCHITECTURE-FREEZE` — freeze-artifact commit sub-cycle (following the monorepo topology amendment)
 
-Prior cycle (`PHASE-1-GOVERNANCE-BOOTSTRAP`) closed `ARCHITECT_APPROVED` at commit `5e98d09`; its handoff content has been superseded by this section per the "replace/update each cycle" convention in `coordination/README.md`. The website pilot's `brain/*` governance documents from that cycle are unchanged and still in force.
+Prior sub-cycle (staged-documents attempt, blocked on separate-repo creation) closed with Architect verdict `SENTINEL S0 STAGE GATE: NOT YET APPROVED — FREEZE ARTIFACT REVIEW STILL REQUIRED` at handoff SHA `4760134`. Paulo then recorded `D-011` (monorepo repurpose) and the Architect recorded amendment `AS0-001A`. This sub-cycle actually commits the eight freeze artifacts into this repository, as that verdict required.
 
 ## Objective
 
-Produce the SENTINEL S0 Architecture Freeze documentation artifacts authorized in `brain/DECISION_LOG.md` `D-010` and `coordination/STATE.md` (`AUTHORIZED_SCOPE: SENTINEL_S0_ARCHITECTURE_FREEZE_DOCS_ONLY`): the frozen architecture spec, roadmap, role matrix, trust boundaries, bootstrap rule, evidence provenance model, repository/overlay topology, and this handoff. Attempt to bootstrap the target repository `Dillaab-source/maisoglabs-devos` if the environment permits; otherwise report the blocker and stage the documents without improvising an alternate permanent topology.
+Commit the S0 Architecture Freeze documentation into `devos/` in this now-canonical Sentinel monorepo (`D-011`, `AS0-001A`), per `coordination/STATE.md`'s "Authorized S0 action now." Update the handoff and hand back to the Architect.
 
 ## Requested Review Mode
 
-`STAGE GATE REVIEW`
+`STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`
 
 ## Branch / Commit State
 
-- Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `5a932e1` ("docs(sync): authorize Sentinel S0 freeze documents"), pulled and fast-forwarded before any action was taken.
-- `coordination/STATE.md` at pull time: `CYCLE_ID: SENTINEL-S0-ARCHITECTURE-FREEZE`, `TURN: CLAUDE`, `STATUS: WAITING_FOR_IMPLEMENTER`, `AUTHORIZED_SCOPE: SENTINEL_S0_ARCHITECTURE_FREEZE_DOCS_ONLY`, `IMPLEMENTER_ACTION_REQUIRED: YES` — confirmed before starting.
-- `brain/DECISION_LOG.md` `D-010` read in full before starting: records the K-1…K-7 decisions and "additional freeze corrections" this cycle implements.
-- **Disclosed gap:** `D-010` and `coordination/STATE.md` both cite Architect Sync `ML-DEVOS-AS-001` and findings `AS0-001`…`AS0-012`. A repository-wide search (`grep -rn "ML-DEVOS-AS-001\|AS0-0"`) at commit `5a932e1` found these referenced by ID only, in `coordination/STATE.md` and `brain/DECISION_LOG.md` — no file contains that Architect Sync's actual content. This cycle's documents are built strictly from the K-1…K-7 text and freeze-corrections text that *are* present verbatim in `D-010`; they have not been reconciled against any fuller content of `ML-DEVOS-AS-001` because none is available in this repository.
+- Base SHA for this sub-cycle: `ad4cd8489d2dcc37680fa525d1222d156936f98c` (`docs(sync): authorize Sentinel S0 monorepo freeze artifacts`), pulled and fast-forwarded before any file was written.
+- `coordination/STATE.md` at base SHA confirmed: `CYCLE_ID: SENTINEL-S0-ARCHITECTURE-FREEZE`, `TURN: CLAUDE`, `STATUS: WAITING_FOR_IMPLEMENTER`, `IMPLEMENTER_ACTION_REQUIRED: YES`, `AUTHORIZED_SCOPE: SENTINEL_S0_ARCHITECTURE_FREEZE_DOCS_ONLY` — matched the required preconditions before any action was taken.
+- `brain/DECISION_LOG.md` `D-011` and `coordination/ARCHITECT_REVIEW.md` (containing `AS0-001`…`AS0-012` and amendment `AS0-001A`) read in full before starting.
+- Freeze commit SHA: **`<see the immediately following commit on this branch — this handoff file is part of that same commit and cannot self-reference its own resulting hash; reported to Paulo directly in this turn's final response>`**.
 
-## 1. Repository-creation attempt and blocker
+## 1. Files created this commit
 
-Attempted `mcp__github__create_repository` (`name: maisoglabs-devos`, `private: true`, `autoInit: true`) targeting the account confirmed via `mcp__github__get_me` to be `Dillaab-source` itself (a personal account, 1 public repo — `maisog-labs` — not a separate organization).
+Under `devos/` (new directory, this commit only):
 
-**Result:** `403 Resource not accessible by integration` on `POST /user/repos`. This session's GitHub App installation has content/PR-level permissions scoped to `maisog-labs`; it does not carry account-level repository-creation permission. Confirmed not a naming collision: `mcp__github__search_repositories` for `org:Dillaab-source maisoglabs-devos` returned zero results — the repository genuinely does not exist.
+1. `devos/architecture/ML-DEVOS-ARCH-001.md`
+2. `devos/plans/ML-DEVOS-SIP-001.md`
+3. `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`
+4. `devos/governance/TRUST_BOUNDARIES.md`
+5. `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`
+6. `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`
+7. `devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md`
+8. `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` — full Architect handoff with the D-010 K-2…K-7 / D-011 / AS0-001A / AS0-002…AS0-012 mapping table
 
-Per the explicit instruction not to improvise an alternate permanent topology, the freeze documents were **not** committed into `maisog-labs` as if it were Sentinel's home. They are staged outside any repository and were delivered directly to Paulo as files, pending either (a) the GitHub App's permissions being widened to allow repository creation, or (b) manual creation of `Dillaab-source/maisoglabs-devos` followed by `add_repo` attachment in a future session to commit them as the first freeze baseline.
+Full per-document summaries and the mapping table live in `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` §4–§5 rather than being duplicated here.
 
-## 2. Files produced this cycle
+**Modified in this same commit:** `coordination/IMPLEMENTER_HANDOFF.md` (this document), `coordination/STATE.md` (turn handoff, see below).
 
-**Staged (not committed to any repository — delivered to Paulo directly):**
-1. `ML-DEVOS-ARCH-001.md` — frozen Sentinel architecture specification
-2. `ML-DEVOS-SIP-001.md` — S0–S14 implementation roadmap
-3. `ROLE_RESPONSIBILITY_MATRIX.md`
-4. `TRUST_BOUNDARIES.md`
-5. `BOOTSTRAP_SOURCE_OF_TRUTH.md`
-6. `EVIDENCE_PROVENANCE_MODEL.md`
-7. `REPOSITORY_OVERLAY_TOPOLOGY.md`
-8. `ML-DEVOS-S0-HANDOFF.md` — full Architect handoff, including the K-1…K-7 mapping table and the `ML-DEVOS-AS-001` gap disclosure
+**Not modified:** `app/`, `components/`, `data/`, `lib/`, `public/`, `tests/`, `package.json`, `package-lock.json`, `next.config.mjs`, `wrangler.jsonc`, every website-pilot `brain/*` document, `AGENTS.md`, `README.md`, `docs/*`, `coordination/README.md`, `coordination/ARCHITECT_REVIEW.md` (never overwritten by Claude).
 
-**Modified in `maisog-labs` this cycle (documentation only):**
-- `coordination/IMPLEMENTER_HANDOFF.md` — this document
-- `coordination/STATE.md` — turn handoff (see below)
+## 2. Verification performed before committing
 
-**Not modified:** every application, content, test, deployment, and configuration file in `maisog-labs` (`app/`, `components/`, `data/`, `lib/`, `tests/`, `public/`, `package.json`, `wrangler.jsonc`, `next.config.mjs`); every website-pilot `brain/*` document (unchanged from Phase 1 closure); `AGENTS.md`, `README.md`, `docs/*`.
+```
+$ git diff --stat ad4cd84..HEAD   (run after staging, before commit)
+ devos/architecture/ML-DEVOS-ARCH-001.md         | 182 ++++++++++++++++++++++++
+ devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md   |  21 +++
+ devos/governance/EVIDENCE_PROVENANCE_MODEL.md   |  49 +++++++
+ devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md |  74 ++++++++++
+ devos/governance/ROLE_RESPONSIBILITY_MATRIX.md  |  34 +++++
+ devos/governance/TRUST_BOUNDARIES.md            |  38 +++++
+ devos/handoffs/ML-DEVOS-S0-HANDOFF.md           |  94 ++++++++++++
+ devos/plans/ML-DEVOS-SIP-001.md                 |  40 ++++++
+ 8 files changed, 532 insertions(+)
+```
 
-## 3. Governance requirements satisfied this cycle
+(This diff was taken against the staged tree before the coordination-file commit that follows; the final freeze commit adds this file and `coordination/STATE.md` on top of exactly these eight.)
 
-Mapped in full in the staged `ML-DEVOS-S0-HANDOFF.md` §4: each of K-1 through K-7 and the "additional freeze corrections" (5-class provider-independent evidence model, PR/CI/reviewer evidence feeding the Evidence Gate, skills/tools as a Capability subsystem, distinct Memory/Task State/Run History/Evidence Store, human-controlled gates with bounded delegation) is addressed in a named staged document, cited by section.
+`git diff --cached --name-only | grep -E "^(app/|components/|data/|lib/|public/|tests/|package\.json|package-lock\.json|next\.config\.mjs|wrangler\.jsonc)"` returned no matches — **confirmed no application/runtime/deployment file changed.**
 
-## 4. Commands / checks executed
+No `.github/` directory, workflow file, `projects/` directory, or `.devos/` overlay was created.
 
-| Command | Result | Evidence class |
-|---|---|---|
-| `git fetch origin governance/maisoglabs-v0.1` then `git merge` | Fast-forward from `f7fac89` to `5a932e1`, no conflicts | Implementer-reported |
-| Repository-wide `grep` for `ML-DEVOS-AS-001` / `AS0-0` | Confirmed absent as content, present only as two ID references | Implementer-reported |
-| `mcp__github__get_me` | Confirmed `Dillaab-source` is a personal account (1 public repo) | Implementer-reported |
-| `mcp__github__search_repositories` (`org:Dillaab-source maisoglabs-devos`) | 0 results — repo does not exist | Implementer-reported |
-| `mcp__github__create_repository` | `403 Resource not accessible by integration` | Implementer-reported |
-| `git status --short` after all of the above | Only `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` changed in `maisog-labs` | Implementer-reported |
+## 3. Confirmation: no runtime/control-plane code added
 
-No claim above has been independently reproduced by the Architect.
+Confirmed by §2's diff: every changed/added path is either `devos/**/*.md` or the two coordination files. No Task Engine, Orchestrator, Capability Gateway, Evidence Gate, QA automation, or CI workflow code exists anywhere in this commit or this repository.
 
-## 5. Known limitations / unknowns
+## 4. Discrepancy vs. previously staged (pre-repurpose) versions
 
-- The `ML-DEVOS-AS-001` gap (§ Branch/Commit State above) means these documents cannot be verified against that sync's full content — only against what `D-010`/`STATE.md` quote from it.
-- The repository-creation blocker is unresolved; S0 cannot reach a first freeze *commit* (as opposed to frozen *documents*) until it is.
-- PUSAKAL and ClinicFlow, named in `D-010` as future Sentinel-governed projects, remain entirely unknown to this session (no repository, no architecture, no other detail).
-- None of this cycle's command evidence has been independently reproduced by the Architect.
+Full detail in `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` §7. Summary: repository topology and source-of-truth destination both changed from "separate `maisoglabs-devos` repo" to "this repository, repurposed" (`D-011`); the lifecycle diagram, five-way memory sub-taxonomy, named S0–S14 roadmap/milestones, and full integration diagram are new this cycle and were not part of the previously staged set at all — each is marked `[CYCLE-SUPPLIED]` in the committed documents rather than presented as previously-established fact.
+
+## 5. Known limitations
+
+- `ML-DEVOS-AS-002`, cited in this cycle's authorizing instruction as the latest Architecture Sync, is not an inspectable artifact anywhere in this repository — a repository-wide search found no match. Every `[CYCLE-SUPPLIED]`-tagged claim in the committed documents rests on this cycle's own authorizing instruction, not on independently-reviewable Architect Sync content.
+- The lifecycle diagram, memory sub-taxonomy, and named roadmap phases are intent statements only — no schema, storage, or code implements any of them.
+- `SENTINEL-MIGRATION-DEBT-001` (website content-flow ordering) is recorded, not corrected.
+- None of this cycle's claims, including the diff verification in §2, have been independently reproduced by the Architect at the time of this commit.
 
 ## 6. Paulo-level decisions required
 
-1. Resolve the repository-creation blocker: widen the GitHub App's permissions, or create `Dillaab-source/maisoglabs-devos` manually for a future session to attach and commit to.
-2. Confirm or correct the `ML-DEVOS-AS-001` reconciliation gap — if that sync contains content beyond K-1…K-7, it should be made available so these documents can be checked against it before being treated as a true freeze.
-3. Everything else the staged `ML-DEVOS-S0-HANDOFF.md` §7 asks the Architect to check.
+None to close this specific sub-cycle's mechanics. Carried forward: whether/how to obtain or reconcile `ML-DEVOS-AS-002`'s actual content against the `[CYCLE-SUPPLIED]` items now committed, so a future cycle can upgrade them to `[REPO-VERIFIED]` rather than leaving them permanently flagged.
 
 ## Stop Confirmation
 
-Confirmed: no DevOS control-plane/runtime implementation, no Task Engine/Orchestrator/Capability Gateway/Evidence Gate implementation, no QA automation or CI workflow creation, no GitHub ruleset/branch-protection change (the one GitHub write attempted — repository creation — failed with no side effect), no website/admin implementation, no production deployment, no merge to the website `main`, and no migration of the website pilot into Sentinel occurred this cycle. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+Confirmed: no DevOS control-plane/runtime implementation, no Task Engine/Orchestrator/Capability Gateway/Evidence Gate implementation, no QA automation or CI workflow creation, no GitHub ruleset/branch-protection change, no website/admin implementation, no production deployment, no merge to the website `main`, no application/runtime migration or directory restructuring, no deletion or movement of existing website files, and no rewrite of repository history occurred this cycle. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`.
