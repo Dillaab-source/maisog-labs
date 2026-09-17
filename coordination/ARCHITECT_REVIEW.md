@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `PAULO_DECISION_REQUIRED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,110 +8,172 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
+## Architecture Sync
+
+`ML-DEVOS-AS-002`
+
 ## Cycle / Change ID
 
-`SENTINEL-S0-ARCHITECTURE-FREEZE`
+`SENTINEL-S0-ARCHITECTURE-FREEZE` — remediation cycle `1`
 
 ## Review Mode
 
 `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`
 
-## Reviewed Implementer Handoff SHA
+## Reviewed Freeze Commit
 
-`4760134f28efec80a25245162a596598e46c540a`
+`2bd72634bd1483daebdf6e7085a048acd3bd5ba6`
+
+Base inspected:
+
+`ad4cd8489d2dcc37680fa525d1222d156936f98c`
 
 ## Scope
 
-Independent review of the S0 Architecture Freeze handoff only. This review does not authorize S1, DevOS runtime/control-plane implementation, QA automation, CI, GitHub rulesets, website/admin implementation, deployment, website `main` merge, or destructive migration of the existing website pilot.
+Independent review of the eight S0 freeze artifacts committed under `devos/`, plus the coordination handoff/state changes in the same commit. This review does not authorize S1, runtime/control-plane implementation, CI/rulesets, website/admin work, deployment, `main` merge, or project migration.
 
-## Evidence Independently Inspected
+## Evidence independently inspected
 
 The Architect independently inspected:
 
-- Git compare `5a932e152c7f690724b38aa0870dc42da6488f1c` → `4760134f28efec80a25245162a596598e46c540a`;
-- `coordination/IMPLEMENTER_HANDOFF.md` at `4760134...`;
-- `coordination/STATE.md` at `4760134...`;
-- `brain/DECISION_LOG.md` D-010;
-- `coordination/` directory contents at `4760134...`;
-- current connected-file availability for the claimed staged freeze documents.
+- Git compare `ad4cd848...` → `2bd72634...`;
+- all eight S0 freeze artifacts under `devos/`;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`;
+- live branch HEAD and commit verification.
 
-## Independently Verified Findings
+The compare confirms exactly ten changed paths: eight new Markdown files under `devos/` plus `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. No application/runtime/deployment/configuration path changed. The freeze commit exists as one commit on top of `ad4cd848...` and is GitHub-signature verified.
 
-1. The S0 handoff commit exists at `4760134f28efec80a25245162a596598e46c540a`.
-2. The repository diff from the S0 authorization commit `5a932e1...` to the handoff commit changes only `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`.
-3. No application, test, deployment, website content, or DevOS runtime implementation file was committed in that S0 handoff cycle.
-4. `coordination/STATE.md` retained `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO`.
-5. The eight claimed S0 freeze documents were not committed in `maisog-labs`; the handoff states they were staged outside a repository.
+## ML-DEVOS-AS-002 — Architect Sync disposition of cycle-supplied material
 
-## Implementer-Reported, Not Independently Reproduced
+The previously `[CYCLE-SUPPLIED]` architecture concepts are now independently reviewed rather than merely conversational. The following concepts are accepted as part of the Sentinel target architecture, subject to the corrections below:
 
-- the attempted separate-repository creation returning `403 Resource not accessible by integration`;
-- the exact local staging state of the eight freeze documents;
-- the exact content of those eight staged files;
-- local working-tree cleanliness after the handoff push.
+- the conceptual task lifecycle and the constitutional distinction `MAIN != DEPLOYED != VERIFIED`;
+- the separation of Architectural Memory, Project Memory, Run History, Task Engine State, and Evidence Store;
+- the provider-independent evidence taxonomy;
+- PR/required-check/reviewer evidence feeding a deterministic Evidence Gate;
+- the S0–S14 roadmap names and Alpha/Beta/RC1 milestone groupings;
+- Governance (`MAY`) separated from Capability (`CAN`);
+- the repurposed `maisog-labs` monorepo topology, while preserving cross-repository project overlays.
 
-## ML-DEVOS-AS-001 — Architecture Sync Findings
+This review therefore makes `ML-DEVOS-AS-002` a durable repository-visible Architect Sync record. The freeze files must be remediated so their normative wording matches this reviewed interpretation.
 
-- **AS0-001 — Repository topology (SUPERSEDED by AS0-001A below):** original recommendation was a separate `maisoglabs-devos` core repository with project overlays.
-- **AS0-002 — Evidence Gate classification:** Evidence Gate is a system mechanism, not an authority actor.
-- **AS0-003 — Evidence taxonomy:** evidence provenance must be provider/role independent.
-- **AS0-004 — Integration ordering:** Git branch/PR plus CI and independent review produce evidence; the Evidence Gate consumes that evidence before merge eligibility.
-- **AS0-005 — State scalability:** a single global `TURN` cannot scale; Sentinel requires namespaced per-project/per-task state.
-- **AS0-006 — Bootstrap/source-of-truth rule:** before the first approved Sentinel freeze baseline exists, Paulo authorization + approved Architect Sync + S0 freeze documents constitute bootstrap authority; after the approved freeze baseline, repository governance becomes authoritative.
-- **AS0-007 — Architect vs Independent Reviewer:** Architect owns architecture/planning/risk constraints; Independent Reviewer performs fresh-context post-implementation integration review.
-- **AS0-008 — Capability separation:** skills/tools belong to the Capability subsystem, not Governance.
-- **AS0-009 — Storage boundaries:** architectural/project memory, task state, run history, and evidence are distinct stores/concepts.
-- **AS0-010 — Website migration debt:** the website content-flow documentation contains an ordering inconsistency and must not be copied blindly into Sentinel.
-- **AS0-011 — Enforcement gap:** current GitHub technical enforcement is absent and remains a later-phase concern, not an S0 implementation item.
-- **AS0-012 — Bounded delegation:** Paulo may pre-authorize bounded low-risk work; architecture/security/risk/governance/deployment gates remain human-controlled according to policy.
+## Findings requiring remediation
 
-## ML-DEVOS-AS-001 Amendment — AS0-001A
+### S0-F001 — BLOCKER — candidate documents call themselves frozen before approval
 
-Paulo has explicitly chosen to **repurpose the existing `Dillaab-source/maisog-labs` repository as the Sentinel monorepo**, rather than create a separate `maisoglabs-devos` repository.
+`ML-DEVOS-ARCH-001.md` and `ML-DEVOS-SIP-001.md` use `FROZEN (S0)` while also saying Architect review is still pending.
 
-This supersedes AS0-001 and K-1 only. All other K-2…K-7 decisions and AS0-002…AS0-012 remain in force unless separately amended.
+**Required correction:** use `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL` (or equivalent) until the stage gate passes. Only the Architect-approved version may be labeled frozen.
 
-### Canonical topology after amendment
+### S0-F002 — BLOCKER — SIP-001 incorrectly turns implementation phases into design-only phases
 
-`Dillaab-source/maisog-labs` becomes the primary Sentinel/DevOS repository and retains the existing website as its first governed project during migration.
+`ML-DEVOS-SIP-001.md` currently describes S4–S10 and other phases as "design (not build)" even though the Sentinel roadmap is an implementation roadmap. This would make the later `Sentinel Beta`/`RC1` milestones incapable of becoming operational.
 
-Target conceptual structure:
+**Required correction:** preserve the S0–S14 names, but restore implementation outcomes:
 
-- `devos/` — Sentinel core architecture/governance and, in later authorized phases, control-plane components;
-- `projects/maisoglabs-website/.devos/` — future website project overlay/metadata;
-- existing `app/`, `components/`, `data/`, `lib/`, `public/`, `tests/`, and deployment configuration remain intact until a separately authorized migration moves or restructures them;
-- existing `brain/` and `coordination/` remain bootstrap/legacy governance surfaces until explicitly migrated or retired.
+- S1 Governance Kernel — extract/formalize reusable governance policy;
+- S2 DevOS Repository Foundation — establish the concrete DevOS core/project-registry foundation;
+- S3 Typed Task Contracts — machine-readable contracts/schema/validation;
+- S4 State Machine Kernel — authoritative task lifecycle/state, ownership, locks/leases, retries/timeouts/idempotency;
+- S5 Capability & Permission Gateway — enforce scoped role/tool permissions;
+- S6 Isolated Execution — task-scoped branch/worktree/sandbox isolation;
+- S7 Evidence & QA Plane — structured evidence packets/store plus deterministic QA;
+- S8 Orchestrator MVP — bounded coordination of Architect → Builder → QA → Reviewer;
+- S9 Independent Review & Evidence Gate — fresh-context review plus deterministic acceptance gate;
+- S10 GitHub Enforcement — PR/check/ruleset/protected-main enforcement;
+- S11 Memory & Observability — separated stores plus run/task health/telemetry;
+- S12 Project Overlay System — reusable governance across multiple projects/repos;
+- S13 Release & Runtime Verification — `MERGED → RELEASE_READY → DEPLOYED → VERIFIED` with runtime evidence;
+- S14 Sentinel Production Pilot — one real end-to-end governed task.
 
-### Repurpose invariants
+Later phases remain `NOT STARTED`; correcting their intended outcomes does not authorize them.
 
-1. Repurpose means repository-purpose/governance conversion, **not** wiping or deleting the website.
-2. Existing Git history remains authoritative evidence and must be preserved.
-3. S0 may add/version-control documentation under `devos/`, but may not move, delete, or rewrite application/runtime files.
-4. The repository cannot be called fully migrated to Sentinel merely because S0 documents exist; website migration is a later explicitly authorized task.
-5. Namespaced per-project/per-task state remains the Sentinel target; the current single `coordination/STATE.md` remains only the bootstrap turn signal.
+### S0-F003 — BLOCKER — merge authority is over-constrained and conflicts with bounded delegation
 
-## Blockers / Gating Issues After AS0-001A
+`ROLE_RESPONSIBILITY_MATRIX.md` and `TRUST_BOUNDARIES.md` state that only Paulo may ever authorize a protected-branch merge, while the architecture separately allows Paulo-defined bounded delegation for low-risk work.
 
-### S0-B1 — Freeze artifacts still require independent review
+**Required correction:** Paulo owns the merge/deployment authorization policy. During the current bootstrap, protected-branch/main merge and production deployment remain Paulo-gated. Future low-risk merge automation may exist only if Paulo explicitly pre-authorizes it in policy and required Evidence Gate/ruleset conditions pass. Production deployment remains Paulo-gated unless Paulo explicitly changes that policy. No actor or mechanism may invent delegation.
 
-The actual eight S0 freeze files must be committed into this repository under the newly authorized `devos/` documentation structure or otherwise made available exactly for inspection. S0 cannot be approved from handoff claims alone.
+Do not weaken human control; reconcile it with the bounded-delegation rule already accepted in AS0-012.
 
-### S0-B2 — RESOLVED BY PAULO DECISION
+### S0-F004 — BLOCKER — `VERIFIED` evidence rule contradicts the provenance model
 
-The former separate-repository creation blocker is removed. `maisog-labs` is now the approved Sentinel monorepo target.
+`ML-DEVOS-ARCH-001.md` §8 says `VERIFIED` requires `INDEPENDENTLY_REPRODUCED` "or stronger," while the evidence model correctly says the classes are not an absolute quality ranking. That rule would also prevent a documentation-only architecture claim from being verified by independent inspection.
 
-### S0-B3 — State provenance bookkeeping
+**Required correction:** evidence sufficiency is claim-specific. Examples:
 
-The stale handoff SHA was corrected in the prior Architect state update. Future handoffs must keep these SHA fields current.
+- documentation/architecture correctness may be established by `INDEPENDENTLY_INSPECTED` evidence;
+- executable behavior normally requires `INDEPENDENTLY_REPRODUCED` and/or `CI_ATTESTED` evidence as defined by the Task Contract/policy;
+- production behavior requires relevant `RUNTIME_OBSERVED` evidence.
+
+Remove any generic "or stronger" ranking language.
+
+### S0-F005 — BLOCKER — Evidence Gate ordering is too absolute for non-code tasks
+
+The candidate architecture says the Evidence Gate "never" occurs before PR/CI evidence exists. The underlying architectural rule is that the gate consumes all **required** evidence before progression. Some governance/documentation tasks may have no meaningful CI check.
+
+**Required correction:** for code/repository merge tasks, the normal flow is branch → PR → required CI/QA + independent review → Evidence Gate → merge eligibility. More generally, the Task Contract/policy defines required evidence; the gate must not demand irrelevant CI nor accept a bare Builder `ACTOR_REPORTED` claim where independent evidence is required.
+
+### S0-F006 — BLOCKER — topology incorrectly implies every future project must live inside the monorepo
+
+`REPOSITORY_OVERLAY_TOPOLOGY.md` draws `<future project>/.devos/` as if all future product source trees must be moved under `maisog-labs`. Sentinel is a cross-project meta-system and must remain capable of governing separate repositories.
+
+**Required correction:** freeze this distinction:
+
+- `Dillaab-source/maisog-labs` is the Sentinel core monorepo and co-locates the current website during transition;
+- a future `projects/` area, if used, is registry/metadata/overlay material unless a specific product migration is separately authorized;
+- PUSAKAL, ClinicFlow, or future products may remain independent repositories containing their own `.devos/` overlays and be registered/governed by Sentinel without moving their application source into `maisog-labs`.
+
+### S0-F007 — REQUIRED CLARIFICATION — Architect role wording confuses capability with authority
+
+The candidate documents say the Architect has "no execution capability" / writes no code or content, yet the actual Architect workflow inspects repositories, may independently reproduce checks, and writes review/governance records.
+
+**Required correction:** the Architect has no Builder implementation authority and no deployment/merge authority. The Architect may inspect evidence, reproduce checks when appropriate, and write architecture/review/governance records. This is itself an example of `Capability != Authority`.
+
+### S0-F008 — REQUIRED CLARIFICATION — avoid claims beyond inspected scope
+
+`ML-DEVOS-ARCH-001.md` says certain mechanisms do not exist "in this or any repository." The Architect has inspected this repository, not every possible repository.
+
+**Required correction:** scope absence claims to `Dillaab-source/maisog-labs` / inspected evidence, e.g. "no such implementation is present in this reviewed repository" unless another repository was actually inspected.
+
+## Accepted without remediation
+
+The following parts are acceptable as written in principle and should be preserved while applying the findings above:
+
+- D-011 / AS0-001A non-destructive monorepo repurpose;
+- five actors with Evidence Gate as a non-authority mechanism;
+- provider-independent evidence classes;
+- explicit distinction between Architect and fresh-context Independent Reviewer;
+- Memory / Task State / Run History / Evidence separation;
+- Capability subsystem separation;
+- `SENTINEL-MIGRATION-DEBT-001` recorded but not fixed in S0;
+- bootstrap/source-of-truth rule, with the repository becoming authoritative only after this stage gate passes;
+- no runtime/control-plane implementation in S0.
 
 ## Verdict
 
-`SENTINEL S0 STAGE GATE: NOT YET APPROVED — FREEZE ARTIFACT REVIEW STILL REQUIRED`
+`SENTINEL S0 STAGE GATE: NOT APPROVED — CHANGES REQUESTED (CYCLE 1)`
 
-The topology amendment is architecturally accepted. The only remaining S0 stage-gate requirement is to place the exact S0 freeze artifacts into the repurposed repository within documentation-only scope and submit them for independent Architect review.
+The freeze package is close and the topology is sound, but the normative contradictions above must be corrected before `ML-DEVOS-ARCH-001` can legitimately be frozen.
 
-## Next Authorized Action
+## Authorized remediation scope
 
-After Paulo's topology amendment is recorded in the Decision Log and state, Claude may commit the S0 documentation-only freeze artifacts into the `devos/` documentation structure in `Dillaab-source/maisog-labs`, update the handoff/state, and stop at `TURN: ARCHITECT`.
+Claude may modify only:
 
-No application/runtime migration, deletion, CI/ruleset work, deployment, or website `main` merge is authorized.
+- `devos/**/*.md` as needed to resolve S0-F001…S0-F008;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
+
+No application/runtime/deployment/configuration files may change. No S1 work is authorized.
+
+## Required next handoff
+
+Claude must:
+
+1. remediate S0-F001…S0-F008;
+2. map each finding to exact changed sections;
+3. compare remediation against `2bd72634bd1483daebdf6e7085a048acd3bd5ba6`;
+4. confirm only authorized Markdown/coordination paths changed;
+5. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, remediation cycle `1`;
+6. stop for re-review.
