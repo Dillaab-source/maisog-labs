@@ -1,0 +1,628 @@
+MAISOGLABS WEBSITE GOVERNANCE + ADMIN-FIRST ARCHITECTURE PLAN
+Version: 0.1
+Repository: Dillaab-source/maisog-labs
+Default branch: main
+Governance branch: governance/maisoglabs-v0.1
+Governance baseline candidate: main @ 887849283ee9cd16e8d60b937bac95b1c85bf3d9
+Pilot project: MaisogLabs Website
+Owner: Paulo
+Implementer: Claude
+Architect / Independent Reviewer: ChatGPT
+
+======================================================================
+1. OBJECTIVE
+======================================================================
+
+Rebuild the MaisogLabs website around one principle:
+
+PUBLIC WEBSITE = presentation shell
+ADMIN PORTAL = control center for content, layout, visuals, projects, journal,
+branding, and approved design settings.
+
+The public website should stay visually clean and lightweight. It should render
+the MaisogLabs background/visual system and published content managed through
+/admin.
+
+The admin portal should become the place where Paulo manages the website
+without editing source code.
+
+Do NOT rewrite the entire site blindly.
+Do NOT destroy existing content.
+Do NOT assume old plans are implemented unless repository evidence proves it.
+
+======================================================================
+2. TARGET PRODUCT MODEL
+======================================================================
+
+        ADMIN PORTAL
+             |
+             v
+   structured content/design data
+             |
+             v
+     storage + media layer
+             |
+             v
+       PUBLIC WEBSITE
+
+The public website is not the primary editing surface.
+
+The admin portal should eventually manage:
+- Homepage/hero/about content
+- Projects
+- Journal entries
+- Images/media/background assets
+- Section visibility and order
+- Navigation labels
+- CTA/contact/social links
+- Brand/logo assets
+- Approved theme settings
+- Typography from an allowed set
+- Spacing/layout presets
+- Card presentation presets
+- Animation/reduced-motion settings
+- Draft/published state
+- Featured content
+- Future portfolio items
+
+The admin portal must NOT execute arbitrary code from user-entered content.
+"Edit the design" means controlling safe design primitives and reusable
+components, not raw production JavaScript/HTML/CSS.
+
+======================================================================
+3. DESIGN PHILOSOPHY
+======================================================================
+
+The public site should remain intentionally minimal:
+- MaisogLabs cosmic/signature background remains the visual foundation.
+- Content floats as premium interactive layers above it.
+- Sections are modular, not permanently hard-coded.
+- Cards may support horizontal/swipe behavior on mobile.
+- Projects and Journal are dynamically managed.
+- New content can be added from /admin without code changes.
+- The site remains fast, responsive, and visually consistent.
+
+Public site = renderer.
+Admin portal = website control system.
+
+======================================================================
+4. GOVERNANCE AUTHORITY MODEL
+======================================================================
+
+PAULO — PRODUCT / RISK OWNER
+- Final product authority.
+- Approves material scope and architecture decisions.
+- Approves accepted risks.
+- Resolves product-level decisions.
+
+CHATGPT — ARCHITECT / INDEPENDENT REVIEWER
+- Reviews architecture against governance.
+- Reviews implementation claims against repository evidence.
+- Checks requirements, tests, risks, security, regressions.
+- Performs Architect Sync, stage-gate review, release review.
+
+CLAUDE — IMPLEMENTER
+- Inspects repository reality before code changes.
+- Implements approved work.
+- Writes/updates tests.
+- Maintains governance documents.
+- Produces implementation evidence and handoff.
+- Reports limitations/failures honestly.
+- May report IMPLEMENTATION COMPLETE.
+- May not self-certify ARCHITECT VERIFIED.
+
+SOURCE OF TRUTH
+Repository + tests + runtime evidence + deployment evidence.
+Agent statements alone are not proof.
+
+======================================================================
+5. FIRST RULE: REPOSITORY REALITY WINS
+======================================================================
+
+Before changing functionality, inspect the actual repository and confirm:
+- Framework/version
+- App/component structure
+- Data/content adapters
+- Validation
+- Tests
+- Build config
+- Cloudflare config/deployment flow
+- Existing admin implementation, if any
+- Existing auth, if any
+- Existing storage, if any
+- Media handling
+- Security boundaries
+- Git state
+- Production assumptions
+
+If /admin is not a working implementation, record:
+ADMIN STATUS: NOT IMPLEMENTED
+
+Do not invent an admin architecture from previous conversations.
+
+Known repository evidence before Claude reconnaissance:
+- Next.js App Router + React.
+- Static export deployed through Cloudflare/Wrangler.
+- Current architecture documentation says storage is local/Git-backed.
+- Current architecture documentation says admin setup remains pending.
+- Existing AGENTS.md must be extended, not blindly replaced.
+
+======================================================================
+6. GOVERNANCE BOOTSTRAP
+======================================================================
+
+Create/adapt:
+
+/
+├── AGENTS.md
+├── CLAUDE.md
+└── brain/
+    ├── 00_HOME.md
+    ├── PROJECT_GOVERNANCE.md
+    ├── GOVERNANCE_MAP.md
+    ├── ARCHITECT_HANDOFF.md
+    ├── IMPLEMENTATION_STATUS.md
+    ├── DECISION_LOG.md
+    ├── RISK_REGISTER.md
+    ├── TEST_LEDGER.md
+    └── protocols/
+        └── ARCHITECT_SYNC.md
+
+Do not overwrite useful existing AGENTS.md rules. Merge and extend them.
+
+The website is the first pilot of MAISOGLABS GOVERNANCE v0.1.
+
+======================================================================
+7. GOVERNANCE BOUNDARY
+======================================================================
+
+Do not retroactively govern every historical commit.
+
+Existing site
+    -> Governance baseline commit/SHA
+    -> All meaningful new changes governed
+    -> Legacy areas documented when touched
+
+Record the exact baseline SHA in PROJECT_GOVERNANCE.md.
+
+======================================================================
+8. CORE GOVERNANCE RULES
+======================================================================
+
+EVIDENCE STANDARD
+Claims such as implemented, fixed, tested, secure, deployed, complete, or
+working require verifiable evidence such as code, diff, tests, build output,
+runtime output, HTTP response, deployment logs, screenshots, schema validation,
+database records, or Cloudflare deployment evidence.
+
+NO SELF-CERTIFICATION
+Implementation completion is not independent verification.
+
+CHANGE-SCOPED REVIEW
+READY TO COMMIT: YES means no unresolved blocker introduced by, materially
+affecting, or required for the specific change under review remains unresolved.
+It does NOT mean the whole project has zero unresolved risk.
+
+Broader modes:
+- STAGE GATE REVIEW
+- RELEASE REVIEW
+- SECURITY REVIEW
+
+======================================================================
+9. INITIAL WEBSITE REQUIREMENTS
+======================================================================
+
+WEB-REQ-001 Public website remains available and usable.
+WEB-REQ-002 Existing content must not disappear during unrelated changes.
+WEB-REQ-003 Mobile experience remains usable.
+WEB-REQ-004 Admin-managed public content must not require source-code edits.
+WEB-REQ-005 Website renders content from a structured content layer.
+WEB-REQ-006 Site remains visually consistent with MaisogLabs branding.
+WEB-REQ-007 Site remains lightweight/performance-conscious.
+WEB-REQ-008 Public site never exposes admin-only controls/data.
+
+======================================================================
+10. ADMIN PORTAL REQUIREMENTS
+======================================================================
+
+ADM-REQ-001 /admin requires authentication.
+ADM-REQ-002 Only authorized admins may change site content.
+ADM-REQ-003 Admin changes persist.
+ADM-REQ-004 Projects support create/edit/publish/unpublish/delete.
+ADM-REQ-005 Journal supports create/edit/publish/unpublish/delete.
+ADM-REQ-006 Admin can upload/select approved media.
+ADM-REQ-007 Admin can manage section visibility.
+ADM-REQ-008 Admin can manage section order where supported.
+ADM-REQ-009 Admin can edit approved brand/theme settings.
+ADM-REQ-010 Admin can preview changes before publishing where practical.
+ADM-REQ-011 Invalid input is rejected safely.
+ADM-REQ-012 Important admin actions are auditable.
+ADM-REQ-013 Admin fields cannot inject arbitrary executable browser code.
+ADM-REQ-014 Draft vs published state is supported.
+ADM-REQ-015 Save/publish feedback is explicit.
+ADM-REQ-016 Failed writes never silently appear successful.
+
+======================================================================
+11. DESIGN CONTROL REQUIREMENTS
+======================================================================
+
+Admin design control must use validated settings, not arbitrary code.
+
+Initial controls may include:
+DESIGN-001 Hero background/media selection.
+DESIGN-002 Section visibility.
+DESIGN-003 Section order.
+DESIGN-004 Card style preset.
+DESIGN-005 Layout density preset.
+DESIGN-006 Typography preset from approved set.
+DESIGN-007 Heading scale preset.
+DESIGN-008 Background overlay intensity.
+DESIGN-009 Glass/panel presentation preset.
+DESIGN-010 Animation preset.
+DESIGN-011 Reduced-motion compatibility.
+DESIGN-012 Project rail/card behavior.
+DESIGN-013 Journal card behavior.
+DESIGN-014 Theme tokens constrained to validated ranges.
+
+Do not provide unrestricted CSS/JS editing in v1.
+
+======================================================================
+12. DATA AND STORAGE DIRECTION
+======================================================================
+
+The current site is static/Git-backed. A true live admin portal requires
+persistent server-side storage.
+
+Preferred Cloudflare-native target, if reconnaissance confirms compatibility:
+- Cloudflare Worker for authenticated admin APIs
+- D1 for structured content/settings
+- R2 for uploaded media/assets
+- Cloudflare secrets/environment variables for private configuration
+
+Suggested domains:
+- site_settings
+- navigation
+- sections
+- projects
+- journal_entries
+- media
+- theme_settings
+- audit_log
+- admin identity references if required
+
+Do not commit secrets. Do not store private admin data in public static files.
+
+======================================================================
+13. AUTHENTICATION AND SECURITY
+======================================================================
+
+WEB-SEC-001 /admin requires authenticated access.
+WEB-SEC-002 Authorization checked server-side.
+WEB-SEC-003 Secrets never exposed in client bundles.
+WEB-SEC-004 Inputs validated server-side.
+WEB-SEC-005 Media uploads validated.
+WEB-SEC-006 Unknown/unsupported content fields rejected.
+WEB-SEC-007 Admin mutations protected against unauthorized requests.
+WEB-SEC-008 Public users cannot invoke admin mutations.
+WEB-SEC-009 Important admin changes recorded in audit history.
+WEB-SEC-010 Unsafe URL schemes/executable content rejected.
+WEB-SEC-011 Authentication failure fails closed.
+WEB-SEC-012 Write failures never report success.
+
+======================================================================
+14. INITIAL RISK REGISTER
+======================================================================
+
+RISK-WEB-001 Production outage after deployment.
+RISK-WEB-002 Admin authorization bypass.
+RISK-WEB-003 Content/data loss.
+RISK-WEB-004 Secret exposure.
+RISK-WEB-005 Mobile UI regression.
+RISK-WEB-006 Broken production routing.
+RISK-WEB-007 Admin changes fail to persist.
+RISK-WEB-008 Invalid content breaks rendering.
+RISK-WEB-009 Development/production behavior diverges.
+RISK-WEB-010 Deployment succeeds but UI is materially broken.
+RISK-WEB-011 Unsafe design input introduces XSS/code execution.
+RISK-WEB-012 Media upload abuse.
+RISK-WEB-013 Draft/private content becomes public.
+RISK-WEB-014 Admin actions are not auditable.
+RISK-WEB-015 Static-to-database migration loses existing content.
+
+Each important risk should eventually map:
+Risk -> Control -> Test -> Evidence -> Status
+
+======================================================================
+15. GOVERNANCE MAP
+======================================================================
+
+Traceability model:
+Requirement -> Design -> Implementation -> Test -> Evidence -> Status
+
+Example:
+ADM-REQ-004
+ -> Projects CMS design
+ -> /admin/projects + API + persistent storage
+ -> TEST-ADM-004
+ -> test/database evidence
+ -> VERIFIED
+
+======================================================================
+16. IMPLEMENTATION STATUS
+======================================================================
+
+Allowed statuses:
+- NOT STARTED
+- IN PROGRESS
+- IMPLEMENTED
+- VERIFIED
+- BLOCKED
+- DEFERRED
+
+Code existence alone is not VERIFIED.
+
+======================================================================
+17. ARCHITECT HANDOFF FORMAT
+======================================================================
+
+After each meaningful implementation cycle record:
+CHANGE ID:
+OBJECTIVE:
+FILES CHANGED:
+REQUIREMENTS AFFECTED:
+RISKS AFFECTED:
+IMPLEMENTATION SUMMARY:
+TESTS EXECUTED:
+RESULTS:
+EVIDENCE:
+KNOWN LIMITATIONS:
+UNRESOLVED QUESTIONS:
+REQUESTED REVIEW SCOPE:
+
+Do not hide failures or known gaps.
+
+======================================================================
+18. TEST LEDGER
+======================================================================
+
+Initial required tests:
+TEST-WEB-001 Production homepage availability.
+TEST-WEB-002 Desktop rendering.
+TEST-WEB-003 Mobile rendering.
+TEST-WEB-004 Build succeeds.
+TEST-WEB-005 Existing projects remain intact.
+TEST-ADM-001 Unauthorized user cannot access admin.
+TEST-ADM-002 Authorized admin can access admin.
+TEST-ADM-003 Content write persists.
+TEST-ADM-004 Project create/edit/publish/unpublish works.
+TEST-ADM-005 Journal create/edit/publish/unpublish works.
+TEST-ADM-006 Invalid content is rejected.
+TEST-ADM-007 Failed write does not report success.
+TEST-ADM-008 Media upload validation works.
+TEST-ADM-009 Theme settings remain within allowed values.
+TEST-ADM-010 Public users cannot perform admin mutations.
+TEST-DATA-001 Existing static content migration preserves data.
+TEST-DATA-002 Draft content remains unpublished.
+TEST-DEP-001 Deployment succeeds.
+TEST-DEP-002 Production verification succeeds after deployment.
+
+Statuses: REQUIRED, NOT IMPLEMENTED, PASS, FAIL, BLOCKED.
+Never fabricate results.
+
+======================================================================
+19. ARCHITECT SYNC
+======================================================================
+
+Review flow:
+Repository state
+ -> Governance requirements
+ -> Governance Map
+ -> Implementation
+ -> Tests
+ -> Evidence
+ -> Git diff
+ -> Security/risk review
+ -> Contradictions
+ -> Verdict
+
+Modes:
+1. CHANGE REVIEW
+2. STAGE GATE REVIEW
+3. RELEASE REVIEW
+4. SECURITY REVIEW
+
+======================================================================
+20. IMPLEMENTATION PHASES
+======================================================================
+
+PHASE 0 — REPOSITORY RECONNAISSANCE
+No functional changes. Inspect/report architecture, Git state, deployment,
+content model, Projects, Journal, admin, auth, tests, storage, media, security,
+and production assumptions. Stop and report reality.
+
+PHASE 1 — GOVERNANCE BOOTSTRAP
+Create/merge CLAUDE.md and brain/* governance files. Update AGENTS.md only as
+needed. No public-site redesign yet.
+
+PHASE 2 — GOVERNANCE BASELINE
+Record baseline SHA, current architecture/capabilities/gaps/risks, governance
+boundary. Create a clean governance commit.
+
+PHASE 3 — GOVERNANCE SELF-REVIEW
+Check contradictions, circular approval, impossible requirements, unnecessary
+bureaucracy, ambiguous authority, and website-specific rules presented as
+universal. Prepare Architect Sync handoff. STOP for independent review before
+major functional implementation.
+
+PHASE 4 — ADMIN ARCHITECTURE DESIGN
+Design against repository reality. Expected target if compatible:
+Public Next.js site -> read-only published content -> Cloudflare Worker API ->
+D1 + R2 + auth/authorization + audit logging.
+Document architecture before implementing.
+
+PHASE 5 — CONTENT MODEL
+Define schemas for site settings, navigation, sections, projects, journal,
+media, theme settings, and publish state. Include migration strategy.
+
+PHASE 6 — ADMIN AUTHENTICATION
+Implement secure /admin access. Do not proceed with write features until
+unauthorized access is proven blocked.
+
+PHASE 7 — ADMIN CONTENT MANAGEMENT
+Implement Projects CRUD, Journal CRUD, site content editing, publish/unpublish,
+media selection/upload, section visibility/order.
+
+PHASE 8 — ADMIN DESIGN CONTROLS
+Implement safe controls for background/media, card preset, spacing, section
+order, typography, theme tokens, animations, project rail, and journal behavior.
+No arbitrary code execution.
+
+PHASE 9 — PUBLIC WEBSITE DATA INTEGRATION
+Refactor public site into a renderer of structured published data. Preserve the
+MaisogLabs background and visual identity. Minimize hard-coded content.
+
+PHASE 10 — JOURNAL
+Add Journal as first-class managed content. It should be mobile-friendly,
+support images/drafts/publishing, allow swipe/horizontal presentation where
+appropriate, and be entirely admin-managed. Missing optional media must not
+break the section.
+
+PHASE 11 — MIGRATION
+Migrate current site/project content safely. Verify counts/content before
+deprecating old static paths. Do not destroy old data until verified.
+
+PHASE 12 — VALIDATION
+Run unit/schema/auth/admin mutation/public rendering/mobile/build/regression
+checks and deployment dry-run where practical.
+
+PHASE 13 — ARCHITECT SYNC
+Provide change scope, diff, requirements, risks, tests, evidence, gaps, and
+proposed commits.
+
+PHASE 14 — COMMIT / DEPLOY
+Only after approved review: commit, deploy, independently verify production,
+and record production evidence.
+
+======================================================================
+21. BRANCH / COMMIT STRATEGY
+======================================================================
+
+Work from:
+governance/maisoglabs-v0.1
+
+Suggested governance commit:
+chore(governance): establish MaisogLabs website governance baseline
+
+Future focused commits may include:
+feat(admin): add authenticated content management foundation
+feat(admin): add project and journal management
+feat(site): render published content from managed data
+feat(admin): add controlled visual customization
+
+Do not mix unrelated refactors into governed changes.
+
+======================================================================
+22. PRODUCT BOUNDARY
+======================================================================
+
+PUBLIC SITE
+- render
+- animate
+- navigate
+- display published data
+
+ADMIN PORTAL
+- edit
+- organize
+- upload
+- publish
+- configure
+- preview
+- manage design presets
+- manage projects
+- manage journal
+- manage site settings
+
+Do not mix admin editing controls into the public experience.
+
+======================================================================
+23. WHAT "EDIT EVERYTHING FROM ADMIN" MEANS IN v1
+======================================================================
+
+Allowed:
+- Text
+- Images
+- Projects
+- Journal
+- Links/contact details
+- Section order/visibility
+- Featured items
+- Background asset
+- Theme preset
+- Typography preset
+- Card styles
+- Spacing/density
+- Animation preset
+- Validated color/theme tokens
+- Publish state
+
+Not allowed in v1:
+- Arbitrary JavaScript
+- Arbitrary server code
+- Shell commands
+- Unrestricted HTML execution
+- Unrestricted CSS injection
+
+A future visual builder should use structured blocks/components rather than raw
+production code injection.
+
+======================================================================
+24. FUTURE VISUAL BUILDER
+======================================================================
+
+Potential blocks:
+- Hero
+- Text
+- Project rail
+- Journal rail
+- Image/Gallery
+- Stats
+- CTA
+- Timeline
+- Quote
+- Video
+- Approved embeds
+
+Admin may add/remove/reorder/configure blocks and select approved variants.
+
+======================================================================
+25. FIRST CLAUDE RESPONSE REQUIRED
+======================================================================
+
+DO NOT MODIFY FILES IMMEDIATELY.
+
+First inspect the repository and return:
+1. CURRENT ARCHITECTURE
+2. CURRENT GIT STATE
+3. CURRENT DEPLOYMENT MODEL
+4. CURRENT CONTENT/DATA MODEL
+5. CURRENT PROJECTS IMPLEMENTATION
+6. CURRENT JOURNAL IMPLEMENTATION
+7. CURRENT ADMIN IMPLEMENTATION
+8. CURRENT AUTHENTICATION MODEL
+9. CURRENT STORAGE MODEL
+10. CURRENT MEDIA MODEL
+11. CURRENT TEST COVERAGE
+12. CURRENT SECURITY BOUNDARIES
+13. DIFFERENCES BETWEEN CURRENT STATE AND THIS PLAN
+14. PROPOSED GOVERNANCE BOOTSTRAP
+15. FILES TO CREATE/MODIFY
+16. PROPOSED ADMIN ARCHITECTURE
+17. MIGRATION RISKS
+18. PAULO-LEVEL DECISIONS REQUIRED
+
+Wait for authorization after this report.
+
+======================================================================
+END OF PLAN
+======================================================================
