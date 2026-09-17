@@ -1,22 +1,22 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S1-GOVERNANCE-KERNEL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: SENTINEL_S1_GOVERNANCE_KERNEL_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 6e817add0e3b18d1612fcb86af96c2c269b6d58c
-LAST_ARCHITECT_REVIEWED_SHA: 6e817add0e3b18d1612fcb86af96c2c269b6d58c
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_IMPLEMENTER_HANDOFF_SHA: 28a110b532e202431b7371134943a5b7f385e62b
+LAST_ARCHITECT_REVIEWED_SHA: 28a110b532e202431b7371134943a5b7f385e62b
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
 ## Current baseline
 
-S0 Architecture Freeze is closed and Architect-approved.
+S0 Architecture Freeze is closed and remains authoritative.
 
 Authoritative architecture:
 - `devos/architecture/ML-DEVOS-ARCH-001.md`
@@ -29,63 +29,69 @@ Relevant Architect Syncs:
 Relevant Paulo decision:
 - `D-012` — adopt AS-003 and authorize S1 Governance Kernel
 
-## S1 objective
+## Reviewed S1 candidate
 
-Formalize the reusable Sentinel Governance Kernel so future changes are classified, attributable, reviewable, and progressively machine-readable without implementing runtime enforcement yet.
+Architect reviewed:
 
-## Authorized S1 outputs
+`28a110b532e202431b7371134943a5b7f385e62b`
 
-Claude may create or modify documentation/static governance-data artifacts under `devos/` needed to define:
+Verdict:
 
-1. change classification:
-   - PATCH
-   - LOCAL_RULE
-   - CORE_POLICY
-   - CAPABILITY
-   - ARCHITECTURE
-   - CONSTITUTIONAL
-   - WAIVER
-   - PROJECT_ONBOARDING
+`SENTINEL S1 STAGE GATE: NOT APPROVED — CHANGES REQUESTED (CYCLE 1)`
 
-2. RFC / Architect Sync / authorization / implementation / ADR separation;
+See `coordination/ARCHITECT_REVIEW.md` for full findings `S1-F001`…`S1-F009`.
 
-3. rule-registry and rule-record format with stable IDs, scope, risk, status, authority, applicability, evidence requirements, exception policy, provenance, version, and supersession metadata;
+## Findings requiring remediation
 
-4. RFC template;
+- `S1-F001` — align machine-readable rule authority/risk metadata with class-level minimum policy; rule records may be stricter than class defaults, never weaker.
+- `S1-F002` — make evidence requirements claim/stage-specific; do not require runtime evidence before deployment or universal reproduction for documentation-only tasks.
+- `S1-F003` — add explicit waiver/exception policy; waivers cannot bypass target-rule authority, and waiver expiry validation must be truthful/consistent.
+- `S1-F004` — make validator/schema representation fail-closed and mutually consistent; remove silent parser/schema mismatches.
+- `S1-F005` — project overlays may narrow permissions/allowed actions, not shrink applicability of Sentinel-wide core rules; fix RFC wording and incorrect project-rules path.
+- `S1-F006` — tighten Decision Packet schema/template: exact payload vs hash, hash algorithm, decision timestamps, evidence binding, template/schema consistency.
+- `S1-F007` — correct provenance/version metadata: distinguish S0-origin rules from S1-introduced rules; proposed 1.3.0 remains unapplied until final closure.
+- `S1-F008` — create a durable per-change Architect Sync artifact/home/template; rolling coordination review is not sufficient long-term history.
+- `S1-F009` — correct handoff count/bookkeeping and update exact candidate SHA references.
 
-5. ADR template;
+## Accepted without remediation
 
-6. expiring waiver template;
+Preserve:
 
-7. capability-change proposal template;
+- the eight change classes;
+- RFC / Architect Sync / Decision / Implementation / ADR separation;
+- static Governance Kernel only — no runtime enforcement;
+- Decision Packet concept and exact-operation approval principle;
+- Capability != Authority;
+- cross-repository project onboarding;
+- Governance Bundle as specification only;
+- patch/minor/major version intent;
+- prohibition on project-local weakening of core constitutional rules;
+- no application/runtime/deployment/CI/ruleset changes in S1.
 
-8. project-onboarding template;
+## Version disposition
 
-9. Decision Packet specification/template for sensitive human approvals;
+The Architect accepts `1.2.0 → 1.3.0 MINOR` as the correct version class **if and when S1 closes successfully**.
 
-10. Governance Bundle manifest specification, including version/revision/integrity metadata as a future-facing design only;
+Do not apply the version bump during remediation.
 
-11. semantic version/provenance policy for architecture/governance changes;
+At final S1 closure:
+- S0-origin rules retain `effective_version: 1.2.0`;
+- rules introduced by D-012 / AS-003 become effective with `1.3.0`;
+- the Sentinel governance capability baseline may then be explicitly recorded as `1.3.0`.
 
-12. constitutional/core rule extraction from the frozen S0 architecture into a static registry without weakening or silently rewriting those rules;
+## Authorized remediation scope — cycle 1
 
-13. S1 handoff and traceability mapping back to D-012 / AS-003 / the frozen S0 architecture.
+Claude may modify only:
 
-Static YAML/JSON/Markdown governance records are allowed. Deterministic parse/lint checks for those static records are allowed only if they do not implement policy enforcement or later-phase engines.
+- S1 Governance Kernel artifacts under `devos/` as needed to resolve `S1-F001`…`S1-F009`;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
 
-## Binding rules
-
-- Repository state is authoritative.
-- Project overlays may strengthen/narrow core rules but may not silently weaken constitutional/core rules.
-- Capability != Authority.
-- No actor or mechanism may invent delegation.
-- Sensitive human approvals should bind to the concrete intended action via a Decision Packet, not only an agent-written summary.
-- Risk-based gates should avoid making Paulo approve routine low-risk actions where explicit bounded pre-authorization exists.
-- Architecture, constitutional, security/trust-boundary, material-risk, governance-authority changes remain Paulo-gated.
-- Production deployment remains Paulo-gated unless Paulo explicitly changes that policy.
+Claude may add static schemas/templates/validators needed for the remediation, including a waiver schema/validator and durable Architect Sync template/home, provided they remain static governance artifacts only.
 
 ## Explicitly prohibited in S1
 
+- no change to frozen S0 constitutional meaning
 - no Policy Engine runtime
 - no Task Engine runtime
 - no Orchestrator
@@ -96,25 +102,26 @@ Static YAML/JSON/Markdown governance records are allowed. Deterministic parse/li
 - no website/admin implementation
 - no application/runtime migration
 - no production deployment
-- no merge to protected branch / website `main`
+- no protected-branch/main merge
 - no S2+ implementation
-- no silent architecture version bump
-- no weakening of frozen S0 constitutional/core rules
+- no applied 1.3.0 version bump during remediation
 
-## Required handoff
+## Required next handoff
 
-When S1 candidate artifacts are complete, Claude must:
+Claude must:
 
-1. report the exact base and candidate commit SHA;
-2. list every created/modified file;
-3. map every artifact to D-012 and ML-DEVOS-AS-003;
-4. distinguish human-readable policy from machine-readable static records;
-5. show that no runtime enforcement or later-phase subsystem was implemented;
-6. identify any proposed version bump rather than applying one silently;
+1. remediate `S1-F001`…`S1-F009`;
+2. map each finding to exact changed files/sections;
+3. compare remediation against `28a110b532e202431b7371134943a5b7f385e62b`;
+4. rerun every retained static validator and state exactly what each validator checks and does not check;
+5. confirm only authorized S1 governance/static-data/coordination paths changed;
+6. keep the 1.3.0 bump proposed but unapplied;
 7. update `coordination/IMPLEMENTER_HANDOFF.md`;
 8. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`;
-9. stop for independent Architect review.
+9. keep `CURRENT_REMEDIATION_CYCLE: 1`;
+10. keep `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO`;
+11. stop for Architect re-review.
 
 ## Current gate
 
-`S1 — GOVERNANCE KERNEL` is authorized. No later Sentinel phase is authorized.
+S1 Governance Kernel remediation cycle 1 is authorized. No later Sentinel phase is authorized.
