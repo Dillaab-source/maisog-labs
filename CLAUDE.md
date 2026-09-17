@@ -16,6 +16,7 @@ Also read the existing repository guidance and architecture documents, especiall
 - `package.json`
 - `wrangler.jsonc`
 - `coordination/README.md`
+- `coordination/STATE.md`
 - `coordination/IMPLEMENTER_HANDOFF.md`
 - `coordination/ARCHITECT_REVIEW.md`
 
@@ -31,9 +32,22 @@ The Architect (ChatGPT) writes:
 
 `coordination/ARCHITECT_REVIEW.md`
 
+The turn signal is:
+
+`coordination/STATE.md`
+
 Do not overwrite the Architect review file.
 
-Before beginning remediation or a newly authorized phase, pull the latest working branch and read the latest `coordination/ARCHITECT_REVIEW.md`.
+Before doing any work, pull the latest working branch and read `coordination/STATE.md`.
+
+Proceed only when both are true:
+
+- `TURN: CLAUDE`
+- `IMPLEMENTER_ACTION_REQUIRED: YES`
+
+If `TURN` belongs to `ARCHITECT` or `PAULO`, stop and wait.
+
+Before beginning remediation or a newly authorized phase, pull the latest working branch and read the latest `coordination/ARCHITECT_REVIEW.md` and `coordination/STATE.md`.
 
 Repository state, tests, runtime/deployment evidence, and committed handoff artifacts are the source of truth. Agent claims are not proof by themselves.
 
@@ -98,7 +112,19 @@ After reconnaissance, write the complete Phase 0 report into:
 
 Include command/test evidence and the exact branch/commit state you inspected.
 
-Then commit and push that documentation-only handoff to:
+Then update `coordination/STATE.md` in the same handoff commit so it contains:
+
+`TURN: ARCHITECT`
+
+`STATUS: READY_FOR_ARCHITECT`
+
+`ARCHITECT_ACTION_REQUIRED: YES`
+
+`IMPLEMENTER_ACTION_REQUIRED: NO`
+
+Do not change the authorized scope, deploy authorization, merge authorization, or Paulo decision fields unless explicitly authorized.
+
+Commit and push the handoff and state update to:
 
 `governance/maisoglabs-v0.1`
 
@@ -108,6 +134,20 @@ Suggested commit message:
 
 Do not make application changes in that commit.
 
+## Remediation loop rule
+
+If the Architect later sets:
+
+`STATUS: CHANGES_REQUESTED`
+
+and:
+
+`TURN: CLAUDE`
+
+then pull the latest branch, read `coordination/ARCHITECT_REVIEW.md`, perform only the required remediation within the authorized scope, update evidence, increment `CURRENT_REMEDIATION_CYCLE`, and hand back using `READY_FOR_ARCHITECT`.
+
+Never exceed `MAX_REMEDIATION_CYCLES`. If the cap would be exceeded, stop and require Paulo.
+
 ## Stop condition
 
-After pushing the Phase 0 handoff, **STOP** and wait for Paulo's authorization and Architect review before beginning Phase 1.
+After pushing a handoff with `STATUS: READY_FOR_ARCHITECT`, **STOP** and wait. Do not continue until the state file returns the turn to Claude or Paulo explicitly authorizes a new scope.
