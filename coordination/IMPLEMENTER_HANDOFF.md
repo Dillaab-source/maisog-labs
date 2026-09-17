@@ -1,8 +1,8 @@
 # Implementer Handoff
 
-Status: `PHASE 0 REPORT SUBMITTED — AWAITING PAULO + ARCHITECT REVIEW`
+Status: `READY_FOR_ARCHITECT` (see `coordination/STATE.md`)
 
-Branch: `governance/maisoglabs-v0.1` (merged into and reported from `claude/phase-0-governance-scope-w8o3jp`)
+Branch: `governance/maisoglabs-v0.1` (this cycle was also mirrored to this session's designated push branch, `claude/phase-0-governance-scope-w8o3jp`, per that session's own branch policy; both branches carry identical content for this cycle)
 
 Baseline candidate from `main`:
 `887849283ee9cd16e8d60b937bac95b1c85bf3d9`
@@ -24,9 +24,9 @@ Repository reconnaissance only, per `CLAUDE.md` and `docs/MAISOGLABS_WEBSITE_GOV
 ## Branch / Commit State
 
 - `main` HEAD: `887849283ee9cd16e8d60b937bac95b1c85bf3d9` ("Add validated Phase 2 content layer").
-- `governance/maisoglabs-v0.1` HEAD at inspection time: `a0fa0ab` ("docs(sync): connect Claude to repository handoff protocol"), 6 commits ahead of the baseline, all documentation-only (`CLAUDE.md`, `coordination/*`, `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`).
+- `governance/maisoglabs-v0.1` HEAD at inspection time: `a0fa0ab` ("docs(sync): connect Claude to repository handoff protocol"), 6 commits ahead of the baseline, all documentation-only (`CLAUDE.md`, `coordination/*`, `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`). It subsequently advanced two more documentation-only commits (`47236e7`, `58bbf40`) adding `coordination/STATE.md` and wiring the `TURN`/`STATUS` protocol into `CLAUDE.md`; both were pulled and merged before this handoff was finalized.
 - `git merge-base HEAD origin/governance/maisoglabs-v0.1` = `887849283ee9cd16e8d60b937bac95b1c85bf3d9`, confirming the governance branch's baseline claim matches the actual `main` HEAD.
-- This report was produced on `claude/phase-0-governance-scope-w8o3jp` after fast-forward-merging `origin/governance/maisoglabs-v0.1` into it (no divergent history; identical tip). This satisfies "work from `governance/maisoglabs-v0.1`" without pushing to a branch outside this session's designated remote branch.
+- This report was produced by pulling `origin/governance/maisoglabs-v0.1` and merging it (fast-forward, then a clean merge for the `STATE.md` commits) into this session's designated push branch, `claude/phase-0-governance-scope-w8o3jp`, and this handoff commit is pushed to both `governance/maisoglabs-v0.1` and that designated branch so both carry identical content.
 - Working tree is clean; no application files were modified during reconnaissance.
 
 ## 1. Current Architecture
