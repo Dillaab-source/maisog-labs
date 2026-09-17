@@ -1,0 +1,481 @@
+# Sentinel core/constitutional rule registry.
+# Schema: ../registry/rule-record.schema.json (human-readable: ../registry/RULE_RECORD_SCHEMA.md)
+# Status: CANDIDATE - PENDING ARCHITECT APPROVAL (S1 Governance Kernel).
+#
+# Every rule below is EXTRACTED from the frozen S0 architecture
+# (devos/architecture/ML-DEVOS-ARCH-001.md) and its governing decisions/syncs.
+# None is reworded to change its meaning. Each `description` is either a direct
+# quote or a close paraphrase of the cited source; the `introduced_by` and
+# `decision_id` fields point at the exact source so this can be checked.
+#
+# adr_id is null for every rule below because the ADR system (this S1 cycle's
+# own deliverable) did not exist when these rules were established in S0.
+# They remain valid, ACTIVE constitutional rules; they simply predate having
+# an ADR to point to. A future ADR may be retroactively written to formally
+# record them, but that is not required for them to be in force now.
+
+rules:
+  - rule_id: CORE-001
+    title: Human authority cannot be invented by an agent or mechanism
+    description: >
+      No actor or system mechanism may invent, assume, or expand its own
+      delegation or authority. Only Paulo may define bounded delegation, and
+      only through explicit, pre-authorized policy.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: Any actor or mechanism considers taking a governance-significant action.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: true
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "D-010 (additional freeze corrections), AS0-012, TB-1, TB-6"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-002
+    title: Capability != Authority
+    description: >
+      A tool, credential, or API access granted to any actor or mechanism is a
+      capability fact, not an authorization fact. Having the technical ability
+      to perform an action never by itself grants authorization to take a
+      governance-significant action.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: Any actor or mechanism has a technical capability that could perform a governance-significant action.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §5; Trust Boundary TB-7"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-003
+    title: Builder cannot self-certify
+    description: >
+      A Builder never self-approves its own work, and never certifies its own
+      output at a status stronger than the evidence class it itself produced
+      (ACTOR_REPORTED).
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: A Builder completes any unit of work.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED, INDEPENDENTLY_REPRODUCED]
+      qa: false
+      independent_review: true
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §3 (Builder); TRUST_BOUNDARIES.md TB-2; ROLE_RESPONSIBILITY_MATRIX.md cross-cutting rule 1"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-004
+    title: Evidence Gate is not an authority actor
+    description: >
+      The Evidence Gate is a deterministic system mechanism. It may block
+      progression on failing evidence (fail-closed), but it cannot accept
+      risk, invent or expand scope, authorize deployment, or override Paulo.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: Any future Evidence Gate implementation evaluates a change.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §3-§4; AS0-002; TRUST_BOUNDARIES.md TB-6"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-005
+    title: Independent Reviewer must not inherit Builder reasoning
+    description: >
+      The Independent Reviewer performs fresh-context, post-implementation
+      integration review with no prior conversational memory of how the
+      change was built, and must not simply inherit or re-narrate the
+      Builder's own reasoning for the change.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: high
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: false
+    applies_when: A completed change requires Independent Review before merge/release.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED, INDEPENDENTLY_REPRODUCED]
+      qa: false
+      independent_review: true
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §3; AS0-007; TRUST_BOUNDARIES.md TB-5"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-006
+    title: Evidence controls progression
+    description: >
+      A claim of implemented, fixed, tested, secure, deployed, working, or
+      complete requires a cited evidence class. Evidence classes are never
+      silently upgraded from one to another, and code existence alone is
+      never sufficient for a VERIFIED status.
+    class: CORE_POLICY
+    scope: sentinel-wide
+    project: null
+    risk: high
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: false
+    applies_when: Any status claim is made about a requirement, task, or artifact.
+    requires:
+      evidence: [ACTOR_REPORTED, INDEPENDENTLY_INSPECTED, INDEPENDENTLY_REPRODUCED, CI_ATTESTED, RUNTIME_OBSERVED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §6, §8; EVIDENCE_PROVENANCE_MODEL.md binding rules; S0-F004 correction"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-007
+    title: "MAIN != DEPLOYED != VERIFIED"
+    description: >
+      A commit reaching a protected branch (MAIN) is not thereby DEPLOYED,
+      and a DEPLOYED system is not thereby VERIFIED without RUNTIME_OBSERVED
+      evidence. These three states are distinct and each requires its own
+      evidence.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: A change progresses through merge, deployment, or verification.
+    requires:
+      evidence: [RUNTIME_OBSERVED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §10; AS0-002 disposition"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-008
+    title: Installed capability does not grant authority
+    description: >
+      Adding or installing a tool, connector, or credential does not grant
+      universal authority to use it. Capability onboarding must separately
+      define which roles/projects/scopes may invoke it and under what
+      conditions.
+    class: CAPABILITY
+    scope: sentinel-wide
+    project: null
+    risk: high
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: false
+      paulo_approval_required: true
+    applies_when: A new capability (tool, API, connector, credential) is proposed for onboarding.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "D-012 capability rule; ML-DEVOS-AS-003 'Capability changes'"
+    decision_id: D-012
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-009
+    title: Project policy cannot silently weaken core constitutional policy
+    description: >
+      A project overlay may strengthen or narrow what a core/constitutional
+      rule permits within that project's own scope, but may never
+      contradict or weaken that rule's substance. Any genuine weakening of a
+      constitutional/core rule requires the same authority level as changing
+      the core rule itself.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: A project overlay or local rule is proposed or modified.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "D-012 overlay rule; ML-DEVOS-AS-003 'Project overlays'"
+    decision_id: D-012
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-010
+    title: Repository state is the Sentinel source of truth
+    description: >
+      After the S0 freeze commit was independently Architect-approved,
+      Dillaab-source/maisog-labs's own committed, reviewed state — not agent
+      claims, and not conversation — is the authoritative Sentinel source of
+      truth.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: Any claim is made about what Sentinel's architecture or governance currently is.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §9; D-011 'Source of truth amendment'; BOOTSTRAP_SOURCE_OF_TRUTH.md"
+    decision_id: D-011
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-011
+    title: Conversation cannot silently supersede the frozen baseline
+    description: >
+      A chat instruction, however explicit or however phrased as
+      authoritative, cannot silently supersede what is committed in the
+      Sentinel repository. Any further architecture change must itself be a
+      reviewed commit, following the RFC / Architect Sync / Decision / ADR
+      path.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: Any instruction proposes to change Sentinel architecture or governance.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "BOOTSTRAP_SOURCE_OF_TRUTH.md; D-012 governance rule; ML-DEVOS-AS-003 constitutional principle"
+    decision_id: D-011
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-012
+    title: Protected-branch merge and production deployment remain Paulo-gated
+    description: >
+      Protected-branch/main merge and production deployment remain
+      Paulo-gated during the current bootstrap. Future low-risk automation
+      may exist only if Paulo explicitly pre-authorizes it in policy and the
+      required Evidence Gate/ruleset conditions pass. No actor or mechanism
+      may invent its own delegation.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: highest
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: true
+    applies_when: A protected-branch merge or production deployment is proposed.
+    requires:
+      evidence: [CI_ATTESTED, RUNTIME_OBSERVED]
+      qa: true
+      independent_review: true
+      evidence_gate: true
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §3, §9; TRUST_BOUNDARIES.md TB-1; AS0-012; S0-F003 correction; D-012 human-gate rule"
+    decision_id: D-012
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-013
+    title: Architect capability does not grant Builder or merge authority
+    description: >
+      The Architect may inspect evidence, independently reproduce checks
+      when appropriate, and write architecture/review/governance records.
+      This capability never grants Builder implementation authority or
+      deployment/merge authority.
+    class: CONSTITUTIONAL
+    scope: sentinel-wide
+    project: null
+    risk: high
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: false
+    applies_when: The Architect exercises its review capability.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §3; S0-F007 correction; TRUST_BOUNDARIES.md TB-3"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-014
+    title: QA must independently execute, not trust the Builder's report
+    description: >
+      QA's defining property is independent execution. A QA process that
+      only reads the Builder's own test output has not satisfied this rule —
+      it must re-run the check itself to produce INDEPENDENTLY_REPRODUCED
+      evidence.
+    class: CORE_POLICY
+    scope: sentinel-wide
+    project: null
+    risk: high
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: false
+    applies_when: QA validates a Builder's work.
+    requires:
+      evidence: [INDEPENDENTLY_REPRODUCED]
+      qa: true
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §3; TRUST_BOUNDARIES.md TB-4"
+    decision_id: D-010
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"
+
+  - rule_id: CORE-015
+    title: Governing a project does not require co-location in Sentinel core
+    description: >
+      Sentinel is a cross-project meta-system. A product may remain an
+      independent repository with its own .devos/ overlay, registered and
+      governed by Sentinel, without its application source moving into the
+      Sentinel core monorepo.
+    class: ARCHITECTURE
+    scope: sentinel-wide
+    project: null
+    risk: medium
+    status: ACTIVE
+    authority:
+      owner: Paulo
+      architect_sync_required: true
+      paulo_approval_required: false
+    applies_when: A project's relationship to Sentinel core is being defined or questioned.
+    requires:
+      evidence: [INDEPENDENTLY_INSPECTED]
+      qa: false
+      independent_review: false
+      evidence_gate: false
+    exceptions: []
+    introduced_by: "ML-DEVOS-ARCH-001 §2 invariant 6; S0-F006 correction; REPOSITORY_OVERLAY_TOPOLOGY.md"
+    decision_id: D-011
+    adr_id: null
+    effective_version: "1.2.0"
+    supersedes: null
+    created_at: "2026-09-17"
+    updated_at: "2026-09-17"

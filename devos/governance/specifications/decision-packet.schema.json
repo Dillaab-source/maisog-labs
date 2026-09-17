@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/governance/specifications/decision-packet.schema.json",
+  "title": "Sentinel Decision Packet",
+  "description": "Static shape for a human-approval record binding to a concrete proposed operation. Descriptive only — no runtime approval execution consumes this schema in S1.",
+  "type": "object",
+  "required": [
+    "decision_id", "task_id", "project_id", "requesting_actor", "exact_action",
+    "tool", "target", "current_state", "expected_state_change", "risk_class",
+    "policy_version", "rule_ids", "rollback_plan", "requested_at", "approver",
+    "decision"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "decision_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "requesting_actor": { "type": "string", "minLength": 1 },
+    "exact_action": { "type": "string", "minLength": 1 },
+    "tool": { "type": "string", "minLength": 1 },
+    "target": { "type": "string", "minLength": 1 },
+    "payload": { "type": "string" },
+    "payload_hash": { "type": "string" },
+    "current_state": { "type": "string", "minLength": 1 },
+    "expected_state_change": { "type": "string", "minLength": 1 },
+    "risk_class": { "type": "string", "enum": ["low", "medium", "high", "highest"] },
+    "policy_version": { "type": "string" },
+    "rule_ids": { "type": "array", "items": { "type": "string" } },
+    "evidence_refs": { "type": "array", "items": { "type": "string" } },
+    "rollback_plan": { "type": "string", "minLength": 1 },
+    "compensation_plan": { "type": "string" },
+    "idempotency_key": { "type": "string" },
+    "requested_at": { "type": "string", "format": "date-time" },
+    "approver": { "type": "string", "minLength": 1 },
+    "decision": { "type": "string", "enum": ["APPROVED", "REJECTED", "PENDING"] },
+    "decided_at": { "type": "string", "format": "date-time" }
+  },
+  "anyOf": [
+    { "required": ["payload"] },
+    { "required": ["payload_hash"] }
+  ]
+}
