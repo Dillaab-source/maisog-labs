@@ -5,7 +5,7 @@ Numbering convention: ML-DEVOS-ADR-001, ML-DEVOS-ADR-002, ... — sequential,
 never reused, assigned when an ADR is actually written under devos/changes/adrs/.
 No ADR has been filed as of S1 (the ADR system is itself an S1 deliverable);
 the frozen S0 constitutional rules predate this system and are not
-retroactively required to have one, per devos/governance/rules/core-rules.yaml's
+retroactively required to have one, per devos/governance/rules/core-rules.json's
 adr_id: null convention. See CHANGE_GOVERNANCE_POLICY.md §3 — an ADR is written
 AFTER implementation exists and has been reviewed. It is not a design document.
 -->

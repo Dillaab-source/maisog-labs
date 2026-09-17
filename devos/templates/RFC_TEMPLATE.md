@@ -37,7 +37,7 @@ Which files, subsystems, or repositories this touches.
 
 ## Affected rules
 
-Which `rule_id`s (`../governance/rules/*.yaml`) this RFC would add, modify, or supersede. State explicitly whether any `CONSTITUTIONAL`/`CORE_POLICY` rule is touched, and if so, confirm this RFC is *strengthening or clarifying*, never *weakening*, per `CORE-009`.
+Which `rule_id`s (`../governance/rules/*.json`) this RFC would add, modify, or supersede. State explicitly whether any `CONSTITUTIONAL`/`CORE_POLICY` rule is touched, and if so, confirm this RFC is proceeding through **that rule's own change class and authority level** (e.g. a `CONSTITUTIONAL` rule needs the full RFC + Architect Sync + explicit Paulo approval path). **S1-F005 correction:** a fully authorized RFC at the correct authority level *may* propose an actual weakening or substantive change to a core/constitutional rule — Sentinel is intentionally evolvable (`CORE-011`), and freezing does not mean immutable. What is forbidden is reaching that outcome through a *lower*-authority path (a `LOCAL_RULE`, `PATCH`, or project overlay never weakens a `CONSTITUTIONAL`/`CORE_POLICY` rule — `CORE-009`) — not proposing it at all through the rule's own legitimate route.
 
 ## Alternatives considered
 

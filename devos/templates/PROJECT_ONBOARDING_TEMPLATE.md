@@ -22,7 +22,7 @@ What this project is, and why it should come under Sentinel governance.
 # overlay.yaml (draft)
 strengthens: []   # [{ rule_id, addition }]
 narrows: []       # [{ rule_id, narrowing }]
-local_rules: []   # rule_ids to be defined in ../governance/rules/<project>-rules.yaml
+local_rules: []   # rule_ids to be defined in ../governance/rules/<project>-rules.json
 ```
 
 State explicitly: does this overlay touch any `CONSTITUTIONAL` or `CORE_POLICY` rule? If so, explain how it strengthens/narrows rather than weakens (`CORE-009`) — the Architect will check this specifically.

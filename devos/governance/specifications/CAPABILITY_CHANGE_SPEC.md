@@ -4,7 +4,7 @@ Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Forma
 
 ## Constitutional anchor
 
-`CAPABILITY != AUTHORITY` (`../rules/core-rules.yaml` `CORE-002`, `CORE-008`). Installing or connecting a tool, MCP server, API, or credential never by itself grants any role authority to use it for a governance-significant action. This specification exists so that granting a capability and granting authority to use it are always two separately recorded decisions, never one.
+`CAPABILITY != AUTHORITY` (`../rules/core-rules.json` `CORE-002`, `CORE-008`). Installing or connecting a tool, MCP server, API, or credential never by itself grants any role authority to use it for a governance-significant action. This specification exists so that granting a capability and granting authority to use it are always two separately recorded decisions, never one.
 
 ## Required fields for a capability-change proposal
 

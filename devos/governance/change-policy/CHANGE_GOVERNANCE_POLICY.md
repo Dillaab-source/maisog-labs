@@ -16,7 +16,7 @@ Every change to Sentinel governance, architecture, capabilities, or a project's 
 | `CAPABILITY` | New tool/API/write permission | Capability owner proposal, Architect risk/permission review, Paulo approval for sensitive operations | Medium–High | Yes, when it changes trust boundaries | **Yes**, for sensitive operations (per `../specifications/CAPABILITY_CHANGE_SPEC.md`) | `INDEPENDENTLY_INSPECTED` of the capability proposal; audit/evidence requirements per that spec | None invented; Capability ≠ Authority always applies | Named roles/projects | Capability-change proposal → Decision → (future) capability registry entry |
 | `ARCHITECTURE` | New subsystem, cross-cutting design | RFC author, Architect Sync, Paulo gate | High | **Yes** | **Yes** | `INDEPENDENTLY_INSPECTED` of the RFC and ADR; runtime claims need stronger evidence per `EVIDENCE_PROVENANCE_MODEL.md` | None | Sentinel-wide | RFC → Architect Sync → Decision → Implementation → ADR |
 | `CONSTITUTIONAL` | Actor authority, trust boundary, source-of-truth, delegation | RFC author, Architect Sync, **explicit** Paulo approval | Highest | **Yes** | **Yes, explicit and named** | `INDEPENDENTLY_INSPECTED` of the full RFC/ADR chain | **None — ever.** No actor or mechanism may invent constitutional delegation | Sentinel-wide, binds all projects | RFC → Architect Sync → explicit Decision → Implementation → ADR |
-| `WAIVER` | Temporary exception to an existing rule | Explicit approver (Paulo, or Paulo-delegated per policy), scoped and time-boxed | Varies by waived rule | Only if waiving a `CONSTITUTIONAL`/`ARCHITECTURE`-class rule | Yes, for anything waiving a `CORE_POLICY` rule or stronger | Compensating-control evidence per `../specifications/../../templates/WAIVER_TEMPLATE.md` | None beyond the waiver's own explicit terms | As scoped in the waiver | Waiver record (see `WAIVER_TEMPLATE.md`) — never silent |
+| `WAIVER` | Temporary exception to an existing rule | Explicit approver (Paulo, or Paulo-delegated per policy), scoped and time-boxed | Varies by waived rule | Only if waiving a `CONSTITUTIONAL`/`ARCHITECTURE`-class rule | Yes, for anything waiving a `CORE_POLICY` rule or stronger | Compensating-control evidence per `../../templates/WAIVER_TEMPLATE.md` | None beyond the waiver's own explicit terms | As scoped in the waiver | Waiver record (see `WAIVER_TEMPLATE.md`) — never silent |
 | `PROJECT_ONBOARDING` | Bring a new product/repository under Sentinel | Project owner proposal, Architect review of overlay compatibility, Paulo approval to onboard | Medium | Yes | Yes | `INDEPENDENTLY_INSPECTED` of the project contract/overlay | None for onboarding itself; the project's own overlay may carry its own delegation policy, bounded by rule 2 below | The onboarding project only | Project-onboarding proposal → Decision → project `.devos/` overlay |
 
 ## 2. Two rules the table above cannot override
@@ -31,7 +31,7 @@ These five records answer five different questions and must never be conflated (
 | Record | Question it answers | Where it lives |
 |---|---|---|
 | **RFC** | What is being proposed, and why? | `../../changes/rfcs/` — see `../../templates/RFC_TEMPLATE.md` |
-| **Architect Sync** | Is it architecturally compatible? What must be corrected? | `coordination/ARCHITECT_REVIEW.md` (current bootstrap convention) or a future per-change sync record |
+| **Architect Sync** | Is it architecturally compatible? What must be corrected? | `coordination/ARCHITECT_REVIEW.md` is the rolling, current-turn working surface. **`../../changes/architect-syncs/ML-DEVOS-AS-<NNN>.md` is the durable, immutable archive once a sync concludes (S1-F008)** — the rolling file alone is not sufficient long-term history, since it is overwritten each cycle. |
 | **Authorization / Decision** | Is it allowed to proceed? | `brain/DECISION_LOG.md` (current bootstrap convention) |
 | **Implementation** | What was actually changed? | The commit(s) themselves, cited by SHA in the handoff | 
 | **ADR** | What became architecture, and why — with alternatives, consequences, and supersession history? | `../../changes/adrs/` — see `../../templates/ADR_TEMPLATE.md` |
@@ -54,7 +54,7 @@ See `../specifications/VERSIONING_POLICY.md` for the full policy. Summary: archi
 
 ## 6. Relationship to frozen S0 rules
 
-The constitutional/core rules this policy exists to protect are extracted, unweakened, into `../rules/core-rules.yaml` (schema: `../registry/RULE_RECORD_SCHEMA.md`). This policy document is the human-readable law; that registry is its progressively machine-readable expression. Where the two ever appear to disagree, the frozen `ML-DEVOS-ARCH-001` document itself is authoritative over both, until a `CONSTITUTIONAL`-class change updates all three together.
+The constitutional/core rules this policy exists to protect are extracted, unweakened, into `../rules/core-rules.json` (schema: `../registry/RULE_RECORD_SCHEMA.md`). This policy document is the human-readable law; that registry is its progressively machine-readable expression. Where the two ever appear to disagree, the frozen `ML-DEVOS-ARCH-001` document itself is authoritative over both, until a `CONSTITUTIONAL`-class change updates all three together.
 
 ## 7. What this policy does not do
 

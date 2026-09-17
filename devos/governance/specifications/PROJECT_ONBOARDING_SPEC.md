@@ -4,7 +4,7 @@ Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Forma
 
 ## Constitutional anchor
 
-Projects may remain independent repositories (`CORE-015`). Onboarding a project under Sentinel governance never requires moving its application source into the Sentinel core monorepo (`Dillaab-source/maisog-labs`). A project overlay may strengthen or narrow core rules within its own scope; it may never silently weaken a constitutional/core rule (`CORE-009`).
+Projects may remain independent repositories (`CORE-015`). Onboarding a project under Sentinel governance never requires moving its application source into the Sentinel core monorepo (`Dillaab-source/maisog-labs`). A project overlay may narrow its own permissions/allowed actions or add stricter local requirements; it may never shrink the applicability of, or otherwise weaken, a Sentinel-wide constitutional/core rule (`CORE-009`). **S1-F005 correction:** "narrowing" means restricting what the project itself may do — it never means reducing where a Sentinel-wide rule reaches. A rule that applies Sentinel-wide continues to apply Sentinel-wide, including to this project, regardless of any overlay.
 
 ## The `.devos/` overlay
 
@@ -37,11 +37,11 @@ A project onboarded under Sentinel receives its own `.devos/` directory, in **it
 
 | Field | Meaning |
 |---|---|
-| `strengthens` | List of `{ rule_id, addition }` — core rules this project applies more strictly than the default. |
-| `narrows` | List of `{ rule_id, narrowing }` — core rules this project applies to a smaller scope than Sentinel-wide default, without weakening their substance. |
-| `local_rules` | List of `rule_id`s defined in this project's own rule file (`../../rules/<project>-rules.yaml`), never overlapping a `CORE-*` ID. |
+| `strengthens` | List of `{ rule_id, addition }` — core rules this project applies more strictly than the Sentinel-wide default. |
+| `narrows` | List of `{ rule_id, narrowing }` — **the project's own permitted actions/permissions** under a core rule, made stricter than the Sentinel-wide default. **Never** a reduction in where the core rule itself applies (S1-F005 correction). Example: a project may narrow `CORE-012` by requiring *two* human approvers for its own merges instead of one — that is a stricter local permission rule. It may not narrow `CORE-012` by exempting itself from Paulo-gating — that would shrink the rule's Sentinel-wide applicability, which is forbidden regardless of overlay wording. |
+| `local_rules` | List of `rule_id`s defined in this project's own rule file (`../rules/<project>-rules.json`), never overlapping a `CORE-*` ID. |
 
-`overlay.yaml` may never contain a field that redefines, disables, or contradicts a `CONSTITUTIONAL`- or `CORE_POLICY`-class core rule. A structural validator extension (not built in S1) would eventually check this mechanically; until then, this is checked by Architect review of the overlay proposal itself, per the `PROJECT_ONBOARDING` row in `../change-policy/CHANGE_GOVERNANCE_POLICY.md` §1.
+`overlay.yaml` may never contain a field that redefines, disables, or contradicts a `CONSTITUTIONAL`- or `CORE_POLICY`-class core rule, and `narrows` entries may never reduce a Sentinel-wide rule's reach. A structural validator extension (not built in S1) would eventually check this mechanically; until then, this is checked by Architect review of the overlay proposal itself, per the `PROJECT_ONBOARDING` row in `../change-policy/CHANGE_GOVERNANCE_POLICY.md` §1. Any actual change to a core/constitutional rule's applicability or strength must go through that rule's own change class and authority (e.g. a `CONSTITUTIONAL` rule's own RFC + Architect Sync + explicit Paulo approval path) — never through a project overlay at any authority level.
 
 ### `requirements.yaml`, `risks.yaml`, `capabilities.yaml`
 

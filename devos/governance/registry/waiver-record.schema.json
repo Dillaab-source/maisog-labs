@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/governance/registry/waiver-record.schema.json",
+  "title": "Sentinel Waiver Record",
+  "description": "Static shape for a filed waiver INSTANCE (as distinct from a rule record's `exceptions` field, which documents built-in exceptions the rule itself always had). Introduced in S1 remediation cycle 1 (S1-F003) because no waiver schema/validator existed even though the waiver template referenced one. Descriptive only -- no runtime consumes this schema.",
+  "type": "object",
+  "required": [
+    "waiver_id", "rule_waived", "scope", "reason", "risk", "approver",
+    "issued_at", "expires_at", "compensating_controls", "evidence", "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "waiver_id": { "type": "string", "pattern": "^ML-DEVOS-WAIVER-[0-9]{3}$" },
+    "rule_waived": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*-[0-9]{3}$",
+      "description": "Must reference an existing rule_id in ../rules/*.json whose 'waivable' field is true. validate-waivers.mjs checks both conditions against the current rule registry."
+    },
+    "scope": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 1 },
+    "risk": { "type": "string", "enum": ["low", "medium", "high", "highest"] },
+    "approver": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must be Paulo, or a role Paulo has explicitly pre-authorized to approve waivers of this rule's class -- never the requesting actor."
+    },
+    "issued_at": { "type": "string", "format": "date" },
+    "expires_at": {
+      "type": "string",
+      "format": "date",
+      "description": "MANDATORY -- there are no permanent silent exceptions. validate-waivers.mjs rejects any waiver record missing this field or where it is not strictly after issued_at."
+    },
+    "compensating_controls": { "type": "string", "minLength": 1 },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+      },
+      "description": "Evidence class(es) supporting that the compensating controls actually work."
+    },
+    "status": { "type": "string", "enum": ["ACTIVE", "EXPIRED", "REVOKED"] }
+  }
+}

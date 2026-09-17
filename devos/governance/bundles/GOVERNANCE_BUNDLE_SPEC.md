@@ -14,7 +14,7 @@ A Governance Bundle is the future unit of packaging for a versioned, coherent sn
 | `version` | string (semver) | Overall Sentinel governance version this bundle represents (see `../specifications/VERSIONING_POLICY.md`). |
 | `revision` | integer | Monotonically increasing revision within the same `version`, for non-semantic republishing (e.g. metadata correction). |
 | `effective_from` | date | When this bundle becomes the active governance snapshot — a future-facing field; nothing "activates" a bundle in S1. |
-| `rule_set` | array of `rule_id` | Every rule record (`../rules/*.yaml`) included in this bundle snapshot. |
+| `rule_set` | array of `rule_id` | Every rule record (`../rules/*.json`) included in this bundle snapshot. |
 | `schemas` | array of file references | Which schema versions (e.g. `rule-record.schema.json`) this bundle's records conform to. |
 | `source_rfcs` | array of RFC IDs | Every RFC whose acceptance contributed to this bundle's rule set. |
 | `source_adrs` | array of ADR IDs | Every ADR recorded as part of reaching this bundle. |

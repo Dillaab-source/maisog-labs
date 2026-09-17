@@ -16,10 +16,10 @@ Every material change should retain, at minimum: the RFC (if any), the Architect
 
 ## Current Sentinel version
 
-The product name itself already establishes the current architecture generation: **MaisogLabs DevOS v1.2.0 — SENTINEL**. `devos/governance/rules/core-rules.yaml` records `effective_version: "1.2.0"` for every extracted S0 constitutional rule, since none of them changed meaning between S0's freeze and this S1 extraction — they are the same rules, now in a new representation.
+The product name itself already establishes the current architecture generation: **MaisogLabs DevOS v1.2.0 — SENTINEL**. `devos/governance/rules/core-rules.json` records `effective_version: "1.2.0"` for every extracted S0 constitutional rule, since none of them changed meaning between S0's freeze and this S1 extraction — they are the same rules, now in a new representation.
 
 ## S1's own version assessment — proposed, not applied
 
 Per this cycle's explicit instruction to "identify any proposed version bump without applying it": introducing the Governance Kernel (change classes, rule registry, RFC/ADR/waiver system, Decision Packet, Governance Bundle spec) is a new, backwards-compatible governance **capability** — it does not change any existing constitutional rule's meaning, does not change the actor model, and does not change the source-of-truth rule. Under the scheme above, this would be assessed as a **MINOR** version bump, from `1.2.0` to a hypothetical `1.3.0`, once and if this S1 cycle is Architect-approved.
 
-**This version bump is not applied in this commit.** `core-rules.yaml` still records `effective_version: "1.2.0"` for every rule, because those rules did not change. Applying a `1.3.0` designation to "the Sentinel architecture as a whole" is a decision for Paulo/the Architect to make explicitly at S1's closure — this document only supplies the assessment the versioning policy itself requires before that decision can be made, per the binding rule above ("never silently").
+**This version bump is not applied in this commit.** `core-rules.json` still records `effective_version: "1.2.0"` for every rule, because those rules did not change. Applying a `1.3.0` designation to "the Sentinel architecture as a whole" is a decision for Paulo/the Architect to make explicitly at S1's closure — this document only supplies the assessment the versioning policy itself requires before that decision can be made, per the binding rule above ("never silently").

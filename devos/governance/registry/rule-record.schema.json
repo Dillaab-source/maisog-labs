@@ -2,12 +2,13 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://maisog-labs.internal/devos/governance/registry/rule-record.schema.json",
   "title": "Sentinel Rule Record",
-  "description": "Static, machine-readable rule record shape. See RULE_RECORD_SCHEMA.md for the human-readable specification. This schema is descriptive only and is not consumed by any runtime engine in S1.",
+  "description": "Static, machine-readable rule record shape. See RULE_RECORD_SCHEMA.md for the human-readable specification, including the class-level minimum authority/risk invariants (S1-F001) that this schema alone cannot express as cross-field constraints. This schema is descriptive only and is not consumed by any runtime engine in S1.",
   "type": "object",
   "required": [
     "rule_id", "title", "description", "class", "scope", "project", "risk",
-    "status", "authority", "applies_when", "introduced_by", "decision_id",
-    "adr_id", "effective_version", "supersedes", "created_at", "updated_at"
+    "status", "authority", "applies_when", "waivable", "introduced_by",
+    "decision_id", "adr_id", "effective_version", "proposed_effective_version",
+    "supersedes", "created_at", "updated_at"
   ],
   "additionalProperties": false,
   "properties": {
@@ -33,6 +34,10 @@
       }
     },
     "applies_when": { "type": "string", "minLength": 1 },
+    "waivable": {
+      "type": "boolean",
+      "description": "Whether this rule may ever be the target of a WAIVER record. If true, any waiver against it requires authority at least equal to this rule's own `authority` fields (S1-F003)."
+    },
     "requires": {
       "type": "object",
       "additionalProperties": false,
@@ -42,7 +47,12 @@
           "items": {
             "type": "string",
             "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
-          }
+          },
+          "description": "The MINIMUM evidence class(es) always required for this rule's applies_when condition. Never a claim that every listed evidence class from EVIDENCE_PROVENANCE_MODEL.md is universally required (S1-F002) — stronger, claim-specific evidence beyond this baseline is determined by the Task Contract/policy, not hardcoded here."
+        },
+        "evidence_note": {
+          "type": "string",
+          "description": "Free-text clarification of when stronger or different evidence applies beyond the baseline `evidence` array, since this schema cannot express full claim-specific conditionality (S1-F002)."
         },
         "qa": { "type": "boolean" },
         "independent_review": { "type": "boolean" },
@@ -51,12 +61,22 @@
     },
     "exceptions": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": { "type": "string" },
+      "description": "Built-in exceptions the rule itself always had. Distinct from a WAIVER record (a time-boxed departure filed separately under devos/changes/waivers/ and validated by validate-waivers.mjs, never by this file's validator)."
     },
     "introduced_by": { "type": "string", "minLength": 1 },
     "decision_id": { "type": ["string", "null"] },
     "adr_id": { "type": ["string", "null"] },
-    "effective_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "effective_version": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Null only when status is PROPOSED and the rule is not yet effective under any released version (S1-F007). Non-null (and required) for ACTIVE/SUPERSEDED/WAIVED/REJECTED rules."
+    },
+    "proposed_effective_version": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "The version this rule would take effect at if/when its authorizing cycle (e.g. S1) is approved. Required (non-null) when status is PROPOSED; must be null otherwise (S1-F007)."
+    },
     "supersedes": { "type": ["string", "null"] },
     "created_at": { "type": "string", "format": "date" },
     "updated_at": { "type": "string", "format": "date" }

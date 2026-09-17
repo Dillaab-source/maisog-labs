@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://maisog-labs.internal/devos/governance/specifications/decision-packet.schema.json",
   "title": "Sentinel Decision Packet",
-  "description": "Static shape for a human-approval record binding to a concrete proposed operation. Descriptive only — no runtime approval execution consumes this schema in S1.",
+  "description": "Static shape for a human-approval record binding to a concrete proposed operation. Descriptive only -- no runtime approval execution consumes this schema in S1. Tightened in S1 remediation cycle 1 (S1-F006): exact-payload vs. hashed-payload are now mutually exclusive with a declared hash algorithm, decision metadata is conditionally required once a decision is made, and evidence binding scales with declared risk.",
   "type": "object",
   "required": [
     "decision_id", "task_id", "project_id", "requesting_actor", "exact_action",
@@ -20,7 +20,12 @@
     "tool": { "type": "string", "minLength": 1 },
     "target": { "type": "string", "minLength": 1 },
     "payload": { "type": "string" },
-    "payload_hash": { "type": "string" },
+    "payload_hash": { "type": "string", "minLength": 1 },
+    "payload_hash_algorithm": {
+      "type": "string",
+      "enum": ["sha256", "sha512"],
+      "description": "Required whenever payload_hash is present (S1-F006) -- a hash with no declared algorithm cannot be independently verified."
+    },
     "current_state": { "type": "string", "minLength": 1 },
     "expected_state_change": { "type": "string", "minLength": 1 },
     "risk_class": { "type": "string", "enum": ["low", "medium", "high", "highest"] },
@@ -29,14 +34,33 @@
     "evidence_refs": { "type": "array", "items": { "type": "string" } },
     "rollback_plan": { "type": "string", "minLength": 1 },
     "compensation_plan": { "type": "string" },
-    "idempotency_key": { "type": "string" },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Optional in S1 -- no runtime execution exists yet for this to prevent double-execution against. Becomes meaningful once execution is automated in a later, separately authorized phase."
+    },
     "requested_at": { "type": "string", "format": "date-time" },
     "approver": { "type": "string", "minLength": 1 },
     "decision": { "type": "string", "enum": ["APPROVED", "REJECTED", "PENDING"] },
     "decided_at": { "type": "string", "format": "date-time" }
   },
-  "anyOf": [
-    { "required": ["payload"] },
-    { "required": ["payload_hash"] }
+  "allOf": [
+    {
+      "description": "S1-F006: payload (exact) and payload_hash (hashed) are mutually exclusive -- a packet binds to exactly one representation, never both and never neither.",
+      "oneOf": [
+        { "required": ["payload"], "not": { "required": ["payload_hash"] } },
+        { "required": ["payload_hash", "payload_hash_algorithm"], "not": { "required": ["payload"] } }
+      ]
+    },
+    {
+      "description": "S1-F006: once a decision is made (APPROVED/REJECTED), decided_at is required. While PENDING, decided_at must be absent, not null (JSON has no meaningful 'null timestamp'; omission is the honest representation of 'not yet decided').",
+      "if": { "properties": { "decision": { "const": "PENDING" } } },
+      "then": { "not": { "required": ["decided_at"] } },
+      "else": { "required": ["decided_at"] }
+    },
+    {
+      "description": "S1-F006: high/highest-risk decisions must bind to at least one piece of evidence -- evidence binding is part of the adopted Decision Packet requirement (D-012), not optional at the top of the risk scale.",
+      "if": { "properties": { "risk_class": { "enum": ["high", "highest"] } } },
+      "then": { "required": ["evidence_refs"], "properties": { "evidence_refs": { "type": "array", "minItems": 1 } } }
+    }
   ]
 }
