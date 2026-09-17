@@ -1,6 +1,6 @@
 # ML-DEVOS-SIP-001 — Sentinel Implementation Plan — S0–S14 Roadmap
 
-Status: `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL`. Companion to `../architecture/ML-DEVOS-ARCH-001.md`. **[Remediates S0-F001]**
+Status: `FROZEN (S0 ROADMAP BASELINE)`. Companion to `../architecture/ML-DEVOS-ARCH-001.md`. S0 is Architect-approved; S1–S14 remain separately gated.
 
 **Provenance disclosure, updated for remediation cycle 1:** the named phases and Alpha/Beta/RC1 milestone groupings below were disclosed in the prior candidate (commit `2bd7263`) as `[CYCLE-SUPPLIED]`. `coordination/ARCHITECT_REVIEW.md`'s `ML-DEVOS-AS-002` disposition has since explicitly accepted "the S0–S14 roadmap names and Alpha/Beta/RC1 milestone groupings" as part of the Sentinel target architecture — this gap is resolved; these names are now **[REPO-VERIFIED: AS0-002 disposition]**, subject to the S0-F002 correction below (which restores implementation outcomes that the prior candidate had incorrectly reduced to design-only wording).
 
@@ -10,7 +10,7 @@ Only **S0** is authorized. Per `coordination/STATE.md`'s "Current gate": no late
 
 | Phase | Name | Intended implementation outcome | Status |
 |---|---|---|---|
-| **S0** | Architecture Freeze | Freeze `ML-DEVOS-ARCH-001`; produce this roadmap and the other S0 artifacts; commit them into the repurposed monorepo. No runtime code. | `IN PROGRESS` (this cycle) |
+| **S0** | Architecture Freeze | Freeze `ML-DEVOS-ARCH-001`; produce this roadmap and the other S0 artifacts; commit them into the repurposed monorepo. No runtime code. | `VERIFIED` — Architect-approved |
 | S1 | Governance Kernel | Extract and formalize reusable governance policy (roles, trust boundaries, evidence rules) into a form later phases' Task Engine/Policy Engine can actually consume. | `NOT STARTED` |
 | S2 | DevOS Repository Foundation | Establish the concrete DevOS core / project-registry foundation inside the now-canonical monorepo. | `NOT STARTED` |
 | S3 | Typed Task Contracts | Implement machine-readable Task Contracts — schema and validation for what evidence class each kind of claim requires (`ML-DEVOS-ARCH-001` §6). | `NOT STARTED` |
