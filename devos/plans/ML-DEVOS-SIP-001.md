@@ -1,32 +1,34 @@
 # ML-DEVOS-SIP-001 — Sentinel Implementation Plan — S0–S14 Roadmap
 
-Status: `FROZEN (S0)`. Companion to `../architecture/ML-DEVOS-ARCH-001.md`.
+Status: `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL`. Companion to `../architecture/ML-DEVOS-ARCH-001.md`. **[Remediates S0-F001]**
 
-**Provenance disclosure:** the named phases and Alpha/Beta/RC1 milestone groupings below are **[CYCLE-SUPPLIED]** — this specific naming does not appear in `brain/DECISION_LOG.md` or `coordination/ARCHITECT_REVIEW.md` as committed. Only the *existence* of a phased S0-onward roadmap and the S0 scope itself are **[REPO-VERIFIED]** (`D-010`, `coordination/STATE.md`). This supersedes this repository's own prior generic S0–S14 placeholder roadmap (produced in the previous cycle, before the monorepo repurpose) with these specific names, per this cycle's explicit authorization to freeze them.
+**Provenance disclosure, updated for remediation cycle 1:** the named phases and Alpha/Beta/RC1 milestone groupings below were disclosed in the prior candidate (commit `2bd7263`) as `[CYCLE-SUPPLIED]`. `coordination/ARCHITECT_REVIEW.md`'s `ML-DEVOS-AS-002` disposition has since explicitly accepted "the S0–S14 roadmap names and Alpha/Beta/RC1 milestone groupings" as part of the Sentinel target architecture — this gap is resolved; these names are now **[REPO-VERIFIED: AS0-002 disposition]**, subject to the S0-F002 correction below (which restores implementation outcomes that the prior candidate had incorrectly reduced to design-only wording).
 
-Only **S0** is authorized. Per `coordination/STATE.md`'s "Current gate": no later Sentinel phase is authorized. **No phase below S0 may be marked `IMPLEMENTED` — these are roadmap targets only.**
+Only **S0** is authorized. Per `coordination/STATE.md`'s "Current gate": no later Sentinel phase is authorized. **Restoring implementation outcomes for S1–S14 (below) does not authorize any of them — it only corrects what each phase is ultimately meant to produce. No phase below S0 may be marked `IMPLEMENTED` until it is separately authorized, worked, and Architect-reviewed.**
 
-| Phase | Name | Purpose (roadmap target — not designed) | Status |
+**[Remediates S0-F002 — restores implementation outcomes for S1–S14, which the prior candidate incorrectly reduced to "design (not build)" wording. Naming the intended outcome does not authorize building it: every phase below stays `NOT STARTED` until it is separately authorized by Paulo, actually worked, and closed by its own Architect review.]**
+
+| Phase | Name | Intended implementation outcome | Status |
 |---|---|---|---|
 | **S0** | Architecture Freeze | Freeze `ML-DEVOS-ARCH-001`; produce this roadmap and the other S0 artifacts; commit them into the repurposed monorepo. No runtime code. | `IN PROGRESS` (this cycle) |
-| S1 | Governance Kernel | Formalize roles, trust boundaries, and evidence rules into whatever the future Task Engine/Policy Engine will actually consume. | `NOT STARTED` |
-| S2 | DevOS Repository Foundation | Establish the concrete `devos/` internal structure and conventions beyond the S0 documentation set (e.g. schemas, templates) inside the now-canonical monorepo. | `NOT STARTED` |
-| S3 | Typed Task Contracts | Define the "Task Contract" concept referenced in `ML-DEVOS-ARCH-001` §6 — what evidence class each kind of claim requires. | `NOT STARTED` |
-| S4 | State Machine Kernel | Design (not build) the lifecycle state machine sketched in `ML-DEVOS-ARCH-001` §10. | `NOT STARTED` |
-| S5 | Capability & Permission Gateway | Design (not build) the mechanism making "Capability ≠ Authority" technically true. | `NOT STARTED` |
-| S6 | Isolated Execution | Design (not build) sandboxed/isolated execution for Builder/QA work. | `NOT STARTED` |
-| S7 | Evidence & QA Plane | Design (not build) the Evidence Store and QA's independent-execution mechanism. | `NOT STARTED` |
-| S8 | Orchestrator MVP | Design (not build) work dispatch across actors. | `NOT STARTED` |
-| S9 | Independent Review & Evidence Gate | Design (not build) the fresh-context review process and the Evidence Gate's actual gating logic. | `NOT STARTED` |
-| S10 | GitHub Enforcement | Design (not implement) branch protection / required-checks rulesets that make TB-7 enforcement real. | `NOT STARTED` |
-| S11 | Memory & Observability | Design (not build) the five-store memory boundary (`ML-DEVOS-ARCH-001` §11) as actual storage. | `NOT STARTED` |
-| S12 | Project Overlay System | Define the `.devos/` overlay schema (`../governance/REPOSITORY_OVERLAY_TOPOLOGY.md`) and, separately, authorize any actual project migration. | `NOT STARTED` |
-| S13 | Release & Runtime Verification | Design the Release Gate / Deployment / Runtime Verification stages (`ML-DEVOS-ARCH-001` §7, §10). | `NOT STARTED` |
-| S14 | Sentinel Production Pilot | A Stage Gate / Release Review assessing whether S1–S13 are sufficient to run Sentinel on a real, live project end to end. | `NOT STARTED` |
+| S1 | Governance Kernel | Extract and formalize reusable governance policy (roles, trust boundaries, evidence rules) into a form later phases' Task Engine/Policy Engine can actually consume. | `NOT STARTED` |
+| S2 | DevOS Repository Foundation | Establish the concrete DevOS core / project-registry foundation inside the now-canonical monorepo. | `NOT STARTED` |
+| S3 | Typed Task Contracts | Implement machine-readable Task Contracts — schema and validation for what evidence class each kind of claim requires (`ML-DEVOS-ARCH-001` §6). | `NOT STARTED` |
+| S4 | State Machine Kernel | Implement the authoritative task lifecycle/state machine (`ML-DEVOS-ARCH-001` §10): ownership, locks/leases, retries, timeouts, idempotency. | `NOT STARTED` |
+| S5 | Capability & Permission Gateway | Implement enforcement of scoped role/tool permissions, making "Capability ≠ Authority" technically true rather than procedural. | `NOT STARTED` |
+| S6 | Isolated Execution | Implement task-scoped branch/worktree/sandbox isolation for Builder/QA work. | `NOT STARTED` |
+| S7 | Evidence & QA Plane | Implement structured evidence packets and the Evidence Store, plus deterministic QA execution. | `NOT STARTED` |
+| S8 | Orchestrator MVP | Implement bounded coordination of Architect → Builder → QA → Reviewer work dispatch. | `NOT STARTED` |
+| S9 | Independent Review & Evidence Gate | Implement the fresh-context review process and the Evidence Gate's actual deterministic acceptance logic. | `NOT STARTED` |
+| S10 | GitHub Enforcement | Implement PR/required-check/ruleset/protected-`main` enforcement that makes TB-7 real. | `NOT STARTED` |
+| S11 | Memory & Observability | Implement the five separated memory/evidence stores (`ML-DEVOS-ARCH-001` §11) plus run/task health telemetry. | `NOT STARTED` |
+| S12 | Project Overlay System | Implement reusable governance across multiple projects/repositories via the `.devos/` overlay (`../governance/REPOSITORY_OVERLAY_TOPOLOGY.md`), preserving cross-repository governance rather than requiring source to move into this monorepo. | `NOT STARTED` |
+| S13 | Release & Runtime Verification | Implement `MERGED → RELEASE_READY → DEPLOYED → VERIFIED` with actual `RUNTIME_OBSERVED` evidence (`ML-DEVOS-ARCH-001` §7, §10). | `NOT STARTED` |
+| S14 | Sentinel Production Pilot | Run one real, end-to-end governed task through the full Sentinel pipeline built by S1–S13. | `NOT STARTED` |
 
 ## Milestones
 
-**[CYCLE-SUPPLIED]**
+**[REPO-VERIFIED: AS0-002 disposition — explicitly accepted]**
 
 - **Sentinel Alpha — Kernel:** S0–S4
 - **Sentinel Beta — Controlled Agents:** S5–S9

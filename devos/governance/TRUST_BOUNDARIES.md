@@ -4,7 +4,7 @@ Companion to `../architecture/ML-DEVOS-ARCH-001.md` §5. Normative statement; th
 
 ## TB-1 — Human authority boundary
 
-Only Paulo authorizes: scope changes, phase transitions, deployment (any project), merges to any protected branch, and acceptance of a documented risk. No actor or mechanism crosses this boundary regardless of technical capability. **[REPO-VERIFIED: D-010, established throughout this session]**
+Only Paulo authorizes: scope changes, phase transitions, and acceptance of a documented risk. Paulo owns the deployment and protected-branch-merge **policy**: during the current bootstrap, production deployment and any protected-branch/`main` merge are Paulo-gated directly. Paulo may later define bounded, policy-scoped delegation for low-risk work — but only Paulo can create that delegation, only within explicit policy, and only where the required Evidence Gate/ruleset conditions actually pass; no actor or mechanism may invent its own delegation or treat a passing gate as self-sufficient authorization. **[REPO-VERIFIED: D-010; S0-F003 correction reconciling human control with the bounded-delegation rule already accepted in AS0-012]**
 
 ## TB-2 — Builder execution boundary
 
@@ -12,7 +12,7 @@ A Builder may read broadly within its granted access, but writes only within the
 
 ## TB-3 — Architect review boundary
 
-The Architect reviews independently, against repository/runtime evidence rather than the Builder's narrative. No execution capability, no deployment/merge authority, no unilateral phase-transition authority — only a recommendation to Paulo. **[REPO-VERIFIED: AS0-007]**
+The Architect reviews independently, against repository/runtime evidence rather than the Builder's narrative. The Architect has no Builder implementation authority, no deployment/merge authority, and no unilateral phase-transition authority — only a recommendation to Paulo. This does **not** mean the Architect lacks capability: it may inspect evidence and independently reproduce checks (e.g. re-running a build or diff comparison) as part of that review. Capability to reproduce a check ≠ authority to implement, deploy, or merge — the same Capability ≠ Authority principle (TB-7) that governs every other role. **[REPO-VERIFIED: AS0-007; S0-F007 correction — "no execution capability" previously conflated capability with authority]**
 
 ## TB-4 — QA boundary
 

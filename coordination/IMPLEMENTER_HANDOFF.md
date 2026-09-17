@@ -8,13 +8,13 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`SENTINEL-S0-ARCHITECTURE-FREEZE` — freeze-artifact commit sub-cycle (following the monorepo topology amendment)
+`SENTINEL-S0-ARCHITECTURE-FREEZE` — remediation cycle `1`
 
-Prior sub-cycle (staged-documents attempt, blocked on separate-repo creation) closed with Architect verdict `SENTINEL S0 STAGE GATE: NOT YET APPROVED — FREEZE ARTIFACT REVIEW STILL REQUIRED` at handoff SHA `4760134`. Paulo then recorded `D-011` (monorepo repurpose) and the Architect recorded amendment `AS0-001A`. This sub-cycle actually commits the eight freeze artifacts into this repository, as that verdict required.
+Prior sub-cycle committed the eight S0 freeze artifacts at `2bd7263`. The Architect's `ML-DEVOS-AS-002` Stage Gate Review of that commit returned `SENTINEL S0 STAGE GATE: NOT APPROVED — CHANGES REQUESTED (CYCLE 1)`, with eight findings `S0-F001`…`S0-F008` (six blockers, two required clarifications) and an explicit "Accepted without remediation" list. This cycle remediates exactly those eight findings.
 
 ## Objective
 
-Commit the S0 Architecture Freeze documentation into `devos/` in this now-canonical Sentinel monorepo (`D-011`, `AS0-001A`), per `coordination/STATE.md`'s "Authorized S0 action now." Update the handoff and hand back to the Architect.
+Remediate `S0-F001`…`S0-F008` in the `devos/**/*.md` freeze documents, per `coordination/ARCHITECT_REVIEW.md`'s "Authorized remediation scope" and "Required next handoff." Preserve every accepted architecture decision unchanged. Compare the remediation against the reviewed freeze commit `2bd72634bd1483daebdf6e7085a048acd3bd5ba6`.
 
 ## Requested Review Mode
 
@@ -22,70 +22,61 @@ Commit the S0 Architecture Freeze documentation into `devos/` in this now-canoni
 
 ## Branch / Commit State
 
-- Base SHA for this sub-cycle: `ad4cd8489d2dcc37680fa525d1222d156936f98c` (`docs(sync): authorize Sentinel S0 monorepo freeze artifacts`), pulled and fast-forwarded before any file was written.
-- `coordination/STATE.md` at base SHA confirmed: `CYCLE_ID: SENTINEL-S0-ARCHITECTURE-FREEZE`, `TURN: CLAUDE`, `STATUS: WAITING_FOR_IMPLEMENTER`, `IMPLEMENTER_ACTION_REQUIRED: YES`, `AUTHORIZED_SCOPE: SENTINEL_S0_ARCHITECTURE_FREEZE_DOCS_ONLY` — matched the required preconditions before any action was taken.
-- `brain/DECISION_LOG.md` `D-011` and `coordination/ARCHITECT_REVIEW.md` (containing `AS0-001`…`AS0-012` and amendment `AS0-001A`) read in full before starting.
-- Freeze commit SHA: **`<see the immediately following commit on this branch — this handoff file is part of that same commit and cannot self-reference its own resulting hash; reported to Paulo directly in this turn's final response>`**.
+- Base SHA for this cycle: `f072e61aa6ed1c32e7c176b1ffcd39f5211a8fea` (`docs(sync): return Sentinel S0 remediation to Claude`), pulled and fast-forwarded before any file was touched.
+- `coordination/STATE.md` at base SHA confirmed: `CYCLE_ID: SENTINEL-S0-ARCHITECTURE-FREEZE`, `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 1`, `IMPLEMENTER_ACTION_REQUIRED: YES` — matched required preconditions before any action.
+- `coordination/ARCHITECT_REVIEW.md` read in full: `ML-DEVOS-AS-002`, findings `S0-F001`…`S0-F008`, "Accepted without remediation" list, verdict `SENTINEL S0 STAGE GATE: NOT APPROVED — CHANGES REQUESTED (CYCLE 1)`.
+- Remediation commit SHA: reported at the end of this cycle's final response to Paulo, since this file is part of that same commit.
 
-## 1. Files created this commit
+## 1. Finding → exact section mapping
 
-Under `devos/` (new directory, this commit only):
+Full detail (file, exact section, and what changed per finding) is in `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` §2. Summary:
 
-1. `devos/architecture/ML-DEVOS-ARCH-001.md`
-2. `devos/plans/ML-DEVOS-SIP-001.md`
-3. `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`
-4. `devos/governance/TRUST_BOUNDARIES.md`
-5. `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`
-6. `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`
-7. `devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md`
-8. `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` — full Architect handoff with the D-010 K-2…K-7 / D-011 / AS0-001A / AS0-002…AS0-012 mapping table
+| Finding | Resolution |
+|---|---|
+| S0-F001 (blocker) | `ML-DEVOS-ARCH-001.md` / `ML-DEVOS-SIP-001.md` status changed from `FROZEN (S0)` to `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL` |
+| S0-F002 (blocker) | `ML-DEVOS-SIP-001.md` S1–S14 rewritten with the Architect's exact per-phase implementation outcomes; still all `NOT STARTED` |
+| S0-F003 (blocker) | Paulo's merge/deployment authority reframed as policy ownership (Paulo-gated now; bounded delegation only via explicit pre-authorized policy + passing gate conditions) across `ML-DEVOS-ARCH-001.md`, `ROLE_RESPONSIBILITY_MATRIX.md`, `TRUST_BOUNDARIES.md` |
+| S0-F004 (blocker) | Removed "or stronger" ranking language; evidence sufficiency made claim-specific in `ML-DEVOS-ARCH-001.md` §8 and `EVIDENCE_PROVENANCE_MODEL.md` |
+| S0-F005 (blocker) | Evidence Gate ordering scoped to "code/repository merge tasks"; general Task Contract/policy rule added for non-code tasks in `ML-DEVOS-ARCH-001.md` §7 and `EVIDENCE_PROVENANCE_MODEL.md` |
+| S0-F006 (blocker) | `REPOSITORY_OVERLAY_TOPOLOGY.md` corrected to show independent-repository products with their own `.devos/` overlay as a co-equal pattern, not a requirement to relocate into this monorepo; `ML-DEVOS-ARCH-001.md` §2 repurpose invariant 6 added |
+| S0-F007 (clarification) | "No execution capability" removed from Architect description; Architect may inspect/reproduce checks and write review/governance records, with no Builder/deploy/merge authority — `ML-DEVOS-ARCH-001.md` §3, `ROLE_RESPONSIBILITY_MATRIX.md`, `TRUST_BOUNDARIES.md` TB-3 |
+| S0-F008 (clarification) | Absence claims scoped to "this reviewed repository"; `ML-DEVOS-ARCH-001.md` §12, `EVIDENCE_PROVENANCE_MODEL.md` |
 
-Full per-document summaries and the mapping table live in `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` §4–§5 rather than being duplicated here.
+## 2. Files modified this commit
 
-**Modified in this same commit:** `coordination/IMPLEMENTER_HANDOFF.md` (this document), `coordination/STATE.md` (turn handoff, see below).
+`devos/architecture/ML-DEVOS-ARCH-001.md`, `devos/plans/ML-DEVOS-SIP-001.md`, `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`, `devos/governance/TRUST_BOUNDARIES.md`, `devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md`, `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`, `devos/handoffs/ML-DEVOS-S0-HANDOFF.md`, `coordination/IMPLEMENTER_HANDOFF.md` (this file), `coordination/STATE.md`.
 
-**Not modified:** `app/`, `components/`, `data/`, `lib/`, `public/`, `tests/`, `package.json`, `package-lock.json`, `next.config.mjs`, `wrangler.jsonc`, every website-pilot `brain/*` document, `AGENTS.md`, `README.md`, `docs/*`, `coordination/README.md`, `coordination/ARCHITECT_REVIEW.md` (never overwritten by Claude).
+**Not modified:** `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md` (no finding named it), `coordination/ARCHITECT_REVIEW.md` (never overwritten by Claude), and every application/runtime/deployment/configuration file (`app/`, `components/`, `data/`, `lib/`, `public/`, `tests/`, `package.json`, `package-lock.json`, `next.config.mjs`, `wrangler.jsonc`).
 
-## 2. Verification performed before committing
+## 3. Verification performed
 
 ```
-$ git diff --stat ad4cd84..HEAD   (run after staging, before commit)
- devos/architecture/ML-DEVOS-ARCH-001.md         | 182 ++++++++++++++++++++++++
- devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md   |  21 +++
- devos/governance/EVIDENCE_PROVENANCE_MODEL.md   |  49 +++++++
- devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md |  74 ++++++++++
- devos/governance/ROLE_RESPONSIBILITY_MATRIX.md  |  34 +++++
- devos/governance/TRUST_BOUNDARIES.md            |  38 +++++
- devos/handoffs/ML-DEVOS-S0-HANDOFF.md           |  94 ++++++++++++
- devos/plans/ML-DEVOS-SIP-001.md                 |  40 ++++++
- 8 files changed, 532 insertions(+)
+$ git status --short   (after staging devos/ edits, before this commit)
+ M devos/architecture/ML-DEVOS-ARCH-001.md
+ M devos/governance/EVIDENCE_PROVENANCE_MODEL.md
+ M devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md
+ M devos/governance/ROLE_RESPONSIBILITY_MATRIX.md
+ M devos/governance/TRUST_BOUNDARIES.md
+ M devos/handoffs/ML-DEVOS-S0-HANDOFF.md
+ M devos/plans/ML-DEVOS-SIP-001.md
 ```
 
-(This diff was taken against the staged tree before the coordination-file commit that follows; the final freeze commit adds this file and `coordination/STATE.md` on top of exactly these eight.)
+`git diff f072e61 -- coordination/ARCHITECT_REVIEW.md` returns empty — **confirmed `coordination/ARCHITECT_REVIEW.md` was not modified by Claude.**
 
-`git diff --cached --name-only | grep -E "^(app/|components/|data/|lib/|public/|tests/|package\.json|package-lock\.json|next\.config\.mjs|wrangler\.jsonc)"` returned no matches — **confirmed no application/runtime/deployment file changed.**
+A grep sweep for the specific bad patterns each finding called out (`FROZEN (S0)`, `or stronger`, unscoped `any repository`/`or any code`, `no execution capability` used un-corrected, `never occurs before`) confirmed each was either removed or now appears only inside an explanatory note describing the correction itself, not as a live claim.
 
-No `.github/` directory, workflow file, `projects/` directory, or `.devos/` overlay was created.
+`git diff --name-only 2bd7263..HEAD` (full command output recorded after commit, reported in the final response to Paulo) will show only the seven `devos/**/*.md` files above plus the two coordination files — no application/runtime/deployment/configuration path.
 
-## 3. Confirmation: no runtime/control-plane code added
+## 4. Preserved accepted decisions
 
-Confirmed by §2's diff: every changed/added path is either `devos/**/*.md` or the two coordination files. No Task Engine, Orchestrator, Capability Gateway, Evidence Gate, QA automation, or CI workflow code exists anywhere in this commit or this repository.
-
-## 4. Discrepancy vs. previously staged (pre-repurpose) versions
-
-Full detail in `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` §7. Summary: repository topology and source-of-truth destination both changed from "separate `maisoglabs-devos` repo" to "this repository, repurposed" (`D-011`); the lifecycle diagram, five-way memory sub-taxonomy, named S0–S14 roadmap/milestones, and full integration diagram are new this cycle and were not part of the previously staged set at all — each is marked `[CYCLE-SUPPLIED]` in the committed documents rather than presented as previously-established fact.
+Per `coordination/ARCHITECT_REVIEW.md`'s "Accepted without remediation" list, the following were left substantively unchanged (only re-tagged where the `ML-DEVOS-AS-002` disposition explicitly confirmed them, upgrading `[CYCLE-SUPPLIED]` to `[REPO-VERIFIED: AS0-002 disposition]`): D-011/AS0-001A non-destructive monorepo repurpose; five actors with Evidence Gate as a non-authority mechanism; provider-independent evidence classes; the Architect/Independent-Reviewer distinction; Memory/Task State/Run History/Evidence separation; Capability subsystem separation; `SENTINEL-MIGRATION-DEBT-001` recorded-not-fixed; the bootstrap/source-of-truth rule; no runtime/control-plane implementation in S0.
 
 ## 5. Known limitations
 
-- `ML-DEVOS-AS-002`, cited in this cycle's authorizing instruction as the latest Architecture Sync, is not an inspectable artifact anywhere in this repository — a repository-wide search found no match. Every `[CYCLE-SUPPLIED]`-tagged claim in the committed documents rests on this cycle's own authorizing instruction, not on independently-reviewable Architect Sync content.
-- The lifecycle diagram, memory sub-taxonomy, and named roadmap phases are intent statements only — no schema, storage, or code implements any of them.
-- `SENTINEL-MIGRATION-DEBT-001` (website content-flow ordering) is recorded, not corrected.
-- None of this cycle's claims, including the diff verification in §2, have been independently reproduced by the Architect at the time of this commit.
-
-## 6. Paulo-level decisions required
-
-None to close this specific sub-cycle's mechanics. Carried forward: whether/how to obtain or reconcile `ML-DEVOS-AS-002`'s actual content against the `[CYCLE-SUPPLIED]` items now committed, so a future cycle can upgrade them to `[REPO-VERIFIED]` rather than leaving them permanently flagged.
+- This remediation is `ACTOR_REPORTED` evidence until the Architect independently inspects it.
+- No S1 work of any kind was performed; the SIP-001 corrections describe intended outcomes only.
+- `SENTINEL-MIGRATION-DEBT-001` remains recorded, not corrected.
 
 ## Stop Confirmation
 
-Confirmed: no DevOS control-plane/runtime implementation, no Task Engine/Orchestrator/Capability Gateway/Evidence Gate implementation, no QA automation or CI workflow creation, no GitHub ruleset/branch-protection change, no website/admin implementation, no production deployment, no merge to the website `main`, no application/runtime migration or directory restructuring, no deletion or movement of existing website files, and no rewrite of repository history occurred this cycle. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+Confirmed: no DevOS control-plane/runtime implementation, no Task Engine/Orchestrator/Capability Gateway/Evidence Gate runtime, no QA automation or CI workflow, no GitHub ruleset/branch-protection change, no website/admin implementation, no production deployment, no merge to the website `main`, no application/runtime migration or directory restructuring, no deletion or movement of existing website files, no rewrite of repository history, and no S1 work occurred this cycle. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`. `CURRENT_REMEDIATION_CYCLE` remains `1`, as directed.

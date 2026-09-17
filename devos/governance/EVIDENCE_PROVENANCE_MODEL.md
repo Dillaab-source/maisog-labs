@@ -14,7 +14,13 @@ Companion to `../architecture/ML-DEVOS-ARCH-001.md` §6–§7. Normative stateme
 | `CI_ATTESTED` | A deterministic, non-human CI system executed the check and recorded the result. |
 | `RUNTIME_OBSERVED` | Observed directly from an actual running/deployed system, not a build or test environment. |
 
-**These describe provenance, not an absolute universal quality ranking.** `RUNTIME_OBSERVED` and `CI_ATTESTED` in particular answer different questions (does it work in production vs. did the deterministic pipeline pass) and are not strictly ordered against each other — a `VERIFIED` status claim should cite whichever is actually relevant to what's being verified. **[CYCLE-SUPPLIED clarification, consistent with the REPO-VERIFIED class definitions]**
+**These describe provenance, not an absolute universal quality ranking.** `RUNTIME_OBSERVED` and `CI_ATTESTED` in particular answer different questions (does it work in production vs. did the deterministic pipeline pass) and are not strictly ordered against each other. **Evidence sufficiency is claim-specific** (`S0-F004` correction): a `VERIFIED` status claim cites whichever class is actually relevant to what's being verified —
+
+- documentation/architecture correctness may be established by `INDEPENDENTLY_INSPECTED` evidence alone;
+- executable behavior normally requires `INDEPENDENTLY_REPRODUCED` and/or `CI_ATTESTED` evidence, as the Task Contract/policy defines;
+- production behavior requires the relevant `RUNTIME_OBSERVED` evidence.
+
+No fixed "always needs the strongest class" ranking applies. **[REPO-VERIFIED: S0-F004 correction]**
 
 ## Worked examples
 
@@ -29,7 +35,7 @@ Companion to `../architecture/ML-DEVOS-ARCH-001.md` §6–§7. Normative stateme
 
 ## The Task Contract
 
-**[CYCLE-SUPPLIED — no Task Contract mechanism exists yet anywhere in this repository or any code]** The intent, recorded here for later phases (`ML-DEVOS-SIP-001` S3 "Typed Task Contracts") to actually design: **the Task Contract decides which evidence class is required for a given claim.** Not every claim needs `CI_ATTESTED` or `RUNTIME_OBSERVED` — a low-risk documentation claim may reasonably require only `INDEPENDENTLY_INSPECTED`, while a claim about production behavior requires `RUNTIME_OBSERVED` specifically. This is stated as intent, not as a describable current mechanism; no schema or enforcement exists.
+**[CYCLE-SUPPLIED — no Task Contract mechanism exists yet in this reviewed repository]** The intent, recorded here for later phases (`ML-DEVOS-SIP-001` S3 "Typed Task Contracts") to actually implement: **the Task Contract decides which evidence class is required for a given claim.** Not every claim needs `CI_ATTESTED` or `RUNTIME_OBSERVED` — a low-risk documentation claim may reasonably require only `INDEPENDENTLY_INSPECTED`, while a claim about production behavior requires `RUNTIME_OBSERVED` specifically. This is stated as intent, not as a describable current mechanism; no schema or enforcement exists in this reviewed repository. **[Remediates S0-F008 scope]**
 
 ## Binding rules
 
@@ -42,7 +48,7 @@ Companion to `../architecture/ML-DEVOS-ARCH-001.md` §6–§7. Normative stateme
 
 ## Integration / Evidence-Gate order
 
-See `../architecture/ML-DEVOS-ARCH-001.md` §7 for the full diagram and provenance disclosure (base ordering `[REPO-VERIFIED: AS0-004]`; full diagram detail `[CYCLE-SUPPLIED]`). Restated here because it is the evidence model's primary consumer: **PR/CI/reviewer evidence is what feeds the Evidence Gate** (`D-010`) — the Evidence Gate never occurs before that evidence exists, and it consumes `CI_ATTESTED`/`INDEPENDENTLY_REPRODUCED`/`INDEPENDENTLY_INSPECTED` results, never a Builder's bare `ACTOR_REPORTED` claim alone.
+See `../architecture/ML-DEVOS-ARCH-001.md` §7 for the full diagram and provenance disclosure (base ordering `[REPO-VERIFIED: AS0-004]`, accepted further via `AS0-002` disposition). Restated here because it is the evidence model's primary consumer: **for code/repository merge tasks**, PR/CI/reviewer evidence is what feeds the Evidence Gate (`D-010`) before merge eligibility. **More generally, the Task Contract/policy defines what evidence a task actually requires** — a documentation-only task may have no meaningful CI check, so the Gate must not demand irrelevant CI for it. What never happens, for any task, is the Gate accepting a bare Builder `ACTOR_REPORTED` claim where the Task Contract requires independent evidence. **[REPO-VERIFIED: S0-F005 correction — removes the prior absolute "never before PR/CI evidence exists" wording, which didn't account for non-code tasks]**
 
 ## Current state of this model in practice
 
