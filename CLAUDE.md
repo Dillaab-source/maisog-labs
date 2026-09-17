@@ -8,7 +8,7 @@ Read this file completely before doing anything else:
 
 `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`
 
-Also read the existing repository guidance and architecture documents, especially:
+Also read:
 
 - `AGENTS.md`
 - `README.md`
@@ -28,17 +28,15 @@ You write:
 
 `coordination/IMPLEMENTER_HANDOFF.md`
 
-The Architect (ChatGPT) writes:
+The Architect writes:
 
 `coordination/ARCHITECT_REVIEW.md`
 
-The turn signal is:
+The machine-readable turn signal is:
 
 `coordination/STATE.md`
 
-Do not overwrite the Architect review file.
-
-Before doing any work, pull the latest working branch and read `coordination/STATE.md`.
+Before doing any work, pull the latest `governance/maisoglabs-v0.1` branch and read `coordination/STATE.md`.
 
 Proceed only when both are true:
 
@@ -47,72 +45,190 @@ Proceed only when both are true:
 
 If `TURN` belongs to `ARCHITECT` or `PAULO`, stop and wait.
 
-Before beginning remediation or a newly authorized phase, pull the latest working branch and read the latest `coordination/ARCHITECT_REVIEW.md` and `coordination/STATE.md`.
-
-Repository state, tests, runtime/deployment evidence, and committed handoff artifacts are the source of truth. Agent claims are not proof by themselves.
-
-Paulo remains Product / Risk Owner and authorizes gated phase transitions.
+Paulo is Product / Risk Owner. ChatGPT is Architect / independent reviewer. Claude is Implementer. Repository state, tests, diffs, runtime/deployment evidence, and committed handoff artifacts are the source of truth.
 
 ## Current authorized scope
 
-**PHASE 0 — REPOSITORY RECONNAISSANCE ONLY.**
+**PHASE 1 — GOVERNANCE BOOTSTRAP ONLY.**
 
-Do not modify application functionality yet.
-Do not create the admin implementation yet.
-Do not redesign the public website yet.
-Do not deploy.
-Do not merge to `main`.
+Paulo has explicitly approved this phase.
 
-Work from branch:
+Work from:
 
 `governance/maisoglabs-v0.1`
 
-The candidate governance baseline from `main` is:
+Governance baseline from `main`:
 
 `887849283ee9cd16e8d60b937bac95b1c85bf3d9`
 
-Repository reality wins over conversation history or assumptions.
+Do NOT:
 
-## Required Phase 0 report
+- implement `/admin`
+- add authentication
+- add D1/R2
+- redesign the public website
+- change public functionality
+- deploy
+- merge to `main`
+- merge old/experimental branches into the governance branch
 
-Return a factual report covering:
+## Required Phase 1 work
 
-1. CURRENT ARCHITECTURE
-2. CURRENT GIT STATE
-3. CURRENT DEPLOYMENT MODEL
-4. CURRENT CONTENT/DATA MODEL
-5. CURRENT PROJECTS IMPLEMENTATION
-6. CURRENT JOURNAL IMPLEMENTATION
-7. CURRENT ADMIN IMPLEMENTATION
-8. CURRENT AUTHENTICATION MODEL
-9. CURRENT STORAGE MODEL
-10. CURRENT MEDIA MODEL
-11. CURRENT TEST COVERAGE
-12. CURRENT SECURITY BOUNDARIES
-13. DIFFERENCES BETWEEN CURRENT STATE AND THE GOVERNANCE PLAN
-14. PROPOSED GOVERNANCE BOOTSTRAP
-15. FILES YOU WOULD CREATE/MODIFY
-16. PROPOSED ADMIN ARCHITECTURE
-17. MIGRATION RISKS
-18. PAULO-LEVEL DECISIONS REQUIRED
+Create the governance bootstrap described in the approved plan and Architect review.
 
-For every important claim, cite the relevant repository file/path or command/test evidence.
+Create:
 
-If `/admin` is not actually implemented, explicitly report:
+- `brain/00_HOME.md`
+- `brain/PROJECT_GOVERNANCE.md`
+- `brain/GOVERNANCE_MAP.md`
+- `brain/ARCHITECT_HANDOFF.md`
+- `brain/IMPLEMENTATION_STATUS.md`
+- `brain/DECISION_LOG.md`
+- `brain/RISK_REGISTER.md`
+- `brain/TEST_LEDGER.md`
+- `brain/protocols/ARCHITECT_SYNC.md`
 
-`ADMIN STATUS: NOT IMPLEMENTED`
+Extend the existing `AGENTS.md` only where needed. Do not discard useful existing guidance.
 
-Do not invent test results, runtime state, deployment state, Cloudflare state, database state, or admin functionality.
+## Required governance content
 
-## Phase 0 repository handoff requirement
+The bootstrap must document at minimum:
 
-After reconnaissance, write the complete Phase 0 report into:
+1. Paulo = Product / Risk Owner.
+2. ChatGPT = Architect / independent reviewer.
+3. Claude = Implementer.
+4. Repository + tests + runtime/deployment evidence = source of truth.
+5. No implementer self-certification of `ARCHITECT VERIFIED`.
+6. Traceability model: Requirement → Design → Implementation → Test → Evidence → Status.
+7. Status vocabulary: NOT STARTED / IN PROGRESS / IMPLEMENTED / VERIFIED / BLOCKED / DEFERRED.
+8. Change-scoped `READY TO COMMIT` rule: unresolved project-wide issues do not automatically block unrelated documentation changes; blockers must be introduced by, materially affect, or be required for the change under review.
+9. Broader review modes: STAGE GATE REVIEW / RELEASE REVIEW / SECURITY REVIEW.
+10. Evidence standards for claims such as implemented, fixed, tested, secure, deployed, complete, or working.
+11. Legacy-baseline rule: governance is prospective from the recorded baseline SHA; do not pretend historic commits were governed.
+12. Handoff and Architect Sync protocol consistent with the existing `coordination/` mechanism.
+13. Maximum autonomous remediation cycles = 3 unless Paulo explicitly changes it.
 
-`coordination/IMPLEMENTER_HANDOFF.md`
+## Required Phase 1 Architect findings to address
 
-Include command/test evidence and the exact branch/commit state you inspected.
+### A. Canonical deployment wording
 
-Then update `coordination/STATE.md` in the same handoff commit so it contains:
+Reconcile the documentation contradiction discovered by the Architect:
+
+- `AGENTS.md` currently says static export for Cloudflare Pages.
+- `docs/ARCHITECTURE.md`, `wrangler.jsonc`, and `package.json` indicate Wrangler serving the static `out` assets through the Cloudflare Worker/assets deployment model.
+
+Do not change infrastructure. Update documentation so one current deployment description is canonical and evidence-based.
+
+### B. Legacy branch inventory
+
+Inventory the known non-governance remote branches without merging or importing them.
+
+At minimum record:
+
+- `admin-v1`
+- `codex/link-eternal-eggs-dashboard`
+- `design-v2`
+- `master-plan-v1`
+- `redesign/immersive-bridge-v2`
+- `website-v3.1`
+- `website-v3.1.1`
+- `website-v3.1.2`
+
+Classify them conservatively as `UNINSPECTED LEGACY/EXPERIMENTAL` unless repository evidence justifies a more specific label.
+
+Do not reuse `admin-v1` merely because it exists.
+
+### C. Preserve current content architecture
+
+Record the current content boundary as a governed baseline:
+
+`data/site.js` → `lib/content/local.mjs` → `lib/content/schema.mjs` → `lib/content/public.mjs` → `app/page.js`
+
+Future Admin/CMS work must preserve or deliberately replace this boundary through an approved architecture decision.
+
+### D. Evidence distinction
+
+Governance documentation must distinguish:
+
+- implementer-reported evidence
+- Architect independently reproduced/inspected evidence
+- production/runtime evidence
+
+Do not silently upgrade one evidence class into another.
+
+## PROJECT_GOVERNANCE.md requirements
+
+Record:
+
+- repository: `Dillaab-source/maisog-labs`
+- authoritative governance branch: `governance/maisoglabs-v0.1`
+- legacy baseline SHA: `887849283ee9cd16e8d60b937bac95b1c85bf3d9`
+- governance start boundary
+- roles and authority
+- current deployment model
+- current storage model
+- current admin/auth status as NOT IMPLEMENTED
+- current restrictions: no deploy and no `main` merge unless separately authorized
+
+## Risk register bootstrap
+
+Seed the risk register with the known risks from the governance plan, including at least:
+
+- production outage
+- admin authorization bypass
+- content/data loss
+- secret exposure
+- mobile regression
+- broken routing
+- failed admin persistence
+- invalid content breaking rendering
+- dev/prod divergence
+- deployment succeeds but UI is materially broken
+- unsafe design/code injection
+- media upload abuse
+- draft/private content exposure
+- missing auditability
+- migration data loss
+
+Do not mark future Admin risks as resolved merely because Admin does not exist yet. Use a status such as NOT STARTED / NOT YET APPLICABLE / OPEN as defined by the governance document.
+
+## Test ledger bootstrap
+
+Seed the test ledger from the approved plan, but distinguish:
+
+- existing content-schema tests already present in `tests/content.test.mjs`
+- implementer-reported Phase 0 test/build results
+- future required Admin/security/deployment tests not yet implemented
+
+Do not fabricate PASS evidence for tests not independently evidenced.
+
+## Phase 1 validation
+
+Before handoff:
+
+- inspect the Git diff and ensure no application code changed accidentally;
+- ensure the governance docs do not contradict each other;
+- ensure no old branch was merged;
+- ensure `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged;
+- run documentation-appropriate validation and record exact evidence;
+- application tests/build may be rerun if useful, but do not represent them as Architect-reproduced evidence.
+
+## Phase 1 handoff requirement
+
+When complete, replace/update `coordination/IMPLEMENTER_HANDOFF.md` with the Phase 1 handoff including:
+
+- Cycle ID: `PHASE-1-GOVERNANCE-BOOTSTRAP`
+- exact branch HEAD
+- files created/modified
+- governance requirements satisfied
+- contradictions resolved
+- legacy branch inventory
+- tests/checks performed
+- evidence index
+- known limitations
+- Paulo-level decisions, if any
+
+Then update `coordination/STATE.md` to:
 
 `TURN: ARCHITECT`
 
@@ -122,32 +238,24 @@ Then update `coordination/STATE.md` in the same handoff commit so it contains:
 
 `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Do not change the authorized scope, deploy authorization, merge authorization, or Paulo decision fields unless explicitly authorized.
+Keep:
 
-Commit and push the handoff and state update to:
+`AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY`
+
+`DEPLOY_AUTHORIZED: NO`
+
+`MAIN_MERGE_AUTHORIZED: NO`
+
+Commit and push the governance bootstrap and handoff to:
 
 `governance/maisoglabs-v0.1`
 
-Suggested commit message:
+Suggested final handoff commit message:
 
-`docs(sync): publish phase 0 implementer handoff`
+`docs(sync): publish phase 1 governance handoff`
 
-Do not make application changes in that commit.
+Then STOP and wait for Architect review.
 
 ## Remediation loop rule
 
-If the Architect later sets:
-
-`STATUS: CHANGES_REQUESTED`
-
-and:
-
-`TURN: CLAUDE`
-
-then pull the latest branch, read `coordination/ARCHITECT_REVIEW.md`, perform only the required remediation within the authorized scope, update evidence, increment `CURRENT_REMEDIATION_CYCLE`, and hand back using `READY_FOR_ARCHITECT`.
-
-Never exceed `MAX_REMEDIATION_CYCLES`. If the cap would be exceeded, stop and require Paulo.
-
-## Stop condition
-
-After pushing a handoff with `STATUS: READY_FOR_ARCHITECT`, **STOP** and wait. Do not continue until the state file returns the turn to Claude or Paulo explicitly authorizes a new scope.
+If the Architect returns `CHANGES_REQUESTED` with `TURN: CLAUDE`, remediate only the listed governance-bootstrap issues, increment `CURRENT_REMEDIATION_CYCLE`, and hand back. Do not exceed `MAX_REMEDIATION_CYCLES`.
