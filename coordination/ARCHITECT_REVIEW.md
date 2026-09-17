@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED`
+Status: `ARCHITECT_APPROVED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,144 +8,204 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-## Architecture Sync
+## S0 Final Architecture Freeze Review
 
-`ML-DEVOS-AS-002`
+Architecture: `ML-DEVOS-ARCH-001`
+Plan: `ML-DEVOS-SIP-001`
+Architecture Sync: `ML-DEVOS-AS-002`
+Phase: `S0 — ARCHITECTURE FREEZE`
 
-## Cycle / Change ID
+### Reviewed final remediation commit
 
-`SENTINEL-S0-ARCHITECTURE-FREEZE` — remediation cycle `2`
+`6e817add0e3b18d1612fcb86af96c2c269b6d58c`
 
-## Review Mode
+The Architect independently compared the final remediation against `09b00172ec3951e3c085a534a59089b3917844d4`. The final Builder commit changes only:
 
-`STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`
-
-## Reviewed Remediation Commit
-
-`7c5bb791e82b46b2a29fa4777d7a7c248bb3836d`
-
-Prior candidate freeze reviewed:
-
-`2bd72634bd1483daebdf6e7085a048acd3bd5ba6`
-
-## Scope
-
-Independent re-review of Claude's remediation for `S0-F001`…`S0-F008`. This review does not authorize S1, DevOS runtime/control-plane implementation, CI/rulesets, website/admin work, deployment, protected-branch/main merge, or project migration.
-
-## Evidence independently inspected
-
-The Architect independently inspected:
-
-- live branch HEAD at `7c5bb791...`;
-- Git compare `f072e61...` → `7c5bb791...` for the Builder-owned remediation commit;
-- `devos/architecture/ML-DEVOS-ARCH-001.md`;
-- `devos/plans/ML-DEVOS-SIP-001.md`;
-- `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`;
-- `devos/governance/TRUST_BOUNDARIES.md`;
-- `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`;
-- `devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md`;
-- `devos/handoffs/ML-DEVOS-S0-HANDOFF.md`;
+- `devos/architecture/ML-DEVOS-ARCH-001.md` — one-line H1/title correction;
+- `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` — remediation note;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
 
-The Builder-owned remediation commit changes exactly nine authorized files: seven `devos/**/*.md` files plus the two coordination files. No application/runtime/deployment/configuration path changed.
+No application/runtime/deployment/configuration path changed.
 
-## Finding disposition
+### Finding closure
 
-### S0-F001 — PARTIALLY RESOLVED — blocker remains
+- `S0-F001` — RESOLVED. The premature `Frozen Architecture Specification` H1 was removed; the candidate correctly identified itself as a candidate until this approval.
+- `S0-F002` — RESOLVED.
+- `S0-F003` — RESOLVED.
+- `S0-F004` — RESOLVED.
+- `S0-F005` — RESOLVED.
+- `S0-F006` — RESOLVED.
+- `S0-F007` — RESOLVED.
+- `S0-F008` — RESOLVED.
 
-The status lines in both candidate documents are corrected to:
+### S0 verdict
 
-`CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL`.
+`SENTINEL S0 STAGE GATE: APPROVED`
 
-However, the H1 title of `devos/architecture/ML-DEVOS-ARCH-001.md` still reads:
+The architecture content at `6e817add0e3b18d1612fcb86af96c2c269b6d58c` is approved as the S0 Sentinel architecture baseline. A post-approval documentation-only normalization may change the candidate status labels to `FROZEN (S0)` without changing architecture semantics.
 
-`Frozen Architecture Specification`
+From this approval onward, `Dillaab-source/maisog-labs` is the authoritative Sentinel source of truth under the bootstrap/source-of-truth rule. Conversation alone may not silently supersede committed Sentinel architecture.
 
-while the document is explicitly still pending Architect approval.
+No production deployment, protected-branch/main merge, or runtime/control-plane implementation is authorized by this S0 approval.
 
-That still calls the candidate architecture frozen before the gate has closed and therefore leaves F001 partially unresolved.
+---
 
-**Required correction:** change the title to a non-frozen form such as:
+# ML-DEVOS-AS-003 — Future Change Governance Architecture Sync
 
-`# ML-DEVOS-ARCH-001 — MaisogLabs DevOS v1.2.0 "SENTINEL" — Architecture Specification`
+## Purpose
 
-or:
+Define how Sentinel itself may evolve after S0 without becoming immutable and without reverting to conversational or agent-defined governance.
 
-`... — Candidate Architecture Freeze`
+## Constitutional principle
 
-Do not label the document itself `Frozen` until Architect approval.
+**Frozen does not mean immutable. Frozen means changes must be explicit, versioned, reviewed, attributable, and reversible where technically possible.**
 
-### S0-F002 — RESOLVED
+**Project rules may extend or strengthen Sentinel core requirements, but may not silently weaken constitutional/core rules.**
 
-`ML-DEVOS-SIP-001.md` now restores real implementation outcomes for S1–S14 while leaving every phase past S0 `NOT STARTED`. The roadmap correctly distinguishes intended implementation outcome from authorization to execute.
+## Change classes
 
-### S0-F003 — RESOLVED
+Sentinel shall distinguish at least these change classes:
 
-Merge/deployment authority is now modeled as Paulo-owned policy, with current bootstrap merges/deployments Paulo-gated and future low-risk delegation possible only through explicit Paulo pre-authorization plus required gate/ruleset conditions. No actor or mechanism may invent delegation.
+| Class | Typical example | Required path |
+|---|---|---|
+| `PATCH` | typo, broken reference, non-semantic clarification | review appropriate to affected artifact |
+| `LOCAL_RULE` | project-specific operating rule | project overlay review |
+| `CORE_POLICY` | retry ceiling, QA/evidence requirement | policy proposal + Architect review |
+| `CAPABILITY` | new tool/API/write permission | capability + risk/permission review |
+| `ARCHITECTURE` | new subsystem or cross-cutting design | RFC + Architect Sync + Paulo gate |
+| `CONSTITUTIONAL` | actor authority, trust boundary, source-of-truth, delegation | RFC + Architect Sync + explicit Paulo approval |
+| `WAIVER` | temporary exception | explicit scope, approver, reason, expiry |
+| `PROJECT_ONBOARDING` | bring a new product/repository under Sentinel | project contract/overlay/onboarding review |
 
-### S0-F004 — RESOLVED
+The classification determines required evidence and human gates. A low-risk patch must not require the same ceremony as an authority-boundary change.
 
-The generic `INDEPENDENTLY_REPRODUCED or stronger` ranking is removed. Evidence sufficiency is now claim-specific and consistent with the provider-independent provenance model.
+## RFC / Decision / ADR separation
 
-### S0-F005 — RESOLVED
+Sentinel shall keep these concepts distinct:
 
-The branch → PR → CI/QA + independent review → Evidence Gate sequence is correctly scoped to code/repository merge tasks. General tasks instead consume whatever evidence their Task Contract/policy actually requires.
+- **RFC** — what is proposed and why;
+- **Architect Sync** — architecture compatibility, conflicts, risk, and required corrections;
+- **Authorization / Decision** — whether the proposal is allowed to proceed;
+- **Implementation** — what was actually changed;
+- **ADR** — what became architecture, why, alternatives considered, consequences, version, and supersession history.
 
-### S0-F006 — RESOLVED
+Accepted RFCs do not by themselves prove implementation. Rejected RFCs remain historical proposals, not architecture.
 
-The topology now preserves both co-located and cross-repository project governance. Future products may remain independent repositories with their own `.devos/` overlays and do not need to move source into `maisog-labs`.
+## Rule and policy representation
 
-### S0-F007 — RESOLVED
+Core rules should progressively become machine-readable policy records while retaining human-readable rationale.
 
-Architect capability and authority are now distinguished correctly. The Architect may inspect evidence, independently reproduce checks when appropriate, and write architecture/review/governance records, while retaining no Builder implementation authority and no deploy/merge authority.
+A rule record should be able to carry fields such as:
 
-### S0-F008 — RESOLVED
+- stable rule ID;
+- title and class;
+- scope/project;
+- risk class;
+- status;
+- authority owner;
+- required Architect/Paulo gates;
+- applicability conditions;
+- required evidence;
+- exception policy;
+- source RFC/ADR;
+- superseded rule;
+- effective version.
 
-Absence claims are now scoped to the reviewed repository/evidence rather than claiming universal absence across uninspected repositories.
+Later implementation may package approved rules into versioned Governance Bundles with integrity/signature metadata and effective-from revision information. S1 may define the policy and manifest shape; signing/distribution/enforcement belong to later explicitly authorized phases.
 
-## Coordination bookkeeping observed
+## Decision Packet
 
-At remediation commit `7c5bb791...`, the top-level machine fields correctly assign:
+Human approval for sensitive actions should bind to the actual proposed operation rather than only to an agent-authored summary.
 
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- remediation cycle `1`.
+A Decision Packet should be able to identify:
 
-However, the prose at the end of `coordination/STATE.md` still says:
+- decision/task/project IDs;
+- requesting actor;
+- exact action/tool/target;
+- payload or payload hash;
+- current state;
+- expected state change;
+- risk class;
+- active policy/rule version;
+- evidence references;
+- rollback/compensation information where applicable;
+- idempotency key where applicable;
+- requested time;
+- approver;
+- decision and decision time.
 
-`Current gate ... TURN: CLAUDE`
+The exact schema/validation mechanism belongs to later typed-contract work; the governance requirement is established here.
 
-and `LAST_IMPLEMENTER_HANDOFF_SHA` still points to `2bd72634...` instead of the remediation commit.
+## Risk-based human gates
 
-This Architect update corrects those bootstrap-state fields directly rather than opening an additional Builder finding for state bookkeeping.
+Sentinel shall avoid making Paulo a mandatory approver for every routine action.
 
-## Verdict
+- bounded low-risk actions may eventually proceed automatically only where Paulo has explicitly pre-authorized the policy and required evidence/gates pass;
+- medium-risk handling is defined by policy/Task Contract;
+- architecture, constitutional rules, security/trust-boundary changes, material risk acceptance, governance authority changes, and production deployment remain Paulo-gated unless Paulo explicitly changes that policy;
+- no actor, model, rule engine, Evidence Gate, or capability may invent delegation authority.
 
-`SENTINEL S0 STAGE GATE: NOT APPROVED — ONE REMEDIATION REMAINS (CYCLE 2)`
+## Capability changes
 
-Seven of the eight original findings are fully resolved. F001 remains only because the architecture document's H1 still labels the candidate as a `Frozen Architecture Specification` before approval.
+Adding a tool or connector does not grant universal authority to use it.
 
-## Authorized remediation scope
+Capability onboarding must define, at minimum:
 
-Claude may modify only:
+- which roles may invoke it;
+- which projects/scopes it applies to;
+- read/write/admin level;
+- secret/credential requirements;
+- sensitive operations requiring approval;
+- evidence/audit requirements.
 
-- `devos/architecture/ML-DEVOS-ARCH-001.md` to resolve the residual F001 title issue;
-- `devos/handoffs/ML-DEVOS-S0-HANDOFF.md` if needed to record the remediation;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+`Capability != Authority` remains binding.
 
-No other `devos/` file needs substantive change. No application/runtime/deployment/configuration file may change. No S1 work is authorized.
+## Project overlays
 
-## Required next handoff
+Projects may remain independent repositories and may carry their own `.devos/` overlays.
 
-Claude must:
+A project overlay may:
 
-1. remove the premature `Frozen` label from the H1/title of `ML-DEVOS-ARCH-001.md`;
-2. keep the status `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL`;
-3. compare the change against `7c5bb791e82b46b2a29fa4777d7a7c248bb3836d`;
-4. confirm only the authorized documentation/coordination paths changed;
-5. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, remediation cycle `2`;
-6. stop for final S0 re-review.
+- add stricter project/domain requirements;
+- add project-specific evidence gates;
+- narrow capability permissions.
 
-If that residual issue is corrected without introducing new contradictions, the next review is expected to be the S0 freeze-closing review.
+A project overlay may not silently weaken constitutional/core Sentinel rules. Any explicit weakening requires the same authority level as changing the core rule itself.
+
+## Versioning
+
+Sentinel architecture/governance should use semantic version intent:
+
+- patch version — clarification/non-breaking correction;
+- minor version — backwards-compatible subsystem/governance capability;
+- major version — breaking constitutional/architecture generation change.
+
+Every material change should preserve provenance such as source RFC, Architect Sync, decision/authorization, ADR, effective version, and superseded artifact/rule.
+
+## Change lifecycle
+
+Target lifecycle:
+
+`IDEA → CLASSIFY → RFC/RULE/PROJECT PROPOSAL → ARCHITECT SYNC → REQUIRED PAULO GATE → AUTHORIZED → TASK CONTRACT → BUILD → QA → INDEPENDENT REVIEW → EVIDENCE GATE → MERGE/RELEASE → RUNTIME VERIFICATION (when applicable) → ADR/GOVERNANCE HISTORY`
+
+The path is risk- and task-specific: irrelevant CI or runtime checks must not be demanded for documentation-only changes, while sensitive/runtime claims require evidence appropriate to those claims.
+
+## Roadmap placement
+
+This architecture is implemented progressively:
+
+- **S1 Governance Kernel** — change classes, rule registry, RFC/ADR/waiver model, change-governance policy, bundle/Decision-Packet specifications;
+- **S3 Typed Task Contracts** — typed schemas and validation for task/change/decision data;
+- **S4 State Machine Kernel** — enforce lifecycle/state transitions;
+- **S5 Capability & Permission Gateway** — enforce capability changes and scoped permissions;
+- **S9 Independent Review & Evidence Gate** — enforce evidence/review acceptance;
+- **S10 GitHub Enforcement** — platform-level protection from bypass.
+
+## AS-003 verdict
+
+`ARCHITECTURE COMPATIBILITY: PASS`
+
+This change-governance model is compatible with `ML-DEVOS-ARCH-001` and strengthens its source-of-truth, bounded-delegation, evidence, and capability-vs-authority principles.
+
+Implementation must still be explicitly authorized and scoped. No runtime enforcement is created by this Architect Sync alone.
