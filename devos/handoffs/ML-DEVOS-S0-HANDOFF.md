@@ -61,3 +61,9 @@ Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`, same as
 4. Issue a verdict: `SENTINEL S0 STAGE GATE: APPROVED` or further remediation required.
 
 Until that verdict, this document set remains a **candidate**, not a frozen architecture.
+
+## 8. Remediation cycle 2 — residual S0-F001 title fix
+
+The Architect's re-review of remediation commit `7c5bb791e82b46b2a29fa4777d7a7c248bb3836d` (`coordination/ARCHITECT_REVIEW.md`) confirmed `S0-F002`…`S0-F008` fully resolved and `S0-F001` only partially resolved: the document's `Status:` line correctly read `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL`, but its H1 title still read "Frozen Architecture Specification," contradicting the status line directly beneath it.
+
+**Fix:** `devos/architecture/ML-DEVOS-ARCH-001.md`'s H1 changed from `... — Frozen Architecture Specification` to `... — Candidate Architecture Freeze`. One line changed; no other text in the file touched. A repository-wide grep confirmed no other file references the old title string. This closes `S0-F001` fully — no substantive architecture content was altered.

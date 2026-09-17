@@ -1,4 +1,4 @@
-# ML-DEVOS-ARCH-001 — MaisogLabs DevOS v1.2.0 "SENTINEL" — Frozen Architecture Specification
+# ML-DEVOS-ARCH-001 — MaisogLabs DevOS v1.2.0 "SENTINEL" — Candidate Architecture Freeze
 
 Status: `CANDIDATE FREEZE — PENDING ARCHITECT APPROVAL` — committed to the repurposed Sentinel monorepo. Only an Architect-approved version of this document may be labeled `FROZEN`. **[Remediates S0-F001: candidate documents must not call themselves frozen before approval]**
 
