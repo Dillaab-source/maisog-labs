@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: PHASE-1-GOVERNANCE-BOOTSTRAP
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
 AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 61783e678c32736e45a941e95e44f595941c1623
-LAST_ARCHITECT_REVIEWED_SHA: 61783e678c32736e45a941e95e44f595941c1623
+PAULO_DECISION_REQUIRED: YES
+LAST_IMPLEMENTER_HANDOFF_SHA: 5e98d09e0c18ca9a90252ada84395782a393372e
+LAST_ARCHITECT_REVIEWED_SHA: 5e98d09e0c18ca9a90252ada84395782a393372e
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
@@ -30,29 +30,41 @@ Allowed primary states:
 
 ## Current authorization
 
-Paulo approved **Phase 1 — Governance Bootstrap** only.
+Phase 1 — Governance Bootstrap is complete and Architect-approved.
 
-Claude may perform only the documentation/governance remediation listed in the latest `coordination/ARCHITECT_REVIEW.md`.
+No further material implementation is authorized until Paulo explicitly selects and authorizes the next scope.
 
-No Admin implementation, public-site redesign, production deployment, legacy-branch merge, or merge to `main` is authorized.
+No Admin implementation, public-site redesign, Sentinel implementation, production deployment, legacy-branch merge, or merge to `main` is authorized by this state.
 
-## Current remediation
+## Architect review result
 
-Architect review of handoff SHA `61783e678c32736e45a941e95e44f595941c1623` requested changes.
+Architect re-reviewed remediation cycle 1 at handoff SHA:
 
-Claude must read the latest `coordination/ARCHITECT_REVIEW.md`, fix only those Phase 1 governance-document findings, update the implementer handoff, then return control with:
+`5e98d09e0c18ca9a90252ada84395782a393372e`
 
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
+Findings F1-003, F1-004, and F1-005 are resolved for the Phase 1 gate.
+
+Verdict:
+
+`PHASE 1 STAGE GATE: APPROVED`
+
+## Paulo decision gate
+
+Paulo must explicitly choose the next governed scope.
+
+Candidate scopes include:
+
+- continuing the existing website roadmap, or
+- authorizing a separate Sentinel S0 Architecture Freeze workstream for `MaisogLabs DevOS v1.2.0 — SENTINEL` (`ML-DEVOS-ARCH-001`, `ML-DEVOS-SIP-001`).
+
+Until Paulo authorizes one, both agents stop material work.
 
 ## Loop guard
 
 Automatic remediation cycles are capped at `MAX_REMEDIATION_CYCLES`.
 
-If the cap is reached without approval, set `STATUS: PAULO_DECISION_REQUIRED` and stop.
+No remediation is currently pending.
 
 ## Current gate
 
-Phase 1 is **not yet stage-gate approved**. Documentation-only remediation cycle 1 is authorized. Functional website/Admin work remains prohibited.
+Phase 1 is closed. `TURN: PAULO`.
