@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: PHASE-1-GOVERNANCE-BOOTSTRAP
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 2e97bf65423daad59348b98860f6bf7ebaec4215
-LAST_ARCHITECT_REVIEWED_SHA: 2e97bf65423daad59348b98860f6bf7ebaec4215
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_IMPLEMENTER_HANDOFF_SHA: 61783e678c32736e45a941e95e44f595941c1623
+LAST_ARCHITECT_REVIEWED_SHA: 61783e678c32736e45a941e95e44f595941c1623
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -30,47 +30,29 @@ Allowed primary states:
 
 ## Current authorization
 
-Paulo approved progression to **Phase 1 — Governance Bootstrap**.
+Paulo approved **Phase 1 — Governance Bootstrap** only.
 
-Claude may perform only the governance-bootstrap work described in `CLAUDE.md` and the governance plan.
+Claude may perform only the documentation/governance remediation listed in the latest `coordination/ARCHITECT_REVIEW.md`.
 
-No Admin implementation, public-site redesign, production deployment, or merge to `main` is authorized.
+No Admin implementation, public-site redesign, production deployment, legacy-branch merge, or merge to `main` is authorized.
 
-## Claude handoff rule
+## Current remediation
 
-When Phase 1 bootstrap is complete, Claude must:
+Architect review of handoff SHA `61783e678c32736e45a941e95e44f595941c1623` requested changes.
 
-1. Update `coordination/IMPLEMENTER_HANDOFF.md` with factual evidence for this cycle.
-2. Change this file to:
-   - `TURN: ARCHITECT`
-   - `STATUS: READY_FOR_ARCHITECT`
-   - `ARCHITECT_ACTION_REQUIRED: YES`
-   - `IMPLEMENTER_ACTION_REQUIRED: NO`
-3. Record the exact branch HEAD used for the handoff in the handoff evidence.
-4. Commit and push the handoff and state update to `governance/maisoglabs-v0.1`.
-5. Stop.
+Claude must read the latest `coordination/ARCHITECT_REVIEW.md`, fix only those Phase 1 governance-document findings, update the implementer handoff, then return control with:
 
-## Architect review rule
-
-When `STATUS: READY_FOR_ARCHITECT`, the Architect independently reviews the governance bootstrap and writes `coordination/ARCHITECT_REVIEW.md`.
-
-After review, the Architect updates this file to one of:
-
-- `CHANGES_REQUESTED` with `TURN: CLAUDE`, or
-- `ARCHITECT_APPROVED` with `TURN: PAULO` when a Paulo gate is required, or
-- `PAULO_DECISION_REQUIRED` with `TURN: PAULO`, or
-- `BLOCKED` with the appropriate owner.
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 ## Loop guard
 
 Automatic remediation cycles are capped at `MAX_REMEDIATION_CYCLES`.
 
-If the cap is reached without approval, set:
-
-`STATUS: PAULO_DECISION_REQUIRED`
-
-Do not continue an autonomous implementation/review loop beyond the cap.
+If the cap is reached without approval, set `STATUS: PAULO_DECISION_REQUIRED` and stop.
 
 ## Current gate
 
-Phase 1 governance bootstrap is authorized. Functional website/Admin implementation remains prohibited until a later Paulo-approved phase.
+Phase 1 is **not yet stage-gate approved**. Documentation-only remediation cycle 1 is authorized. Functional website/Admin work remains prohibited.
