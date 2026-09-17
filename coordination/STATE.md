@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: PHASE-0-RECON
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: PHASE_0_RECON_ONLY
+CYCLE_ID: PHASE-1-GOVERNANCE-BOOTSTRAP
+TURN: CLAUDE
+STATUS: WAITING_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 2e97bf65423daad59348b98860f6bf7ebaec4215
 LAST_ARCHITECT_REVIEWED_SHA: 2e97bf65423daad59348b98860f6bf7ebaec4215
 CURRENT_REMEDIATION_CYCLE: 0
@@ -28,24 +28,31 @@ Allowed primary states:
 - `PAULO_DECISION_REQUIRED` — stop; Paulo must decide before either agent proceeds materially.
 - `BLOCKED` — stop; blocker must be resolved explicitly.
 
+## Current authorization
+
+Paulo approved progression to **Phase 1 — Governance Bootstrap**.
+
+Claude may perform only the governance-bootstrap work described in `CLAUDE.md` and the governance plan.
+
+No Admin implementation, public-site redesign, production deployment, or merge to `main` is authorized.
+
 ## Claude handoff rule
 
-When the currently authorized implementation/reconnaissance cycle is complete, Claude must:
+When Phase 1 bootstrap is complete, Claude must:
 
-1. Update `coordination/IMPLEMENTER_HANDOFF.md` with factual evidence.
+1. Update `coordination/IMPLEMENTER_HANDOFF.md` with factual evidence for this cycle.
 2. Change this file to:
    - `TURN: ARCHITECT`
    - `STATUS: READY_FOR_ARCHITECT`
    - `ARCHITECT_ACTION_REQUIRED: YES`
    - `IMPLEMENTER_ACTION_REQUIRED: NO`
-3. Commit and push both files together to `governance/maisoglabs-v0.1`.
-4. Stop.
-
-The branch HEAD commit created by that push is treated as the implementer handoff SHA even if `LAST_IMPLEMENTER_HANDOFF_SHA` has not yet been back-filled.
+3. Record the exact branch HEAD used for the handoff in the handoff evidence.
+4. Commit and push the handoff and state update to `governance/maisoglabs-v0.1`.
+5. Stop.
 
 ## Architect review rule
 
-When `STATUS: READY_FOR_ARCHITECT`, the Architect must independently inspect repository evidence and write `coordination/ARCHITECT_REVIEW.md`.
+When `STATUS: READY_FOR_ARCHITECT`, the Architect independently reviews the governance bootstrap and writes `coordination/ARCHITECT_REVIEW.md`.
 
 After review, the Architect updates this file to one of:
 
@@ -53,8 +60,6 @@ After review, the Architect updates this file to one of:
 - `ARCHITECT_APPROVED` with `TURN: PAULO` when a Paulo gate is required, or
 - `PAULO_DECISION_REQUIRED` with `TURN: PAULO`, or
 - `BLOCKED` with the appropriate owner.
-
-The Architect must record the exact implementer branch HEAD SHA it reviewed in `LAST_ARCHITECT_REVIEWED_SHA` or in the Architect review evidence when updating state.
 
 ## Loop guard
 
@@ -68,4 +73,4 @@ Do not continue an autonomous implementation/review loop beyond the cap.
 
 ## Current gate
 
-Phase 0 repository reconnaissance is architect-approved. No Phase 1 work may begin until Paulo explicitly approves progression to Governance Bootstrap. No admin implementation, website redesign, production deployment, or merge to `main` is authorized.
+Phase 1 governance bootstrap is authorized. Functional website/Admin implementation remains prohibited until a later Paulo-approved phase.
