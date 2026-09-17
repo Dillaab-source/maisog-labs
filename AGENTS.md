@@ -10,7 +10,7 @@ This repository is the source for the Maisog Labs portfolio website.
 ## Stack
 - Next.js App Router
 - React
-- Static export for Cloudflare Pages
+- Static export (`next.config.mjs`: `output: "export"`), deployed as a Cloudflare Worker asset-only deployment via Wrangler (`wrangler.jsonc`, `npm run deploy`) — not Cloudflare Pages. `docs/ARCHITECTURE.md` is the canonical deployment description; keep this file consistent with it.
 
 ## Repository map
 - `app/` — routes and page composition.

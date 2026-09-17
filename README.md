@@ -9,7 +9,7 @@ The current branch contains the V4 public foundation: a cinematic human–AI bac
 - Next.js App Router
 - React
 - Static export
-- Cloudflare Pages
+- Cloudflare Worker (asset-only deployment via Wrangler)
 
 ## Repository structure
 
@@ -56,7 +56,7 @@ The project uses a static export. The generated site is written to:
 out
 ```
 
-## Cloudflare Pages
+## Cloudflare Worker (Wrangler asset deployment)
 
 Use:
 
