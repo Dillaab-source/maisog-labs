@@ -38,7 +38,7 @@ Command: `npm test` (`node --test tests/*.test.mjs`). Result recorded in Phase 0
 | TEST-ADM-003 | Content write persists | `NOT IMPLEMENTED` | No write path exists |
 | TEST-ADM-004 | Project CRUD/publish works | `NOT IMPLEMENTED` | No admin CRUD exists |
 | TEST-ADM-005 | Journal CRUD/publish works | `NOT IMPLEMENTED` | No Journal feature exists at all |
-| TEST-ADM-006 | Invalid content is rejected | `PASS` (content-layer only) | Implementer-reported: `lib/content/schema.mjs` + `tests/content.test.mjs` reject invalid content at the build-time content layer. This does **not** satisfy a future admin-side ADM-REQ-011 (server-side input rejection at a write API), since no write API exists yet. |
+| TEST-ADM-006 | Invalid content is rejected (at the Admin write boundary) | `NOT IMPLEMENTED` | No Admin surface or write API exists, so `TEST-ADM-006` itself cannot be exercised and must not be marked `PASS` under that ID (Architect finding F1-004). The existing build-time content-schema rejection (`lib/content/schema.mjs` + `tests/content.test.mjs`, 22 "rejects ..." cases, listed under "Existing tests" above) is real, passing, and separately evidenced — but it is content-layer/build-time validation, not the future Admin/write-API validation this test ID describes. `TEST-ADM-006` stays `NOT IMPLEMENTED` until that Admin/write boundary exists and is actually tested. |
 | TEST-ADM-007 | Failed write does not report success | `NOT IMPLEMENTED` | No write path exists |
 | TEST-ADM-008 | Media upload validation works | `NOT IMPLEMENTED` | No upload path exists |
 | TEST-ADM-009 | Theme settings remain within allowed values | `NOT IMPLEMENTED` | No theme-settings feature exists |

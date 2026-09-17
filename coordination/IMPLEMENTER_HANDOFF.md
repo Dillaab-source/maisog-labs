@@ -8,23 +8,39 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`PHASE-1-GOVERNANCE-BOOTSTRAP`
+`PHASE-1-GOVERNANCE-BOOTSTRAP` — remediation cycle `1`
 
 ## Objective
 
-Perform the Paulo-approved Phase 1 Governance Bootstrap exactly as scoped in `CLAUDE.md` and the Architect's Phase 0 review: create the `brain/` governance document set, extend `AGENTS.md` (without discarding existing guidance), reconcile the Cloudflare Pages/Worker deployment-wording contradiction (Architect finding F-003), inventory the known non-governance branches without merging them (F-004), and record the existing content boundary as the governed baseline (F-002). No admin implementation, authentication, D1/R2, public-site redesign, deployment, or `main` merge was performed or is claimed.
+Remediate the two governance-integrity blockers (F1-003, F1-004) and one non-blocking clarity finding (F1-005) raised by the Architect's Stage Gate Review of the initial Phase 1 handoff (`61783e6`), which returned `PHASE 1 STAGE GATE: NOT APPROVED — CHANGES REQUESTED`. This is documentation-only remediation within the already-authorized `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` scope — no admin implementation, authentication, D1/R2, public-site redesign, deployment, legacy-branch merge, or `main` merge was performed or is claimed. The rest of this handoff (§1–§16 below) is retained from the initial Phase 1 cycle where still accurate and superseded only where the remediation changed it; see "Remediation Cycle 1" immediately below for what changed.
 
 ## Requested Review Mode
 
 `STAGE GATE REVIEW`
 
+## Remediation Cycle 1 — what changed and why
+
+Architect review of handoff SHA `61783e6` (`coordination/ARCHITECT_REVIEW.md`) raised:
+
+- **F1-003 (BLOCKER):** `brain/GOVERNANCE_MAP.md` aggregated `WEB-REQ-001`…`008` into a single `IMPLEMENTED` row, which incorrectly implied `WEB-REQ-004` (admin-managed editing without source-code changes) was implemented when no Admin surface exists.
+  **Fix:** replaced the aggregate row with eight individually evidenced rows. `WEB-REQ-004` is now explicitly `NOT STARTED`. The other seven rows are evidence-accurate per requirement (several are `IMPLEMENTED` but explicitly not `VERIFIED`, since no independent/production evidence exists yet; `WEB-REQ-002` — content must not disappear — is recorded `NOT STARTED` as an *enforced technical control*, since today it is upheld only by manual Git-diff review, not a tested guarantee).
+- **F1-004 (BLOCKER):** `brain/TEST_LEDGER.md` marked `TEST-ADM-006` (`Invalid content is rejected`, an Admin-test-set ID) as `PASS`, using the existing build-time content-schema tests as evidence — but no Admin/write boundary exists for that ID to actually test.
+  **Fix:** `TEST-ADM-006` is now `NOT IMPLEMENTED`. The existing, genuinely passing content-schema tests remain listed separately under "Existing tests" as content-layer evidence — they were never removed or hidden, only correctly kept out from under the Admin test ID they don't satisfy.
+- **F1-005 (non-blocking):** `brain/DECISION_LOG.md` entries D-006–D-008 said "Decided by: Claude (Implementer)" for entries that actually implemented already-approved governance/Architect-finding work, not independent decisions.
+  **Fix:** reworded to `Decision authority: Paulo-approved Phase 1 scope item / Architect finding ...` + `Implemented/recorded by: Claude (Implementer)`. Added D-009 recording this remediation cycle itself with the same authority/implementer split.
+
+No other file was touched in this remediation cycle. `git diff --stat` for this cycle: `brain/DECISION_LOG.md`, `brain/GOVERNANCE_MAP.md`, `brain/TEST_LEDGER.md` only (24 insertions, 7 deletions across the three files).
+
 ## Branch / Commit State
 
-- Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `f933a16` ("docs(sync): authorize Claude phase 1 governance bootstrap"), pulled and fast-forwarded into the working tree before any file was touched.
-- `coordination/STATE.md` at pull time: `CYCLE_ID: PHASE-1-GOVERNANCE-BOOTSTRAP`, `TURN: CLAUDE`, `STATUS: WAITING_FOR_IMPLEMENTER`, `AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY`, `IMPLEMENTER_ACTION_REQUIRED: YES` — confirmed before any work began, per the "proceed only when both are true" rule in `CLAUDE.md`.
-- `coordination/ARCHITECT_REVIEW.md` at pull time: `Status: ARCHITECT_APPROVED`, verdict `PHASE 0 STAGE GATE: APPROVED`, `NEXT PHASE REQUIRES PAULO AUTHORIZATION: YES` — read before starting, per the same rule.
-- This handoff commit's exact HEAD SHA is recorded by the push in the next section of this cycle's chain (see the Evidence Index below for the pre-handoff SHA it builds on: `f933a16`).
+- Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `bb2a99f` ("docs(sync): return phase 1 remediation to Claude"), pulled and fast-forwarded into the working tree before any file was touched.
+- `coordination/STATE.md` at pull time: `CYCLE_ID: PHASE-1-GOVERNANCE-BOOTSTRAP`, `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 1`, `AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY`, `IMPLEMENTER_ACTION_REQUIRED: YES` — confirmed before any work began.
+- `coordination/ARCHITECT_REVIEW.md` at pull time: `Status: CHANGES_REQUESTED`, verdict `PHASE 1 STAGE GATE: NOT APPROVED — CHANGES REQUESTED`, reviewing handoff SHA `61783e678c32736e45a941e95e44f595941c1623` — read in full before starting remediation, per `CLAUDE.md`'s remediation-loop rule.
 - `main` baseline SHA re-confirmed unchanged: `887849283ee9cd16e8d60b937bac95b1c85bf3d9`.
+
+---
+
+## Initial Phase 1 cycle report (retained; see "Remediation Cycle 1" above for corrections)
 
 ## 1. Current Architecture
 
@@ -97,9 +113,16 @@ Completed this cycle (not merely proposed) — see §15 for the exact file list.
 - `brain/TEST_LEDGER.md`
 - `brain/protocols/ARCHITECT_SYNC.md`
 
-**Modified (documentation only):**
+**Modified (documentation only), initial Phase 1 cycle:**
 - `AGENTS.md` — one line, deployment-stack description (F-003 fix)
 - `README.md` — two spots, same fix, for internal consistency with `AGENTS.md` and `docs/ARCHITECTURE.md`
+- `coordination/IMPLEMENTER_HANDOFF.md` — this document
+- `coordination/STATE.md` — turn handoff (see below)
+
+**Modified (documentation only), remediation cycle 1:**
+- `brain/GOVERNANCE_MAP.md` — F1-003 fix (per-requirement `WEB-REQ-*` breakout)
+- `brain/TEST_LEDGER.md` — F1-004 fix (`TEST-ADM-006` corrected to `NOT IMPLEMENTED`)
+- `brain/DECISION_LOG.md` — F1-005 fix (D-006–D-008 authority wording) plus new D-009
 - `coordination/IMPLEMENTER_HANDOFF.md` — this document
 - `coordination/STATE.md` — turn handoff (see below)
 
@@ -121,7 +144,7 @@ F-003 (Cloudflare Pages vs. Worker/Wrangler wording) — resolved in `AGENTS.md`
 
 Recorded in `brain/PROJECT_GOVERNANCE.md` § "Legacy / non-governance branch inventory": all 8 branches named in `CLAUDE.md` (`admin-v1`, `codex/link-eternal-eggs-dashboard`, `design-v2`, `master-plan-v1`, `redesign/immersive-bridge-v2`, `website-v3.1`, `website-v3.1.1`, `website-v3.1.2`), each classified `UNINSPECTED LEGACY/EXPERIMENTAL` from Git metadata (HEAD SHA, date, subject line) only — no branch content was opened, diffed, or merged. Flagged for Paulo/Architect: two subject lines mention "admin" by title only (`redesign/immersive-bridge-v2`, `website-v3.1.1`); this is a title-only observation, not an inspection finding.
 
-## Commands / Tests Executed
+## Commands / Tests Executed (initial Phase 1 cycle)
 
 | Command | Result | Evidence class |
 |---|---|---|
@@ -133,26 +156,39 @@ Recorded in `brain/PROJECT_GOVERNANCE.md` § "Legacy / non-governance branch inv
 | `git status --short` after build/audit | Confirmed no unintended file changes beyond `AGENTS.md`, `README.md`, `brain/` (build artifacts `.next/`, `out/` removed before commit) | Implementer-reported |
 | `git diff wrangler.jsonc next.config.mjs package.json` | Empty — confirms no infrastructure/build-config change | Implementer-reported |
 
-No claim in this table has been independently reproduced by the Architect yet; see `brain/TEST_LEDGER.md`'s evidence-class rule.
+## Commands / Tests Executed (remediation cycle 1)
+
+| Command | Result | Evidence class |
+|---|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` then `git merge` | Fast-forward from `61783e6` to `bb2a99f` (2 new commits: Architect review, remediation return), no conflicts | Implementer-reported |
+| `npm test` | 27 passed, 0 failed (re-run, identical to prior cycles) | Implementer-reported |
+| `npm run build` | Succeeded; static pages generated for `/` and `/_not-found` | Implementer-reported |
+| `npm audit` | 0 vulnerabilities | Implementer-reported |
+| `git status --short` after build/audit | Confirmed no unintended file changes beyond `brain/DECISION_LOG.md`, `brain/GOVERNANCE_MAP.md`, `brain/TEST_LEDGER.md` (build artifacts `.next/`, `out/` removed before commit; no `package-lock.json` churn this cycle) | Implementer-reported |
+| `git diff --stat` | 3 files changed, 24 insertions(+), 7 deletions(-) — confirms remediation touched only the three targeted governance files | Implementer-reported |
+
+No claim in either table has been independently reproduced by the Architect yet; see `brain/TEST_LEDGER.md`'s evidence-class rule.
 
 ## Evidence Index
 
-- Pre-cycle branch HEAD: `f933a16`.
-- Pulled/merged Architect artifacts: `coordination/ARCHITECT_REVIEW.md` (`Status: ARCHITECT_APPROVED`), `coordination/STATE.md` (pre-cycle: `CYCLE_ID: PHASE-1-GOVERNANCE-BOOTSTRAP`, `TURN: CLAUDE`).
-- New governance files: see §15.
-- `git diff --stat` for this cycle (documentation-only): `AGENTS.md` (1 changed line), `README.md` (2 changed lines), `brain/*` (9 new files).
+- Pre-remediation branch HEAD: `bb2a99f`.
+- Reviewed handoff SHA the remediation responds to: `61783e678c32736e45a941e95e44f595941c1623`.
+- Architect findings addressed: F1-003, F1-004 (both blockers), F1-005 (non-blocking) — `coordination/ARCHITECT_REVIEW.md`.
+- New/changed governance files this cycle: `brain/GOVERNANCE_MAP.md`, `brain/TEST_LEDGER.md`, `brain/DECISION_LOG.md` (see "Remediation Cycle 1" above for the exact fix per file).
+- Initial-cycle evidence (`brain/*` creation, F-002/F-003/F-004 fixes): see "Initial Phase 1 cycle report" above, unchanged and still valid.
 
 ## Known Limitations/Unknowns
 
-- None of this cycle's command evidence has been independently reproduced by the Architect.
-- The legacy branch inventory is Git-metadata only; no branch was actually reviewed for content, so no branch's true relationship to the governance track is known yet.
-- `coordination/README.md` was not updated to mention `brain/` or `STATE.md`; it remains accurate as written (it describes the `IMPLEMENTER_HANDOFF.md`/`ARCHITECT_REVIEW.md` exchange, which is still correct) but a future cycle could cross-link it to `brain/00_HOME.md` for discoverability. Not treated as a Phase 1 blocker since `CLAUDE.md` did not require it.
-- No visual/browser check of the public site was performed or needed, since no rendering-affecting file changed.
+- None of this cycle's or the prior cycle's command evidence has been independently reproduced by the Architect.
+- The legacy branch inventory is still Git-metadata only; no branch was actually reviewed for content.
+- `coordination/README.md` was not updated to mention `brain/` or `STATE.md`; still not treated as a blocker since neither `CLAUDE.md` nor the Architect review required it.
+- No visual/browser check of the public site was performed or needed, since no rendering-affecting file changed in either the initial cycle or this remediation.
+- `brain/GOVERNANCE_MAP.md`'s per-requirement breakout for `WEB-REQ-002` (content must not disappear) records the honest current state — an unenforced manual practice — rather than a passing automated control. This is a real gap, not an oversight, and is not claimed as resolved.
 
 ## Paulo-Level Decisions Required
 
-None required to close this stage gate. For future phases: same open item carried from Phase 0 — confirm whether any of the 8 legacy branches should be scheduled for deliberate review before Phase 4 (Admin Architecture Design) begins, given `admin-v1` and the two admin-mentioning subject lines noted above.
+None required to close this stage gate. Carried forward from prior cycles: confirm whether any of the 8 legacy branches should be scheduled for deliberate review before Phase 4 (Admin Architecture Design) begins, given `admin-v1` and the two admin-mentioning subject lines noted in `brain/PROJECT_GOVERNANCE.md`.
 
 ## Stop Confirmation
 
-Confirmed: no admin implementation, no authentication, no D1/R2, no public-site redesign or functional change, no deployment, no merge to `main`, and no legacy/experimental branch merge was performed in this cycle. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO` in `coordination/STATE.md`, unchanged by this cycle.
+Confirmed: no admin implementation, no authentication, no D1/R2, no public-site redesign or functional change, no deployment, no merge to `main`, and no legacy/experimental branch merge was performed in this remediation cycle. Only `brain/GOVERNANCE_MAP.md`, `brain/TEST_LEDGER.md`, and `brain/DECISION_LOG.md` were changed, per the Architect's "documentation-only remediation" scope. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO` in `coordination/STATE.md`, unchanged by this cycle. `CURRENT_REMEDIATION_CYCLE` remains `1`, as directed.
