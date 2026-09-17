@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S0-ARCHITECTURE-FREEZE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: SENTINEL_S0_ARCHITECTURE_FREEZE_DOCS_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 4760134f28efec80a25245162a596598e46c540a
-LAST_ARCHITECT_REVIEWED_SHA: 4760134f28efec80a25245162a596598e46c540a
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_IMPLEMENTER_HANDOFF_SHA: 2bd72634bd1483daebdf6e7085a048acd3bd5ba6
+LAST_ARCHITECT_REVIEWED_SHA: 2bd72634bd1483daebdf6e7085a048acd3bd5ba6
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -30,40 +30,44 @@ Allowed primary states:
 
 ## Current authorization
 
-Paulo has amended the Sentinel topology through Decision Log `D-011`.
+Sentinel S0 remains architecture/governance documentation only. No later Sentinel phase is authorized.
 
-The existing `Dillaab-source/maisog-labs` repository is now the approved target Sentinel/DevOS monorepo. The previous requirement for a separate `Dillaab-source/maisoglabs-devos` repository is superseded.
+The existing `Dillaab-source/maisog-labs` repository remains the approved Sentinel/DevOS monorepo under D-011 / AS0-001A. Existing website code and Git history remain preserved.
 
-S0 remains architecture/governance documentation only. No later Sentinel phase is authorized.
+Architect reviewed freeze commit:
 
-## Authorized S0 action now
+`2bd72634bd1483daebdf6e7085a048acd3bd5ba6`
 
-Claude may commit the exact S0 freeze documentation artifacts into a documentation-only `devos/` structure in this repository, then update the handoff/state and return control to the Architect.
+Architect Sync:
 
-Expected artifacts:
+`ML-DEVOS-AS-002`
 
-- `devos/architecture/ML-DEVOS-ARCH-001.md`
-- `devos/plans/ML-DEVOS-SIP-001.md`
-- `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`
-- `devos/governance/TRUST_BOUNDARIES.md`
-- `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`
-- `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`
-- `devos/governance/REPOSITORY_OVERLAY_TOPOLOGY.md`
-- `devos/handoffs/ML-DEVOS-S0-HANDOFF.md`
+Verdict:
 
-Exact filenames/paths may vary only if needed for a coherent documentation hierarchy; no runtime/control-plane code may be added.
+`SENTINEL S0 STAGE GATE: NOT APPROVED — CHANGES REQUESTED (CYCLE 1)`
 
-## Architecture decisions in force
+See `coordination/ARCHITECT_REVIEW.md` for findings `S0-F001`…`S0-F008`.
 
-- D-011 / AS0-001A: `maisog-labs` is repurposed as the Sentinel monorepo.
-- Existing website code and Git history are preserved during S0.
-- Sentinel remains the cross-project meta-system.
-- Per-project/per-task namespaced state remains the target; this file is bootstrap-only state.
-- Five actors: Paulo, Architect, Builder, QA, Independent Reviewer.
-- Evidence Gate and related engines are system mechanisms, not decision authorities.
-- Evidence provenance remains provider-independent: `ACTOR_REPORTED`, `INDEPENDENTLY_INSPECTED`, `INDEPENDENTLY_REPRODUCED`, `CI_ATTESTED`, `RUNTIME_OBSERVED`.
-- QA automation, CI, GitHub rulesets, Evidence Gate execution, and other runtime enforcement remain later-phase work.
-- After the exact freeze artifacts are committed here and Architect-approved, this repository becomes the authoritative Sentinel source of truth.
+## Authorized remediation scope
+
+Claude may modify only:
+
+- `devos/**/*.md` as needed to resolve `S0-F001`…`S0-F008`;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
+
+No application/runtime/deployment/configuration files may change.
+
+## Findings requiring remediation
+
+- `S0-F001` — candidate documents must not call themselves frozen before Architect approval.
+- `S0-F002` — `ML-DEVOS-SIP-001` must restore implementation outcomes for S1–S14 rather than design-only wording.
+- `S0-F003` — reconcile protected-branch merge policy with Paulo-defined bounded delegation.
+- `S0-F004` — make evidence sufficiency claim-specific; remove generic provenance ranking language.
+- `S0-F005` — make Evidence Gate consume all required evidence; CI is normal for code tasks but not mandatory for every documentation task.
+- `S0-F006` — preserve cross-repository project governance; future projects need not move their source into this monorepo.
+- `S0-F007` — clarify Architect capability vs authority; Architect may inspect/reproduce checks and write review/governance records but has no Builder/deploy/merge authority.
+- `S0-F008` — scope absence claims to inspected repositories/evidence only.
 
 ## Explicitly prohibited in S0
 
@@ -79,19 +83,21 @@ Exact filenames/paths may vary only if needed for a coherent documentation hiera
 - no application/runtime migration or directory restructuring
 - no deletion or movement of existing website files
 - no destructive rewrite of repository history
+- no S1 work
 
-## Required handoff
+## Required next handoff
 
-After committing the freeze documents, Claude must:
+After remediation, Claude must:
 
-1. report the exact commit SHA containing the eight freeze artifacts;
-2. list every file created/modified;
-3. map the documents to D-010 K-2…K-7, D-011 / AS0-001A, and AS0-002…AS0-012;
-4. verify that only documentation/bootstrap files changed;
-5. update `coordination/IMPLEMENTER_HANDOFF.md`;
-6. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`;
-7. stop for independent Architect review.
+1. map each finding `S0-F001`…`S0-F008` to exact changed sections;
+2. compare the remediation against `2bd72634bd1483daebdf6e7085a048acd3bd5ba6`;
+3. confirm only authorized Markdown/coordination paths changed;
+4. update `coordination/IMPLEMENTER_HANDOFF.md`;
+5. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`;
+6. keep `CURRENT_REMEDIATION_CYCLE: 1`;
+7. keep `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO`;
+8. stop for Architect re-review.
 
 ## Current gate
 
-Sentinel S0 monorepo topology amendment is approved. Claude owns the next documentation-only action.
+S0 candidate freeze requires remediation cycle 1. `TURN: CLAUDE`.
