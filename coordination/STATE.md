@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-PRODUCT-BUILD-PACK
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: MAISOGLABS_PRODUCT_BUILD_PACK_DOCS_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 00241a1bc6b72879e686b5e0e9b897bdc7726f81  # NOTE: this is the base HEAD this remediation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
-LAST_ARCHITECT_REVIEWED_SHA: 00241a1bc6b72879e686b5e0e9b897bdc7726f81
-CURRENT_REMEDIATION_CYCLE: 2
+LAST_IMPLEMENTER_HANDOFF_SHA: 646ec537c3184650b44039a9dc5111b116cddb9a
+LAST_ARCHITECT_REVIEWED_SHA: 646ec537c3184650b44039a9dc5111b116cddb9a
+CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -76,20 +76,21 @@ Claude may create/update only:
 
 ## Builder remediation state
 
-Architect review of `ffec06778a9b297eedf16d27efacc334daa81abd` returned:
+Architect review of `646ec537c3184650b44039a9dc5111b116cddb9a` returned:
 
-- `ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 2`
+- `ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 3 (FINAL)`
 
-Cycle 1 findings independently resolved (unchanged, preserved this cycle):
-- `AS10-R001`, `AS10-R002`, `AS10-R003`, `AS10-R004`, `AS10-R006`, `AS10-R007`
+Cycle 2 independently resolved:
+- `AS10-R009`
+- the major body of `AS10-R008`
+- the historical Cycle 1 portion of `AS10-R010`
 
-Cycle 2 findings resolved this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` for full disposition):
+Two final bounded corrections remain:
 
-- `AS10-R008` — base entities now hold only identity + `created_at` + revision pointers; `order`/visibility/`lifecycle_state` moved into revisions or made derived rather than stored; slug declared immutable after creation; `sections` and media junction tables brought under the same revision model; `APP_FLOW.md` §2l corrected to draft → preview → publish;
-- `AS10-R009` — `BUILD_PLAN.md` §C gives every target entity/table exactly one owning `WEB-INC-*`; `WEB-INC-005` narrowed to current-content substrate; audit-substrate-vs-integration and media/journal FK ownership split exactly as specified;
-- `AS10-R010` — durable handoff corrected to record Remediation Cycle 1's true 7-file diff (including `DATA_BACKEND_SPEC.md`), with the prior undercount stated as a corrected defect, not silently rewritten.
+- `AS10-R011` — make public-rendering isolation end-to-end by declaring public-affecting `media` fields immutable after upload (or revisioned) and declaring `project_media`/`journal_media` rows immutable snapshots for a specific content revision; all attachment/reorder/role changes must be made against a draft revision and published through the normal pointer swap.
+- `AS10-R012` — correct the current Cycle 2 handoff's exact changed-file count from 6 to 7 and include `coordination/STATE.md`.
 
-This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it. Builder modified only the Product Build Pack documents plus normal handoff/state files this cycle. No runtime/code/config/DevOS/brain/project-registry change was made.
+Builder may modify only the final-cycle files listed in the Architect review. No runtime/code/config/DevOS/brain/project-registry change is authorized.
 
 ## Architect review rule
 
@@ -124,4 +125,4 @@ Key additional constraints:
 
 ## Current gate
 
-`ARCHITECT PRODUCT BUILD PACK REMEDIATION CYCLE 2 VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-010`
+`CLAUDE PRODUCT BUILD PACK REMEDIATION CYCLE 3 (FINAL) — SUBJECT TO ML-DEVOS-AS-010`
