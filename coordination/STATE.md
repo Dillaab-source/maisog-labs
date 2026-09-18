@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL-S2-REPOSITORY-FOUNDATION-PROPOSAL
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S2_ARCHITECTURE_PROPOSAL_ONLY
+CYCLE_ID: SENTINEL-S2-REPOSITORY-FOUNDATION
+TURN: CLAUDE
+STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+AUTHORIZED_SCOPE: SENTINEL_S2_REPOSITORY_FOUNDATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
 LAST_ARCHITECT_REVIEWED_SHA: d3e4a33f09d58c1516c43d92a7bd144ee90a895a
 CURRENT_REMEDIATION_CYCLE: 0
@@ -25,44 +25,72 @@ Active governance-capability baseline:
 S1:
 - CLOSED
 
-## S2 proposal
+## S2 authority chain
+
+Proposal authorization:
+- `D-015`
 
 RFC:
 - `ML-DEVOS-RFC-001`
 
-Reviewed RFC commit:
-- `d3e4a33f09d58c1516c43d92a7bd144ee90a895a`
-
 Architect Sync:
 - `ML-DEVOS-AS-006`
+- verdict: `ARCHITECT_APPROVED — PAULO S2 IMPLEMENTATION DECISION REQUIRED`
 
-Architect verdict:
-- `ARCHITECT_APPROVED — PAULO S2 IMPLEMENTATION DECISION REQUIRED`
+Implementation authorization:
+- `D-016`
 
-## Proposed implementation scope
+## Builder authorized scope
 
-If Paulo approves implementation, Builder may implement only the S2 static repository foundation defined by `ML-DEVOS-RFC-001`:
+Claude / Builder may implement only the S2 static repository foundation defined by `ML-DEVOS-RFC-001`:
 
 - DevOS foundation manifest + schema;
 - reserved subsystem roots with README-only `NOT IMPLEMENTED` boundaries;
 - empty project registry + schema;
-- deterministic static validators for manifest/registry;
+- deterministic zero-dependency static validators for manifest/registry;
 - S2 handoff/coordination/provenance updates.
 
-## Preserved boundaries
+## Binding invariants
 
-Not authorized by S2:
+- frozen architecture baseline `v1.2.0` and active capability baseline `v1.3.0` remain distinct;
+- source-of-truth precedence must be preserved;
+- project registry is an index only;
+- registry remains empty through S2 closure;
+- each reserved root has exactly one canonical owner phase;
+- no executable later-phase subsystem code may be introduced in S2;
+- no website/application/runtime/build/deployment file may be moved, deleted, renamed, or behaviorally modified.
 
-- S3 or later phases
-- project onboarding
-- product `.devos/` overlays
-- website migration
-- product-source relocation
-- Task/Policy/Capability/Orchestrator/Evidence runtime
-- CI/workflows
-- GitHub rulesets/branch protection
-- production deployment
-- protected/main merge
+## Required Architect review behavior after Builder handoff
+
+Before issuing any verdict, Architect must:
+
+1. pull the live Sentinel branch/state;
+2. read the current `coordination/STATE.md`;
+3. read the current `coordination/ARCHITECT_REVIEW.md` / relevant durable sync;
+4. inspect the exact Builder handoff commit;
+5. compare the Builder diff against:
+   - `D-016`;
+   - `ML-DEVOS-RFC-001`;
+   - `ML-DEVOS-AS-006`;
+   - current authorized scope;
+6. independently inspect the changed artifacts rather than relying on Builder summary;
+7. only then issue PASS / CHANGES_REQUESTED.
+
+This comparison rule is part of the S2 review discipline and must be preserved for later Sentinel reviews unless superseded by a higher-authority governance change.
+
+## Explicitly prohibited
+
+- no S3 or later phases
+- no project onboarding
+- no product `.devos/` overlays
+- no website migration
+- no product-source relocation
+- no Task/Policy/Capability/Orchestrator/Evidence runtime
+- no CI/workflows
+- no GitHub rulesets/branch protection
+- no production deployment
+- no protected/main merge
+- no v1.4.0 activation before S2 closure
 
 ## Version disposition
 
@@ -70,10 +98,15 @@ Proposed only:
 
 `v1.3.0 → v1.4.0 MINOR`
 
-No version transition is authorized yet.
-
 ## Current gate
 
-`PAULO_DECISION_REQUIRED`
+`CLAUDE IMPLEMENTATION TURN`
 
-Paulo must explicitly authorize or reject S2 implementation.
+Builder must implement only the authorized S2 foundation and then set:
+
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
+
+Builder must then stop.
