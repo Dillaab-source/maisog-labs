@@ -11,7 +11,7 @@
     "reserved_subsystem_roots", "reserved_root_invariant",
     "project_registry", "legacy_bootstrap_surfaces",
     "executable_runtime_present", "prohibition", "provenance",
-    "created_at", "updated_at"
+    "closure_history", "created_at", "updated_at"
   ],
   "additionalProperties": false,
   "properties": {
@@ -119,6 +119,24 @@
       "description": "MUST be false -- S2 is a static repository foundation only; no Task/Policy/Capability/Orchestrator/Evidence runtime, CI, or ruleset exists (RFC acceptance criterion 5/12)."
     },
     "prohibition": { "type": "string", "minLength": 1 },
+    "closure_history": {
+      "type": "array",
+      "description": "Ledger of Sentinel phase closures recorded by this manifest. Added at S2 closure (D-017, ML-DEVOS-ADR-002); the manifest did not exist during S1's own closure, so S1's closure is recorded only in D-013/ML-DEVOS-ADR-001, not backfilled here as a fabricated entry. Append-only in spirit -- a later closure adds a new entry, it does not edit a prior one (CORE-011).",
+      "items": {
+        "type": "object",
+        "required": ["phase", "closed_at", "version", "adr", "decision", "architect_sync", "note"],
+        "additionalProperties": false,
+        "properties": {
+          "phase": { "type": "string", "minLength": 1 },
+          "closed_at": { "type": "string", "format": "date" },
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+          "adr": { "type": "string", "minLength": 1 },
+          "decision": { "type": "string", "minLength": 1 },
+          "architect_sync": { "type": "string", "minLength": 1 },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "provenance": {
       "type": "object",
       "required": ["rfc", "architect_sync", "proposal_decision", "implementation_decision"],

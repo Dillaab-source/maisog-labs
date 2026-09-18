@@ -11,6 +11,8 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 - `ML-DEVOS-AS-003.md` — archived in S1 remediation cycle 1, from the exact live `coordination/ARCHITECT_REVIEW.md` content at archival time.
 - `ML-DEVOS-AS-004.md` — archived at S1 closure (`D-013`, `ML-DEVOS-ADR-001`), spanning the initial S1 review and all three remediation cycles under one continuous sync ID, concluding `SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`.
 - `ML-DEVOS-AS-005.md` — final S1 activation/v1.3.0 closure verification. Initially paused on D-013 human-approval provenance, then closed `ARCHITECT_APPROVED` after Paulo directly confirmed D-013; confirmation is recorded as `D-014`.
+- `ML-DEVOS-AS-006.md` — archived at S2 closure (`D-017`), spanning the initial `ML-DEVOS-RFC-001` review (`CHANGES_REQUESTED`, findings `S2-F001`…`S2-F007`) and the final RFC approval (`ARCHITECT_APPROVED — PAULO S2 IMPLEMENTATION DECISION REQUIRED`) under one continuous sync ID.
+- `ML-DEVOS-AS-007.md` — archived at S2 closure (`D-017`), the S2 implementation review concluding `SENTINEL S2 TECHNICAL STAGE GATE: ARCHITECT_APPROVED` and routing the closure/`v1.4.0` decision to Paulo.
 
 ## Backfill gap — CLOSED (S1-F008, remediation cycle 2)
 

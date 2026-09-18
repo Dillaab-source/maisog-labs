@@ -49,6 +49,10 @@
 //   - Top-level executable_runtime_present === false.
 //   - provenance cites all four of rfc/architect_sync/proposal_decision/
 //     implementation_decision as non-empty strings.
+//   - closure_history is an array; every entry has exactly the required
+//     fields (phase/closed_at/version/adr/decision/architect_sync/note),
+//     each non-empty/correctly typed, closed_at a YYYY-MM-DD date, and
+//     version a semver string (added at S2 closure, D-017/ML-DEVOS-ADR-002).
 //   - created_at/updated_at are YYYY-MM-DD date strings.
 //
 // WHAT THIS VALIDATOR DOES NOT PROVE:
@@ -105,8 +109,9 @@ const TOP_FIELDS = new Set([
   "reserved_subsystem_roots", "reserved_root_invariant",
   "project_registry", "legacy_bootstrap_surfaces",
   "executable_runtime_present", "prohibition", "provenance",
-  "created_at", "updated_at",
+  "closure_history", "created_at", "updated_at",
 ]);
+const CLOSURE_ENTRY_FIELDS = new Set(["phase", "closed_at", "version", "adr", "decision", "architect_sync", "note"]);
 const ARCH_BASELINE_FIELDS = new Set(["id", "version", "status", "document"]);
 const CAP_BASELINE_FIELDS = new Set(["version", "status", "adr", "decision", "document"]);
 const ROOT_FIELDS = new Set(["path", "owning_phase", "consuming_phases", "status", "executable_runtime_present"]);
@@ -267,6 +272,30 @@ function validate(doc, errors) {
   // top-level executable_runtime_present
   if (doc.executable_runtime_present !== false) {
     errors.push(`manifest.executable_runtime_present: must be exactly false -- S2 is a static repository foundation only (found '${doc.executable_runtime_present}')`);
+  }
+
+  // closure_history
+  const closures = doc.closure_history;
+  if (!Array.isArray(closures)) {
+    errors.push("manifest.closure_history: must be an array");
+  } else {
+    for (const [i, entry] of closures.entries()) {
+      const label = `manifest.closure_history[${i}]${entry && entry.phase ? ` (${entry.phase})` : ""}`;
+      if (!isPlainObject(entry)) { errors.push(`${label}: must be an object`); continue; }
+      checkAdditionalProps(entry, CLOSURE_ENTRY_FIELDS, label, errors);
+      for (const field of CLOSURE_ENTRY_FIELDS) {
+        if (!Object.hasOwn(entry, field)) errors.push(`${label}: missing required field '${field}'`);
+      }
+      for (const field of ["phase", "adr", "decision", "architect_sync", "note"]) {
+        if (Object.hasOwn(entry, field) && !isNonEmptyString(entry[field])) errors.push(`${label}: '${field}' must be a non-empty string`);
+      }
+      if (Object.hasOwn(entry, "closed_at") && (typeof entry.closed_at !== "string" || !DATE_RE.test(entry.closed_at))) {
+        errors.push(`${label}: 'closed_at' must be a YYYY-MM-DD date string (found '${entry.closed_at}')`);
+      }
+      if (Object.hasOwn(entry, "version") && (typeof entry.version !== "string" || !SEMVER_RE.test(entry.version))) {
+        errors.push(`${label}: 'version' must be a MAJOR.MINOR.PATCH semver string (found '${entry.version}')`);
+      }
+    }
   }
 
   // provenance

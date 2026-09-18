@@ -10,15 +10,15 @@
     "document": "devos/architecture/ML-DEVOS-ARCH-001.md"
   },
   "sentinel_capability_baseline": {
-    "version": "1.3.0",
+    "version": "1.4.0",
     "status": "ACTIVE",
-    "adr": "ML-DEVOS-ADR-001",
-    "decision": "D-013",
-    "document": "devos/changes/adrs/ML-DEVOS-ADR-001.md"
+    "adr": "ML-DEVOS-ADR-002",
+    "decision": "D-017",
+    "document": "devos/changes/adrs/ML-DEVOS-ADR-002.md"
   },
   "source_of_truth_precedence": [
     "Frozen Architecture (ML-DEVOS-ARCH-001 / v1.2.0)",
-    "Active Governance Kernel (Sentinel capability baseline, currently v1.3.0)",
+    "Active Governance Kernel (Sentinel capability baseline, currently v1.4.0)",
     "Decisions (brain/DECISION_LOG.md)",
     "ADRs (devos/changes/adrs/)",
     "Durable Architect Syncs (devos/changes/architect-syncs/)",
@@ -77,13 +77,13 @@
       "executable_runtime_present": false
     }
   ],
-  "reserved_root_invariant": "A reserved subsystem root's existence means only that it is the canonical future home for its owning phase's artifacts. It does not mean that phase's subsystem is implemented. No reserved root may contain executable implementation of its owning (or any later) phase during S2. Later phases may consume artifacts from a root but may not redefine its ownership without a separately governed ARCHITECTURE-class change.",
+  "reserved_root_invariant": "A reserved subsystem root's existence means only that it is the canonical future home for its owning phase's artifacts. It does not mean that phase's subsystem is implemented. No reserved root may contain executable implementation of its owning (or any later) phase until that phase is itself separately proposed, reviewed, and authorized. Later phases may consume artifacts from a root but may not redefine its ownership without a separately governed ARCHITECTURE-class change. This invariant did not lapse when S2 closed -- it remains standing until each specific phase's own authorization.",
   "project_registry": {
     "location": "projects/registry.json",
     "schema": "devos/schemas/project-registry.schema.json",
     "role": "index only",
     "status": "EMPTY",
-    "note": "Points to project-owned authoritative overlays; does not duplicate project memory/task state/evidence/requirements/risks/local governance. No project is onboarded by S2. A future entry requires the active PROJECT_ONBOARDING process and explicit Paulo authorization."
+    "note": "Points to project-owned authoritative overlays; does not duplicate project memory/task state/evidence/requirements/risks/local governance. No project has been onboarded as of S2 closure. A future entry requires the active PROJECT_ONBOARDING process and explicit Paulo authorization -- S2 closure does not itself authorize or imply one."
   },
   "legacy_bootstrap_surfaces": [
     {
@@ -105,6 +105,17 @@
     "proposal_decision": "D-015",
     "implementation_decision": "D-016"
   },
+  "closure_history": [
+    {
+      "phase": "S2",
+      "closed_at": "2026-09-18",
+      "version": "1.4.0",
+      "adr": "ML-DEVOS-ADR-002",
+      "decision": "D-017",
+      "architect_sync": "ML-DEVOS-AS-007",
+      "note": "S2 DevOS Repository Foundation adopted into the active Sentinel baseline; v1.3.0 -> v1.4.0 MINOR transition applied. First entry recorded in this manifest -- S1's earlier closure (v1.2.0 -> v1.3.0) predates this manifest's own existence (the manifest is itself an S2 deliverable) and is recorded instead in brain/DECISION_LOG.md D-013 and devos/changes/adrs/ML-DEVOS-ADR-001.md."
+    }
+  ],
   "created_at": "2026-09-18",
   "updated_at": "2026-09-18"
 }

@@ -16,7 +16,7 @@ Every material change should retain, at minimum: the RFC (if any), the Architect
 
 ## Current Sentinel version
 
-**Sentinel's active governance-capability baseline is `v1.3.0`, as of `2026-09-18` (`D-013`, `ML-DEVOS-ADR-001`).** This is the version of the *Governance Kernel layer* S1 added — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. `v1.3.0` sits on top of that unchanged S0 baseline; it does not rewrite it.
+**Sentinel's active governance-capability baseline is `v1.4.0`, as of `2026-09-18` (`D-017`, `ML-DEVOS-ADR-002`).** This is the version of the *DevOS Repository Foundation layer* S2 added on top of the Governance Kernel S1 closed at `v1.3.0` (`D-013`, `ML-DEVOS-ADR-001`) — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before.
 
 `devos/governance/rules/core-rules.json` now records two provenance groups, both fully effective (per `RULE_RECORD_SCHEMA.md`'s "Status/version consistency" section):
 
@@ -46,3 +46,19 @@ S1 itself was authorized, and remediated across three cycles, **before** the RFC
 - `core-rules.json` now reflects that activation: `status: "ACTIVE"`, `effective_version: "1.3.0"`, `proposed_effective_version: null`, `adr_id: "ML-DEVOS-ADR-001"` for all five S1-origin rules.
 
 No later Sentinel phase (S2+) is authorized by this closure. `D-013` and `ML-DEVOS-ADR-001` are both explicit that S1 closure and any future S2 authorization are separate decisions.
+
+## S2 closure — v1.4.0 applied (`D-017`, `ML-DEVOS-ADR-002`)
+
+S2 — DevOS Repository Foundation followed the same explicit, non-silent path this policy requires, this time with the RFC/ADR system S1 built already in place, not as a bootstrap exception:
+
+- **RFC:** `ML-DEVOS-RFC-001` proposed the static foundation manifest, reserved subsystem-root boundaries, and empty project registry.
+- **Architect Sync:** `ML-DEVOS-AS-006` reviewed the RFC (one remediation round: `S2-F001`…`S2-F007` resolved), then `ML-DEVOS-AS-007` reviewed the implementation at `c76bf6a`, passing all nine findings (`S2-I001`…`S2-I009`) with one disclosed, accepted validator limitation. Both are archived durably at `devos/changes/architect-syncs/`.
+- **Decision:** `D-015` authorized the proposal process; `D-016` authorized implementation; `D-017` authorized closure and the version transition, after the Architect's technical stage-gate approval and explicit routing of the closure/activation decision to Paulo — the same `CORE_POLICY`-gate discipline established at S1 closure (Architect approval is never itself activation).
+- **Implementation:** `c76bf6a6390581963d2ded2e5db18d96b4a346b4`.
+- **ADR:** `devos/changes/adrs/ML-DEVOS-ADR-002.md`, the second durable ADR, records adoption of the S2 foundation and the `v1.3.0 → v1.4.0` transition.
+
+`devos/devos-manifest.json`'s `sentinel_capability_baseline` now records `version: "1.4.0"`, `adr: "ML-DEVOS-ADR-002"`, `decision: "D-017"` — updated in place from the S1-era values, since this field always tracks the *current* active baseline, not a history. The manifest's new `closure_history` array is the append-only ledger of phase closures going forward: it records this S2 entry as its first, and explicitly does not backfill a fabricated S1 entry, since the manifest did not exist during S1's own closure — S1's closure remains recorded, unedited, in `D-013` and `ML-DEVOS-ADR-001`.
+
+`ML-DEVOS-RFC-001` proposed no new `CORE-*` rule, so no rule in `devos/governance/rules/core-rules.json` changes status or `adr_id` at S2 closure — S2's closure is entirely a repository-foundation/manifest-level event, distinct from S1's rule-activation event.
+
+No later Sentinel phase (S3+) is authorized by this closure. `D-017` and `ML-DEVOS-ADR-002` are both explicit that S2 closure and any future S3 authorization are separate decisions, exactly as `D-016` kept S2's own implementation authorization separate from its closure.

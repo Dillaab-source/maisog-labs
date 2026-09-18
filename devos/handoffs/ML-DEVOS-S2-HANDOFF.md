@@ -150,6 +150,69 @@ Additional synthetic cases exercised in the same run (all also correctly rejecte
 - Neither validator verifies that cited decision/RFC/ADR/sync IDs actually exist and say what the citing document claims — that remains Architect/human cross-reference review, consistent with every prior S0/S1 validator in this repository.
 - This handoff's own claims, including validator command output, are `ACTOR_REPORTED` until the Architect independently inspects them, per `ML-DEVOS-RFC-001`'s evidence requirements (`INDEPENDENTLY_INSPECTED` is required for the repository-foundation structure itself; Builder's validator execution remains `ACTOR_REPORTED`).
 
-## 9. Architect review request
+## 9. Architect review request (implementation cycle)
 
 Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`. Per `D-016`'s review rule, requesting the Architect: pull the live Sentinel branch/state; read the current `coordination/STATE.md` and `coordination/ARCHITECT_REVIEW.md`; inspect this exact commit; compare this diff against `D-016`, `ML-DEVOS-RFC-001`, and `ML-DEVOS-AS-006`; independently inspect the changed artifacts rather than relying on this handoff's summary; and issue a verdict. This handoff does not request or imply authorization for S3.
+
+---
+
+# S2 Closure — Adoption and Version Transition (`D-017`, `ML-DEVOS-ADR-002`)
+
+The Architect's implementation review (`ML-DEVOS-AS-007`) passed all nine findings (`S2-I001`…`S2-I009`) on first review — no remediation cycle was required — and issued `SENTINEL S2 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`, explicitly routing the closure/`v1.4.0` activation decision to Paulo rather than performing it itself (the same `CORE_POLICY`-gate discipline established at S1 closure). Paulo then gave that decision in full as `D-017`, authorizing exactly the four items the Architect named: (1) adoption of the S2 DevOS Repository Foundation into the active Sentinel baseline; (2) creation of the durable S2 ADR; (3) the `v1.3.0 → v1.4.0` MINOR transition; (4) documentation/static-governance closure updates marking S2 closed — explicitly not authorizing S3 or any later phase.
+
+Authority chain: `D-015 → ML-DEVOS-RFC-001 → ML-DEVOS-AS-006 → D-016 → c76bf6a → ML-DEVOS-AS-007 → D-017`.
+
+## What changed in this closure commit
+
+| Item | Files changed | What changed |
+|---|---|---|
+| **1. Durable S2 ADR** | New: `devos/changes/adrs/ML-DEVOS-ADR-002.md`; modified: `devos/changes/adrs/README.md` | The second durable ADR, recording the S2 foundation's adoption, context (RFC → Architect Sync → Decision → Implementation chain), alternatives considered, and honest consequences (including the disclosed, accepted validator limitation from `ML-DEVOS-AS-007`). |
+| **2. Adoption into active baseline** | `devos/devos-manifest.json` | `sentinel_capability_baseline` updated in place from S1-era values (`version: "1.3.0"`, `adr: "ML-DEVOS-ADR-001"`, `decision: "D-013"`) to S2-closure values (`version: "1.4.0"`, `adr: "ML-DEVOS-ADR-002"`, `decision: "D-017"`) — this field always tracks the *current* active baseline. New `closure_history` array added as an append-only ledger of phase closures, with its first entry recording this S2 closure; S1's earlier closure is deliberately not backfilled into it (the manifest did not exist during S1 closure) and remains recorded only in `D-013`/`ML-DEVOS-ADR-001`. `reserved_root_invariant` and `project_registry.note` wording adjusted so neither reads as if their standing invariants (no executable later-phase code; registry stays empty until `PROJECT_ONBOARDING`) lapse merely because S2 has closed. |
+| **3. Version transition** | `devos/devos-manifest.json`; `devos/governance/specifications/VERSIONING_POLICY.md` | `v1.3.0 → v1.4.0` applied: manifest's `sentinel_capability_baseline.version` and `source_of_truth_precedence` entry updated; `VERSIONING_POLICY.md`'s "Current Sentinel version" section updated to `v1.4.0`, and a new "S2 closure" section added documenting the full RFC → Architect Sync → Decision → Implementation → ADR chain, mirroring the S1 closure section's structure. |
+| **4. Documentation/static-governance closure** | New: `devos/changes/architect-syncs/ML-DEVOS-AS-006.md`, `ML-DEVOS-AS-007.md`; modified: `devos/changes/architect-syncs/README.md`, `devos/changes/rfcs/ML-DEVOS-RFC-001.md` (status banner), `devos/changes/rfcs/README.md`, `devos/schemas/devos-manifest.schema.json`, `devos/schemas/validate-devos-manifest.mjs` (both additive-only, for `closure_history`) | `ML-DEVOS-AS-006` (RFC review, both the initial `CHANGES_REQUESTED` pass and the final `ARCHITECT_APPROVED` pass) and `ML-DEVOS-AS-007` (implementation review) archived durably, retrieved verbatim from Git history (`b613c62`, `f6ee953` for AS-006; live state confirmed unchanged since `69ba513` for AS-007) — not reconstructed from conversational memory. `ML-DEVOS-RFC-001`'s status banner updated to `IMPLEMENTED AND CLOSED`, citing the ADR, while its proposal text is preserved unedited (`CHANGE_GOVERNANCE_POLICY.md` §3: an RFC is never itself rewritten into an ADR). |
+
+## S2 implementation content preserved unchanged
+
+Per `D-017`'s explicit "PRESERVE: S2 implementation content from `c76bf6a`" instruction, this closure commit does **not** modify: any reserved-root README; `projects/registry.json` (still exactly `{"schema_version": "1", "projects": []}`); `projects/README.md`; `devos/schemas/project-registry.schema.json`; `devos/schemas/validate-project-registry.mjs` (zero-diff against `c76bf6a`); or the core validation logic/error wording already reviewed and approved in `validate-devos-manifest.mjs` (only the additive `closure_history` check was added; every check present at `c76bf6a` is byte-identical). Verified via `git diff --stat c76bf6a` scoped to each of these paths, all returning empty except the two files listed above.
+
+## Validators rerun after closure
+
+```
+$ node devos/schemas/validate-devos-manifest.mjs
+devos-manifest.json: parsed
+  OK — no structural or semantic issues found.
+PASS: 0 error(s) across 1 file(s).
+
+$ node devos/schemas/validate-project-registry.mjs
+registry.json: 0 project entries parsed
+  OK — no structural or semantic issues found. Registry is empty, as required during S2.
+PASS: 0 error(s) across 1 file(s).
+```
+
+Both pass cleanly after closure. The registry validator's continued "empty" pass confirms `PROJECT_ONBOARDING`'s emptiness invariant was not disturbed by closing S2 — no project was onboarded as part of, or as a side effect of, this closure.
+
+## Pre-handoff verification (closure)
+
+1. **Closure diff against the Architect handoff base:** compared against `c76bf6a6390581963d2ded2e5db18d96b4a346b4` (the last Architect-reviewed Builder commit) — 14 files total for this commit: 3 new (`devos/changes/adrs/ML-DEVOS-ADR-002.md`, `devos/changes/architect-syncs/ML-DEVOS-AS-006.md`, `ML-DEVOS-AS-007.md`) and 11 modified (`devos/changes/adrs/README.md`, `devos/changes/architect-syncs/README.md`, `devos/changes/rfcs/{ML-DEVOS-RFC-001.md, README.md}`, `devos/devos-manifest.json`, `devos/governance/specifications/VERSIONING_POLICY.md`, `devos/schemas/{devos-manifest.schema.json, validate-devos-manifest.mjs}`, this handoff, and the two coordination files). 0 deletions.
+2. **Only documentation/static-governance closure paths changed:** confirmed — every changed path is an ADR, Architect Sync archive, RFC status banner, versioning-policy document, or the manifest/schema/validator's version/closure-tracking fields. No reserved-root README, no registry file, no project-registry schema/validator was touched.
+3. **No S3+ work:** confirmed — no Task Contract schema/instance, state-machine, Capability Gateway, Evidence/QA runtime, Orchestrator, memory store, CI, ruleset, or deployment mechanism anywhere in this diff.
+4. **Registry remains empty:** confirmed — `projects/registry.json` byte-identical to `c76bf6a`; validator confirms `0 project entries`.
+5. **No website/runtime/build/deployment file changed:** confirmed via `git diff --stat c76bf6a -- app/ components/ data/ lib/ public/ tests/ next.config.mjs wrangler.jsonc package.json package-lock.json` (empty).
+6. **`v1.4.0` recorded only because `D-017` authorized closure:** confirmed — the only place `1.4.0` appears as an *active/effective* value is `devos/devos-manifest.json`'s `sentinel_capability_baseline.version` and `closure_history[0].version`, and `VERSIONING_POLICY.md`'s "S2 closure" section, both citing `D-017`/`ML-DEVOS-ADR-002` directly; no S3 rule, capability, or subsystem was activated alongside it.
+7. **`DEPLOY_AUTHORIZED` remains `NO`:** confirmed, unchanged in `coordination/STATE.md`.
+8. **`MAIN_MERGE_AUTHORIZED` remains `NO`:** confirmed, unchanged in `coordination/STATE.md`.
+
+## Confirmations
+
+- Frozen architecture baseline `ML-DEVOS-ARCH-001 / v1.2.0` unchanged and untouched this cycle.
+- S1's closure record (`D-013`, `ML-DEVOS-ADR-001`, `v1.3.0`) unchanged and untouched — S2 closure does not retroactively edit it.
+- S2 implementation content from `c76bf6a` preserved byte-for-byte except the two files explicitly extended for closure tracking (manifest + its schema/validator's `closure_history` addition).
+- No project onboarding, no `.devos/` overlay, no website migration, no product-source relocation, no runtime engine, no CI/workflow, no GitHub ruleset/branch-protection change, no production deployment, no protected-branch/main merge, no S3+ work.
+
+## Known limitations (unchanged by closure)
+
+Same as disclosed at implementation (§8 above) — closure changes S2's authority status (candidate → adopted baseline), not its enforceability or validator scope. This closure commit's own claims are `ACTOR_REPORTED` until the Architect independently inspects them.
+
+## Architect review request (closure verification)
+
+Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`. Per `D-017`'s Builder boundary, requesting the Architect: pull the live Sentinel branch/state; read the current `coordination/STATE.md` and `coordination/ARCHITECT_REVIEW.md`; inspect this exact closure commit; compare the exact closure diff against `D-017`, `ML-DEVOS-RFC-001`, `ML-DEVOS-AS-006`, and `ML-DEVOS-AS-007`; independently inspect the changed artifacts; and issue the final S2 closure verdict. This handoff does not request or imply authorization for S3.
