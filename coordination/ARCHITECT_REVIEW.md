@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,12 +8,14 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-017 — WEB-INC-008 Append-Only Audit Substrate Architecture Sync
+# ML-DEVOS-AS-018 — WEB-INC-008 Implementation Review / Remediation Cycle 1
 
 Cycle: `MAISOGLABS-WEB-INC-008-AUDIT-SUBSTRATE`  
-Reviewed proposal: `ML-DEVOS-RFC-005`  
-RFC proposal commit: `9b1e6d721ad82bdcac3b165ebaca10f36f8cfbf9`  
-Grounded pre-proposal repository HEAD: `cd73e410dfb96e57fefdb71f18cbd9506e6b4562`
+Review mode: `FINAL ARCHITECTURE / APPEND-ONLY DATA / EVIDENCE REVIEW`  
+Authority chain: `ML-DEVOS-RFC-005 → ML-DEVOS-AS-017 → D-026 → ML-DEVOS-AS-018`  
+Authorized implementation base: `d96ca8a1c6244d07185db2e225ad11741a1f4eef`  
+Builder implementation commit: `d4791b945d2853067d51f20fca11db3846a1cf1e`  
+Builder bookkeeping HEAD reviewed: `26f305b7a7c10c4aedb2531e785cadabb0e936bd`
 
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -21,339 +23,266 @@ Frozen architecture baseline:
 Active Sentinel governance-capability baseline:
 - `v1.4.0`
 
-Verified product baseline:
-- `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
+## Review discipline performed
 
-Accepted dependencies:
-- `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
-- `ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
-- `ML-DEVOS-AS-016: ARCHITECT_APPROVED — WEB-INC-002 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
-- `ML-DEVOS-ADR-003: ACCEPTED`
-- `ML-DEVOS-ADR-004: ACCEPTED`
+Before issuing this verdict, the Architect:
 
-## Architect grounding performed
+1. live-checked the authoritative governance branch;
+2. read current `coordination/STATE.md` and `coordination/IMPLEMENTER_HANDOFF.md`;
+3. compared exact implementation range `d96ca8a1... → d4791b94...`;
+4. separately compared bookkeeping range `d4791b94... → 26f305b7...`;
+5. independently inspected:
+   - `migrations/0002_web_inc_008_audit_log.sql`;
+   - `worker/d1/audit.mjs`;
+   - `worker/d1/schema.mjs`;
+   - `tests/d1-audit.test.mjs`;
+   - changed current-state product/governance/test documents;
+6. compared the implementation against RFC-005, AS-017, D-026, ADR-003/004, and the accepted WEB-INC-005/002 boundaries;
+7. attempted independent runtime reproduction from the public branch, but the Architect execution environment cannot resolve `github.com`; therefore Builder command/test execution remains `ACTOR_REPORTED`.
 
-Before issuing this proposal verdict, the Architect live-checked the authoritative GitHub branch and independently inspected:
+## Exact provenance — PASS
 
-- current `coordination/STATE.md`;
-- current `coordination/ARCHITECT_REVIEW.md`;
-- current `coordination/IMPLEMENTER_HANDOFF.md`;
-- Product Build Pack `WEB-INC-008` scope/dependency order;
-- active Sentinel Change Governance Policy;
-- Sentinel Capability-Change Specification;
-- current D1 schema loader and migration arrangement;
-- current WEB-INC-005 14-table inventory test;
-- current `DATA_BACKEND_SPEC.md` `audit_log` target model;
-- `ADM-REQ-012`, `ADM-REQ-016`, `WEB-SEC-009`, `WEB-SEC-012`;
-- current risk/test ledgers;
-- accepted WEB-INC-002 closure state.
+Implementation compare:
 
-Current repository truth is:
+`d96ca8a1c6244d07185db2e225ad11741a1f4eef → d4791b945d2853067d51f20fca11db3846a1cf1e`
 
-- WEB-INC-002 is closed;
-- current product schema is exactly the 14 WEB-INC-005-owned tables;
-- no `audit_log` exists;
-- no editorial mutation endpoint exists;
-- no persistent application identity/session model exists;
-- the current protected admin API remains read-only;
-- remote/production D1 is absent and unauthorized.
+contains exactly **1 implementation commit** and exactly **10 changed files**:
 
-## Classification
+New:
+- `migrations/0002_web_inc_008_audit_log.sql`
+- `worker/d1/audit.mjs`
+- `tests/d1-audit.test.mjs`
 
-`ARCHITECTURE`
+Modified:
+- `worker/d1/schema.mjs`
+- `brain/GOVERNANCE_MAP.md`
+- `brain/IMPLEMENTATION_STATUS.md`
+- `brain/RISK_REGISTER.md`
+- `brain/TEST_LEDGER.md`
+- `docs/product/BUILD_PLAN.md`
+- `docs/product/DATA_BACKEND_SPEC.md`
 
-### AS17-F001 — PASS / BINDING — stronger class than Build Plan's tentative CAPABILITY
+Bookkeeping compare:
 
-The Build Plan recorded `CAPABILITY` as the likely minimum class.
+`d4791b945d2853067d51f20fca11db3846a1cf1e → 26f305b7a7c10c4aedb2531e785cadabb0e936bd`
 
-The grounded proposal correctly elevates WEB-INC-008 to `ARCHITECTURE` because it would:
+contains exactly **1 bookkeeping commit** and exactly **2 changed files**:
+- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md`
 
-- expand the accepted product schema from 14 to 15 tables;
-- establish the first persistent application-side D1 write primitive;
-- define immutable audit-history semantics later mutations depend on;
-- create a new persistent trust boundary: server code may append but may not alter/delete history;
-- evolve the storage architecture recorded by ADR-003.
+No runtime/product code is hidden in the bookkeeping commit.
 
-Required lifecycle:
+## Finding dispositions
 
-`RFC → Architect Sync → Paulo Decision → Implementation → post-review ADR`
+### AS18-F001 — PASS — scope and table ownership
 
-No Sentinel core rule or governance-capability version changes.
-
-## Binding Architect findings / constraints
-
-### AS17-F002 — REQUIRED — exactly one new product table
-
-If Paulo authorizes implementation, WEB-INC-008 may add exactly:
+Exactly one new product table is introduced:
 
 `audit_log`
 
-The resulting current local product-table inventory must be exactly:
+The existing WEB-INC-005 14-table ownership model remains intact and the current schema helper defines:
 
-`14 existing WEB-INC-005 tables + audit_log = 15`
+`14 existing tables + audit_log = 15`
 
-No media, journal, theme, identity/session, role/permission, or other future table may be created.
+No later-increment table is created.
 
-### AS17-F003 — REQUIRED — never rewrite WEB-INC-005 migration history
+### AS18-F002 — PASS — migration history preserved
 
-`migrations/0001_web_inc_005_init.sql` must remain unchanged.
+`migrations/0001_web_inc_005_init.sql` is not part of the implementation diff.
 
-WEB-INC-008 must use a new ordered migration, expected:
+WEB-INC-008 uses a separate ordered migration:
 
 `migrations/0002_web_inc_008_audit_log.sql`
 
-or an equivalent separately versioned migration artifact.
+Historical WEB-INC-005 `AUTHORIZED_TABLE_NAMES` / `applySchema()` semantics remain preserved; current 15-table semantics are introduced through new additive exports.
 
-Historical WEB-INC-005 tests/evidence must remain truthful. A new current-schema test may assert 15 tables; do not rewrite history to claim WEB-INC-005 itself owned 15.
+### AS18-F003 — PASS — bounded audit row model
 
-### AS17-F004 — REQUIRED — audit rows are metadata-only immutable events
+The committed table contains only:
 
-The accepted logical audit row is bounded to:
-
-- DB-assigned immutable `id`;
-- server-owned `occurred_at`;
-- opaque trusted-server `actor` reference;
-- validated `action`;
-- validated `entity_type`;
+- `id`;
+- `occurred_at`;
+- `actor`;
+- `action`;
+- `entity_type`;
 - `entity_id`;
-- nullable `revision_id`;
-- `result` exactly `success` or `failure`.
+- `revision_id`;
+- `result`.
 
-Do not store:
+No JWT/token/body/content snapshot/stack/SQL-error/metadata-blob column exists.
 
-- JWTs or Access assertion tokens;
-- credentials/secrets;
-- full request bodies;
-- complete content snapshots;
-- raw stack traces;
-- SQL error strings;
-- unrestricted metadata blobs.
+`result` is DB-constrained to exactly `success` or `failure`.
 
-### AS17-F005 — REQUIRED — append-only at application AND database layers
+### AS18-F004 — PASS — append-only enforcement exists at both layers
 
-It is not enough to simply omit update/delete methods.
+Application layer:
 
-Implementation must prove both:
+`worker/d1/audit.mjs` exports a validator and one append primitive; it exposes no audit UPDATE/DELETE helper.
 
-1. the application/server API exposes append only;
-2. direct database UPDATE and DELETE against `audit_log` are rejected by a database-level control such as triggers or an equivalently strong mechanism.
+Database layer:
 
-No audit edit/delete admin route exists in this increment.
+`audit_log_reject_update` and `audit_log_reject_delete` are unconditional BEFORE triggers using `RAISE(ABORT, ...)`.
 
-### AS17-F006 — REQUIRED — bounded internal writer only
+Focused tests issue raw UPDATE/DELETE directly against D1, bypassing the writer, and assert rejection plus preserved row state.
 
-A narrow trusted-server primitive such as `appendAuditEvent(db, event)` is acceptable.
+### AS18-F005 — PASS — writer is fixed-SQL, server-only, fail-closed
 
-It must:
+`appendAuditEvent(db, event)`:
 
-- validate the complete event;
-- build fixed SQL internally;
-- accept no arbitrary SQL/table/column input;
-- generate/own `occurred_at`;
-- reject malformed fields;
-- propagate database failure.
+- validates the complete event;
+- rejects unknown fields;
+- generates `occurred_at` internally;
+- issues one fixed parameterized INSERT;
+- accepts no caller SQL/table/column input;
+- contains no catch/fallback capable of turning INSERT failure into success.
 
-No audit-write HTTP endpoint is authorized.
+A forced rejecting DB stub is covered by a focused regression test.
 
-No browser/client code may import the audit writer, SQL, repository write modules, or D1 binding.
+### AS18-F006 — PASS — business failure semantics remain distinct from audit-storage failure
 
-### AS17-F007 — REQUIRED — failure semantics are non-recursive and fail-closed
+A valid `result: failure` event persists as `failure`.
 
-The phrase “a failed write must be logged as failure” applies to the future **business/admin operation being audited**.
+Audit INSERT failure rejects/throws.
 
-WEB-INC-008 must prove that a test event with:
+No recursive self-auditing path exists.
 
-`result: failure`
+This matches AS17-F007 / D-026.
 
-is persisted as a failure event and is never transformed into success.
+### AS18-F007 — PASS — identity subsystem was not introduced
 
-An audit INSERT failure is not required to recursively audit itself.
+No identity/session/admin/role table was created.
 
-Instead:
+No browser identity storage was introduced.
 
-- audit append failure must reject/throw;
-- no success result may be returned;
-- no hidden fallback may report success.
+`actor` remains a bounded opaque server-supplied value for this substrate only.
 
-Future mutation/audit atomicity or compensation belongs to the separately authorized mutation increment.
+The current format is not treated as final editorial identity binding; WEB-INC-003 or another separately authorized identity/mutation design must still define how a real actor reference is derived.
 
-### AS17-F008 — REQUIRED — no identity subsystem is smuggled into this increment
+### AS18-F008 — PASS — no HTTP/client audit exposure
 
-`actor` is an opaque trusted-server reference.
+The implementation diff does not modify:
+- `worker/index.mjs`;
+- `worker/auth.mjs`;
+- `worker/admin/dashboard.mjs`;
+- `app/admin/*`.
 
-WEB-INC-008 does not authorize:
+No audit HTTP route/UI is introduced.
 
-- application sessions;
-- admin/user tables;
-- role/permission tables;
-- persistent Access/JWT claims;
-- browser identity storage;
-- a final editorial identity-binding design.
+The focused test seeds audit rows and verifies the WEB-INC-002 dashboard payload remains exactly its seven existing top-level domains with no audit data exposure.
 
-Tests may use deterministic non-secret fixture actor values.
+### AS18-F009 — PASS — no ownership/cascade coupling
 
-A future mutation capability must separately prove how its actor reference is derived from an authorized identity boundary.
+`audit_log` declares no foreign key.
 
-### AS17-F009 — REQUIRED — audit references never own or cascade product entities
+Existing product tables gain no FK into `audit_log`.
 
-No existing product table gets a foreign key into `audit_log`.
+Entity/revision references are logical only, preserving audit history independently.
 
-Audit history must survive future entity changes/deletion.
+### AS18-F010 — PASS — public/read-only boundaries preserved
 
-Do not create future tables merely to satisfy audit foreign keys.
+No public renderer/source path changed.
 
-Logical outward references are sufficient for this substrate.
+No editorial mutation code was introduced.
 
-### AS17-F010 — REQUIRED — WEB-INC-002 remains read-only and unchanged
+WEB-INC-002 remains read-only.
 
-WEB-INC-008 must not:
+No WEB-INC-003 work appears in the implementation diff.
 
-- add audit history to `GET /admin/api/dashboard`;
-- create `GET /admin/api/audit`;
-- create any new admin API route;
-- add mutation controls to `/admin`;
-- modify the existing authenticated read-only contract.
+### AS18-F011 — PASS — local-only authority preserved structurally
 
-Tests must prove the dashboard response shape remains unchanged and contains no audit history.
+`wrangler.jsonc` is unchanged.
 
-### AS17-F011 — REQUIRED — audit append authority is distinct from editorial mutation authority
+No real `database_id`, `remote: true`, production Access change, deployment artifact, or public D1 cutover appears in the committed diff.
 
-Critical invariant:
+Builder-reported local Wrangler/D1 commands are retained as actor-reported evidence.
 
-`AUDIT APPEND CAPABILITY ≠ EDITORIAL MUTATION AUTHORITY`
+### AS18-F012 — PASS — focused validation coverage is substantive
 
-If Paulo later authorizes WEB-INC-008, coordination should distinguish the narrow audit-write permission from the existing editorial gate.
+The committed 16-test audit suite covers:
 
-Recommended state vocabulary:
+- exact 15-table current inventory;
+- success append;
+- failure append;
+- writer-owned timestamp;
+- unknown-field rejection;
+- invalid actor;
+- invalid action/entity type;
+- invalid entity ID;
+- invalid revision ID;
+- invalid result;
+- JWT-shaped/oversized actor fixture rejection;
+- raw UPDATE rejection;
+- raw DELETE rejection;
+- forced INSERT/storage failure propagation;
+- no audit foreign key;
+- unchanged dashboard/no audit leakage.
 
-- `AUDIT_APPEND_AUTHORIZED: YES` only for the authorized WEB-INC-008 Builder cycle;
-- `MUTATION_AUTHORIZED: NO` remains in force for editorial/content mutations.
+### AS18-F013 — PASS WITH EVIDENCE-PROVENANCE LIMITATION
 
-No prior authorization carries forward to WEB-INC-003.
+Independently inspected:
+- exact diff/provenance;
+- migration DDL;
+- append-only triggers;
+- validator/writer implementation;
+- schema helper separation;
+- focused test source;
+- absence of route/client/public changes.
 
-### AS17-F012 — REQUIRED — local-only boundary remains absolute
+Retained as `ACTOR_REPORTED`:
+- `npm test`: 112/112;
+- `npm run build`;
+- local Wrangler migration application;
+- direct local D1 trigger probes;
+- dry-run bundle/config validation;
+- secret/config scan.
 
-No Builder action under WEB-INC-008 may:
+Independent execution was attempted but the Architect environment could not resolve `github.com`, so no runtime reproduction is claimed.
 
-- create remote D1;
-- add a real `database_id`;
-- set `remote: true`;
-- run remote D1 query/migration/import/export;
-- mutate production Cloudflare Access;
-- deploy;
-- perform public D1 cutover;
-- merge protected/main.
+### AS18-F014 — CHANGES_REQUESTED — required migration repeat evidence is missing
 
-### AS17-F013 — REQUIRED — public source remains untouched
+This is the only blocking finding.
 
-The public content path remains:
+The authorized Builder evidence in `coordination/STATE.md` explicitly requires:
 
-`data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`
+`local-only migration apply/repeat behavior`
 
-WEB-INC-008 must not make audit state part of public rendering or make D1 the public content source.
+RFC-005 also states that the migration must be repeat-safe under the repository's local migration mechanism.
 
-### AS17-F014 — REQUIRED — no real admin mutation integration yet
+The handoff proves a **first** successful fresh local migration application, but it does not record:
 
-Do not create a fake/project mutation merely to demonstrate auditing.
+- a second `wrangler d1 migrations apply DB --local` against the same local database showing no pending/reapplied migration; or
+- a focused regression proving `applyCurrentSchema(db)` may be invoked twice against the same DB without schema failure/data destruction.
 
-WEB-INC-008 proves the substrate in isolation.
+Static source inspection strongly suggests repeat safety because the table/triggers use `IF NOT EXISTS`, but the required runtime/test evidence was explicitly part of the authorized acceptance contract and cannot be silently waived by the Architect.
 
-WEB-INC-003 later owns proof that its real mutations emit audit rows, including failure events.
+## Required remediation — cycle 1 only
 
-### AS17-F015 — REQUIRED — migration/helper changes must preserve provenance
+No architecture or product redesign is requested.
 
-Current Node tooling is WEB-INC-005-specific and applies `0001` only.
+Builder must perform only this bounded evidence remediation:
 
-Builder may introduce narrow ordered-current-schema or WEB-INC-008-specific helpers, but must preserve:
+1. Add one focused regression test proving the current schema is repeat-safe:
+   - apply `applyCurrentSchema(db)`;
+   - preserve/insert a representative audit row;
+   - apply `applyCurrentSchema(db)` again;
+   - assert no error;
+   - assert exactly the same 15 product tables remain;
+   - assert the two append-only triggers remain;
+   - assert existing audit data is not destroyed or duplicated by schema reapplication.
 
-- WEB-INC-005 historical 14-table evidence;
-- current-schema 15-table evidence separately;
-- local-only execution by construction.
+2. Run the focused audit test file and full `npm test`.
 
-Any proposal requiring destructive changes to existing schema helpers or rewriting prior migration semantics must stop and return to Architect.
+3. Run `npx wrangler d1 migrations apply DB --local` twice against the same fresh local state/database and record the second-run result proving no migration is reapplied destructively.
 
-### AS17-F016 — REQUIRED EVIDENCE
+4. Update only the evidence/test-ledger/handoff/state records necessary to report this remediation.
 
-Builder handoff, if Paulo authorizes implementation, must provide at minimum:
+5. Do **not** change the accepted audit schema/writer unless the repeat-safety test actually exposes a defect. If a runtime defect is exposed, stop and report it instead of expanding scope.
 
-1. exact authorized base SHA, result SHA, and changed-file list;
-2. proof `0001_web_inc_005_init.sql` is byte-unchanged;
-3. exact new migration inventory;
-4. exact current product-table inventory: 15 and only 15;
-5. exact audit schema/constraints;
-6. valid `success` audit append;
-7. valid `failure` audit append;
-8. malformed-event rejection;
-9. database-level UPDATE rejection;
-10. database-level DELETE rejection;
-11. forced audit INSERT failure propagates and cannot report success;
-12. proof no audit HTTP endpoint exists;
-13. proof WEB-INC-002 dashboard JSON remains unchanged / no audit data exposure;
-14. proof no JWT/token/raw sensitive payload is stored;
-15. existing WEB-INC-001 auth suite;
-16. existing WEB-INC-005 D1 suite;
-17. existing WEB-INC-002 dashboard suite;
-18. full `npm test`;
-19. successful `npm run build`;
-20. local-only D1 migration/apply evidence;
-21. Wrangler config/bundle validation with no remote mutation;
-22. secret/config scan;
-23. explicit confirmation no editorial mutation, remote D1, deploy, public cutover, later WEB-INC, or protected/main merge occurred.
+6. Return control to Architect with exact remediation commit SHA and changed-file list.
 
-Builder execution evidence remains `ACTOR_REPORTED` until independently reproduced.
+## Gates remain
 
-### AS17-F017 — REQUIRED — post-implementation review and ADR
-
-Because this change is `ARCHITECTURE`, Builder completion is not closure.
-
-After Builder handoff:
-
-- Architect must independently inspect the exact implementation diff;
-- issue PASS / CHANGES_REQUESTED;
-- if accepted, record the required post-review ADR;
-- close the cycle;
-- return authority to Paulo.
-
-No automatic transition to WEB-INC-003 is allowed.
-
-## Compatibility verdict
-
-RFC-005 is architecturally compatible with:
-
-- the frozen Sentinel architecture;
-- active v1.4.0 governance capability baseline;
-- ADR-003 local D1 substrate;
-- ADR-004 authenticated read-only dashboard;
-- the verified Product Build Pack dependency order;
-
-subject to AS17-F001 through AS17-F017.
-
-## Security / trust conclusion
-
-The proposed trust boundary is appropriately narrow:
-
-`TRUSTED SERVER CODE → VALIDATED APPEND-ONLY AUDIT WRITER → LOCAL D1 AUDIT HISTORY`
-
-It does not authorize:
-
-- editorial content mutation;
-- remote resources;
-- public D1 use;
-- deployment;
-- audit UI/API;
-- identity/session persistence.
-
-## Verdict
-
-`ML-DEVOS-AS-017: ARCHITECT_APPROVED — WEB-INC-008 RFC-005 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
-
-This verdict approves architecture compatibility only.
-
-It does **not** authorize Claude to build.
-
-## Authority gates
-
-`AUDIT_APPEND_AUTHORIZED: NO`
+`AUDIT_APPEND_AUTHORIZED: YES` — only for this bounded remediation/current increment.
 
 `MUTATION_AUTHORIZED: NO`
 
@@ -363,16 +292,12 @@ It does **not** authorize Claude to build.
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Paulo gate
+No WEB-INC-003 or later work is authorized.
 
-Paulo must explicitly decide whether to authorize Claude to implement the exact bounded WEB-INC-008 scope in RFC-005 subject to every binding AS17 finding.
+## Verdict
 
-Until that explicit decision exists:
+`ML-DEVOS-AS-018: CHANGES_REQUESTED — WEB-INC-008 REMEDIATION CYCLE 1 LIMITED TO MIGRATION REPEAT-SAFETY EVIDENCE`
 
-- Builder action is prohibited;
-- RFC-005 remains under the governance authorization chain;
-- no audit migration/table/write code may be implemented.
+The runtime/schema design is otherwise acceptable based on current independent code inspection.
 
-## Current Architect Sync status
-
-`ML-DEVOS-AS-017: ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
+No post-review ADR may be created until this evidence gap is closed and the implementation receives final Architect approval.
