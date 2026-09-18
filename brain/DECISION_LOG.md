@@ -160,3 +160,14 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Builder boundary:** Claude performs the closure implementation. Architect does not implement the S2 closure. After Builder handoff, Architect must pull live Sentinel state/sync and compare the exact closure diff against D-017, ML-DEVOS-RFC-001, ML-DEVOS-AS-006, ML-DEVOS-AS-007, and the authorized closure scope before issuing a final closure verdict.
 - **Explicitly not authorized:** S3 or later phases; project onboarding; product `.devos/` overlays; website migration or product-source relocation; runtime Policy/Task/Capability/Orchestrator/Evidence engines; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge.
 - **Evidence:** Paulo's explicit closure approval after the S2 technical stage gate passed.
+
+
+### D-018 — Authorize legacy Architect Sync provenance audit
+
+- **Decided by:** Paulo (Product / Risk Owner), after S2 closed at Sentinel governance-capability baseline `v1.4.0`.
+- **Decision:** Authorize an Architect-led audit of legacy durable Architect Sync archives `ML-DEVOS-AS-001`, `ML-DEVOS-AS-002`, and `ML-DEVOS-AS-004` for historical/verbatim provenance accuracy.
+- **Authorized scope:** read the live Sentinel state and current Architecture Sync; compare each legacy archive against its cited historical `coordination/ARCHITECT_REVIEW.md` Git snapshot(s); classify any mismatch; record an Architect Sync audit verdict and recommended remediation.
+- **Not authorized by this decision:** rewriting/remediating the legacy archive files themselves; S3 proposal or implementation; runtime work; project onboarding; website migration; CI/workflows; GitHub rulesets; deployment; protected/main merge.
+- **Role boundary:** this audit is Architect-owned review/governance work. If archive remediation is required, Builder implementation requires a subsequent explicit authorization and must return for independent Architect verification.
+- **Standing review rule:** live Sentinel state/Architecture Sync and exact Git evidence must be pulled before verdicts; conversational recollection is not sufficient evidence.
+- **Evidence:** Paulo explicitly said `Approve legacy audit first.`
