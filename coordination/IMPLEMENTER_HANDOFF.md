@@ -173,4 +173,4 @@ None required by this cycle. `D-024` already supplied the complete authorization
 
 ## Commit
 
-Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as a single commit on top of base `7122c9d9887e5801a9c3ec03285db7273f1529c8`. See the branch's `git log` for the exact commit SHA, also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`.
+Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as commit `e0304a89ddfb5595866f1990cd9fca161e78ae2b` on top of base `7122c9d9887e5801a9c3ec03285db7273f1529c8` — also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`. A second, immediately following documentation-only commit records this exact SHA into both files (a commit cannot self-reference its own hash).
