@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: b0aa71a4ac0f4b0c9636ad4114b021a236eeafc5  # NOTE: this is the base HEAD this remediation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
-LAST_ARCHITECT_REVIEWED_SHA: 210711c4d5043f495b44d1c3edf49e7105053d6b
-CURRENT_REMEDIATION_CYCLE: 1
+LAST_IMPLEMENTER_HANDOFF_SHA: 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6
+LAST_ARCHITECT_REVIEWED_SHA: 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -43,19 +43,37 @@ Paulo's instruction `Proceed with authorizations` has been applied to this next 
 
 ## Builder review state
 
-Architect review of `210711c4d5043f495b44d1c3edf49e7105053d6b` returned:
+Architect review of `4a8cc86bf3caabecccb1b6ec24ad1f19269966e6` returned:
 
-- `ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 1`
+- `ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 2`
 
-Findings resolved this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` for full disposition):
+Remediation Cycle 1 disposition:
 
-- `AS12-F001` — `worker/auth.mjs` now validates the auth configuration itself (`isValidTeamDomain`/`isValidAudience`/`isValidAuthConfig`) before any JWKS/network lookup; missing/blank/placeholder/malformed team domain or audience fails closed with no `getJWKS` call (proven by a call-count spy in 9 new tests). A valid token cannot compensate for invalid config;
-- `AS12-F002` — `docs/product/TECHNICAL_DESIGN.md` and `brain/PROJECT_GOVERNANCE.md` current-state wording converged: `jose` recorded as the implemented JWT dependency, "asset-only mode"/"None of the following exists"/"no server-side application dependency" corrected, stale `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` restriction replaced with a pointer to the live gate;
-- `AS12-F003` — `wrangler.jsonc`'s `assets.html_handling` pinned to `"auto-trailing-slash"`; local `wrangler dev` smoke tests confirm `/admin.html` redirects (empty body, no content leak) to `/admin`, which then correctly returns `401` unauthenticated, and `/admin/index.html` returns `401` directly. Worker-first routing was not widened.
+- `AS12-F001` — RESOLVED: auth configuration itself now fails closed before JWKS/network lookup;
+- `AS12-F003` — RESOLVED at repository/local-evidence level: `html_handling` pinned and alternate admin URL forms locally exercised;
+- `AS12-F004`/`F005`/`F006` — preserved PASS;
+- `AS12-F002` — PARTIALLY RESOLVED: several residual current-state contradictions remain;
+- `AS12-F007` — new provenance defect: the handoff says exactly 9 changed files, while exact Git compare reports 11.
 
-This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it. The passing core token verification (`AS12-F004`) and selective Worker-first routing (`AS12-F005`) are preserved, not regressed.
+Required Cycle 2 corrections:
 
-No external Cloudflare mutation, D1/R2, later WEB-INC, deployment, main merge, S3, CI, or ruleset work was performed.
+1. `docs/product/TECHNICAL_DESIGN.md`
+   - current route inventory must include `/admin`;
+   - current system-boundary list must include `worker/`.
+
+2. `brain/GOVERNANCE_MAP.md`
+   - `WEB-REQ-004` should remain `NOT STARTED`, but its evidence must no longer say there is no `/admin` route;
+   - state instead that an auth-only admin placeholder exists, while no managed content-editing/persistence capability exists and edits still require source changes.
+
+3. `brain/RISK_REGISTER.md`
+   - replace stale “no admin exists” wording with the accurate distinction that no admin write/edit/mutation surface exists.
+
+4. `coordination/IMPLEMENTER_HANDOFF.md`
+   - correct the exact remediation diff from 9 to 11 changed files;
+   - include `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`;
+   - explicitly record that the Architect independently detected the mismatch via exact Git compare.
+
+No runtime/auth-code/config/test changes are authorized in Cycle 2.
 
 ## Authorized repository implementation
 
@@ -197,4 +215,4 @@ Architect must independently reproduce deterministic auth tests where practical 
 
 ## Current gate
 
-`ARCHITECT WEB-INC-001 REMEDIATION CYCLE 1 VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-012`
+`CLAUDE WEB-INC-001 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-012`
