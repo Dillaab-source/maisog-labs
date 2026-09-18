@@ -150,3 +150,13 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Version disposition:** `v1.3.0 → v1.4.0 MINOR` remains proposed only until implementation is independently reviewed and S2 is explicitly closed.
 - **Review rule:** before any Architect verdict on Builder output, Architect must pull the live Sentinel Architecture Sync/state and compare the Builder output/diff against the approved RFC, current sync, and authorized scope.
 - **Evidence:** Paulo said “ok approved” after reviewing the Architect-approved S2 RFC package and additionally instructed that Architect should always pull Sentinel Architecture Sync and compare outputs before review.
+
+
+### D-017 — Approve S2 closure and Sentinel v1.4.0 version transition
+
+- **Decided by:** Paulo (Product / Risk Owner), following Architect Sync `ML-DEVOS-AS-007` and its verdict `SENTINEL S2 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`.
+- **Decision (verbatim):** "I approve Sentinel S2 closure. Authorize: - adoption of the S2 DevOS Repository Foundation into the active Sentinel baseline; - creation of the durable S2 ADR; - the v1.3.0 → v1.4.0 MINOR transition; - documentation/static-governance closure updates marking S2 closed. This does not authorize S3 or any later phase, project onboarding, website migration, runtime engines, CI/workflows, GitHub rulesets, deployment, or main merge."
+- **Authorized closure work:** Claude / Builder may perform documentation/static-governance closure only: create the durable S2 ADR, update version/baseline records from v1.3.0 to v1.4.0 as authorized, archive/register the concluded S2 Architect Sync as appropriate, update S2 handoff/coordination records, and record S2 as closed.
+- **Builder boundary:** Claude performs the closure implementation. Architect does not implement the S2 closure. After Builder handoff, Architect must pull live Sentinel state/sync and compare the exact closure diff against D-017, ML-DEVOS-RFC-001, ML-DEVOS-AS-006, ML-DEVOS-AS-007, and the authorized closure scope before issuing a final closure verdict.
+- **Explicitly not authorized:** S3 or later phases; project onboarding; product `.devos/` overlays; website migration or product-source relocation; runtime Policy/Task/Capability/Orchestrator/Evidence engines; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge.
+- **Evidence:** Paulo's explicit closure approval after the S2 technical stage gate passed.
