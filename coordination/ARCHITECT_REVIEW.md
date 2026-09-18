@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,99 +8,119 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-005 — S1 Activation / v1.3.0 Closure Verification
+# ML-DEVOS-AS-006 — S2 Repository Foundation RFC Review
 
-Cycle: `SENTINEL-S1-ACTIVATION-CLOSURE`
-Review mode: `STAGE GATE REVIEW / ACTIVATION-PROVENANCE VERIFICATION`
-Reviewed closure commit: `47a86f841e4c4eb40359ca0091ca2f5146a25676`
-Closure base: `787d0bf77f5968c5dc108bd9f6882474b7bdaefb`
+Cycle: `SENTINEL-S2-REPOSITORY-FOUNDATION-PROPOSAL`
+Review mode: `ARCHITECTURE SYNC / PRE-APPROVAL REVIEW`
+Reviewed RFC commit: `410d1de1ebfd33eff2d1d5b33fb7baf7140d693a`
+RFC: `ML-DEVOS-RFC-001`
+Target baseline: Sentinel governance-capability baseline `v1.3.0`
 
-## Scope
+## Overall assessment
 
-Independent verification of the documentation/static-governance closure implementing S1 activation and Sentinel `v1.3.0`.
+The S2 direction is compatible with the frozen S0 architecture and active S1 Governance Kernel: static repository foundation, empty project registry, reserved later-phase roots, no project onboarding, no website migration, and no runtime subsystem implementation are the correct boundaries.
 
-This review does not authorize S2, runtime enforcement, CI/workflows, GitHub rulesets, deployment, protected/main merge, or any application/project migration.
+Before Paulo implementation approval, several synchronization ambiguities should be removed so the foundation cannot become a second source of truth or accidentally imply later-phase implementation.
 
-## Evidence independently inspected
+## Findings
 
-The Architect independently inspected:
+### S2-F001 — REQUIRED — separate architecture baseline from active capability baseline
 
-- live closure commit `47a86f841e4c4eb40359ca0091ca2f5146a25676`;
-- Git compare `787d0bf77f5968c5dc108bd9f6882474b7bdaefb` → `47a86f841e4c4eb40359ca0091ca2f5146a25676`;
-- `brain/DECISION_LOG.md` D-013 and Paulo's subsequent direct confirmation recorded as `D-014`;
-- `devos/governance/rules/core-rules.json`;
-- `devos/governance/specifications/VERSIONING_POLICY.md`;
-- `devos/changes/adrs/ML-DEVOS-ADR-001.md`;
-- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`;
-- `coordination/STATE.md`;
-- `coordination/IMPLEMENTER_HANDOFF.md`.
+The proposed manifest currently says it will record a single "Sentinel baseline/version identity." That is ambiguous because Sentinel now has:
 
-## Finding disposition
+- frozen architecture baseline `ML-DEVOS-ARCH-001 / v1.2.0`;
+- active governance-capability baseline `v1.3.0`.
 
-### C-001 — PASS
+**Required correction:** the manifest must represent these separately. It must never imply that the frozen S0 architecture document was rewritten to v1.3.0.
 
-Closure scope matches the five authorized S1 closure actions.
+### S2-F002 — REQUIRED — define source-of-truth precedence explicitly
 
-### C-002 — PASS
+The manifest must be descriptive metadata, not a competing authority source.
 
-The five S1-origin rules are internally consistent:
+**Required correction:** define precedence explicitly:
 
-- `CORE-008`
-- `CORE-009`
-- `CORE-016`
-- `CORE-017`
-- `CORE-018`
+`Frozen Architecture + Active Governance Kernel + Decisions/ADRs/Durable Architect Syncs > DevOS manifest > project registry index`.
 
-Each is `ACTIVE`, effective at `1.3.0`, no longer proposed, and references `ML-DEVOS-ADR-001`.
+The manifest may summarize or reference higher-authority records, never redefine them.
 
-The thirteen S0-origin rules remain effective at `1.2.0`.
+### S2-F003 — REQUIRED — project registry must be an index, not project state/memory
 
-### C-003 — PASS
+The RFC correctly keeps the registry empty in S2, but its future role is not precise enough.
 
-`ML-DEVOS-ADR-001` coherently records the Governance Kernel adoption, bootstrap transition, and S1/v1.3.0 closure without implying runtime enforcement or S2 authorization.
+**Required correction:** specify that `projects/registry.json` indexes governed projects and points to the authoritative project repository/overlay. It must not duplicate or become authoritative for project requirements, risks, capabilities, task state, evidence, or local governance.
 
-### C-004 — PASS
+Future entry invariants must include unique `project_id`, repository/overlay locator, onboarding decision reference, and no `ACTIVE` entry without onboarding authorization.
 
-The archived `ML-DEVOS-AS-004` accurately preserves the S1 technical stage-gate history and final technical approval.
+### S2-F004 — REQUIRED — validator requirement is internally inconsistent
 
-### C-005 — RESOLVED
+The RFC says S2 **may** add validators, but the acceptance criteria require that the manifest and registry "validate against their declared schema."
 
-The human-approval provenance blocker is closed.
+**Required correction:** choose one model. Architect recommendation: make deterministic static validation of both S2 JSON artifacts mandatory for S2 closure. Validation remains static only and does not become runtime enforcement.
 
-Paulo directly confirmed:
+For S2 specifically, the registry validator must also prove the registry is empty at closure.
 
-> "I confirm D-013 exactly as recorded in brain/DECISION_LOG.md."
+### S2-F005 — REQUIRED — distinguish subsystem ownership from consumption
 
-Paulo also explicitly reconfirmed approval of:
+The reserved-root map assigns `devos/evidence/` to `S7/S9`. Multiple "owners" are ambiguous.
 
-- S1 Governance Kernel activation;
-- `CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, `CORE-018` activation;
-- the `v1.2.0 → v1.3.0` transition;
-- `ML-DEVOS-ADR-001`;
-- the documentation-only S1 closure;
+**Required correction:** each reserved root needs one canonical owning phase plus optional consuming phases. Example:
 
-and explicitly stated that this does **not** authorize S2, deployment, or main merge.
+- `evidence/` owner: S7; consumer: S9;
+- `contracts/` owner: S3;
+- `state/` owner: S4;
+- `capabilities/` owner: S5;
+- `orchestration/` owner: S8;
+- `memory/` owner: S11.
 
-This direct confirmation is recorded as `D-014` and resolves the provenance concern under `CORE-001`.
+This avoids later phases believing they may redefine the same root.
 
-## Validator evidence disposition
+### S2-F006 — REQUIRED — synchronize top-level projects/ semantics with frozen topology
 
-Claude's reported validator executions remain `ACTOR_REPORTED`. The Architect independently inspected the resulting static records and closure consistency. No `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED` claim is made.
+The frozen topology describes top-level `projects/` as registry/metadata/overlay material, not product-source relocation.
 
-This is sufficient for the S1 documentation/static-governance closure.
+**Required correction:** explicitly define:
 
-## Final verdict
+- `projects/registry.json` = canonical Sentinel project index;
+- future `projects/<project>/` content, if ever introduced, is metadata/overlay material only unless a separately authorized migration says otherwise;
+- independent product repositories remain first-class and are not mirrored into this monorepo by S2.
 
-`SENTINEL S1 ACTIVATION CLOSURE: ARCHITECT_APPROVED`
+### S2-F007 — REQUIRED — acceptance criteria should verify "placeholder ≠ implementation"
 
-`SENTINEL v1.3.0 GOVERNANCE-CAPABILITY BASELINE: ACTIVE`
+The RFC states this principle in prose but it should be testable at the stage gate.
 
-S1 is fully closed.
+**Required correction:** add acceptance evidence that every reserved root is marked `NOT IMPLEMENTED`, no executable later-phase code exists in those roots, and the manifest records `executable_runtime_present: false` (or equivalent).
 
-No S2 or later phase is authorized by this verdict.
+### S2-F008 — PASS — non-destructive website boundary
 
-## Current Architecture Sync status
+The RFC correctly prohibits website migration, source moves, product onboarding, `.devos/` overlay creation, deployment, protected/main merge, and S3+ implementation.
 
-`ML-DEVOS-AS-005: ARCHITECT_APPROVED — CLOSED`
+Preserve this exactly.
 
-This concluded sync should be archived durably.
+### S2-F009 — PASS — proposed version class
+
+`v1.3.0 → v1.4.0 MINOR` is a reasonable proposed version class if S2 is eventually implemented and accepted.
+
+It remains proposal-only until final closure.
+
+## Verdict
+
+`ML-DEVOS-AS-006: CHANGES_REQUESTED — RFC REFINEMENT REQUIRED BEFORE PAULO IMPLEMENTATION APPROVAL`
+
+S2 implementation is **not approved**.
+
+The RFC may be refined within the already-authorized Architect proposal scope. No Builder implementation work is authorized.
+
+## Required RFC synchronization edits
+
+Before returning to Paulo, update `ML-DEVOS-RFC-001` to:
+
+1. separate architecture v1.2.0 from active capability baseline v1.3.0;
+2. define source-of-truth precedence;
+3. define the project registry as an index only;
+4. make static manifest/registry validation mandatory for S2 closure;
+5. make registry emptiness an S2 closure invariant;
+6. give each reserved root one owner phase and optional consumer phases;
+7. clarify top-level `projects/` semantics;
+8. add explicit placeholder-vs-implementation acceptance checks.
+
+After those edits, Architect should perform a short re-review and only then route the S2 implementation decision to Paulo.
