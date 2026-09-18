@@ -196,3 +196,18 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Boundary:** this record is a planning decision only. It does **not** authorize creation of the six files yet, website/admin/backend implementation, S3 proposal or implementation, project onboarding, runtime work, deployment, or main merge.
 - **Sequencing:** formal implementation of this Product Build Pack should be opened as a separate governed change after the active legacy-archive remediation is independently closed, so it does not contaminate the current remediation diff or Sentinel phase gates.
 - **Evidence:** Paulo explicitly said, `Okay let’s put that into record`, referring to the Product Build Pack and spec-to-build workflow described immediately beforehand.
+
+
+### D-021 — Authorize MaisogLabs Product Build Pack documentation implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), following `D-020`.
+- **Decision:** Authorize Claude / Builder to create the MaisogLabs Product Build Pack documentation layer only.
+- **Authorized outputs:** `docs/product/PRD.md`; `docs/product/TECHNICAL_DESIGN.md`; `docs/product/UI_UX_SPEC.md`; `docs/product/APP_FLOW.md`; `docs/product/DATA_BACKEND_SPEC.md`; `docs/product/BUILD_PLAN.md`; and normal handoff/state records.
+- **Reuse rule:** consolidate/reference existing repository truth rather than duplicating or silently superseding it. Existing Sentinel/DevOS architecture, decisions, ADRs, Architect Syncs, website governance, brand/design artifacts, content schema, and implementation plans remain authoritative in their own domains.
+- **Priority requirements:** `APP_FLOW.md` must provide the clearest current product/user/admin flow map; `DATA_BACKEND_SPEC.md` must define the future backend/data contract at design/spec level only, including entities, relationships, draft/published state, auditability, media/storage boundaries, validation, security constraints, and migration considerations from the current static content model.
+- **Build-plan rule:** `BUILD_PLAN.md` must decompose future implementation into dependency-ordered, bounded increments that can each be independently reviewed. It must not itself authorize those implementation increments.
+- **Lifecycle to encode:** `Product Spec → Architect consistency check → acceptance criteria → dependency-ordered bounded tasks → Claude implementation increment → tests/evidence → Architect independent review → next increment`.
+- **Builder boundary:** this is documentation/specification implementation only. Claude must not implement website/admin/backend/runtime functionality, database migrations, Cloudflare resources, project onboarding, or S3 work.
+- **Explicitly not authorized:** S3 proposal or implementation; application/runtime code changes; admin/backend implementation; D1/R2/API provisioning; project onboarding; project registry population; product `.devos/` overlays; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge.
+- **Review rule:** after Builder handoff, the Architect must pull live Sentinel state and compare the exact Builder diff against D-020, D-021, the existing website/product documents, and current Sentinel architecture/governance before issuing a verdict.
+- **Evidence:** Paulo explicitly replied `approved` after being told that D-020 remained planning-only and required separate authorization before `docs/product/*` implementation.
