@@ -36,7 +36,7 @@ Static Next.js export (`next.config.mjs`: `output: "export"`) served by Wrangler
 
 ## Current storage model
 
-Local, Git-backed content only. There is no database, no D1, no R2, and no external persistence layer. The governed content boundary, preserved as-is by this bootstrap (per Architect finding F-002 and the required Phase 1 item "Preserve current content architecture"):
+Local, Git-backed content remains the sole **public/authoritative** storage model — there is still no database or external persistence layer in the actual public read path. The governed content boundary, preserved as-is by this bootstrap (per Architect finding F-002 and the required Phase 1 item "Preserve current content architecture"):
 
 ```
 data/site.js  →  lib/content/local.mjs  →  lib/content/schema.mjs  →  lib/content/public.mjs  →  app/page.js
@@ -48,6 +48,8 @@ data/site.js  →  lib/content/local.mjs  →  lib/content/schema.mjs  →  lib/
 ```
 
 Any future Admin/CMS work must either preserve this boundary or deliberately replace it through an approved architecture decision recorded in `DECISION_LOG.md` — it must not be bypassed silently.
+
+**As of `WEB-INC-005` (`ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024`):** a **local-only** D1 revision substrate (`migrations/0001_web_inc_005_init.sql`, `worker/d1/*`) now exists in parallel, covering exactly the 14 tables `site_settings`/`navigation`/`foundations`/`projects`/`services`/`process_steps`/`sections` (each with a `_revisions` companion). This substrate is migration/parity/integrity-tested against the boundary above (`tests/d1-migration.test.mjs`), but it is **not** the public/authoritative source: `lib/content/local.mjs`, `app/page.js`, and the diagram above are unmodified, `data/site.js` is not retired, and no HTTP route, dashboard, or client code reads from D1. `D1 EXISTS LOCALLY ≠ D1 IS PUBLIC SOURCE` (`ML-DEVOS-AS-013`). No R2/media storage exists.
 
 Draft/archived content in `data/site.js` is filtered out of the public projection at build time, but this is **not** confidentiality: the Git source remains public. This is documented in `docs/CONTENT.md` and repeated here because it is a governance-relevant security boundary, not just an engineering note.
 
@@ -62,7 +64,7 @@ As of `WEB-INC-001` (`ML-DEVOS-RFC-002` → `ML-DEVOS-AS-011` → `D-023`), a Wo
 
 - **No deployment** is authorized except by explicit, separate Paulo authorization. Current value: `DEPLOY_AUTHORIZED: NO` (`coordination/STATE.md`).
 - **No merge to `main`** is authorized except by explicit, separate Paulo authorization. Current value: `MAIN_MERGE_AUTHORIZED: NO` (`coordination/STATE.md`).
-- No further website implementation is authorized beyond what a specific, currently active governance record permits. As of this cycle that is `WEB-INC-001`'s authentication boundary only (`ML-DEVOS-RFC-002`/`ML-DEVOS-AS-011`/`D-023`) — see `coordination/STATE.md` for the live gate. D1/R2 integration, any later `WEB-INC-*`, and further public-website redesign remain unauthorized until their own separate RFC/Architect-Sync/Paulo-decision chain is completed; this line is updated at each such authorization rather than left pointing at the closed `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` gate.
+- No further website implementation is authorized beyond what a specific, currently active governance record permits. As of this cycle that is `WEB-INC-001`'s authentication boundary (`ML-DEVOS-RFC-002`/`ML-DEVOS-AS-011`/`D-023`) plus `WEB-INC-005`'s local-only D1 revision substrate (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) — see `coordination/STATE.md` for the live gate. Remote/production D1, R2 integration, any later `WEB-INC-*`, and further public-website redesign remain unauthorized until their own separate RFC/Architect-Sync/Paulo-decision chain is completed; this line is updated at each such authorization rather than left pointing at a closed gate.
 - No experimental/legacy branch (see inventory below) may be merged into the governance branch without a separate, explicit authorization and review.
 
 ## Legacy / non-governance branch inventory

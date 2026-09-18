@@ -70,7 +70,8 @@ Traceability model (reused from `brain/GOVERNANCE_MAP.md`, unchanged): `Requirem
 | Content authoring | `CURRENTLY IMPLEMENTED` as a Git-edited, schema-validated document (`data/site.js`) | `PROPOSED TARGET` — admin-managed authoring without source edits |
 | Admin surface | `NOT IMPLEMENTED` | `PROPOSED TARGET` — see `TECHNICAL_DESIGN.md`, `APP_FLOW.md`, `DATA_BACKEND_SPEC.md` |
 | Authentication | `NOT IMPLEMENTED` | `PROPOSED TARGET` |
-| Database (D1) / media (R2) | `NOT IMPLEMENTED` | `PROPOSED TARGET`, contingent on a separate future authorization (`AS10-F012`) |
+| Database (D1) — current-content revision substrate | `IMPLEMENTED` (local-only; `WEB-INC-005`, `ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) — not yet public source of truth, not Architect-verified | Remote/production D1 and any public read/write path remain `PROPOSED TARGET`, contingent on their own separate future authorization |
+| Media (R2) | `NOT IMPLEMENTED` | `PROPOSED TARGET`, contingent on a separate future authorization (`AS10-F012`) |
 | Journal | `NOT IMPLEMENTED` | `FUTURE OPTION` |
 
 ## Role model for future governed work (`AS10-F006`)

@@ -8,7 +8,7 @@ Ordinary public routes: visitor → Cloudflare Worker static assets (asset-first
 
 `/admin` and `/admin/*` only: visitor → Worker (`worker/index.mjs`, routed via `wrangler.jsonc`'s `assets.run_worker_first`) → server-side Cloudflare Access assertion verification (`worker/auth.mjs`, using `jose`) → on success, the same Assets binding serves the static admin placeholder; on failure, `401 Unauthorized` with no asset served. This is the only server-executed request path in the current deployment; no other route touches the Worker script.
 
-There is still no database and no persistent server-side application dependency. `WEB-INC-001` adds an authentication boundary only — no content read/write, no session storage.
+There is still no database or persistent storage touched by any request path. `WEB-INC-001` adds an authentication boundary only — no content read/write, no session storage. `WEB-INC-005` adds a `d1_databases` binding to `wrangler.jsonc`, but it is local-only (`remote: false`, no `database_id`) and is never read by `worker/index.mjs` or any request handler — see "Phase 2 content boundary" below.
 
 ## V4 foundation presentation layer
 
@@ -24,7 +24,7 @@ Future features may add:
 - Cloudflare Worker endpoints for secure server-side integrations.
 - Claude/OpenAI API access through server-side code only.
 - n8n webhooks for automations.
-- D1 for structured content and audit history, after server-side authorization is established.
+- D1 for structured content and audit history, after server-side authorization is established. `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) implemented a **local-only** revision substrate for current content (`migrations/`, `worker/d1/`) for migration/parity/integrity testing; it is not yet the public source and no public/admin read or write path uses it.
 - R2 for media, after the content and authorization boundaries are tested.
 - MCP tools for agent integrations.
 
@@ -34,7 +34,7 @@ Future features may add:
 - `data/` owns structured editable content.
 - `public/` owns static assets.
 - `docs/` owns human/AI-maintainer documentation.
-- `worker/` owns the server-executed authentication boundary for `/admin`/`/admin/*` only (`WEB-INC-001`, `ML-DEVOS-RFC-002`). It performs no content mutation and no database access.
+- `worker/` owns the server-executed authentication boundary for `/admin`/`/admin/*` only (`WEB-INC-001`, `ML-DEVOS-RFC-002`). It performs no content mutation and no database access. `worker/d1/` (`WEB-INC-005`, `ML-DEVOS-RFC-003`) owns the bounded, server-only D1 revision-substrate migration/data-access modules; nothing under `worker/d1/` is imported by `worker/index.mjs`, `app/`, or any client bundle.
 
 ## Security baseline
 - Never expose provider API keys in browser code.
@@ -56,6 +56,6 @@ If a future feature requires server-side rendering or dynamic routes that cannot
 
 The build reads `data/site.js` through `lib/content/local.mjs`, validates the entire document with `schema.mjs`, and projects published records through `public.mjs`. The page and metadata consume only that projection. Client components must never import the raw source or adapter.
 
-Storage remains local and Git-backed. The async reader is a seam for a future D1 implementation, not a database connection. Static output still requires rebuilding and redeploying after edits. Draft filtering is not authentication: source in a public repository remains public, including drafts. Never store private content or credentials there.
+Storage remains local and Git-backed for the actual public build. `lib/content/local.mjs` itself is unchanged and unread by any D1 code — it remains a seam, not a database connection. As of `WEB-INC-005`, a local-only D1 revision substrate exists in parallel (`migrations/`, `worker/d1/`) for migration/parity/integrity testing only; it is not wired into this reader and does not affect what `app/page.js` consumes (`brain/PROJECT_GOVERNANCE.md` § "Current storage model"). Static output still requires rebuilding and redeploying after edits. Draft filtering is not authentication: source in a public repository remains public, including drafts. Never store private content or credentials there.
 
 Schema validation rejects unknown fields, unsupported versions, unsafe links, duplicate identifiers, malformed data, and unsupported presentation tokens. Invalid content stops the build. There is no public preview or write endpoint. Admin identity stays outside editable public content; admin setup and Cloudflare deployment remain pending.

@@ -157,9 +157,11 @@ were — historical evidence, never rewritten
 
 This is not a new mechanism — it is the same content-revision publish/preview/pointer-swap semantics already defined above, applied one level down: a junction row is just another piece of revision-scoped content, keyed via the revision's `id` rather than embedded directly in the revision row's own columns.
 
-## Proposed entities — `PROPOSED TARGET / NOT IMPLEMENTED`
+## Proposed entities — `PROPOSED TARGET / NOT IMPLEMENTED` (except where noted `IMPLEMENTED` below)
 
 All entities below are design proposals for a future D1 schema. Field lists are illustrative and derived from the current `data/site.js` shape plus the `ADM-REQ-*`/`DESIGN-*` catalog they must support — a future `TECHNICAL_DESIGN.md`/RFC-equivalent still needs to finalize exact column types, indexes, and migrations before implementation.
+
+**`WEB-INC-005` implementation note (`ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024`):** the `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, and `sections` entity/revision pairs below are now `IMPLEMENTED` as local-only D1 tables — see `migrations/0001_web_inc_005_init.sql` and `worker/d1/*` — with the base-entity shape, derived-status model, and cross-entity pointer-ownership rule in this section all enforced exactly as specified (the latter via a composite foreign key `(id, published_revision_id) REFERENCES <entity>_revisions(<entity>_id, id)`, since a plain per-column foreign key cannot express it). `journal_entries`/`journal_entry_revisions`/`journal_media`, `media`/`project_media`, `theme_settings`/`theme_settings_revisions`, and `audit_log` remain `PROPOSED TARGET / NOT IMPLEMENTED`, owned by their own later increments per `BUILD_PLAN.md` §C. This local substrate is not yet the public source of truth — see `brain/PROJECT_GOVERNANCE.md` § "Current storage model".
 
 ### `site_settings` / `site_settings_revisions`
 - `site_settings`: `id` (fixed singleton key), `created_at`, `published_revision_id`, `draft_revision_id`

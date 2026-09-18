@@ -13,7 +13,8 @@ Code existence alone does not justify `VERIFIED`; see `GOVERNANCE_MAP.md`.
 | Journal feature | `NOT STARTED` | No schema field, data, route, or component exists (confirmed by repository-wide search in Phase 0). |
 | Admin portal (`/admin`) | `NOT STARTED` | No route under `app/`; confirmed `ADMIN STATUS: NOT IMPLEMENTED`. |
 | Authentication | `NOT STARTED` | No auth library, session/cookie/JWT code, or identity-provider integration; no `process.env` usage in source; no `.env` files present. |
-| Persistent storage (D1/R2) | `NOT STARTED` | No database or object-storage integration exists. Current storage is the local, Git-backed `data/site.js` module (see `PROJECT_GOVERNANCE.md`). |
+| Persistent storage — D1 current-content revision substrate | `IMPLEMENTED` (local-only) | `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`): `migrations/0001_web_inc_005_init.sql` (exactly 14 tables), `worker/d1/{schema,validate,migrate,repository}.mjs`, `scripts/d1-migrate.mjs`; `tests/d1-migration.test.mjs` (12/12 passing, implementer-reported). Local Wrangler/D1 simulation only — no remote/production D1 resource exists; not the public source of truth (`app/page.js`/`lib/content/local.mjs` unchanged, still read `data/site.js`). |
+| Persistent storage — media (R2) | `NOT STARTED` | No object-storage integration exists. |
 | Media management/upload | `NOT STARTED` | Static assets only, hand-placed under `public/`; no upload path exists. |
 | Audit logging | `NOT STARTED` | No mutation surface exists yet, so no audit trail exists or is meaningful yet. |
 | Deployment-wording contradiction (Architect finding F-003) | `IMPLEMENTED` | `AGENTS.md` and `README.md` updated this cycle to describe the Cloudflare Worker/Wrangler asset deployment instead of "Cloudflare Pages," matching `docs/ARCHITECTURE.md` and `wrangler.jsonc`. No infrastructure changed. |
@@ -21,10 +22,11 @@ Code existence alone does not justify `VERIFIED`; see `GOVERNANCE_MAP.md`.
 
 ## Explicit non-claims
 
-This document does not claim, and this Phase 1 cycle did not perform:
+This document does not claim, and neither the Phase 1 cycle nor `WEB-INC-005` performed:
 
 - Any change to public-facing functionality or visual design.
-- Any admin, authentication, database, or upload implementation.
-- Any deployment or production verification.
+- Any admin, authentication, or upload implementation, or any content-editing/mutation capability.
+- Any remote/production D1 resource creation, migration, query, or mutation, or any deployment or production verification.
+- Any change to `app/page.js`, `lib/content/local.mjs`, or the public read path — it still reads only `data/site.js`; `data/site.js` was not deleted or retired.
 - Any merge to `main`.
 - Independent (Architect-reproduced) verification of the test/build evidence cited above — those remain implementer-reported until the Architect inspects them (see `TEST_LEDGER.md`).

@@ -28,5 +28,22 @@
   "vars": {
     "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_ACCESS_TEAM_DOMAIN",
     "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD"
-  }
+  },
+  // WEB-INC-005 (ML-DEVOS-RFC-003 / ML-DEVOS-AS-013 / D-024): local-only D1
+  // revision substrate for current-content migration/parity/integrity testing.
+  // No `database_id` is set — it is not required by Wrangler's config schema,
+  // and omitting it avoids any placeholder that could resemble a real
+  // production D1 resource identifier. `remote: false` is explicit, not
+  // merely the default, so this binding can never target a production D1
+  // database under any invocation (AS13-F008). Every command exercising this
+  // binding is run with `--local` / local-only tooling only — see
+  // coordination/IMPLEMENTER_HANDOFF.md for the exact command log.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "maisog-labs-web-inc-005-local",
+      "migrations_dir": "migrations",
+      "remote": false
+    }
+  ]
 }

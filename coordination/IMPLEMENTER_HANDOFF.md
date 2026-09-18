@@ -8,59 +8,169 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`MAISOGLABS-WEB-INC-001-AUTH` — **Remediation Cycle 3 (FINAL, `MAX_REMEDIATION_CYCLES: 3`)**
+`MAISOGLABS-WEB-INC-005-D1-SUBSTRATE` — **AUTHORIZED IMPLEMENTATION**
 
-Authority chain: `ML-DEVOS-RFC-002` → `ML-DEVOS-AS-011` → `D-023` → `ML-DEVOS-AS-012` (`CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 3 (FINAL)`, `AS12-F002`'s final two residual findings).
+Authority chain: `ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` (`ARCHITECT_APPROVED — WEB-INC-005 RFC-003 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`) → `D-024` (Paulo: "Proceed with WEB-INC-005 authorization.").
 
 ## Objective
 
-Resolve the last two current-state wording contradictions the Architect's independent repository-wide sweep found — `brain/GOVERNANCE_MAP.md`'s `DESIGN-001`…`014` row and `brain/RISK_REGISTER.md`'s `RISK-WEB-014` row, both still describing the pre-`WEB-INC-001` "no admin surface" model even though an auth-only `/admin` surface now exists. This is the final configured remediation cycle; no runtime/auth implementation is reopened, and no fourth cycle is authorized.
+Implement the current-content D1 entity/revision substrate and deterministic local migration/parity/integrity tooling described by `ML-DEVOS-RFC-003` and bound by every `ML-DEVOS-AS-013` finding, while preserving `data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js` as the sole authoritative public build path. No public cutover, no remote/production D1, no deployment, no `main` merge.
 
-## Branch / Commit State
+## Branch / commit state
 
-- Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `2182b15994b260b841908cce69298f3fab7a808e` (`docs(state): return WEB-INC-001 remediation cycle 3 to Claude`), fetched and fast-forwarded before any file was touched; confirmed by direct `git rev-parse HEAD` after checkout, matching the exact SHA the request required.
-- `coordination/STATE.md` at base SHA confirmed by direct read: `CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH`, `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 3`, `MAX_REMEDIATION_CYCLES: 3`, `AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY` — matched required preconditions before any action was taken.
-- `coordination/ARCHITECT_REVIEW.md` read in full: `ML-DEVOS-AS-012`'s Remediation Cycle 2 verification of Builder commit `48609bc9578b9de627e0ff2b108f46b1470273e2`, confirming `AS12-F001`/`F003`/`F004`/`F005`/`F006` all `RESOLVED`/`PASS`/preserved, `AS12-F007` fully `RESOLVED`, and exactly two residual `AS12-F002` statements named with their precise required replacement wording.
-- The prior `coordination/IMPLEMENTER_HANDOFF.md` (Cycle 2 version) read in full for continuity before rewriting it.
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `7122c9d9887e5801a9c3ec03285db7273f1529c8` — matches exactly the SHA the request required.
+- Read in full before any edit, per the request's own required-reading list: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-013`, all 14 findings AS13-F001–F014), `devos/changes/rfcs/ML-DEVOS-RFC-003.md` (all 14 proposed-decision sections), `devos/changes/architect-syncs/ML-DEVOS-AS-013.md` (durable archive — confirmed byte-identical in substance to the rolling review, `CONCLUDED — ARCHITECT_APPROVED`), `brain/DECISION_LOG.md` `D-024`, `docs/product/DATA_BACKEND_SPEC.md`, `docs/product/BUILD_PLAN.md`.
+- Resulting Builder commit: recorded below after commit (see "Commit" at the end of this handoff).
 
-## Exact Cycle 3 changed-file list
+## Exact changed-file list — 17 files
 
-Exactly 4 files, all within the Architect's Remediation Cycle 3 authorized-scope list:
+**New (7):**
+- `migrations/0001_web_inc_005_init.sql` — DDL for the exactly-14 authorized tables
+- `worker/d1/schema.mjs` — migration-SQL loader, `applySchema`, `listProductTables`, `AUTHORIZED_TABLE_NAMES`
+- `worker/d1/validate.mjs` — D1-scoped field-by-field content validators (AS13-F004)
+- `worker/d1/migrate.mjs` — deterministic migration/seed logic (AS13-F009)
+- `worker/d1/repository.mjs` — bounded server-side data-access/reconstruction functions (AS13-F012, F010)
+- `scripts/d1-migrate.mjs` — local-only Node CLI entry point for migration evidence
+- `tests/d1-migration.test.mjs` — 12 D1 substrate tests
 
-- `brain/GOVERNANCE_MAP.md`
-- `brain/RISK_REGISTER.md`
-- `coordination/IMPLEMENTER_HANDOFF.md` (this file)
-- `coordination/STATE.md`
+**Modified (10, documentation/config only):**
+- `wrangler.jsonc` — added the local-only `d1_databases` binding
+- `brain/GOVERNANCE_MAP.md` — new WEB-INC-005 substrate row; `WEB-REQ-004` evidence corrected to distinguish substrate existence from admin-managed editing
+- `brain/IMPLEMENTATION_STATUS.md` — split "Persistent storage (D1/R2)" into D1 (`IMPLEMENTED`, local-only) and R2 (`NOT STARTED`); extended explicit non-claims
+- `brain/PROJECT_GOVERNANCE.md` — "Current storage model" and "Current restrictions" updated to record the local D1 substrate without upgrading it to public/authoritative
+- `brain/RISK_REGISTER.md` — `RISK-WEB-015` → `MITIGATED` (local substrate); `RISK-WEB-007`, `RISK-WEB-004`, `RISK-WEB-013` evidence/scope extended, no status silently upgraded beyond what's evidenced
+- `brain/TEST_LEDGER.md` — 12 new test rows, `TEST-DATA-001` → `PASS` (local-only), new "`WEB-INC-005` command evidence" section, updated `npm test` totals
+- `docs/ARCHITECTURE.md` — "Planned evolution", "Boundaries", "Phase 2 content boundary" updated to record the local D1 substrate without contradicting the still-database-free runtime request path
+- `docs/product/PRD.md` — "Current vs. target state" D1/R2 row split, D1 now `IMPLEMENTED` (local-only)
+- `docs/product/BUILD_PLAN.md` — WEB-INC-005 catalog entry: added "Implementation status" line
+- `docs/product/DATA_BACKEND_SPEC.md` — added a `WEB-INC-005 implementation note` marking exactly which entity/revision pairs are now `IMPLEMENTED`
 
-**Not touched, exactly as instructed:** no runtime/auth code (`worker/auth.mjs`, `worker/index.mjs`), no test file (`tests/worker-auth.test.mjs`), no `wrangler.jsonc`, no package files, no application route (`app/admin/page.js` or any other), no `docs/product/TECHNICAL_DESIGN.md` (its residual findings were already fully resolved in Cycle 2 and the Architect's Cycle 2 review confirmed no further change was needed there), no `docs/ARCHITECTURE.md`, no other `docs/product/*.md`, no `brain/PROJECT_GOVERNANCE.md`, `brain/TEST_LEDGER.md`, `brain/DECISION_LOG.md`, any `devos/` file, `projects/`, or CI/GitHub configuration. Confirmed by `git diff --stat HEAD -- app/ components/ data/ lib/ public/ tests/ next.config.mjs wrangler.jsonc package.json package-lock.json devos/ projects/ .github/ brain/PROJECT_GOVERNANCE.md brain/TEST_LEDGER.md brain/DECISION_LOG.md docs/ worker/` returning empty.
+**Not touched, exactly as required:** `app/`, `components/`, `data/`, `lib/`, `public/`, `next.config.mjs`, `package.json`, `package-lock.json`, `worker/index.mjs`, `worker/auth.mjs`, `tests/content.test.mjs`, `tests/worker-auth.test.mjs`, `docs/product/TECHNICAL_DESIGN.md`, any `devos/` file, `brain/00_HOME.md`, `brain/DECISION_LOG.md`, `brain/protocols/`, `.github/`. Confirmed by `git diff --stat -- app/ components/ data/ lib/ public/ next.config.mjs package.json package-lock.json worker/index.mjs worker/auth.mjs tests/content.test.mjs tests/worker-auth.test.mjs` returning empty, and `git status --short` showing exactly the 17 paths above.
 
-## `AS12-F002` disposition (final) — RESOLVED
+No new dependency was added (`package.json`/`package-lock.json` unchanged) — `wrangler`'s own `getPlatformProxy`/`unstable_splitSqlQuery` exports (already a devDependency) provide the local D1 simulation and multi-statement SQL execution; no ORM was used, per `ML-DEVOS-AS-013`'s "No ORM is required or preferred."
 
-Both statements the Architect's final sweep cited are corrected, exactly per the required invariant `AUTH-ONLY ADMIN SURFACE EXISTS ≠ ADMIN DESIGN-CONTROL/EDITING (OR MUTATION/ACTION) CAPABILITY EXISTS`:
+## Exact 14-table inventory
 
-1. **`brain/GOVERNANCE_MAP.md`'s `DESIGN-001`…`014` row:** no longer says `Not implemented (no admin surface to host them)`. Now reads: "Not implemented — no admin design-control/editing surface exists; `WEB-INC-001` provides authentication only (an auth-only admin surface existing is not the same as an admin design-control/editing capability existing)." Status unchanged: `NOT STARTED`.
-2. **`brain/RISK_REGISTER.md`'s `RISK-WEB-014`:** no longer says `Not designed (no admin/mutation surface exists)`. Now reads: "Not designed — no admin mutation/action surface exists; the current `/admin` surface (`WEB-INC-001`) is authentication-only and exposes no content mutation capability (an auth-only admin surface existing is not the same as an admin mutation/action surface existing)." Status unchanged: `NOT YET APPLICABLE`.
+`site_settings`, `site_settings_revisions`, `navigation`, `navigation_revisions`, `foundations`, `foundation_revisions`, `projects`, `project_revisions`, `services`, `service_revisions`, `process_steps`, `process_step_revisions`, `sections`, `section_revisions` — exactly the `ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024` list, in the same order. Proven three independent ways:
 
-Neither correction implies, upgrades, or hints at any admin design-control, editing, mutation, or action capability existing — both explicitly state the opposite. The historical explanatory sentence in `brain/GOVERNANCE_MAP.md` describing the earlier Architect finding F1-003 (from the period before any admin surface existed) was left untouched, per the Architect's own note that historical explanatory text may remain while only current-state table wording needed correction.
+1. `tests/d1-migration.test.mjs` — "schema migration creates exactly the 14 authorized tables" (`worker/d1/schema.mjs`'s `listProductTables` vs. `AUTHORIZED_TABLE_NAMES`, sorted).
+2. `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"` — returned exactly the 14 tables plus Wrangler's own `d1_migrations` bookkeeping table and the SQLite/D1-internal `_cf_METADATA`/`sqlite_sequence`, all excluded from the product-table count by the same convention `listProductTables` applies.
+3. `node scripts/d1-migrate.mjs` — prints `Product tables (14): ...` and confirms the sorted set equals `AUTHORIZED_TABLE_NAMES`.
 
-With this, every current-state statement across `docs/product/TECHNICAL_DESIGN.md`, `brain/PROJECT_GOVERNANCE.md`, `brain/GOVERNANCE_MAP.md`, and `brain/RISK_REGISTER.md` now consistently distinguishes the real auth-only `/admin`/`worker/` boundary from the still-entirely-absent admin write/edit/design-control/mutation/persistence capability — no remaining row anywhere in this repository claims "no admin surface exists" when one now does, and no row claims or implies more capability exists than the fail-closed authentication check `WEB-INC-001` actually provides.
+No other product table was created.
 
-## `AS12-F007` — confirmed remaining RESOLVED
+## Migration design
 
-No action was required or taken this cycle. The Cycle 1 handoff's corrected 11-file count and the Cycle 2 handoff's accurate 5-file count both remain as the Architect verified them in the Cycle 2 review; this cycle's own handoff (this file) reports its own exact 4-file diff below, consistent with the same discipline.
+### Base-entity rule and cross-entity pointer integrity (AS13-F003)
 
-## Checks performed
+Every base/logical entity table (`site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, `sections`) carries only `id`, immutable `created_at`, an immutable `slug` (projects only), and the two nullable revision pointers — no `order`, visibility, lifecycle flag, or mutable content.
 
-- `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` before any file was touched; `git rev-parse HEAD` confirmed against the exact required SHA `2182b15...`.
-- Direct full reads of `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, and the prior `coordination/IMPLEMENTER_HANDOFF.md` before drafting any remediation text.
-- Direct `grep` location of the exact `DESIGN-001`…`014` row in `brain/GOVERNANCE_MAP.md` and the exact `RISK-WEB-014` row in `brain/RISK_REGISTER.md` before editing, to change only those two rows.
-- Post-edit `grep` confirming both rows now read as required and that both statuses (`NOT STARTED`, `NOT YET APPLICABLE`) are byte-identical to their pre-edit values.
-- `git status --short` and `git diff --stat` against every path outside the authorized 4-file remediation list, confirmed empty.
+`AS13-F003` requires that a pointer must never successfully reference a revision belonging to a different entity, and that this be enforced (not merely hoped for) at the database or data-access layer, with a negative test. This is enforced as a genuine **SQLite composite foreign key**:
 
-## Explicit confirmation no runtime/auth/test/config code changed
+```sql
+FOREIGN KEY (id, published_revision_id) REFERENCES project_revisions (project_id, id)
+FOREIGN KEY (id, draft_revision_id)     REFERENCES project_revisions (project_id, id)
+```
 
-Confirmed: `worker/auth.mjs`, `worker/index.mjs`, `tests/worker-auth.test.mjs`, `wrangler.jsonc`, `app/admin/page.js`, and every package file are byte-identical to the Cycle 2 remediation commit — this cycle's diff touches only two Markdown table cells plus the two normal coordination files. The fail-closed auth-configuration validation (`AS12-F001`), issuer/audience/signature/expiry checks (`AS12-F004`), selective Worker-first routing (`AS12-F005`), and pinned `html_handling` (`AS12-F003`) are all unmodified and unregressed. No `WEB-INC-005` or any later `WEB-INC-*` was started.
+with `UNIQUE (project_id, id)` on the revisions table to make it a valid FK target. This makes cross-entity assignment a database-level impossibility, not just an application check: the referenced revision's own `project_id` column must equal the base row's `id`, or SQLite rejects the write with `SQLITE_CONSTRAINT_FOREIGNKEY`. Verified directly by the "a base-entity pointer cannot successfully reference another entity's revision" test, and by manual `wrangler d1 execute --local` probing during development (see command log below).
 
-## Explicit confirmation no external Cloudflare resource changed
+`revision-number uniqueness per entity` (AS13-F011) is enforced by `UNIQUE (project_id, revision_number)` (and the equivalent for every other entity). `PRAGMA foreign_keys = ON;` is set at the top of the migration and D1 enforces it (confirmed empirically — D1/Miniflare's local SQLite enables FK enforcement).
 
-Confirmed: no production Cloudflare Access application, Access policy, identity-provider configuration, secret, or production deployment was created, modified, or attempted this cycle — this cycle made two Markdown wording corrections only, using no tool capable of any external operation. No D1/R2, protected editorial reads, admin dashboard data, content mutation, audit-log persistence, theme controls, S3 work, project onboarding, `.devos/` overlay, CI/workflows, GitHub rulesets, deployment, or main merge. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+The `order` content field is stored as `sort_order` on each `_revisions` table (`order` is a reserved SQL keyword); `worker/d1/repository.mjs` maps it back to `order` on read.
+
+### `site_settings_revisions` typing (AS13-F004)
+
+Every current singleton domain (`site`, `seo`, `hero`, `process` header, `about`, `contact`, `projectSection`, `footer`, plus `meta`'s `schemaVersion`/`contentVersion`/`locale`/`updatedAt`) is a named, individually-typed column — 34 explicit columns, not one JSON blob. The four naturally-nested substructures (`hero.title`, `hero.primaryAction`, `hero.secondaryAction`, `about.title`) are stored as small JSON text columns, but `worker/d1/validate.mjs`'s `validateSiteSettingsContent` validates every one of them field by field (mirroring `lib/content/schema.mjs`'s `text`/`lines`/`action`/`email`/`canonical` predicates) and rejects any unknown field at any nesting level before a write is attempted — this is the "direct validation successor to `lib/content/schema.mjs`" `AS13-F004` requires. `lib/content/schema.mjs` itself was not imported into this validator (to avoid coupling D1-specific validation to the legacy schema's exact object shape), but `worker/d1/migrate.mjs` does import and call the legacy `validateContent()` directly on the raw source document as its first gate, so both validators run.
+
+### Migration-state mapping
+
+- `published` source record → revision created, `published_revision_id` set, `draft_revision_id` left null.
+- `draft` source record → revision created, `draft_revision_id` set, `published_revision_id` left null.
+- `archived` source record → revision created and preserved; both pointers left null.
+
+Verified by "published/draft/archived source fixtures map to the correct pointer state" against a constructed fixture (the real `data/site.js` is currently 100% published, so this fixture is required to exercise all three branches — exactly as `ML-DEVOS-AS-013` `AS13-F011` anticipated).
+
+### Sections bootstrap (AS13-F005)
+
+`home` (order 1), `projects` (order 2), `process` (order 3), `about` (order 4) — all created published/visible via the same `upsertEntity` path, with `main-content` never created as a row. Verified separately from the legacy parity projection by "sections substrate is bootstrapped separately and is not part of the legacy parity projection", which also asserts the reconstructed legacy projection object has no `sections` key.
+
+### Migration provenance (AS13-F007)
+
+Every migrated/bootstrapped revision's `created_by` is the literal string `migration:web-inc-005` (`worker/d1/migrate.mjs`'s `MIGRATION_PROVENANCE`). No admin identity/session table was created.
+
+## Repeat-run / determinism behavior (AS13-F009)
+
+`worker/d1/migrate.mjs`'s `upsertEntity` implements exactly this contract, atomically per entity (all statements for one entity in a single `db.batch()` call, including the pointer-set via a same-batch subquery, so a failure leaves no partial write for that entity):
+
+- **Entity does not yet exist** → create entity row + revision 1 + pointer, atomically. Reported as `created`.
+- **Entity exists, and every content column plus the publish/draft state already matches the intended target exactly** → no write is attempted. Reported as `noop`.
+- **Entity exists, and content or publish/draft state differs from the intended target** → `Error` thrown with a message beginning `WEB-INC-005 migration refusal:`, and no write is attempted for that entity (the check-then-decide happens entirely before any statement is prepared).
+
+Evidence:
+- `node scripts/d1-migrate.mjs` fresh run: 23 entities created, 0 no-op.
+- `node scripts/d1-migrate.mjs` second run against the same local state: 0 entities created, 23 no-op — identical entity/revision/pointer set (row-for-row `dumpAllRows` deep-equal in the test suite).
+- "migration refuses to overwrite an entity whose stored content differs from the intended target, with no partial write" test: mutates one fixture field and re-runs; asserts the thrown error and that every table's rows are byte-identical (`assert.deepEqual`) before and after the rejected attempt.
+
+## Parity evidence (AS13-F010)
+
+`worker/d1/repository.mjs`'s `reconstructPublishedLegacyProjection(db)` reads only `published_revision_id` pointers (never draft) across `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, and reassembles the exact legacy shape (`meta` without `state`, `site`, `seo`, `navigation[]`, `hero`, `foundations[]`, `projects[]`, `services[]`, `process.{kicker,title,steps[]}`, `about`, `contact`, `footer`, `projectSection`), sorting each collection by `order` then `id` — the same rule `lib/content/public.mjs`'s `projectPublishedContent` uses.
+
+Test: `assert.deepEqual(await reconstructPublishedLegacyProjection(db), projectPublishedContent(siteContent))` after a fresh migration of the real `data/site.js` — **passes**, covering every current domain including `services` (not currently rendered by `app/page.js`, but present in the parity object exactly as `projectPublishedContent` produces it). `sections` is never added to this object and is asserted absent (`!Object.hasOwn(legacyProjection, "sections")`).
+
+## Integrity/negative-path evidence (AS13-F011, RFC-003 §13)
+
+All of the following are dedicated passing tests in `tests/d1-migration.test.mjs`:
+
+- Draft reorder does not affect the published projection/order (an out-of-band `draft_revision_id` reorder is invisible to `readPublishedCollection`, visible only to the explicitly-named `readDraftCollectionForTrustedServerCode`).
+- Cross-entity pointer rejection (composite FK, `SQLITE_CONSTRAINT_FOREIGNKEY`).
+- Project slug uniqueness (`UNIQUE` constraint) and reserved-slug rejection, enforced **both** at the database layer (`CHECK (slug NOT IN (...))`) and by the JS `validateProjectSlug` unit-level check.
+- Revision-number uniqueness per entity (`UNIQUE (entity_id, revision_number)`).
+- A revision row referencing a non-existent base entity fails safely (`SQLITE_CONSTRAINT_FOREIGNKEY` on the plain `entity_id` FK).
+
+## Server-only boundary (AS13-F012)
+
+`worker/d1/*` is never imported by `app/`, `worker/index.mjs`, or any client component — confirmed by the protected-path diff above (`worker/index.mjs` unmodified) and by inspection (no `import` of `worker/d1/*` exists anywhere outside `scripts/d1-migrate.mjs` and `tests/d1-migration.test.mjs`). `readDraftCollectionForTrustedServerCode`/`readDraftSiteSettingsForTrustedServerCode` are named distinctly from the published-read functions precisely so a future caller must deliberately opt in; there is no HTTP route, dashboard, CRUD, or publish/unpublish handler anywhere in this diff.
+
+## Public behavior invariant (AS13-F001, F013)
+
+`app/page.js` and `lib/content/local.mjs` are byte-identical to the base commit (confirmed by the empty `git diff --stat` above). `data/site.js` was not deleted, retired, or modified. `npm run build` produces the same three routes (`/`, `/_not-found`, `/admin`) as before this cycle. No implementation step required a public cutover; none was performed.
+
+## Local-only D1 evidence (AS13-F008) — full command log
+
+Every command below is `--local` or performs no resource mutation at all (`--dry-run`); none used `--remote`. `wrangler.jsonc`'s `d1_databases` entry has **no `database_id`** (not required by Wrangler's config schema) and explicit `"remote": false`.
+
+| Command | Result |
+|---|---|
+| `npx wrangler deploy --dry-run` | Succeeded; binding table lists `env.DB (maisog-labs-web-inc-005-local) — D1 Database` alongside the existing `env.ASSETS`/`env.ACCESS_*` bindings; "--dry-run: exiting now." — no resource created or modified |
+| `npx wrangler d1 migrations list DB --local` | `Resource location: local`; lists `0001_web_inc_005_init.sql` as pending |
+| `npx wrangler d1 migrations apply DB --local` | `Resource location: local`; "16 commands executed successfully"; `0001_web_inc_005_init.sql` applied (`✅`) |
+| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master ..."` | Returned exactly the 14 authorized tables + `d1_migrations`/`_cf_METADATA`/`sqlite_sequence` |
+| `node scripts/d1-migrate.mjs` (fresh) | 23 created, 0 no-op |
+| `node scripts/d1-migrate.mjs` (second run) | 0 created, 23 no-op |
+| `npm test` | 69 passed, 0 failed |
+| `npm run build` | Succeeded, unchanged routes |
+| Secret/config scan | `grep` for `process.env`, PEM/private-key markers, secret/token/credential/account-id keyword patterns across `worker/`, `migrations/`, `scripts/`, `tests/worker-auth.test.mjs`, `tests/d1-migration.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and an unrelated `url.password` property-name check; no `.env*` files found |
+
+`getPlatformProxy` (used by `scripts/d1-migrate.mjs` and `tests/d1-migration.test.mjs` for the D1 binding used in Node-side tooling/tests) is called with `remoteBindings: false` explicitly, in addition to the binding's own `remote: false` — there is no configuration path in this diff by which any of the above could reach a real Cloudflare D1 resource.
+
+## Explicit confirmations
+
+- **No remote Cloudflare D1 resource was created or modified.** No `wrangler d1 create` was run; every D1 command above is `--local` or non-mutating (`--dry-run`); `wrangler.jsonc` has no `database_id` and `"remote": false`.
+- **Public rendering still reads `data/site.js`.** `app/page.js`, `lib/content/local.mjs`, `lib/content/public.mjs`, `lib/content/schema.mjs`, and `data/site.js` are byte-identical to the base commit; `npm run build` output is unchanged.
+- **No later `WEB-INC-*` work began.** No dashboard, session/editorial read, mutation/publish/unpublish handler, media/R2, journal, theme-settings, or `audit_log` code exists anywhere in this diff.
+
+## Known limitations
+
+- This is a **local-only** revision substrate. It has not been exercised against a real Cloudflare D1 database, and Miniflare's local D1 simulation, while SQLite-compatible, is not a guarantee of exact production D1 edge behavior (the same caveat `WEB-INC-001`'s local `wrangler dev` evidence already carries for Worker routing).
+- The real `data/site.js` content is entirely `published` today, so the published/draft/archived state-mapping tests use a constructed fixture rather than the live document — this is unavoidable given the current content's actual state and is exactly what `ML-DEVOS-AS-013` `AS13-F011` anticipated ("Because the live source is currently published, Builder must add controlled migration fixtures").
+- `site_settings_revisions`' four JSON substructure columns (`hero_title_json`, `hero_primary_action_json`, `hero_secondary_action_json`, `about_title_json`) are validated field-by-field in JS before every write, but are not additionally constrained by SQLite `CHECK` expressions (SQLite's JSON functions could add a defense-in-depth layer here; not attempted this increment, since the JS validation path is exercised on every write in this codebase and no other write path exists).
+- No admin/mutation code calls any of `worker/d1/*` yet (by design — that's `WEB-INC-002`/`WEB-INC-003` and later); this increment cannot itself demonstrate the substrate working under real concurrent/authenticated admin usage, only under the deterministic migration/test harness.
+- This evidence is entirely implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it, per the standing evidence-class rule.
+
+## Paulo-level decisions
+
+None required by this cycle. `D-024` already supplied the complete authorization this implementation operates under.
+
+## Commit
+
+Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as a single commit on top of base `7122c9d9887e5801a9c3ec03285db7273f1529c8`. See the branch's `git log` for the exact commit SHA, also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`.
