@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6
+LAST_IMPLEMENTER_HANDOFF_SHA: aa458f79d7a767a35ccb6b1668e6c1df95727c2f  # NOTE: this is the base HEAD this remediation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
 LAST_ARCHITECT_REVIEWED_SHA: 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
@@ -55,25 +55,14 @@ Remediation Cycle 1 disposition:
 - `AS12-F002` — PARTIALLY RESOLVED: several residual current-state contradictions remain;
 - `AS12-F007` — new provenance defect: the handoff says exactly 9 changed files, while exact Git compare reports 11.
 
-Required Cycle 2 corrections:
+Cycle 2 corrections resolved this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` for full disposition):
 
-1. `docs/product/TECHNICAL_DESIGN.md`
-   - current route inventory must include `/admin`;
-   - current system-boundary list must include `worker/`.
+1. `docs/product/TECHNICAL_DESIGN.md` § "System boundaries" — route inventory now lists `/admin` (explicitly labeled as the `WEB-INC-001` auth-boundary placeholder only, not a portal) alongside `/` and `/_not-found`; `worker/` added as its own boundary entry, described as authentication-only with no content read/write, no database, no persistent session/editorial state;
+2. `brain/GOVERNANCE_MAP.md` — `WEB-REQ-004` remains `NOT STARTED` (unchanged); its evidence no longer says there is no `/admin` route — now states an auth-only placeholder exists with no content-editing/persistence/CRUD/publish capability, and public content still requires a direct source edit and rebuild/redeploy;
+3. `brain/RISK_REGISTER.md` — `RISK-WEB-007` and `RISK-WEB-011`'s stale "no admin exists" wording replaced with "no admin write/edit/persistence surface exists" and "no admin write/edit/mutation input surface exists" respectively; neither risk's status changed;
+4. `coordination/IMPLEMENTER_HANDOFF.md` — Cycle 1's exact remediation diff corrected from the false "9" to the true 11 changed files, including both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`; the correction states plainly that the Architect independently detected the mismatch via exact Git compare, per `AS12-F007`.
 
-2. `brain/GOVERNANCE_MAP.md`
-   - `WEB-REQ-004` should remain `NOT STARTED`, but its evidence must no longer say there is no `/admin` route;
-   - state instead that an auth-only admin placeholder exists, while no managed content-editing/persistence capability exists and edits still require source changes.
-
-3. `brain/RISK_REGISTER.md`
-   - replace stale “no admin exists” wording with the accurate distinction that no admin write/edit/mutation surface exists.
-
-4. `coordination/IMPLEMENTER_HANDOFF.md`
-   - correct the exact remediation diff from 9 to 11 changed files;
-   - include `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`;
-   - explicitly record that the Architect independently detected the mismatch via exact Git compare.
-
-No runtime/auth-code/config/test changes are authorized in Cycle 2.
+This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it. No runtime/auth-code/config/test file was touched this cycle — confirmed by diff-scope check and an unaffected `57/57` test re-run.
 
 ## Authorized repository implementation
 
@@ -161,7 +150,7 @@ Before returning to Architect:
 11. explicit list of known limitations;
 12. explicit confirmation that no external Cloudflare resource was changed.
 
-Builder evidence is `ACTOR_REPORTED` until independently verified. All 12 items above remain addressed in `coordination/IMPLEMENTER_HANDOFF.md`, now updated with Remediation Cycle 1's config-fail-closed and alternate-admin-URL evidence.
+Builder evidence is `ACTOR_REPORTED` until independently verified. All 12 items above remain addressed in `coordination/IMPLEMENTER_HANDOFF.md`; this cycle only corrected its exact-diff provenance and the surrounding documentation, per `AS12-F007`/`AS12-F002`.
 
 ## Explicitly prohibited
 
@@ -215,4 +204,4 @@ Architect must independently reproduce deterministic auth tests where practical 
 
 ## Current gate
 
-`CLAUDE WEB-INC-001 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-012`
+`ARCHITECT WEB-INC-001 REMEDIATION CYCLE 2 VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-012`

@@ -1,6 +1,6 @@
 # MaisogLabs Technical Design
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **`WEB-INC-001` Remediation Cycle 1** (resolves `AS12-F002`: converges current-state wording — dependency list, deployment contract, runtime flow, "None of the following exists" — with the actual `jose`/Worker/auth implementation)
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **`WEB-INC-001` Remediation Cycle 2** (resolves `AS12-F002`'s residual findings: § "System boundaries" now lists `/admin` in the `app/` route inventory and adds `worker/` as its own boundary; Cycle 1 already converged dependency list, deployment contract, runtime flow, and "None of the following exists" wording)
 
 Owns **HOW**. Requirements/rationale live in `PRD.md`; UI/UX detail lives in `UI_UX_SPEC.md`; state transitions live in `APP_FLOW.md`; data contracts live in `DATA_BACKEND_SPEC.md`. Source-of-truth precedence and brownfield classification follow `PRD.md` exactly (`AS10-F003`, `AS10-F005`).
 
@@ -20,7 +20,8 @@ data/site.js  →  lib/content/local.mjs  →  lib/content/schema.mjs  →  lib/
 This is the governed content boundary (`brain/PROJECT_GOVERNANCE.md` § "Current storage model", `brain/DECISION_LOG.md` D-007). This design does not replace it; a future admin/CMS increment must either preserve it or replace it through an explicit `ARCHITECTURE`-class decision (per `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`), never silently.
 
 **System boundaries (existing, `docs/ARCHITECTURE.md`):**
-- `app/` — routing and page composition (currently one route: `/`, plus Next's generated `/_not-found`).
+- `app/` — routing and page composition. Current routes: `/` (public homepage), `/admin` (the `WEB-INC-001` authentication-boundary placeholder only — not a full admin portal; no content-editing, CRUD, publish, media, or theme controls exist behind it), plus Next's generated `/_not-found`.
+- `worker/` — the server-executed authentication boundary for `/admin` and `/admin/*` only (`worker/index.mjs`, `worker/auth.mjs`, `WEB-INC-001`). Performs Cloudflare Access JWT verification and nothing else: no content read/write, no database access, no persistent session or editorial state. Every request outside `/admin`/`/admin/*` never reaches this code.
 - `components/` — reusable presentation units (`Logo.js`, `ProjectRail.js` — the only client component — `BlueprintIcon.js`).
 - `data/` — structured editable content (`site.js`).
 - `lib/content/` — validation/projection layer (`schema.mjs`, `public.mjs`, `local.mjs`).
