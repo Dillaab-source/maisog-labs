@@ -1,18 +1,19 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-WEB-INC-002-READ-DASHBOARD
+CYCLE_ID: MAISOGLABS-WEB-INC-008-AUDIT-SUBSTRATE
 TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NONE_PENDING_NEW_PAULO_DECISION
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: NONE_PENDING_PAULO_WEB_INC_008_DECISION
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: YES
 LAST_IMPLEMENTER_HANDOFF_SHA: fc962fd033df9b5409246e8052e547f4a08e0767
-LAST_ARCHITECT_REVIEWED_SHA: fc962fd033df9b5409246e8052e547f4a08e0767
+LAST_ARCHITECT_REVIEWED_SHA: 9b1e6d721ad82bdcac3b165ebaca10f36f8cfbf9
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
-REMOTE_D1_AUTHORIZED: NO
+AUDIT_APPEND_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
+REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
@@ -30,148 +31,170 @@ Verified Product Build Pack:
 Closed prerequisites:
 - `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
 - `ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+- `ML-DEVOS-AS-016: ARCHITECT_APPROVED — WEB-INC-002 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
 - `ML-DEVOS-ADR-003: ACCEPTED`
+- `ML-DEVOS-ADR-004: ACCEPTED`
 
-## WEB-INC-002 authority chain
+## WEB-INC-008 grounded proposal
 
 RFC:
-- `ML-DEVOS-RFC-004 — MaisogLabs WEB-INC-002 Protected Read-Only Admin Dashboard`
-- status: `ACCEPTED`
-- change class: `ARCHITECTURE`
+- `ML-DEVOS-RFC-005 — MaisogLabs WEB-INC-008 Append-Only Audit Substrate`
+- status: `UNDER_ARCHITECT_SYNC`
+- proposal commit: `9b1e6d721ad82bdcac3b165ebaca10f36f8cfbf9`
+- proposed/confirmed change class: `ARCHITECTURE`
 
-Pre-implementation Architect Sync:
-- `ML-DEVOS-AS-015: ARCHITECT_APPROVED — WEB-INC-002 RFC-004 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`
+Grounded base before proposal:
+- `cd73e410dfb96e57fefdb71f18cbd9506e6b4562`
+- WEB-INC-002 was closed at that base.
+- Current product schema contained exactly the 14 WEB-INC-005 tables.
+- No `audit_log` table or editorial mutation endpoint existed.
 
-Paulo implementation decision:
-- `D-025 — Authorize WEB-INC-002 protected read-only admin dashboard implementation`
+## Architect Sync
 
-Builder implementation:
-- `fc962fd033df9b5409246e8052e547f4a08e0767`
-- bookkeeping handoff HEAD: `eb190bd01339afe0f2832f9110410d186fa4eb7b`
+Rolling Architect review:
+- `ML-DEVOS-AS-017 — WEB-INC-008 Append-Only Audit Substrate Architecture Sync`
+- source commit: `106fab3885eff3a35b46f9a7648e66bb4d0f89ad`
+- verdict:
+  `ARCHITECT_APPROVED — WEB-INC-008 RFC-005 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
 
-Final implementation Architect review:
-- `ML-DEVOS-AS-016: ARCHITECT_APPROVED — WEB-INC-002 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
-- rolling review source commit: `6c32e90302f78d8478107bc0bde4d264bf3d784d`
-- durable archive: `devos/changes/architect-syncs/ML-DEVOS-AS-016.md`
-- no remediation cycle required.
+This is architecture compatibility approval only.
 
-Post-review ADR:
-- `ML-DEVOS-ADR-004: ACCEPTED`
-- durable record: `devos/changes/adrs/ML-DEVOS-ADR-004.md`
-- product architecture only; no Sentinel version bump.
+No Builder authority exists yet.
 
-## Accepted WEB-INC-002 architecture
+## Proposed bounded implementation if Paulo authorizes
 
-The accepted bounded trust path is:
+WEB-INC-008 may add exactly one product table:
 
-```
-request /admin or /admin/*
-        ↓
-validate auth configuration
-        ↓
-verify Cloudflare Access JWT server-side
-        ↓
-post-authenticated dispatch
-        ├─ protected admin static/dashboard shell
-        └─ GET /admin/api/dashboard
-                  ↓
-          positive allowlist serializer
-                  ↓
-          local/server-only D1 reads
-                  ↓
-          WEB-INC-005 revision substrate
-```
+`audit_log`
 
-Binding invariant:
+Expected current product-table inventory after implementation:
 
-`AUTHENTICATED ≠ AUTHORIZED TO MUTATE`
+`14 existing WEB-INC-005 tables + audit_log = 15`
 
-Exactly one editorial data endpoint is accepted:
+The implementation must use a new ordered migration such as:
 
-`GET /admin/api/dashboard`
+`migrations/0002_web_inc_008_audit_log.sql`
 
-The response is status-only and positively allowlisted. No raw revision export, identity claims, arbitrary SQL, generic admin API, mutation route, publish/unpublish handler, or persistent application session/role model is part of this increment.
+The existing:
 
-Lifecycle remains pointer-derived:
-- published only → `published`
-- draft only → `draft`
-- both → `published_with_draft`
-- neither → `archived`
+`migrations/0001_web_inc_005_init.sql`
 
-The public site remains:
+must remain unchanged.
 
-`data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`
+The audit substrate may include only:
 
-No public D1 cutover occurred.
+- one append-only `audit_log` table;
+- bounded server-side audit event validation;
+- a narrow internal append primitive;
+- database-level UPDATE/DELETE rejection;
+- local-only focused tests and migration/schema helpers;
+- current-state documentation/handoff updates.
 
-## Evidence disposition
+## Binding audit model
 
-Independently inspected by Architect:
-- exact Builder implementation diff and 17-path inventory;
-- authentication-before-routing/data ordering;
-- exact endpoint/method dispatch;
-- positive allowlist serializer;
-- pointer-derived lifecycle semantics;
-- fixed SELECT-only dashboard D1 read shape;
-- admin client/server boundary and absence of mutation controls;
-- generic protected failure behavior and no-store/nosniff/CORS controls;
-- local-only Wrangler/D1 configuration;
-- unchanged 14-table migration/schema;
-- unchanged public source/render path;
-- focused WEB-INC-002 regression-test source.
+Required logical audit fields:
 
-Retained as Builder `ACTOR_REPORTED` evidence:
-- `npm test`: 96/96 passing;
-- successful `npm run build`;
-- local Wrangler HTTP smoke results;
-- local D1 runtime/table introspection;
-- Wrangler dry-run;
-- secret/config scan.
+- database-assigned immutable `id`;
+- server-owned `occurred_at`;
+- opaque trusted-server `actor`;
+- validated `action`;
+- validated `entity_type`;
+- `entity_id`;
+- nullable `revision_id`;
+- `result` exactly `success` or `failure`.
 
-No independent reproduction of Claude's local npm/Wrangler execution is claimed.
+Do not persist:
 
-## Authority remains withheld
+- JWTs / Access assertion tokens;
+- passwords, credentials, secrets;
+- raw request bodies;
+- full content snapshots;
+- raw stack traces;
+- SQL error strings;
+- arbitrary metadata blobs.
 
-This closure does **not** authorize:
-- remote/production D1 creation, migration, query, import, or export;
-- production Cloudflare Access changes;
-- create/edit/save/delete;
-- publish/unpublish;
-- project CRUD;
-- `audit_log` / WEB-INC-008 implementation;
-- media/R2;
-- journal;
-- theme/design mutation;
-- public D1 cutover;
-- deployment;
-- protected/main merge;
-- Sentinel S3 or later;
-- CI/workflows/rulesets;
-- any later `WEB-INC-*` implementation.
+## Append-only boundary
 
-## Instruction to Claude
+Both must be enforced:
 
-Claude must now:
+1. no application update/delete audit helper;
+2. direct database UPDATE and DELETE against `audit_log` are rejected.
 
-1. Pull the latest `governance/maisoglabs-v0.1` branch.
-2. Read `coordination/ARCHITECT_REVIEW.md`, `devos/changes/architect-syncs/ML-DEVOS-AS-016.md`, this `coordination/STATE.md`, and `devos/changes/adrs/ML-DEVOS-ADR-004.md`.
-3. Treat WEB-INC-002 as closed and accepted at repository/local architecture level.
-4. Do **not** modify WEB-INC-002 further unless a newly discovered defect is explicitly routed through Sentinel.
-5. Do **not** begin WEB-INC-008, mutation work, remote D1 work, production Access configuration, deployment, public cutover, protected/main merge, or any later product increment.
-6. Wait for Paulo's next explicit authorization.
+No audit read/write HTTP API is authorized.
 
-## Next dependency-ordered product item
+No browser/client access to the audit writer or D1 binding is authorized.
 
-The Product Build Pack identifies `WEB-INC-008 — Audit substrate` as the next dependency-ordered item.
+## Failure semantics
 
-It is **not authorized** by WEB-INC-002 closure.
+A future business/admin operation may be represented in audit history with:
 
-Before Claude may implement it, the fresh Sentinel path must be followed:
+`result: failure`
 
-`GROUND → CLASSIFY → REQUIRED PROPOSAL/RFC OR CAPABILITY RECORD → ARCHITECT SYNC → PAULO GATE → AUTHORIZED → BUILD`
+The audit writer must persist that value unchanged.
 
-No previous WEB-INC authorization carries forward automatically.
+If the audit INSERT itself fails:
+
+- reject/throw;
+- never report success;
+- do not recursively attempt to audit the audit failure.
+
+Mutation/audit transaction semantics remain for the separately authorized mutation increment.
+
+## Identity boundary
+
+WEB-INC-008 does not create:
+
+- persistent application sessions;
+- admin/user tables;
+- roles/permissions;
+- a permanent editorial identity-binding design.
+
+`actor` is only an opaque trusted-server reference in this substrate.
+
+## WEB-INC-002 boundary remains unchanged
+
+Do not:
+
+- add `audit_log` to `GET /admin/api/dashboard`;
+- create `GET /admin/api/audit`;
+- add a new admin API route;
+- add mutation controls to `/admin`.
+
+The current protected dashboard remains read-only.
+
+## Absolute gates
+
+Unless Paulo explicitly authorizes this exact WEB-INC-008 scope:
+
+`AUDIT_APPEND_AUTHORIZED: NO`
+
+`MUTATION_AUTHORIZED: NO`
+
+`REMOTE_D1_AUTHORIZED: NO`
+
+`DEPLOY_AUTHORIZED: NO`
+
+`MAIN_MERGE_AUTHORIZED: NO`
+
+No implementation may begin.
+
+Even if WEB-INC-008 is later authorized:
+
+- editorial/content mutation remains unauthorized;
+- WEB-INC-003 remains unauthorized;
+- remote D1 remains unauthorized;
+- deployment remains unauthorized;
+- public D1 cutover remains unauthorized;
+- protected/main merge remains unauthorized.
+
+## Builder action rule
+
+Claude must not begin WEB-INC-008 while this state says:
+
+`PAULO_DECISION_REQUIRED`
+
+A later explicit Paulo approval must be recorded as a new Decision before Builder authority exists.
 
 ## Current gate
 
-`WEB-INC-002 CLOSED — NEW PAULO AUTHORIZATION REQUIRED BEFORE WEB-INC-008 OR ANY REMOTE / MUTATION / DEPLOYMENT / MERGE OPERATION`
+`WEB-INC-008 ARCHITECTURE APPROVED — PAULO IMPLEMENTATION DECISION REQUIRED`
