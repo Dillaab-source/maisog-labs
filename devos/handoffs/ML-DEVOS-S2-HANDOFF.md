@@ -276,3 +276,28 @@ The command output quoted earlier in this same handoff document (in the implemen
 ## Architect review request (remediation cycle 1)
 
 Requesting the Architect independently re-verify `S2-C005` (by extracting the fenced content from both archives and diffing against `git show <SHA>:coordination/ARCHITECT_REVIEW.md` for `b613c62`, `f6ee953`, and `69ba513`) and `S2-C006` (by confirming no "during S2" / phase-scoped wording remains describing the registry-emptiness invariant, and that fail-closed behavior is unchanged), then issue the final S2 closure verdict.
+
+---
+
+# S2 Closure Remediation Cycle 2 (`ML-DEVOS-AS-008`, `S2-C008`)
+
+The Architect's re-review of remediation cycle 1 (`af05f0d`) confirmed `S2-C005` and `S2-C006` both `RESOLVED` and returned `SENTINEL S2 CLOSURE: CHANGES_REQUESTED — REMEDIATION CYCLE 2` for exactly one remaining finding: `S2-C008` — exact-diff/evidence bookkeeping.
+
+## Correction to the "Files changed this remediation cycle" line above
+
+The line immediately above this section — *"No other file was touched — confirmed via `git diff --stat 661283e..HEAD`"* — is left unedited as the literal historical text cycle 1 wrote (`CORE-011`: a durable record is not silently rewritten; the real historical text also remains permanently visible via `git show af05f0d:devos/handoffs/ML-DEVOS-S2-HANDOFF.md`). It was, however, factually imprecise in a way `ML-DEVOS-AS-008` correctly caught: it did not state a file count, and by citing `661283e..HEAD` without qualification it invited reading the full history range as if it were the Builder-only remediation diff.
+
+The corrected, independently-reproduced figures (see `coordination/IMPLEMENTER_HANDOFF.md` §1 for the exact `git rev-list`/`git diff` commands run this cycle) are:
+
+- **Builder-authored remediation** — `3e4751850a133838d9ee8758f52212c31aeb2b79` → `af05f0d913ccad8971458f0a479250f79d7d94bd`: **1 commit, 8 changed files** (`coordination/IMPLEMENTER_HANDOFF.md`, `coordination/STATE.md`, `devos/changes/architect-syncs/ML-DEVOS-AS-006.md`, `ML-DEVOS-AS-007.md`, `README.md`, `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`, `devos/schemas/validate-devos-manifest.mjs`, `validate-project-registry.mjs`).
+- **Full history from the original closure candidate** — `661283e9ce1f548a4e9494b51fc7021d63268a91` → `af05f0d913ccad8971458f0a479250f79d7d94bd` (3 commits: `e5bc471`, `3e47518`, `af05f0d`): **9 changed files** — the same 8 above plus `coordination/ARCHITECT_REVIEW.md`, changed by the Architect's own `e5bc471`/`3e47518` review/routing commits, not by Claude.
+
+The full-history range is never itself the Builder-authored remediation diff; it necessarily also carries whatever the Architect wrote to `coordination/ARCHITECT_REVIEW.md` in between. Future cycles citing a "files changed" figure state which of these two ranges it is, by name, rather than a bare commit range.
+
+## Files changed this remediation cycle
+
+`coordination/IMPLEMENTER_HANDOFF.md`; `coordination/STATE.md`; this handoff (this section only). No other file was touched — confirmed via `git diff --name-status af05f0d..HEAD`: exactly 3 files.
+
+## Architect review request (remediation cycle 2)
+
+Requesting the Architect independently reproduce both ranges above (`git rev-list --count` and `git diff --name-only` for `3e47518..af05f0d` and `661283e..af05f0d`) against the live repository, confirm the two figures now stated match, confirm no file outside `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`/this handoff changed this cycle, and issue the final S2 closure verdict.

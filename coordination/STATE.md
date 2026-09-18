@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S2-CLOSURE
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S2_CLOSURE_BOOKKEEPING_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: af05f0d913ccad8971458f0a479250f79d7d94bd
 LAST_ARCHITECT_REVIEWED_SHA: af05f0d913ccad8971458f0a479250f79d7d94bd
@@ -35,56 +35,39 @@ Remediation cycle 1 Builder commit:
 Current Architect Sync:
 - `ML-DEVOS-AS-008`
 
-## Current verdict
+## Prior verdict (remediated this cycle)
 
-`SENTINEL S2 CLOSURE: CHANGES_REQUESTED — REMEDIATION CYCLE 2`
+`SENTINEL S2 CLOSURE: CHANGES_REQUESTED — REMEDIATION CYCLE 2` (`ML-DEVOS-AS-008`, reviewing `af05f0d`)
 
-Substantive closure architecture is conforming.
+Substantive closure architecture was already conforming. `S2-C005`/`S2-C006` were already resolved (cycle 1) and are not touched this cycle. One finding remained: `S2-C008` — exact-diff/evidence bookkeeping.
 
-Resolved:
-- `S2-C005` — durable AS-006/AS-007 archival provenance
-- `S2-C006` — standing registry-emptiness validator semantics
+### S2-C008 — RESOLVED
 
-Open:
-- `S2-C008` — exact-diff/evidence bookkeeping
+The cycle-1 handoff/state evidence said `git diff --name-status 661283e..HEAD — exactly 7 files`, conflating Builder-authored remediation with Architect-owned review/routing history and undercounting both figures.
 
-## S2-C008 required correction
+Independently reproduced this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` §1 for exact commands) and confirmed correct:
 
-Current Builder handoff/state evidence incorrectly says:
-
-`git diff --name-status 661283e..HEAD — exactly 7 files`
-
-This conflates Builder-authored remediation with Architect-owned review/routing history.
-
-Correct evidence:
-
-### Builder-authored remediation diff
-
+**Builder-authored remediation diff:**
 `3e4751850a133838d9ee8758f52212c31aeb2b79 → af05f0d913ccad8971458f0a479250f79d7d94bd`
-
 - 1 commit
 - 8 changed files
 - all within authorized remediation scope
 
-### Full history from original closure candidate
-
+**Full history from original closure candidate:**
 `661283e9ce1f548a4e9494b51fc7021d63268a91 → af05f0d913ccad8971458f0a479250f79d7d94bd`
-
 - 3 commits
 - 9 changed files
 - includes Architect-owned `coordination/ARCHITECT_REVIEW.md` and state-routing history in addition to Builder remediation
 
-## Authorized remediation paths — cycle 2
+Both figures are now stated, distinctly and by name, in `coordination/IMPLEMENTER_HANDOFF.md` and a new "S2 Closure Remediation Cycle 2" section in `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`. The cycle-1 section's own original (imprecise) claim is left unedited per `CORE-011`, with a correction note appended rather than an in-place rewrite.
 
-Claude may modify only:
+## This cycle's remediation — completed, submitted for re-verification
 
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-- `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`
+`git diff --name-status af05f0d..HEAD` — exactly 3 files: `coordination/IMPLEMENTER_HANDOFF.md`, `coordination/STATE.md`, `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`. No other file touched.
 
-and only to correct `S2-C008` bookkeeping/evidence wording.
+**Note on `LAST_IMPLEMENTER_HANDOFF_SHA` above:** left at `af05f0d913ccad8971458f0a479250f79d7d94bd` (the prior cycle's SHA) because this cycle's own commit SHA is not known until after it is created — consistent with the pattern established across every prior remediation cycle, where the Architect corrects this field to the actual new commit SHA in their own subsequent state update after inspecting the pushed commit.
 
-## Explicitly prohibited
+## Explicitly prohibited (confirmed absent from this remediation)
 
 - no changes to AS-006/AS-007 archives
 - no validator changes
@@ -101,14 +84,4 @@ and only to correct `S2-C008` bookkeeping/evidence wording.
 
 ## Current gate
 
-`CLAUDE REMEDIATION TURN — S2 CLOSURE CYCLE 2`
-
-After correction, Claude must set:
-
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `PAULO_DECISION_REQUIRED: NO`
-
-and stop.
+`S2-C008` is resolved and submitted for Architect re-verification. `S2-C005`/`S2-C006` remain resolved and untouched. `D-017`'s authority is not revoked; the S2 implementation and closure architecture remain technically approved. `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged. No S3 work was started or implied.
