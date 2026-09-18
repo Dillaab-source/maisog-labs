@@ -261,3 +261,36 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Main-merge gate:** `MAIN_MERGE_AUTHORIZED: NO`.
 - **Review rule:** after Builder handoff, the Architect must pull the live branch/state and compare the exact implementation diff against `ML-DEVOS-RFC-002`, `ML-DEVOS-AS-011`, this decision, and the verified Product Build Pack before issuing PASS / CHANGES_REQUESTED.
 - **Evidence of Paulo authority:** Paulo explicitly instructed, `Proceed with authorizations`, after the Product Build Pack closed with the live state requiring a new Paulo decision before implementation. This decision applies that instruction to the next dependency-ordered increment only; it is not blanket authorization for later increments.
+
+
+### D-024 — Authorize WEB-INC-005 D1 revision-substrate implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `WEB-INC-001` closed and after the Architect classified/reviewed the next dependency-ordered increment through `ML-DEVOS-RFC-003` and `ML-DEVOS-AS-013`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-005 — Current-content storage/revision substrate + migration`** exactly within the accepted scope of `ML-DEVOS-RFC-003`, subject to every binding constraint in `ML-DEVOS-AS-013`.
+- **Change class:** `ARCHITECTURE` — the increment introduces D1 as the first persistent product data subsystem and creates the revision/pointer architecture that later protected reads and mutations depend on, while explicitly evolving D-007's governed content-boundary decision.
+- **Authorized repository implementation scope:**
+  - add only the 14 WEB-INC-005-owned logical entity/revision tables defined by RFC-003 and the Product Build Pack;
+  - add migration SQL and local-only D1 configuration/tooling;
+  - add deterministic current-content seed/migration tooling;
+  - add bounded server-side D1 data-access/projection modules;
+  - add D1 migration/parity/integrity/state-isolation tests;
+  - update architecture/data/product/governance/test documentation only to record what actually became implemented;
+  - update normal Builder handoff/state records.
+- **Staged-migration rule:** `data/site.js → schema.mjs → public.mjs → local.mjs → app/page.js` remains the authoritative public build path during this increment. D1 is introduced in parallel and must prove parity. No public-read cutover, deletion, or retirement of `data/site.js` is authorized.
+- **Authorized table set only:** `site_settings`, `site_settings_revisions`, `navigation`, `navigation_revisions`, `foundations`, `foundation_revisions`, `projects`, `project_revisions`, `services`, `service_revisions`, `process_steps`, `process_step_revisions`, `sections`, `section_revisions`.
+- **Explicitly excluded tables/capabilities:** no `audit_log`; no media/project_media; no journal tables; no theme tables; no admin identity/session table; no admin dashboard; no HTTP editorial-read route; no CRUD/publish/unpublish API.
+- **Data-model constraints:** base rows remain identity + immutable creation metadata + revision pointers only; project slug is immutable identity metadata; editable/public-affecting values live on revision rows; lifecycle is pointer-derived; a published/draft pointer must not successfully reference another entity's revision.
+- **Migration/provenance rule:** imported current content uses deterministic textual migration provenance (for example `migration:web-inc-005`) rather than inventing a persistent identity table. Existing migration provenance must not later be silently rewritten.
+- **Required migration behavior:** published, draft, and archived source states map to the pointer model exactly as specified; sections `home`, `projects`, `process`, and `about` are bootstrapped as published/visible current-site section revisions; `main-content` is not a managed section.
+- **Required repeat-run behavior:** migration/seed execution must be deterministic and must not silently duplicate revisions or corrupt pointers. The chosen no-op/upsert/refusal strategy must be documented and tested on a second run.
+- **Required parity evidence:** the D1 reconstructed published current-content projection must deep-equal the current `projectPublishedContent(siteContent)` result, including all current domains such as `services`; the extra sections substrate is verified separately and must not be injected into the legacy parity projection.
+- **Required negative/integrity evidence:** draft isolation, archived preservation with null pointers, published pointer mapping, draft reorder not changing published order, cross-entity pointer rejection, project slug uniqueness/reserved-slug enforcement, revision-number uniqueness, and foreign-key/integrity behavior.
+- **Builder boundary:** Claude implements. Architect does not implement the product/runtime change and must independently inspect the exact commit, migration SQL, table inventory, data-access code, and test/evidence outputs before issuing a verdict.
+- **Local-only D1 authority:** local Wrangler/D1 simulation, local migration apply, local seed, and local query/testing are authorized. Every D1 command used as implementation evidence must be local-only.
+- **Remote Cloudflare boundary:** this decision does **not** authorize `wrangler d1 create`, remote D1 migration/query/import/export, a real production D1 database ID, remote binding mutation, production Cloudflare Access changes, or any other live Cloudflare resource change.
+- **Explicitly not authorized:** `WEB-INC-002` or any later `WEB-INC-*`; public D1 cutover; content mutation; D1-backed public rendering; R2; deployment; protected/main merge; Sentinel S3 or later; CI/workflows; GitHub rulesets; project onboarding/product `.devos/`.
+- **Remote-D1 gate:** `REMOTE_D1_AUTHORIZED: NO`.
+- **Deployment gate:** `DEPLOY_AUTHORIZED: NO`.
+- **Main-merge gate:** `MAIN_MERGE_AUTHORIZED: NO`.
+- **Review rule:** after Builder handoff, the Architect must pull the live branch/state and compare the exact implementation diff against `ML-DEVOS-RFC-003`, `ML-DEVOS-AS-013`, this decision, D-007, and the verified Product Build Pack before issuing PASS / CHANGES_REQUESTED.
+- **Evidence of Paulo authority:** Paulo explicitly instructed, `Proceed with WEB-INC-005 authorization.`, after `WEB-INC-001` closed and the live state required a new Paulo decision. This decision applies only to WEB-INC-005 and is not blanket authorization for later increments or remote Cloudflare operations.
