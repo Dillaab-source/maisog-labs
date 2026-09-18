@@ -312,3 +312,56 @@ test("buildDashboardPayload's output is unchanged and exposes no audit data even
     await cleanup();
   }
 });
+
+// --- AS18-F014 (Remediation Cycle 1): applyCurrentSchema(db) is repeat-safe ---
+
+test("applyCurrentSchema(db) is repeat-safe: reapplying it against the same DB causes no error, no table/trigger loss or duplication, and preserves existing audit data", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    // openTestDb() already applied the current schema (0001 + 0002) once.
+    // Insert a representative audit row before reapplying the schema.
+    await appendAuditEvent(db, validEvent());
+    const before = await db.prepare("SELECT * FROM audit_log ORDER BY id").all();
+    assert.equal(before.results.length, 1);
+
+    // Reapply the full current schema (0001 then 0002 again) against the
+    // same already-migrated database. Every statement in both migration
+    // files is CREATE TABLE/TRIGGER IF NOT EXISTS, so this must not throw.
+    await assert.doesNotReject(() => applyCurrentSchema(db));
+
+    // Exactly the same 15 product tables remain — no table was dropped,
+    // recreated, or duplicated.
+    const tableRows = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all();
+    const tables = tableRows.results
+      .map(row => row.name)
+      .filter(name => !name.startsWith("_cf_") && !name.startsWith("sqlite_") && name !== "d1_migrations");
+    assert.equal(tables.length, 15);
+    assert.deepEqual(tables, [...CURRENT_PRODUCT_TABLE_NAMES].sort());
+
+    // Both append-only triggers still exist (not dropped/redefined away).
+    const triggerRows = await db
+      .prepare("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name LIKE 'audit_log_%' ORDER BY name")
+      .all();
+    assert.deepEqual(
+      triggerRows.results.map(row => row.name),
+      ["audit_log_reject_delete", "audit_log_reject_update"]
+    );
+
+    // The existing audit row is untouched — no duplication, no mutation.
+    const after = await db.prepare("SELECT * FROM audit_log ORDER BY id").all();
+    assert.deepEqual(after.results, before.results);
+
+    // The triggers still function correctly after reapplication: direct
+    // UPDATE/DELETE against audit_log remain rejected, not silently
+    // dropped or weakened by the repeat schema application.
+    await assert.rejects(
+      () => db.prepare("UPDATE audit_log SET result = 'failure' WHERE id = ?").bind(before.results[0].id).run(),
+      /append-only/
+    );
+    await assert.rejects(() => db.prepare("DELETE FROM audit_log").run(), /append-only/);
+    const stillIntact = await db.prepare("SELECT * FROM audit_log ORDER BY id").all();
+    assert.deepEqual(stillIntact.results, before.results);
+  } finally {
+    await cleanup();
+  }
+});
