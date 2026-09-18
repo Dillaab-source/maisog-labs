@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL-LEGACY-ARCHIVE-AUDIT
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_LEGACY_ARCHIVE_AUDIT_ONLY
+CYCLE_ID: SENTINEL-LEGACY-ARCHIVE-REMEDIATION
+TURN: CLAUDE
+STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+AUTHORIZED_SCOPE: SENTINEL_LEGACY_ARCHIVE_REMEDIATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
 LAST_ARCHITECT_REVIEWED_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
 CURRENT_REMEDIATION_CYCLE: 0
@@ -25,62 +25,84 @@ Active Sentinel governance-capability baseline:
 S2:
 - CLOSED
 
-## Current authority
+## Authority chain
 
 Audit authorization:
 - `D-018`
 
-Current Architect Sync:
+Audit Architect Sync:
 - `ML-DEVOS-AS-009`
 
-Verdict:
+Audit verdict:
 - `AUDIT COMPLETE — REMEDIATION REQUIRED`
 
-## Audit result
+Remediation authorization:
+- `D-019`
 
-The Architect independently verified that:
+## Authorized Builder scope
 
-- `ML-DEVOS-AS-001.md` does not contain byte-exact reproductions of the historical snapshots it labels verbatim;
-- `ML-DEVOS-AS-002.md` does not contain byte-exact reproductions of the historical snapshots it labels verbatim;
-- `ML-DEVOS-AS-004.md` is a condensed narrative and is not byte-exact to its historical final Architect Review despite claiming verbatim archival.
-
-Historical Git evidence remains available and authoritative.
-
-This is a provenance/archive-truthfulness defect, not an invalidation of S0/S1/S2 architecture decisions.
-
-## Paulo decision required
-
-Paulo must explicitly decide whether to authorize Builder remediation of the legacy durable archives.
-
-Proposed Builder remediation scope:
+Claude may modify only:
 
 - `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`
 - `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`
 - `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
 - `devos/changes/architect-syncs/README.md`
-- normal handoff/state records
+- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md`
+- durable handoff/provenance documentation only where strictly needed to truthfully describe this remediation
 
-Required remediation method:
+## Required remediation method
 
-- retrieve actual historical `coordination/ARCHITECT_REVIEW.md` snapshots from Git;
-- embed them byte-for-byte in clearly identified fenced blocks;
-- mechanically verify exact reproduction;
-- keep any summaries outside the verbatim blocks;
-- preserve historical decisions and verdicts;
-- do not alter S0/S1/S2 architecture semantics;
-- do not begin S3.
+For each target archive:
+
+1. retrieve the actual historical `coordination/ARCHITECT_REVIEW.md` snapshot(s) from Git;
+2. embed each historical snapshot byte-for-byte inside clearly identified fenced blocks;
+3. keep explanatory metadata/summary outside the verbatim blocks;
+4. mechanically verify each fenced block against the cited source SHA;
+5. preserve historical decisions/verdicts;
+6. preserve S0/S1/S2 architecture semantics.
+
+For `ML-DEVOS-AS-004`:
+- preserve the full multi-cycle provenance;
+- preferred method: archive all historical AS-004 review snapshots from the initial review and remediation cycles as separate byte-exact fenced snapshots.
 
 ## Explicitly prohibited
 
 - no S3 proposal or implementation
-- no runtime changes
 - no project onboarding
+- no project registry population
+- no product `.devos/` overlay
 - no website migration
+- no runtime Policy/Task/Capability/Orchestrator/Evidence engines
 - no CI/workflows
-- no GitHub rulesets
-- no deployment
+- no GitHub rulesets/branch protection
+- no production deployment
 - no protected/main merge
+- no change to the substance of historical S0/S1/S2 decisions
+
+## Required Builder completion state
+
+When remediation is complete, Claude must set:
+
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
+- `PAULO_DECISION_REQUIRED: NO`
+
+and stop.
+
+## Architect review rule
+
+Before issuing a verdict, the Architect must:
+
+1. pull the live Sentinel branch/state;
+2. read the current Architect Sync;
+3. inspect the exact Builder handoff commit;
+4. compare the exact diff against `D-019` and `ML-DEVOS-AS-009`;
+5. independently compare the archived fenced snapshots against their cited historical Git snapshots;
+6. only then issue PASS / CHANGES_REQUESTED.
 
 ## Current gate
 
-`PAULO LEGACY-ARCHIVE REMEDIATION DECISION REQUIRED`
+`CLAUDE LEGACY-ARCHIVE REMEDIATION TURN`
