@@ -294,3 +294,31 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Main-merge gate:** `MAIN_MERGE_AUTHORIZED: NO`.
 - **Review rule:** after Builder handoff, the Architect must pull the live branch/state and compare the exact implementation diff against `ML-DEVOS-RFC-003`, `ML-DEVOS-AS-013`, this decision, D-007, and the verified Product Build Pack before issuing PASS / CHANGES_REQUESTED.
 - **Evidence of Paulo authority:** Paulo explicitly instructed, `Proceed with WEB-INC-005 authorization.`, after `WEB-INC-001` closed and the live state required a new Paulo decision. This decision applies only to WEB-INC-005 and is not blanket authorization for later increments or remote Cloudflare operations.
+
+
+### D-025 — Authorize WEB-INC-002 protected read-only admin dashboard implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `WEB-INC-005` closed and after the Architect classified/reviewed the next dependency-ordered increment through `ML-DEVOS-RFC-004` and `ML-DEVOS-AS-015`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-002 — Secure authenticated read-only dashboard`** exactly within the accepted scope of `ML-DEVOS-RFC-004`, subject to every binding constraint in `ML-DEVOS-AS-015`.
+- **Change class:** `ARCHITECTURE` — this increment creates the first authenticated HTTP composition from the accepted WEB-INC-001 Access/JWT trust boundary into the accepted WEB-INC-005 D1 subsystem and defines the protected editorial-read contract.
+- **Authorized protected endpoint:** exactly `GET /admin/api/dashboard`. No other editorial data endpoint is authorized.
+- **Authentication ordering:** all protected routing/data access remains subordinate to WEB-INC-001. Required order: `VALIDATE AUTH CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD DISPATCH → D1 READ`. Invalid auth/config must cause zero dashboard-handler/D1 invocation.
+- **Authorized data scope:** bounded status projection for current-content domains only — `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, `sections`.
+- **Authorized response fields:** stable ID; project slug where applicable; derived pointer state (`published`, `draft`, `published_with_draft`, `archived`); published/draft revision IDs; bounded display label; sections-only order/visibility summary. The serializer must be allowlist-based.
+- **Explicitly excluded response data:** full content copy, email addresses, raw revision rows, migration provenance/`created_by`, Access/JWT claims, SQL/schema internals, and any non-allowlisted field.
+- **Read-only rule:** no `INSERT`, `UPDATE`, `DELETE`, `REPLACE`, DDL, migration execution, arbitrary SQL, or storage mutation may be reachable from the dashboard path. Non-GET methods must fail with `405` after valid authentication and without dashboard D1 invocation.
+- **UI scope:** upgrade the authenticated `/admin` placeholder into a read-only dashboard shell showing bounded lifecycle/status information only. No create/edit/save/delete/publish/unpublish/upload/theme/journal/audit mutation control is authorized.
+- **Error/cache rules:** protected responses must be `Cache-Control: no-store`; dashboard JSON must use explicit JSON content type and `X-Content-Type-Options: nosniff`; missing DB after valid auth → generic `503`; D1 read failure after valid auth → generic `500`; authenticated unknown `/admin/api/*` → protected `404`; no raw internal error leakage and no permissive CORS.
+- **Identity boundary:** reuse WEB-INC-001 per-request JWT verification only. No application session cookie, persistent identity/session table, user/admin table, role/permission table, claim display, or browser storage of identity claims is authorized.
+- **Schema boundary:** the accepted 14-table WEB-INC-005 schema remains unchanged. If Builder believes a schema change is required, Builder must stop and return for Architect review rather than expanding scope.
+- **Public-site boundary:** `data/site.js → schema.mjs → public.mjs → local.mjs → app/page.js` remains the public content path. No public D1 cutover or retirement of `data/site.js` is authorized.
+- **Local-only D1 authority:** local Wrangler/D1 use and local seeded dashboard smoke tests are authorized. No remote D1 creation/query/migration/import/export, real `database_id`, or `remote: true` binding is authorized.
+- **Builder boundary:** Claude implements. Architect must independently inspect the exact implementation diff, authentication ordering, route/method dispatch, allowlisted serializer, D1 query shape, UI/client imports, cache/error handling, and scope before issuing a verdict.
+- **Required evidence:** all acceptance evidence enumerated in `ML-DEVOS-AS-015` `AS15-F015`, including auth-negative zero-D1 invocation, bounded serializer leakage tests, lifecycle fixtures, method rejection, protected 404/500/503 behavior, no-store/nosniff, no mutation controls/client D1 imports, existing test suites, build, local-only Wrangler smoke, dry-run/config validation, secret scan, and exact changed-file provenance.
+- **Explicitly not authorized:** `WEB-INC-008` or any later `WEB-INC-*`; audit substrate; content mutation; project CRUD; publish/unpublish; media/R2; journal; theme/design controls; persistent sessions/identity/roles; arbitrary/raw draft export; public D1 cutover; production Cloudflare Access configuration; deployment; protected/main merge; Sentinel S3 or later; CI/workflows/rulesets; project onboarding/product `.devos/`.
+- **Remote-D1 gate:** `REMOTE_D1_AUTHORIZED: NO`.
+- **Mutation gate:** `MUTATION_AUTHORIZED: NO`.
+- **Deployment gate:** `DEPLOY_AUTHORIZED: NO`.
+- **Main-merge gate:** `MAIN_MERGE_AUTHORIZED: NO`.
+- **Review rule:** after Builder handoff, the Architect must pull live branch/state and compare the exact implementation diff against `ML-DEVOS-RFC-004`, `ML-DEVOS-AS-015`, this decision, WEB-INC-001 accepted auth behavior, `ML-DEVOS-ADR-003`, and the verified Product Build Pack before PASS / CHANGES_REQUESTED.
+- **Evidence of Paulo authority:** Paulo explicitly instructed, `Proceed with WEB-INC-002 authorization.`, after WEB-INC-005 was closed and the live state required a new Paulo decision. This decision applies only to WEB-INC-002 and is not blanket authority for writes, later increments, remote Cloudflare resources, deployment, or main merge.
