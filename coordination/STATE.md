@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-005-D1-SUBSTRATE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_005_D1_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b
-LAST_ARCHITECT_REVIEWED_SHA: e0304a89ddfb5595866f1990cd9fca161e78ae2b
-CURRENT_REMEDIATION_CYCLE: 1
+LAST_ARCHITECT_REVIEWED_SHA: eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
@@ -77,17 +77,32 @@ Preserve PASS findings:
 
 No later increment, remote D1 operation, deployment, main merge, Sentinel S3, CI, or ruleset work is authorized.
 
-## Remediation Cycle 1 disposition (Builder, awaiting Architect verification)
+## Remediation Cycle 1 Architect disposition
 
-Builder reports all five findings resolved — see `coordination/IMPLEMENTER_HANDOFF.md` for the full disposition of each:
+Architect review of remediation commit `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b` and bookkeeping HEAD `d6204805da837fac02c3e5412b37296309d8e339` returned:
 
-- `AS14-F001`: `worker/d1/migrate.mjs` now preflights every entity read-only, throws before any write if any entity would refuse, and executes the entire write phase as one `db.batch()` call.
-- `AS14-F002`: no-op now requires exact pointer identity (the revision-1 id, not mere truthiness) plus exact `created_at`/`created_by` provenance equivalence.
-- `AS14-F003`: `worker/d1/validate.mjs`'s `order`/`icon`/`updatedAt`/stack-capacity predicates now match `lib/content/schema.mjs` exactly.
-- `AS14-F004`: `brain/IMPLEMENTATION_STATUS.md`, `docs/product/PRD.md`, `docs/product/DATA_BACKEND_SPEC.md` converged on the three-way public/local-D1/remote-D1 distinction.
-- `AS14-F005`: the handoff now states the corrected 19-path diff explicitly, naming the Builder's original 17-path report as `ACTOR_REPORTED` and the Architect's 19-path finding as `INDEPENDENTLY_INSPECTED`, without silently rewriting the original as though it had been correct.
+- `ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 2`
 
-`npm test`: 76/76 passing (27 content + 30 auth + 19 D1, 7 new this cycle). `npm run build` succeeded, unchanged routes. This disposition is Builder-reported (`ACTOR_REPORTED`) and awaits independent Architect verification before `ML-DEVOS-AS-014` can close.
+Resolved / preserved:
+
+- `AS14-F001` — RESOLVED: whole-run migration preflight + one batched write phase.
+- `AS14-F002` — RESOLVED: exact pointer identity and provenance equivalence.
+- `AS14-F003` — RESOLVED: validator contract aligned with current schema.
+- `AS14-F006` through `AS14-F010` — PASS / preserved.
+
+Remaining narrow corrections:
+
+1. `AS14-F004` — `docs/product/DATA_BACKEND_SPEC.md` still contains stale current-state wording that says the authentication/authorization boundary is nonexistent and the deployment is asset-only, even though WEB-INC-001 auth and the local WEB-INC-005 data substrate now exist. Correct only those stale current-state sentences while preserving:
+   - authentication boundary exists at repository level;
+   - persistent identity/session/editorial authorization is not implemented;
+   - protected D1 dashboard/read endpoint is not implemented;
+   - local D1 substrate exists;
+   - public source remains `data/site.js`;
+   - remote/production D1 remains absent.
+
+2. `AS14-F005` — current Remediation Cycle 1 handoff heading says `Exact ... 7 files`, but exact Git compare reports 9 changed paths. Correct to 9 total, or `7 substantive + 2 coordination = 9 total`. Preserve the historical original-implementation correction from 17 to 19.
+
+No runtime/data-layer reopening is authorized.
 
 ## Builder objective
 
@@ -329,4 +344,4 @@ Architect must independently inspect migration SQL, table inventory, data-access
 
 ## Current gate
 
-`ARCHITECT REVIEW OF WEB-INC-005 REMEDIATION CYCLE 1 — VERIFY DISPOSITION OF ML-DEVOS-AS-014 FINDINGS AS14-F001 THROUGH AS14-F005`
+`CLAUDE WEB-INC-005 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-014`
