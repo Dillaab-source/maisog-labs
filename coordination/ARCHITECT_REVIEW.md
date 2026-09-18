@@ -8,206 +8,154 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-012 — WEB-INC-001 Remediation Cycle 1 Verification
+# ML-DEVOS-AS-012 — WEB-INC-001 Remediation Cycle 2 Verification
 
 Cycle: `MAISOGLABS-WEB-INC-001-AUTH`
-Review mode: `POST-REMEDIATION ARCHITECTURE / SECURITY / SOURCE-OF-TRUTH REVIEW`
+Review mode: `FINAL SOURCE-OF-TRUTH / PROVENANCE CONVERGENCE REVIEW`
 Authority chain: `ML-DEVOS-RFC-002 → ML-DEVOS-AS-011 → D-023 → ML-DEVOS-AS-012`
-Reviewed Builder remediation commit: `4a8cc86bf3caabecccb1b6ec24ad1f19269966e6`
-Builder remediation base: `b0aa71a4ac0f4b0c9636ad4114b021a236eeafc5`
+Reviewed Builder remediation commit: `48609bc9578b9de627e0ff2b108f46b1470273e2`
+Builder remediation base: `aa458f79d7a767a35ccb6b1668e6c1df95727c2f`
 
-## Required review discipline performed
+## Review discipline performed
 
 Before issuing this verdict, the Architect:
 
 1. pulled the live governance branch and current `coordination/STATE.md`;
-2. confirmed live HEAD is exactly Builder remediation commit `4a8cc86...`;
-3. read the current Builder handoff and the previous `ML-DEVOS-AS-012` findings;
-4. independently compared exact Builder range `b0aa71a... → 4a8cc86...`;
-5. inspected `worker/auth.mjs`, `worker/index.mjs`, `wrangler.jsonc`, the updated auth tests, Product Technical Design, Project Governance, Governance Map, Risk Register, Test Ledger, handoff, and state;
-6. compared the remediation against `ML-DEVOS-RFC-002`, `ML-DEVOS-AS-011`, `D-023`, and the active Product Build Pack;
-7. checked for regression of the previously passing JWT-verification and selective Worker-first invariants;
-8. checked traceability/provenance claims against the exact Git diff.
+2. confirmed live HEAD is exactly Builder remediation commit `48609bc...`;
+3. read the current Builder handoff and previous `ML-DEVOS-AS-012` review;
+4. independently compared exact Builder range `aa458f79... → 48609bc...`;
+5. inspected all five files changed in Remediation Cycle 2;
+6. re-read current `TECHNICAL_DESIGN.md`, `GOVERNANCE_MAP.md`, `RISK_REGISTER.md`, Project Governance, handoff, and state for residual current-state contradictions;
+7. verified no runtime/auth/test/Wrangler/package/application code changed;
+8. checked Builder provenance claims against the exact Git diff.
 
-## Exact remediation diff
+## Exact remediation diff — PASS
 
-GitHub compare `b0aa71a4ac0f4b0c9636ad4114b021a236eeafc5 → 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6` reports:
+GitHub compare `aa458f79d7a767a35ccb6b1668e6c1df95727c2f → 48609bc9578b9de627e0ff2b108f46b1470273e2` reports:
 
 - exactly **1 Builder commit**;
-- exactly **11 changed files**:
+- exactly **5 changed files**:
   - `brain/GOVERNANCE_MAP.md`
-  - `brain/PROJECT_GOVERNANCE.md`
   - `brain/RISK_REGISTER.md`
-  - `brain/TEST_LEDGER.md`
   - `coordination/IMPLEMENTER_HANDOFF.md`
   - `coordination/STATE.md`
   - `docs/product/TECHNICAL_DESIGN.md`
-  - `tests/worker-auth.test.mjs`
-  - `worker/auth.mjs`
-  - `worker/index.mjs`
-  - `wrangler.jsonc`
 
-No D1/R2, later `WEB-INC-*`, S3, CI/ruleset, production deployment, or main-merge change appears in the Builder remediation diff.
+This matches the Builder's current Cycle 2 handoff exactly.
+
+No runtime/auth code, test, Wrangler config, package, application route, D1/R2, later `WEB-INC-*`, S3, CI/ruleset, deployment, or main-merge change appears in this remediation commit.
 
 ## Finding dispositions
 
-### AS12-F001 — RESOLVED
+### AS12-F001 — RESOLVED / PRESERVED
 
-The remediation now validates authentication configuration before protected-path token verification.
+Fail-closed required-auth-configuration validation remains unchanged from Cycle 1.
 
-Independent code inspection confirms:
+### AS12-F002 — PARTIALLY RESOLVED; two final current-state contradictions remain
 
-- `isValidTeamDomain`, `isValidAudience`, and `isValidAuthConfig` exist;
-- missing, blank, placeholder, scheme-bearing/path-bearing/malformed team-domain values are rejected;
-- missing, blank, or placeholder audience values are rejected;
-- protected-path handling checks config before invoking `getJWKS`;
-- invalid config returns `401` without `assets.fetch`;
-- the tests include a spy asserting no `getJWKS` call for invalid configuration;
-- a validly signed test token is explicitly unable to compensate for invalid config.
+The Cycle 2 corrections are correct:
 
-The critical fail-closed configuration invariant is now represented in code:
+- `TECHNICAL_DESIGN.md` now lists `/admin` in the current route inventory;
+- `worker/` is now represented as a current system boundary;
+- `WEB-REQ-004` correctly remains `NOT STARTED` while its evidence now acknowledges the auth-only `/admin` placeholder;
+- `RISK-WEB-007` and `RISK-WEB-011` now distinguish an auth placeholder from a write/edit/mutation surface.
 
-`INVALID REQUIRED AUTH CONFIG → NO JWKS RESOLUTION → NO ADMIN ASSET`
+However, an independent repository-wide wording sweep found two remaining current-state statements that still use the old “no admin surface” model:
 
-The previous token-level issuer/audience/signature/expiry tests remain present.
+1. `brain/GOVERNANCE_MAP.md` — the `DESIGN-001…014` row still says:
 
-### AS12-F002 — PARTIALLY RESOLVED — residual current-state contradictions remain
+   `Not implemented (no admin surface to host them)`
 
-The main stale statements identified in Cycle 1 were corrected:
+   That is now factually stale because an auth-only `/admin` surface exists. The correct reason is that no **admin design-control/editing surface** exists.
 
-- `jose` is now recorded as the implemented JWT dependency;
-- the Worker + Assets deployment shape is recorded;
-- the Product Technical Design no longer globally says there is no server-executed path;
-- the proposed-target introduction no longer says the already-implemented authentication boundary does not exist;
-- Project Governance no longer points to the closed Phase-1 bootstrap authorization as the current gate.
+2. `brain/RISK_REGISTER.md` — `RISK-WEB-014` still says:
 
-However, independent source-of-truth inspection found several remaining stale current-state statements:
+   `Not designed (no admin/mutation surface exists)`
 
-1. `docs/product/TECHNICAL_DESIGN.md` still says under **System boundaries**:
-   - `app/` currently has only route `/` plus generated `/_not-found`.
-   
-   That is now false because `app/admin/page.js` exists and the build produces `/admin`.
+   That wording conflates the now-real auth-only admin surface with the still-absent mutation/action capability. The correct statement is that no **admin mutation/action surface** exists.
 
-2. The same System-boundaries list omits the now-real `worker/` runtime boundary even though `docs/ARCHITECTURE.md` correctly records it.
+Required final correction:
 
-3. `brain/GOVERNANCE_MAP.md` still records `WEB-REQ-004` evidence as:
-   - `ADMIN STATUS: NOT IMPLEMENTED (no /admin route in app/)`.
-   
-   That is now factually false. The requirement itself is still correctly `NOT STARTED` because admin-managed content editing does not exist; the evidence/rationale must instead say that an **auth-only /admin placeholder exists, but no content-editing/persistence capability exists and edits still require source changes**.
+- change the Governance Map row to wording such as:
+  `Not implemented (no admin design-control/editing surface exists; WEB-INC-001 provides authentication only)`;
+- change `RISK-WEB-014` to wording such as:
+  `Not designed (no admin mutation/action surface exists; the current /admin is authentication-only)`;
+- preserve the existing statuses;
+- do not alter any runtime implementation.
 
-4. `brain/RISK_REGISTER.md` still contains stale wording such as:
-   - `RISK-WEB-007`: “no admin exists”;
-   - `RISK-WEB-011`: “no admin exists yet to introduce a new injection surface”.
-   
-   The correct distinction is that an admin authentication placeholder now exists, while no admin **write/edit/mutation** surface exists.
+The historical explanatory sentence in `GOVERNANCE_MAP.md` describing an earlier draft from the period when no admin surface existed may remain historical; the blocker is current-state table wording.
 
-Required remediation:
+### AS12-F003 — RESOLVED / PRESERVED
 
-- correct the route inventory in `TECHNICAL_DESIGN.md`;
-- add `worker/` to its current system-boundary list;
-- correct `WEB-REQ-004` evidence without changing its still-correct `NOT STARTED` status;
-- replace stale “no admin exists” risk wording with precise “no admin write/edit/mutation surface exists” wording;
-- do not broaden implementation scope while correcting the records.
-
-### AS12-F003 — RESOLVED AT REPOSITORY / LOCAL-EVIDENCE LEVEL
-
-`wrangler.jsonc` now explicitly pins:
-
-`assets.html_handling: "auto-trailing-slash"`
-
-and preserves selective Worker-first routing:
-
-`["/admin", "/admin/*"]`.
-
-The Builder reports local Wrangler evidence for:
-
-- `/admin` → 401 unauthenticated;
-- `/admin/` → 401 unauthenticated;
-- `/admin.html` → 307 to `/admin`, empty body, followed by 401;
-- `/admin/index.html` → 401.
-
-The pinned configuration and routing shape are independently inspected and consistent with the remediation request.
-
-The exact local Wrangler smoke-test outputs remain `ACTOR_REPORTED` in this Architect review; production behavior remains unclaimed and still requires later `RUNTIME_OBSERVED` evidence after a separately authorized deployment.
+Pinned HTML canonicalization and alternate-admin-path local evidence remain unchanged.
 
 ### AS12-F004 — PASS / PRESERVED
 
-Core JWT verification remains fail closed for the required token-failure classes.
+Core token verification remains unchanged.
 
 ### AS12-F005 — PASS / PRESERVED
 
-Worker-first routing remains selective and was not widened globally.
+Selective Worker-first routing remains unchanged.
 
 ### AS12-F006 — PASS / PRESERVED
 
-The Builder stayed within the authorized WEB-INC-001 remediation boundary.
+Scope boundary remains intact.
 
-### AS12-F007 — REQUIRED — durable Builder handoff has an exact-diff provenance defect
+### AS12-F007 — RESOLVED
 
-`coordination/IMPLEMENTER_HANDOFF.md` says:
+The historical Cycle 1 handoff diff count is now corrected truthfully to **11 files**, including both coordination files.
 
-> “Exactly 9 files”
+The current Cycle 2 handoff correctly reports **5 files**, matching the exact Git compare.
 
-for this remediation cycle.
-
-The exact Git compare reports **11 changed files**.
-
-The handoff's list covers the nine substantive remediation artifacts but omits the two normal coordination files that are nevertheless part of the commit:
-
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-
-Because the heading says **Exact changed-file list**, these files must be counted.
-
-Required remediation:
-
-- correct the Cycle 1 remediation handoff from 9 to 11 changed files;
-- include both coordination files in the exact list;
-- preserve the distinction between substantive remediation files and normal handoff/state files if useful, but do not call a partial list exact;
-- record that the Architect independently detected the count mismatch from Git compare.
-
-This is a provenance/bookkeeping defect, not a runtime/security failure.
-
-## Security verdict
-
-The runtime/security remediation itself is materially improved and the three original security/config findings are resolved at the repository-design/code-inspection level.
-
-No new security blocker was found in the auth logic during this pass.
-
-The remaining blockers are source-of-truth convergence and exact-diff provenance.
+The provenance record clearly states that the Architect independently detected the earlier mismatch rather than silently rewriting history.
 
 ## Evidence disposition
 
-- exact Git diff and repository/code/config inspection: `INDEPENDENTLY_INSPECTED`;
-- Builder `npm test`, build, dry-run, and local Wrangler smoke results: `ACTOR_REPORTED`;
-- no production authentication/deployment evidence exists or is claimed.
-
-No independent execution result is claimed in this pass.
+- exact Git diff and repository/source-of-truth inspection: `INDEPENDENTLY_INSPECTED`;
+- Builder test/build/dry-run/local Wrangler results from the runtime remediation remain `ACTOR_REPORTED`;
+- no new runtime execution was necessary or authorized in this docs-only cycle;
+- no production evidence exists or is claimed.
 
 ## Verdict
 
-`ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 2`
+`ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 3 (FINAL)`
 
-The auth implementation itself is now close to closure. Remediation Cycle 2 is deliberately narrow and documentation/provenance-focused.
+WEB-INC-001's runtime/auth implementation is not being reopened.
 
-WEB-INC-001 should not close until:
+Only two current-state wording corrections remain before the increment can close:
 
-1. all current-state records agree that the auth-only `/admin` and `worker/` boundary now exist while write/edit/storage features do not; and
-2. the Builder handoff truthfully records the exact 11-file remediation diff.
+1. `DESIGN-001…014` must no longer say no admin surface exists;
+2. `RISK-WEB-014` must distinguish the absent mutation/action surface from the existing auth-only admin surface.
 
-## Authorized Remediation Cycle 2 scope
+This is the final configured remediation cycle under `MAX_REMEDIATION_CYCLES: 3`.
+
+## Authorized Remediation Cycle 3 scope
 
 Claude may modify only:
 
-- `docs/product/TECHNICAL_DESIGN.md`;
 - `brain/GOVERNANCE_MAP.md`;
 - `brain/RISK_REGISTER.md`;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
 
-`brain/PROJECT_GOVERNANCE.md` should remain unchanged unless a direct contradiction with the above corrections is discovered.
+No other file is authorized.
 
-No runtime/auth code, tests, Wrangler config, package files, application route, D1/R2, later `WEB-INC-*`, S3, CI/ruleset, production Cloudflare configuration, deployment, or main-merge change is authorized in this remediation cycle.
+In particular, do not modify:
+
+- runtime/auth code;
+- tests;
+- `wrangler.jsonc`;
+- package files;
+- application routes;
+- Product Build Pack documents;
+- Project Governance;
+- D1/R2;
+- later `WEB-INC-*`;
+- S3;
+- CI/rulesets;
+- production Cloudflare configuration;
+- deployment;
+- protected/main merge.
 
 ## Deployment authority
 
@@ -217,4 +165,4 @@ No runtime/auth code, tests, Wrangler config, package files, application route, 
 
 ## Current gate
 
-`CLAUDE WEB-INC-001 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-012`
+`CLAUDE WEB-INC-001 REMEDIATION CYCLE 3 (FINAL) — SUBJECT TO ML-DEVOS-AS-012`
