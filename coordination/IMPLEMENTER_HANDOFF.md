@@ -155,4 +155,4 @@ Every command above is `--local` or non-mutating; none used `--remote`. Full det
 
 ## Commit
 
-Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) on top of remediation base `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2`. Exact commit SHA recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA` (a commit cannot self-reference its own hash within the same commit, so this file states the base SHA here and `STATE.md` carries the resulting SHA).
+Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as commit `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b` on top of remediation base `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2` — also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`. A second, immediately following documentation-only commit records this exact SHA into both files (a commit cannot self-reference its own hash).
