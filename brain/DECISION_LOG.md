@@ -227,3 +227,37 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Planning-only boundary:** this records direction only. It does not authorize creation of a pattern library, skill files, runtime loaders, Sentinel-core changes, S3 work, project onboarding, application implementation, CI, deployment, or protected/main merge.
 - **Future governance:** any implementation of this system must first be classified under the active Sentinel change policy and follow the required stronger path if it affects Sentinel capabilities or architecture.
 - **Evidence:** Paulo explicitly said `okay put that into record` after reviewing the cross-project learning and skill-promotion model.
+
+
+### D-023 — Authorize WEB-INC-001 authentication-boundary implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after the Product Build Pack closed and after the Architect classified/reviewed the next dependency-ordered increment through `ML-DEVOS-RFC-002` and `ML-DEVOS-AS-011`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-001 — Admin authentication boundary`** exactly within the accepted scope of `ML-DEVOS-RFC-002`, subject to every binding constraint in `ML-DEVOS-AS-011`.
+- **Change class:** `ARCHITECTURE` — the increment introduces the first server-executed request boundary and a new authentication trust boundary into the currently asset-only MaisogLabs website deployment.
+- **Authorized repository implementation scope:**
+  - add a bounded Worker entrypoint/auth helper for protected admin paths;
+  - update `wrangler.jsonc` for a Worker script + Assets binding + selective Worker-first routing for `/admin` and `/admin/*` only;
+  - add a minimal static `/admin` placeholder/shell solely to exercise the auth boundary;
+  - add only the dependency/dependencies actually required for maintained JWT verification and deterministic tests;
+  - add focused authentication/security tests;
+  - update architecture/product-tech/risk/test traceability only where needed to record what was actually implemented;
+  - update normal Builder handoff/state records.
+- **Required authentication behavior:** protected admin paths fail closed unless the Worker server-side validates the Cloudflare Access assertion for the expected issuer/team and application audience. Missing, malformed, expired, untrusted, or wrong-audience assertions must not receive the admin asset.
+- **Required evidence before Architect approval:**
+  - exact Builder diff;
+  - build succeeds;
+  - missing-token rejection;
+  - malformed-token rejection;
+  - expired-token rejection;
+  - wrong-audience rejection;
+  - correctly signed deterministic test-token acceptance;
+  - ordinary public routes remain asset-first / unaffected by the protected-path middleware;
+  - no production secret, private key, administrator identity, or real Access credential is committed.
+- **Test constraint:** local/deterministic auth tests must use test keys/JWKS and test issuer/audience values; they must not depend on production Cloudflare identity configuration.
+- **Builder boundary:** Claude implements. Architect does not implement the product/runtime change and must independently inspect the exact commit and reproduce deterministic auth tests where practical before issuing a verdict.
+- **External Cloudflare boundary:** this decision does **not** authorize creating/modifying a production Cloudflare Access application, Access policy, identity-provider setting, secret, custom-domain production route, or any other live Cloudflare security resource. A real Access configuration change requires a separate concrete Decision Packet and explicit Paulo authorization.
+- **Explicitly not authorized:** `WEB-INC-005` or any later `WEB-INC-*`; D1; R2; protected editorial reads; admin dashboard data; project/journal CRUD; content mutation; audit-log persistence; theme/design controls; S3 or later Sentinel phases; project onboarding; product `.devos/` overlay; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge.
+- **Deployment gate:** `DEPLOY_AUTHORIZED: NO`.
+- **Main-merge gate:** `MAIN_MERGE_AUTHORIZED: NO`.
+- **Review rule:** after Builder handoff, the Architect must pull the live branch/state and compare the exact implementation diff against `ML-DEVOS-RFC-002`, `ML-DEVOS-AS-011`, this decision, and the verified Product Build Pack before issuing PASS / CHANGES_REQUESTED.
+- **Evidence of Paulo authority:** Paulo explicitly instructed, `Proceed with authorizations`, after the Product Build Pack closed with the live state requiring a new Paulo decision before implementation. This decision applies that instruction to the next dependency-ordered increment only; it is not blanket authorization for later increments.
