@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: aa458f79d7a767a35ccb6b1668e6c1df95727c2f  # NOTE: this is the base HEAD this remediation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
-LAST_ARCHITECT_REVIEWED_SHA: 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6
-CURRENT_REMEDIATION_CYCLE: 2
+LAST_IMPLEMENTER_HANDOFF_SHA: 48609bc9578b9de627e0ff2b108f46b1470273e2
+LAST_ARCHITECT_REVIEWED_SHA: 48609bc9578b9de627e0ff2b108f46b1470273e2
+CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -43,26 +43,29 @@ Paulo's instruction `Proceed with authorizations` has been applied to this next 
 
 ## Builder review state
 
-Architect review of `4a8cc86bf3caabecccb1b6ec24ad1f19269966e6` returned:
+Architect review of `48609bc9578b9de627e0ff2b108f46b1470273e2` returned:
 
-- `ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 2`
+- `ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 3 (FINAL)`
 
-Remediation Cycle 1 disposition:
+Remediation Cycle 2 disposition:
 
-- `AS12-F001` — RESOLVED: auth configuration itself now fails closed before JWKS/network lookup;
-- `AS12-F003` — RESOLVED at repository/local-evidence level: `html_handling` pinned and alternate admin URL forms locally exercised;
-- `AS12-F004`/`F005`/`F006` — preserved PASS;
-- `AS12-F002` — PARTIALLY RESOLVED: several residual current-state contradictions remain;
-- `AS12-F007` — new provenance defect: the handoff says exactly 9 changed files, while exact Git compare reports 11.
+- `AS12-F001` — RESOLVED / preserved;
+- `AS12-F003` — RESOLVED / preserved;
+- `AS12-F004`/`F005`/`F006` — PASS / preserved;
+- `AS12-F007` — RESOLVED: Cycle 1 exact diff corrected to 11 files, current Cycle 2 exact diff correctly records 5;
+- `AS12-F002` — two final current-state wording contradictions remain.
 
-Cycle 2 corrections resolved this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` for full disposition):
+Final Cycle 3 corrections:
 
-1. `docs/product/TECHNICAL_DESIGN.md` § "System boundaries" — route inventory now lists `/admin` (explicitly labeled as the `WEB-INC-001` auth-boundary placeholder only, not a portal) alongside `/` and `/_not-found`; `worker/` added as its own boundary entry, described as authentication-only with no content read/write, no database, no persistent session/editorial state;
-2. `brain/GOVERNANCE_MAP.md` — `WEB-REQ-004` remains `NOT STARTED` (unchanged); its evidence no longer says there is no `/admin` route — now states an auth-only placeholder exists with no content-editing/persistence/CRUD/publish capability, and public content still requires a direct source edit and rebuild/redeploy;
-3. `brain/RISK_REGISTER.md` — `RISK-WEB-007` and `RISK-WEB-011`'s stale "no admin exists" wording replaced with "no admin write/edit/persistence surface exists" and "no admin write/edit/mutation input surface exists" respectively; neither risk's status changed;
-4. `coordination/IMPLEMENTER_HANDOFF.md` — Cycle 1's exact remediation diff corrected from the false "9" to the true 11 changed files, including both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`; the correction states plainly that the Architect independently detected the mismatch via exact Git compare, per `AS12-F007`.
+1. `brain/GOVERNANCE_MAP.md`
+   - `DESIGN-001…014` currently says `Not implemented (no admin surface to host them)`;
+   - correct to precise wording that an auth-only admin surface exists, but no admin design-control/editing surface exists.
 
-This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it. No runtime/auth-code/config/test file was touched this cycle — confirmed by diff-scope check and an unaffected `57/57` test re-run.
+2. `brain/RISK_REGISTER.md`
+   - `RISK-WEB-014` currently says `Not designed (no admin/mutation surface exists)`;
+   - correct to precise wording that no admin mutation/action surface exists; the current `/admin` is authentication-only.
+
+Preserve existing statuses. No runtime implementation is reopened.
 
 ## Authorized repository implementation
 
@@ -204,4 +207,4 @@ Architect must independently reproduce deterministic auth tests where practical 
 
 ## Current gate
 
-`ARCHITECT WEB-INC-001 REMEDIATION CYCLE 2 VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-012`
+`CLAUDE WEB-INC-001 REMEDIATION CYCLE 3 (FINAL) — SUBJECT TO ML-DEVOS-AS-012`
