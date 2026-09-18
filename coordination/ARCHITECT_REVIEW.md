@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED`
+Status: `PAULO_DECISION_REQUIRED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,174 +8,113 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-004 — S1 Governance Kernel Final Stage-Gate Review
+# ML-DEVOS-AS-005 — S1 Activation / v1.3.0 Closure Verification
 
-Cycle: `SENTINEL-S1-GOVERNANCE-KERNEL`
-Review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`
-Reviewed final remediation commit: `df9675cbc2baac398071dc77ba6c4728cf54d2d5`
-Architect-return base: `6c749f006384d1cc0e6a4de614bbf7a15008e518`
-Final remediation cycle reviewed: `3 / 3`
+Cycle: `SENTINEL-S1-ACTIVATION-CLOSURE`
+Review mode: `STAGE GATE REVIEW / ACTIVATION-PROVENANCE VERIFICATION`
+Reviewed closure commit: `47a86f841e4c4eb40359ca0091ca2f5146a25676`
+Closure base: `787d0bf77f5968c5dc108bd9f6882474b7bdaefb`
 
 ## Scope
 
-Independent final S1 Governance Kernel re-review after the third and final authorized remediation cycle.
+Independent verification of the documentation/static-governance closure that claims to implement Paulo decision `D-013` and activate the S1 Governance Kernel as Sentinel `v1.3.0`.
 
-This review approves the **technical S1 Governance Kernel stage gate only**. It does not itself activate S1-origin rules, apply Sentinel v1.3.0, create the S1 closure ADR, authorize S2, authorize deployment, authorize protected/main merge, or authorize any runtime enforcement subsystem.
+This review does not authorize S2, runtime enforcement, CI/workflows, GitHub rulesets, deployment, protected/main merge, or any application/project migration.
 
 ## Evidence independently inspected
 
 The Architect independently inspected:
 
-- live branch HEAD at `df9675cbc2baac398071dc77ba6c4728cf54d2d5`;
-- Git compare `6c749f006384d1cc0e6a4de614bbf7a15008e518` → `df9675cbc2baac398071dc77ba6c4728cf54d2d5`;
+- live branch HEAD at `47a86f841e4c4eb40359ca0091ca2f5146a25676`;
+- Git compare `787d0bf77f5968c5dc108bd9f6882474b7bdaefb` → `47a86f841e4c4eb40359ca0091ca2f5146a25676`;
+- `brain/DECISION_LOG.md` including `D-013`;
+- `devos/governance/rules/core-rules.json`;
+- `devos/governance/specifications/VERSIONING_POLICY.md`;
+- `devos/changes/adrs/ML-DEVOS-ADR-001.md`;
+- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`;
+- `devos/changes/adrs/README.md`;
+- `devos/changes/architect-syncs/README.md`;
 - `coordination/STATE.md`;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `devos/governance/registry/validate-waivers.mjs`;
-- `devos/governance/registry/waiver-record.schema.json`;
-- `devos/changes/waivers/README.md`;
-- `devos/templates/WAIVER_TEMPLATE.md`;
-- `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`;
-- the unchanged S1 rule registry to confirm S1-origin rules remain proposed.
+- `coordination/IMPLEMENTER_HANDOFF.md`.
 
-GitHub independently reports the Builder-owned final remediation as exactly one commit on top of the Architect-return base, changing exactly six authorized files:
+GitHub independently reports the closure as one verified Builder commit changing exactly 16 documentation/static-governance files. No frozen S0 architecture file, application/runtime/deployment/configuration file, CI workflow, ruleset, website/admin artifact, or S2+ implementation is in the closure diff.
 
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-- `devos/changes/waivers/README.md`
-- `devos/governance/registry/validate-waivers.mjs`
-- `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`
-- `devos/templates/WAIVER_TEMPLATE.md`
+## Closure implementation findings
 
-The commit is GitHub-signature verified. No frozen S0 architecture file, rule registry, runtime/application/deployment/configuration file, CI workflow, ruleset, website/admin artifact, or S2+ implementation changed in cycle 3.
+### C-001 — PASS — closure scope matches the five authorized closure actions structurally
 
-## Final finding disposition
+The commit performs the expected closure actions:
 
-### S1-F001 — RESOLVED
+1. records `D-013`;
+2. creates `ML-DEVOS-ADR-001`;
+3. activates exactly `CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, `CORE-018`;
+4. records `1.3.0` as the active governance-capability baseline;
+5. updates S1 governance/specification status banners and closure documentation.
 
-Class-level authority/risk floors remain intact.
+No S2 work is bundled into this change.
 
-### S1-F002 — RESOLVED
+### C-002 — PASS — S1 rule activation fields are internally consistent
 
-Evidence combination semantics remain explicit and machine-readable through `all_of` / `any_of`.
+The five S1-origin rules now consistently carry:
 
-### S1-F003 — RESOLVED
+- `status: ACTIVE`;
+- `effective_version: 1.3.0`;
+- `proposed_effective_version: null`;
+- `adr_id: ML-DEVOS-ADR-001`.
 
-Waiver authority-reference binding, waivability, and expiry-authoritative semantics remain intact.
+The thirteen S0-origin rules remain active at `1.2.0`.
 
-### S1-F004 — RESOLVED
+### C-003 — PASS — ADR/version record is coherent
 
-The final blocker is closed.
+`ML-DEVOS-ADR-001` accurately records:
 
-`validate-waivers.mjs` now enforces the declared S1 waiver-record static shape, including:
+- the pre-RFC bootstrap nature of S1;
+- AS-004 technical approval;
+- the intended Paulo activation gate;
+- the `1.2.0 → 1.3.0` governance-capability transition;
+- the fact that S1 remains static governance rather than runtime enforcement;
+- the fact that S2 remains separately gated.
 
-- fail-closed JSON parsing;
-- `additionalProperties: false`;
-- required-field presence;
-- `waiver_id` and `rule_waived` patterns;
-- non-empty required strings;
-- `risk` / `status` enums;
-- exact `YYYY-MM-DD` field shape for `issued_at` / `expires_at`;
-- `evidence` array shape and evidence-class membership;
-- optional approval-reference type/minLength when present;
-- target-rule existence and `waivable: true`;
-- conditional Paulo-decision and Architect-Sync reference presence;
-- expiry ordering and expiry overriding stale `ACTIVE` status;
-- fail-closed dependency parsing for the rule registry.
+### C-004 — PASS — AS-004 archive is consistent with the concluded technical review
 
-The remaining limitations are accurately disclosed: the validator does not prove cited approval records are genuine, does not prove compensating controls are effective, does not perform runtime enforcement, and does not validate semantic calendar reality beyond the declared S1 date-shape check. Those limitations are appropriate for S1 static governance.
+The durable AS-004 archive correctly records the four-pass S1 review history and final technical verdict. No open S1-F001…S1-F009 finding remains in AS-004.
 
-### S1-F005 — RESOLVED
+### C-005 — BLOCKER — D-013 human-approval provenance is not independently verified
 
-Project overlays cannot silently weaken core rules through a lower-authority path.
+`brain/DECISION_LOG.md` states that Paulo gave the following decision **verbatim**:
 
-### S1-F006 — RESOLVED
+> `I approve Sentinel S1 activation and version closure...`
 
-Decision Packet payload/hash exclusivity remains correct.
+and the closure commit treats that quoted approval as the authority for activating the five S1 rules and applying `v1.3.0`.
 
-### S1-F007 — RESOLVED FOR TECHNICAL S1; ACTIVATION REMAINS PAULO-GATED
+The repository contains Claude's record of that approval, but this Architect review does not have an independently verifiable Paulo-authored repository artifact proving that the exact quoted D-013 text was actually issued by Paulo.
 
-The repository correctly distinguishes:
+This matters because active constitutional rule `CORE-001` states that human authority cannot be invented by an agent or mechanism. A Builder cannot manufacture or paraphrase a human approval into existence and then use that same record as the source of authority.
 
-- S0-origin rules: `ACTIVE`, effective `1.2.0`;
-- S1-origin rules: `PROPOSED`, `effective_version: null`, proposed `1.3.0`.
+**Required resolution:** Paulo must explicitly confirm or reject D-013 now.
 
-The S1 bootstrap transition is explicit: D-012 + AS-003 are the pre-RFC authorization/design records, and final closure requires the first durable ADR plus explicit version/rule activation.
+A sufficient confirmation is:
 
-Architect approval alone does not activate the proposed CORE_POLICY/CONSTITUTIONAL/CAPABILITY rules.
+`I confirm D-013 exactly as recorded in brain/DECISION_LOG.md. I approve S1 Governance Kernel activation, CORE-008/009/016/017/018 activation, the v1.2.0 → v1.3.0 transition, ML-DEVOS-ADR-001, and the documentation-only S1 closure. This does not authorize S2, deployment, or main merge.`
 
-### S1-F008 — RESOLVED
+If Paulo confirms, no Builder content remediation is required for the activation itself; the Architect can record final closure verification and normalize state.
 
-AS-001 and AS-002 are durably archived from repository-verifiable Git history.
-
-### S1-F009 — RESOLVED
-
-The provenance/count wording now correctly distinguishes:
-
-- full prior review-cycle range `65c02a4...` → `c2ba0374...`: 18 files including Architect-owned review state;
-- Builder-owned cycle-2 commit `c3ae9dc5...` → `c2ba0374...`: 17 authorized files;
-- Builder-owned cycle-3 commit `6c749f00...` → `df9675cb...`: 6 authorized files.
-
-No Builder-owned range is now incorrectly represented as excluding Architect-owned writes that actually occur in the larger review-cycle range.
+If Paulo rejects or corrects D-013, the activation commit must be remediated to match Paulo's actual decision before S1 can be considered closed.
 
 ## Validator evidence disposition
 
-Claude's command output remains `ACTOR_REPORTED` evidence. The Architect did not execute the Node validator in an independent runtime in this connector-only review; instead the Architect independently inspected the final validator implementation, schema, handoff test matrix, Git diff scope, and the unchanged registry state.
+Claude reports both static validators passed after activation. That command output remains `ACTOR_REPORTED`. The Architect independently inspected the resulting static records and version/rule-state consistency. No claim of `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED` is made.
 
-Therefore:
+This is not the current blocker.
 
-- implementation/schema alignment is `INDEPENDENTLY_INSPECTED`;
-- Claude's reported real/synthetic validator executions remain `ACTOR_REPORTED`;
-- no claim of `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED` evidence is made.
+## Verdict
 
-This is sufficient for the S1 documentation/static-governance stage gate because S1 does not claim a deployed runtime enforcement mechanism.
+`SENTINEL S1 ACTIVATION CLOSURE: TECHNICALLY CONFORMING — PAULO CONFIRMATION REQUIRED`
 
-## Version disposition
+The closure implementation is structurally correct and within scope, but the human-authorization provenance for D-013 must be confirmed before the Architect can certify S1/v1.3.0 as finally closed.
 
-The accepted next version remains:
+## Current Architecture Sync status
 
-`1.2.0 → 1.3.0 MINOR`
+`ML-DEVOS-AS-005: PAULO_DECISION_REQUIRED`
 
-but it is still **not active**.
-
-Five S1-origin rules remain `PROPOSED`; no closure ADR exists yet; no `effective_version: 1.3.0` activation has occurred.
-
-## Technical stage-gate verdict
-
-`SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
-
-All S1-F001…S1-F009 technical findings are resolved within the authorized S1 Governance Kernel scope.
-
-## Paulo gate required for S1 activation / v1.3.0 closure
-
-The next action is **not S2**.
-
-Paulo must explicitly decide whether to close and activate S1 as Sentinel v1.3.0.
-
-A Paulo approval must authorize, at minimum:
-
-1. adoption of the S1 Governance Kernel as the active Sentinel governance-capability baseline;
-2. activation of the five S1-origin proposed rules:
-   - `CORE-008`
-   - `CORE-009`
-   - `CORE-016`
-   - `CORE-017`
-   - `CORE-018`;
-3. the explicit `1.2.0 → 1.3.0` version transition;
-4. creation of the first durable ADR recording the Governance Kernel/bootstrap transition and effective version;
-5. documentation-only closure updates needed to record those facts.
-
-This approval does **not** automatically authorize S2. S2 requires a separate Paulo authorization after S1 closure is recorded.
-
-Until Paulo decides:
-
-- S1-origin rules remain `PROPOSED`;
-- Sentinel remains effectively at the S0 v1.2.0 baseline plus an Architect-approved-but-not-yet-activated S1 candidate;
-- `DEPLOY_AUTHORIZED: NO`;
-- `MAIN_MERGE_AUTHORIZED: NO`;
-- no S2+ work may begin.
-
-## ML-DEVOS-AS-004 final status
-
-`ML-DEVOS-AS-004: ARCHITECT_APPROVED — AWAITING PAULO S1 ACTIVATION / VERSION-CLOSURE DECISION`
-
-This concluded Architect Sync may now be archived as a durable record.
+No S2 or later work may begin while this gate is open.
