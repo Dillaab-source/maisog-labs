@@ -211,3 +211,19 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Explicitly not authorized:** S3 proposal or implementation; application/runtime code changes; admin/backend implementation; D1/R2/API provisioning; project onboarding; project registry population; product `.devos/` overlays; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge.
 - **Review rule:** after Builder handoff, the Architect must pull live Sentinel state and compare the exact Builder diff against D-020, D-021, the existing website/product documents, and current Sentinel architecture/governance before issuing a verdict.
 - **Evidence:** Paulo explicitly replied `approved` after being told that D-020 remained planning-only and required separate authorization before `docs/product/*` implementation.
+
+
+### D-022 — Record cross-project reusable-pattern and skill direction
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision:** Record a future MaisogLabs process for extracting lessons from real builds, validating them across projects, and promoting only proven reusable patterns into templates, skills, or shared modules.
+- **Promotion pipeline:** `Observed lesson → Generalizable pattern candidate → Reproduced in another project → Validated pattern → Repeatable procedure with defined inputs/outputs/checks → Skill candidate → Evaluation → Promoted reusable skill`.
+- **Layer separation:** keep project knowledge, lessons, patterns, templates, agent skills, and reusable executable modules distinct. A project-specific fact must not be treated as a universal skill.
+- **Promotion rule:** a one-off lesson is not enough. Promotion requires clear preconditions, boundaries, portability, evidence from another context, and success/failure checks where practical.
+- **Context rule:** reusable skills should stay small and task-scoped. Canonical project truth remains in project/repository documents; reusable skills reference that truth rather than duplicating it.
+- **Sentinel relationship:** Sentinel remains authoritative for scope, change classification, evidence, review, and human gates. Reusable patterns/skills are subordinate capabilities, not a second governance authority.
+- **Cross-project intent:** patterns may be learned from MaisogLabs, ClinicFlow, PUSAKAL, n8n workflows, websites, bots, and later projects, but reuse must preserve each target project's own constraints.
+- **Initial candidate areas:** repository grounding; change classification; bounded Builder handoff; independent diff review; source-of-truth checks; dependency-order validation; current-vs-proposed claim checks; draft/published boundary review; webhook recovery/idempotency; structured-output normalization; evidence classification.
+- **Planning-only boundary:** this records direction only. It does not authorize creation of a pattern library, skill files, runtime loaders, Sentinel-core changes, S3 work, project onboarding, application implementation, CI, deployment, or protected/main merge.
+- **Future governance:** any implementation of this system must first be classified under the active Sentinel change policy and follow the required stronger path if it affects Sentinel capabilities or architecture.
+- **Evidence:** Paulo explicitly said `okay put that into record` after reviewing the cross-project learning and skill-promotion model.
