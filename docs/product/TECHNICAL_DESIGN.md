@@ -41,9 +41,10 @@ The existing website governance plan already records a Worker/D1/R2/auth directi
 
 - **Cloudflare Worker API routes** — server-side endpoints for admin mutations, sitting alongside (not replacing) the existing static-asset Worker.
 - **Authentication boundary** — a server-side session/identity check gating `/admin` and all mutation endpoints. Must fail closed (`WEB-SEC-011`).
-- **D1** — structured storage for `site_settings`, `navigation`, `sections`, `projects`, `journal_entries`, `theme_settings`, `audit_log` (contracts owned by `DATA_BACKEND_SPEC.md`, not this file).
+- **D1** — structured storage for `site_settings`, `navigation`, `sections`, `foundations`, `projects`, `services`, `process_steps`, `journal_entries`, `theme_settings`, `audit_log`, plus the revision/junction tables (`project_revisions`, `project_media`, etc.) described below (contracts owned by `DATA_BACKEND_SPEC.md`, not this file).
 - **R2** — media storage, introduced only after content/authorization boundaries are tested (`docs/ARCHITECTURE.md`).
-- **Public read path** — the public site would continue to read only a published-only projection, analogous to today's `projectPublishedContent()` (`lib/content/public.mjs`), but sourced from D1 instead of `data/site.js`.
+- **Protected editorial read path** — a server-side data-access layer that can read `draft`/unpublished editorial state on behalf of an authenticated admin. This does **not** exist today and cannot be approximated by exposing anything from the current static `out/` assets or `data/site.js` at request time — the current deployment is asset-only/static (`wrangler.jsonc`), so there is no server-side code path to protect a read with. Any admin-facing read of non-public state requires this substrate to exist first (see `AS10-R006` disposition in `coordination/IMPLEMENTER_HANDOFF.md` and `APP_FLOW.md` §2b/§2e).
+- **Public read path** — the public site would continue to read only a published-only projection, analogous to today's `projectPublishedContent()` (`lib/content/public.mjs`), but sourced from D1 instead of `data/site.js`, following each entity's `published_revision_id` pointer (see `DATA_BACKEND_SPEC.md` § "Publication / revision model").
 
 A future implementation increment for any of the above requires its own bounded authorization and independent Architect review (`AS10-F012`) — this document grants none.
 
@@ -54,7 +55,7 @@ Current (`CURRENTLY IMPLEMENTED`):
 - `lib/content/schema.mjs` rejects unknown fields, control characters, and unsafe link targets (`href()` allowlists in-page anchors and validated `mailto:` only) — mitigates `RISK-WEB-011` for the current content-editing surface.
 - Draft/archived records are filtered from the public projection at build time (`lib/content/public.mjs`) — but this is **not** confidentiality: the Git source, including drafts, remains public (`docs/CONTENT.md`, `RISK-WEB-013`).
 
-Future (`PROPOSED TARGET`, tracked against the existing `WEB-SEC-001`…`012` catalog — not restated here, see `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §11 and `brain/GOVERNANCE_MAP.md`):
+Future (`PROPOSED TARGET`, tracked against the existing `WEB-SEC-001`…`012` catalog — not restated here, see `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §13 and `brain/GOVERNANCE_MAP.md`):
 - Server-side authorization checks on every mutation (`WEB-SEC-002`, `007`, `008`).
 - Server-side input validation reusing the existing schema-validation pattern (`WEB-SEC-004`, `006`).
 - Media upload validation before any R2 write exists (`WEB-SEC-005`).

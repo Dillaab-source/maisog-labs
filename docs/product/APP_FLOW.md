@@ -75,13 +75,15 @@ Authentication/session mechanism (identity provider, cookie/JWT scheme) is undec
 
 ```
 [PROPOSED TARGET] Admin dashboard
-      ├─ Projects (list, current state per project)
-      ├─ Journal (list, current state per entry)          [depends on journal existing at all]
+      ├─ Projects (list, published/draft revision state per project)
+      ├─ Journal (list, published/draft revision state per entry)  [depends on journal existing at all]
       ├─ Sections (visibility/order)                        (DESIGN-002, DESIGN-003)
       ├─ Design settings (theme tokens within allowed ranges) (DESIGN-001…014)
       ├─ Media library                                       (ADM-REQ-006)
       └─ Audit log (read-only)                               (WEB-SEC-009)
 ```
+
+**Read path correction (`AS10-R006`):** the dashboard reads through the protected server-side editorial data-access substrate (`DATA_BACKEND_SPEC.md` § "Publication / revision model"; `TECHNICAL_DESIGN.md` § "Proposed target architecture"), never draft/archived content sourced directly from the current static `data/site.js`/`out/` deployment. The current production deployment is asset-only/static (`wrangler.jsonc`); it has no server-side code path that could safely gate a draft/archived read, so a dashboard cannot exist safely before that substrate does. `BUILD_PLAN.md`'s `WEB-INC-002` is scoped and sequenced accordingly: it depends on both the auth boundary (`WEB-INC-001`) and the protected data-access substrate (`WEB-INC-005` or an equivalent explicitly authorized substrate), and its acceptance criteria require the dashboard's editorial reads to come from that substrate, not from public static assets.
 
 ### 2c. Create / edit — `PROPOSED TARGET`
 
@@ -90,35 +92,40 @@ Authentication/session mechanism (identity provider, cookie/JWT scheme) is undec
 Admin selects "New project" / "Edit project"
       │
       ▼
-Form pre-populated (edit) or blank (create), client-side hints only —
-authoritative validation happens server-side (WEB-SEC-004)
+Form pre-populated from the entity's current draft_revision_id (edit, if one exists)
+or its published_revision_id (edit, if no draft exists yet) — blank (create).
+Client-side hints only — authoritative validation happens server-side (WEB-SEC-004)
       │
       ▼
 Admin submits
       │
       ▼
 Server validates (reusing the existing schema-validation pattern, lib/content/schema.mjs,
-extended for a mutable store — see DATA_BACKEND_SPEC.md)
+extended for a revisioned mutable store — see DATA_BACKEND_SPEC.md § "Publication / revision model")
       │
       ├─ invalid ──▶ §2g "validation failure"
-      └─ valid ──▶ persist as draft (ADM-REQ-003, ADM-REQ-014) ──▶ §2f "success"
+      └─ valid ──▶ create/update a row in <entity>_revisions and point draft_revision_id at it
+                   (ADM-REQ-003, ADM-REQ-014). The entity's published_revision_id is
+                   NOT touched by this step — the live public version is unaffected
+                   while the draft is edited (AS10-R005) ──▶ §2f "success"
 ```
 
 ### 2d. Draft — `PROPOSED TARGET`
 
-A record persists in `draft` state (the schema already models `draft`/`published`/`archived` — `record.state` in `lib/content/schema.mjs` — but nothing today can set that state except a direct Git edit). In the target design, a draft is visible to admins only and is never part of the public projection, mirroring the existing published-only filter behavior in `lib/content/public.mjs`.
+A draft is a row in `<entity>_revisions` that the entity's `draft_revision_id` points to (`DATA_BACKEND_SPEC.md` § "Publication / revision model"). It coexists with, and never overwrites, whatever `published_revision_id` currently points to — the currently-live public version is a separate, untouched row. This directly resolves the coexistence gap `AS10-R005` identified in the prior single-`state`-field design. (Today, the schema still only models a flat `draft`/`published`/`archived` `record.state` in `lib/content/schema.mjs`, and nothing can set it except a direct Git edit — the revision-pointer model above is the proposed successor, not a description of current behavior.) A draft is visible to admins only and is never part of the public projection, mirroring the existing published-only filter behavior in `lib/content/public.mjs`.
 
 ### 2e. Preview — `PROPOSED TARGET`
 
 ```
-[PROPOSED TARGET] Admin opens preview for a draft record
+[PROPOSED TARGET] Admin opens preview for an entity with a pending draft
       │
       ▼
 Render using the same presentation components the public site uses,
-fed by the draft record instead of the published projection
+fed by the entity's draft_revision_id content instead of its published_revision_id
       │
       ▼
-Preview is admin-session-gated; it must never be reachable by an
+Preview is admin-session-gated, reading through the protected editorial
+substrate (§2b, AS10-R006); it must never be reachable by an
 unauthenticated public request (WEB-SEC-001, 002, 008)
 ```
 
@@ -128,24 +135,31 @@ unauthenticated public request (WEB-SEC-001, 002, 008)
 
 ```
 [PROPOSED TARGET]
-Admin clicks "Publish" on a draft record
+Admin clicks "Publish" on an entity with a pending draft_revision_id
       │
       ▼
-Server re-validates the full record (never trust prior draft validation state)
+Server re-validates the full draft revision in full (never trust prior draft-time validation)
       │
       ├─ invalid ──▶ §2g
-      └─ valid ──▶ state: draft → published, audit entry written (WEB-SEC-009) ──▶ success (ADM-REQ-015)
+      └─ valid ──▶ published_revision_id := draft_revision_id (atomic pointer swap,
+                   NOT an overwrite of the prior published revision, which remains in
+                   <entity>_revisions for history); draft_revision_id is then cleared;
+                   audit entry written (WEB-SEC-009) ──▶ success (ADM-REQ-015)
                        │
                        ▼
-                 Next public build/serve reflects the change
+                 Next public build/serve follows the entity's (now-updated)
+                 published_revision_id
                  (exact mechanism — rebuild-on-publish vs. live read — is a
                  TECHNICAL_DESIGN.md/DATA_BACKEND_SPEC.md decision, not fixed here)
 
-Admin clicks "Unpublish" on a published record
+Admin clicks "Unpublish" on an entity with a published_revision_id
       │
       ▼
-State: published → archived (or a dedicated unpublished state — see DATA_BACKEND_SPEC.md),
-audit entry written, record immediately excluded from the next public projection
+published_revision_id := null (or a designated "retracted" marker — a future
+increment decision), immediately excluding the entity from the next public
+projection. All revision rows, including the one just unpublished, are
+preserved per a future explicit retention rule — unpublish is a pointer
+change, never a deletion of revision history (RISK-WEB-003)
 ```
 
 ### 2g. Validation failure
@@ -223,7 +237,7 @@ applied to the public render on next build/serve
 
 ## 3. Public published-only rendering — `CURRENTLY IMPLEMENTED`
 
-This is the one admin-adjacent guarantee that already exists and must not regress: `projectPublishedContent()` (`lib/content/public.mjs`) filters every record collection (`navigation`, `foundations`, `projects`, `services`, `process.steps`) to `state === "published"` before the page ever sees it, and requires the root document itself to be `published` or it throws. Any future admin/backend replacement of `data/site.js` must preserve this same guarantee at its own boundary (`brain/PROJECT_GOVERNANCE.md` D-007) — this is the acceptance bar for `WEB-REQ-008` and `RISK-WEB-013` going forward, not a new bar invented here.
+This is the one admin-adjacent guarantee that already exists and must not regress: `projectPublishedContent()` (`lib/content/public.mjs`) filters every record collection (`navigation`, `foundations`, `projects`, `services`, `process.steps`) to `state === "published"` before the page ever sees it, and requires the root document itself to be `published` or it throws. Any future admin/backend replacement of `data/site.js` must preserve this same guarantee at its own boundary (`brain/PROJECT_GOVERNANCE.md` D-007) — this is the acceptance bar for `WEB-REQ-008` and `RISK-WEB-013` going forward, not a new bar invented here. In the proposed target model (`DATA_BACKEND_SPEC.md` § "Publication / revision model"), the equivalent guarantee is: public rendering follows only each entity's `published_revision_id`, never `draft_revision_id`, and an entity with a null `published_revision_id` does not appear publicly at all — a structurally different mechanism from today's flat `state` filter, but the same guarantee it must preserve.
 
 ## Context-efficiency note
 

@@ -1,6 +1,6 @@
 # MaisogLabs Build Plan
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK`
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **Remediation Cycle 1** (resolves `AS10-R001`, `AS10-R002` against `ML-DEVOS-AS-010`)
 
 **This document does not authorize implementation of anything it lists.** Every increment below still requires its own explicit Paulo authorization and, after Builder implementation, independent Architect review, before it may be built (`brain/DECISION_LOG.md` D-021 "Build-plan rule": `BUILD_PLAN.md` must decompose future work into dependency-ordered, bounded increments and must not itself authorize those increments).
 
@@ -15,39 +15,61 @@ Website implementation increments in this document therefore use a third, separa
 
 `ML-DEVOS-SIP-001.md` is a frozen S0 roadmap baseline; its original phase-status table is historical architecture intent, not live execution-state authority. Live Sentinel state comes from `coordination/STATE.md`, Decisions/ADRs, and current durable Architect Syncs — never from that frozen table's old `NOT STARTED` rows (`AS10-F008`).
 
-## Required future workflow (`AS10-F009`)
+## Governance routing — binding correction to `AS10-F009` (`AS10-R001`)
 
-Every future website increment must move through this sequence. These are process stages; they grant no authority by themselves.
+**Provenance note:** the Architect's review of Remediation Cycle 1 attributes this correction to a gap in the Architect's own prior constraint `AS10-F009`, not to Builder drift — the original Builder output reproduced `AS10-F009`'s workflow exactly as instructed. `AS10-F009` correctly sequenced planning/design/build stages but omitted the load-bearing governance step — Sentinel change classification and its resulting authorization route — that sits between "the plan exists" and "building may start." This section is the Architect-directed amendment that restores it; it does not accuse the prior cycle of drifting from a rule that had not yet been stated.
+
+Before any future `WEB-INC-*` can become authorized implementation work, it must pass through Sentinel's active change-classification and routing lifecycle (`devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` §§1, 4), not just the product-planning workflow:
 
 ```
-GROUND / INVENTORY REPOSITORY REALITY
+IDEA / CHANGE NEED
         ↓
-SPECIFY PRODUCT INTENT / REQUIREMENTS
+GROUND REPOSITORY REALITY
         ↓
-CLARIFY AMBIGUITIES
+SPECIFY / CLARIFY
         ↓
-ARCHITECT / CONSTITUTION CONSISTENCY CHECK
+CLASSIFY CHANGE UNDER SENTINEL
         ↓
-PLAN TECHNICAL + UI/UX + FLOW + DATA DESIGN
+appropriate change record:
+PATCH / LOCAL_RULE /
+CORE_POLICY / CAPABILITY /
+ARCHITECTURE / CONSTITUTIONAL /
+WAIVER / PROJECT_ONBOARDING
         ↓
-REQUIREMENTS QUALITY / ACCEPTANCE CHECKLIST
+RFC / rule / proposal where required
         ↓
-DEPENDENCY-ORDERED BOUNDED TASKS
+ARCHITECT SYNC where required
         ↓
-CROSS-ARTIFACT ANALYZE
+PAULO GATE where required
         ↓
-CLAUDE BUILDS ONE AUTHORIZED INCREMENT
+AUTHORIZED
         ↓
-TESTS / EVIDENCE
+TASK / ACCEPTANCE CONTRACT
         ↓
-ARCHITECT INDEPENDENT REVIEW
+BUILD
         ↓
-CONVERGENCE CHECK AGAINST SPEC + PLAN + TASKS
+TEST / EVIDENCE
         ↓
-NEXT INCREMENT OR PAULO GATE
+ARCHITECT REVIEW
+        ↓
+CONVERGENCE
+        ↓
+NEXT GATE
 ```
 
-This document is the output of the first six stages for the increments below, at planning granularity. "CLAUDE BUILDS ONE AUTHORIZED INCREMENT" onward happens only after a separate Paulo authorization names a specific `WEB-INC-*` ID.
+This does not discard `AS10-F009`'s finer-grained product-planning sequence — it nests inside the chain above: `AS10-F009`'s `GROUND → SPECIFY PRODUCT INTENT → CLARIFY AMBIGUITIES → ARCHITECT/CONSTITUTION CHECK → PLAN TECHNICAL+UI/UX+FLOW+DATA → REQUIREMENTS QUALITY/ACCEPTANCE CHECKLIST → DEPENDENCY-ORDERED BOUNDED TASKS → CROSS-ARTIFACT ANALYZE` is the detailed content of `GROUND REPOSITORY REALITY → SPECIFY / CLARIFY` (and feeds `TASK / ACCEPTANCE CONTRACT`) above; `AS10-F009`'s `CLAUDE BUILDS ONE AUTHORIZED INCREMENT → TESTS/EVIDENCE → ARCHITECT INDEPENDENT REVIEW → CONVERGENCE CHECK → NEXT INCREMENT OR PAULO GATE` is exactly `BUILD → TEST/EVIDENCE → ARCHITECT REVIEW → CONVERGENCE → NEXT GATE` above. What was missing, and is restored here, is the `CLASSIFY CHANGE UNDER SENTINEL → change record → RFC/Architect Sync/Paulo gate where required → AUTHORIZED` spine that must sit between planning and building.
+
+**Per-class routing (per `CHANGE_GOVERNANCE_POLICY.md` §1's table — not restated in full, referenced here):**
+
+- **`PATCH` / `LOCAL_RULE`** may follow their lighter policy path where the policy allows it: no Architect Sync required for `PATCH`; `LOCAL_RULE` needs no Architect Sync either unless it touches a core rule's applicability or narrows a Paulo-gated action.
+- **`CORE_POLICY`** and every stronger class below it use their required governance path: Architect Sync required, Paulo gate required, RFC → Architect Sync → Decision → ADR as the change-record type.
+- **`CAPABILITY`** changes follow the capability-change path (`CAPABILITY_CHANGE_SPEC.md`): Architect Sync required when it changes trust boundaries; Paulo approval required for sensitive operations; Capability ≠ Authority always applies (no capability grants itself universal authority).
+- **`ARCHITECTURE`** requires the full RFC + Architect Sync + Paulo authorization path before implementation, exactly as S2's `ML-DEVOS-RFC-001` → `ML-DEVOS-AS-006` → `D-016` chain already demonstrates in this repository's own history.
+- **`CONSTITUTIONAL`** requires full, explicit, and named Paulo authorization — no actor or mechanism may invent constitutional delegation, ever.
+- **`PROJECT_ONBOARDING`** follows its own onboarding path (project owner proposal → Architect review of overlay compatibility → Paulo approval to onboard → project `.devos/` overlay) — not applicable to this Product Build Pack itself, which is `LOCAL_RULE` project documentation (`AS10-F002`), not an onboarding event.
+- **`WAIVER`** is never implied. A waiver is an explicit, scoped, time-boxed record (`WAIVER_TEMPLATE.md`) — it is never assumed by silence, by an increment simply proceeding, or by a `WEB-INC-*` ID being named.
+
+**Binding rule for every candidate increment below:** a `WEB-INC-*` ID is a planning identifier only. Paulo naming or approving a `WEB-INC-*` ID is **not by itself sufficient** authorization when that increment's active change class requires an RFC, an Architect Sync, or another stronger record per the table above. Each candidate increment below states its likely change class so this is concrete rather than abstract; the increment's own future `CLASSIFY CHANGE UNDER SENTINEL` step makes the binding determination, not this plan.
 
 ## Role model for this workflow (`AS10-F006`)
 
@@ -55,64 +77,80 @@ Future governed work uses Sentinel's five actors — **Paulo, Architect, Builder
 
 ## Traceability
 
-`Requirement ID → design section → increment → test/evidence → review status`, consistent with Sentinel's existing `Requirement → Design → Implementation → Test → Evidence → Status` model (`brain/GOVERNANCE_MAP.md`). Increments below cite existing IDs; no new requirement ID is minted in this document.
+`Requirement ID → design section → increment → task/acceptance contract → test/evidence → review status`, consistent with Sentinel's existing `Requirement → Design → Implementation → Test → Evidence → Status` model (`brain/GOVERNANCE_MAP.md`). Increments below cite existing IDs; no new requirement ID is minted in this document.
 
-## Candidate increments (planning only — none authorized)
+## A. Candidate increment catalog (unordered — `AS10-R002`)
 
-Ordered by dependency. An increment is listed here only if its prerequisites are also listed at or before it.
+**IDs are permanent identifiers, not chronology.** This catalog lists every candidate increment once, with its scope and requirement mapping; it does not itself claim a build order. Section B below is the dependency-ordered execution sequence — consult B, not the ID numbers, for "what comes before what."
 
 ### `WEB-INC-001` — Admin authentication boundary
 - **Requirements:** `ADM-REQ-001`, `WEB-SEC-001`, `002`, `011`.
-- **Depends on:** nothing else in this list (first increment; establishes the boundary everything else needs).
 - **Design refs:** `TECHNICAL_DESIGN.md` § "Proposed target architecture" (auth boundary); `APP_FLOW.md` §2a, §2i, §2j.
 - **Bounded scope:** a server-side authentication check gating `/admin` and rejecting unauthenticated/unauthorized requests. No content mutation capability yet.
+- **Likely change class:** at least `CAPABILITY` (introduces a new sensitive server-side capability); may rise to `ARCHITECTURE` if the auth boundary itself constitutes a new subsystem/cross-cutting design once its concrete shape is proposed. The exact classification is decided at this increment's own `CLASSIFY CHANGE UNDER SENTINEL` step, not fixed here — but it is at minimum Architect-Sync- and Paulo-gate-required either way.
 - **Acceptance checklist (draft, to be finalized at authorization time):** unauthenticated request to `/admin` is rejected (`TEST-ADM-001`); authorized request succeeds (`TEST-ADM-002`); failure fails closed with no partial page/data leak.
 
-### `WEB-INC-002` — Read-only admin dashboard shell
-- **Requirements:** `ADM-REQ-*` (dashboard framing only, no mutation `ADM-REQ-*` items yet).
-- **Depends on:** `WEB-INC-001`.
-- **Design refs:** `APP_FLOW.md` §2b.
-- **Bounded scope:** authenticated view of existing projects/sections (read from the current `data/site.js`-backed content, no new storage yet). No create/edit/publish action.
-- **Acceptance checklist (draft):** dashboard lists current published/draft/archived projects accurately against the existing content source; no mutation controls are exposed.
-
-### `WEB-INC-003` — Projects create/edit/draft/publish/unpublish
-- **Requirements:** `ADM-REQ-003`, `004`, `010`, `011`, `014`, `015`, `016`; `WEB-SEC-004`, `006`, `007`, `008`, `009`, `012`.
-- **Depends on:** `WEB-INC-001`, `WEB-INC-002`, and a storage decision (see `WEB-INC-005`) — sequencing between this and `WEB-INC-005` is itself an open dependency question to resolve at the "CLARIFY AMBIGUITIES" stage before authorization, not decided here.
-- **Design refs:** `APP_FLOW.md` §2c–§2h; `DATA_BACKEND_SPEC.md` § `projects`, § `audit_log`.
-- **Bounded scope:** the full projects mutation lifecycle for one entity type only. Journal, media, and theme settings are explicitly out of scope for this increment.
-- **Acceptance checklist (draft):** `TEST-ADM-003`, `004`, `006`, `007`, `010`.
-
-### `WEB-INC-004` — Media upload + library
-- **Requirements:** `ADM-REQ-006`; `WEB-SEC-005`.
-- **Depends on:** `WEB-INC-001`; a storage decision (R2) per `TECHNICAL_DESIGN.md`.
-- **Design refs:** `APP_FLOW.md` §2k; `DATA_BACKEND_SPEC.md` § `media`.
-- **Bounded scope:** upload + validate + list/select media. Does not itself attach media to projects (that is `WEB-INC-003`/journal scope, whichever lands second).
-- **Acceptance checklist (draft):** `TEST-ADM-008`.
-
-### `WEB-INC-005` — D1-backed storage migration for `site_settings`/`navigation`/`sections`/`projects`
+### `WEB-INC-005` — Data/storage substrate + migration design/implementation
 - **Requirements:** `RISK-WEB-015` mitigation; supports `WEB-REQ-004`.
-- **Depends on:** a separate `ARCHITECTURE`-class decision to actually replace the `data/site.js` boundary (per `brain/DECISION_LOG.md` D-007 — this increment cannot proceed on `D-021`'s documentation authorization alone).
-- **Design refs:** `TECHNICAL_DESIGN.md` § "Proposed target architecture"; `DATA_BACKEND_SPEC.md` §§ "Migration considerations", "Rollback / data-loss considerations".
-- **Bounded scope:** migrate the existing published content 1:1 into D1-backed tables without changing rendered output; `data/site.js` may be retired only after parity is independently verified.
-- **Acceptance checklist (draft):** `TEST-DATA-001`, `002`.
+- **Design refs:** `TECHNICAL_DESIGN.md` § "Proposed target architecture"; `DATA_BACKEND_SPEC.md` (entity/revision model, migration mapping, and rollback sections in full).
+- **Bounded scope:** stand up the D1-backed entities and revision tables in `DATA_BACKEND_SPEC.md` and migrate the existing published content 1:1 into them without changing rendered output; `data/site.js` may be retired only after parity is independently verified. Must cover **every** current content domain (`meta`, `site`, `seo`, `navigation[]`, `hero`, `foundations[]`, `projects[]`, `services[]`, `process`/`process.steps[]`, `about`, `contact`, `projectSection`, `footer`) per `DATA_BACKEND_SPEC.md`'s mapping table — `foundations`, `services`, and `process.steps` are not optional parts of this increment.
+- **Likely change class:** `ARCHITECTURE` — replacing the governed `data/site.js → schema.mjs → public.mjs → local.mjs` content boundary requires its own explicit `ARCHITECTURE`-class decision per `brain/DECISION_LOG.md` D-007. This increment cannot proceed on `D-021`'s documentation authorization alone, and naming/approving "`WEB-INC-005`" by itself does not satisfy D-007's requirement — the RFC + Architect Sync + Paulo path must still be completed.
+- **Acceptance checklist (draft):** `TEST-DATA-001`, `002`; the current→target mapping table in `DATA_BACKEND_SPEC.md` is fully implemented with no domain left unmapped.
+
+### `WEB-INC-002` — Secure authenticated read-only dashboard
+- **Requirements:** `ADM-REQ-*` (dashboard framing only, no mutation `ADM-REQ-*` items yet).
+- **Design refs:** `APP_FLOW.md` §2b (as corrected by `AS10-R006`).
+- **Bounded scope (corrected, `AS10-R006`):** an authenticated, read-only dashboard reading published/draft revision state **through the protected server-side editorial data-access substrate** established by `WEB-INC-005` (or another explicitly authorized equivalent substrate) — never draft/archived content read directly from the current static `data/site.js`/`out/` deployment, which has no server-side code path capable of protecting such a read. No create/edit/publish action.
+- **Likely change class:** `CAPABILITY` (a new authenticated read capability against the protected substrate), contingent on `WEB-INC-005`'s `ARCHITECTURE`-class substrate already existing.
+- **Acceptance checklist (draft):** dashboard lists current published/draft/archived state accurately by reading the protected substrate, not static assets; no mutation controls are exposed.
+
+### `WEB-INC-008` — Audit capability
+- **Requirements:** `ADM-REQ-012`; `WEB-SEC-009`.
+- **Design refs:** `DATA_BACKEND_SPEC.md` § `audit_log`.
+- **Bounded scope:** append-only audit records for admin mutations. **Resolved sequencing (`AS10-R002`):** `WEB-SEC-009` requires admin mutations to be auditable, not eventually-auditable — so this increment must land no later than, and is intended to ship atomically with, the first mutation capability (`WEB-INC-003`). It is listed as its own increment because it is independently reviewable (append-only log schema + write-path hook), not because it may trail mutation capability in production.
+- **Likely change class:** `CAPABILITY` (adds a new, low-risk-but-sensitive write path — an append-only log — alongside `WEB-INC-003`'s mutation capability).
+- **Acceptance checklist (draft):** every mutation introduced by `WEB-INC-003` produces a corresponding `audit_log` row, including failed writes (`result: failure`).
+
+### `WEB-INC-003` — Project mutation lifecycle (create/edit/draft/publish/unpublish)
+- **Requirements:** `ADM-REQ-003`, `004`, `010`, `011`, `014`, `015`, `016`; `WEB-SEC-004`, `006`, `007`, `008`, `009`, `012`.
+- **Design refs:** `APP_FLOW.md` §2c–§2h (as corrected by `AS10-R005`); `DATA_BACKEND_SPEC.md` § `projects`/`project_revisions`, § "Publication / revision model", § `audit_log`.
+- **Bounded scope:** the full projects mutation lifecycle for one entity type only, implemented against the entity+revisions pattern (`published_revision_id`/`draft_revision_id`) — not a flat `state` field. Journal, media, and theme settings are explicitly out of scope for this increment.
+- **Likely change class:** `CAPABILITY` (a new write/mutation capability), building on `WEB-INC-001`'s auth boundary and `WEB-INC-005`'s storage substrate, both already `ARCHITECTURE`/`CAPABILITY`-gated in their own right.
+- **Acceptance checklist (draft):** `TEST-ADM-003`, `004`, `006`, `007`, `010`; every publish/unpublish transitions `published_revision_id` without deleting prior revisions (per the revision model).
+
+### `WEB-INC-004` — Media subsystem
+- **Requirements:** `ADM-REQ-006`; `WEB-SEC-005`.
+- **Design refs:** `APP_FLOW.md` §2k; `DATA_BACKEND_SPEC.md` § `media`, § `project_media`/`journal_media`.
+- **Bounded scope:** upload + validate + list/select media, and the `project_media`/`journal_media` junction tables that attach media to an entity. Does not itself require the journal entity to exist — the junction table can exist before `journal_entries` does; it simply has no rows for that side until `WEB-INC-006` lands.
+- **Likely change class:** `ARCHITECTURE` or `CAPABILITY` — provisioning R2 is a new resource/subsystem (`ARCHITECTURE`-leaning); the upload/validation capability itself is `CAPABILITY`-leaning. Exact classification is this increment's own determination.
+- **Acceptance checklist (draft):** `TEST-ADM-008`.
 
 ### `WEB-INC-006` — Journal (entity, schema, admin lifecycle, public read path)
 - **Requirements:** `ADM-REQ-005`; new public read requirement (no existing `WEB-REQ-*` covers journal reading — a future increment proposal must mint a stable ID for it, e.g. under `WEB-REQ-*`, and identify `PRD.md` as the owning document, at the point this increment is actually specified in detail, not before).
-- **Depends on:** `WEB-INC-003` (reuses its lifecycle pattern), `WEB-INC-005` (needs `journal_entries` storage).
-- **Design refs:** `APP_FLOW.md` §1c; `DATA_BACKEND_SPEC.md` § `journal_entries`.
-- **Bounded scope:** full journal lifecycle, mirroring projects.
+- **Design refs:** `APP_FLOW.md` §1c; `DATA_BACKEND_SPEC.md` § `journal_entries`/`journal_entry_revisions`, § `journal_media`.
+- **Bounded scope:** full journal lifecycle, mirroring `WEB-INC-003`'s pattern against `journal_entries`/`journal_entry_revisions`.
+- **Likely change class:** `CAPABILITY` (reuses `WEB-INC-003`'s established mutation pattern against a new entity type) plus a small `ARCHITECTURE`-class addition for the new public read surface (journal did not exist as a route/content type before).
 
-### `WEB-INC-007` — Theme/design settings
+### `WEB-INC-007` — Theme/design controls
 - **Requirements:** `DESIGN-001`…`014`.
-- **Depends on:** `WEB-INC-001`, `WEB-INC-005` (needs `theme_settings` storage).
-- **Design refs:** `APP_FLOW.md` §2l; `DATA_BACKEND_SPEC.md` § `theme_settings`; `UI_UX_SPEC.md` § "Design controls".
+- **Design refs:** `APP_FLOW.md` §2l; `DATA_BACKEND_SPEC.md` § `theme_settings`/`theme_settings_revisions`; `UI_UX_SPEC.md` § "Design controls".
 - **Bounded scope:** validated, range-constrained theme controls only — never free-form CSS/JS input (`DESIGN-014`).
+- **Likely change class:** `CAPABILITY`.
 
-### `WEB-INC-008` — Audit log
-- **Requirements:** `ADM-REQ-012`; `WEB-SEC-009`.
-- **Depends on:** at least one mutation increment (`WEB-INC-003` at minimum) to have something to audit.
-- **Design refs:** `DATA_BACKEND_SPEC.md` § `audit_log`.
-- **Bounded scope:** append-only audit records for admin mutations introduced by prior increments. Could be pulled earlier (e.g. built alongside `WEB-INC-003`) if the "CLARIFY AMBIGUITIES" stage at authorization time decides auditability shouldn't lag mutation capability — that sequencing choice is intentionally left open here, not fixed.
+## B. Dependency-ordered execution sequence (`AS10-R002`)
+
+This is the topologically valid build order — the catalog above is unordered by ID; this section is authoritative for sequencing. Each step names what it depends on from earlier in this same list, never from later in it.
+
+1. **`WEB-INC-001`** — Authentication boundary. Depends on nothing else in this plan.
+2. **`WEB-INC-005`** — Data/storage substrate + migration. Depends on `WEB-INC-001` existing conceptually as the boundary the substrate will eventually be read/written through, and on its own separately authorized `ARCHITECTURE`-class decision (D-007) — this increment cannot proceed on `D-021` alone regardless of its position in this sequence.
+3. **`WEB-INC-002`** — Secure authenticated read-only dashboard. Depends on `WEB-INC-001` (auth) and `WEB-INC-005` (protected substrate to read) — corrected per `AS10-R006`; this is a hard prerequisite, not a nice-to-have.
+4. **`WEB-INC-008`** — Audit capability. Depends on `WEB-INC-001`, `WEB-INC-005`. Ships no later than, and ideally atomically with, step 5 — resolved per `AS10-R002`'s explicit instruction to settle the audit-timing ambiguity now: audit must not trail the first mutation capability into production.
+5. **`WEB-INC-003`** — Project mutation lifecycle. Depends on `WEB-INC-001`, `WEB-INC-002` (dashboard framing), `WEB-INC-005` (storage), and `WEB-INC-008` (audit, shipping alongside). **This resolves the prior cycle's contradiction**, where `WEB-INC-003` was listed before `WEB-INC-005` while depending on it — `WEB-INC-005` now precedes `WEB-INC-003` in this sequence, even though `WEB-INC-003`'s ID number is lower.
+6. **`WEB-INC-004`** — Media subsystem. Depends on `WEB-INC-001`; benefits from but does not strictly require `WEB-INC-003` (junction tables can exist before projects have media attached).
+7. **`WEB-INC-006`** — Journal. Depends on `WEB-INC-003` (reuses its lifecycle pattern) and `WEB-INC-005` (needs `journal_entries`/`journal_entry_revisions` storage, which is part of the same substrate increment's scope or a follow-on to it).
+8. **`WEB-INC-007`** — Theme/design controls. Depends on `WEB-INC-001` and `WEB-INC-005` (needs `theme_settings`/`theme_settings_revisions` storage).
+
+This sequence is itself a planning artifact, not an authorization — each step still requires its own pass through the governance-routing lifecycle in the section above before it may be built. A future increment's own `CLARIFY AMBIGUITIES` stage may revise this order if repository constraints discovered at that time suggest a different topologically valid sequence; any such revision must keep the same invariant this correction restores: no increment may be presented as ready to build while an earlier step in this list, or an unlisted prerequisite decision (like `WEB-INC-005`'s `ARCHITECTURE`-class gate), remains unresolved.
 
 ## What this plan does not do
 
@@ -122,6 +160,7 @@ Ordered by dependency. An increment is listed here only if its prerequisites are
 - It does not perform project onboarding, populate `projects/registry.json`, or create a `.devos/` overlay.
 - It does not propose or implement Sentinel `S3`.
 - It does not authorize deployment or a `main` merge. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+- It does not substitute for the Sentinel change-classification/RFC/Architect-Sync/Paulo-gate path any increment's actual change class requires — see "Governance routing" above.
 
 ## Context-efficiency note
 

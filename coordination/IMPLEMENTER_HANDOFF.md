@@ -8,111 +8,129 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`MAISOGLABS-PRODUCT-BUILD-PACK`
+`MAISOGLABS-PRODUCT-BUILD-PACK` — **Remediation Cycle 1**
 
-Authority chain: `D-020` (Product Build Pack direction) → `D-021` (Product Build Pack documentation implementation authorization) → `ML-DEVOS-AS-010` (`ARCHITECT_APPROVED — PRODUCT BUILD PACK MAY PROCEED WITH REQUIRED GUARDRAILS`, binding acceptance constraints `AS10-F003`–`AS10-F012`).
+Authority chain: `D-020` → `D-021` → `ML-DEVOS-AS-010` (`CHANGES_REQUESTED — REMEDIATION CYCLE 1`, findings `AS10-R001`–`AS10-R007`).
 
 ## Objective
 
-Create the six-document MaisogLabs Product Build Pack (`docs/product/PRD.md`, `TECHNICAL_DESIGN.md`, `UI_UX_SPEC.md`, `APP_FLOW.md`, `DATA_BACKEND_SPEC.md`, `BUILD_PLAN.md`) as project-local documentation/process consolidating current product intent and future target direction — without redefining Sentinel governance, without duplicating existing governance/requirement text, and without authorizing or performing any implementation.
-
-## Requested Review Mode
-
-`PRE-BUILD ARCHITECTURE SYNC / CROSS-ARTIFACT CONSISTENCY REVIEW` follow-up — documentation-delivery verification against `D-020`, `D-021`, and `ML-DEVOS-AS-010`.
+Resolve all seven Remediation Cycle 1 findings against the Product Build Pack without regressing anything the Architect's review already passed, and without any runtime/product/backend implementation.
 
 ## Branch / Commit State
 
-- Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `ed1220f6127e70b67cfe52ac41461cc825866df3` (`docs(sync): apply AS-010 constraints to Product Build Pack`), fetched and fast-forwarded before any file was touched; confirmed by direct `git rev-parse HEAD` after checkout, matching the exact SHA the request required.
-- `coordination/STATE.md` at base SHA confirmed, by direct read (not trusted from the request text alone): `CYCLE_ID: MAISOGLABS-PRODUCT-BUILD-PACK`, `TURN: CLAUDE`, `STATUS: AUTHORIZED_FOR_IMPLEMENTATION`, `AUTHORIZED_SCOPE: MAISOGLABS_PRODUCT_BUILD_PACK_DOCS_ONLY`, `IMPLEMENTER_ACTION_REQUIRED: YES` — matched required preconditions before any action was taken.
-- `coordination/ARCHITECT_REVIEW.md` read in full: `ML-DEVOS-AS-010`'s complete findings `AS10-F001`–`AS10-F013`, repository evidence list, external research synthesis, and verdict.
-- `brain/DECISION_LOG.md` read in full for `D-020`/`D-021`'s exact authorized outputs, reuse rule, priority requirements, build-plan rule, and explicit non-authorizations — plus the full preceding chain (`D-001`–`D-019`) for context.
+- Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `a5fd502611b54da62a264404a4282081af4d03b4` (`docs(sync): return Product Build Pack remediation to Claude`), fetched and fast-forwarded before any file was touched; confirmed by direct `git rev-parse HEAD` after checkout, matching the exact SHA the request required.
+- `coordination/STATE.md` at base SHA confirmed by direct read: `CYCLE_ID: MAISOGLABS-PRODUCT-BUILD-PACK`, `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 1`, `AUTHORIZED_SCOPE: MAISOGLABS_PRODUCT_BUILD_PACK_DOCS_ONLY` — matched required preconditions before any action was taken.
+- `coordination/ARCHITECT_REVIEW.md` read in full: `ML-DEVOS-AS-010`'s Remediation Cycle 1 review of Builder commit `da91051b0e7c2c228748ece25859b12a33fa1009`, all seven findings `AS10-R001`–`AS10-R007`, and the "What passed independently" list.
+- `brain/DECISION_LOG.md`, `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`, and `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md` read in full for this cycle (the latter two specifically to ground `AS10-R001`'s change-classification table and per-class routing, and to reconfirm the five-actor model before restating it).
+- **Remediation commit SHA:** not yet known at the time this section is written (a commit cannot record its own resulting hash in advance) — see `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA` note; the Architect will read it from the actual pushed HEAD.
 
-## 1. Repository evidence independently inspected before authoring
+## Exact changed-file list
 
-Before writing any product document, the following were read directly (not assumed from conversation):
+Exactly 6 files, all within the Architect's Remediation Cycle 1 authorized-scope list (`coordination/ARCHITECT_REVIEW.md` § "Authorized remediation scope"):
 
-- `docs/ARCHITECTURE.md`, `docs/CONTENT.md` — current runtime flow, content boundary, deployment contract, security baseline.
-- `package.json`, `wrangler.jsonc` — actual dependencies and deployment configuration (no auth/DB/upload library present; static export served by a Cloudflare Worker in asset-only mode).
-- `lib/content/schema.mjs`, `lib/content/public.mjs`, `lib/content/local.mjs` — the exact current content contract, validators, and published-only projection logic.
-- `app/page.js` — the current single-route (`/`) page composition and section structure.
-- `brain/PROJECT_GOVERNANCE.md`, `brain/GOVERNANCE_MAP.md`, `brain/RISK_REGISTER.md` — current admin/auth status (`NOT IMPLEMENTED`), current requirement/risk status table, legacy branch inventory.
-- `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §§9–11, 13–14 — the existing `WEB-REQ-*`, `ADM-REQ-*`, `DESIGN-*`, `WEB-SEC-*`, `RISK-WEB-*`, `TEST-WEB-*`, `TEST-ADM-*`, `TEST-DATA-*`, `TEST-DEP-*` catalogs, confirmed present at the cited line numbers by direct `grep`.
-- `brand/V3/README.md`, `brand/V3/DESIGN_MAP.md` — current approved brand direction and non-negotiables.
-- `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md` — confirmed the five-actor model (Paulo, Architect, Builder, QA, Independent Reviewer) is the actual current Sentinel actor table, by direct read, before citing it in `PRD.md`/`BUILD_PLAN.md`.
-
-No route, API, database table, authentication mechanism, admin function, runtime capability, or deployment behavior was asserted as existing beyond what these files evidence.
-
-## 2. Files changed this cycle
-
-Exactly 8 files, all within `D-021`'s and `coordination/STATE.md`'s authorized Builder-output list:
-
-**Created:**
-- `docs/product/PRD.md`
-- `docs/product/TECHNICAL_DESIGN.md`
-- `docs/product/UI_UX_SPEC.md`
-- `docs/product/APP_FLOW.md`
-- `docs/product/DATA_BACKEND_SPEC.md`
-- `docs/product/BUILD_PLAN.md`
-
-**Updated:**
+- `docs/product/TECHNICAL_DESIGN.md` (citation fix + proposed-architecture consistency updates)
+- `docs/product/UI_UX_SPEC.md` (citation fix)
+- `docs/product/APP_FLOW.md` (revision-model and protected-read-path consistency updates, §§2b–2f, §3)
+- `docs/product/BUILD_PLAN.md` (governance-routing section added, candidate catalog/execution-sequence split)
 - `coordination/IMPLEMENTER_HANDOFF.md` (this file)
 - `coordination/STATE.md`
 
-**Not touched:** every application/runtime/config/deployment file (`app/`, `components/`, `data/`, `lib/`, `public/`, `tests/`, `next.config.mjs`, `wrangler.jsonc`, `package.json`, `package-lock.json`); every `devos/` file; `projects/`; every `brain/*.md` file; any CI/workflow or GitHub configuration (none exists in this repository).
+**Not touched:** `docs/product/PRD.md` (no cross-document wording change was needed there — its precedence/role-model/requirement-catalog content was not implicated by any of the seven findings); every application/runtime/config/deployment file (`app/`, `components/`, `data/`, `lib/`, `public/`, `tests/`, `next.config.mjs`, `wrangler.jsonc`, `package.json`, `package-lock.json`); every `devos/` file; `projects/`; every `brain/*.md` file; any CI/workflow or GitHub configuration (none exists in this repository). Confirmed by `git diff --stat HEAD -- app/ components/ data/ lib/ public/ tests/ next.config.mjs wrangler.jsonc package.json package-lock.json devos/ projects/ brain/ .github/` returning empty.
 
-## 3. Requirement / source mapping (traceability, `AS10-F010`)
+## Per-finding `AS10-R001`–`AS10-R007` disposition
 
-No requirement prose was copied into the product documents; each document cites stable IDs and points back to their owning source:
+### `AS10-R001` — Governance routing — **RESOLVED**
 
-| Requirement family | Owning source | Cited from |
-|---|---|---|
-| `WEB-REQ-001`…`008` | `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §9, live status in `brain/GOVERNANCE_MAP.md` | `PRD.md`, `APP_FLOW.md` |
-| `ADM-REQ-001`…`016` | same plan §9 | `PRD.md`, `APP_FLOW.md`, `BUILD_PLAN.md` |
-| `DESIGN-001`…`014` | same plan §10 | `UI_UX_SPEC.md`, `APP_FLOW.md`, `BUILD_PLAN.md`, `DATA_BACKEND_SPEC.md` |
-| `WEB-SEC-001`…`012` | same plan §11 | `TECHNICAL_DESIGN.md`, `APP_FLOW.md`, `DATA_BACKEND_SPEC.md`, `BUILD_PLAN.md` |
-| `RISK-WEB-001`…`015` | same plan §14, live status in `brain/RISK_REGISTER.md` | `TECHNICAL_DESIGN.md`, `DATA_BACKEND_SPEC.md` |
-| `TEST-WEB-*`, `TEST-ADM-*`, `TEST-DATA-*`, `TEST-DEP-*` | same plan, live status in `brain/TEST_LEDGER.md` | `UI_UX_SPEC.md`, `BUILD_PLAN.md` |
+`BUILD_PLAN.md` now has a new binding section, "Governance routing — binding correction to `AS10-F009` (`AS10-R001`)", placed immediately after the roadmap-taxonomy rule and before the candidate catalog. It:
+- states explicitly, per the Architect's own review, that this corrects an Architect-origin gap in `AS10-F009`, not Builder drift;
+- reproduces the exact `IDEA / CHANGE NEED → … → NEXT GATE` chain from the request, sourced from `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` §4's target lifecycle;
+- explains how `AS10-F009`'s original finer-grained stages nest inside this chain rather than being discarded;
+- states per-class routing for all eight change classes (`PATCH`, `LOCAL_RULE`, `CORE_POLICY`, `CAPABILITY`, `ARCHITECTURE`, `CONSTITUTIONAL`, `WAIVER`, `PROJECT_ONBOARDING`), grounded in `CHANGE_GOVERNANCE_POLICY.md` §1's table (read in full this cycle, not assumed from memory);
+- states the binding rule verbatim in substance: a `WEB-INC-*` ID is a planning identifier only, and Paulo naming/approving one is not by itself sufficient where the active change class requires a stronger record.
+- Every candidate increment in the catalog now carries a "Likely change class" line applying this rule concretely (e.g. `WEB-INC-005` is flagged `ARCHITECTURE`, citing `D-007`'s requirement, and explicitly states that approving its ID alone does not satisfy that requirement).
 
-One genuinely new ID class was introduced: `WEB-INC-001`…`008` in `BUILD_PLAN.md`, per `AS10-F007`'s explicit instruction to use a separate, non-Sentinel product-increment namespace. `BUILD_PLAN.md` also explicitly notes that a future journal public-read requirement (`WEB-INC-006`) has no existing ID and defers minting one to that increment's own future specification stage, rather than inventing it now.
+### `AS10-R002` — True dependency order — **RESOLVED**
 
-## 4. `AS10-F003`–`AS10-F012` disposition
+`BUILD_PLAN.md`'s "Candidate increments" section is replaced with two explicitly separated sections:
+- **§A "Candidate increment catalog (unordered)"** — all eight `WEB-INC-*` entries, explicitly labeled "IDs are permanent identifiers, not chronology," each with scope/requirements/change-class, no ordering claim.
+- **§B "Dependency-ordered execution sequence"** — the actual topologically valid build order: `001 → 005 → 002 → 008 → 003 → 004 → 006 → 007`. Every step cites only earlier steps in this same list as its dependency (`WEB-INC-003` now depends on `WEB-INC-005`, which precedes it in §B — the exact contradiction the Architect flagged is gone, even though `WEB-INC-003`'s ID number is lower).
+- The audit-timing ambiguity (`WEB-INC-008`) is explicitly resolved rather than left open: audit must land no later than, and is intended to ship atomically with, the first mutation increment (`WEB-INC-003`) — stated in both the catalog entry and §B step 4.
+- The storage-vs-mutation ambiguity is explicitly resolved: `WEB-INC-005` (storage) precedes `WEB-INC-003` (mutation) in §B, and the catalog entry for `WEB-INC-003` states this plainly rather than leaving it as an "open dependency question," which is what the Architect flagged as contradicting the plan's own stated invariant.
 
-- **`AS10-F003` (brownfield truth):** every material claim across all six documents is tagged `CURRENTLY IMPLEMENTED` (20 occurrences, each grounded in a cited file), `PROPOSED TARGET`/`NOT IMPLEMENTED` (59 combined occurrences), `CURRENTLY PLANNED`, or `FUTURE OPTION`. No route, API, table, auth mechanism, or runtime capability is claimed to exist that a repository read did not confirm.
-- **`AS10-F004` (one owner per kind of truth):** `PRD.md`=WHAT/WHY, `TECHNICAL_DESIGN.md`=HOW, `UI_UX_SPEC.md`=experience (references Brand V3, does not restate it), `APP_FLOW.md`=states/transitions, `DATA_BACKEND_SPEC.md`=proposed data contracts, `BUILD_PLAN.md`=future bounded increments only. No document redefines Sentinel actors/evidence/authority.
-- **`AS10-F005` (source-of-truth precedence):** the exact six-level precedence list is stated verbatim in `PRD.md` and referenced (not restated) by the other five documents.
-- **`AS10-F006` (five-actor model):** `PRD.md` and `BUILD_PLAN.md` cite Sentinel's current five actors (Paulo, Architect, Builder, QA, Independent Reviewer, per `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`) for future governed work, explicitly note the legacy three-role website-pilot model as historical/current-pilot context only, and do not rewrite `brain/PROJECT_GOVERNANCE.md`.
-- **`AS10-F007`/`AS10-F008` (phase-taxonomy collision):** `BUILD_PLAN.md` uses `WEB-INC-001`…`008` exclusively for website increments, never `S3`/`S4`, and explicitly states `ML-DEVOS-SIP-001.md`'s status table is historical, not live authorization — verified by direct `grep` showing no bare `S1`–`S14` token used as a website-increment label anywhere in `BUILD_PLAN.md`.
-- **`AS10-F009` (strengthened workflow):** the exact 13-stage workflow block (`GROUND / INVENTORY REPOSITORY REALITY` → … → `NEXT INCREMENT OR PAULO GATE`) is reproduced verbatim in `BUILD_PLAN.md`, labeled as process stages that grant no authority by themselves.
-- **`AS10-F010` (stable-ID traceability):** see §3 above; downstream documents reference IDs, they do not copy requirement prose.
-- **`AS10-F011` (context-efficiency):** no document reproduces full Sentinel governance text, the full requirement catalog, or the full risk register; each links to the owning file instead. Each of the six documents ends with an explicit "Context-efficiency note" naming what it deliberately did not duplicate.
-- **`AS10-F012` (proposed backend/admin architecture):** `TECHNICAL_DESIGN.md` and `DATA_BACKEND_SPEC.md` both state, at the top and throughout, that the Worker-API/D1/R2/auth/audit design is `PROPOSED TARGET / NOT IMPLEMENTED` and that creating these documents provisions nothing and authorizes no future increment.
+### `AS10-R003` — Complete current→target data mapping — **RESOLVED**
 
-## 5. Pre-handoff validation (all 16 required checks)
+`DATA_BACKEND_SPEC.md` gained a new "Current → target domain mapping" table mapping **every** current top-level schema domain (`meta`, `site`, `seo`, `navigation[]`, `hero`, `foundations[]`, `projects[]`, `services[]`, `process`, `process.steps[]`, `about`, `contact`, `projectSection`, `footer`) to an explicit target representation:
+- Records-array domains (`navigation`, `foundations`, `projects`, `services`, `process.steps`) each get their own dedicated entity+revisions pair — `foundations`/`foundation_revisions`, `services`/`service_revisions`, and `process_steps`/`process_step_revisions` are newly added entities in this cycle, closing the exact three gaps the Architect named.
+- Singleton content groups (`site`, `seo`, `hero`, `about`, `contact`, `projectSection`, `process`) each become an explicitly typed, individually validated substructure inside `site_settings` — never an untyped/free-form JSON blob, satisfying the request's explicit prohibition on that shortcut.
+- `services` is explicitly flagged: it is preserved by default (currently validated though not rendered), and retiring it instead would require a separate, explicit future architecture/product decision — it is not silently dropped.
+- The "Migration considerations" section now states plainly that `foundations`, `services`, and `process.steps` are not optional/deferrable parts of a future migration.
 
-1. **All six required documents exist:** confirmed — `ls docs/product/` lists exactly `PRD.md`, `TECHNICAL_DESIGN.md`, `UI_UX_SPEC.md`, `APP_FLOW.md`, `DATA_BACKEND_SPEC.md`, `BUILD_PLAN.md`.
-2. **`APP_FLOW.md` is substantive:** 1,237 words; covers public visitor flow, navigation, project browsing, journal browsing, admin authentication, dashboard, create/edit, draft, preview, publish/unpublish, media concept, design-setting concept, validation failure, write failure, unauthorized access, expired/failed session, and public published-only rendering — every state/transition the request named.
-3. **`DATA_BACKEND_SPEC.md` is substantive:** 1,295 words (the largest of the six); covers all nine named entities (`site_settings`, `navigation`, `sections`, `projects`, `journal_entries`, `media`, `theme_settings`, `audit_log`, admin identity references) plus relationships, IDs/states/timestamps, validation, authorization boundaries, auditability, migration, and rollback/data-loss considerations.
-4. **`BUILD_PLAN.md` uses a non-Sentinel namespace:** confirmed by direct `grep` — every increment ID is `WEB-INC-00N`; no increment is labeled `S3`/`S4`/etc.
-5. **Existing requirement IDs are reused:** confirmed — see §3; only `WEB-INC-*` is newly minted, exactly as `AS10-F007` requires.
-6. **No unsupported feature is labeled `CURRENTLY IMPLEMENTED`:** every `CURRENTLY IMPLEMENTED` tag (20 total, `grep -n "CURRENTLY IMPLEMENTED" docs/product/*.md`) cites a specific existing file (`app/page.js`, `lib/content/schema.mjs`, `lib/content/public.mjs`, `data/site.js`, `wrangler.jsonc`, `package.json`, `app/globals.css`, `docs/ARCHITECTURE.md`) — none describes admin, auth, D1, R2, or an API.
-7. **Proposed backend/admin architecture is clearly marked:** confirmed — see `AS10-F012` disposition above; 59 combined `PROPOSED TARGET`/`NOT IMPLEMENTED` tags across the six files.
-8. **Sentinel governance is referenced, not copied:** confirmed — every citation of `devos/governance/*`, `devos/architecture/*`, `brain/DECISION_LOG.md`, and Architect Syncs is a path/ID reference; no Sentinel policy/rule text is reproduced in full.
-9. **The five-actor model is used for future governed work:** confirmed — see §4 `AS10-F006`.
-10. **Legacy `PHASE 0–14` and Sentinel `S0–S14` remain distinct:** confirmed — `BUILD_PLAN.md` states both explicitly and never merges them; increments use `WEB-INC-*` only.
-11. **`ML-DEVOS-SIP-001` historical status is not treated as current authorization:** confirmed — `BUILD_PLAN.md` explicitly states its status table is historical and that live state comes from `coordination/STATE.md`/Decisions/ADRs/current syncs instead.
-12. **No implementation authority is hidden inside `BUILD_PLAN.md`:** confirmed — the document opens and closes with explicit "does not authorize implementation" statements; every candidate increment is marked as requiring its own future Paulo authorization.
-13. **No runtime/code/config/deployment file changed:** confirmed by `git diff --stat` against `app/ components/ data/ lib/ public/ tests/ next.config.mjs wrangler.jsonc package.json package-lock.json devos/ projects/ brain/ .github/` — empty.
-14. **Diff contains only authorized documentation/handoff/state paths:** confirmed by `git status --short` — exactly the 8 files listed in §2.
-15. **`DEPLOY_AUTHORIZED` remains `NO`:** confirmed, unchanged in `coordination/STATE.md`.
-16. **`MAIN_MERGE_AUTHORIZED` remains `NO`:** confirmed, unchanged in `coordination/STATE.md`.
+### `AS10-R004` — Truthful D1 relationships — **RESOLVED**
+
+`DATA_BACKEND_SPEC.md`'s `projects` and `journal_entries` entities no longer describe `media_ids[]` as a foreign key. Two new junction-table entities are added — `project_media` (`project_id`, `media_id`, `role`, `order`) and `journal_media` (`journal_entry_id`, `media_id`, `role`, `order`) — as the proposed relational target, exactly the pattern the request named. The relationship diagram is updated to show `projects (many) ──via project_media──> media (many)` / `journal_entries (many) ──via journal_media──> media (many)` instead of an array-as-foreign-key arrow. The spec also states the fallback rule explicitly: if a future increment chooses a JSON-array column instead, it must say integrity is application-enforced, not a database foreign key.
+
+### `AS10-R005` — Draft/published revision model — **RESOLVED**
+
+`DATA_BACKEND_SPEC.md` gained a new "Publication / revision model" section defining the generic `logical entity (published_revision_id, draft_revision_id) + <entity>_revisions` pattern requested, and stating exactly how public rendering, admin editing, preview, publish, and unpublish each interact with it (public reads only `published_revision_id`; editing writes a new/updated `<entity>_revisions` row and repoints only `draft_revision_id`, leaving the published row untouched; preview reads `draft_revision_id` under authentication; publish atomically swaps the pointer and re-validates in full; unpublish nulls the pointer without deleting history). This pattern is applied to every entity that currently carries the `draft`/`published`/`archived` model: `navigation`, `foundations`, `projects`, `services`, `process_steps`, `journal_entries`, `site_settings`, `theme_settings`. `APP_FLOW.md` §§2c–2f are rewritten in the same cycle to describe transitions in these exact terms (see below) — the request's explicit "make sure `APP_FLOW.md` agrees with this model" is satisfied, not left as a dangling cross-reference.
+
+### `AS10-R006` — Secure admin read path — **RESOLVED**
+
+Chosen option: move the protected dashboard after a protected server-side data-access substrate exists (the first of the two preferred options the request offered), rather than scoping it to public-only data. Concretely:
+- `BUILD_PLAN.md`'s `WEB-INC-002` catalog entry and §B execution sequence now state its dependency is `WEB-INC-001` **and** `WEB-INC-005` (or an explicitly authorized equivalent substrate) — not `WEB-INC-001` alone.
+- `TECHNICAL_DESIGN.md`'s "Proposed target architecture" gained an explicit "Protected editorial read path" bullet stating this substrate does not exist today and cannot be approximated from the current static/asset-only deployment.
+- `APP_FLOW.md` §2b gained a "Read path correction (`AS10-R006`)" paragraph stating the dashboard reads through the protected substrate, never draft/archived content sourced directly from `data/site.js`/`out/`.
+- `DATA_BACKEND_SPEC.md`'s "Authorization boundaries" section cross-references the same constraint.
+All three documents are now consistent, per the request's explicit requirement.
+
+### `AS10-R007` — Fix source-section citations — **RESOLVED**
+
+Corrected:
+- `TECHNICAL_DESIGN.md`: `WEB-SEC-*` citation changed from §11 to §13.
+- `UI_UX_SPEC.md`: `DESIGN-*` citation changed from §10 to §11.
+- `DATA_BACKEND_SPEC.md`: its context-efficiency-note citation changed from "§§10–11" to explicit "§10 (`ADM-REQ-*`), §11 (`DESIGN-*`), §13 (`WEB-SEC-*`)".
+- `coordination/IMPLEMENTER_HANDOFF.md` (this file, § "Requirement / source mapping" below): `WEB-REQ-*`→§9, `ADM-REQ-*`→§10, `DESIGN-*`→§11, `WEB-SEC-*`→§13, `RISK-WEB-*`→§14.
+
+A full-pack search (`grep -n "§9\|§10\|§11\|§13\|§14\|§§"`) was re-run after all edits; the only remaining citations are `PRD.md`'s `§§9–11, 13–14` (correct — it covers all five sections 9, 10, 11, 13, 14 in one range-and-list notation) and `BUILD_PLAN.md`'s two references to `TECHNICAL_DESIGN.md`/`DATA_BACKEND_SPEC.md` **document sections** (not plan §-numbers, so not in scope for this correction).
+
+## Requirement / source mapping (corrected, `AS10-R007`)
+
+| Requirement family | Owning source section |
+|---|---|
+| `WEB-REQ-001`…`008` | `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §9 |
+| `ADM-REQ-001`…`016` | same plan §10 |
+| `DESIGN-001`…`014` | same plan §11 |
+| `WEB-SEC-001`…`012` | same plan §13 |
+| `RISK-WEB-001`…`015` | same plan §14 |
+
+## Migration mapping summary
+
+Every current top-level schema domain now has an explicit target representation (`AS10-R003`, see `DATA_BACKEND_SPEC.md` § "Current → target domain mapping" for the full table): records-array domains → dedicated entity+revisions pairs (`navigation`, `foundations`, `projects`, `services`, `process_steps` — the last three newly modeled this cycle); singleton content groups → individually typed substructures inside `site_settings` (`site`, `seo`, `hero`, `about`, `contact`, `projectSection`, `process`); the root `meta.state` build-gate is flagged as having no direct one-to-one target equivalent once revisioning is per-entity, with an explicit open design note (not a silent drop) for a future increment to resolve. No domain is represented as an untyped/free-form JSON blob.
+
+## Dependency-order summary
+
+`BUILD_PLAN.md` §B: `WEB-INC-001` (auth) → `WEB-INC-005` (storage substrate + migration, its own `ARCHITECTURE`-class gate) → `WEB-INC-002` (dashboard, now correctly dependent on both) → `WEB-INC-008` (audit, resolved to ship no later than/atomically with the next step) → `WEB-INC-003` (project mutations) → `WEB-INC-004` (media) → `WEB-INC-006` (journal) → `WEB-INC-007` (theme). IDs remain stable/permanent per `AS10-R002`; §A (the unordered catalog) and §B (the execution order) are now explicitly separate sections.
+
+## Publication-revision model summary
+
+`DATA_BACKEND_SPEC.md` § "Publication / revision model" (`AS10-R005`): every editorial entity gets `published_revision_id`/`draft_revision_id` pointers into a companion `<entity>_revisions` table. Public reads follow `published_revision_id` only; edits write new revision rows and move only `draft_revision_id`; publish is an atomic pointer swap with full re-validation; unpublish nulls the published pointer without deleting revision history. `APP_FLOW.md` §§2c–2f and §3 restate the same model in flow terms so the two documents agree, as required.
+
+## Evidence / checks performed
+
+- `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` before any file was touched; `git rev-parse HEAD` confirmed against the exact required SHA.
+- Direct reads (not assumed from the request text) of `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `brain/DECISION_LOG.md`, `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`, `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md` before drafting any remediation text.
+- Full re-read of all six product documents in their pre-remediation state before editing, to scope changes precisely to the seven findings.
+- `grep` sweep across all six documents for `§9`/`§10`/`§11`/`§13`/`§14`/`§§` citations after editing, to confirm no other incorrect section reference remained (`AS10-R007`'s explicit "search the full six-document pack" instruction).
+- `grep` sweep for `media_ids` to confirm no remaining foreign-key mischaracterization.
+- `grep` sweep for bare `S[0-9]` tokens in `BUILD_PLAN.md` to confirm no Sentinel-phase number was used for a website increment.
+- `git status --short` and `git diff --stat` against every application/runtime/config/deployment/DevOS/brain/project-registry path, confirmed empty.
 
 ## Known limitations
 
-- This handoff's own claims — including the requirement-mapping table, the `AS10-F003`–`AS10-F012` disposition, and the 16-point validation — are `ACTOR_REPORTED` until the Architect independently reproduces them, per `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`'s evidence-class rule.
-- Per-increment acceptance checklists in `BUILD_PLAN.md` are deliberately drafts, to be finalized at each increment's own future authorization stage rather than fully specified now (an explicit, disclosed choice, not an omission).
-- `WEB-INC-003` vs. `WEB-INC-005`'s exact sequencing (mutation lifecycle vs. storage migration) is left as an open dependency question in `BUILD_PLAN.md`, to be resolved at that increment's "CLARIFY AMBIGUITIES" stage rather than pre-decided here.
-- No new requirement ID beyond `WEB-INC-*` was minted; where a future increment (journal's public-read requirement) will eventually need one, `BUILD_PLAN.md` discloses that gap rather than fabricating an ID now.
+- This handoff's own claims are `ACTOR_REPORTED` until the Architect independently reproduces them, per `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`'s evidence-class rule.
+- The root `meta.state` build-gate's target equivalent (see "Migration mapping summary" above) is explicitly left as an open design note for a future increment, not resolved in this cycle — disclosed, not silently dropped.
+- Each candidate increment's "Likely change class" annotation in `BUILD_PLAN.md` is a planning-time estimate; the actual binding classification happens at that increment's own future `CLASSIFY CHANGE UNDER SENTINEL` step, not in this document.
+- `PRD.md` was not modified this cycle; if the Architect finds a cross-document wording gap there stemming from these fixes, that would be a new finding, not a re-opening of `AS10-R001`–`R007`.
 
 ## Explicit confirmation that no implementation was started
 
-Confirmed: no website/admin/backend implementation; no application/runtime code changes; no D1/R2/API provisioning; no Cloudflare resource creation; no database migration; no project onboarding; no project-registry population; no product `.devos/` overlay; no CI/workflow; no GitHub ruleset/branch-protection change; no production deployment; no protected-branch/`main` merge; no S3 proposal or implementation. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`. This cycle produced documentation only: six new files under `docs/product/` plus the two required coordination-record updates.
+Confirmed: no website/admin/backend implementation; no application/runtime code changes; no D1/R2/API provisioning; no Cloudflare resource creation; no database migration; no project onboarding; no project-registry population; no product `.devos/` overlay; no CI/workflow; no GitHub ruleset/branch-protection change; no production deployment; no protected-branch/`main` merge; no S3 proposal or implementation; no `WEB-INC-001` or any other increment build work. `DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`. This cycle produced documentation remediation only: five product documents edited plus the two required coordination-record updates.

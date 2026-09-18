@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-PRODUCT-BUILD-PACK
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: MAISOGLABS_PRODUCT_BUILD_PACK_DOCS_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: da91051b0e7c2c228748ece25859b12a33fa1009
-LAST_ARCHITECT_REVIEWED_SHA: da91051b0e7c2c228748ece25859b12a33fa1009
+LAST_IMPLEMENTER_HANDOFF_SHA: a5fd502611b54da62a264404a4282081af4d03b4  # NOTE: this is the base HEAD this remediation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
+LAST_ARCHITECT_REVIEWED_SHA: a5fd502611b54da62a264404a4282081af4d03b4
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
@@ -80,17 +80,17 @@ Architect review of `da91051b0e7c2c228748ece25859b12a33fa1009` returned:
 
 - `ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 1`
 
-Required findings to resolve:
+Findings resolved this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` for full per-finding disposition):
 
-- `AS10-R001` — restore active Sentinel change-classification / RFC / Architect-Sync / Paulo-gate routing before future implementation;
-- `AS10-R002` — make `BUILD_PLAN.md` genuinely dependency-ordered;
-- `AS10-R003` — map every current content domain into the proposed backend migration model;
-- `AS10-R004` — use structurally truthful D1 relational media relationships;
-- `AS10-R005` — define draft/published revision coexistence semantics;
-- `AS10-R006` — clarify secure read path for the proposed read-only admin dashboard;
-- `AS10-R007` — correct source-section citations.
+- `AS10-R001` — `BUILD_PLAN.md` now includes the Sentinel change-classification/RFC/Architect-Sync/Paulo-gate routing lifecycle, with per-class routing and a binding "WEB-INC ID is a planning identifier only" rule;
+- `AS10-R002` — `BUILD_PLAN.md` now separates an unordered candidate catalog (§A) from a genuinely topologically valid dependency-ordered execution sequence (§B: `001→005→002→008→003→004→006→007`);
+- `AS10-R003` — `DATA_BACKEND_SPEC.md` now maps every current content domain, including `foundations[]`, `services[]`, and `process.steps[]`, to an explicit typed target representation;
+- `AS10-R004` — `media_ids[]` replaced with `project_media`/`journal_media` junction-table entities;
+- `AS10-R005` — a full publication/revision model (`published_revision_id`/`draft_revision_id` + `<entity>_revisions`) is now specified and `APP_FLOW.md` is updated to agree with it;
+- `AS10-R006` — `WEB-INC-002` now explicitly depends on a protected server-side data-access substrate (`WEB-INC-005` or equivalent), not on the current static deployment;
+- `AS10-R007` — source-section citations corrected across `TECHNICAL_DESIGN.md`, `UI_UX_SPEC.md`, `DATA_BACKEND_SPEC.md`, and `coordination/IMPLEMENTER_HANDOFF.md`.
 
-Builder may modify only the Product Build Pack documents plus normal handoff/state files. No runtime/code/config/DevOS/brain/project-registry change is authorized.
+This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it. Builder modified only the Product Build Pack documents plus normal handoff/state files this cycle. No runtime/code/config/DevOS/brain/project-registry change was made.
 
 ## Architect review rule
 
@@ -125,4 +125,4 @@ Key additional constraints:
 
 ## Current gate
 
-`CLAUDE PRODUCT BUILD PACK REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-010`
+`ARCHITECT PRODUCT BUILD PACK REMEDIATION CYCLE 1 VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-010`
