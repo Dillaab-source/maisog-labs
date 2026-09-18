@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED`
+Status: `PAULO_DECISION_REQUIRED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,148 +8,170 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-008 — S2 Closure Verification
+# ML-DEVOS-AS-009 — Legacy Architect Sync Provenance Audit
 
-Cycle: `SENTINEL-S2-CLOSURE`
-Review mode: `FINAL CLOSURE VERIFICATION / SENTINEL ARCHITECTURE SYNC`
-Original closure candidate: `661283e9ce1f548a4e9494b51fc7021d63268a91`
-Remediation cycle 1 Builder commit: `af05f0d913ccad8971458f0a479250f79d7d94bd`
-Remediation cycle 2 Builder commit: `9b53058388cc2f869606aead8fa55f667b196cd4`
+Cycle: `SENTINEL-LEGACY-ARCHIVE-AUDIT`
+Review mode: `GOVERNANCE MAINTENANCE / PROVENANCE AUDIT`
+Authority: `D-018`
 
-Authority chain reviewed:
+Active Sentinel governance-capability baseline:
+- `v1.4.0`
 
-`D-015 → ML-DEVOS-RFC-001 → ML-DEVOS-AS-006 → D-016 → c76bf6a → ML-DEVOS-AS-007 → D-017 → 661283e → ML-DEVOS-AS-008 → af05f0d → 9b53058`
+Audit targets:
+- `ML-DEVOS-AS-001.md`
+- `ML-DEVOS-AS-002.md`
+- `ML-DEVOS-AS-004.md`
 
-## Required review discipline performed
+## Audit discipline performed
 
-Before issuing this final verdict, the Architect:
+The Architect:
 
-1. pulled the live Sentinel branch/state;
-2. read the current `coordination/STATE.md`, `coordination/IMPLEMENTER_HANDOFF.md`, and live `ML-DEVOS-AS-008`;
-3. compared the exact cycle-2 Builder diff `42adb8d9ef0149b53464d94854a7ed992c27c300 → 9b53058388cc2f869606aead8fa55f667b196cd4`;
-4. independently reproduced the two historical diff/count facts that `S2-C008` required;
-5. confirmed the cycle-2 commit touched only the three paths authorized by the Architect;
-6. confirmed `S2-C005` and `S2-C006` remain resolved and untouched;
-7. confirmed no S3/runtime/website/project-registry/deployment scope was introduced.
+1. pulled the live Sentinel state and current Architect Sync;
+2. read the three durable legacy archive files;
+3. read the archive index and its current provenance claims;
+4. fetched the cited historical `coordination/ARCHITECT_REVIEW.md` snapshots directly from Git;
+5. compared archive content against those historical snapshots;
+6. did not rely on conversational recollection.
 
-## Cycle-2 exact diff
+## Findings
 
-GitHub compare `42adb8d9ef0149b53464d94854a7ed992c27c300 → 9b53058388cc2f869606aead8fa55f667b196cd4` reports:
+### LAA-001 — ML-DEVOS-AS-001 verbatim claim is false
 
-- exactly **1 Builder commit**;
-- exactly **3 changed files**:
-  - `coordination/IMPLEMENTER_HANDOFF.md`;
-  - `coordination/STATE.md`;
-  - `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`.
+Current durable archive:
+- `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`
+- archive length: 14,162 characters
 
-This exactly matches the authorized cycle-2 remediation scope.
+Cited historical snapshots:
+- `571146a06cba1ddc996fd68cd25a68fa4544c5ec` — 7,646 characters
+- `ce53eceb4a8da38f09f971c8fb20b4b618552010` — 7,148 characters
 
-## Independent bookkeeping verification
+Independent comparison:
+- archive is not byte-equal to either cited historical snapshot;
+- neither full historical snapshot is present as a verbatim substring in the archive;
+- the archive adds/restructures headings and summary text while claiming every section is extracted verbatim.
 
-The Architect independently reproduced the corrected evidence:
+Verdict: `PROVENANCE CLAIM FALSE`.
 
-### Builder-authored remediation cycle 1
+The durable record may be materially faithful, but it is not a byte-exact archive of the cited historical files.
 
-`3e4751850a133838d9ee8758f52212c31aeb2b79 → af05f0d913ccad8971458f0a479250f79d7d94bd`
+### LAA-002 — ML-DEVOS-AS-002 verbatim claim is false
 
-- exactly **1 commit**;
-- exactly **8 changed files**.
+Current durable archive:
+- `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`
+- archive length: 14,382 characters
 
-### Full history from original closure candidate through remediation cycle 1
+Cited historical snapshots:
+- `5962c978e363745d8bbea8b39b3aff7ae0711329` — 10,561 characters
+- `af76cc7b3e6188caa5d2881f7dccb41511f5cd05` — 8,856 characters
 
-`661283e9ce1f548a4e9494b51fc7021d63268a91 → af05f0d913ccad8971458f0a479250f79d7d94bd`
+Independent comparison:
+- archive is not byte-equal to either cited historical snapshot;
+- neither full historical snapshot is present as a verbatim substring;
+- the archive restructures the historical record into selected parts while claiming verbatim extraction.
 
-- exactly **3 commits**;
-- exactly **9 changed files**;
-- the additional path is the Architect-owned `coordination/ARCHITECT_REVIEW.md` history/routing change.
+Verdict: `PROVENANCE CLAIM FALSE`.
 
-The corrected handoff/state now distinguish these facts rather than presenting them as one Builder-only range.
+### LAA-003 — ML-DEVOS-AS-004 verbatim claim is false
 
-Historical erroneous wording is preserved only as quoted/corrected history, not as a current evidence claim.
+Current durable archive:
+- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
+- archive length: 6,737 characters
 
-## Finding disposition
+Historical final Architect Review:
+- `2226a9c639908223be869197a774dbe7d857de0b` — 7,385 characters
 
-### S2-C001 — PASS
+Independent comparison:
+- archive is not byte-equal to the historical final review;
+- the full historical final review is not present verbatim in the archive;
+- the archive is a condensed narrative spanning four passes while its metadata says the final live Architect Review was copied verbatim, not paraphrased.
 
-D-017 closure scope remains respected.
+Verdict: `PROVENANCE CLAIM FALSE`.
 
-### S2-C002 — PASS
+### LAA-004 — archive index rule is stronger than historical practice
 
-`ML-DEVOS-ADR-002` and the authorized `v1.3.0 → v1.4.0` transition remain coherent.
+`devos/changes/architect-syncs/README.md` states:
 
-### S2-C003 — PASS
+> Once an Architect Sync concludes, its content is copied here, verbatim...
 
-Manifest/version closure structure remains coherent.
+AS-006 and AS-007 now satisfy that model after S2 remediation.
 
-### S2-C004 — PASS
+AS-001, AS-002, and AS-004 do not.
 
-S2 implementation and the non-destructive product boundary remain preserved.
+This means the durable archive currently contains mixed archival semantics under one stated rule.
 
-### S2-C005 — RESOLVED
+Verdict: `GOVERNANCE CONSISTENCY DEFECT`.
 
-The durable `ML-DEVOS-AS-006` and `ML-DEVOS-AS-007` archives now contain mechanically verified byte-exact historical Architect Review snapshots.
+## Impact assessment
 
-### S2-C006 — RESOLVED
+This audit does **not** invalidate the underlying S0 or S1 architectural decisions, technical stage-gate verdicts, or later Sentinel baselines.
 
-The registry-empty invariant is now expressed as a standing pre-onboarding rule rather than a temporary "during S2" condition.
+The defect is provenance truthfulness:
 
-### S2-C007 — PASS
+- historical Git snapshots remain available and authoritative;
+- the durable legacy archive files misdescribe how faithfully they reproduce those snapshots;
+- leaving the false verbatim claims uncorrected weakens Sentinel's evidence discipline and can mislead later reviewers.
 
-Validator execution evidence remains honestly classified as `ACTOR_REPORTED`; no independent execution/CI/runtime evidence is claimed.
+No runtime, deployment, project, or S3 behavior is affected.
 
-### S2-C008 — RESOLVED
+## Recommended remediation
 
-Exact-diff/evidence bookkeeping now matches independently reproduced Git history:
+Use the same model that resolved S2-C005.
 
-- Builder remediation: 1 commit / 8 files;
-- full candidate-to-remediation history: 3 commits / 9 files;
-- cycle-2 bookkeeping correction: 1 commit / 3 authorized files.
+For AS-001 and AS-002:
+- preserve archive metadata outside fenced sections;
+- embed each cited historical `coordination/ARCHITECT_REVIEW.md` snapshot byte-for-byte in a fenced block;
+- identify the exact source SHA;
+- preserve the current final interpretation/verdict outside the fenced historical sections if needed;
+- do not rewrite the historical snapshots.
 
-No remaining S2 closure finding is open.
+For AS-004:
+- either:
+  1. archive all four historical AS-004 review snapshots byte-for-byte, one fenced snapshot per reviewed cycle; or
+  2. if only the final snapshot is intended to be the durable canonical archive, embed that final snapshot byte-for-byte and clearly label any multi-cycle summary as a separate summary, not verbatim history.
 
-## Legacy archive audit — non-blocking follow-up
+Architect recommendation: **archive all four AS-004 review snapshots**, because AS-004 is explicitly a continuous multi-cycle sync and the current archive summarizes all four passes.
 
-The disclosed question about older durable syncs `ML-DEVOS-AS-001`, `ML-DEVOS-AS-002`, and `ML-DEVOS-AS-004` remains outside this S2 closure scope.
+Also update `devos/changes/architect-syncs/README.md` so its description matches the corrected archive semantics exactly.
 
-S2 closure does not depend on resolving that separate governance-maintenance audit.
+## Scope boundary
 
-Those older records must not be silently rewritten. Any future audit/remediation requires its own explicit governed change.
+This audit did not modify:
+- AS-001;
+- AS-002;
+- AS-004;
+- archive README;
+- S2 artifacts;
+- S3 artifacts;
+- runtime/application/deployment files.
 
-## Final verdict
+No remediation was authorized by D-018.
 
-`SENTINEL S2 CLOSURE: ARCHITECT_APPROVED`
+## Verdict
 
-`SENTINEL v1.4.0 GOVERNANCE-CAPABILITY BASELINE: ACTIVE`
+`ML-DEVOS-AS-009: AUDIT COMPLETE — REMEDIATION REQUIRED`
 
-`S2 — DEVOS REPOSITORY FOUNDATION: CLOSED`
+All three legacy targets contain false verbatim-provenance claims.
 
-The S2 implementation and closure package, including both remediation cycles, now conform to:
+The next action is a Paulo decision on whether to authorize Builder remediation of the archive records.
 
-- `D-017`;
-- `ML-DEVOS-RFC-001`;
-- `ML-DEVOS-AS-006`;
-- `ML-DEVOS-AS-007`;
-- the active Sentinel governance/evidence discipline.
+## Proposed remediation authorization
 
-## Scope boundary after closure
+If approved, Claude / Builder may modify only:
 
-This final verdict does **not** authorize:
+- `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`
+- `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`
+- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
+- `devos/changes/architect-syncs/README.md`
+- normal handoff/state records
 
-- S3 or any later phase;
-- project onboarding;
-- project registry population;
-- product `.devos/` overlays;
-- website migration or product-source relocation;
-- runtime Policy/Task/Capability/Orchestrator/Evidence engines;
-- CI/workflows;
-- GitHub rulesets or branch protection;
-- production deployment;
-- protected/main merge.
-
-`DEPLOY_AUTHORIZED: NO`
-
-`MAIN_MERGE_AUTHORIZED: NO`
+Remediation must:
+- use actual Git historical snapshots;
+- mechanically verify byte-exact fenced reproduction;
+- preserve historical decisions/verdicts;
+- not alter S0/S1/S2 architecture semantics;
+- not begin S3;
+- return to Architect for independent verification.
 
 ## Current Architecture Sync status
 
-`ML-DEVOS-AS-008: ARCHITECT_APPROVED — CLOSED`
+`ML-DEVOS-AS-009: PAULO REMEDIATION DECISION REQUIRED`
