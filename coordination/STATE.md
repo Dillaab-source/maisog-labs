@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-005-D1-SUBSTRATE
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_005_D1_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: e0304a89ddfb5595866f1990cd9fca161e78ae2b
+LAST_IMPLEMENTER_HANDOFF_SHA: PENDING_COMMIT_SEE_NEXT_BOOKKEEPING_COMMIT
 LAST_ARCHITECT_REVIEWED_SHA: e0304a89ddfb5595866f1990cd9fca161e78ae2b
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -76,6 +76,18 @@ Preserve PASS findings:
 - local-only / no-remote D1 configuration.
 
 No later increment, remote D1 operation, deployment, main merge, Sentinel S3, CI, or ruleset work is authorized.
+
+## Remediation Cycle 1 disposition (Builder, awaiting Architect verification)
+
+Builder reports all five findings resolved — see `coordination/IMPLEMENTER_HANDOFF.md` for the full disposition of each:
+
+- `AS14-F001`: `worker/d1/migrate.mjs` now preflights every entity read-only, throws before any write if any entity would refuse, and executes the entire write phase as one `db.batch()` call.
+- `AS14-F002`: no-op now requires exact pointer identity (the revision-1 id, not mere truthiness) plus exact `created_at`/`created_by` provenance equivalence.
+- `AS14-F003`: `worker/d1/validate.mjs`'s `order`/`icon`/`updatedAt`/stack-capacity predicates now match `lib/content/schema.mjs` exactly.
+- `AS14-F004`: `brain/IMPLEMENTATION_STATUS.md`, `docs/product/PRD.md`, `docs/product/DATA_BACKEND_SPEC.md` converged on the three-way public/local-D1/remote-D1 distinction.
+- `AS14-F005`: the handoff now states the corrected 19-path diff explicitly, naming the Builder's original 17-path report as `ACTOR_REPORTED` and the Architect's 19-path finding as `INDEPENDENTLY_INSPECTED`, without silently rewriting the original as though it had been correct.
+
+`npm test`: 76/76 passing (27 content + 30 auth + 19 D1, 7 new this cycle). `npm run build` succeeded, unchanged routes. This disposition is Builder-reported (`ACTOR_REPORTED`) and awaits independent Architect verification before `ML-DEVOS-AS-014` can close.
 
 ## Builder objective
 
@@ -317,4 +329,4 @@ Architect must independently inspect migration SQL, table inventory, data-access
 
 ## Current gate
 
-`CLAUDE WEB-INC-005 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-014`
+`ARCHITECT REVIEW OF WEB-INC-005 REMEDIATION CYCLE 1 — VERIFY DISPOSITION OF ML-DEVOS-AS-014 FINDINGS AS14-F001 THROUGH AS14-F005`

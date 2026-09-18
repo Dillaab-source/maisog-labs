@@ -8,16 +8,26 @@
 // validator; nothing in lib/content/*, app/page.js, or data/site.js is
 // changed by this increment (AS13-F001, AS13-F013).
 //
-// Determinism / repeat-run contract (AS13-F009): for each logical entity,
-// - if the entity does not yet exist in D1, it is created (entity row +
-//   revision 1 + pointer, in one atomic db.batch call — no partial writes);
-// - if it already exists with byte-identical content and the same
-//   publish/draft/archived state, the run is a no-op for that entity;
-// - if it already exists with DIFFERENT content or a different
-//   publish/draft/archived state, migration is refused for that entity with
-//   an explicit error and no write is attempted — this deterministic seed
-//   migrates a fixed content snapshot once; it does not silently
-//   resynchronize a changed source on rerun.
+// Determinism / repeat-run contract (AS13-F009, tightened by AS14-F001 and
+// AS14-F002):
+// - the entire run is preflighted before any write is attempted: every
+//   entity's decision (create / noop / refuse) is determined purely from
+//   reads, with no statement issued yet;
+// - if ANY entity would refuse, the whole run throws before the first
+//   database write — a late conflict can never leave earlier entities
+//   written (AS14-F001);
+// - only once every entity's decision is "create" or "noop" does the write
+//   phase run, and it does so as a SINGLE `db.batch()` call covering every
+//   entity's statements together, so the whole write phase is one D1
+//   transaction — genuinely all-or-nothing, not merely atomic per entity;
+// - "noop" requires exact equivalence, not mere pointer truthiness: the
+//   publish/draft pointer must reference the exact expected revision-1 id
+//   (never a same-entity revision 2 or later), the other pointer must be
+//   exactly null (both null for archived), and the immutable creation
+//   metadata (`created_at` on the entity and the revision, `created_by`)
+//   must be byte-identical to what this migration would have written
+//   (AS14-F002). Any mismatch — content, pointer identity, or provenance —
+//   is a refusal, never a silent "close enough" no-op.
 import { validateContent } from "../../lib/content/schema.mjs";
 import {
   validateSiteSettingsContent,
@@ -37,55 +47,20 @@ function normalizeForComparison(value) {
   return value;
 }
 
-// Inserts a brand-new entity + its first revision + pointer atomically, or
-// (if the entity already exists) verifies the existing row set matches the
-// intended target exactly and reports a no-op, or refuses with no write.
-async function upsertEntity(db, {
+// Builds the statement set that would create a brand-new entity + its first
+// revision + pointer. Pure — issues no reads or writes; only `db.prepare()`
+// to construct (unexecuted) statement objects.
+function buildCreateStatements(db, {
   entityTable,
   revisionsTable,
   entityIdColumn,
   entityId,
-  extraEntityColumns = {},
+  extraEntityColumns,
   revisionColumns,
-  state, // "published" | "draft" | "archived"
+  state,
   createdAt,
   createdBy,
 }) {
-  const existingEntity = await db.prepare(`SELECT * FROM ${entityTable} WHERE id = ?`).bind(entityId).first();
-
-  if (existingEntity) {
-    const existingRevision = await db
-      .prepare(`SELECT * FROM ${revisionsTable} WHERE ${entityIdColumn} = ? AND revision_number = 1`)
-      .bind(entityId)
-      .first();
-    if (!existingRevision) {
-      throw new Error(
-        `WEB-INC-005 migration refusal: '${entityId}' in ${entityTable} exists without its revision 1 row. ` +
-          "Refusing to write further to avoid corrupting a partial prior run."
-      );
-    }
-    const contentMatches = Object.entries(revisionColumns).every(
-      ([column, value]) => normalizeForComparison(existingRevision[column]) === normalizeForComparison(value)
-    );
-    const extraMatches = Object.entries(extraEntityColumns).every(
-      ([column, value]) => normalizeForComparison(existingEntity[column]) === normalizeForComparison(value)
-    );
-    const intendedPublished = state === "published";
-    const intendedDraft = state === "draft";
-    const pointerMatches =
-      Boolean(existingEntity.published_revision_id) === intendedPublished &&
-      Boolean(existingEntity.draft_revision_id) === intendedDraft;
-
-    if (contentMatches && extraMatches && pointerMatches) {
-      return { entityId, table: entityTable, action: "noop" };
-    }
-    throw new Error(
-      `WEB-INC-005 migration refusal: '${entityId}' in ${entityTable} already exists with different content or ` +
-        "publication state. This deterministic seed migrates a fixed source snapshot once; it does not " +
-        "resynchronize changed source content on rerun."
-    );
-  }
-
   const entityColumnNames = ["id", "created_at", ...Object.keys(extraEntityColumns)];
   const entityValues = [entityId, createdAt, ...Object.values(extraEntityColumns)];
   const revisionColumnNames = Object.keys(revisionColumns);
@@ -116,8 +91,95 @@ async function upsertEntity(db, {
   }
   // state === "archived": both pointers stay null, exactly as inserted.
 
-  await db.batch(statements);
-  return { entityId, table: entityTable, action: "created", state };
+  return statements;
+}
+
+// Read-only preflight for one entity: decides "create" / "noop" / "refuse"
+// without writing anything. For "create", also returns the statement set
+// the write phase will later execute (still unexecuted at this point).
+async function planEntity(db, {
+  entityTable,
+  revisionsTable,
+  entityIdColumn,
+  entityId,
+  extraEntityColumns = {},
+  revisionColumns,
+  state, // "published" | "draft" | "archived"
+  createdAt,
+  createdBy,
+}) {
+  const existingEntity = await db.prepare(`SELECT * FROM ${entityTable} WHERE id = ?`).bind(entityId).first();
+
+  if (!existingEntity) {
+    const statements = buildCreateStatements(db, {
+      entityTable,
+      revisionsTable,
+      entityIdColumn,
+      entityId,
+      extraEntityColumns,
+      revisionColumns,
+      state,
+      createdAt,
+      createdBy,
+    });
+    return { entityId, table: entityTable, action: "create", state, statements };
+  }
+
+  const existingRevision = await db
+    .prepare(`SELECT * FROM ${revisionsTable} WHERE ${entityIdColumn} = ? AND revision_number = 1`)
+    .bind(entityId)
+    .first();
+  if (!existingRevision) {
+    return {
+      entityId,
+      table: entityTable,
+      action: "refuse",
+      reason:
+        `exists without its revision 1 row. Refusing to write further to avoid corrupting a partial prior run.`,
+    };
+  }
+
+  const contentMatches = Object.entries(revisionColumns).every(
+    ([column, value]) => normalizeForComparison(existingRevision[column]) === normalizeForComparison(value)
+  );
+  const extraMatches = Object.entries(extraEntityColumns).every(
+    ([column, value]) => normalizeForComparison(existingEntity[column]) === normalizeForComparison(value)
+  );
+  // Immutable migration provenance/creation metadata must be byte-identical
+  // to what this migration would have written — a silently altered
+  // `created_by`/`created_at` is a refusal, not an equivalent no-op
+  // (AS14-F002).
+  const provenanceMatches =
+    existingEntity.created_at === createdAt &&
+    existingRevision.created_at === createdAt &&
+    existingRevision.created_by === createdBy;
+
+  // Exact pointer-identity equivalence, not mere truthiness (AS14-F002): the
+  // intended pointer must reference this exact revision-1 row, the other
+  // pointer must be exactly null, and archived means both exactly null.
+  let pointerMatches;
+  if (state === "archived") {
+    pointerMatches = existingEntity.published_revision_id === null && existingEntity.draft_revision_id === null;
+  } else {
+    const pointerColumn = state === "published" ? "published_revision_id" : "draft_revision_id";
+    const otherColumn = state === "published" ? "draft_revision_id" : "published_revision_id";
+    pointerMatches = existingEntity[pointerColumn] === existingRevision.id && existingEntity[otherColumn] === null;
+  }
+
+  if (contentMatches && extraMatches && provenanceMatches && pointerMatches) {
+    return { entityId, table: entityTable, action: "noop" };
+  }
+
+  return {
+    entityId,
+    table: entityTable,
+    action: "refuse",
+    reason:
+      "already exists with different content, publication state, or creation provenance than this migration " +
+      "would produce. This deterministic seed migrates a fixed source snapshot once; it does not silently " +
+      "resynchronize changed source content, repoint an existing entity at a different same-entity revision, " +
+      "or accept altered provenance on rerun.",
+  };
 }
 
 const RECORD_COLLECTIONS = [
@@ -187,12 +249,12 @@ const RECORD_COLLECTIONS = [
   },
 ];
 
-async function migrateRecordItem(db, spec, item, { createdAt, createdBy }) {
+async function planRecordItem(db, spec, item, { createdAt, createdBy }) {
   const domainFields = spec.toDomainFields(item);
   spec.validate(domainFields);
   const revisionColumns = spec.toRevisionColumns(domainFields);
   const extraEntityColumns = spec.extraEntityColumns ? spec.extraEntityColumns(item) : {};
-  return upsertEntity(db, {
+  return planEntity(db, {
     entityTable: spec.entityTable,
     revisionsTable: spec.revisionsTable,
     entityIdColumn: spec.entityIdColumn,
@@ -261,11 +323,11 @@ function flattenSiteSettingsColumns(domain) {
   };
 }
 
-async function migrateSiteSettings(db, source, { createdAt, createdBy }) {
+async function planSiteSettings(db, source, { createdAt, createdBy }) {
   const domain = buildSiteSettingsDomainObject(source);
   validateSiteSettingsContent(domain);
   const revisionColumns = flattenSiteSettingsColumns(domain);
-  return upsertEntity(db, {
+  return planEntity(db, {
     entityTable: "site_settings",
     revisionsTable: "site_settings_revisions",
     entityIdColumn: "site_settings_id",
@@ -288,11 +350,11 @@ export const SECTION_BOOTSTRAP = [
   { id: "about", order: 4, visible: true },
 ];
 
-async function migrateSectionBootstrap(db, section, { createdAt, createdBy }) {
+async function planSectionBootstrap(db, section, { createdAt, createdBy }) {
   const domainFields = { order: section.order, visible: section.visible };
   validateSectionRevisionContent(domainFields);
   const revisionColumns = { sort_order: domainFields.order, visible: domainFields.visible ? 1 : 0 };
-  return upsertEntity(db, {
+  return planEntity(db, {
     entityTable: "sections",
     revisionsTable: "section_revisions",
     entityIdColumn: "section_id",
@@ -308,27 +370,50 @@ async function migrateSectionBootstrap(db, section, { createdAt, createdBy }) {
 // equivalent test fixture with the same shape) into the D1 revision
 // substrate, plus bootstraps the four managed sections. Deterministic and
 // safe to call more than once — see the repeat-run contract above.
+//
+// Whole-run safety (AS14-F001): every entity is preflighted (read-only)
+// first; if any entity would refuse, the run throws here, before the first
+// `db.prepare()`/write of the write phase below — so a conflict discovered
+// late in processing order can never leave an earlier entity written. Only
+// once every entity resolves to "create" or "noop" does the write phase
+// run, and it does so as one single `db.batch()` call spanning every
+// entity's statements, so the write phase itself is one D1
+// transaction — genuinely all-or-nothing.
 export async function migrateCurrentContent(db, source, { provenance = MIGRATION_PROVENANCE } = {}) {
   validateContent(source);
   const createdAt = source.meta.updatedAt;
-  const results = [];
+  const plans = [];
 
-  results.push(await migrateSiteSettings(db, source, { createdAt, createdBy: provenance }));
+  plans.push(await planSiteSettings(db, source, { createdAt, createdBy: provenance }));
 
   for (const spec of RECORD_COLLECTIONS) {
     const items = spec.key === "processSteps" ? source.process.steps : source[spec.key];
     for (const item of items) {
-      results.push(await migrateRecordItem(db, spec, item, { createdAt, createdBy: provenance }));
+      plans.push(await planRecordItem(db, spec, item, { createdAt, createdBy: provenance }));
     }
   }
 
   for (const section of SECTION_BOOTSTRAP) {
-    results.push(await migrateSectionBootstrap(db, section, { createdAt, createdBy: provenance }));
+    plans.push(await planSectionBootstrap(db, section, { createdAt, createdBy: provenance }));
+  }
+
+  const refusals = plans.filter(plan => plan.action === "refuse");
+  if (refusals.length > 0) {
+    throw new Error(
+      `WEB-INC-005 migration refusal: preflight found ${refusals.length} entit${refusals.length === 1 ? "y" : "ies"} ` +
+        "that would not migrate cleanly; no write was attempted for any entity in this run.\n" +
+        refusals.map(plan => `  - ${plan.table}.${plan.entityId}: ${plan.reason}`).join("\n")
+    );
+  }
+
+  const writeStatements = plans.flatMap(plan => (plan.action === "create" ? plan.statements : []));
+  if (writeStatements.length > 0) {
+    await db.batch(writeStatements);
   }
 
   return {
-    createdCount: results.filter(r => r.action === "created").length,
-    noopCount: results.filter(r => r.action === "noop").length,
-    results,
+    createdCount: plans.filter(plan => plan.action === "create").length,
+    noopCount: plans.filter(plan => plan.action === "noop").length,
+    results: plans.map(plan => ({ entityId: plan.entityId, table: plan.table, action: plan.action, state: plan.state })),
   };
 }

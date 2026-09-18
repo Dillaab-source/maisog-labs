@@ -47,9 +47,9 @@ MaisogLabs is an existing, shipped codebase, not a greenfield product being spec
 The authoritative requirement catalog already exists in `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §§9–11, 13–14, with live status tracked in `brain/GOVERNANCE_MAP.md`, `brain/RISK_REGISTER.md`, and `brain/TEST_LEDGER.md`. This PRD reuses those IDs rather than restating their prose (`AS10-F010`):
 
 - `WEB-REQ-001`…`008` — public website requirements. Current status: see `brain/GOVERNANCE_MAP.md` (`WEB-REQ-001`, `003`, `005`–`008` = `IMPLEMENTED`; `WEB-REQ-002` = process practice, not an enforced control; `WEB-REQ-004` = `NOT STARTED`).
-- `ADM-REQ-001`…`016` — future admin portal requirements. Current status: `NOT STARTED` (no `/admin` route exists anywhere in `app/`).
-- `DESIGN-001`…`014` — future admin-exposed design controls. Current status: `NOT STARTED`.
-- `WEB-SEC-001`…`012` — auth/security boundary requirements for the future admin surface. Current status: `NOT STARTED` — explicitly not "not applicable"; these become live requirements the moment admin/auth work is authorized.
+- `ADM-REQ-001`…`016` — future admin portal requirements. Current status: `ADM-REQ-001` (`/admin` requires authentication) = `IMPLEMENTED` per the accepted `WEB-INC-001`; `ADM-REQ-002`…`016` (session/editorial/mutation/media/theme/audit capability) remain `NOT STARTED` — see `brain/GOVERNANCE_MAP.md`.
+- `DESIGN-001`…`014` — future admin-exposed design controls. Current status: `NOT STARTED` — an auth-only admin surface existing (`WEB-INC-001`) is not the same as a design-control/editing capability existing (`ML-DEVOS-AS-013`).
+- `WEB-SEC-001`…`012` — auth/security boundary requirements for the future admin surface. Current status: `WEB-SEC-001`, `002`, `011` (authenticated access, server-side authorization check, fail-closed) = `IMPLEMENTED` per `WEB-INC-001`; `WEB-SEC-003`…`010`, `012` remain `NOT STARTED` — explicitly not "not applicable"; these become live requirements the moment the corresponding admin/mutation surface is authorized.
 - `RISK-WEB-001`…`015` — see `brain/RISK_REGISTER.md` for current status per risk (mix of `OPEN`, `MITIGATED`, `NOT YET APPLICABLE`, `NOT STARTED`).
 
 If a genuinely new requirement is needed that no existing ID covers, it must be assigned a stable ID, given an owning document, and justified. No new requirement ID is introduced by this cycle — the existing catalog above already covers the Product Build Pack's scope.
@@ -68,8 +68,8 @@ Traceability model (reused from `brain/GOVERNANCE_MAP.md`, unchanged): `Requirem
 |---|---|---|
 | Public site | `CURRENTLY IMPLEMENTED` — static Next.js export via Cloudflare Worker assets | Unchanged in this cycle |
 | Content authoring | `CURRENTLY IMPLEMENTED` as a Git-edited, schema-validated document (`data/site.js`) | `PROPOSED TARGET` — admin-managed authoring without source edits |
-| Admin surface | `NOT IMPLEMENTED` | `PROPOSED TARGET` — see `TECHNICAL_DESIGN.md`, `APP_FLOW.md`, `DATA_BACKEND_SPEC.md` |
-| Authentication | `NOT IMPLEMENTED` | `PROPOSED TARGET` |
+| Admin auth-only placeholder (`/admin`) | `CURRENTLY IMPLEMENTED` (`WEB-INC-001`) — a route exists, gated by server-side auth, serving a static placeholder with no editing capability | Admin content-editing/design-control surface remains `PROPOSED TARGET` — see `TECHNICAL_DESIGN.md`, `APP_FLOW.md`, `DATA_BACKEND_SPEC.md` |
+| Authentication | `CURRENTLY IMPLEMENTED` at repository level (`WEB-INC-001`: `worker/index.mjs`/`worker/auth.mjs`, fail-closed Cloudflare Access JWT verification for `/admin`/`/admin/*`) — not production-verified, no production Cloudflare Access application exists | Unchanged in this cycle; production verification remains `PROPOSED TARGET` |
 | Database (D1) — current-content revision substrate | `IMPLEMENTED` (local-only; `WEB-INC-005`, `ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) — not yet public source of truth, not Architect-verified | Remote/production D1 and any public read/write path remain `PROPOSED TARGET`, contingent on their own separate future authorization |
 | Media (R2) | `NOT IMPLEMENTED` | `PROPOSED TARGET`, contingent on a separate future authorization (`AS10-F012`) |
 | Journal | `NOT IMPLEMENTED` | `FUTURE OPTION` |

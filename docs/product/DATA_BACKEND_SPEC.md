@@ -16,7 +16,15 @@ Every entity definition and relationship below is designed to make this literall
 
 ## Current storage model — `CURRENTLY IMPLEMENTED`
 
-Local, Git-backed content only. There is no database, no D1, no R2, no external persistence layer today (`brain/PROJECT_GOVERNANCE.md` § "Current storage model"). The entire current data contract is one exported JS object (`data/site.js`, `siteContent`), validated by `lib/content/schema.mjs` and projected by `lib/content/public.mjs`. Its existing shape (field names, types, and constraints) is the baseline any proposed entity below must be able to represent without silently dropping capability, unless a future `ARCHITECTURE`-class decision explicitly changes that (`brain/DECISION_LOG.md` D-007).
+Three-way model, current as of `WEB-INC-005` (`brain/PROJECT_GOVERNANCE.md` § "Current storage model"):
+
+1. **Public authoritative source/read path** — Local, Git-backed content only. `data/site.js` (`siteContent`), validated by `lib/content/schema.mjs` and projected by `lib/content/public.mjs` through `lib/content/local.mjs`/`app/page.js`, remains the sole source the actual public build reads. Unchanged by `WEB-INC-005`.
+2. **Local/repository D1 substrate** — `IMPLEMENTED`, local-only, under `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`): `migrations/0001_web_inc_005_init.sql` (exactly the 14 entity/revision tables in the mapping table below), `worker/d1/*`. Migration/parity/integrity-tested against source (1) above; not read by any public/admin code path.
+3. **Remote/production D1** — does **not** exist and is not authorized (`REMOTE_D1_AUTHORIZED: NO`).
+
+No R2/media storage exists in any of the three.
+
+The entire current *public* data contract is one exported JS object (`data/site.js`, `siteContent`), validated by `lib/content/schema.mjs` and projected by `lib/content/public.mjs`. Its existing shape (field names, types, and constraints) is the baseline any proposed entity below must be able to represent without silently dropping capability, unless a future `ARCHITECTURE`-class decision explicitly changes that (`brain/DECISION_LOG.md` D-007). No-cutover invariant, unchanged: `D1 EXISTS LOCALLY ≠ D1 IS PUBLIC SOURCE` (`ML-DEVOS-AS-013`) — nothing in this document authorizes or describes a completed cutover.
 
 The current schema's top-level domains, every one of which is mapped below (`AS10-R003`): `meta`, `site`, `seo`, `navigation[]`, `hero`, `foundations[]`, `projects[]`, `services[]`, `process`, `process.steps[]`, `about`, `contact`, `projectSection`, `footer`. Every record-like collection (`navigation`, `foundations`, `projects`, `services`, `process.steps`) already carries `id`, `order`, and `state` (`draft`/`published`/`archived`).
 

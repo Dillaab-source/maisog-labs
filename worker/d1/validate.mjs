@@ -48,6 +48,29 @@ const href = value =>
   typeof value === "string" &&
   (["#home", "#projects", "#process", "#about"].includes(value) || (value.startsWith("mailto:") && email(value.slice(7))));
 
+// Exact current contract (lib/content/schema.mjs's `record.order`): a safe
+// integer in [0, 10000] — not merely `>= 0` (AS14-F003). Exported directly
+// (in addition to being used by every per-revision validator below) so its
+// exact boundary can be tested without constructing a full revision object.
+export const order = value => Number.isSafeInteger(value) && value >= 0 && value <= 10000;
+
+// Exact current contract (lib/content/schema.mjs's `icon` choice) — a closed
+// enum, never arbitrary text (AS14-F003). Exported for the same reason.
+export const ICON_VALUES = ["foundation", "experience", "systems", "security", "automation", "lab", "contact", "arrow"];
+export const icon = value => ICON_VALUES.includes(value);
+
+// Exact current contract (lib/content/schema.mjs's `meta.updatedAt`): the
+// value must be a real calendar date, not merely regex-shaped + parseable —
+// `Date.parse`/`new Date()` silently normalize an impossible date such as
+// "2026-02-30" into a different, valid one, so the round-trip through
+// `toISOString().slice(0, 10)` must reproduce the exact input (AS14-F003).
+// Exported for the same reason as `order`/`icon` above.
+export const isoDate = value =>
+  typeof value === "string" &&
+  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+  Number.isFinite(Date.parse(value)) &&
+  new Date(value).toISOString().slice(0, 10) === value;
+
 function assertNoUnknownFields(value, allowedKeys, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`${label}: expected object`);
@@ -77,8 +100,11 @@ export function validateLines(value, label) {
   return value;
 }
 
+// Exact current contract: lib/content/schema.mjs's generic array-field cap
+// is 100 entries (its `visit()` rejects any array field longer than that,
+// with no per-field override for `stack`), not a narrower 20 (AS14-F003).
 export function validateStack(value, label) {
-  if (!Array.isArray(value) || value.length > 20 || !value.every(text(60))) {
+  if (!Array.isArray(value) || value.length > 100 || !value.every(text(60))) {
     throw new Error(`${label}: expected a list of short strings`);
   }
   return value;
@@ -108,11 +134,7 @@ export function validateSiteSettingsContent(value) {
   assertField(value.schemaVersion, v => v === "1.0.0", "siteSettings.schemaVersion");
   assertField(value.contentVersion, text(80), "siteSettings.contentVersion");
   assertField(value.locale, v => v === "en-PH", "siteSettings.locale");
-  assertField(
-    value.updatedAt,
-    v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)),
-    "siteSettings.updatedAt"
-  );
+  assertField(value.updatedAt, isoDate, "siteSettings.updatedAt");
 
   assertNoUnknownFields(value.site, ["name", "location", "timezone", "tagline"], "siteSettings.site");
   assertField(value.site.name, text(100), "siteSettings.site.name");
@@ -173,7 +195,7 @@ export function validateSiteSettingsContent(value) {
 
 export function validateNavigationRevisionContent(value) {
   assertNoUnknownFields(value, ["order", "label", "href"], "navigationRevision");
-  assertField(value.order, v => Number.isSafeInteger(v) && v >= 0, "navigationRevision.order");
+  assertField(value.order, order, "navigationRevision.order");
   assertField(value.label, text(100), "navigationRevision.label");
   assertField(value.href, href, "navigationRevision.href");
   return value;
@@ -181,8 +203,8 @@ export function validateNavigationRevisionContent(value) {
 
 export function validateFoundationRevisionContent(value) {
   assertNoUnknownFields(value, ["order", "icon", "label", "href", "text"], "foundationRevision");
-  assertField(value.order, v => Number.isSafeInteger(v) && v >= 0, "foundationRevision.order");
-  assertField(value.icon, text(40), "foundationRevision.icon");
+  assertField(value.order, order, "foundationRevision.order");
+  assertField(value.icon, icon, "foundationRevision.icon");
   assertField(value.label, text(100), "foundationRevision.label");
   assertField(value.href, href, "foundationRevision.href");
   assertField(value.text, text(160), "foundationRevision.text");
@@ -195,20 +217,20 @@ export function validateProjectRevisionContent(value) {
     ["order", "category", "title", "summary", "stack", "accent", "icon", "featured"],
     "projectRevision"
   );
-  assertField(value.order, v => Number.isSafeInteger(v) && v >= 0, "projectRevision.order");
+  assertField(value.order, order, "projectRevision.order");
   assertField(value.category, text(100), "projectRevision.category");
   assertField(value.title, text(160), "projectRevision.title");
   assertField(value.summary, text(800), "projectRevision.summary");
   validateStack(value.stack, "projectRevision.stack");
   assertField(value.accent, v => ["gold", "blue", "red", "violet"].includes(v), "projectRevision.accent");
-  assertField(value.icon, text(40), "projectRevision.icon");
+  assertField(value.icon, icon, "projectRevision.icon");
   assertField(value.featured, v => typeof v === "boolean", "projectRevision.featured");
   return value;
 }
 
 export function validateServiceRevisionContent(value) {
   assertNoUnknownFields(value, ["order", "title", "summary"], "serviceRevision");
-  assertField(value.order, v => Number.isSafeInteger(v) && v >= 0, "serviceRevision.order");
+  assertField(value.order, order, "serviceRevision.order");
   assertField(value.title, text(160), "serviceRevision.title");
   assertField(value.summary, text(800), "serviceRevision.summary");
   return value;
@@ -216,8 +238,8 @@ export function validateServiceRevisionContent(value) {
 
 export function validateProcessStepRevisionContent(value) {
   assertNoUnknownFields(value, ["order", "icon", "title", "text"], "processStepRevision");
-  assertField(value.order, v => Number.isSafeInteger(v) && v >= 0, "processStepRevision.order");
-  assertField(value.icon, text(40), "processStepRevision.icon");
+  assertField(value.order, order, "processStepRevision.order");
+  assertField(value.icon, icon, "processStepRevision.icon");
   assertField(value.title, text(100), "processStepRevision.title");
   assertField(value.text, text(500), "processStepRevision.text");
   return value;
@@ -225,7 +247,7 @@ export function validateProcessStepRevisionContent(value) {
 
 export function validateSectionRevisionContent(value) {
   assertNoUnknownFields(value, ["order", "visible"], "sectionRevision");
-  assertField(value.order, v => Number.isSafeInteger(v) && v >= 0, "sectionRevision.order");
+  assertField(value.order, order, "sectionRevision.order");
   assertField(value.visible, v => typeof v === "boolean", "sectionRevision.visible");
   return value;
 }

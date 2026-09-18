@@ -19,7 +19,15 @@ import {
   readPublishedCollection,
   readDraftCollectionForTrustedServerCode,
 } from "../worker/d1/repository.mjs";
-import { validateProjectSlug } from "../worker/d1/validate.mjs";
+import {
+  validateProjectSlug,
+  validateNavigationRevisionContent,
+  validateFoundationRevisionContent,
+  validateStack,
+  order,
+  icon,
+  isoDate,
+} from "../worker/d1/validate.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 
@@ -331,6 +339,126 @@ test("a revision row cannot reference a non-existent base entity (foreign-key in
   } finally {
     await cleanup();
   }
+});
+
+test("a late-processing conflicting entity causes zero partial writes across the whole migration run (AS14-F001)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const fixture = buildFixtureContent();
+    const processStepId = fixture.process.steps[0].id;
+
+    // Pre-insert a conflicting process_steps entity + revision with content
+    // that will not match what this migration would produce. process_steps
+    // is the LAST collection processed by migrateCurrentContent, so every
+    // earlier entity (site_settings, navigation, foundations, projects,
+    // services, sections) would otherwise be created successfully before
+    // this conflict is even reached under a naive per-entity-only design.
+    await db.batch([
+      db.prepare("INSERT INTO process_steps (id, created_at) VALUES (?, ?)").bind(processStepId, "2020-01-01"),
+      db
+        .prepare(
+          "INSERT INTO process_step_revisions (process_step_id, revision_number, sort_order, icon, title, text, created_at, created_by) " +
+            "VALUES (?, 1, 1, 'lab', 'Different Title', 'Different text', ?, ?)"
+        )
+        .bind(processStepId, "2020-01-01", "not-a-migration-provenance"),
+    ]);
+    const before = await dumpAllRows(db);
+
+    await assert.rejects(() => migrateCurrentContent(db, fixture), /migration refusal/);
+
+    const after = await dumpAllRows(db);
+    assert.deepEqual(after, before);
+    assert.equal(after.site_settings.length, 0);
+    assert.equal(after.navigation.length, 0);
+    assert.equal(after.foundations.length, 0);
+    assert.equal(after.projects.length, 0);
+    assert.equal(after.services.length, 0);
+    assert.equal(after.sections.length, 0);
+    assert.equal(after.process_steps.length, 1);
+    assert.equal(after.process_step_revisions.length, 1);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("migration refuses (rather than reporting noop) when a pointer targets a different same-entity revision (AS14-F002)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const fixture = buildFixtureContent({ navigationStates: ["published"] });
+    await migrateCurrentContent(db, fixture);
+    const [item] = fixture.navigation;
+
+    // Create a second, content-identical revision for the SAME entity, then
+    // repoint published_revision_id at it instead of revision 1. Content
+    // still "matches" revision 1, so a pointer-truthiness check alone would
+    // wrongly report this as a no-op.
+    await db.batch([
+      db
+        .prepare(
+          "INSERT INTO navigation_revisions (navigation_id, revision_number, sort_order, label, href, created_at, created_by) " +
+            "VALUES (?, 2, ?, ?, ?, ?, ?)"
+        )
+        .bind(item.id, item.order, item.label, item.href, fixture.meta.updatedAt, MIGRATION_PROVENANCE),
+      db
+        .prepare(
+          "UPDATE navigation SET published_revision_id = " +
+            "(SELECT id FROM navigation_revisions WHERE navigation_id = ? AND revision_number = 2) WHERE id = ?"
+        )
+        .bind(item.id, item.id),
+    ]);
+
+    await assert.rejects(() => migrateCurrentContent(db, fixture), /migration refusal/);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("migration refuses when existing creation provenance/metadata has been altered (AS14-F002)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const fixture = buildFixtureContent({ navigationStates: ["published"] });
+    await migrateCurrentContent(db, fixture);
+    const [item] = fixture.navigation;
+
+    await db
+      .prepare("UPDATE navigation_revisions SET created_by = 'someone-else' WHERE navigation_id = ? AND revision_number = 1")
+      .bind(item.id)
+      .run();
+
+    await assert.rejects(() => migrateCurrentContent(db, fixture), /migration refusal/);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("D1 validator order boundary matches the current content contract exactly: 0..10000 (AS14-F003)", () => {
+  assert.equal(order(10000), true);
+  assert.equal(order(10001), false);
+  assert.doesNotThrow(() => validateNavigationRevisionContent({ order: 10000, label: "Label", href: "#home" }));
+  assert.throws(() => validateNavigationRevisionContent({ order: 10001, label: "Label", href: "#home" }));
+});
+
+test("D1 validator icon enum matches the current content contract exactly (AS14-F003)", () => {
+  assert.equal(icon("lab"), true);
+  assert.equal(icon("not-a-real-icon"), false);
+  assert.doesNotThrow(() =>
+    validateFoundationRevisionContent({ order: 1, icon: "security", label: "Label", href: "#home", text: "Text" })
+  );
+  assert.throws(() =>
+    validateFoundationRevisionContent({ order: 1, icon: "not-a-real-icon", label: "Label", href: "#home", text: "Text" })
+  );
+});
+
+test("D1 validator date validity matches the current content contract exactly, rejecting impossible calendar dates (AS14-F003)", () => {
+  assert.equal(isoDate("2026-02-28"), true);
+  assert.equal(isoDate("2026-02-30"), false);
+});
+
+test("D1 validator project stack capacity matches the current content contract exactly: up to 100 entries (AS14-F003)", () => {
+  const maxStack = Array.from({ length: 100 }, (_, i) => `item-${i}`);
+  assert.doesNotThrow(() => validateStack(maxStack, "stack"));
+  const overStack = Array.from({ length: 101 }, (_, i) => `item-${i}`);
+  assert.throws(() => validateStack(overStack, "stack"));
 });
 
 async function dumpAllRows(db) {
