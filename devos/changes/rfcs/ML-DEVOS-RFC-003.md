@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-003: MaisogLabs WEB-INC-005 D1 Revision Substrate and Current-Content Migration
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Proposed change class: `ARCHITECTURE`
 
