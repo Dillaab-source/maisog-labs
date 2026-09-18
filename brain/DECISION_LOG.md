@@ -137,3 +137,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Implementation gate:** S2 implementation is **not yet authorized**. After the RFC is reviewed through Architect Sync, Paulo must issue a second explicit implementation decision if the proposal is approved.
 - **Explicitly not authorized:** S3 or later phases; runtime Policy/Task/Evidence/Capability engines beyond whatever repository-foundation scaffolding the approved S2 RFC later permits; CI/workflows; GitHub rulesets/branch protection; website/admin implementation; project migration; production deployment; protected/main merge.
 - **Evidence:** Paulo said “authorize” immediately after S1 closed and the live state required a new explicit Paulo authorization before any S2 work.
+
+
+### D-016 — Authorize S2 DevOS Repository Foundation implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after Architect Sync `ML-DEVOS-AS-006` approved `ML-DEVOS-RFC-001` for implementation consideration.
+- **Decision:** Authorize Claude / Builder to implement **S2 — DevOS Repository Foundation** exactly within the accepted scope of `ML-DEVOS-RFC-001` as reviewed by `ML-DEVOS-AS-006`.
+- **Authorized implementation scope:** static DevOS foundation manifest + schema; reserved subsystem roots with README-only `NOT IMPLEMENTED` boundaries; empty `projects/registry.json` + schema; deterministic zero-dependency static validators for manifest/registry; S2 handoff/coordination/provenance updates.
+- **Required architecture invariants:** preserve separate frozen architecture baseline `ML-DEVOS-ARCH-001 / v1.2.0` and active governance-capability baseline `v1.3.0`; preserve source-of-truth precedence; keep project registry an index only; keep registry empty through S2 closure; one canonical owner phase per reserved root; no executable later-phase subsystem code in S2.
+- **Builder boundary:** Claude implements. Architect does not implement S2. Builder returns a commit/handoff for independent Architect comparison against this authorization, `ML-DEVOS-RFC-001`, and `ML-DEVOS-AS-006`.
+- **Explicitly not authorized:** S3 or later phases; project onboarding; product `.devos/` overlays; website migration or product-source relocation; Task/Policy/Capability/Orchestrator/Evidence runtime; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge.
+- **Version disposition:** `v1.3.0 → v1.4.0 MINOR` remains proposed only until implementation is independently reviewed and S2 is explicitly closed.
+- **Review rule:** before any Architect verdict on Builder output, Architect must pull the live Sentinel Architecture Sync/state and compare the Builder output/diff against the approved RFC, current sync, and authorized scope.
+- **Evidence:** Paulo said “ok approved” after reviewing the Architect-approved S2 RFC package and additionally instructed that Architect should always pull Sentinel Architecture Sync and compare outputs before review.
