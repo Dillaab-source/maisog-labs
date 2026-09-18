@@ -42,10 +42,16 @@
 //   - Exactly one reserved root (devos/schemas/) may be FOUNDATION_ACTIVE;
 //     every other declared root must be NOT_IMPLEMENTED.
 //   - project_registry.role is exactly "index only" and project_registry.
-//     status is EMPTY (S2 requires this; POPULATED is schema-legal for a
-//     later, separately authorized phase but is flagged as a hard error by
-//     this validator while S2 is the active phase -- see the script's
-//     S2_CLOSURE_REQUIRES_EMPTY_REGISTRY constant).
+//     status is EMPTY -- this is the standing pre-onboarding invariant
+//     (ML-DEVOS-RFC-001 acceptance criterion 7; reaffirmed at S2 closure,
+//     D-017/ML-DEVOS-ADR-002), not a condition scoped to "while S2 is the
+//     active phase." POPULATED is schema-legal only once a specific,
+//     separately authorized PROJECT_ONBOARDING decision permits it; until
+//     then this validator flags POPULATED as a hard error regardless of
+//     which Sentinel phase is current -- see the script's
+//     REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING constant (S2-C006 correction;
+//     renamed from S2_CLOSURE_REQUIRES_EMPTY_REGISTRY, which read as if the
+//     invariant lapsed once S2 closed).
 //   - Top-level executable_runtime_present === false.
 //   - provenance cites all four of rfc/architect_sync/proposal_decision/
 //     implementation_decision as non-empty strings.
@@ -88,12 +94,16 @@ const BASELINE_STATUSES = new Set(["ACTIVE", "SUPERSEDED"]);
 const REGISTRY_STATUSES = new Set(["EMPTY", "POPULATED"]);
 const SURFACE_STATUSES = new Set(["ACTIVE", "RETIRED"]);
 
-// S2 (ML-DEVOS-RFC-001) requires the project registry to remain empty
-// through S2 closure. This is an S2-scope closure invariant layered on top
-// of the schema (which permits POPULATED for a later, separately authorized
-// phase) -- it is deliberately hardcoded here, not a flag, because no
-// PROJECT_ONBOARDING decision has occurred and none is authorized in S2.
-const S2_CLOSURE_REQUIRES_EMPTY_REGISTRY = true;
+// ML-DEVOS-RFC-001 established, and D-017/ML-DEVOS-ADR-002 reaffirmed at S2
+// closure, that the project registry remains empty until a separately
+// authorized PROJECT_ONBOARDING decision permits population. This is a
+// standing invariant layered on top of the schema (which permits POPULATED
+// once such a decision exists) -- it is deliberately hardcoded here, not a
+// flag, because no PROJECT_ONBOARDING decision has occurred. Renamed from
+// S2_CLOSURE_REQUIRES_EMPTY_REGISTRY (S2-C006): the invariant was never
+// scoped to "while S2 is active," and the old name read as if it lapsed
+// once S2 closed.
+const REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING = true;
 
 function isPlainObject(v) {
   return v !== null && typeof v === "object" && !Array.isArray(v);
@@ -246,8 +256,8 @@ function validate(doc, errors) {
     }
     if (pr.role !== "index only") errors.push(`manifest.project_registry.role: must be exactly 'index only' (found '${pr.role}')`);
     if (!REGISTRY_STATUSES.has(pr.status)) errors.push(`manifest.project_registry.status: invalid status '${pr.status}'`);
-    else if (S2_CLOSURE_REQUIRES_EMPTY_REGISTRY && pr.status !== "EMPTY") {
-      errors.push(`manifest.project_registry.status: must be 'EMPTY' during S2 (found '${pr.status}') -- a POPULATED registry requires a later, separately authorized PROJECT_ONBOARDING decision, not asserted here`);
+    else if (REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING && pr.status !== "EMPTY") {
+      errors.push(`manifest.project_registry.status: must remain 'EMPTY' until a separately authorized PROJECT_ONBOARDING decision permits population (found '${pr.status}') -- not asserted here`);
     }
   }
 

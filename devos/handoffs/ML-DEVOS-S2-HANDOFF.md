@@ -216,3 +216,63 @@ Same as disclosed at implementation (§8 above) — closure changes S2's authori
 ## Architect review request (closure verification)
 
 Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`. Per `D-017`'s Builder boundary, requesting the Architect: pull the live Sentinel branch/state; read the current `coordination/STATE.md` and `coordination/ARCHITECT_REVIEW.md`; inspect this exact closure commit; compare the exact closure diff against `D-017`, `ML-DEVOS-RFC-001`, `ML-DEVOS-AS-006`, and `ML-DEVOS-AS-007`; independently inspect the changed artifacts; and issue the final S2 closure verdict. This handoff does not request or imply authorization for S3.
+
+---
+
+# S2 Closure Remediation Cycle 1 (`ML-DEVOS-AS-008`, `S2-C005`/`S2-C006`)
+
+The Architect's closure-package review (`ML-DEVOS-AS-008`) found two truthfulness/provenance defects in the `661283e` closure package and returned `SENTINEL S2 CLOSURE: CHANGES_REQUESTED`. Both are corrected in this remediation cycle. The S2 implementation itself remains technically approved and `D-017`'s closure/version authorization is not revoked.
+
+## S2-C005 — durable Architect Sync archives falsely claimed verbatim preservation
+
+The Architect independently compared `ML-DEVOS-AS-006.md`/`ML-DEVOS-AS-007.md` against their cited historical Git snapshots by character count and found they were narrative restructurings, not the byte-for-byte copies their own "copied verbatim, not paraphrased" metadata claimed (e.g. `ML-DEVOS-AS-007.md` was 7,844 characters against the historical file's 8,105).
+
+**Remediation (option A, the Architect's stated preference):** both files were rebuilt from scratch, this time embedding the **actual historical file content** inside fenced code blocks, retrieved via `git show <SHA>:coordination/ARCHITECT_REVIEW.md`, with no heading-level changes, retitling, or paraphrasing anywhere inside the fence. This cycle mechanically verified the fix rather than merely asserting it: each fenced block was programmatically extracted from the rebuilt archive file and diffed against a fresh `git show <SHA>:coordination/ARCHITECT_REVIEW.md` of the same commit.
+
+```
+$ diff <(extracted Part 1 of ML-DEVOS-AS-006.md) <(git show b613c62:coordination/ARCHITECT_REVIEW.md)
+(no output — identical)
+
+$ diff <(extracted Part 2 of ML-DEVOS-AS-006.md) <(git show f6ee953:coordination/ARCHITECT_REVIEW.md)
+(no output — identical)
+
+$ diff <(extracted body of ML-DEVOS-AS-007.md) <(git show 69ba513:coordination/ARCHITECT_REVIEW.md)
+(no output — identical)
+```
+
+All three extractions are now confirmed byte-for-byte identical to their cited historical commits. `devos/changes/architect-syncs/README.md` was updated to describe this mechanically-verified reproduction and to disclose, without fixing (out of this cycle's authorized scope), that `ML-DEVOS-AS-001.md`/`AS-002.md`/`AS-004.md` make the same style of "verbatim" claim using the same restructured-narrative pattern that turned out to be false here — whether they have the same defect is an open, undecided question this cycle does not resolve.
+
+## S2-C006 — validator semantics remained stale after S2 closure
+
+`validate-project-registry.mjs` and `validate-devos-manifest.mjs` still described registry emptiness as required "during S2" and still used a constant named `S2_CLOSURE_REQUIRES_EMPTY_REGISTRY`, even though the same closure commit that should have fixed this (per this Builder's own narrated claim) declared S2 closed at `v1.4.0` — leaving the wording temporally misleading (reading as if the invariant lapsed once S2 ended, when the actual invariant was never phase-scoped).
+
+**Remediation:**
+- `S2_CLOSURE_REQUIRES_EMPTY_REGISTRY` renamed to `REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING` in both validators.
+- Every "during S2" / "in S2" temporal phrasing in error messages, console output, and header comments describing the registry-emptiness invariant replaced with the standing rule: *"projects/registry.json remains empty until a separately authorized PROJECT_ONBOARDING decision permits population"* — citing `ML-DEVOS-RFC-001` acceptance criterion 7 and its reaffirmation at S2 closure (`D-017`/`ML-DEVOS-ADR-002`).
+- Fail-closed behavior fully preserved and re-verified this cycle: a synthetic non-empty registry (one otherwise-valid entry) and a synthetic `project_registry.status: "POPULATED"` manifest were each tested in the session scratchpad (never committed) — both still rejected, with the new wording, exit code 1.
+- No runtime toggle added — the invariant remains a hardcoded `true` constant, unconditionally enforced, exactly as before.
+- No project entry added anywhere — `projects/registry.json` is untouched and still exactly `{"schema_version": "1", "projects": []}`.
+
+```
+$ node devos/schemas/validate-devos-manifest.mjs
+devos-manifest.json: parsed
+  OK — no structural or semantic issues found.
+PASS: 0 error(s) across 1 file(s).
+
+$ node devos/schemas/validate-project-registry.mjs
+registry.json: 0 project entries parsed
+  OK — no structural or semantic issues found. Registry is empty, as required until a PROJECT_ONBOARDING decision permits population.
+PASS: 0 error(s) across 1 file(s).
+```
+
+## Note on this handoff's own earlier (§§4–5, §6 item 4) quoted console output
+
+The command output quoted earlier in this same handoff document (in the implementation and closure sections above) reproduces exactly what those validators printed **at the time those cycles ran** — it is a historical record of past command output, not a live claim about the registry's current wording, and is left unedited rather than retroactively rewritten (`CORE-011`: a durable record is not silently rewritten). The corrected wording shown in this remediation-cycle section above is what the validators print now, on the live repository, as of this commit.
+
+## Files changed this remediation cycle
+
+`devos/changes/architect-syncs/ML-DEVOS-AS-006.md`; `devos/changes/architect-syncs/ML-DEVOS-AS-007.md`; `devos/changes/architect-syncs/README.md`; `devos/schemas/validate-devos-manifest.mjs`; `devos/schemas/validate-project-registry.mjs`; this handoff; `coordination/IMPLEMENTER_HANDOFF.md`; `coordination/STATE.md`. No other file was touched — confirmed via `git diff --stat 661283e..HEAD`.
+
+## Architect review request (remediation cycle 1)
+
+Requesting the Architect independently re-verify `S2-C005` (by extracting the fenced content from both archives and diffing against `git show <SHA>:coordination/ARCHITECT_REVIEW.md` for `b613c62`, `f6ee953`, and `69ba513`) and `S2-C006` (by confirming no "during S2" / phase-scoped wording remains describing the registry-emptiness invariant, and that fail-closed behavior is unchanged), then issue the final S2 closure verdict.

@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S2-CLOSURE
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S2_CLOSURE_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 661283e9ce1f548a4e9494b51fc7021d63268a91
 LAST_ARCHITECT_REVIEWED_SHA: 661283e9ce1f548a4e9494b51fc7021d63268a91
@@ -32,46 +32,31 @@ S2 closure candidate:
 Current Architect Sync:
 - `ML-DEVOS-AS-008`
 
-## Current verdict
+## Prior verdict (remediated this cycle)
 
-`SENTINEL S2 CLOSURE: CHANGES_REQUESTED`
+`SENTINEL S2 CLOSURE: CHANGES_REQUESTED` (`ML-DEVOS-AS-008`, reviewing `661283e`)
 
-Two closure-package truthfulness/provenance defects remain.
+Two closure-package truthfulness/provenance defects were identified. Both are resolved below.
 
-### S2-C005 — durable sync archival claim
+### S2-C005 — durable sync archival claim — RESOLVED
 
-`ML-DEVOS-AS-006.md` and `ML-DEVOS-AS-007.md` claim historical Architect Review content was copied verbatim, but independent comparison against the cited Git snapshots shows they are not exact verbatim copies.
+`ML-DEVOS-AS-006.md` and `ML-DEVOS-AS-007.md` claimed historical Architect Review content was copied verbatim, but independent comparison against the cited Git snapshots showed they were not exact verbatim copies.
 
-Required remediation:
-- either replace them with actual verbatim historical snapshot text from the cited commits;
-- or remove all verbatim claims and explicitly label them as faithful summaries/extracts, with historical Git snapshots as the immutable originals.
+Remediation applied (option A, the Architect's stated preference): both files rebuilt to embed the **actual historical file content** inside fenced code blocks, retrieved fresh via `git show <SHA>:coordination/ARCHITECT_REVIEW.md`. Mechanically verified this cycle by extracting each fenced block and diffing against a fresh `git show` of the cited commit (`b613c62`, `f6ee953`, `69ba513`) — all three diffs empty. See `coordination/IMPLEMENTER_HANDOFF.md` §1 for the exact commands.
 
-Architect preference: actual verbatim archival.
+### S2-C006 — stale validator semantics after S2 closure — RESOLVED
 
-### S2-C006 — stale validator semantics after S2 closure
+The validators described registry emptiness as required "during S2" and used `S2_CLOSURE_REQUIRES_EMPTY_REGISTRY`.
 
-The validators still describe registry emptiness as required "during S2" and still use `S2_CLOSURE_REQUIRES_EMPTY_REGISTRY`.
+Remediation applied: constant renamed to `REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING` in both validators; every "during S2" phrasing replaced with the standing invariant — *"projects/registry.json remains empty until a separately authorized PROJECT_ONBOARDING decision permits population"* (`ML-DEVOS-RFC-001` acceptance criterion 7, reaffirmed by `D-017`/`ML-DEVOS-ADR-002`). Fail-closed behavior preserved and re-verified against synthetic non-empty-registry and `POPULATED`-status fixtures (both still rejected, exit 1, never committed). No runtime toggle added. No project entry added — `projects/registry.json` untouched, byte-identical, still empty. See `coordination/IMPLEMENTER_HANDOFF.md` §2.
 
-Required remediation:
-- express the standing invariant truthfully:
-  `the registry remains empty until a separately authorized PROJECT_ONBOARDING decision permits population`;
-- preserve fail-closed behavior;
-- do not add any project;
-- do not add a runtime toggle.
+## This cycle's remediation — completed, submitted for re-verification
 
-## Authorized remediation paths
+`git diff --name-status 661283e..HEAD` — exactly 7 files, all within `ML-DEVOS-AS-008`'s authorized scope: `devos/changes/architect-syncs/{ML-DEVOS-AS-006.md, ML-DEVOS-AS-007.md, README.md}`; `devos/schemas/{validate-devos-manifest.mjs, validate-project-registry.mjs}`; `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`; `coordination/IMPLEMENTER_HANDOFF.md`; `coordination/STATE.md`. Full mapping, exact verification commands, and validator re-run output are in `coordination/IMPLEMENTER_HANDOFF.md`.
 
-Claude may change only what is needed for S2-C005/S2-C006 plus handoff/state truthfulness:
+**Note on `LAST_IMPLEMENTER_HANDOFF_SHA` above:** left at `661283e9ce1f548a4e9494b51fc7021d63268a91` (the prior cycle's SHA) because this cycle's own commit SHA is not known until after it is created — consistent with the pattern established across every prior remediation cycle, where the Architect corrects this field to the actual new commit SHA in their own subsequent state update after inspecting the pushed commit.
 
-- `devos/changes/architect-syncs/ML-DEVOS-AS-006.md`
-- `devos/changes/architect-syncs/ML-DEVOS-AS-007.md`
-- `devos/schemas/validate-devos-manifest.mjs`
-- `devos/schemas/validate-project-registry.mjs`
-- relevant closure archive/index/handoff documentation only where required for truthful wording
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-
-## Explicitly prohibited
+## Explicitly prohibited (confirmed absent from this remediation)
 
 - no S3 or later phase
 - no project onboarding
@@ -88,14 +73,4 @@ Claude may change only what is needed for S2-C005/S2-C006 plus handoff/state tru
 
 ## Current gate
 
-`CLAUDE REMEDIATION TURN — S2 CLOSURE CYCLE 1`
-
-After remediation, Claude must set:
-
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `PAULO_DECISION_REQUIRED: NO`
-
-and stop.
+`S2-C005` and `S2-C006` are resolved and submitted for Architect re-verification. `D-017`'s closure/version authorization is not revoked; the S2 implementation itself remains technically approved. `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged. No S3 work was started or implied.

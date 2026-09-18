@@ -17,15 +17,22 @@
 //     level and on every project entry and its 'overlay' sub-object).
 //   - schema_version is exactly "1".
 //   - projects is an array.
-//   - S2 CLOSURE INVARIANT (ML-DEVOS-RFC-001 acceptance criterion 7): as of
-//     S2, projects MUST be empty. A non-empty registry is a hard failure
-//     here regardless of whether each entry is otherwise well-formed --
-//     this is deliberately hardcoded, not a flag, because no
-//     PROJECT_ONBOARDING decision has occurred or is authorized in S2.
-//     Lifting this requires a future, separately authorized change to this
-//     validator (and the manifest's project_registry.status field), not a
-//     runtime toggle.
-//   - For any project entry present (which S2 itself never produces, but
+//   - STANDING PRE-ONBOARDING INVARIANT (ML-DEVOS-RFC-001 acceptance
+//     criterion 7; reaffirmed at S2 closure, D-017/ML-DEVOS-ADR-002):
+//     projects/registry.json remains empty until a separately authorized
+//     PROJECT_ONBOARDING decision permits population. A non-empty registry
+//     is a hard failure here regardless of whether each entry is otherwise
+//     well-formed -- this is deliberately hardcoded, not a flag, because no
+//     PROJECT_ONBOARDING decision has occurred. This invariant does not
+//     expire when any particular Sentinel phase (S2, S3, ...) closes; it
+//     is a standing rule about the registry itself, not a phase-scoped
+//     one (S2-C006 correction -- the prior wording tied this to "during
+//     S2," which read as temporally lapsed once S2 closed at v1.4.0; it
+//     never was phase-scoped). Lifting it for a specific, actually
+//     authorized onboarding requires a future, separately authorized
+//     change to this validator (and the manifest's project_registry.status
+//     field), not a runtime toggle.
+//   - For any project entry present (which no onboarding has produced, but
 //     the schema and this validator still check in case one is ever added
 //     out of process): project_id is a non-empty string and globally
 //     unique within the registry; repository/owner are non-empty strings;
@@ -54,9 +61,13 @@ import path from "node:path";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = path.join(HERE, "..", "..", "projects", "registry.json");
 
-// S2 (ML-DEVOS-RFC-001) requires the project registry to remain empty
-// through S2 closure -- see this script's header comment.
-const S2_CLOSURE_REQUIRES_EMPTY_REGISTRY = true;
+// ML-DEVOS-RFC-001 established, and D-017/ML-DEVOS-ADR-002 reaffirmed at S2
+// closure, that the project registry remains empty until a separately
+// authorized PROJECT_ONBOARDING decision permits population -- see this
+// script's header comment. Renamed from S2_CLOSURE_REQUIRES_EMPTY_REGISTRY
+// (S2-C006): the invariant was never scoped to "while S2 is active," and the
+// old name read as if it lapsed once S2 closed.
+const REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING = true;
 
 const STATUSES = new Set(["PROPOSED", "ACTIVE", "SUSPENDED", "RETIRED"]);
 const OVERLAY_MODES = new Set(["in-repo-overlay", "external-devos-overlay"]);
@@ -140,9 +151,10 @@ function validate(doc, errors) {
     return;
   }
 
-  // S2 closure invariant: the registry must be empty.
-  if (S2_CLOSURE_REQUIRES_EMPTY_REGISTRY && doc.projects.length > 0) {
-    errors.push(`registry.projects: must be empty during S2 (found ${doc.projects.length} entr${doc.projects.length === 1 ? "y" : "ies"}) -- registering a project requires a later, separately authorized PROJECT_ONBOARDING decision (ML-DEVOS-RFC-001 acceptance criterion 7)`);
+  // Standing pre-onboarding invariant: the registry remains empty until a
+  // separately authorized PROJECT_ONBOARDING decision permits population.
+  if (REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING && doc.projects.length > 0) {
+    errors.push(`registry.projects: must remain empty until a separately authorized PROJECT_ONBOARDING decision permits population (found ${doc.projects.length} entr${doc.projects.length === 1 ? "y" : "ies"}) -- ML-DEVOS-RFC-001 acceptance criterion 7, reaffirmed at S2 closure by D-017/ML-DEVOS-ADR-002`);
   }
 
   const seenIds = new Set();
@@ -167,7 +179,7 @@ function main() {
   validate(doc, errors);
   console.log(`registry.json: ${Array.isArray(doc.projects) ? doc.projects.length : "?"} project entr${doc.projects && doc.projects.length === 1 ? "y" : "ies"} parsed`);
   if (errors.length === 0) {
-    console.log("  OK — no structural or semantic issues found. Registry is empty, as required during S2.");
+    console.log("  OK — no structural or semantic issues found. Registry is empty, as required until a PROJECT_ONBOARDING decision permits population.");
   } else {
     for (const e of errors) console.log(`  ERROR: ${e}`);
   }
