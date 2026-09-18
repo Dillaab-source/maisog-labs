@@ -171,3 +171,15 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Role boundary:** this audit is Architect-owned review/governance work. If archive remediation is required, Builder implementation requires a subsequent explicit authorization and must return for independent Architect verification.
 - **Standing review rule:** live Sentinel state/Architecture Sync and exact Git evidence must be pulled before verdicts; conversational recollection is not sufficient evidence.
 - **Evidence:** Paulo explicitly said `Approve legacy audit first.`
+
+
+### D-019 — Authorize legacy Architect Sync archive remediation
+
+- **Decided by:** Paulo (Product / Risk Owner), following `ML-DEVOS-AS-009` audit verdict `AUDIT COMPLETE — REMEDIATION REQUIRED`.
+- **Decision:** Authorize Claude / Builder to remediate the legacy durable Architect Sync archives `ML-DEVOS-AS-001`, `ML-DEVOS-AS-002`, and `ML-DEVOS-AS-004` so their historical/verbatim provenance claims become repository-truthful.
+- **Authorized files:** `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`; `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`; `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`; `devos/changes/architect-syncs/README.md`; and normal Builder handoff/state records.
+- **Required remediation method:** retrieve the cited historical `coordination/ARCHITECT_REVIEW.md` snapshots from Git; preserve each historical snapshot byte-for-byte inside clearly identified fenced blocks; keep any explanatory metadata or summaries outside those verbatim blocks; mechanically verify exact reproduction against the cited Git SHAs; preserve historical decisions/verdicts and S0/S1/S2 architecture semantics.
+- **AS-004 requirement:** preserve the full multi-cycle provenance. Preferred implementation is to archive all historical AS-004 review snapshots used across the initial review and remediation cycles as separate byte-exact fenced snapshots rather than collapsing them into a paraphrased summary.
+- **Builder boundary:** Claude implements this remediation. The Architect does not rewrite the archive artifacts and will independently pull live state/history and verify the exact Builder diff before issuing a closure verdict.
+- **Explicitly not authorized:** S3 proposal or implementation; project onboarding; product `.devos/` overlays; website migration; runtime Policy/Task/Capability/Orchestrator/Evidence engines; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge; changes to the underlying historical decisions themselves.
+- **Evidence:** Paulo explicitly said `Approve legacy archive remediation.`
