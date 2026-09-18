@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-005-D1-SUBSTRATE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_005_D1_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: e0304a89ddfb5595866f1990cd9fca161e78ae2b
-LAST_ARCHITECT_REVIEWED_SHA: d6daeca63e0fcfdd5d7a1625ef98098c37e8eb7f
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_ARCHITECT_REVIEWED_SHA: e0304a89ddfb5595866f1990cd9fca161e78ae2b
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
@@ -44,6 +44,38 @@ Paulo implementation decision:
 - `D-024 — Authorize WEB-INC-005 D1 revision-substrate implementation`
 
 Paulo explicitly instructed `Proceed with WEB-INC-005 authorization.` This authority applies to WEB-INC-005 only and does not authorize later increments or remote Cloudflare operations.
+
+## Builder review state
+
+Architect review of implementation commit `e0304a89ddfb5595866f1990cd9fca161e78ae2b` and bookkeeping HEAD `4e5d631f88cadb7166c73efb8dec9481f3bde219` returned:
+
+- `ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 1`
+
+Required remediation:
+
+1. `AS14-F001` — make migration failure side-effect bounded across the **whole migration run**, not merely per entity. A late conflict must leave the database unchanged.
+2. `AS14-F002` — no-op equivalence must validate the exact expected revision pointer and preserved provenance/creation metadata, not just pointer truthiness.
+3. `AS14-F003` — align D1 validators with the current content contract:
+   - order max 10000;
+   - exact icon enum;
+   - exact YYYY-MM-DD validity;
+   - project stack capacity consistent with the current schema.
+4. `AS14-F004` — converge stale current-state docs:
+   - WEB-INC-001 auth-only `/admin` and JWT boundary exist;
+   - no content-editing admin dashboard exists;
+   - local-only D1 substrate exists;
+   - public source path is still `data/site.js`;
+   - remote/production D1 does not exist.
+5. `AS14-F005` — correct Builder exact-diff provenance from 17 to 19 paths and record the 2-commit handoff sequence truthfully.
+
+Preserve PASS findings:
+- exact 14-table ownership;
+- staged public path;
+- composite cross-entity pointer protection;
+- server-only D1 boundary;
+- local-only / no-remote D1 configuration.
+
+No later increment, remote D1 operation, deployment, main merge, Sentinel S3, CI, or ruleset work is authorized.
 
 ## Builder objective
 
@@ -285,4 +317,4 @@ Architect must independently inspect migration SQL, table inventory, data-access
 
 ## Current gate
 
-`CLAUDE WEB-INC-005 D1 REVISION-SUBSTRATE IMPLEMENTATION TURN`
+`CLAUDE WEB-INC-005 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-014`
