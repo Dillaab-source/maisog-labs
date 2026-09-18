@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL-S2-CLOSURE
+CYCLE_ID: SENTINEL-LEGACY-ARCHIVE-AUDIT
 TURN: PAULO
-STATUS: S2_CLOSED
-AUTHORIZED_SCOPE: NONE_UNTIL_NEXT_EXPLICIT_AUTHORIZATION
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: SENTINEL_LEGACY_ARCHIVE_AUDIT_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 LAST_IMPLEMENTER_HANDOFF_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
 LAST_ARCHITECT_REVIEWED_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
-CURRENT_REMEDIATION_CYCLE: 2
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -21,80 +21,66 @@ Frozen architecture baseline:
 
 Active Sentinel governance-capability baseline:
 - `v1.4.0`
-- closure authority: `D-017`
-- closure ADR: `ML-DEVOS-ADR-002`
 
-## S2 closure chain
+S2:
+- CLOSED
 
-Proposal authorization:
-- `D-015`
+## Current authority
 
-RFC:
-- `ML-DEVOS-RFC-001`
+Audit authorization:
+- `D-018`
 
-Pre-implementation Architect Sync:
-- `ML-DEVOS-AS-006`
+Current Architect Sync:
+- `ML-DEVOS-AS-009`
 
-Implementation authorization:
-- `D-016`
+Verdict:
+- `AUDIT COMPLETE — REMEDIATION REQUIRED`
 
-Builder implementation:
-- `c76bf6a6390581963d2ded2e5db18d96b4a346b4`
+## Audit result
 
-Implementation Architect Sync:
-- `ML-DEVOS-AS-007`
-- verdict: `SENTINEL S2 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
+The Architect independently verified that:
 
-Paulo closure decision:
-- `D-017`
+- `ML-DEVOS-AS-001.md` does not contain byte-exact reproductions of the historical snapshots it labels verbatim;
+- `ML-DEVOS-AS-002.md` does not contain byte-exact reproductions of the historical snapshots it labels verbatim;
+- `ML-DEVOS-AS-004.md` is a condensed narrative and is not byte-exact to its historical final Architect Review despite claiming verbatim archival.
 
-Closure candidate:
-- `661283e9ce1f548a4e9494b51fc7021d63268a91`
+Historical Git evidence remains available and authoritative.
 
-Closure remediation cycle 1:
-- `af05f0d913ccad8971458f0a479250f79d7d94bd`
-- resolved `S2-C005` and `S2-C006`
+This is a provenance/archive-truthfulness defect, not an invalidation of S0/S1/S2 architecture decisions.
 
-Closure remediation cycle 2:
-- `9b53058388cc2f869606aead8fa55f667b196cd4`
-- resolved `S2-C008`
+## Paulo decision required
 
-Final closure Architect Sync:
-- `ML-DEVOS-AS-008`
-- verdict: `SENTINEL S2 CLOSURE: ARCHITECT_APPROVED`
+Paulo must explicitly decide whether to authorize Builder remediation of the legacy durable archives.
 
-## Final closure status
+Proposed Builder remediation scope:
 
-`S2 — DEVOS REPOSITORY FOUNDATION: CLOSED`
+- `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`
+- `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`
+- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
+- `devos/changes/architect-syncs/README.md`
+- normal handoff/state records
 
-`SENTINEL v1.4.0 GOVERNANCE-CAPABILITY BASELINE: ACTIVE`
+Required remediation method:
 
-All S2 closure findings are resolved.
+- retrieve actual historical `coordination/ARCHITECT_REVIEW.md` snapshots from Git;
+- embed them byte-for-byte in clearly identified fenced blocks;
+- mechanically verify exact reproduction;
+- keep any summaries outside the verbatim blocks;
+- preserve historical decisions and verdicts;
+- do not alter S0/S1/S2 architecture semantics;
+- do not begin S3.
 
-## Preserved boundaries
+## Explicitly prohibited
 
-S2 closure does not authorize:
-
-- S3 or later phases
-- project onboarding
-- project registry population
-- product `.devos/` overlays
-- website migration
-- product-source relocation
-- runtime Policy/Task/Capability/Orchestrator/Evidence engines
-- CI/workflows
-- GitHub rulesets/branch protection
-- production deployment
-- protected/main merge
-
-## Follow-up governance maintenance
-
-A separate, non-blocking audit may later inspect legacy durable Architect Sync archives `ML-DEVOS-AS-001`, `ML-DEVOS-AS-002`, and `ML-DEVOS-AS-004` for historical-verbatim accuracy.
-
-That audit is not authorized by S2 closure and requires its own governed change.
+- no S3 proposal or implementation
+- no runtime changes
+- no project onboarding
+- no website migration
+- no CI/workflows
+- no GitHub rulesets
+- no deployment
+- no protected/main merge
 
 ## Current gate
 
-`S2 CLOSED — AWAITING NEXT EXPLICIT PAULO AUTHORIZATION`
-
-No actor may begin S3 or any later phase without a new explicit authorization following the active Sentinel governance process.
+`PAULO LEGACY-ARCHIVE REMEDIATION DECISION REQUIRED`
