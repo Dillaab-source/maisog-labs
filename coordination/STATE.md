@@ -1,77 +1,96 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL-S1-ACTIVATION-CLOSURE
-TURN: PAULO
-STATUS: S1_CLOSED
-AUTHORIZED_SCOPE: NONE_UNTIL_NEXT_EXPLICIT_AUTHORIZATION
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: SENTINEL-S2-REPOSITORY-FOUNDATION-PROPOSAL
+TURN: ARCHITECT
+STATUS: S2_PROPOSAL_AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S2_ARCHITECTURE_PROPOSAL_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
 LAST_ARCHITECT_REVIEWED_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
-CURRENT_REMEDIATION_CYCLE: 3
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
 ## Current baseline
 
-S0 remains frozen and authoritative as the historical architecture baseline.
-
-S1 Governance Kernel is fully closed and active as Sentinel governance-capability baseline:
+Sentinel governance-capability baseline:
 
 `v1.3.0`
 
-## Final closure provenance
+S0:
+- CLOSED / frozen historical architecture baseline
 
-Technical stage gate:
-- `ML-DEVOS-AS-004` — `SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
+S1:
+- CLOSED / Governance Kernel active
 
-Activation/closure verification:
-- `ML-DEVOS-AS-005` — `SENTINEL S1 ACTIVATION CLOSURE: ARCHITECT_APPROVED`
+Relevant closure records:
+- `D-013`
+- `D-014`
+- `ML-DEVOS-ADR-001`
+- `ML-DEVOS-AS-004`
+- `ML-DEVOS-AS-005`
 
-Paulo decisions:
-- `D-013` — S1 activation and v1.3.0 closure
-- `D-014` — direct confirmation that D-013 is accurate and authoritative
+## New Paulo authorization
 
-ADR:
-- `ML-DEVOS-ADR-001` — S1 Governance Kernel adoption and v1.2.0 → v1.3.0 transition
+`D-015` authorizes initiation of the next Sentinel phase process:
 
-Durable sync archives:
-- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
-- `devos/changes/architect-syncs/ML-DEVOS-AS-005.md`
+`S2 — DevOS Repository Foundation`
 
-## Active S1-origin rules
+Classification:
 
-The following rules are active at effective version `1.3.0`:
+`ARCHITECTURE`
 
-- `CORE-008`
-- `CORE-009`
-- `CORE-016`
-- `CORE-017`
-- `CORE-018`
+## Authorized scope now
 
-The thirteen S0-origin rules remain active at effective version `1.2.0`.
+Architect may prepare the S2 architecture proposal/RFC only.
 
-## Scope boundary
+The proposal must define, at minimum:
 
-S1 closure does not authorize:
+- exact S2 problem statement and goals;
+- monorepo foundation/topology;
+- project registry shape;
+- DevOS core directory responsibilities;
+- repository ownership/source-of-truth boundaries;
+- how existing website/runtime files are preserved;
+- whether any `.devos/` overlays are introduced in S2 or deferred;
+- migration/non-migration rules;
+- acceptance criteria;
+- evidence requirements;
+- risks and rollback/reversibility;
+- explicit non-goals;
+- relationship to S3 typed Task Contracts and later phases.
 
-- S2 or later phases
-- Policy Engine runtime
-- Task Engine runtime
-- Orchestrator
-- Evidence Gate runtime
-- Capability Gateway runtime
-- CI/workflow implementation
-- GitHub rulesets or branch-protection changes
-- website/admin implementation
-- project migration
-- production deployment
-- protected/main merge
+The S2 proposal must follow the active v1.3.0 path:
+
+`RFC → Architect Sync → Paulo Decision → Implementation → ADR`
+
+## Important gate
+
+S2 **implementation is not yet authorized**.
+
+After the S2 RFC is prepared and Architect-reviewed, Paulo must explicitly authorize implementation before Claude/Builder may modify repository-foundation artifacts.
+
+## Explicitly prohibited
+
+- no S2 implementation yet
+- no S3 or later phase
+- no Policy Engine runtime
+- no Task Engine runtime
+- no Orchestrator
+- no Evidence Gate runtime
+- no Capability Gateway runtime
+- no CI/workflows
+- no GitHub rulesets or branch-protection changes
+- no website/admin implementation
+- no project migration
+- no production deployment
+- no protected/main merge
 
 ## Current gate
 
-`S1 CLOSED — AWAITING NEXT EXPLICIT PAULO AUTHORIZATION`
+`S2 ARCHITECTURE PROPOSAL AUTHORIZED — ARCHITECT TURN`
 
-No actor has authority to begin S2 from this state without a new explicit decision following the active Sentinel governance process.
+Next action: Architect prepares the S2 RFC/Architecture Sync package for Paulo review.
