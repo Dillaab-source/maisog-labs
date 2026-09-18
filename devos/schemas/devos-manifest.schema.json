@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/schemas/devos-manifest.schema.json",
+  "title": "Sentinel DevOS Foundation Manifest",
+  "description": "Static, machine-readable repository-foundation manifest introduced by S2 (ML-DEVOS-RFC-001, ML-DEVOS-AS-006, D-016). Descriptive metadata only -- not a Task Engine, Policy Engine, Orchestrator, runtime loader, or enforcement mechanism. Strictly subordinate to the frozen architecture (ML-DEVOS-ARCH-001), the active governance-capability baseline, brain/DECISION_LOG.md decisions, ADRs, and durable Architect Syncs -- this manifest may summarize or reference those records; it may never redefine, weaken, or override them.",
+  "type": "object",
+  "required": [
+    "manifest_id", "manifest_version", "repository", "devos_root",
+    "architecture_baseline", "sentinel_capability_baseline",
+    "source_of_truth_precedence", "precedence_statement",
+    "reserved_subsystem_roots", "reserved_root_invariant",
+    "project_registry", "legacy_bootstrap_surfaces",
+    "executable_runtime_present", "prohibition", "provenance",
+    "created_at", "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "manifest_id": { "type": "string", "minLength": 1 },
+    "manifest_version": { "type": "string", "minLength": 1 },
+    "repository": { "type": "string", "minLength": 1 },
+    "devos_root": { "type": "string", "minLength": 1 },
+    "architecture_baseline": {
+      "type": "object",
+      "required": ["id", "version", "status", "document"],
+      "additionalProperties": false,
+      "description": "The frozen S0 architecture. MUST remain distinct from sentinel_capability_baseline (S2-F001 / RFC acceptance criterion 2).",
+      "properties": {
+        "id": { "type": "string", "const": "ML-DEVOS-ARCH-001" },
+        "version": { "type": "string", "const": "1.2.0" },
+        "status": { "type": "string", "const": "FROZEN" },
+        "document": { "type": "string", "minLength": 1 }
+      }
+    },
+    "sentinel_capability_baseline": {
+      "type": "object",
+      "required": ["version", "status", "adr", "decision", "document"],
+      "additionalProperties": false,
+      "description": "The active Sentinel governance-capability baseline (S1 Governance Kernel, closed at v1.3.0 by D-013/ML-DEVOS-ADR-001). MUST remain distinct from architecture_baseline.",
+      "properties": {
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "status": { "type": "string", "enum": ["ACTIVE", "SUPERSEDED"] },
+        "adr": { "type": "string", "minLength": 1 },
+        "decision": { "type": "string", "minLength": 1 },
+        "document": { "type": "string", "minLength": 1 }
+      }
+    },
+    "source_of_truth_precedence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Ordered, highest authority first. Must place the frozen architecture, active governance kernel, decisions, ADRs, and durable Architect Syncs above this manifest, and this manifest above the project registry index (S2-F002)."
+    },
+    "precedence_statement": { "type": "string", "minLength": 1 },
+    "reserved_subsystem_roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "owning_phase", "consuming_phases", "status", "executable_runtime_present"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "owning_phase": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Exactly one canonical owning phase per root (S2-F005). Never an array -- a root with more than one owner is a modeling error, not a valid state."
+          },
+          "consuming_phases": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Phases that may consume this root's artifacts once implemented, without owning or redefining the root."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE"],
+            "description": "NOT_IMPLEMENTED for every root reserved for a later phase. FOUNDATION_ACTIVE only for devos/schemas/, which S2 itself owns and populates."
+          },
+          "executable_runtime_present": {
+            "type": "boolean",
+            "const": false,
+            "description": "MUST be false for every root in S2 -- no reserved root may contain executable later-phase subsystem code (S2-F007, RFC non-goals)."
+          }
+        }
+      }
+    },
+    "reserved_root_invariant": { "type": "string", "minLength": 1 },
+    "project_registry": {
+      "type": "object",
+      "required": ["location", "schema", "role", "status", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "location": { "type": "string", "minLength": 1 },
+        "schema": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "const": "index only" },
+        "status": {
+          "type": "string",
+          "enum": ["EMPTY", "POPULATED"],
+          "description": "MUST be EMPTY throughout S2 (RFC acceptance criterion 6/7). Only a later, separately authorized PROJECT_ONBOARDING decision may make this POPULATED."
+        },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "legacy_bootstrap_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "status", "note"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["ACTIVE", "RETIRED"] },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "executable_runtime_present": {
+      "type": "boolean",
+      "const": false,
+      "description": "MUST be false -- S2 is a static repository foundation only; no Task/Policy/Capability/Orchestrator/Evidence runtime, CI, or ruleset exists (RFC acceptance criterion 5/12)."
+    },
+    "prohibition": { "type": "string", "minLength": 1 },
+    "provenance": {
+      "type": "object",
+      "required": ["rfc", "architect_sync", "proposal_decision", "implementation_decision"],
+      "additionalProperties": false,
+      "properties": {
+        "rfc": { "type": "string", "minLength": 1 },
+        "architect_sync": { "type": "string", "minLength": 1 },
+        "proposal_decision": { "type": "string", "minLength": 1 },
+        "implementation_decision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "created_at": { "type": "string", "format": "date" },
+    "updated_at": { "type": "string", "format": "date" }
+  }
+}
