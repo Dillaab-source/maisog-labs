@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-002: MaisogLabs WEB-INC-001 Authentication Boundary
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Proposed change class: `ARCHITECTURE`
 
