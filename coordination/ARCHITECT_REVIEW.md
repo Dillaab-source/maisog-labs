@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,13 +8,13 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-010 — Product Build Pack / Architect Output Consistency Sync
+# ML-DEVOS-AS-010 — Product Build Pack Delivery Review / Remediation Cycle 1
 
 Cycle: `MAISOGLABS-PRODUCT-BUILD-PACK`
-Review mode: `PRE-BUILD ARCHITECTURE SYNC / CROSS-ARTIFACT CONSISTENCY REVIEW`
-Requested by: Paulo
-Live branch reviewed: `governance/maisoglabs-v0.1`
-Live branch head at review start: `597389e2771f4e09221434766d819bc2e4261a8a`
+Review mode: `POST-BUILD ARCHITECTURE SYNC / CROSS-ARTIFACT CONSISTENCY REVIEW`
+Authority chain: `D-020 → D-021 → ML-DEVOS-AS-010`
+Reviewed Builder commit: `da91051b0e7c2c228748ece25859b12a33fa1009`
+Builder base: `ed1220f6127e70b67cfe52ac41461cc825866df3`
 
 Active Sentinel governance-capability baseline:
 - `v1.4.0`
@@ -22,316 +22,233 @@ Active Sentinel governance-capability baseline:
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
 
-Current Builder authorization:
-- `D-020` — Product Build Pack direction
-- `D-021` — Product Build Pack documentation implementation only
+## Required review discipline performed
 
-## Scope
+Before issuing this verdict, the Architect:
 
-This sync reviews the Architect-owned outputs produced after S2 closure that materially affect the current Product Build Pack cycle:
+1. pulled the live governance branch and current `coordination/STATE.md`;
+2. read the current `ML-DEVOS-AS-010` constraints, `D-020`, and `D-021`;
+3. inspected the exact Builder handoff commit `da91051...`;
+4. independently compared `ed1220f... → da91051...`;
+5. read all six Product Build Pack files in the exact Builder commit;
+6. compared material claims against repository evidence including `docs/ARCHITECTURE.md`, `docs/CONTENT.md`, `package.json`, `wrangler.jsonc`, `lib/content/schema.mjs`, `lib/content/public.mjs`, `lib/content/local.mjs`, `app/page.js`, `brain/GOVERNANCE_MAP.md`, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, Brand V3 artifacts, and Sentinel's role/change-governance records;
+7. checked the output for scope drift, unsupported CURRENTLY IMPLEMENTED claims, phase-taxonomy collisions, hidden implementation authorization, data-model loss, and governance-routing contradictions.
 
-- `ML-DEVOS-AS-009` final legacy-archive closure;
-- `D-020` Product Build Pack direction;
-- `D-021` Product Build Pack documentation authorization;
-- the current `coordination/STATE.md` Builder handoff;
-- the Product Build Pack structure and lifecycle previously communicated to Paulo.
+## Exact Builder diff — PASS
 
-Older S0/S1/S2 decisions are not reopened. They are used as constraints through the frozen architecture, active Governance Kernel, ADRs, current state, and source-of-truth rules.
+GitHub compare `ed1220f6127e70b67cfe52ac41461cc825866df3 → da91051b0e7c2c228748ece25859b12a33fa1009` reports:
 
-No Builder-owned product document or runtime/application artifact is implemented by this sync.
+- exactly **1 Builder commit**;
+- exactly **8 changed files**;
+- 6 new Product Build Pack documents;
+- 2 coordination files;
+- no application/runtime/config/deployment/DevOS/project-registry file changed.
 
-## Repository evidence compared
+Changed files:
 
-The Architect independently inspected:
+- `docs/product/PRD.md`
+- `docs/product/TECHNICAL_DESIGN.md`
+- `docs/product/UI_UX_SPEC.md`
+- `docs/product/APP_FLOW.md`
+- `docs/product/DATA_BACKEND_SPEC.md`
+- `docs/product/BUILD_PLAN.md`
+- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md`
 
-- `coordination/STATE.md`;
-- `coordination/ARCHITECT_REVIEW.md`;
-- `brain/DECISION_LOG.md`;
-- `devos/architecture/ML-DEVOS-ARCH-001.md`;
-- `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`;
-- `devos/governance/rules/core-rules.json`;
-- `devos/governance/ROLE_RESPONSIBILITY_MATRIX.md`;
-- `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`;
-- `devos/governance/TRUST_BOUNDARIES.md`;
-- `devos/governance/specifications/VERSIONING_POLICY.md`;
-- `devos/plans/ML-DEVOS-SIP-001.md`;
-- `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`;
-- `brain/PROJECT_GOVERNANCE.md`.
-
-## External research consulted
-
-Fresh public research was used as design input, not as authority over Sentinel:
-
-1. GitHub Spec Kit current SDD guidance:
-   - https://github.com/github/spec-kit/blob/main/README.md
-   - https://github.com/github/spec-kit/blob/main/docs/quickstart.md
-   - https://github.github.com/spec-kit/reference/agentic-sdd.html
-   - https://github.github.com/spec-kit/guides/existing-projects.html
-   - https://github.github.com/spec-kit/guides/evolving-specs.html
-2. Community discussions on SDD, drift, documentation bloat, and fresh-context review:
-   - Reddit r/ClaudeCode discussions on spec-driven development and documentation drift;
-   - Hacker News discussions on AI SDLC scaffolds, lean specs, context-window discipline, and drift checking.
-
-The recurring external pattern is compatible with Sentinel: ground against repository reality, separate intent from implementation, resolve ambiguity before planning, break work into dependency-ordered increments, analyze cross-artifact consistency before build, independently review output, and close the loop by checking implementation against the spec.
+This is within `D-021` scope.
 
 ## Findings
 
-### AS10-F001 — PASS — role and authority separation is preserved
+### AS10-R001 — BLOCKER — Architect workflow omission discovered; Builder reproduced it correctly
 
-`D-021` authorizes documentation/specification work only and explicitly prohibits application/runtime implementation, backend provisioning, S3 work, deployment, and main merge.
+The prior Architect constraint `AS10-F009` gave this future workflow:
 
-That is compatible with:
+`GROUND → SPECIFY → CLARIFY → ARCHITECT/CONSTITUTION CHECK → PLAN → CHECKLIST → TASKS → ANALYZE → BUILD → EVIDENCE → REVIEW → CONVERGENCE`.
 
-- TB-2 Builder execution boundary;
-- TB-3 Architect review boundary;
-- CORE-001 human authority;
-- CORE-002 Capability != Authority;
-- CORE-003 Builder cannot self-certify.
+The Builder reproduced that workflow exactly, as instructed.
 
-The Architect remains review/design authority only. Claude remains Builder.
+However, independent comparison against the **active** Sentinel Change Governance Policy shows that the workflow omitted a load-bearing governance step before implementation:
 
-### AS10-F002 — REQUIRED INTERPRETATION — classify the Product Build Pack as project-local documentation/process, not Sentinel architecture
+`CLASSIFY → appropriate RFC/RULE/PROPOSAL → Architect Sync when required → Paulo gate when required`.
 
-The Product Build Pack itself does not change the Sentinel constitution, actor model, trust boundaries, core policy, version, or DevOS subsystem topology.
+The active policy's target lifecycle is:
 
-For the current cycle, the change is classified as:
+`IDEA → CLASSIFY → RFC/RULE/PROJECT PROPOSAL → ARCHITECT SYNC → REQUIRED PAULO GATE → AUTHORIZED → TASK CONTRACT → BUILD ...`
 
-`LOCAL_RULE — legacy MaisogLabs website project documentation/process layer`
+Therefore this is primarily an **Architect-origin defect in AS10-F009**, not Builder drift.
 
-This classification covers the project-specific working convention:
+Required remediation:
 
-`Product Spec → consistency check → acceptance criteria → bounded work → evidence → review`.
+- amend `BUILD_PLAN.md` so every future `WEB-INC-*` passes through Sentinel change classification before authorization;
+- state that `PATCH`/`LOCAL_RULE` may use their lighter policy path, while `CORE_POLICY`, `CAPABILITY`, `ARCHITECTURE`, `CONSTITUTIONAL`, `WAIVER`, and `PROJECT_ONBOARDING` follow their required change records/gates;
+- make clear that “Paulo names a WEB-INC ID” is **not by itself sufficient** where the active change class requires RFC/Architect Sync or another stronger route.
 
-It does **not** constitute formal Sentinel project onboarding and does not create a `.devos/` overlay.
+This correction must be treated as an explicit AS-010 amendment, not silently blamed on the Builder.
 
-If a Product Build Pack document later attempts to change Sentinel core, Sentinel trust boundaries, the website's relationship to Sentinel, or another higher-authority rule, that proposed change must stop and route through the stronger class required by `CHANGE_GOVERNANCE_POLICY.md`.
+### AS10-R002 — BLOCKER — BUILD_PLAN is not actually dependency-ordered
 
-No Sentinel version bump is produced by this documentation-only Product Build Pack cycle.
+`D-021` requires a dependency-ordered plan.
 
-### AS10-F003 — REQUIRED — brownfield truth must outrank retroactive specification
+`BUILD_PLAN.md` says:
 
-MaisogLabs is an existing codebase.
+> “Ordered by dependency. An increment is listed here only if its prerequisites are also listed at or before it.”
 
-The Product Build Pack must not pretend that newly authored documents retroactively define every existing behavior.
+But:
 
-Every material statement must be distinguishable as one of:
+- `WEB-INC-003` is listed before `WEB-INC-005`;
+- `WEB-INC-003` explicitly says it depends on `WEB-INC-005`;
+- the Builder handoff itself discloses this as an unresolved sequencing question.
 
-- `CURRENTLY IMPLEMENTED` — supported by repository evidence;
-- `CURRENTLY PLANNED` / `PROPOSED TARGET` — design intent only;
-- `NOT IMPLEMENTED`;
-- `FUTURE OPTION`.
+That contradicts the plan's own invariant and `D-021`.
 
-The current codebase remains implementation evidence. The pack defines current product intent and future target direction; it does not erase repository reality.
+Required remediation:
 
-This matches GitHub Spec Kit's current brownfield guidance: adopt against an existing reviewable baseline and use the workflow for bounded changes rather than recreating the whole existing system from invented specs.
+- make the candidate increment sequence topologically valid, or explicitly separate an unordered candidate catalog from a dependency-ordered execution sequence;
+- if IDs are retained while display order changes, state clearly that IDs are stable identifiers, not chronology;
+- resolve the storage prerequisite before any mutation increment is presented as build-ready.
 
-### AS10-F004 — REQUIRED — one owner per kind of truth
+### AS10-R003 — BLOCKER — proposed data model does not map all current content domains
 
-To prevent duplication and spec drift, each Product Build Pack document owns one concern:
+`DATA_BACKEND_SPEC.md` correctly states that the current `data/site.js`/schema shape must remain representable without silent capability loss.
 
-- `PRD.md` — WHAT / WHY: goals, personas, requirements, non-goals, acceptance outcomes;
-- `TECHNICAL_DESIGN.md` — HOW candidate: architecture/design approach and constraints;
-- `UI_UX_SPEC.md` — interaction/visual/accessibility rules, referencing Brand V3;
-- `APP_FLOW.md` — user/admin states, transitions, failure paths, authorization flows;
-- `DATA_BACKEND_SPEC.md` — proposed data/API/storage contracts and migration constraints;
-- `BUILD_PLAN.md` — dependency-ordered future implementation increments only.
+But the proposed target entities do not define a storage representation for several current schema domains, including:
 
-Downstream files must reference requirement IDs and source sections instead of copying requirement prose.
+- `foundations[]` — currently rendered;
+- `process` / `process.steps[]` — currently rendered;
+- `services[]` — currently validated and retained even though not rendered today.
 
-No Product Build Pack document may redefine Sentinel governance, evidence classes, actors, or authority.
+The spec lists those current domains, then omits a target mapping for them.
 
-### AS10-F005 — REQUIRED — explicit source-of-truth precedence
+This is incompatible with the migration requirement to preserve current content capability and with `RISK-WEB-015`.
 
-The Product Build Pack must state this precedence:
+Required remediation:
 
-1. Frozen Sentinel Architecture + active Governance Kernel + Decisions/ADRs + current durable Architect Syncs/current state;
-2. approved website/product governance decisions and current repository evidence;
-3. Brand/design/content-schema artifacts within their existing domains;
-4. Product Build Pack current-intent documents;
-5. derived build tasks/increments;
-6. conversation or agent narrative.
+- add an explicit current→target migration mapping for **every** top-level/current structured content domain;
+- either introduce typed target entities for foundations/services/process steps or explicitly define a validated typed representation under an existing entity;
+- no free-form catch-all JSON may silently weaken current validation guarantees;
+- identify any intentionally retired domain as a future explicit architecture/product decision, not an omission.
 
-A lower item may clarify or derive from a higher item but may not silently contradict it.
+### AS10-R004 — REQUIRED — D1 relationship model must be structurally truthful
 
-### AS10-F006 — REQUIRED — resolve the legacy role-model collision by precedence, not rewriting history
+`DATA_BACKEND_SPEC.md` describes `media_ids[]` as “foreign keys into `media`.”
 
-`brain/PROJECT_GOVERNANCE.md` is a legacy website-pilot artifact that still combines `Architect / Independent Reviewer` into one role.
+For a D1/SQLite relational target, an array value cannot itself provide ordinary database-enforced foreign-key integrity.
 
-Current Sentinel architecture explicitly defines five actors and separates:
+Required remediation:
 
-- Architect;
-- Builder;
-- QA;
-- Independent Reviewer;
-- Paulo.
+- use explicit junction entities/tables such as `project_media` and `journal_media`, **or**
+- explicitly label a JSON-array representation as application-enforced rather than a database foreign key.
 
-Product Build Pack documents must use the current five-actor Sentinel model when describing future governed work.
+The relationship diagram and migration notes must match whichever model is chosen.
 
-They may cite the legacy three-role website pilot only as historical/current-pilot context and must not copy it forward as the universal target role model.
+### AS10-R005 — REQUIRED — draft/published coexistence semantics are under-specified
 
-Do not rewrite the legacy file in this cycle.
+The proposed entities generally have a single `state: draft/published/archived` field.
 
-### AS10-F007 — REQUIRED — distinguish the two phase taxonomies
+That does not explain how an admin edits a currently published record as a draft **without removing or mutating the currently published version** before approval.
 
-Two unrelated numbered roadmaps exist:
+This matters to:
 
-- the legacy Website Governance/Admin Plan has `PHASE 0 ... PHASE 14`;
-- Sentinel has `S0 ... S14`.
+- `ADM-REQ-010` preview;
+- `ADM-REQ-014` draft vs published;
+- `WEB-REQ-001` availability;
+- `WEB-REQ-008` public/admin separation;
+- `RISK-WEB-003` data loss;
+- `RISK-WEB-013` draft exposure.
 
-They must never be merged or treated as the same lifecycle.
+Required remediation:
 
-`BUILD_PLAN.md` must use a separate product-increment namespace, for example:
+- specify the publication/revision model at design level;
+- acceptable patterns include immutable revisions plus a published-version pointer, separate draft/published revisions, or another explicitly defined equivalent;
+- public reads must continue using the last published revision while a new draft is edited;
+- preview must read the authorized draft revision without making it public.
 
-- `WEB-INC-001`
-- `WEB-INC-002`
+Exact SQL is not required in this docs-only cycle.
 
-or another clearly non-Sentinel naming scheme.
+### AS10-R006 — REQUIRED — WEB-INC-002 secure read path is ambiguous
 
-Do not use `S3`, `S4`, etc. for website implementation increments.
+`WEB-INC-002` proposes an authenticated dashboard that lists published/draft/archived content from the current `data/site.js`-backed model before new storage exists.
 
-### AS10-F008 — REQUIRED — do not treat the frozen S0 roadmap status column as live phase state
+The current production deployment is asset-only/static. The plan does not explain how that dashboard obtains non-public editorial state server-side without baking it into public static assets or otherwise adding a protected read path.
 
-`ML-DEVOS-SIP-001.md` is a frozen S0 roadmap baseline. Its original phase-status table is historical architecture intent, not the live execution-state authority after later closures.
+Required remediation:
 
-For live state, use:
+- either move the dashboard after a protected server-side data-access substrate exists;
+- or scope `WEB-INC-002` to published/public projection only;
+- or explicitly define the protected read mechanism and classify the architecture/capability change it requires.
 
-- `coordination/STATE.md`;
-- closure Decisions/ADRs;
-- current durable Architect Syncs;
-- active manifest/version records.
+Do not imply that static source-backed draft/archived data automatically becomes safely available to an authenticated runtime dashboard.
 
-The Product Build Pack may reference the roadmap for phase names/intended outcomes, but must not infer current phase authorization from its old `NOT STARTED` rows.
+### AS10-R007 — CORRECTION — several source-section citations are wrong
 
-### AS10-F009 — REQUIRED — strengthen the future spec-to-build lifecycle with clarification, consistency analysis, and convergence
+The authoritative website plan sections are:
 
-The earlier lifecycle is directionally correct but can be improved using the current external evidence.
+- §9 — `WEB-REQ-*`;
+- §10 — `ADM-REQ-*`;
+- §11 — `DESIGN-*`;
+- §13 — `WEB-SEC-*`;
+- §14 — `RISK-WEB-*`.
 
-The future product workflow encoded in `BUILD_PLAN.md` should be:
+Corrections required:
 
-```text
-GROUND / INVENTORY REPOSITORY REALITY
-        ↓
-SPECIFY PRODUCT INTENT / REQUIREMENTS
-        ↓
-CLARIFY AMBIGUITIES
-        ↓
-ARCHITECT / CONSTITUTION CONSISTENCY CHECK
-        ↓
-PLAN TECHNICAL + UI/UX + FLOW + DATA DESIGN
-        ↓
-REQUIREMENTS QUALITY / ACCEPTANCE CHECKLIST
-        ↓
-DEPENDENCY-ORDERED BOUNDED TASKS
-        ↓
-CROSS-ARTIFACT ANALYZE
-        ↓
-CLAUDE BUILDS ONE AUTHORIZED INCREMENT
-        ↓
-TESTS / EVIDENCE
-        ↓
-ARCHITECT INDEPENDENT REVIEW
-        ↓
-CONVERGENCE CHECK AGAINST SPEC + PLAN + TASKS
-        ↓
-NEXT INCREMENT OR PAULO GATE
-```
+- `TECHNICAL_DESIGN.md` cites `WEB-SEC-*` as §11; it should be §13.
+- `UI_UX_SPEC.md` cites `DESIGN-*` as §10; it should be §11.
+- `DATA_BACKEND_SPEC.md` points readers to §§10–11 for `ADM-REQ-*`/`WEB-SEC-*`/`DESIGN-*`; it must include §13 for `WEB-SEC-*`.
+- `coordination/IMPLEMENTER_HANDOFF.md` maps `ADM-REQ-*` to §9, `DESIGN-*` to §10, and `WEB-SEC-*` to §11; those must be corrected to §§10, 11, and 13 respectively.
 
-These are process stages, not new authority actors.
+This is a provenance/traceability correction, not a product-architecture rejection.
 
-They do not authorize implementation by themselves.
+## What passed independently
 
-### AS10-F010 — REQUIRED — traceability must use stable IDs, not duplicated prose
+The following parts of the Builder output are aligned and should be preserved unless remediation requires local edits:
 
-Reuse existing requirement IDs wherever they already exist:
+- exact authorized file scope;
+- brownfield/current-vs-target labeling discipline;
+- one-document/one-concern ownership;
+- six-level source-of-truth precedence;
+- five-actor Sentinel role model for future work;
+- legacy Website `PHASE 0..14` vs Sentinel `S0..S14` separation;
+- `WEB-INC-*` namespace separation from Sentinel phases;
+- explicit warning that frozen `ML-DEVOS-SIP-001` status rows are not live authorization;
+- context-efficient references instead of wholesale governance duplication;
+- Worker/D1/R2/auth/admin architecture consistently labeled `PROPOSED TARGET / NOT IMPLEMENTED`;
+- no hidden runtime implementation, deployment, project onboarding, S3 work, or main merge.
 
-- `WEB-REQ-*`;
-- `ADM-REQ-*`;
-- `WEB-SEC-*`;
-- `DESIGN-*`;
-- existing test/risk IDs.
+## Evidence disposition
 
-When the pack genuinely needs a new requirement, give it a stable ID and identify the owning document.
+Builder-reported local checks remain `ACTOR_REPORTED`.
 
-`APP_FLOW.md`, `DATA_BACKEND_SPEC.md`, and `BUILD_PLAN.md` should reference those IDs.
+The Architect independently inspected the exact repository artifacts and exact commit diff. Scope, document contents, repository-source claims, and the findings above are therefore `INDEPENDENTLY_INSPECTED`.
 
-Future build tasks should trace:
-
-`Requirement ID → design section → task/increment → test/evidence → review status`.
-
-This is compatible with Sentinel's existing:
-
-`Requirement → Design → Implementation → Test → Evidence → Status`.
-
-### AS10-F011 — REQUIRED — documentation must be context-efficient
-
-External community feedback repeatedly flags documentation bloat and context rot as failure modes.
-
-Therefore:
-
-- do not paste full Sentinel governance text into product documents;
-- use short summaries plus repository links/paths;
-- avoid recording every agent action in the Product Build Pack;
-- keep durable decisions in Decision Log/ADR/Architect Sync, not duplicated in all six files;
-- keep the Product Build Pack focused on current product intent and target design;
-- let Git preserve document history.
-
-The pack should act as a navigable context layer, not a second copy of the repository's governance corpus.
-
-### AS10-F012 — REQUIRED — target backend/UI architecture remains proposed until separately adopted
-
-`TECHNICAL_DESIGN.md` and `DATA_BACKEND_SPEC.md` may describe a future Worker/D1/R2/auth/audit design because the existing website governance plan already records that as a preferred direction if compatible.
-
-But the pack must label that architecture `PROPOSED TARGET / NOT IMPLEMENTED`.
-
-Creating these documents does not:
-
-- provision D1/R2;
-- create APIs;
-- implement authentication;
-- activate an admin portal;
-- migrate current static content;
-- authorize a future implementation increment.
-
-A future implementation still needs its own bounded authorization and review.
-
-### AS10-F013 — PASS — Product Build Pack direction is useful if it remains a consolidation layer
-
-The six-document structure is compatible with Sentinel **only because** it is not another governance system.
-
-Its job is to compress product intent into a usable working context while Sentinel continues to own:
-
-- authority;
-- scope gates;
-- evidence;
-- change classification;
-- independent review;
-- architecture/governance history.
-
-That separation should remain explicit.
-
-## External research synthesis
-
-The web/forum research points to four practical solutions that Sentinel should adopt for this product layer:
-
-1. **Ground first.** Verify references against the repository or label them new/proposed; do not let an agent invent endpoints/tables/capabilities.
-2. **Use bounded, dependency-ordered increments.** Large one-shot implementations increase context drift; small independently reviewable slices are safer.
-3. **Analyze before and after build.** Check spec/plan/task consistency before implementation, then compare the resulting code back against intent after implementation.
-4. **Keep context lean.** Stable architecture/governance stays in canonical files; feature/product docs reference it instead of duplicating it.
-
-These are consistent with Sentinel rather than replacements for Sentinel.
+No executable/runtime behavior was changed in this cycle, so `INDEPENDENTLY_REPRODUCED` runtime evidence is not required for this docs-only review.
 
 ## Verdict
 
-`ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK MAY PROCEED WITH REQUIRED GUARDRAILS`
+`ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 1`
 
-No new Paulo decision is required to continue the already-authorized documentation-only Builder cycle.
+The Product Build Pack is directionally aligned with Sentinel and contains no runtime/code scope drift, but it is **not yet Architect-approved** because the dependency ordering, governance-routing lifecycle, migration coverage, and data-contract issues above must be corrected.
 
-The Builder must read this sync before creating the Product Build Pack and treat AS10-F003 through AS10-F012 as binding acceptance constraints for the documentation handoff.
+This verdict does not revoke `D-021`. It returns the same documentation-only cycle to Claude for bounded remediation.
+
+## Authorized remediation scope
+
+Claude may modify only:
+
+- `docs/product/PRD.md` if cross-document wording must change;
+- `docs/product/TECHNICAL_DESIGN.md`;
+- `docs/product/UI_UX_SPEC.md`;
+- `docs/product/APP_FLOW.md` if publication/read-flow wording must change;
+- `docs/product/DATA_BACKEND_SPEC.md`;
+- `docs/product/BUILD_PLAN.md`;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
+
+No application/runtime/config/deployment/DevOS/project-registry/brain file may be changed.
 
 ## Explicit boundaries remain
 
 - no S3 proposal or implementation;
-- no application/runtime code changes;
+- no application/runtime code;
 - no website/admin/backend implementation;
 - no D1/R2/API provisioning;
 - no project onboarding;
@@ -348,4 +265,4 @@ The Builder must read this sync before creating the Product Build Pack and treat
 
 ## Current Architecture Sync status
 
-`ML-DEVOS-AS-010: ARCHITECT_APPROVED — ACTIVE BUILD CONSTRAINTS FOR D-021`
+`ML-DEVOS-AS-010: CHANGES_REQUESTED — CLAUDE REMEDIATION CYCLE 1`
