@@ -1,21 +1,64 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-008-AUDIT-SUBSTRATE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: REMEDIATION_AUTHORIZED
 AUTHORIZED_SCOPE: WEB_INC_008_APPEND_ONLY_AUDIT_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: d4791b945d2853067d51f20fca11db3846a1cf1e
 LAST_ARCHITECT_REVIEWED_SHA: 9b1e6d721ad82bdcac3b165ebaca10f36f8cfbf9
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 AUDIT_APPEND_AUTHORIZED: YES
 MUTATION_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
+
+## Remediation Cycle 1 — exact authorized scope
+
+Architect review:
+- `ML-DEVOS-AS-018: CHANGES_REQUESTED — WEB-INC-008 REMEDIATION CYCLE 1 LIMITED TO MIGRATION REPEAT-SAFETY EVIDENCE`
+- Architect review commit: `061a8c0e558e5047b6e189b9da253cbdd712b733`
+
+This remediation does **not** reopen the accepted audit schema/writer design.
+
+Claude is authorized only to close the missing repeat-safety evidence gap:
+
+1. Add one focused regression test proving `applyCurrentSchema(db)` is repeat-safe against the same DB:
+   - apply current schema;
+   - insert/preserve a representative audit row;
+   - apply current schema again;
+   - assert no error;
+   - assert exactly 15 product tables remain;
+   - assert both append-only triggers remain;
+   - assert existing audit data remains intact and no duplicate/destructive schema effect occurs.
+
+2. Run the focused audit tests and full `npm test`.
+
+3. Run `npx wrangler d1 migrations apply DB --local` twice against the same fresh local state/database and record the second-run result proving no migration is reapplied destructively.
+
+4. Update only the focused test/evidence ledger, implementer handoff, and coordination state as necessary.
+
+5. Do not modify the accepted audit schema/writer unless the repeat-safety evidence actually exposes a defect. If a defect is exposed, stop and report it to Architect.
+
+6. Return control to Architect with the exact remediation commit SHA and exact changed-file list.
+
+Absolute gates remain unchanged:
+
+`AUDIT_APPEND_AUTHORIZED: YES`
+
+`MUTATION_AUTHORIZED: NO`
+
+`REMOTE_D1_AUTHORIZED: NO`
+
+`DEPLOY_AUTHORIZED: NO`
+
+`MAIN_MERGE_AUTHORIZED: NO`
+
+No WEB-INC-003 or later work is authorized.
 
 ## Current baselines
 
