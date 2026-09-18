@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED`
+Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION MAY BE RECORDED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,16 +8,11 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-014 — WEB-INC-005 Final Implementation Review
+# ML-DEVOS-AS-015 — WEB-INC-002 Protected Read-Only Admin Dashboard Architecture Sync
 
-Cycle: `MAISOGLABS-WEB-INC-005-D1-SUBSTRATE`
-Review mode: `FINAL POST-REMEDIATION ARCHITECTURE / DATA-INTEGRITY / SOURCE-OF-TRUTH REVIEW`
-Authority chain: `ML-DEVOS-RFC-003 → ML-DEVOS-AS-013 → D-024 → ML-DEVOS-AS-014`
-Initial Builder implementation commit: `e0304a89ddfb5595866f1990cd9fca161e78ae2b`
-Remediation Cycle 1: `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b`
-Remediation Cycle 2: `84014db2c13c170ce14fbf1a55fa17b407947d3b`
-Remediation Cycle 3 (final): `03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f`
-Final Builder bookkeeping HEAD reviewed: `663b6a82aa575624d4987ce35bdaa29c3a0c027d`
+Cycle: `MAISOGLABS-WEB-INC-002-READ-DASHBOARD`
+Reviewed proposal: `ML-DEVOS-RFC-004`
+RFC commit: `359710161d44e18408211fc890fa1e211b2cd6e9`
 
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -25,213 +20,361 @@ Frozen architecture baseline:
 Active Sentinel governance-capability baseline:
 - `v1.4.0`
 
-Product baseline:
+Verified product baseline:
 - `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
+
+Accepted dependencies:
 - `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+- `ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+- `ML-DEVOS-ADR-003: ACCEPTED`
 
-## Final review discipline performed
+## Classification
 
-Before issuing this verdict, the Architect:
+`ARCHITECTURE`
 
-1. pulled the live governance branch and current `coordination/STATE.md`;
-2. confirmed live HEAD `663b6a8...`, with final Cycle 3 remediation commit `03ab9d8...` immediately below it;
-3. read the current Builder handoff and all prior `ML-DEVOS-AS-014` findings;
-4. independently compared:
-   - `c32dd2c... → 03ab9d8...` for final Cycle 3;
-   - `03ab9d8... → 663b6a8...` for SHA bookkeeping;
-   - `c32dd2c... → 663b6a8...` for the complete final-cycle sequence;
-5. inspected all three Cycle 3 changed paths;
-6. re-read the final `docs/product/DATA_BACKEND_SPEC.md` migration, authentication, storage, and rollback/current-state sections;
-7. verified no runtime/data/test/config/package/public-path file changed in Cycle 3;
-8. rechecked the accepted runtime/data architecture from the implementation and Cycle 1 remediation against `ML-DEVOS-RFC-003`, `ML-DEVOS-AS-013`, `D-024`, D-007, and the verified Product Build Pack;
-9. checked the active Sentinel change-governance policy and confirmed this `ARCHITECTURE`-class change requires a post-review ADR before administrative closure.
+This is the correct concrete classification.
 
-## Exact final remediation diff — PASS
+Although the Build Plan originally identified `CAPABILITY` as the likely minimum class, the grounded proposal creates the first authenticated HTTP composition across the WEB-INC-001 identity boundary and WEB-INC-005 D1 subsystem. It therefore establishes a new protected application/data boundary rather than merely enabling an already-defined tool.
 
-GitHub compare `c32dd2c034d0c372de532963fc6f3629f33d2c6c → 03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f` reports:
+The stronger path applies:
 
-- exactly **1 final remediation commit**;
-- exactly **3 changed paths**:
-  - `docs/product/DATA_BACKEND_SPEC.md`
-  - `coordination/IMPLEMENTER_HANDOFF.md`
-  - `coordination/STATE.md`
+`RFC → Architect Sync → Paulo Decision → Implementation → ADR`.
 
-GitHub compare `03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f → 663b6a82aa575624d4987ce35bdaa29c3a0c027d` reports:
+No Sentinel constitutional rule, core architecture, actor authority, or governance-capability version changes.
 
-- exactly **1 bookkeeping commit**;
-- exactly **2 changed paths**:
-  - `coordination/IMPLEMENTER_HANDOFF.md`
-  - `coordination/STATE.md`
+## Repository-grounded compatibility review
 
-No runtime/data-layer code, validator, test, migration SQL, Wrangler configuration, package file, public application/content path, WEB-INC-001 auth file, later WEB-INC implementation, remote Cloudflare resource, deployment, or main merge changed in the final cycle.
+### Authentication prerequisite
 
-## Final finding dispositions
+Current `worker/auth.mjs` already:
 
-### AS14-F001 — RESOLVED
+- recognizes `/admin` and `/admin/*` as protected;
+- validates required auth configuration before JWKS lookup;
+- validates the Cloudflare Access JWT assertion server-side;
+- fails closed before serving the admin asset.
 
-The migration now preflights the entire target state before the first write and executes the create phase as one D1 `db.batch()`, with late-conflict regression coverage demonstrating no partial earlier migration writes.
+WEB-INC-002 can preserve that boundary while adding a post-authenticated route dispatcher.
 
-### AS14-F002 — RESOLVED
+### D1 prerequisite
 
-Repeat-run equivalence requires the exact expected revision pointer and immutable migration provenance/creation metadata. Wrong same-entity revision pointers or corrupted provenance are refused rather than treated as no-op.
+Current `worker/d1/repository.mjs` already provides server-side D1 reads and is not imported by browser/public application code.
 
-### AS14-F003 — RESOLVED
+Current `wrangler.jsonc` exposes `DB` as local-only with `remote: false` and no real `database_id`.
 
-The D1 successor validation layer matches the current content contract on the reviewed boundaries:
+WEB-INC-002 can therefore add a bounded protected read route without altering the accepted schema or creating a remote database.
 
-- order `0..10000`;
-- exact icon enum;
-- real-calendar `YYYY-MM-DD` validity;
-- project stack capacity up to 100 entries.
+### Public-site prerequisite
 
-### AS14-F004 — RESOLVED
-
-Current-state documentation now consistently distinguishes all relevant boundaries:
-
-- WEB-INC-001 repository-level authentication exists;
-- persistent admin identity/session and editorial authorization remain unimplemented;
-- a local/server-only D1 revision/data-access substrate exists;
-- the local migration mechanism is implemented and locally exercised;
-- protected D1 admin/dashboard reads remain unimplemented;
-- mutation/publish/audit/media capabilities remain unimplemented;
-- R2 remains unimplemented;
-- remote/production D1 remains absent;
-- no remote/production migration has occurred;
-- no public D1 cutover has occurred;
-- `data/site.js` remains the actual public content source.
-
-The historical Product Build Pack statement that its own documentation cycle did not authorize migration is retained as history, while the later separately authorized WEB-INC-005 implementation is recorded as current repository reality.
-
-### AS14-F005 — RESOLVED
-
-Exact-diff provenance is now truthful across the complete sequence:
-
-- original implementation: Builder initially reported 17 paths; Architect exact compare established 19;
-- Remediation Cycle 1: exactly 9 paths;
-- Remediation Cycle 2: exactly 3 paths;
-- Remediation Cycle 3: exactly 3 paths;
-- each follow-up SHA-bookkeeping commit is separately identified rather than conflated with the substantive commit.
-
-### AS14-F006 — PASS / PRESERVED
-
-Exactly the 14 authorized WEB-INC-005 product tables remain in scope. No audit/media/journal/theme/admin-identity table was introduced.
-
-### AS14-F007 — PASS / PRESERVED
-
-The public path remains:
+The actual public source remains:
 
 `data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`.
 
-D1 is not the public source.
+The RFC preserves that path and does not introduce a public D1 read.
 
-### AS14-F008 — PASS / PRESERVED
+### Dependency order
 
-Composite ownership constraints continue to prevent cross-entity revision-pointer assignment.
+The verified Product Build Pack sequence is:
 
-### AS14-F009 — PASS / PRESERVED
+`WEB-INC-001 → WEB-INC-005 → WEB-INC-002 → WEB-INC-008 → WEB-INC-003 → WEB-INC-004 → WEB-INC-006 → WEB-INC-007`.
 
-The D1 repository/data-access layer remains server-only and is not exposed through a browser/client, dashboard, editorial HTTP read route, CRUD route, or publish/unpublish handler.
+WEB-INC-001 and WEB-INC-005 are closed, so WEB-INC-002 is the correct next product increment.
 
-### AS14-F010 — PASS / PRESERVED
+## Binding Architect findings / constraints
 
-The D1 configuration remains local/repository-only:
+### AS15-F001 — PASS — exact endpoint scope is appropriately narrow
 
-- no real production `database_id`;
-- no `remote: true` binding;
-- no remote D1 provisioning/migration/query path was introduced;
-- no production deployment was performed.
+The only authorized editorial data endpoint is:
 
-## Accepted architecture
+`GET /admin/api/dashboard`.
 
-WEB-INC-005 is accepted as the following product architecture:
+No generic `/admin/api/*` data service is authorized.
 
-`CURRENT PUBLIC SOURCE: data/site.js`
+Authenticated unknown `/admin/api/*` paths must return `404` and must not fall through to static asset handling.
 
-plus, in parallel:
+### AS15-F002 — REQUIRED — authentication must dominate all protected routing
 
-`LOCAL D1 REVISION SUBSTRATE`
-`  → exactly 14 owned entity/revision tables`
-`  → deterministic current-content migration`
-`  → pointer-derived draft/published/archive state`
-`  → typed validation`
-`  → integrity / exact-repeat-run protections`
-`  → server-only repository/read substrate`
+The implementation must preserve one security ordering:
 
-with the binding invariant:
+`VALIDATE AUTH CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD DISPATCH → D1 READ`.
 
-`LOCAL D1 EXISTS ≠ REMOTE D1 EXISTS ≠ D1 IS PUBLIC SOURCE ≠ ADMIN WRITE CAPABILITY EXISTS`.
+No dashboard route classification, DB-dependent behavior, or D1 call may leak information before authentication succeeds.
 
-D-007's governed public content boundary is therefore **evolved, not replaced**: the current public source remains authoritative while a separately governed local D1 successor substrate now exists in parallel.
+In particular:
 
-## Evidence disposition
+- unauthenticated requests must not reveal whether DB is configured;
+- unsupported methods from unauthenticated callers must still fail at authentication first;
+- unknown `/admin/api/*` routes from unauthenticated callers must still fail at authentication first.
 
-`INDEPENDENTLY_INSPECTED`:
+Tests must prove the dashboard handler/DB is never invoked in the existing WEB-INC-001 negative cases.
 
-- exact implementation/remediation Git diffs;
-- migration SQL/table ownership;
-- migration planner/write architecture;
-- exact pointer/provenance repeat-run logic;
-- validation predicates;
-- regression-test source;
-- D1 repository/server-only boundary;
-- local-only configuration shape;
-- final source-of-truth documentation and provenance convergence.
+### AS15-F003 — REQUIRED — post-auth dispatch must not weaken WEB-INC-001
 
-`ACTOR_REPORTED`:
+If `worker/auth.mjs` is refactored to permit a post-auth callback/router, the default protected-asset behavior must remain equivalent for `/admin` and ordinary protected static paths.
 
-- 76/76 tests;
-- build success;
-- fresh and repeated local D1 migration execution;
-- local D1 table inventory command output;
-- Wrangler dry-run;
-- local `db.batch()` rollback probe;
-- secret/config scan.
+The Builder must preserve:
 
-`INDEPENDENTLY_REPRODUCED`: none claimed for the local runtime/toolchain execution in this review sequence.
+- config fail-closed behavior;
+- token fail-closed behavior;
+- JWKS lookup only after config validation;
+- ordinary public asset-first behavior;
+- alternate admin URL canonicalization/non-bypass behavior.
 
-No production/runtime D1 evidence exists or is claimed.
+Existing WEB-INC-001 regression tests remain mandatory.
 
-Therefore:
+### AS15-F004 — REQUIRED — dashboard response is an allowlisted projection, not a redacted raw row
 
-`REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED ≠ REMOTE D1 PROVISIONED ≠ PRODUCTION DEPLOYED ≠ PRODUCTION VERIFIED`.
+The dashboard serializer must construct the response from an explicit allowlist.
 
-## Change-governance closure requirement
+It is not sufficient to:
 
-This change is classified `ARCHITECTURE`.
+- fetch a raw revision row/object;
+- delete a few known-sensitive fields;
+- return the remainder.
 
-The active Sentinel Change Governance Policy requires:
+The implementation must positively construct only the RFC-approved fields.
 
-`RFC → Architect Sync → Decision → Implementation → ADR`.
+This is required because future schema additions must not become visible automatically.
 
-The implementation is now independently reviewed and accepted, so a durable ADR may now be written to record what actually became architecture and why.
+### AS15-F005 — REQUIRED — no identity claims in the response or browser state
 
-No new runtime/product authorization is created by that ADR; it records the already-authorized and accepted architecture under `D-024`.
+The verified Access payload may be used only to prove the request passed the authentication boundary.
 
-## Final verdict
+WEB-INC-002 must not:
 
-`ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+- return JWT claims in JSON;
+- render email/name/subject claims into the dashboard;
+- store JWT claims in localStorage/sessionStorage;
+- create application session state.
 
-All findings `AS14-F001` through `AS14-F010` are resolved or preserved PASS.
+Identity display/persistence is outside this increment.
 
-The implementation review/remediation sequence closes at configured Cycle 3.
+### AS15-F006 — REQUIRED — D1 reader must remain read-only by construction
 
-Administrative closure requires the post-review ADR mandated for `ARCHITECTURE` changes; the Architect may now record that ADR and archive this concluded sync.
+The dashboard read module must expose fixed read functions only.
 
-This verdict does **not** authorize:
+No mutation-capable DB object/helper should be intentionally surfaced to the browser layer or serialized into a generic service abstraction.
 
-- remote/production D1 creation;
-- remote D1 migration/query/import/export;
+Implementation review will reject:
+
+- `INSERT`, `UPDATE`, `DELETE`, `REPLACE`, schema DDL, or migration execution in the dashboard path;
+- arbitrary SQL provided by callers;
+- arbitrary table/column selection from request input.
+
+Builder tests must show mutation methods return 405 before any dashboard D1 handler is invoked.
+
+### AS15-F007 — REQUIRED — missing DB and DB failure remain post-auth generic failures
+
+After valid authentication only:
+
+- missing/unavailable `env.DB` → generic `503`;
+- query/projection failure → generic `500`.
+
+No response may contain:
+
+- binding names beyond the public contract;
+- SQL text;
+- raw exception messages;
+- stack traces;
+- database schema details.
+
+Tests should use deliberately sensitive fake error text and prove it is absent from the response.
+
+### AS15-F008 — REQUIRED — protected cache policy applies to every protected response
+
+For `/admin` and `/admin/*`, including:
+
+- 200 admin HTML/static protected asset responses;
+- 200 dashboard JSON;
+- 401;
+- 404;
+- 405;
+- 500;
+- 503;
+
+the Worker should enforce:
+
+`Cache-Control: no-store`.
+
+Dashboard JSON additionally requires:
+
+- explicit JSON content type;
+- `X-Content-Type-Options: nosniff`.
+
+No permissive CORS header may be added.
+
+This must be enforced at the Worker boundary rather than relying only on static page metadata.
+
+### AS15-F009 — REQUIRED — UI must be data-read-only, not merely visually read-only
+
+The UI must not contain hidden or disabled mutation controls that imply later capability.
+
+No:
+
+- create/edit/delete;
+- save;
+- publish/unpublish;
+- upload;
+- theme/design mutation;
+- journal mutation;
+- audit-action controls.
+
+A client component may fetch/read the protected endpoint and render status only.
+
+The client bundle must not import `worker/d1/*`, server repository modules, SQL, or D1 bindings.
+
+### AS15-F010 — REQUIRED — dashboard lifecycle semantics must match ADR-003 exactly
+
+Derived state is:
+
+- published pointer only → `published`;
+- draft pointer only → `draft`;
+- both pointers → `published_with_draft`;
+- neither pointer → `archived`.
+
+Do not invent a stored status field.
+
+For display-label precedence:
+
+`draft label → published label → stable entity ID`.
+
+For archived entities with neither pointer, returning the stable ID as the label is acceptable; do not silently query an arbitrary historical revision merely to populate a friendlier label unless separately specified.
+
+### AS15-F011 — REQUIRED — site_settings remains a single dashboard entity
+
+The dashboard must not explode `site_settings` into independent entities for hero/about/contact/SEO/etc.
+
+Those are revision fields of the one site-settings entity in WEB-INC-005.
+
+Return one bounded site-settings dashboard record.
+
+### AS15-F012 — REQUIRED — local-only execution must remain structurally obvious
+
+No Builder action may:
+
+- create remote D1;
+- add a real `database_id`;
+- switch `remote` to true;
+- run a remote D1 query/migration;
+- alter production Access resources;
+- deploy.
+
+If local dashboard smoke testing requires seeded D1, use only the already-authorized local migration/seed mechanism.
+
+### AS15-F013 — REQUIRED — no schema change is necessary for this increment
+
+The accepted WEB-INC-005 schema is sufficient.
+
+`migrations/0001_web_inc_005_init.sql` and the 14-table ownership model should remain unchanged.
+
+If the Builder believes a schema change is required, stop and return to Architect rather than silently expanding WEB-INC-002.
+
+### AS15-F014 — REQUIRED — public application boundary remains untouched
+
+`app/page.js`, `data/site.js`, and the public content loader/projection must not switch to D1.
+
+Ordinary public requests remain asset-first.
+
+Any proposal to make the public site use D1 is a separate future architecture decision.
+
+### AS15-F015 — REQUIRED EVIDENCE
+
+Builder handoff must include:
+
+1. exact base/result commit and exact changed-file list;
+2. route inventory introduced/modified;
+3. explicit dashboard JSON schema/example with only allowed keys;
+4. proof all WEB-INC-001 auth/config negative cases still pass;
+5. proof invalid auth causes zero dashboard/DB invocation;
+6. proof authenticated GET reads seeded local D1 and returns the bounded projection;
+7. lifecycle fixture coverage for all four pointer states;
+8. explicit allowlist serializer leakage tests;
+9. all non-GET methods rejected with zero D1 invocation;
+10. authenticated unknown API path protected 404;
+11. generic 503 missing-DB behavior;
+12. generic 500 D1-error behavior with sensitive fake error text absent;
+13. `no-store` coverage across protected success/error responses;
+14. JSON `nosniff` coverage;
+15. no permissive CORS;
+16. no mutation controls in admin UI;
+17. no client imports of server/D1 modules;
+18. no SQL write statements reachable from the dashboard path;
+19. existing content/auth/D1 suites;
+20. full `npm test`;
+21. successful `npm run build`;
+22. local-only Wrangler smoke evidence;
+23. Wrangler validation/dry-run without remote mutation;
+24. secret/config scan;
+25. explicit confirmation no remote resource, deploy, public cutover, or later WEB-INC work occurred.
+
+Builder execution evidence remains `ACTOR_REPORTED` until independently reviewed.
+
+## Expected Builder scope
+
+Expected changed surfaces may include:
+
+- `worker/auth.mjs` narrowly;
+- `worker/index.mjs`;
+- `worker/admin/dashboard.mjs` or an equivalent bounded module;
+- `worker/d1/repository.mjs` narrowly if needed;
+- `app/admin/page.js`;
+- one bounded admin client component if needed;
+- focused tests;
+- current-state docs/traceability required to record the implementation;
+- Builder handoff/state.
+
+No new dependency is preferred.
+
+## Explicitly out of scope
+
+No:
+
+- D1/schema mutation;
+- mutation endpoint;
+- create/edit/save/delete;
+- publish/unpublish;
+- generic admin API;
+- audit substrate;
+- media/R2;
+- journal;
+- theme/design controls;
+- application sessions;
+- admin/user tables;
+- role/permission tables;
+- raw content/draft export;
+- arbitrary SQL;
 - public D1 cutover;
-- production Cloudflare Access changes;
-- WEB-INC-002 or later product increments;
-- admin mutation/publish/audit/media capabilities;
+- remote D1;
+- production Access configuration;
 - deployment;
-- protected/main merge;
+- main merge;
+- later WEB-INC;
 - Sentinel S3 or later;
 - CI/workflows/rulesets;
-- product onboarding/`.devos/`.
+- project onboarding/product `.devos/`.
 
-## Deployment / remote-resource authority
+## Security / architecture verdict
+
+Compatible with Sentinel and the accepted product architecture subject to the binding constraints above.
+
+The change introduces a deliberately narrow new capability:
+
+`SERVER-VERIFIED ADMIN IDENTITY → BOUNDED READ-ONLY D1 STATUS VIEW`.
+
+It does not create write authority.
+
+Critical invariant:
+
+`AUTHENTICATED ≠ AUTHORIZED TO MUTATE`.
+
+## Verdict
+
+`ML-DEVOS-AS-015: ARCHITECT_APPROVED — WEB-INC-002 RFC-004 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`
+
+Paulo's explicit instruction `Proceed with WEB-INC-002 authorization.` supplies the Product/Risk Owner approval to advance this exact increment through the required architecture authorization chain.
+
+The implementation decision must bind Claude to `ML-DEVOS-RFC-004` plus this sync and preserve all remote/deploy/write gates.
+
+## Authority gates
 
 `REMOTE_D1_AUTHORIZED: NO`
 
@@ -239,13 +382,17 @@ This verdict does **not** authorize:
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Next gate
+`MUTATION_AUTHORIZED: NO`
 
-1. Record the required post-review ADR for WEB-INC-005.
-2. Archive/index the concluded `ML-DEVOS-AS-014`.
-3. Close the WEB-INC-005 coordination cycle.
-4. Any next product increment or remote Cloudflare operation requires a fresh Paulo authorization path.
+## Next review rule
 
-## Current Architecture Sync status
+After Builder handoff, Architect must pull live branch/state and compare the exact Builder diff against:
 
-`ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+- `ML-DEVOS-RFC-004`;
+- this `ML-DEVOS-AS-015`;
+- the WEB-INC-002 implementation decision;
+- WEB-INC-001 accepted auth behavior;
+- `ML-DEVOS-ADR-003`;
+- current Product Build Pack requirements.
+
+Architect must independently inspect auth ordering, route dispatch, dashboard projection/serializer, D1 query shape, UI/client imports, cache/error behavior, and scope before issuing PASS / CHANGES_REQUESTED.
