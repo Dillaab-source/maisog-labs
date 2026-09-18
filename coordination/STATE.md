@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-008-AUDIT-SUBSTRATE
-TURN: CLAUDE
-STATUS: REMEDIATION_AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_008_APPEND_ONLY_AUDIT_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: d4791b945d2853067d51f20fca11db3846a1cf1e
-LAST_ARCHITECT_REVIEWED_SHA: 9b1e6d721ad82bdcac3b165ebaca10f36f8cfbf9
+LAST_IMPLEMENTER_HANDOFF_SHA: 7fa8cf62b8238f4874e842752838fbd0920498b3
+LAST_ARCHITECT_REVIEWED_SHA: 061a8c0e558e5047b6e189b9da253cbdd712b733
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 AUDIT_APPEND_AUTHORIZED: YES
@@ -402,10 +402,14 @@ Only then may Architect issue PASS / CHANGES_REQUESTED.
 
 Because WEB-INC-008 is `ARCHITECTURE`, final accepted implementation requires a post-review ADR before closure.
 
-## Builder handoff (this cycle)
+## Builder handoff (original implementation cycle)
 
-Implementation commit: `d4791b945d2853067d51f20fca11db3846a1cf1e` on base `d96ca8a1c6244d07185db2e225ad11741a1f4eef`. Full detail, exact changed-file list, and the complete evidence log required above are in `coordination/IMPLEMENTER_HANDOFF.md`. Summary: exactly one new table (`audit_log`, current schema 15 tables total) added via `migrations/0002_web_inc_008_audit_log.sql` (`migrations/0001_web_inc_005_init.sql` byte-unchanged); `worker/d1/audit.mjs` exposes only `validateAuditEvent`/`appendAuditEvent`; append-only proven at both the application layer (no update/delete helper) and the database layer (`BEFORE UPDATE`/`BEFORE DELETE` triggers, confirmed both by `tests/d1-audit.test.mjs` and a direct `wrangler d1 execute --local` probe); `npm test` 112/112 passing; `GET /admin/api/dashboard` unchanged and exposes no audit data; no HTTP audit API/UI, no editorial mutation, no persistent identity/session table, no sensitive field, and no later `WEB-INC-*` work. The Implementer has not self-certified this as `ARCHITECT VERIFIED`.
+Implementation commit: `d4791b945d2853067d51f20fca11db3846a1cf1e` on base `d96ca8a1c6244d07185db2e225ad11741a1f4eef`. Summary: exactly one new table (`audit_log`, current schema 15 tables total) added via `migrations/0002_web_inc_008_audit_log.sql` (`migrations/0001_web_inc_005_init.sql` byte-unchanged); `worker/d1/audit.mjs` exposes only `validateAuditEvent`/`appendAuditEvent`; append-only proven at both the application layer (no update/delete helper) and the database layer (`BEFORE UPDATE`/`BEFORE DELETE` triggers); `npm test` 112/112 passing; `GET /admin/api/dashboard` unchanged and exposes no audit data. Reviewed by `ML-DEVOS-AS-018`: 13 of 14 findings `PASS`, one (`AS18-F014`, migration repeat-safety evidence) `CHANGES_REQUESTED`.
+
+## Builder handoff (Remediation Cycle 1 — this cycle)
+
+Remediation commit: `7fa8cf62b8238f4874e842752838fbd0920498b3` on remediation base `2fc8b221b4ccb181d90d1fb38485d33215ea5767`. Full detail, exact test assertions, and the complete CLI double-apply evidence log required above are in `coordination/IMPLEMENTER_HANDOFF.md`'s "WEB-INC-008 Remediation Cycle 1" section. Summary: closes `AS18-F014` only. Added exactly one focused regression test (`tests/d1-audit.test.mjs` — "applyCurrentSchema(db) is repeat-safe...") proving a second `applyCurrentSchema(db)` call against an already-migrated, non-empty database causes no error, no table/trigger loss or duplication, and preserves existing audit data with the triggers still functioning; independently confirmed at the CLI level via `wrangler d1 migrations apply DB --local` run twice against the same fresh local database (second run: `✅ No migrations to apply!`, table count unchanged at 15, representative audit row unchanged at exactly 1). `npm test` 113/113 passing. The repeat-safety test exposed no defect, so the accepted audit schema/writer (`migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/audit.mjs`, `worker/d1/schema.mjs`) was left completely unmodified — confirmed by `git diff --stat` against each returning empty. Changed files this commit: exactly `tests/d1-audit.test.mjs` and `brain/TEST_LEDGER.md`. No architecture/product redesign occurred; no `WEB-INC-003` or later work began. The Implementer has not self-certified this as `ARCHITECT VERIFIED`.
 
 ## Current gate
 
-`WEB-INC-008 IMPLEMENTATION HANDED OFF — TURN: ARCHITECT — INDEPENDENT REVIEW REQUIRED AGAINST RFC-005 / AS-017 / D-026 BEFORE ANY CLOSURE OR POST-REVIEW ADR`
+`WEB-INC-008 REMEDIATION CYCLE 1 HANDED OFF — TURN: ARCHITECT — INDEPENDENT REVIEW OF THE MIGRATION REPEAT-SAFETY EVIDENCE REQUIRED AGAINST AS-018 BEFORE ANY CLOSURE OR POST-REVIEW ADR`

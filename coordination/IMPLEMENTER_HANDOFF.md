@@ -1,8 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — Remediation Cycle 1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
+
+---
+
+**Remediation Cycle 1 update:** see the "WEB-INC-008 Remediation Cycle 1" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section describes the original (pre-remediation) implementation handoff and remains accurate except where the remediation section says otherwise.
 
 ---
 
@@ -153,3 +157,77 @@ Every D1/Wrangler command above used `--local` explicitly or performed no resour
 ## Commit
 
 Implementation files above are committed to `governance/maisoglabs-v0.1` as commit `d4791b945d2853067d51f20fca11db3846a1cf1e` on top of base `d96ca8a1c6244d07185db2e225ad11741a1f4eef`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` (a commit cannot self-reference its own hash), consistent with the pattern established across every prior cycle in this engagement. Both commits are mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-INC-008 Remediation Cycle 1
+
+Authority: `ML-DEVOS-AS-018: CHANGES_REQUESTED — WEB-INC-008 REMEDIATION CYCLE 1 LIMITED TO MIGRATION REPEAT-SAFETY EVIDENCE` (Architect review commit `061a8c0e558e5047b6e189b9da253cbdd712b733`).
+
+### Blocking finding addressed
+
+`AS18-F014` — the original handoff proved only a **first** successful fresh local migration application. It did not record a second `wrangler d1 migrations apply DB --local` against the same database, nor a focused regression proving `applyCurrentSchema(db)` may be invoked twice against the same DB without schema failure or data destruction. All 13 other findings (`AS18-F001`–`F013`) were `PASS`; no architecture or product redesign was requested.
+
+### Base / result SHA
+
+- Remediation base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `2fc8b221b4ccb181d90d1fb38485d33215ea5767` — matches exactly the SHA the request required.
+- Remediation result SHA (implementation commit): `7fa8cf62b8238f4874e842752838fbd0920498b3`
+
+### Exact changed-file list — 2 files (this commit)
+
+- `tests/d1-audit.test.mjs` — one new regression test added, 53 insertions, 0 deletions
+- `brain/TEST_LEDGER.md` — new test row plus a "`WEB-INC-008` Remediation Cycle 1 command evidence" section
+
+**No other file changed.** In particular, the accepted audit schema/writer was **not** modified: `migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/audit.mjs`, and `worker/d1/schema.mjs` are byte-identical to the previously reviewed implementation commit `d4791b945d2853067d51f20fca11db3846a1cf1e` — confirmed by `git diff --stat` against each of those three paths returning empty. The repeat-safety test exposed no defect, so no such change was necessary or made, per the remediation's explicit "do not modify the accepted schema/writer unless a defect is exposed" constraint.
+
+### The new test (exact assertions)
+
+`tests/d1-audit.test.mjs` — "applyCurrentSchema(db) is repeat-safe: reapplying it against the same DB causes no error, no table/trigger loss or duplication, and preserves existing audit data":
+
+1. opens a test DB (schema already applied once by `openTestDb()`'s existing `applyCurrentSchema(db)` call);
+2. appends one representative audit row via `appendAuditEvent`, captures it;
+3. calls `applyCurrentSchema(db)` a second time against the same database and asserts it does not reject (`assert.doesNotReject`);
+4. re-queries `sqlite_master` and asserts exactly the same 15 product tables remain, matching `CURRENT_PRODUCT_TABLE_NAMES` sorted;
+5. re-queries `sqlite_master` for triggers and asserts both `audit_log_reject_delete`/`audit_log_reject_update` still exist;
+6. re-queries `audit_log` and asserts the row is byte-for-byte identical to the row captured before the second schema application (no duplication, no mutation);
+7. additionally proves the triggers still function correctly after reapplication: issues a direct `UPDATE`/`DELETE` against `audit_log` and asserts both are still rejected (`/append-only/`), then re-confirms the row is still intact.
+
+This directly satisfies every sub-requirement `ML-DEVOS-AS-018`'s "Required remediation" section listed.
+
+### Test results
+
+- `node --test tests/d1-audit.test.mjs` (isolated): **17 passed, 0 failed** (16 preserved + 1 new).
+- `npm test` (full suite): **113 passed, 0 failed** (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs`, all four unchanged and still passing, + 17 `d1-audit.test.mjs`).
+
+### CLI migration double-apply evidence (`wrangler d1 migrations apply DB --local`, run twice against the same fresh local database)
+
+| Step | Command | Result |
+|---|---|---|
+| 1 | `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `2fc8b221b...` before any file was touched |
+| 2 | `npx wrangler d1 migrations apply DB --local` (fresh local database, 1st run) | `Resource location: local`; `0001_web_inc_005_init.sql` → 16 commands executed successfully; `0002_web_inc_008_audit_log.sql` → 5 commands executed successfully; both recorded `✅` |
+| 3 | `npx wrangler d1 execute DB --local --command "INSERT INTO audit_log (...) VALUES (...)"` | Representative row inserted (`id: 1`, `actor: 'cli-remediation-fixture'`, `action: 'cli_repeat_probe'`) — same database/state as step 2 |
+| 4 | `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` (before 2nd apply) | `n: 15` |
+| 5 | `npx wrangler d1 migrations apply DB --local` (same database/state, 2nd run) | **`✅ No migrations to apply!`** — Wrangler's own `d1_migrations` tracking table correctly recognizes both migrations as already applied; neither is reapplied, proving no destructive reapplication occurs |
+| 6 | `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` (after 2nd apply) | `n: 15` — unchanged |
+| 7 | `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM audit_log"` / `SELECT * FROM audit_log` (after 2nd apply) | `n: 1`; the single row returned is byte-identical to the one inserted in step 3 — not duplicated, not destroyed |
+| 8 | `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'audit_log_%' ..."` (after 2nd apply) | `audit_log_reject_delete`, `audit_log_reject_update` — both still present |
+| 9 | `git diff --stat` (full remediation diff) | Exactly `tests/d1-audit.test.mjs` (53 insertions) and `brain/TEST_LEDGER.md` changed — no schema/writer/migration file touched |
+
+This directly satisfies remediation requirement 3 (`ML-DEVOS-AS-018`'s "Required remediation" §3): the second CLI apply against the same database proves no migration is reapplied destructively, independently of and consistent with the Node-test-level proof above.
+
+### No defect exposed / no scope expansion
+
+The repeat-safety test and the CLI double-apply both passed on the first attempt with the existing, already-committed schema/writer implementation (`IF NOT EXISTS` on every `CREATE TABLE`/`CREATE TRIGGER` statement in both migration files is what makes this safe). Per the remediation's explicit instruction, since no defect was exposed, the accepted audit schema/writer (`migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/audit.mjs`, `worker/d1/schema.mjs`) was left completely unmodified.
+
+### Explicit confirmations (remediation cycle)
+
+- **No architecture or product redesign occurred.** Only one test file and one evidence-ledger file changed.
+- **The accepted audit schema/writer was not modified** — confirmed by `git diff --stat` against `migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/audit.mjs`, and `worker/d1/schema.mjs`, each empty.
+- **No remote Cloudflare resource was created or modified; no deployment occurred; no public D1 cutover occurred.** Same as the original handoff — nothing in this cycle touches those surfaces.
+- **No `WEB-INC-003` or any later increment's work began.**
+- **`AUDIT_APPEND_AUTHORIZED: YES`** (for this bounded remediation only) **; `MUTATION_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`.**
+
+### Remediation commit
+
+Remediation files above are committed to `governance/maisoglabs-v0.1` as commit `7fa8cf62b8238f4874e842752838fbd0920498b3` on top of remediation base `2fc8b221b4ccb181d90d1fb38485d33215ea5767`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits are mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
