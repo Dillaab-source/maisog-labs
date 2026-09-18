@@ -1,6 +1,6 @@
 # MaisogLabs Build Plan
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **Remediation Cycle 2** (resolves `AS10-R009` against `ML-DEVOS-AS-010`; preserves Cycle 1's `AS10-R001`, `AS10-R002` resolutions)
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **Remediation Cycle 3 (final)** (local acceptance/ownership wording updated for `AS10-R011`'s media/junction-row immutability rule; preserves Cycle 1's `AS10-R001`/`AS10-R002` and Cycle 2's `AS10-R009` resolutions)
 
 **This document does not authorize implementation of anything it lists.** Every increment below still requires its own explicit Paulo authorization and, after Builder implementation, independent Architect review, before it may be built (`brain/DECISION_LOG.md` D-021 "Build-plan rule": `BUILD_PLAN.md` must decompose future work into dependency-ordered, bounded increments and must not itself authorize those increments).
 
@@ -122,14 +122,14 @@ Future governed work uses Sentinel's five actors — **Paulo, Architect, Builder
 ### `WEB-INC-004` — Media subsystem (owns `media`/`project_media` only — `AS10-R009`)
 - **Requirements:** `ADM-REQ-006`; `WEB-SEC-005`.
 - **Design refs:** `APP_FLOW.md` §2k; `DATA_BACKEND_SPEC.md` § `media`, § `project_media`.
-- **Bounded scope (clarified, `AS10-R009`):** upload + validate + list/select media (`media` table), and the `project_media` junction table, keyed to `project_revisions.id` (not the base `projects` row — `AS10-R008`). Does **not** create `journal_media` — that table has a foreign key to `journal_entry_revisions`, which does not exist until `WEB-INC-006` creates it, so creating `journal_media` here would be a dependency on a not-yet-existing table. `WEB-INC-006` creates `journal_media` itself once `journal_entry_revisions` exists.
+- **Bounded scope (clarified, `AS10-R009`):** upload + validate + list/select media (`media` table), and the `project_media` junction table, keyed to `project_revisions.id` (not the base `projects` row — `AS10-R008`). Does **not** create `journal_media` — that table has a foreign key to `journal_entry_revisions`, which does not exist until `WEB-INC-006` creates it, so creating `journal_media` here would be a dependency on a not-yet-existing table. `WEB-INC-006` creates `journal_media` itself once `journal_entry_revisions` exists. Implements `media`/`project_media` immutability-once-created exactly as `DATA_BACKEND_SPEC.md` §§ "Media immutability"/"Junction-row immutability" specify (`AS10-R011`) — there is no code path that edits an existing `media` or `project_media` row's public-affecting fields in place.
 - **Likely change class:** `ARCHITECTURE` or `CAPABILITY` — provisioning R2 is a new resource/subsystem (`ARCHITECTURE`-leaning); the upload/validation capability itself is `CAPABILITY`-leaning. Exact classification is this increment's own determination.
-- **Acceptance checklist (draft):** `TEST-ADM-008`.
+- **Acceptance checklist (draft):** `TEST-ADM-008`; a "replace media" action produces a new `media` row rather than mutating the existing one, and does not affect public output until the draft revision referencing it is published.
 
 ### `WEB-INC-006` — Journal (owns `journal_entries`/`journal_entry_revisions`/`journal_media` — `AS10-R009`)
 - **Requirements:** `ADM-REQ-005`; new public read requirement (no existing `WEB-REQ-*` covers journal reading — a future increment proposal must mint a stable ID for it, e.g. under `WEB-REQ-*`, and identify `PRD.md` as the owning document, at the point this increment is actually specified in detail, not before).
 - **Design refs:** `APP_FLOW.md` §1c; `DATA_BACKEND_SPEC.md` § `journal_entries`/`journal_entry_revisions`, § `journal_media`.
-- **Bounded scope (clarified, `AS10-R009`):** this increment creates `journal_entries`/`journal_entry_revisions` (unlike `projects`, these do **not** already exist from `WEB-INC-005`, since journal is entirely new — `AS10-R003`), plus `journal_media` (keyed to `journal_entry_revisions.id`, mirroring `project_media`'s revision-scoped design, once `media` already exists from `WEB-INC-004`), the full journal mutation lifecycle (mirroring `WEB-INC-003`'s pattern), and the new public journal read/index route.
+- **Bounded scope (clarified, `AS10-R009`):** this increment creates `journal_entries`/`journal_entry_revisions` (unlike `projects`, these do **not** already exist from `WEB-INC-005`, since journal is entirely new — `AS10-R003`), plus `journal_media` (keyed to `journal_entry_revisions.id`, mirroring `project_media`'s revision-scoped design and its immutability-once-created rule — `AS10-R011` — once `media` already exists from `WEB-INC-004`), the full journal mutation lifecycle (mirroring `WEB-INC-003`'s pattern), and the new public journal read/index route.
 - **Likely change class:** `CAPABILITY` (reuses `WEB-INC-003`'s established mutation pattern against a new entity type) plus a small `ARCHITECTURE`-class addition for the new public read surface (journal did not exist as a route/content type before).
 
 ### `WEB-INC-007` — Theme/design controls
@@ -168,8 +168,8 @@ One target entity/table has exactly one primary owning increment — no ambiguou
 | `process_steps` / `process_step_revisions` | `WEB-INC-005` | Step 2 | Current-content substrate |
 | Admin identity/session schema | `WEB-INC-001` | Step 1 | Exact shape deferred; `DATA_BACKEND_SPEC.md` only requires every revision row carry a reference to it |
 | `audit_log` | `WEB-INC-008` | Step 4 | Substrate/schema only — see `WEB-INC-003` for real-mutation integration proof |
-| `media` / `project_media` | `WEB-INC-004` | Step 6 | `project_media` keys to `project_revisions.id` (exists from step 2) |
-| `journal_entries` / `journal_entry_revisions` / `journal_media` | `WEB-INC-006` | Step 7 | `journal_media` keys to `journal_entry_revisions.id` and `media.id` (exists from step 6) — created here, not by `WEB-INC-004`, because `journal_entry_revisions` does not exist until this increment |
+| `media` / `project_media` | `WEB-INC-004` | Step 6 | `project_media` keys to `project_revisions.id` (exists from step 2); both are immutable once created (`AS10-R011`) |
+| `journal_entries` / `journal_entry_revisions` / `journal_media` | `WEB-INC-006` | Step 7 | `journal_media` keys to `journal_entry_revisions.id` and `media.id` (exists from step 6) — created here, not by `WEB-INC-004`, because `journal_entry_revisions` does not exist until this increment; `journal_media` rows are immutable once created (`AS10-R011`) |
 | `theme_settings` / `theme_settings_revisions` | `WEB-INC-007` | Step 8 | Not created by `WEB-INC-005` despite sharing its revision-substrate pattern |
 
 `WEB-INC-002` and `WEB-INC-003` create no schema of their own — `WEB-INC-002` is a read-only consumer of `WEB-INC-005`'s substrate, and `WEB-INC-003` adds mutation behavior against schema `WEB-INC-005` already created. This is intentional: it keeps "who creates a table" and "who adds behavior against it" separately reviewable, per `AS10-R009`'s audit-substrate-vs-integration example generalized to every entity.

@@ -1,14 +1,18 @@
 # MaisogLabs Data & Backend Spec
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK — PROPOSED TARGET / NOT IMPLEMENTED (except where marked current)` — **Remediation Cycle 2** (resolves `AS10-R008` against `ML-DEVOS-AS-010`; preserves Cycle 1's `AS10-R003`, `AS10-R004`, `AS10-R007` resolutions)
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK — PROPOSED TARGET / NOT IMPLEMENTED (except where marked current)` — **Remediation Cycle 3 (final)** (resolves `AS10-R011` against `ML-DEVOS-AS-010`; preserves Cycle 1's `AS10-R003`/`AS10-R004`/`AS10-R007` and Cycle 2's `AS10-R008` resolutions)
 
 Owns proposed data/API/storage contracts at **design/specification level only**. This document does not provision D1, does not provision R2, does not create an API, and does not migrate `data/site.js` (`AS10-F012`). Everything under "Proposed entities" is `PROPOSED TARGET / NOT IMPLEMENTED` unless explicitly marked otherwise.
 
-## Public rendering invariant (binding, `AS10-R008`)
+## Public rendering invariant (binding, `AS10-R008`, closed end-to-end per `AS10-R011`)
 
 > Every mutable value that can affect public presentation is sourced from published revision/state only. Draft changes cannot alter public output before publish.
 
-Every entity definition and relationship below is designed to make this literally true, not just true for content fields. Cycle 1 introduced the `published_revision_id`/`draft_revision_id` pointer pattern but left several public-affecting fields (ordering, section visibility, an entity-level lifecycle flag, junction-table attachment order) on the base/logical row, outside the revision boundary — a value could then change publicly-visible output without going through publish. This cycle closes that gap by defining the base/logical entity as **identity + immutable metadata + revision pointers only**; every other value that a public visitor could ever see (directly or via ordering/visibility) lives inside a revision row instead.
+Restated precisely, so it covers the whole public read graph, not only content-revision fields (`AS10-R011`):
+
+> Every mutable value that can affect public presentation is either (A) contained inside a revision, or (B) immutable once referenced by that revision. Therefore draft changes cannot alter public output before publish.
+
+Every entity definition and relationship below is designed to make this literally true. Cycle 1 introduced the `published_revision_id`/`draft_revision_id` pointer pattern but left several public-affecting fields (ordering, section visibility, an entity-level lifecycle flag, junction-table attachment order) on the base/logical row, outside the revision boundary. Cycle 2 closed that for ordinary entities by defining the base/logical entity as **identity + immutable metadata + revision pointers only**, and re-keyed the `project_media`/`journal_media` junction tables to the revision. One hole remained after Cycle 2: a `media` row or an existing revision's junction row could still be **edited in place**, changing what a published revision displays without any publish step at all — the value would still technically be "reached through" a revision, but nothing stopped it from being mutated after the fact. This cycle closes that hole by declaring both classes of record immutable once they are load-bearing for a revision (see "Media immutability" and "Junction-row immutability" below) — option (B) above.
 
 ## Current storage model — `CURRENTLY IMPLEMENTED`
 
@@ -115,6 +119,44 @@ Draft section changes (a pending reorder or a pending visibility toggle) live on
 
 `theme_settings` already had a revision pair in Cycle 1, but `APP_FLOW.md` §2l's flow text (`adjust setting → persist → next render`) did not actually route through it. This cycle corrects `APP_FLOW.md` §2l to read: adjust setting → validate → write/update draft revision (`theme_settings.draft_revision_id`) → preview → publish → public render follows `theme_settings.published_revision_id` only. See `APP_FLOW.md` §2l for the corrected flow, and confirm it agrees with this section exactly.
 
+### Media immutability (`AS10-R011`)
+
+A `media` row's public-affecting fields — at minimum `storage_key`, `content_type`, `size_bytes`, `alt_text` — are **immutable after creation/upload**. Once a `media` row exists, none of those fields is edited in place, whether or not the row is currently referenced by a published revision's junction rows. This is stricter than "immutable only while published" precisely so there is never a moment where editing an existing row is even possible for an admin workflow to reach — a single rule, not a conditional one.
+
+- **If the underlying file changes** (a new image, a corrected asset, etc.): create a **new** `media` row with its own `id`/`storage_key`. The old row is left as-is.
+- **If only `alt_text` needs to change**: also create a new `media` row (there is no partial-mutation exception carved out for `alt_text` — it is exactly as public-affecting as `storage_key`, since both are rendered to the visitor). A future implementation may instead introduce an explicit media-revision table if that proves more ergonomic, but this spec's default proposal is "new row, same as any other replacement" to avoid adding a second revisioning mechanism alongside the entity/revision pattern already defined above.
+- **What may still change on an existing `media` row:** only the bookkeeping `state` field (e.g. `active` → `archived` once nothing references the row any longer). `state` is never itself consulted by public rendering (already stated in the `media` entity definition below), so this one exception does not reopen the isolation gap.
+- A draft content revision's own `project_media`/`journal_media` rows may reference the new replacement `media` row immediately. The replacement becomes publicly visible only when that draft revision is published — never before.
+
+### Junction-row immutability (`AS10-R011`)
+
+Cycle 2 correctly keyed `project_media`/`journal_media` to the revision (`project_revisions.id`/`journal_entry_revisions.id`) rather than the base entity, but left `media_id`, `role`, and `order` on those junction rows mutable in place. This cycle declares: **a junction row belonging to a given revision is an immutable association snapshot once that revision exists.** `media_id`, `role`, and `order` on an existing `project_media`/`journal_media` row are never edited in place — this applies to a junction row attached to the currently *published* revision in particular, since that is the row the public read path is following at that moment, but the rule is the same for any revision's junction rows once created, for the same reason `media` rows are immutable unconditionally rather than only while published.
+
+To change which media is attached, its role, or its order:
+
+```
+published revision
+      │
+      └─ remains untouched; its project_media/journal_media rows are not edited
+      │
+new/editable draft revision (draft_revision_id)
+      ↓
+its OWN project_media/journal_media rows are created/edited freely
+(these rows belong to the draft revision, which is not yet public)
+      ↓
+preview (admin-session-gated) reads the draft revision's own junction rows
+      ↓
+publish: published_revision_id := draft_revision_id (same atomic pointer
+swap as any other publish); the draft's junction row set is now the one
+the public read path follows, because it is attached to the newly
+published revision
+      ↓
+the previous revision and ITS junction rows are left exactly as they
+were — historical evidence, never rewritten
+```
+
+This is not a new mechanism — it is the same content-revision publish/preview/pointer-swap semantics already defined above, applied one level down: a junction row is just another piece of revision-scoped content, keyed via the revision's `id` rather than embedded directly in the revision row's own columns.
+
 ## Proposed entities — `PROPOSED TARGET / NOT IMPLEMENTED`
 
 All entities below are design proposals for a future D1 schema. Field lists are illustrative and derived from the current `data/site.js` shape plus the `ADM-REQ-*`/`DESIGN-*` catalog they must support — a future `TECHNICAL_DESIGN.md`/RFC-equivalent still needs to finalize exact column types, indexes, and migrations before implementation.
@@ -158,27 +200,27 @@ Entirely new — `NOT IMPLEMENTED`, no equivalent exists in `data/site.js` or `l
 Media attachment is via `journal_media`, keyed to the revision — see below.
 
 ### `media`
-Entirely new — `NOT IMPLEMENTED`. Backing store target: R2 (`NOT IMPLEMENTED`, per `docs/ARCHITECTURE.md` "after the content and authorization boundaries are tested"). Media itself is binary content with a simple lifecycle, not editorial text needing draft/publish revisioning, so it does not use the entity+revisions pattern; its `state` field is bookkeeping (is this blob still referenced by anything) and is never itself consulted by public rendering — public rendering only ever reaches `media` rows through a published revision's `project_media`/`journal_media` rows (see below), so an orphaned-but-`active` media row is simply unreferenced, not publicly exposed.
+Entirely new — `NOT IMPLEMENTED`. Backing store target: R2 (`NOT IMPLEMENTED`, per `docs/ARCHITECTURE.md` "after the content and authorization boundaries are tested"). Media itself is binary content with a simple lifecycle, not editorial text needing draft/publish revisioning, so it does not use the entity+revisions pattern; its `state` field is bookkeeping (is this blob still referenced by anything) and is never itself consulted by public rendering — public rendering only ever reaches `media` rows through a published revision's `project_media`/`journal_media` rows (see below), so an orphaned-but-`active` media row is simply unreferenced, not publicly exposed. **`storage_key`, `content_type`, `size_bytes`, and `alt_text` are immutable after creation** — see "Media immutability" above; only `state` may change on an existing row.
 - `id`
-- `storage_key` (R2 object key), `content_type`, `size_bytes`, `alt_text`
+- `storage_key` (R2 object key), `content_type`, `size_bytes`, `alt_text` — immutable once set
 - `uploaded_at`, `uploaded_by`
-- `state` (e.g. `active`/`archived` — an unused, orphaned media item should be distinguishable from one actively referenced by a project/journal entry)
+- `state` (e.g. `active`/`archived` — an unused, orphaned media item should be distinguishable from one actively referenced by a project/journal entry) — the one field on this row that may change after creation
 
-### `project_media` (junction table — `AS10-R004`, revision-scoped per `AS10-R008`)
-Structurally truthful relational target for "a project revision has media." Keyed to the **revision**, not the base `projects` entity — attaching/reordering media on a draft must not change what the published revision shows, exactly like every other public-affecting value in this spec.
+### `project_media` (junction table — `AS10-R004`, revision-scoped per `AS10-R008`, immutable-once-created per `AS10-R011`)
+Structurally truthful relational target for "a project revision has media." Keyed to the **revision**, not the base `projects` entity — attaching/reordering media on a draft must not change what the published revision shows, exactly like every other public-affecting value in this spec. **Once a row exists for a given revision, `media_id`/`role`/`order` are not edited in place** — see "Junction-row immutability" above; changing an attachment means creating/editing the *draft* revision's own rows, not this row.
 - `project_revision_id` → `project_revisions.id`
-- `media_id` → `media.id`
-- `role` (e.g. `cover`, `gallery`)
-- `order`
+- `media_id` → `media.id` — immutable once set for this row
+- `role` (e.g. `cover`, `gallery`) — immutable once set for this row
+- `order` — immutable once set for this row
 
-### `journal_media` (junction table — `AS10-R004`, revision-scoped per `AS10-R008`)
+### `journal_media` (junction table — `AS10-R004`, revision-scoped per `AS10-R008`, immutable-once-created per `AS10-R011`)
 Same pattern as `project_media`, for journal entries.
 - `journal_entry_revision_id` → `journal_entry_revisions.id`
-- `media_id` → `media.id`
-- `role`
-- `order`
+- `media_id` → `media.id` — immutable once set for this row
+- `role` — immutable once set for this row
+- `order` — immutable once set for this row
 
-If a future implementation increment chooses a JSON-array column instead of these junction tables for either relationship, that choice must say explicitly that referential integrity is **application-enforced**, not a database foreign key, and must still key the array to the revision, not the base entity, to preserve the publication invariant.
+If a future implementation increment chooses a JSON-array column instead of these junction tables for either relationship, that choice must say explicitly that referential integrity is **application-enforced**, not a database foreign key, and must still key the array to the revision, not the base entity, and treat each array entry as immutable once created, to preserve the publication invariant.
 
 ### `theme_settings` / `theme_settings_revisions`
 Successor concept for `DESIGN-001`…`014`. A design/theme change is editorial content with the same "must not silently replace what's live" property as a project edit.
@@ -219,14 +261,15 @@ theme_settings ──published/draft──> theme_settings_revisions
 audit_log (many) ──entity_type/entity_id/revision_id──> any of the above
 ```
 
-`project_media` and `journal_media` key off `project_revisions.id`/`journal_entry_revisions.id`, not the base `projects`/`journal_entries` row — this is the `AS10-R008` correction: media attachment order/role is exactly the kind of public-affecting value that must live behind the same publish boundary as everything else, so a draft's media reordering cannot change what the currently published revision displays. No entity above has a foreign key into `audit_log`; `audit_log` references outward, never the reverse, so deleting an audited entity must not be allowed to delete its audit trail (append-only invariant).
+`project_media` and `journal_media` key off `project_revisions.id`/`journal_entry_revisions.id`, not the base `projects`/`journal_entries` row — this is the `AS10-R008` correction: media attachment order/role is exactly the kind of public-affecting value that must live behind the same publish boundary as everything else, so a draft's media reordering cannot change what the currently published revision displays. Per `AS10-R011`, both the junction rows and the `media` rows they point at are immutable once created, closing the remaining gap where an existing row could be edited in place regardless of which revision it belonged to. No entity above has a foreign key into `audit_log`; `audit_log` references outward, never the reverse, so deleting an audited entity must not be allowed to delete its audit trail (append-only invariant).
 
 ## IDs, states, timestamps
 
 - **IDs:** reuse the existing constraint — `^[a-z][a-z0-9-]{0,79}$` (`lib/content/schema.mjs`'s `id` validator) — for every stable identifier, unless a future decision explicitly changes the ID scheme.
 - **Slugs:** immutable after creation — see "Slug semantics" above. Never revisioned, never present on a revision row.
 - **Status:** derived from `(published_revision_id, draft_revision_id)` only — no stored `lifecycle_state` or equivalent flag on any base entity (see "Entity status is derived, not stored" above). `audit_log` uses `success`/`failure`, since it is a record of an event, not editable content.
-- **Ordering:** every entity type with an editorial order (`navigation`, `foundations`, `projects`, `services`, `process_steps`, `sections`, and the `project_media`/`journal_media` junction rows) carries `order` on its revision row (or, for the junction tables, on the junction row itself, which is already revision-scoped) — never on the base entity.
+- **Ordering:** every entity type with an editorial order (`navigation`, `foundations`, `projects`, `services`, `process_steps`, `sections`, and the `project_media`/`journal_media` junction rows) carries `order` on its revision row (or, for the junction tables, on the junction row itself, which is already revision-scoped) — never on the base entity. Junction-row `order` is additionally immutable once the row is created (`AS10-R011`) — a reorder is a new draft-revision junction row, never an in-place edit.
+- **Media immutability:** `media.storage_key`/`content_type`/`size_bytes`/`alt_text` and `project_media`/`journal_media`'s `media_id`/`role`/`order` are immutable once created (`AS10-R011`) — see "Media immutability" and "Junction-row immutability" above.
 - **Timestamps:** base entities carry only `created_at` (immutable, set once). Revisions carry `created_at`/`created_by`. `audit_log` uses `occurred_at`. `meta.updatedAt`'s current `YYYY-MM-DD` granularity (`lib/content/schema.mjs`) is likely insufficient for an audit-grade timestamp and should become a full ISO 8601 timestamp in any real implementation — this is a design note, not a decision.
 
 ## Validation
@@ -254,6 +297,7 @@ Every mutation path (create/update/publish/unpublish/delete/upload) must be gate
 
 - A future write path must never report success on a failed write (`ADM-REQ-016`, `WEB-SEC-012` — see `APP_FLOW.md` §2h).
 - The revision model itself is the primary rollback mechanism for editorial content going forward: publishing never deletes a prior revision, and unpublish is a pointer change, not a delete (`RISK-WEB-003`/`RISK-WEB-007`).
+- Media and junction-row immutability (`AS10-R011`) extends the same rollback property to media: because an existing `media` row and its junction rows are never edited in place, rolling back to a prior revision (were that ever supported by a future increment) automatically restores the exact media/role/order that revision originally shipped with — there is no shared mutable state between revisions to reconcile.
 - Until D1/R2 exist, none of the above risk controls can be implemented — they remain design intentions here, not evidenced mitigations.
 
 ## Context-efficiency note

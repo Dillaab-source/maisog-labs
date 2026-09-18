@@ -1,6 +1,6 @@
 # MaisogLabs App Flow
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **Remediation Cycle 2** (§2l and §3 updated to agree with `DATA_BACKEND_SPEC.md`'s `AS10-R008` publication-isolation fix)
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **Remediation Cycle 3 (final)** (§2k extended for `AS10-R011` media/junction-row immutability; §2l/§3 preserved from Cycle 2's `AS10-R008` fix)
 
 Owns states and transitions for both the public visitor experience and the (currently nonexistent) admin experience. This is the priority artifact identified by `D-020`/`D-021` alongside `DATA_BACKEND_SPEC.md`, so it is deliberately the most detailed document in this pack. Every flow below is classified `CURRENTLY IMPLEMENTED`, `PROPOSED TARGET`, or `NOT IMPLEMENTED`; nothing here invents a route, API, or runtime capability that does not exist (`AS10-F003`).
 
@@ -204,7 +204,7 @@ avoidable; next authenticated action requires re-authentication;
 no mutation is accepted on an expired/invalid session (WEB-SEC-002, 011)
 ```
 
-### 2k. Media concept — `PROPOSED TARGET`
+### 2k. Media concept — `PROPOSED TARGET` (extended, `AS10-R011`)
 
 ```
 [PROPOSED TARGET]
@@ -215,7 +215,37 @@ Server-side validation (type/size/content) — no upload is trusted client-side
 (ADM-REQ-006, WEB-SEC-005)
       │
       ├─ invalid ──▶ rejected, explicit error (mirrors §2g)
-      └─ valid ──▶ stored (target: R2, see DATA_BACKEND_SPEC.md) ──▶ selectable in the media library (§2b)
+      └─ valid ──▶ stored as a NEW media record (target: R2, see DATA_BACKEND_SPEC.md)
+                   ──▶ selectable in the media library (§2b)
+```
+
+**Replacing media on an already-published project/entry (`AS10-R011`):** an existing `media` row is never edited in place — not its file, and not its `alt_text` — because either could be reached by a currently published revision's junction row. Replacing a file or correcting alt text always uploads a new `media` record:
+
+```
+[PROPOSED TARGET]
+Admin uploads a replacement for media already attached to a published item
+      │
+      ▼
+New media record created (validated as above) — the old media record is
+left untouched, exactly as it was when the currently published revision
+was published
+      │
+      ▼
+Admin attaches the new media record to the entity's DRAFT revision's own
+project_media/journal_media rows (§2c/§2d) — the published revision's
+junction rows are not touched
+      │
+      ▼
+Preview (§2e) shows the draft's attachment, reading the draft's own
+junction rows
+      │
+      ▼
+Publish (§2f): the draft revision (and its junction rows) becomes the
+published one via the normal published_revision_id := draft_revision_id
+pointer swap
+      │
+      ▼
+Only now does public output change — never before this step
 ```
 
 No upload/write API exists today; `RISK-WEB-012` ("Media upload abuse") is `NOT YET APPLICABLE` until this flow is built.
@@ -257,7 +287,7 @@ Section visibility/order (`DESIGN-002`, `DESIGN-003`) follows the identical patt
 
 This is the one admin-adjacent guarantee that already exists and must not regress: `projectPublishedContent()` (`lib/content/public.mjs`) filters every record collection (`navigation`, `foundations`, `projects`, `services`, `process.steps`) to `state === "published"` before the page ever sees it, and requires the root document itself to be `published` or it throws. Any future admin/backend replacement of `data/site.js` must preserve this same guarantee at its own boundary (`brain/PROJECT_GOVERNANCE.md` D-007) — this is the acceptance bar for `WEB-REQ-008` and `RISK-WEB-013` going forward, not a new bar invented here. In the proposed target model (`DATA_BACKEND_SPEC.md` § "Publication / revision model"), the equivalent guarantee is: public rendering follows only each entity's `published_revision_id`, never `draft_revision_id`, and an entity with a null `published_revision_id` does not appear publicly at all — a structurally different mechanism from today's flat `state` filter, but the same guarantee it must preserve.
 
-**Publication isolation is now complete, not just content-level (`AS10-R008`):** this guarantee extends to every value that can affect what a visitor sees, not only whether a record is shown at all. Ordering (`navigation`/`foundations`/`projects`/`services`/`process_steps`/`sections`), section visibility, and media attachment order/role (`project_media`/`journal_media`, now keyed to the revision) all live inside the same published/draft revision boundary — none of them can bypass it by living on a mutable base-entity field. `DATA_BACKEND_SPEC.md` § "Public rendering invariant" states this as a binding rule: every mutable value that can affect public presentation is sourced from published revision/state only, and draft changes cannot alter public output before publish.
+**Publication isolation is now complete end-to-end (`AS10-R008`, closed by `AS10-R011`):** this guarantee extends to every value that can affect what a visitor sees, not only whether a record is shown at all. Ordering (`navigation`/`foundations`/`projects`/`services`/`process_steps`/`sections`), section visibility, and media attachment (`project_media`/`journal_media`, keyed to the revision) all live inside the same published/draft revision boundary. The final gap — a `media` row or an existing junction row being editable in place regardless of which revision it belonged to — is closed by declaring both immutable once created (`DATA_BACKEND_SPEC.md` §§ "Media immutability", "Junction-row immutability"): a replacement always creates a new record and reaches the public only through a draft revision's own junction rows, published through the normal pointer swap (§2k). `DATA_BACKEND_SPEC.md` § "Public rendering invariant" states the resulting binding rule: every mutable value that can affect public presentation is either contained inside a revision or immutable once referenced by that revision, so draft changes cannot alter public output before publish.
 
 ## Context-efficiency note
 
