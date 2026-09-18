@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S1-GOVERNANCE-KERNEL
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S1_GOVERNANCE_KERNEL_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: c2ba03745467d310c2b6c1bb59acfca916a72d69
 LAST_ARCHITECT_REVIEWED_SHA: c2ba03745467d310c2b6c1bb59acfca916a72d69
@@ -30,7 +30,7 @@ Relevant Architect Syncs:
 Relevant Paulo decision:
 - `D-012` — adopt AS-003 and authorize S1 Governance Kernel
 
-## Reviewed S1 remediation
+## Reviewed S1 remediation (prior cycle)
 
 Architect reviewed:
 
@@ -40,29 +40,25 @@ Verdict:
 
 `SENTINEL S1 STAGE GATE: NOT APPROVED — FINAL REMEDIATION REQUIRED (CYCLE 3)`
 
-See `coordination/ARCHITECT_REVIEW.md` for the full cycle-2 disposition.
+See `coordination/ARCHITECT_REVIEW.md` for the full cycle-2 disposition, and `coordination/IMPLEMENTER_HANDOFF.md` / `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`'s "Remediation Cycle 3 (FINAL)" section for the implementer's response now submitted for final re-review.
 
-## Resolved findings to preserve
+## Resolved findings — preserved across cycle 3
 
-Resolved and must remain intact:
+Resolved and remain intact, not touched this cycle:
 
 - `S1-F001` — class authority/risk floors
 - `S1-F002` — explicit evidence AND/OR semantics
 - `S1-F003` — waiver authority-reference and expiry semantics
 - `S1-F005` — overlay non-weakening / RFC authority path
 - `S1-F006` — Decision Packet payload/hash exclusivity
-- `S1-F007` — version/bootstrap-transition architecture
+- `S1-F007` — version/bootstrap-transition architecture (final activation still routed to Paulo, unchanged)
 - `S1-F008` — durable AS-001/AS-002 backfill from Git history
 
-## Final remediation required
+## Final remediation — completed this cycle, submitted for re-review
 
-### S1-F004 — waiver validator/schema equivalence
+### S1-F004 — waiver validator/schema equivalence — DONE
 
-The rule validator side is accepted.
-
-The remaining substantive blocker is that `validate-waivers.mjs` does not yet enforce every declared field/type/pattern/enum/additional-property constraint in `waiver-record.schema.json`.
-
-Cycle 3 must make the waiver validator reject every waiver record that violates the declared S1 waiver schema, while preserving:
+`validate-waivers.mjs` now enforces the full declared `waiver-record.schema.json` shape: `additionalProperties: false`; `waiver_id`/`rule_waived` regex patterns; non-empty-string constraints on `scope`/`reason`/`approver`/`compensating_controls`; exact `YYYY-MM-DD` shape for `issued_at`/`expires_at`; `evidence` array + enum-membership; `risk`/`status` enums; `paulo_decision_ref`/`architect_sync_ref` type/minLength whenever present. All previously-correct checks preserved unchanged:
 - target rule exists
 - target rule is waivable
 - conditional Paulo decision reference
@@ -70,9 +66,11 @@ Cycle 3 must make the waiver validator reject every waiver record that violates 
 - expiry-authoritative behavior
 - fail-closed dependency on rule registry
 
-### S1-F009 — provenance/count wording
+`devos/changes/waivers/README.md` and `devos/templates/WAIVER_TEMPLATE.md` updated to truthfully describe the expanded checks. `waiver-record.schema.json` left unmodified — already aligned, no gap found.
 
-Correct the handoff so it distinguishes:
+### S1-F009 — provenance/count wording — DONE
+
+The handoff now distinguishes:
 
 - full review-cycle range:
   `65c02a44e54618b70b23417f11802fb8fca148a4` → `c2ba03745467d310c2b6c1bb59acfca916a72d69`
@@ -112,41 +110,41 @@ Claude may modify only:
 
 No other S1 artifact needs substantive modification.
 
-## Required validation — final cycle
+## Required validation — final cycle — completed
 
-After remediation, Claude must run the waiver validator against:
+The waiver validator was run against all 14 required scenarios plus one ad hoc extra, all in the session scratchpad (never committed, deleted after use):
 
-1. the real repository state;
-2. malformed JSON;
-3. unknown extra property;
-4. malformed `waiver_id`;
-5. malformed `rule_waived`;
-6. empty required strings;
-7. invalid date shapes;
-8. invalid `evidence` type / invalid evidence class;
-9. missing conditional `paulo_decision_ref`;
-10. missing conditional `architect_sync_ref`;
-11. expired `ACTIVE` waiver;
-12. malformed dependency rule registry;
-13. at least one valid waiver fixture that should pass.
+1. the real repository state — pass (no waivers filed, expected);
+2. malformed JSON — rejected (parse error, exact location);
+3. unknown extra property — rejected (`additionalProperties: false`);
+4. malformed `waiver_id` — rejected (pattern);
+5. malformed `rule_waived` — rejected (pattern);
+6. empty required strings — rejected (4 separate errors);
+7. invalid date shapes — rejected (2 separate errors);
+8. invalid `evidence` type / invalid evidence class — both rejected;
+9. missing conditional `paulo_decision_ref` — rejected;
+10. missing conditional `architect_sync_ref` — rejected;
+11. expired `ACTIVE` waiver — rejected (expiry authoritative);
+12. malformed dependency rule registry — `FATAL`, aborted, non-zero exit;
+13. at least one valid waiver fixture — accepted (`OK`).
 
-Synthetic fixtures must remain outside the committed repository.
+Exact error strings and commands are in `coordination/IMPLEMENTER_HANDOFF.md` §3 and `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`'s "Mandatory validation tests — exact outcomes" table. No synthetic fixture was committed.
 
-## Required next handoff
+## This cycle's handoff — completed by the Implementer
 
-Claude must:
+1. remediated the final `S1-F004` waiver-validator blocker — done;
+2. corrected `S1-F009` range/count wording — done;
+3. compared Builder-owned changes against the Architect-return commit `6c749f006384d1cc0e6a4de614bbf7a15008e518` created immediately before this cycle began — done;
+4. reported exact files changed — done, see `coordination/IMPLEMENTER_HANDOFF.md` §2 (6 files, all authorized);
+5. reported every validator command/result and what it proves/does not prove — done, see `coordination/IMPLEMENTER_HANDOFF.md` §3–4;
+6. kept all S1-origin rules `PROPOSED` and v1.3.0 unapplied — confirmed, `core-rules.json` untouched this cycle;
+7. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO` — done (see top of this file);
+8. kept `CURRENT_REMEDIATION_CYCLE: 3` — done;
+9. kept `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` — done;
+10. stopping for final Architect re-review — no S2 work, no further remediation cycle, started or performed beyond this.
 
-1. remediate the final S1-F004 waiver-validator blocker;
-2. correct S1-F009 range/count wording;
-3. compare Builder-owned changes against the Architect-return commit created immediately before Claude begins cycle 3;
-4. report exact files changed;
-5. report every validator command/result and what it proves / does not prove;
-6. keep all S1-origin rules PROPOSED and v1.3.0 unapplied;
-7. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`;
-8. keep `CURRENT_REMEDIATION_CYCLE: 3`;
-9. keep `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO`;
-10. stop for final Architect re-review.
+**Note on `LAST_IMPLEMENTER_HANDOFF_SHA` above:** left at `c2ba03745467d310c2b6c1bb59acfca916a72d69` (the prior cycle's SHA) because this cycle's own commit SHA is not known until after it is created — consistent with the pattern established at S0-B3/S1-F009, where the Architect corrects this field to the actual new commit SHA in their own subsequent state update after inspecting the pushed commit.
 
 ## Current gate
 
-S1 Governance Kernel final remediation cycle 3 is authorized. This is the final remediation cycle under the current bootstrap protocol.
+S1 Governance Kernel final remediation cycle 3 is complete and submitted for final Architect re-review. This was the final remediation cycle authorized under the current bootstrap protocol — no cycle 4 is authorized. No S2+ work, CI/workflow, GitHub ruleset, website/admin implementation, deployment, protected-branch/main merge, S1-origin rule activation, or v1.3.0 application was performed.
