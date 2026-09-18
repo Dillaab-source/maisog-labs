@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-S1-GOVERNANCE-KERNEL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
 AUTHORIZED_SCOPE: SENTINEL_S1_GOVERNANCE_KERNEL_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: c2ba03745467d310c2b6c1bb59acfca916a72d69
-LAST_ARCHITECT_REVIEWED_SHA: c2ba03745467d310c2b6c1bb59acfca916a72d69
+PAULO_DECISION_REQUIRED: YES
+LAST_IMPLEMENTER_HANDOFF_SHA: df9675cbc2baac398071dc77ba6c4728cf54d2d5
+LAST_ARCHITECT_REVIEWED_SHA: df9675cbc2baac398071dc77ba6c4728cf54d2d5
 CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
@@ -18,133 +18,85 @@ MAIN_MERGE_AUTHORIZED: NO
 
 S0 Architecture Freeze remains closed and authoritative.
 
-Authoritative architecture:
-- `devos/architecture/ML-DEVOS-ARCH-001.md`
-- `devos/plans/ML-DEVOS-SIP-001.md`
+S1 Governance Kernel technical stage gate has now passed Architect review.
 
-Relevant Architect Syncs:
-- `ML-DEVOS-AS-002` — S0 closure and architecture corrections
-- `ML-DEVOS-AS-003` — future-change governance architecture
-- `ML-DEVOS-AS-004` — current S1 remediation stage-gate review
+Architect Sync:
+- `ML-DEVOS-AS-004`
 
-Relevant Paulo decision:
-- `D-012` — adopt AS-003 and authorize S1 Governance Kernel
+Technical verdict:
+- `SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-## Reviewed S1 remediation (prior cycle)
+Reviewed final remediation:
+- `df9675cbc2baac398071dc77ba6c4728cf54d2d5`
 
-Architect reviewed:
+## Technical finding status
 
-`c2ba03745467d310c2b6c1bb59acfca916a72d69`
+All S1 technical findings are resolved:
 
-Verdict:
+- `S1-F001` — RESOLVED
+- `S1-F002` — RESOLVED
+- `S1-F003` — RESOLVED
+- `S1-F004` — RESOLVED
+- `S1-F005` — RESOLVED
+- `S1-F006` — RESOLVED
+- `S1-F007` — RESOLVED FOR TECHNICAL S1; activation remains Paulo-gated
+- `S1-F008` — RESOLVED
+- `S1-F009` — RESOLVED
 
-`SENTINEL S1 STAGE GATE: NOT APPROVED — FINAL REMEDIATION REQUIRED (CYCLE 3)`
+## Current version state
 
-See `coordination/ARCHITECT_REVIEW.md` for the full cycle-2 disposition, and `coordination/IMPLEMENTER_HANDOFF.md` / `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`'s "Remediation Cycle 3 (FINAL)" section for the implementer's response now submitted for final re-review.
+Current active Sentinel baseline remains:
 
-## Resolved findings — preserved across cycle 3
+`v1.2.0`
 
-Resolved and remain intact, not touched this cycle:
-
-- `S1-F001` — class authority/risk floors
-- `S1-F002` — explicit evidence AND/OR semantics
-- `S1-F003` — waiver authority-reference and expiry semantics
-- `S1-F005` — overlay non-weakening / RFC authority path
-- `S1-F006` — Decision Packet payload/hash exclusivity
-- `S1-F007` — version/bootstrap-transition architecture (final activation still routed to Paulo, unchanged)
-- `S1-F008` — durable AS-001/AS-002 backfill from Git history
-
-## Final remediation — completed this cycle, submitted for re-review
-
-### S1-F004 — waiver validator/schema equivalence — DONE
-
-`validate-waivers.mjs` now enforces the full declared `waiver-record.schema.json` shape: `additionalProperties: false`; `waiver_id`/`rule_waived` regex patterns; non-empty-string constraints on `scope`/`reason`/`approver`/`compensating_controls`; exact `YYYY-MM-DD` shape for `issued_at`/`expires_at`; `evidence` array + enum-membership; `risk`/`status` enums; `paulo_decision_ref`/`architect_sync_ref` type/minLength whenever present. All previously-correct checks preserved unchanged:
-- target rule exists
-- target rule is waivable
-- conditional Paulo decision reference
-- conditional Architect Sync reference
-- expiry-authoritative behavior
-- fail-closed dependency on rule registry
-
-`devos/changes/waivers/README.md` and `devos/templates/WAIVER_TEMPLATE.md` updated to truthfully describe the expanded checks. `waiver-record.schema.json` left unmodified — already aligned, no gap found.
-
-### S1-F009 — provenance/count wording — DONE
-
-The handoff now distinguishes:
-
-- full review-cycle range:
-  `65c02a44e54618b70b23417f11802fb8fca148a4` → `c2ba03745467d310c2b6c1bb59acfca916a72d69`
-  = 18 files, because it includes Architect-owned `coordination/ARCHITECT_REVIEW.md`;
-
-- Builder-owned cycle-2 commit:
-  `c3ae9dc54c88cf1136c846dcb896980853347c0d` → `c2ba03745467d310c2b6c1bb59acfca916a72d69`
-  = 17 authorized files: 15 under `devos/**` + 2 Builder-owned coordination files.
-
-## Version disposition
-
-The accepted version class remains:
+Accepted next version class:
 
 `1.2.0 → 1.3.0 MINOR`
 
-It remains proposed and inactive.
+The v1.3.0 transition is not yet active.
 
-Do not:
-- create the S1 closure ADR;
-- activate S1-origin rules;
-- apply v1.3.0;
-- start S2.
+S1-origin proposed rules remain:
 
-If cycle 3 passes, the Architect will issue technical S1 approval and route the explicit S1/v1.3.0 activation decision to Paulo.
+- `CORE-008`
+- `CORE-009`
+- `CORE-016`
+- `CORE-017`
+- `CORE-018`
 
-## Authorized remediation scope — cycle 3
+They remain `PROPOSED` until Paulo explicitly authorizes activation.
 
-Claude may modify only:
+## Paulo decision required
 
-- `devos/governance/registry/validate-waivers.mjs`;
-- `devos/governance/registry/waiver-record.schema.json` only if needed for exact alignment;
-- `devos/changes/waivers/README.md` only if needed for truthful validator documentation;
-- `devos/templates/WAIVER_TEMPLATE.md` only if needed for truthful validator documentation;
-- `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+Paulo must explicitly decide whether to:
 
-No other S1 artifact needs substantive modification.
+1. adopt the S1 Governance Kernel as the active Sentinel governance-capability baseline;
+2. activate `CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, and `CORE-018`;
+3. apply the explicit `1.2.0 → 1.3.0` version transition;
+4. authorize creation of the first durable ADR recording S1 Governance Kernel adoption/bootstrap transition;
+5. authorize documentation-only closure updates necessary to record the activated state/version.
 
-## Required validation — final cycle — completed
+This decision does NOT authorize S2.
 
-The waiver validator was run against all 14 required scenarios plus one ad hoc extra, all in the session scratchpad (never committed, deleted after use):
+## Explicitly prohibited while awaiting Paulo
 
-1. the real repository state — pass (no waivers filed, expected);
-2. malformed JSON — rejected (parse error, exact location);
-3. unknown extra property — rejected (`additionalProperties: false`);
-4. malformed `waiver_id` — rejected (pattern);
-5. malformed `rule_waived` — rejected (pattern);
-6. empty required strings — rejected (4 separate errors);
-7. invalid date shapes — rejected (2 separate errors);
-8. invalid `evidence` type / invalid evidence class — both rejected;
-9. missing conditional `paulo_decision_ref` — rejected;
-10. missing conditional `architect_sync_ref` — rejected;
-11. expired `ACTIVE` waiver — rejected (expiry authoritative);
-12. malformed dependency rule registry — `FATAL`, aborted, non-zero exit;
-13. at least one valid waiver fixture — accepted (`OK`).
-
-Exact error strings and commands are in `coordination/IMPLEMENTER_HANDOFF.md` §3 and `devos/handoffs/ML-DEVOS-S1-HANDOFF.md`'s "Mandatory validation tests — exact outcomes" table. No synthetic fixture was committed.
-
-## This cycle's handoff — completed by the Implementer
-
-1. remediated the final `S1-F004` waiver-validator blocker — done;
-2. corrected `S1-F009` range/count wording — done;
-3. compared Builder-owned changes against the Architect-return commit `6c749f006384d1cc0e6a4de614bbf7a15008e518` created immediately before this cycle began — done;
-4. reported exact files changed — done, see `coordination/IMPLEMENTER_HANDOFF.md` §2 (6 files, all authorized);
-5. reported every validator command/result and what it proves/does not prove — done, see `coordination/IMPLEMENTER_HANDOFF.md` §3–4;
-6. kept all S1-origin rules `PROPOSED` and v1.3.0 unapplied — confirmed, `core-rules.json` untouched this cycle;
-7. set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO` — done (see top of this file);
-8. kept `CURRENT_REMEDIATION_CYCLE: 3` — done;
-9. kept `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` — done;
-10. stopping for final Architect re-review — no S2 work, no further remediation cycle, started or performed beyond this.
-
-**Note on `LAST_IMPLEMENTER_HANDOFF_SHA` above:** left at `c2ba03745467d310c2b6c1bb59acfca916a72d69` (the prior cycle's SHA) because this cycle's own commit SHA is not known until after it is created — consistent with the pattern established at S0-B3/S1-F009, where the Architect corrects this field to the actual new commit SHA in their own subsequent state update after inspecting the pushed commit.
+- no S1 rule activation without Paulo decision
+- no v1.3.0 application
+- no S1 closure ADR before authorization
+- no S2 or later phase
+- no Policy Engine runtime
+- no Task Engine runtime
+- no Orchestrator
+- no Evidence Gate runtime
+- no Capability Gateway runtime
+- no CI/workflow implementation
+- no GitHub ruleset/branch-protection changes
+- no website/admin implementation
+- no project migration
+- no production deployment
+- no protected-branch/main merge
 
 ## Current gate
 
-S1 Governance Kernel final remediation cycle 3 is complete and submitted for final Architect re-review. This was the final remediation cycle authorized under the current bootstrap protocol — no cycle 4 is authorized. No S2+ work, CI/workflow, GitHub ruleset, website/admin implementation, deployment, protected-branch/main merge, S1-origin rule activation, or v1.3.0 application was performed.
+`PAULO_DECISION_REQUIRED`
+
+After Paulo explicitly approves S1 activation/version closure, Claude may perform only the documentation/static-governance closure authorized by that decision, then stop for Architect verification. S2 remains separately gated.
