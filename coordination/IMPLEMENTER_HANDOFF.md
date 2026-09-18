@@ -8,9 +8,61 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`MAISOGLABS-WEB-INC-005-D1-SUBSTRATE` — **Remediation Cycle 2** (`CURRENT_REMEDIATION_CYCLE: 2` / `MAX_REMEDIATION_CYCLES: 3`)
+`MAISOGLABS-WEB-INC-005-D1-SUBSTRATE` — **Remediation Cycle 3 (FINAL)** (`CURRENT_REMEDIATION_CYCLE: 3` / `MAX_REMEDIATION_CYCLES: 3`)
 
-Authority chain: `ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024` → `ML-DEVOS-AS-014` (Remediation Cycle 2 verdict: `CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 2`, findings `AS14-F004` "PARTIALLY RESOLVED" and `AS14-F005` "PARTIALLY RESOLVED"; `AS14-F001`–`F003` and `AS14-F006`–`F010` already `RESOLVED`/`PASS` and preserved).
+Authority chain: `ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024` → `ML-DEVOS-AS-014` (Remediation Cycle 3 verdict: `CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 3 (FINAL)`, `AS14-F004` "PARTIALLY RESOLVED — one final current-state convergence defect remains"; `AS14-F005` `RESOLVED`; `AS14-F001`–`F003` and `AS14-F006`–`F010` already `RESOLVED`/`PASS` and preserved). This is the final configured remediation cycle under `MAX_REMEDIATION_CYCLES: 3`.
+
+## Remediation Cycle 3 (FINAL) objective
+
+Resolve the last remaining `AS14-F004` current-state wording defects in `docs/product/DATA_BACKEND_SPEC.md`: the blanket "Until D1/R2 exist..." rollback/data-loss statement, and the stale "No migration is authorized or performed by this cycle..." migration-considerations statement. Narrow, documentation/provenance-only — no runtime, migration, validator, test, migration-SQL, Wrangler-config, or package file is touched, and no technical implementation is reopened.
+
+## Remediation Cycle 3 (FINAL) branch / commit state
+
+- Cycle 3 base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `c32dd2c034d0c372de532963fc6f3629f33d2c6c`. This SHA carries the Architect's Remediation Cycle 2 verification (`ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 3 (FINAL)`) into `coordination/ARCHITECT_REVIEW.md` and the Cycle 3 state into `coordination/STATE.md`, on top of the Remediation Cycle 2 base `13bdf2a364a8210e1ae84997655168ea4cf505cd`.
+- Read in full before any edit: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-014` Remediation Cycle 2 verification — `AS14-F001`–`F003` `RESOLVED`/`PRESERVED`, `AS14-F004` `PARTIALLY RESOLVED` with exactly two remaining sentences named, `AS14-F005` `RESOLVED`, `AS14-F006`–`F010` `PASS`/`PRESERVED`), `coordination/IMPLEMENTER_HANDOFF.md` (the prior Cycle 2 handoff, confirmed byte-identical to what this session last wrote — `git diff` against the previous commit returned empty), `docs/product/DATA_BACKEND_SPEC.md`.
+
+## Exact Cycle 3 changed-file list — 3 files
+
+- `docs/product/DATA_BACKEND_SPEC.md` (final `AS14-F004` corrections)
+- `coordination/IMPLEMENTER_HANDOFF.md` (this file — this Cycle 3 section)
+- `coordination/STATE.md`
+
+No other file was modified. Confirmed by `git status --short` and `git diff --stat` showing exactly these 3 paths.
+
+## Final `AS14-F004` disposition (Cycle 3) — RESOLVED
+
+**Problem (Architect's Remediation Cycle 2 verification):** Cycle 2 correctly fixed the "Admin identity references" and "Authorization boundaries" sections, but an independent full-file sweep found two more stale current-state sentences elsewhere in `docs/product/DATA_BACKEND_SPEC.md`:
+
+1. Under **"Rollback / data-loss considerations"**: `Until D1/R2 exist, none of the above risk controls can be implemented — they remain design intentions here, not evidenced mitigations.` — stale, since a local-only D1 revision substrate and several migration/integrity controls already exist under `WEB-INC-005`.
+2. Under **"Migration considerations"**: `No migration is authorized or performed by this cycle. This section is a design constraint list for whichever future increment proposes the actual migration.` — stale as *current* state (though historically accurate for the Product Build Pack documentation cycle that originally wrote it), since `WEB-INC-005` has since implemented and locally exercised exactly this migration mechanism.
+
+**Fix:**
+
+- **Rollback/data-loss:** the blanket sentence is replaced with a four-way scoped breakdown: (A) local D1 controls — the local revision substrate, deterministic migration/seed, whole-run preflight, the all-or-nothing batched write phase, exact pointer/provenance repeat-run equivalence, schema/integrity constraints, and local parity/integrity evidence — all exist and are evidenced **at repository/local level only**, explicitly **not** called production-verified; (B) R2/media controls — `NOT IMPLEMENTED`, R2 does not exist; (C) remote/production D1 — `NOT IMPLEMENTED`, no remote resource, no production migration, no public cutover; (D) admin mutation/audit controls — `NOT IMPLEMENTED`, no mutation API, no publish/unpublish endpoint, no `audit_log`, no admin media workflow. The section closes with the invariant chain `LOCAL D1 EXISTS ≠ REMOTE/PRODUCTION D1 EXISTS ≠ PUBLIC CUTOVER COMPLETE ≠ ADMIN MUTATION/AUDIT CAPABILITY EXISTS`.
+- **Migration considerations:** the single stale sentence is replaced with two sentences that preserve history rather than erase it: the first states plainly that *during the original Product Build Pack documentation cycle*, no migration was authorized or performed, and that this section was, at that time, a pure design constraint list — this historical fact is unchanged. The second adds the current fact: `WEB-INC-005` was *later* separately authorized (`ML-DEVOS-RFC-003 → ML-DEVOS-AS-013 → D-024`) and implemented and locally exercised this exact migration mechanism (`worker/d1/migrate.mjs`, tested by `tests/d1-migration.test.mjs`), and that this migration is **local/repository only** — no remote D1 migration, no production D1 migration, and no public read-path cutover has occurred; `data/site.js` remains the actual public source.
+
+Neither correction claims a production migration is complete, nor that D1 is now the public source of truth — both explicitly state the opposite alongside the corrected "a local migration mechanism now exists" claim.
+
+## Confirmation: `AS14-F005` remains `RESOLVED`
+
+Not touched this cycle. The Remediation Cycle 1 exact-diff heading still reads 9 files (7 substantive + 2 coordination = 9 total), the historical 17→19 original-implementation correction is unchanged, and the Cycle 2 exact-diff heading still reads 3 files — all exactly as the Architect's Cycle 2 verification confirmed `RESOLVED`.
+
+## Confirmation: `AS14-F001`–`F003` and `AS14-F006`–`F010` remain untouched this cycle
+
+- `worker/d1/migrate.mjs`, `worker/d1/validate.mjs`, `tests/d1-migration.test.mjs`, `migrations/0001_web_inc_005_init.sql`, `worker/d1/repository.mjs`, `worker/d1/schema.mjs`, `scripts/d1-migrate.mjs`, `wrangler.jsonc` are all byte-identical to the Cycle 3 base (`git diff --stat` against every one of these paths returns empty) — so `AS14-F001` (whole-run atomicity), `AS14-F002` (exact pointer/provenance equivalence), `AS14-F003` (validator contract), `AS14-F006` (14-table inventory), `AS14-F007` (staged public path), `AS14-F008` (composite cross-entity pointer protection), `AS14-F009` (server-only boundary), and `AS14-F010` (local/remote configuration boundary) remain exactly as previously `RESOLVED`/`PASS`.
+- `app/`, `components/`, `data/`, `lib/`, `public/`, `next.config.mjs`, `package.json`, `package-lock.json`, `worker/index.mjs`, `worker/auth.mjs`, `tests/content.test.mjs`, `tests/worker-auth.test.mjs`, `brain/RISK_REGISTER.md`, `docs/product/PRD.md`, `docs/product/BUILD_PLAN.md`, `docs/ARCHITECTURE.md`, `brain/IMPLEMENTATION_STATUS.md`, `brain/TEST_LEDGER.md` are likewise untouched this cycle — outside this cycle's 3-file authorized scope.
+
+## Explicit confirmation: no runtime/data/test/config code changed
+
+This cycle's diff is exactly 2 Markdown-prose corrections in `docs/product/DATA_BACKEND_SPEC.md` plus the normal 2 coordination-file updates (this file, `coordination/STATE.md`). No `.mjs`, `.sql`, `.jsonc`, or `.json` file was modified. No technical implementation was reopened. The prior Remediation Cycle 1 results — 76/76 tests passing, successful build — remain the current, unregressed state, since nothing this cycle touches test or build inputs.
+
+## Explicit confirmation: no remote Cloudflare resource changed
+
+No tool capable of any external operation was used this cycle — only Markdown edits, `git`, and read-only inspection commands. No `wrangler d1 create`, no remote D1 migration/query/mutation, no production Cloudflare Access configuration, no deployment. `wrangler.jsonc` was not touched (still no `database_id`, still `remote: false`). `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+
+---
+
+# Remediation Cycle 2 record (preserved)
 
 ## Remediation Cycle 2 objective
 
@@ -215,3 +267,9 @@ Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the s
 ## Commit (Remediation Cycle 2)
 
 The 3 Cycle 2 files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as commit `84014db2c13c170ce14fbf1a55fa17b407947d3b` on top of Cycle 2 base `13bdf2a364a8210e1ae84997655168ea4cf505cd` — also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`. A second, immediately following documentation-only commit records this exact SHA into both files (a commit cannot self-reference its own hash), consistent with the Cycle 1 pattern above.
+
+---
+
+## Commit (Remediation Cycle 3, FINAL)
+
+The 3 Cycle 3 files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) on top of Cycle 3 base `c32dd2c034d0c372de532963fc6f3629f33d2c6c`. Exact commit SHA recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA` (a commit cannot self-reference its own hash within the same commit, so this file states the base SHA here and `STATE.md` carries the resulting SHA, corrected into both files by an immediately following documentation-only bookkeeping commit, consistent with the Cycle 1/Cycle 2 pattern above). This is the final Builder handoff for `WEB-INC-005` under `MAX_REMEDIATION_CYCLES: 3`; the Architect will perform the final closure review.
