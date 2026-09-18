@@ -1,6 +1,6 @@
 # Sentinel Change Governance Policy
 
-Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Formalizes `ML-DEVOS-AS-003` and `brain/DECISION_LOG.md` `D-012` into repository-owned policy. Companion to `../../architecture/ML-DEVOS-ARCH-001.md` (frozen S0 baseline) — this document governs how that baseline may change, not what it currently says.
+Status: `ACTIVE` (S1 Governance Kernel — adopted `2026-09-18` per Paulo decision `D-013` and Architect Sync `ML-DEVOS-AS-004`'s final `ARCHITECT_APPROVED` verdict; see `../../changes/adrs/ML-DEVOS-ADR-001.md`). Formalizes `ML-DEVOS-AS-003` and `brain/DECISION_LOG.md` `D-012` into repository-owned policy. Companion to `../../architecture/ML-DEVOS-ARCH-001.md` (frozen S0 baseline) — this document governs how that baseline may change, not what it currently says.
 
 **Constitutional principle carried from AS-003, verbatim in force:** *"Frozen does not mean immutable. Frozen means changes must be explicit, versioned, reviewed, attributable, and reversible where technically possible."* Project rules may extend or strengthen Sentinel core requirements; they may never silently weaken constitutional/core rules (`D-012` overlay rule).
 

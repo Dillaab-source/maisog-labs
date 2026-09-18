@@ -1,6 +1,6 @@
 # Sentinel Governance Bundle Manifest Specification
 
-Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Defines the **shape** of a future Governance Bundle manifest. Per `brain/DECISION_LOG.md` `D-012`, S1 defines this specification only — **signing, distribution, activation, runtime fetching, and Policy Engine execution are explicitly not S1 work** and are not implemented anywhere in this commit.
+Status: `ACTIVE` (S1 Governance Kernel — adopted `2026-09-18` per Paulo decision `D-013` and Architect Sync `ML-DEVOS-AS-004`'s final `ARCHITECT_APPROVED` verdict; see `../../changes/adrs/ML-DEVOS-ADR-001.md`). Defines the **shape** of a future Governance Bundle manifest. Per `brain/DECISION_LOG.md` `D-012`, S1 defines this specification only — **signing, distribution, activation, runtime fetching, and Policy Engine execution are explicitly not S1 work** and are not implemented anywhere in this commit.
 
 ## Purpose
 

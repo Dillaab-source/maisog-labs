@@ -1,6 +1,6 @@
 # Sentinel Decision Packet Specification
 
-Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Formalizes `ML-DEVOS-AS-003` "Decision Packet" and `brain/DECISION_LOG.md` `D-012`'s Decision Packet requirement. Template: `../../templates/DECISION_PACKET_TEMPLATE.md`. JSON Schema: `./decision-packet.schema.json`.
+Status: `ACTIVE` (S1 Governance Kernel — adopted `2026-09-18` per Paulo decision `D-013` and Architect Sync `ML-DEVOS-AS-004`'s final `ARCHITECT_APPROVED` verdict; see `../../changes/adrs/ML-DEVOS-ADR-001.md`). Formalizes `ML-DEVOS-AS-003` "Decision Packet" and `brain/DECISION_LOG.md` `D-012`'s Decision Packet requirement. Template: `../../templates/DECISION_PACKET_TEMPLATE.md`. JSON Schema: `./decision-packet.schema.json`.
 
 ## Purpose
 

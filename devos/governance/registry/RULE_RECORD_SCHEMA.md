@@ -1,6 +1,6 @@
 # Sentinel Rule Record Schema
 
-Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel, remediation cycle 1). Human-readable specification for the machine-readable schema at `./rule-record.schema.json`. Companion to `../change-policy/CHANGE_GOVERNANCE_POLICY.md` §1 and `ML-DEVOS-AS-003` "Rule and policy representation."
+Status: `ACTIVE` (S1 Governance Kernel — adopted `2026-09-18` per `D-013`/`ML-DEVOS-ADR-001`). Human-readable specification for the machine-readable schema at `./rule-record.schema.json`. Companion to `../change-policy/CHANGE_GOVERNANCE_POLICY.md` §1 and `ML-DEVOS-AS-003` "Rule and policy representation."
 
 **S1-F004 correction:** the canonical, machine-readable rule registry is now **JSON** (`../rules/core-rules.json`), not YAML. The prior YAML representation required a hand-rolled, incomplete parser to validate; JSON has a native, deterministic, fail-closed parser (`JSON.parse`) built into every JavaScript runtime, eliminating the need for any custom parsing code. This document, and the schema it describes, remain human-readable references — nothing here implements a Policy Engine or runtime enforcement.
 
@@ -58,7 +58,7 @@ These floors derive directly from `../change-policy/CHANGE_GOVERNANCE_POLICY.md`
 - `status: PROPOSED` ⟹ `effective_version: null` **and** `proposed_effective_version` is a non-null semver string.
 - `status: ACTIVE` / `SUPERSEDED` / `WAIVED` / `REJECTED` ⟹ `effective_version` is a non-null semver string **and** `proposed_effective_version: null`.
 
-This distinguishes rules already effective under the frozen S0 baseline (`1.2.0`) from rules genuinely introduced during S1 (`D-012`/`ML-DEVOS-AS-003`), which remain `PROPOSED` with a `proposed_effective_version` of `1.3.0` until S1 itself is Architect-approved and Paulo explicitly applies that version (`../specifications/VERSIONING_POLICY.md`). Conflating the two — as the prior candidate did for `CORE-008`/`CORE-009` — would misrepresent unapproved governance as already-effective S0 architecture.
+This distinguishes rules already effective under the frozen S0 baseline (`1.2.0`) from rules genuinely introduced during S1 (`D-012`/`ML-DEVOS-AS-003`). The five S1-origin rules (`CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, `CORE-018`) remained `PROPOSED` with `proposed_effective_version: "1.3.0"` throughout S1's Architect review, and were activated only once S1 was Architect-approved **and** Paulo explicitly applied that version (`D-013`, `ML-DEVOS-ADR-001`, `2026-09-18` — see `../specifications/VERSIONING_POLICY.md`); they now carry `status: "ACTIVE"` and `effective_version: "1.3.0"`. Conflating "Architect-approved" with "Paulo-activated" — as the prior candidate did for `CORE-008`/`CORE-009` before any review occurred — would misrepresent unapproved governance as already-effective architecture; the two-gate sequence this schema enforces exists precisely to prevent that.
 
 ## Non-goals of this schema
 

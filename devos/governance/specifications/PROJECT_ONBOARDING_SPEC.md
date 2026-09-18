@@ -1,6 +1,6 @@
 # Sentinel Project Onboarding Specification
 
-Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Formalizes `ML-DEVOS-AS-003` "Project overlays," `ML-DEVOS-ARCH-001` §2/§9 (repository/overlay topology), and `../../governance/REPOSITORY_OVERLAY_TOPOLOGY.md`. Template: `../../templates/PROJECT_ONBOARDING_TEMPLATE.md`.
+Status: `ACTIVE` (S1 Governance Kernel — adopted `2026-09-18` per Paulo decision `D-013` and Architect Sync `ML-DEVOS-AS-004`'s final `ARCHITECT_APPROVED` verdict; see `../../changes/adrs/ML-DEVOS-ADR-001.md`). Formalizes `ML-DEVOS-AS-003` "Project overlays," `ML-DEVOS-ARCH-001` §2/§9 (repository/overlay topology), and `../../governance/REPOSITORY_OVERLAY_TOPOLOGY.md`. Template: `../../templates/PROJECT_ONBOARDING_TEMPLATE.md`.
 
 ## Constitutional anchor
 

@@ -9,6 +9,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 - `ML-DEVOS-AS-001.md` — backfilled in S1 remediation cycle 2 (`S1-F008`), from actual Git history at `571146a06cba1ddc996fd68cd25a68fa4544c5ec` (original findings) and `ce53eceb4a8da38f09f971c8fb20b4b618552010` (the `AS0-001A` amendment).
 - `ML-DEVOS-AS-002.md` — backfilled in S1 remediation cycle 2 (`S1-F008`), from actual Git history at `5962c978e363745d8bbea8b39b3aff7ae0711329` (full initial `S0-F001`…`S0-F008` findings) and `af76cc7b3e6188caa5d2881f7dccb41511f5cd05` (final S0 closure/approval).
 - `ML-DEVOS-AS-003.md` — archived in S1 remediation cycle 1, from the exact live `coordination/ARCHITECT_REVIEW.md` content at archival time.
+- `ML-DEVOS-AS-004.md` — archived at S1 closure (`D-013`, `ML-DEVOS-ADR-001`), spanning the initial S1 review and all three remediation cycles under one continuous sync ID, concluding `SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`.
 
 ## Backfill gap — CLOSED (S1-F008, remediation cycle 2)
 

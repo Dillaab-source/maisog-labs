@@ -1,6 +1,6 @@
 # Sentinel Capability-Change Specification
 
-Status: `CANDIDATE — PENDING ARCHITECT APPROVAL` (S1 Governance Kernel). Formalizes `ML-DEVOS-AS-003` "Capability changes" and `D-012`'s capability rule. Template: `../../templates/CAPABILITY_CHANGE_TEMPLATE.md`.
+Status: `ACTIVE` (S1 Governance Kernel — adopted `2026-09-18` per Paulo decision `D-013` and Architect Sync `ML-DEVOS-AS-004`'s final `ARCHITECT_APPROVED` verdict; see `../../changes/adrs/ML-DEVOS-ADR-001.md`). Formalizes `ML-DEVOS-AS-003` "Capability changes" and `D-012`'s capability rule. Template: `../../templates/CAPABILITY_CHANGE_TEMPLATE.md`.
 
 ## Constitutional anchor
 

@@ -366,3 +366,48 @@ PASS: 0 error(s) across 1 file(s).
 ## Architect review request (cycle 3, FINAL)
 
 Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`. Requesting the Architect independently verify `S1-F004`'s waiver-validator/schema-equivalence resolution and `S1-F009`'s corrected range/count wording against the mapping table above, confirm every previously-resolved finding remains untouched and resolved, rerun the waiver validator, and issue a final verdict for SENTINEL S1.
+
+---
+
+# S1 Closure — Activation and Version Transition (`D-013`, `ML-DEVOS-ADR-001`)
+
+The Architect's final re-review of cycle 3 (`df9675cbc2baac398071dc77ba6c4728cf54d2d5`) issued `SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`, with all nine `S1-F001`…`S1-F009` findings resolved, and explicitly routed the activation/version-closure decision to Paulo rather than performing it itself. Paulo then gave that decision in full, authorizing exactly the five items the Architect named: (1) adopt the S1 Governance Kernel as the active Sentinel governance-capability baseline; (2) activate `CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, `CORE-018`; (3) the explicit `1.2.0 → 1.3.0` version transition; (4) create the first durable ADR; (5) documentation/static-governance closure updates recording the activated version and rule state — explicitly not authorizing S2 or any later phase, and explicitly keeping `DEPLOY_AUTHORIZED`/`MAIN_MERGE_AUTHORIZED` at `NO`. Recorded as `brain/DECISION_LOG.md` `D-013`.
+
+## What changed in this closure commit
+
+| Item | Files changed | What changed |
+|---|---|---|
+| **1. Adoption of S1 as active baseline** | Status banners in `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`, `devos/governance/specifications/{VERSIONING_POLICY,DECISION_PACKET_SPEC,CAPABILITY_CHANGE_SPEC,PROJECT_ONBOARDING_SPEC}.md`, `devos/governance/bundles/GOVERNANCE_BUNDLE_SPEC.md`, `devos/governance/registry/RULE_RECORD_SCHEMA.md` | Every remaining `Status: CANDIDATE — PENDING ARCHITECT APPROVAL` banner across the S1 Governance Kernel artifacts changed to `Status: ACTIVE`, each citing `D-013`/`ML-DEVOS-ADR-001` and the date. |
+| **2. Rule activation** | `devos/governance/rules/core-rules.json` | `CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, `CORE-018` changed from `status: "PROPOSED"`, `effective_version: null`, `proposed_effective_version: "1.3.0"` to `status: "ACTIVE"`, `effective_version: "1.3.0"`, `proposed_effective_version: null`, `adr_id: "ML-DEVOS-ADR-001"`. No other rule, and no field beyond `status`/`effective_version`/`proposed_effective_version`/`adr_id`/`introduced_by`/`updated_at` on these five, was touched. The thirteen S0-origin rules (`CORE-001`–`CORE-007`, `CORE-010`–`CORE-015`) are byte-for-byte unchanged in substance, still `ACTIVE`/`1.2.0`. |
+| **3. Version transition** | `devos/governance/specifications/VERSIONING_POLICY.md` | "Current Sentinel version" and "S1's version assessment" sections rewritten from "proposed, not applied" to "applied at closure," recording `v1.3.0` as Sentinel's active governance-capability baseline while explicitly noting the frozen S0 architecture document's own `v1.2.0` title is untouched and distinct. |
+| **4. First durable ADR** | New: `devos/changes/adrs/ML-DEVOS-ADR-001.md`; modified: `devos/changes/adrs/README.md` | The first ADR in the repository, recording the S1 Governance Kernel's adoption, the pre-RFC bootstrap-transition rationale, alternatives considered, consequences (including honest negative ones — no runtime enforcement, no genuineness-checking of cited approval records), and the exact effective version (`1.3.0`). |
+| **5. Documentation/static-governance closure** | `brain/DECISION_LOG.md` (new `D-013`); `devos/governance/rules/core-rules.json` (`_comment` header); `devos/governance/specifications/VERSIONING_POLICY.md` ("S1 bootstrap transition" section marked CLOSED); `devos/governance/registry/RULE_RECORD_SCHEMA.md` ("Status/version consistency" section updated); new `devos/changes/architect-syncs/ML-DEVOS-AS-004.md` (archiving the concluded sync, as the Architect's final review explicitly invited); `devos/changes/architect-syncs/README.md` | `D-013` records Paulo's decision verbatim. `ML-DEVOS-AS-004` is archived durably, spanning all four review passes under one sync ID. The registry's own header comment and schema documentation are updated so they no longer describe the five S1-origin rules as pending. |
+
+## Validators rerun after activation
+
+```
+$ node devos/governance/registry/validate-rules.mjs
+core-rules.json: 18 rule(s) parsed
+  OK — no structural or class-minimum issues found.
+PASS: 0 error(s) across 1 file(s).
+
+$ node devos/governance/registry/validate-waivers.mjs
+No waiver instance files (*.json) found in .../devos/changes/waivers. This is expected -- no waiver has been filed as of this cycle.
+```
+
+`validate-rules.mjs`'s status/version consistency check (`S1-F007`) and class-minimum check (`S1-F001`) both still pass with the five rules now `ACTIVE`/`1.3.0` — confirming the activation did not accidentally violate the very invariants S1 built to prevent exactly this kind of inconsistency.
+
+## Confirmations
+
+- **Adoption, activation, version transition, ADR, and documentation closure are all recorded, per items 1–5 of `D-013`.**
+- **No frozen S0 rule or document changed:** `devos/architecture/ML-DEVOS-ARCH-001.md` and `devos/plans/ML-DEVOS-SIP-001.md` are untouched; the thirteen S0-origin rules in `core-rules.json` are unchanged in substance.
+- **No S2 or later phase authorized or started:** `D-013` and `ML-DEVOS-ADR-001` both explicitly state this closure does not authorize S2; no Policy/Task Engine, Orchestrator, Evidence Gate, Capability Gateway runtime, CI/workflow, GitHub ruleset/branch-protection change, website/admin implementation, project migration, or deployment exists anywhere in this diff.
+- **`DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged**, exactly as Paulo's decision required.
+
+## Known limitations (unchanged by closure)
+
+Activation changes these rules' authority status, not their enforceability — everything disclosed as a limitation before activation remains true after it: no runtime enforcement exists for any rule; the waiver/Decision Packet validators cannot verify a cited approval record is genuine, only that it is present and correctly shaped; `requirements.yaml`/`risks.yaml`/`capabilities.yaml` field-level schemas remain unspecified beyond the purpose level; `overlay.yaml` non-weakening remains Architect-review-only, not mechanical. This closure commit's own claims are `ACTOR_REPORTED` until the Architect independently inspects them.
+
+## Architect verification request (post-closure)
+
+Requesting the Architect independently verify: the five rules' new field values in `core-rules.json` exactly match what `D-013` authorized (no more, no less); `ML-DEVOS-ADR-001`'s content accurately reflects the review history; no frozen S0 file or unrelated governance content was altered; and that `DEPLOY_AUTHORIZED`/`MAIN_MERGE_AUTHORIZED` remain `NO` with no S2 work present.
