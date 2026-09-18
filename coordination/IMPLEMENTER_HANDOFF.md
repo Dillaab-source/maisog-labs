@@ -8,20 +8,66 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`MAISOGLABS-WEB-INC-005-D1-SUBSTRATE` — **Remediation Cycle 1** (`CURRENT_REMEDIATION_CYCLE: 1` / `MAX_REMEDIATION_CYCLES: 3`)
+`MAISOGLABS-WEB-INC-005-D1-SUBSTRATE` — **Remediation Cycle 2** (`CURRENT_REMEDIATION_CYCLE: 2` / `MAX_REMEDIATION_CYCLES: 3`)
 
-Authority chain: `ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024` → `ML-DEVOS-AS-014` (`CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 1`, findings `AS14-F001`–`F005`).
+Authority chain: `ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024` → `ML-DEVOS-AS-014` (Remediation Cycle 2 verdict: `CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 2`, findings `AS14-F004` "PARTIALLY RESOLVED" and `AS14-F005` "PARTIALLY RESOLVED"; `AS14-F001`–`F003` and `AS14-F006`–`F010` already `RESOLVED`/`PASS` and preserved).
 
-## Objective
+## Remediation Cycle 2 objective
 
-Resolve exactly the five findings `ML-DEVOS-AS-014` raised against the WEB-INC-005 implementation commit, without regressing any preserved-pass finding (`AS14-F006`–`F010`) and without touching any file outside the Architect's authorized remediation scope.
+Resolve exactly the two remaining findings from the Architect's Remediation Cycle 1 verification: finish `docs/product/DATA_BACKEND_SPEC.md`'s current-state convergence (`AS14-F004`), and correct this handoff's Remediation Cycle 1 exact-diff count from 7 to 9 (`AS14-F005`). Narrow, documentation/provenance-only — no runtime, migration, validator, test, migration-SQL, or Wrangler-config file is touched.
 
-## Branch / commit state
+## Remediation Cycle 2 branch / commit state
 
-- Remediation base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2`. This SHA carries the Architect's `ML-DEVOS-AS-014` review into `coordination/ARCHITECT_REVIEW.md` and the remediation-cycle state into `coordination/STATE.md`, on top of the prior implementation base `7122c9d9887e5801a9c3ec03285db7273f1529c8`.
-- Read in full before any edit: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-014`, all 5 blocking/required findings plus the 5 preserved-pass findings), `coordination/IMPLEMENTER_HANDOFF.md` (the prior, now-being-corrected handoff), `devos/changes/rfcs/ML-DEVOS-RFC-003.md`, `devos/changes/architect-syncs/ML-DEVOS-AS-013.md`, `brain/DECISION_LOG.md` `D-024`. `git diff` confirmed `ML-DEVOS-RFC-003.md`, the `ML-DEVOS-AS-013` durable archive, and `D-024` are byte-identical to what was read during the original implementation cycle — only `coordination/ARCHITECT_REVIEW.md` and `coordination/STATE.md` changed on the branch since then, and both were re-read in full this cycle.
+- Cycle 2 base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `13bdf2a364a8210e1ae84997655168ea4cf505cd`. This SHA carries the Architect's Remediation Cycle 1 verification (`ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 2`) into `coordination/ARCHITECT_REVIEW.md` and the Cycle 2 state into `coordination/STATE.md`, on top of the Remediation Cycle 1 base `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2`.
+- Read in full before any edit: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-014` Remediation Cycle 1 verification — findings `AS14-F001`–`F003` `RESOLVED`, `AS14-F004`/`F005` `PARTIALLY RESOLVED`, `AS14-F006`–`F010` `PASS`/preserved), `coordination/IMPLEMENTER_HANDOFF.md` (the prior Cycle 1 handoff, corrected in place below), `docs/product/DATA_BACKEND_SPEC.md`.
 
-## Exact Remediation Cycle 1 changed-file list — 7 files
+## Exact Cycle 2 changed-file list — 3 files
+
+- `docs/product/DATA_BACKEND_SPEC.md` (`AS14-F004`)
+- `coordination/IMPLEMENTER_HANDOFF.md` (this file — `AS14-F005`, plus this Cycle 2 section)
+- `coordination/STATE.md`
+
+No other file was modified. Confirmed by `git status --short` and `git diff --stat` showing exactly these 3 paths.
+
+## `AS14-F004` disposition (Cycle 2) — RESOLVED
+
+**Problem (Architect's Remediation Cycle 1 verification):** `docs/product/DATA_BACKEND_SPEC.md` had already been corrected at the headline level (three-way public/local-D1/remote-D1 storage-model distinction) in Remediation Cycle 1, but two subsections still carried stale pre-`WEB-INC-001` wording: "Admin identity references" said the authentication mechanism itself was `NOT IMPLEMENTED` (too broad — the boundary exists), and "Authorization boundaries" called the authentication/authorization boundary "currently nonexistent" and described the deployment as "static/asset-only," both stale since `WEB-INC-001`.
+
+**Fix:**
+
+- **"Admin identity references"** now states the `WEB-INC-001` Cloudflare Access JWT authentication boundary is `IMPLEMENTED` at repository level, and narrows the section's actual `NOT IMPLEMENTED` scope to exactly three things: a persistent admin identity/session representation, editorial identity binding for future writes (as distinct from `WEB-INC-005`'s migration-only textual provenance), and a production Cloudflare Access application. It explicitly states no persistent session or admin identity database exists.
+- **"Authorization boundaries"** now opens by distinguishing two capabilities: the authentication boundary (`IMPLEMENTED` under `WEB-INC-001`) and the mutation/editorial authorization capability (`NOT IMPLEMENTED`, and not granted or substituted for by the authentication boundary existing). It restates the invariant `AUTH BOUNDARY EXISTS` + `LOCAL SERVER-SIDE D1 SUBSTRATE EXISTS` ≠ `PROTECTED D1 ADMIN READ ENDPOINT EXISTS`, and corrects the deployment/protected-read wording: the deployment is not globally asset-only (`/admin` has a selective Worker auth path); the `WEB-INC-005` local server-side D1 repository/data-access substrate exists; no authenticated D1 dashboard/protected editorial-read endpoint exists yet; `WEB-INC-002` still owns that capability; public rendering still reads only `data/site.js`; remote/production D1 does not exist.
+
+Neither correction implies a mutation-authorization capability, a persistent identity/session store, or a protected D1 read endpoint exists — each explicitly states the opposite alongside the corrected "boundary exists" claim.
+
+## `AS14-F005` disposition (Cycle 2) — RESOLVED
+
+**Problem:** this handoff's "Exact Remediation Cycle 1 changed-file list" heading said **7** files, while the Architect's exact Git compare of the Remediation Cycle 1 commit (`cd2b854... → eb15913...`) found **9** changed paths. The list content itself already named all 9 paths (7 substantive + 2 coordination), so this was a count/label defect, not missing provenance.
+
+**Fix:** the heading now reads "— 9 files," with an explicit correction note (see that section below) naming the original "7" as `ACTOR_REPORTED` and the corrected "9" as `INDEPENDENTLY_INSPECTED`, and a "7 substantive + 2 coordination = 9 total" breakdown. The already-correct historical provenance correction for the *original implementation* (17 reported by Builder → 19 found by Architect) is left completely untouched — this Cycle 2 fix only corrects the Remediation Cycle 1 count, not the original-implementation count, and does not alter that separate historical record.
+
+## Confirmation: `AS14-F001`–`F003` and `AS14-F006`–`F010` not touched this cycle
+
+- `worker/d1/migrate.mjs`, `worker/d1/validate.mjs`, `tests/d1-migration.test.mjs`, `migrations/0001_web_inc_005_init.sql`, `worker/d1/repository.mjs`, `worker/d1/schema.mjs`, `scripts/d1-migrate.mjs`, `wrangler.jsonc` are all byte-identical to the Cycle 2 base (`git diff --stat` against every one of these paths returns empty) — so the `AS14-F001` whole-run-atomicity fix, the `AS14-F002` exact-equivalence fix, the `AS14-F003` validator-contract fix, the `AS14-F006` 14-table inventory, the `AS14-F007` staged public path, the `AS14-F008` composite cross-entity pointer protection, the `AS14-F009` server-only boundary, and the `AS14-F010` local/remote configuration boundary are all unchanged from their already-`RESOLVED`/`PASS` Remediation Cycle 1 state.
+- `app/`, `components/`, `data/`, `lib/`, `public/`, `next.config.mjs`, `package.json`, `package-lock.json`, `worker/index.mjs`, `worker/auth.mjs`, `tests/content.test.mjs`, `tests/worker-auth.test.mjs`, `brain/RISK_REGISTER.md`, `docs/product/BUILD_PLAN.md`, `docs/ARCHITECTURE.md`, `brain/IMPLEMENTATION_STATUS.md`, `docs/product/PRD.md`, `brain/TEST_LEDGER.md` are likewise untouched this cycle — outside this cycle's 3-file authorized scope and not needed to resolve `AS14-F004`/`F005`.
+
+## Explicit confirmation: no runtime/data/test/config code changed
+
+This cycle's diff is exactly 2 Markdown-prose corrections (`docs/product/DATA_BACKEND_SPEC.md`) plus the normal 2 coordination-file updates (this file, `coordination/STATE.md`). No `.mjs`, `.sql`, `.jsonc`, or `.json` file was modified. `npm test` and `npm run build` were not expected to change and were not re-run against new code (no code changed); the prior Remediation Cycle 1 results — 76/76 tests passing, successful build — remain the current, unregressed state, since nothing this cycle touches test or build inputs.
+
+## Explicit confirmation: no remote Cloudflare resource changed
+
+No tool capable of any external operation was used this cycle — only Markdown edits, `git`, and read-only inspection commands. No `wrangler d1 create`, no remote D1 migration/query/mutation, no production Cloudflare Access configuration, no deployment. `wrangler.jsonc` was not touched (still no `database_id`, still `remote: false`). `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+
+---
+
+# Remediation Cycle 1 record (preserved, with the `AS14-F005` count correction applied in place)
+
+## Exact Remediation Cycle 1 changed-file list — 9 files
+
+**Corrected in Remediation Cycle 2 (`AS14-F005`):** this heading originally read "Exact Remediation Cycle 1 changed-file list — 7 files." That count was wrong — it named all 9 paths in the list below, but the heading itself only counted the 7 substantive remediation files and undercounted the 2 coordination files that were part of the same remediation commit. The Architect's exact Git compare of `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2 → eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b` (`INDEPENDENTLY_INSPECTED`) reported **9** changed paths. The heading is corrected here, not silently rewritten: the Builder's original "7" was `ACTOR_REPORTED`; the corrected "9" is `INDEPENDENTLY_INSPECTED`, restated by the Builder in this correction rather than re-earning that evidence class on its own.
+
+**7 substantive remediation paths:**
 
 - `worker/d1/migrate.mjs` (`AS14-F001`, `AS14-F002`)
 - `worker/d1/validate.mjs` (`AS14-F003`)
@@ -31,7 +77,14 @@ Resolve exactly the five findings `ML-DEVOS-AS-014` raised against the WEB-INC-0
 - `docs/product/DATA_BACKEND_SPEC.md` (`AS14-F004`)
 - `brain/TEST_LEDGER.md` (record the new tests/evidence — not itself a cited finding, but required to keep the test ledger truthful about what now exists)
 
-Plus the normal `coordination/IMPLEMENTER_HANDOFF.md` (this file, `AS14-F005`) and `coordination/STATE.md`.
+**+ 2 coordination paths:**
+
+- `coordination/IMPLEMENTER_HANDOFF.md` (this file, `AS14-F005`)
+- `coordination/STATE.md`
+
+**= 9 total changed paths.** This is the same 9-path list `ML-DEVOS-AS-014`'s Remediation Cycle 2 review independently verified — no path is added or removed by this correction, only the heading's count and the explicit substantive/coordination breakdown.
+
+This is separate from, and does not alter, the **historical** provenance correction already recorded for the *original* WEB-INC-005 implementation (not this remediation): the Builder originally reported **17** files for implementation commit `e0304a89ddfb5595866f1990cd9fca161e78ae2b`; the Architect's exact Git compare found **19**. That correction (see `AS14-F005` disposition below) stands exactly as previously recorded.
 
 **Not touched, exactly as the Architect's authorized scope allows but does not require:** `migrations/0001_web_inc_005_init.sql`, `worker/d1/repository.mjs`, `worker/d1/schema.mjs`, `scripts/d1-migrate.mjs`, `wrangler.jsonc`, `brain/RISK_REGISTER.md`, `docs/product/BUILD_PLAN.md`, `docs/ARCHITECTURE.md`. None of these needed a change to resolve `AS14-F001`–`F005`: the composite foreign-key design and table set already satisfied the integrity findings, and no additional current-state contradiction was found in the untouched governance/architecture docs. **Not touched, as required:** `app/`, `components/`, `data/`, `lib/`, `public/`, `next.config.mjs`, `package.json`, `package-lock.json`, `worker/index.mjs`, `worker/auth.mjs`, `tests/content.test.mjs`, `tests/worker-auth.test.mjs`. Confirmed by `git diff --stat` against every path in both lists returning empty except the 9 files above.
 
@@ -153,6 +206,12 @@ Every command above is `--local` or non-mutating; none used `--remote`. Full det
 - **No later `WEB-INC-*` work began.** No dashboard, mutation endpoint, media/R2, journal, theme, or audit-log code exists anywhere in this diff.
 - **`REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
 
-## Commit
+## Commit (Remediation Cycle 1)
 
 Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as commit `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b` on top of remediation base `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2` — also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`. A second, immediately following documentation-only commit records this exact SHA into both files (a commit cannot self-reference its own hash).
+
+---
+
+## Commit (Remediation Cycle 2)
+
+The 3 Cycle 2 files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) on top of Cycle 2 base `13bdf2a364a8210e1ae84997655168ea4cf505cd`. Exact commit SHA recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA` (a commit cannot self-reference its own hash within the same commit, so this file states the base SHA here and `STATE.md` carries the resulting SHA, corrected into both files by an immediately following documentation-only bookkeeping commit, consistent with the Cycle 1 pattern above).

@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-005-D1-SUBSTRATE
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_005_D1_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b
+LAST_IMPLEMENTER_HANDOFF_SHA: PENDING_COMMIT_SEE_NEXT_BOOKKEEPING_COMMIT
 LAST_ARCHITECT_REVIEWED_SHA: eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
@@ -103,6 +103,15 @@ Remaining narrow corrections:
 2. `AS14-F005` — current Remediation Cycle 1 handoff heading says `Exact ... 7 files`, but exact Git compare reports 9 changed paths. Correct to 9 total, or `7 substantive + 2 coordination = 9 total`. Preserve the historical original-implementation correction from 17 to 19.
 
 No runtime/data-layer reopening is authorized.
+
+## Remediation Cycle 2 disposition (Builder, awaiting Architect verification)
+
+Builder reports both findings resolved — see `coordination/IMPLEMENTER_HANDOFF.md` § "Remediation Cycle 2" for the full disposition:
+
+- `AS14-F004`: `docs/product/DATA_BACKEND_SPEC.md`'s "Admin identity references" and "Authorization boundaries" sections now state the `WEB-INC-001` authentication boundary is `IMPLEMENTED` at repository level, distinguish it from the still-`NOT IMPLEMENTED` mutation/editorial authorization capability and persistent identity/session representation, acknowledge the `WEB-INC-005` local server-side D1 data-access substrate, and state that no authenticated D1 dashboard/read endpoint exists, public rendering still reads `data/site.js`, and remote/production D1 remains absent.
+- `AS14-F005`: the Remediation Cycle 1 changed-file heading is corrected from 7 to 9, with an explicit correction note; the historical 17→19 original-implementation correction is untouched.
+
+Exactly 3 files changed this cycle: `docs/product/DATA_BACKEND_SPEC.md`, `coordination/IMPLEMENTER_HANDOFF.md`, `coordination/STATE.md`. No runtime, migration, validator, test, migration-SQL, or Wrangler-config file was touched. This disposition is Builder-reported (`ACTOR_REPORTED`) and awaits independent Architect verification.
 
 ## Builder objective
 
@@ -344,4 +353,4 @@ Architect must independently inspect migration SQL, table inventory, data-access
 
 ## Current gate
 
-`CLAUDE WEB-INC-005 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-014`
+`ARCHITECT REVIEW OF WEB-INC-005 REMEDIATION CYCLE 2 — VERIFY DISPOSITION OF ML-DEVOS-AS-014 FINDINGS AS14-F004 AND AS14-F005`

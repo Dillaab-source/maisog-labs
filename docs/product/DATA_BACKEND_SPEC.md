@@ -248,7 +248,13 @@ Entirely new — `NOT IMPLEMENTED`. Required for `ADM-REQ-012`, `WEB-SEC-009`. A
 
 ### Admin identity references
 
-The exact identity/authentication mechanism (provider, session format) is `NOT IMPLEMENTED` and out of this document's scope (owned by `TECHNICAL_DESIGN.md`'s future work, gated by its own authorization). This spec only records that every revision row above carries a `created_by` reference (and `media`/`audit_log` their own `uploaded_by`/`actor`) to whatever that identity mechanism ultimately is, so auditability (`ADM-REQ-012`) is possible from day one of any future implementation rather than retrofitted later. Base entity rows no longer carry an `updated_by` (removed per the base-entity-shape rule above) — "who last changed this" is answered by the latest revision's `created_by`, not a duplicated base-row column.
+As of `WEB-INC-001` (`ML-DEVOS-RFC-002`/`ML-DEVOS-AS-011`/`D-023`), a Cloudflare Access JWT assertion **authentication boundary** is `IMPLEMENTED` at repository level (`worker/index.mjs`/`worker/auth.mjs`, fail-closed-verified for `/admin`/`/admin/*`) — this is not `NOT IMPLEMENTED` in the blanket sense this section previously stated. What remains `NOT IMPLEMENTED`, and is what this section actually scopes, is narrower:
+
+- a **persistent admin identity/session representation** (no identity/session table or record exists anywhere in this repository, including the `WEB-INC-005` D1 substrate — the verified Cloudflare Access assertion is checked per-request and nothing about the requester is stored);
+- **editorial identity binding for future writes** (a future mutation capability's `created_by`/`actor` values binding to a verified admin identity, as opposed to `WEB-INC-005`'s migration-only textual provenance `migration:web-inc-005` — see "Publication / revision model" above);
+- a **production Cloudflare Access application** (no production Access application, policy, or identity-provider configuration has been configured or verified; only the repository-level fail-closed check has been implemented and locally tested).
+
+This spec only records that every revision row above carries a `created_by` reference (and `media`/`audit_log` their own `uploaded_by`/`actor`) to whatever that future verified-identity mechanism ultimately is, so auditability (`ADM-REQ-012`) is possible from day one of any future implementation rather than retrofitted later. Nothing in this section implies a persistent session store or admin identity database exists today — none does. Base entity rows no longer carry an `updated_by` (removed per the base-entity-shape rule above) — "who last changed this" is answered by the latest revision's `created_by`, not a duplicated base-row column.
 
 ## Relationships
 
@@ -288,7 +294,22 @@ Any future implementation must extend the existing validation philosophy rather 
 
 ## Authorization boundaries
 
-Every mutation path (create/update/publish/unpublish/delete/upload) must be gated server-side by the (currently nonexistent) authentication/authorization boundary — never trust a client-side check alone (`WEB-SEC-002`, `007`, `008`). Read access to any `draft_revision_id` content must be restricted to authenticated admins; the public read path must only ever follow `published_revision_id`, exactly as `lib/content/public.mjs` already guarantees for the current single-file model. This protected read path does not exist yet and cannot be retrofitted onto the current static/asset-only deployment without first standing up a server-side data-access substrate (see `TECHNICAL_DESIGN.md` § "Proposed target architecture" and `BUILD_PLAN.md`'s `WEB-INC-002` disposition, `AS10-R006`).
+Two distinct capabilities, not one — do not conflate them:
+
+- **Authentication boundary:** `IMPLEMENTED` at repository level under `WEB-INC-001` — a Cloudflare Access JWT assertion is fail-closed-verified server-side for `/admin`/`/admin/*` (`worker/index.mjs`/`worker/auth.mjs`).
+- **Mutation/editorial authorization capability:** `NOT IMPLEMENTED`. No create/update/publish/unpublish/delete/upload path exists anywhere in this repository. Every future mutation path must still be gated server-side by its own authorization check — never trust a client-side check alone (`WEB-SEC-002`, `007`, `008`) — and having an authentication boundary today does not itself grant, or substitute for, that future authorization.
+
+Read access to any `draft_revision_id` content must be restricted to authenticated admins; the public read path must only ever follow `published_revision_id`, exactly as `lib/content/public.mjs` already guarantees for the current single-file model. The current reality, precisely:
+
+`AUTH BOUNDARY EXISTS` + `LOCAL SERVER-SIDE D1 SUBSTRATE EXISTS` ≠ `PROTECTED D1 ADMIN READ ENDPOINT EXISTS`
+
+- the deployment is **not** globally asset-only anymore: `/admin`/`/admin/*` has a selective Worker-first auth path (`WEB-INC-001`);
+- `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) added a **local, server-only D1 repository/data-access substrate** (`worker/d1/repository.mjs`) capable of reading published/draft revisions and reconstructing the current-content projection;
+- but **no authenticated D1 dashboard or protected editorial-read HTTP endpoint exists yet** — nothing wires that substrate to `worker/index.mjs`, `app/`, or any client path; `WEB-INC-002` still owns building that protected read capability (see `TECHNICAL_DESIGN.md` § "Proposed target architecture" and `BUILD_PLAN.md`'s `WEB-INC-002` disposition, `AS10-R006`);
+- public rendering still reads only `data/site.js` (unchanged by either `WEB-INC-001` or `WEB-INC-005`);
+- remote/production D1 does not exist and is not authorized (`REMOTE_D1_AUTHORIZED: NO`).
+
+This does not broaden any implementation claim beyond what already exists: authentication and a local data-access substrate are not the same thing as a protected read endpoint, and neither implies mutation authorization exists.
 
 ## Auditability
 
