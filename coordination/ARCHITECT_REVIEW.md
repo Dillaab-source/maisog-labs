@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED`
+Status: `ARCHITECT_APPROVED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,14 +8,16 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-014 — WEB-INC-005 Remediation Cycle 2 Verification
+# ML-DEVOS-AS-014 — WEB-INC-005 Final Implementation Review
 
 Cycle: `MAISOGLABS-WEB-INC-005-D1-SUBSTRATE`
-Review mode: `FINAL SOURCE-OF-TRUTH / PROVENANCE CONVERGENCE REVIEW`
+Review mode: `FINAL POST-REMEDIATION ARCHITECTURE / DATA-INTEGRITY / SOURCE-OF-TRUTH REVIEW`
 Authority chain: `ML-DEVOS-RFC-003 → ML-DEVOS-AS-013 → D-024 → ML-DEVOS-AS-014`
-Reviewed Cycle 2 remediation commit: `84014db2c13c170ce14fbf1a55fa17b407947d3b`
-Cycle 2 remediation base: `13bdf2a364a8210e1ae84997655168ea4cf505cd`
-Builder handoff-metadata HEAD: `7a8bc885af687b98b3d10c334831310cbb720d94`
+Initial Builder implementation commit: `e0304a89ddfb5595866f1990cd9fca161e78ae2b`
+Remediation Cycle 1: `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b`
+Remediation Cycle 2: `84014db2c13c170ce14fbf1a55fa17b407947d3b`
+Remediation Cycle 3 (final): `03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f`
+Final Builder bookkeeping HEAD reviewed: `663b6a82aa575624d4987ce35bdaa29c3a0c027d`
 
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -27,183 +29,207 @@ Product baseline:
 - `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
 - `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
 
-## Review discipline performed
+## Final review discipline performed
 
 Before issuing this verdict, the Architect:
 
 1. pulled the live governance branch and current `coordination/STATE.md`;
-2. confirmed live HEAD `7a8bc88...`, with Cycle 2 remediation commit `84014db...` immediately below it;
-3. read the current Builder handoff and prior `ML-DEVOS-AS-014` findings;
+2. confirmed live HEAD `663b6a8...`, with final Cycle 3 remediation commit `03ab9d8...` immediately below it;
+3. read the current Builder handoff and all prior `ML-DEVOS-AS-014` findings;
 4. independently compared:
-   - `13bdf2a... → 84014db...` for Cycle 2;
-   - `84014db... → 7a8bc88...` for SHA bookkeeping;
-   - `13bdf2a... → 7a8bc88...` for the complete Cycle 2 sequence;
-5. inspected all three Cycle 2 changed paths;
-6. re-ran a wording sweep of `docs/product/DATA_BACKEND_SPEC.md` for current-state claims about auth, D1, migration, and rollback;
-7. verified no runtime/data/test/config file changed in Cycle 2.
+   - `c32dd2c... → 03ab9d8...` for final Cycle 3;
+   - `03ab9d8... → 663b6a8...` for SHA bookkeeping;
+   - `c32dd2c... → 663b6a8...` for the complete final-cycle sequence;
+5. inspected all three Cycle 3 changed paths;
+6. re-read the final `docs/product/DATA_BACKEND_SPEC.md` migration, authentication, storage, and rollback/current-state sections;
+7. verified no runtime/data/test/config/package/public-path file changed in Cycle 3;
+8. rechecked the accepted runtime/data architecture from the implementation and Cycle 1 remediation against `ML-DEVOS-RFC-003`, `ML-DEVOS-AS-013`, `D-024`, D-007, and the verified Product Build Pack;
+9. checked the active Sentinel change-governance policy and confirmed this `ARCHITECTURE`-class change requires a post-review ADR before administrative closure.
 
-## Exact Cycle 2 diff — PASS
+## Exact final remediation diff — PASS
 
-GitHub compare `13bdf2a364a8210e1ae84997655168ea4cf505cd → 84014db2c13c170ce14fbf1a55fa17b407947d3b` reports:
+GitHub compare `c32dd2c034d0c372de532963fc6f3629f33d2c6c → 03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f` reports:
 
-- exactly **1 Cycle 2 remediation commit**;
+- exactly **1 final remediation commit**;
 - exactly **3 changed paths**:
   - `docs/product/DATA_BACKEND_SPEC.md`
   - `coordination/IMPLEMENTER_HANDOFF.md`
   - `coordination/STATE.md`
 
-GitHub compare `84014db2c13c170ce14fbf1a55fa17b407947d3b → 7a8bc885af687b98b3d10c334831310cbb720d94` reports:
+GitHub compare `03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f → 663b6a82aa575624d4987ce35bdaa29c3a0c027d` reports:
 
 - exactly **1 bookkeeping commit**;
 - exactly **2 changed paths**:
   - `coordination/IMPLEMENTER_HANDOFF.md`
   - `coordination/STATE.md`
 
-No runtime, migration, validator, test, migration-SQL, Wrangler-config, package, public app/content-path, WEB-INC-001 auth, later WEB-INC, remote-resource, deployment, or main-merge change appears in Cycle 2.
+No runtime/data-layer code, validator, test, migration SQL, Wrangler configuration, package file, public application/content path, WEB-INC-001 auth file, later WEB-INC implementation, remote Cloudflare resource, deployment, or main merge changed in the final cycle.
 
-## Finding dispositions
+## Final finding dispositions
 
-### AS14-F001 — RESOLVED / PRESERVED
+### AS14-F001 — RESOLVED
 
-Whole-run migration preflight and the single batched write phase remain unchanged from Cycle 1.
+The migration now preflights the entire target state before the first write and executes the create phase as one D1 `db.batch()`, with late-conflict regression coverage demonstrating no partial earlier migration writes.
 
-### AS14-F002 — RESOLVED / PRESERVED
+### AS14-F002 — RESOLVED
 
-Exact same-entity revision-pointer identity and immutable provenance equivalence remain unchanged.
+Repeat-run equivalence requires the exact expected revision pointer and immutable migration provenance/creation metadata. Wrong same-entity revision pointers or corrupted provenance are refused rather than treated as no-op.
 
-### AS14-F003 — RESOLVED / PRESERVED
+### AS14-F003 — RESOLVED
 
-D1 validation remains aligned with the current content contract on the identified boundaries.
+The D1 successor validation layer matches the current content contract on the reviewed boundaries:
 
-### AS14-F004 — PARTIALLY RESOLVED — one final current-state convergence defect remains
+- order `0..10000`;
+- exact icon enum;
+- real-calendar `YYYY-MM-DD` validity;
+- project stack capacity up to 100 entries.
 
-Cycle 2 correctly fixed the specific stale statements identified in the prior review:
+### AS14-F004 — RESOLVED
 
-- `Admin identity references` now correctly states that the WEB-INC-001 authentication boundary exists at repository level;
-- it correctly distinguishes that from the still-absent persistent identity/session representation and editorial identity binding;
-- `Authorization boundaries` now distinguishes authentication from still-unimplemented mutation/editorial authorization;
-- it correctly records that the local WEB-INC-005 server-side D1 substrate exists;
-- it correctly states that no authenticated D1 dashboard/read endpoint exists yet;
-- it preserves `data/site.js` as the actual public read source;
-- it preserves that remote/production D1 does not exist.
+Current-state documentation now consistently distinguishes all relevant boundaries:
 
-However, an independent full-file sweep found a final stale current-state statement under **Rollback / data-loss considerations**:
+- WEB-INC-001 repository-level authentication exists;
+- persistent admin identity/session and editorial authorization remain unimplemented;
+- a local/server-only D1 revision/data-access substrate exists;
+- the local migration mechanism is implemented and locally exercised;
+- protected D1 admin/dashboard reads remain unimplemented;
+- mutation/publish/audit/media capabilities remain unimplemented;
+- R2 remains unimplemented;
+- remote/production D1 remains absent;
+- no remote/production migration has occurred;
+- no public D1 cutover has occurred;
+- `data/site.js` remains the actual public content source.
 
-> `Until D1/R2 exist, none of the above risk controls can be implemented — they remain design intentions here, not evidenced mitigations.`
-
-That is no longer true as written.
-
-Current repository reality is:
-
-- a local-only D1 revision substrate now exists under WEB-INC-005;
-- several D1-specific migration/integrity controls now exist and are evidenced at repository/local level;
-- R2 does not exist;
-- no remote/production D1 exists;
-- no public cutover exists;
-- no admin mutation/audit/media controls exist.
-
-Required final correction:
-
-- replace the blanket `Until D1/R2 exist...` statement with a scoped statement that distinguishes:
-  - D1-local controls that now exist;
-  - R2/media controls that remain design-only;
-  - remote/production/public-cutover controls that remain unimplemented/unverified;
-- do not upgrade any control to production-verified;
-- do not imply R2 exists.
-
-Additionally, under **Migration considerations**, the sentence:
-
-> `No migration is authorized or performed by this cycle. This section is a design constraint list for whichever future increment proposes the actual migration.`
-
-is now ambiguous/stale in a document that has been updated to current WEB-INC-005 state, because WEB-INC-005 has implemented and locally exercised the current-content migration mechanism.
-
-Required final clarification:
-
-- preserve the historical fact that the original Product Build Pack documentation cycle did not authorize migration;
-- add the current fact that WEB-INC-005 later implemented and locally exercised the migration mechanism under `ML-DEVOS-RFC-003 → ML-DEVOS-AS-013 → D-024`;
-- state explicitly that no public cutover, remote migration, or production D1 migration has occurred.
-
-This is a source-of-truth wording correction only. No architecture/runtime behavior is being reopened.
+The historical Product Build Pack statement that its own documentation cycle did not authorize migration is retained as history, while the later separately authorized WEB-INC-005 implementation is recorded as current repository reality.
 
 ### AS14-F005 — RESOLVED
 
-Cycle 2 correctly repairs both provenance layers:
+Exact-diff provenance is now truthful across the complete sequence:
 
-- Remediation Cycle 1 heading now says exactly **9** changed paths;
-- it explicitly records `7 substantive + 2 coordination = 9 total`;
-- the historical original-implementation correction from 17 Builder-reported paths to 19 Architect-inspected paths remains intact;
-- Cycle 2 itself correctly reports exactly **3** changed paths, matching GitHub compare.
-
-## Preserved-pass findings
+- original implementation: Builder initially reported 17 paths; Architect exact compare established 19;
+- Remediation Cycle 1: exactly 9 paths;
+- Remediation Cycle 2: exactly 3 paths;
+- Remediation Cycle 3: exactly 3 paths;
+- each follow-up SHA-bookkeeping commit is separately identified rather than conflated with the substantive commit.
 
 ### AS14-F006 — PASS / PRESERVED
-Exactly the authorized 14 product tables remain in scope.
+
+Exactly the 14 authorized WEB-INC-005 product tables remain in scope. No audit/media/journal/theme/admin-identity table was introduced.
 
 ### AS14-F007 — PASS / PRESERVED
-The public content path remains `data/site.js → schema.mjs → public.mjs → local.mjs → app/page.js`.
+
+The public path remains:
+
+`data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`.
+
+D1 is not the public source.
 
 ### AS14-F008 — PASS / PRESERVED
-Composite cross-entity revision-pointer protection remains unchanged.
+
+Composite ownership constraints continue to prevent cross-entity revision-pointer assignment.
 
 ### AS14-F009 — PASS / PRESERVED
-D1 remains server-only and is not exposed through a new HTTP/admin/client path.
+
+The D1 repository/data-access layer remains server-only and is not exposed through a browser/client, dashboard, editorial HTTP read route, CRUD route, or publish/unpublish handler.
 
 ### AS14-F010 — PASS / PRESERVED
-The D1 configuration remains local-only; no remote resource or production D1 binding is introduced.
+
+The D1 configuration remains local/repository-only:
+
+- no real production `database_id`;
+- no `remote: true` binding;
+- no remote D1 provisioning/migration/query path was introduced;
+- no production deployment was performed.
+
+## Accepted architecture
+
+WEB-INC-005 is accepted as the following product architecture:
+
+`CURRENT PUBLIC SOURCE: data/site.js`
+
+plus, in parallel:
+
+`LOCAL D1 REVISION SUBSTRATE`
+`  → exactly 14 owned entity/revision tables`
+`  → deterministic current-content migration`
+`  → pointer-derived draft/published/archive state`
+`  → typed validation`
+`  → integrity / exact-repeat-run protections`
+`  → server-only repository/read substrate`
+
+with the binding invariant:
+
+`LOCAL D1 EXISTS ≠ REMOTE D1 EXISTS ≠ D1 IS PUBLIC SOURCE ≠ ADMIN WRITE CAPABILITY EXISTS`.
+
+D-007's governed public content boundary is therefore **evolved, not replaced**: the current public source remains authoritative while a separately governed local D1 successor substrate now exists in parallel.
 
 ## Evidence disposition
 
 `INDEPENDENTLY_INSPECTED`:
 
-- exact Cycle 2 and bookkeeping diffs;
-- current `DATA_BACKEND_SPEC.md` wording;
-- current handoff provenance;
-- preserved scope boundaries.
+- exact implementation/remediation Git diffs;
+- migration SQL/table ownership;
+- migration planner/write architecture;
+- exact pointer/provenance repeat-run logic;
+- validation predicates;
+- regression-test source;
+- D1 repository/server-only boundary;
+- local-only configuration shape;
+- final source-of-truth documentation and provenance convergence.
 
 `ACTOR_REPORTED`:
 
-- previously reported 76/76 test results;
-- local D1 execution;
+- 76/76 tests;
 - build success;
+- fresh and repeated local D1 migration execution;
+- local D1 table inventory command output;
 - Wrangler dry-run;
-- secret scan.
+- local `db.batch()` rollback probe;
+- secret/config scan.
 
-No new runtime execution was necessary or authorized in this docs-only Cycle 2 review.
+`INDEPENDENTLY_REPRODUCED`: none claimed for the local runtime/toolchain execution in this review sequence.
 
-## Verdict
+No production/runtime D1 evidence exists or is claimed.
 
-`ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 3 (FINAL)`
+Therefore:
 
-The technical/data-integrity implementation is not reopened.
+`REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED ≠ REMOTE D1 PROVISIONED ≠ PRODUCTION DEPLOYED ≠ PRODUCTION VERIFIED`.
 
-Only the two final current-state sentences in `docs/product/DATA_BACKEND_SPEC.md` require convergence before WEB-INC-005 can close.
+## Change-governance closure requirement
 
-This is the final configured remediation cycle under `MAX_REMEDIATION_CYCLES: 3`.
+This change is classified `ARCHITECTURE`.
 
-## Authorized Remediation Cycle 3 scope
+The active Sentinel Change Governance Policy requires:
 
-Claude may modify only:
+`RFC → Architect Sync → Decision → Implementation → ADR`.
 
-- `docs/product/DATA_BACKEND_SPEC.md`;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+The implementation is now independently reviewed and accepted, so a durable ADR may now be written to record what actually became architecture and why.
 
-No other file is authorized.
+No new runtime/product authorization is created by that ADR; it records the already-authorized and accepted architecture under `D-024`.
 
-Do not modify:
+## Final verdict
 
-- runtime/data-layer code;
-- validators;
-- tests;
-- migration SQL;
-- repository/data-access modules;
-- Wrangler config;
-- public app/content path;
-- WEB-INC-001 auth code;
-- package files;
-- Product PRD;
-- implementation/risk/test governance files;
-- later WEB-INC work.
+`ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+
+All findings `AS14-F001` through `AS14-F010` are resolved or preserved PASS.
+
+The implementation review/remediation sequence closes at configured Cycle 3.
+
+Administrative closure requires the post-review ADR mandated for `ARCHITECTURE` changes; the Architect may now record that ADR and archive this concluded sync.
+
+This verdict does **not** authorize:
+
+- remote/production D1 creation;
+- remote D1 migration/query/import/export;
+- public D1 cutover;
+- production Cloudflare Access changes;
+- WEB-INC-002 or later product increments;
+- admin mutation/publish/audit/media capabilities;
+- deployment;
+- protected/main merge;
+- Sentinel S3 or later;
+- CI/workflows/rulesets;
+- product onboarding/`.devos/`.
 
 ## Deployment / remote-resource authority
 
@@ -213,6 +239,13 @@ Do not modify:
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Current gate
+## Next gate
 
-`CLAUDE WEB-INC-005 REMEDIATION CYCLE 3 (FINAL) — SUBJECT TO ML-DEVOS-AS-014`
+1. Record the required post-review ADR for WEB-INC-005.
+2. Archive/index the concluded `ML-DEVOS-AS-014`.
+3. Close the WEB-INC-005 coordination cycle.
+4. Any next product increment or remote Cloudflare operation requires a fresh Paulo authorization path.
+
+## Current Architecture Sync status
+
+`ML-DEVOS-AS-014: ARCHITECT_APPROVED — WEB-INC-005 REPOSITORY/LOCAL IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
