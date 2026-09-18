@@ -17,16 +17,18 @@ Code existence alone does not justify `VERIFIED`; see `GOVERNANCE_MAP.md`.
 | Persistent storage — D1 current-content revision substrate | `IMPLEMENTED` (local-only) | `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`), remediated per `ML-DEVOS-AS-014` Remediation Cycle 1: `migrations/0001_web_inc_005_init.sql` (exactly 14 tables), `worker/d1/{schema,validate,migrate,repository}.mjs`, `scripts/d1-migrate.mjs`; `tests/d1-migration.test.mjs` (19/19 passing, implementer-reported), covering whole-run atomicity, exact pointer/provenance no-op equivalence, and legacy-content-contract-aligned validation boundaries. Local Wrangler/D1 simulation only — no remote/production D1 resource exists; not the public source of truth (`app/page.js`/`lib/content/local.mjs` unchanged, still read `data/site.js`). |
 | Persistent storage — media (R2) | `NOT STARTED` | No object-storage integration exists. |
 | Media management/upload | `NOT STARTED` | Static assets only, hand-placed under `public/`; no upload path exists. |
-| Audit logging | `NOT STARTED` | No mutation surface exists yet, so no audit trail exists or is meaningful yet. |
+| Audit logging | `IMPLEMENTED` (substrate only, local-only) — real-mutation integration `NOT STARTED` | `WEB-INC-008` (`ML-DEVOS-RFC-005`/`ML-DEVOS-AS-017`/`D-026`): `migrations/0002_web_inc_008_audit_log.sql` adds exactly one new table, `audit_log` (current schema: 15 tables total, the 14 `WEB-INC-005` tables unchanged plus this one); `worker/d1/audit.mjs` exposes only `appendAuditEvent(db, event)` (strict field allowlist, server-generated `occurred_at`, no update/delete helper). Append-only enforced independently at the database layer too, via `BEFORE UPDATE`/`BEFORE DELETE` triggers that unconditionally `RAISE(ABORT, ...)`. `tests/d1-audit.test.mjs` (16/16 passing, implementer-reported), plus direct `wrangler d1 execute --local` CLI confirmation of the 15-table inventory and trigger rejection. No mutation surface exists yet, so no real admin action has produced a row — `MUTATION_AUTHORIZED: NO`; that integration proof is `WEB-INC-003`'s. |
 | Deployment-wording contradiction (Architect finding F-003) | `IMPLEMENTED` | `AGENTS.md` and `README.md` updated this cycle to describe the Cloudflare Worker/Wrangler asset deployment instead of "Cloudflare Pages," matching `docs/ARCHITECTURE.md` and `wrangler.jsonc`. No infrastructure changed. |
 | Legacy branch inventory (Architect finding F-004) | `IMPLEMENTED` | Recorded in `PROJECT_GOVERNANCE.md` § "Legacy / non-governance branch inventory," classified `UNINSPECTED LEGACY/EXPERIMENTAL`. No branch content was reviewed or merged. |
 
 ## Explicit non-claims
 
-This document does not claim, and neither the Phase 1 cycle, `WEB-INC-005`, nor `WEB-INC-002` performed:
+This document does not claim, and neither the Phase 1 cycle, `WEB-INC-005`, `WEB-INC-002`, nor `WEB-INC-008` performed:
 
 - Any change to public-facing functionality or visual design.
 - Any admin content-editing/mutation dashboard, or any upload implementation. (Authentication, an auth-only `/admin` placeholder, and a bounded read-only status dashboard already exist from the accepted `WEB-INC-001`/`WEB-INC-002` — see the table above; this document does not claim more than that boundary provides — no create/edit/save/delete/publish/unpublish capability exists anywhere.)
+- Any real admin action producing an `audit_log` row. `WEB-INC-008` proves only that the append-only substrate itself works in isolation — no admin mutation/action capability exists yet to call it (`MUTATION_AUTHORIZED: NO`; `RISK-WEB-014` remains `NOT YET APPLICABLE`).
+- Any HTTP audit-write/read endpoint or admin audit UI. `appendAuditEvent` is a server-only internal function; it is not imported by any admin API route, and `GET /admin/api/dashboard`'s response is unchanged and exposes no audit data.
 - Any remote/production D1 resource creation, migration, query, or mutation, or any deployment or production verification.
 - Any change to `app/page.js`, `lib/content/local.mjs`, or the public read path — it still reads only `data/site.js`; `data/site.js` was not deleted or retired.
 - Any merge to `main`.

@@ -169,7 +169,7 @@ This is not a new mechanism — it is the same content-revision publish/preview/
 
 All entities below are design proposals for a future D1 schema. Field lists are illustrative and derived from the current `data/site.js` shape plus the `ADM-REQ-*`/`DESIGN-*` catalog they must support — a future `TECHNICAL_DESIGN.md`/RFC-equivalent still needs to finalize exact column types, indexes, and migrations before implementation.
 
-**`WEB-INC-005` implementation note (`ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024`):** the `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, and `sections` entity/revision pairs below are now `IMPLEMENTED` as local-only D1 tables — see `migrations/0001_web_inc_005_init.sql` and `worker/d1/*` — with the base-entity shape, derived-status model, and cross-entity pointer-ownership rule in this section all enforced exactly as specified (the latter via a composite foreign key `(id, published_revision_id) REFERENCES <entity>_revisions(<entity>_id, id)`, since a plain per-column foreign key cannot express it). `journal_entries`/`journal_entry_revisions`/`journal_media`, `media`/`project_media`, `theme_settings`/`theme_settings_revisions`, and `audit_log` remain `PROPOSED TARGET / NOT IMPLEMENTED`, owned by their own later increments per `BUILD_PLAN.md` §C. This local substrate is not yet the public source of truth — see `brain/PROJECT_GOVERNANCE.md` § "Current storage model".
+**`WEB-INC-005` implementation note (`ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024`):** the `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, and `sections` entity/revision pairs below are now `IMPLEMENTED` as local-only D1 tables — see `migrations/0001_web_inc_005_init.sql` and `worker/d1/*` — with the base-entity shape, derived-status model, and cross-entity pointer-ownership rule in this section all enforced exactly as specified (the latter via a composite foreign key `(id, published_revision_id) REFERENCES <entity>_revisions(<entity>_id, id)`, since a plain per-column foreign key cannot express it). `journal_entries`/`journal_entry_revisions`/`journal_media`, `media`/`project_media`, and `theme_settings`/`theme_settings_revisions` remain `PROPOSED TARGET / NOT IMPLEMENTED`, owned by their own later increments per `BUILD_PLAN.md` §C. `audit_log` is now `IMPLEMENTED` as a local-only append-only substrate under `WEB-INC-008` (`ML-DEVOS-RFC-005` → `ML-DEVOS-AS-017` → `D-026`) — see its own entity section below for the exact scope of what that does and does not mean. This local substrate is not yet the public source of truth — see `brain/PROJECT_GOVERNANCE.md` § "Current storage model".
 
 ### `site_settings` / `site_settings_revisions`
 - `site_settings`: `id` (fixed singleton key), `created_at`, `published_revision_id`, `draft_revision_id`
@@ -238,13 +238,15 @@ Successor concept for `DESIGN-001`…`014`. A design/theme change is editorial c
 - `theme_settings_revisions`: `id`, `theme_settings_id`, `revision_number`, one field per `DESIGN-*` control, each constrained to a validated/allowed range or enum — never free-form CSS/JS (`DESIGN-014`, mirrors the current pattern in `lib/content/schema.mjs` where every field has an explicit validator), `created_at`, `created_by`
 
 ### `audit_log`
-Entirely new — `NOT IMPLEMENTED`. Required for `ADM-REQ-012`, `WEB-SEC-009`. Append-only event record, not editorial content, so no revision pair — an audit row is immutable history the moment it is written, which already satisfies the spirit of "immutable metadata only" without needing pointers at all.
+Required for `ADM-REQ-012`, `WEB-SEC-009`. Append-only event record, not editorial content, so no revision pair — an audit row is immutable history the moment it is written, which already satisfies the spirit of "immutable metadata only" without needing pointers at all.
 - `id`, `occurred_at`
 - `actor` (admin identity reference)
 - `action` (e.g. `create`, `update`, `publish`, `unpublish`, `delete`, `upload`)
 - `entity_type`, `entity_id`, `revision_id` (nullable — set when the action is revision-scoped, e.g. `publish`)
 - `result` (`success`/`failure`) — a failed write must be logged as failed, never silently omitted or logged as success (`ADM-REQ-016`, `WEB-SEC-012`)
 - append-only; audit rows are not user-editable or user-deletable through the admin surface
+
+**`WEB-INC-008` implementation note (`ML-DEVOS-RFC-005` → `ML-DEVOS-AS-017` → `D-026`):** this table is now `IMPLEMENTED` as a local-only D1 table exactly as specified above — see `migrations/0002_web_inc_008_audit_log.sql` and `worker/d1/audit.mjs`. Append-only is enforced at both layers: the application exposes only a bounded writer (`appendAuditEvent(db, event)`, which always validates via `validateAuditEvent` and always generates `occurred_at` itself) with no update/delete helper of any kind, and the database itself rejects any direct `UPDATE`/`DELETE` against `audit_log` via `BEFORE UPDATE`/`BEFORE DELETE` triggers that unconditionally `RAISE(ABORT, ...)` — proven both by `tests/d1-audit.test.mjs` and by a direct `wrangler d1 execute --local` probe (see `coordination/IMPLEMENTER_HANDOFF.md`). Implementing this substrate does **not** mean any admin action is auditable yet: `WEB-INC-008` proves only that the substrate itself works in isolation, since no admin mutation/action capability exists to call it (`MUTATION_AUTHORIZED: NO`; see `brain/RISK_REGISTER.md` `RISK-WEB-014`, still `NOT YET APPLICABLE`). Proving that a real mutation emits a row into this table is `WEB-INC-003`'s acceptance criterion, not this increment's.
 
 ### Admin identity references
 
@@ -313,7 +315,7 @@ This does not broaden any implementation claim beyond what now exists: the dashb
 
 ## Auditability
 
-`audit_log` is the target mechanism for `ADM-REQ-012`/`WEB-SEC-009`. Until it exists, there is no auditability for admin actions because there are no admin actions — this is `NOT YET APPLICABLE`, not `MITIGATED` (`brain/RISK_REGISTER.md` `RISK-WEB-014`).
+`audit_log` is the target mechanism for `ADM-REQ-012`/`WEB-SEC-009`. As of `WEB-INC-008` (`ML-DEVOS-RFC-005` → `ML-DEVOS-AS-017` → `D-026`), the append-only substrate itself now exists (`migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/audit.mjs`) and is proven append-only/fail-closed in isolation. There is still no auditability for admin actions, because there are still no admin actions to audit — no mutation/action surface exists (`MUTATION_AUTHORIZED: NO`). This remains `NOT YET APPLICABLE`, not `MITIGATED` (`brain/RISK_REGISTER.md` `RISK-WEB-014`) — a substrate existing is not the same as a real action having been audited.
 
 ## Migration considerations
 
@@ -334,7 +336,8 @@ This does not broaden any implementation claim beyond what now exists: the dashb
   - **Local D1 controls — implemented at repository/local level only, not production-verified:** the local D1 revision substrate, deterministic migration/seed, whole-run migration preflight, the all-or-nothing batched write phase, exact revision-pointer/provenance repeat-run equivalence checks, schema/integrity constraints (composite foreign keys, uniqueness, reserved-slug rejection), and local parity/integrity evidence (`tests/d1-migration.test.mjs`) all exist and are evidenced locally. None of this is production-verified, and none of it has been exercised against a real Cloudflare D1 resource.
   - **R2/media controls — `NOT IMPLEMENTED`:** R2 does not exist. Media storage, media mutation, media auditability, and media rollback controls remain future design/implementation work.
   - **Remote/production D1 — `NOT IMPLEMENTED`:** no remote/production D1 resource exists, no production migration has run, and no public site cutover to D1 has occurred.
-  - **Admin mutation/audit controls — `NOT IMPLEMENTED`:** no content mutation API, no publish/unpublish endpoint, no `audit_log` implementation, and no admin media workflow exist.
+  - **Admin mutation controls — `NOT IMPLEMENTED`:** no content mutation API, no publish/unpublish endpoint, and no admin media workflow exist.
+  - **Admin audit controls — substrate `IMPLEMENTED` (`WEB-INC-008`), integration `NOT YET APPLICABLE`:** the append-only `audit_log` table and bounded writer exist and are proven append-only/fail-closed in isolation, but no admin mutation calls it yet, since no admin mutation exists (see `WEB-INC-003`).
   - The above controls are genuinely evidenced rollback/integrity mitigations, but only at the local D1 substrate's own scope: `LOCAL D1 EXISTS` ≠ `REMOTE/PRODUCTION D1 EXISTS` ≠ `PUBLIC CUTOVER COMPLETE` ≠ `ADMIN MUTATION/AUDIT CAPABILITY EXISTS`. Each of the latter three remains a design intention, not an evidenced mitigation, until its own separately authorized increment implements and evidences it.
 
 ## Context-efficiency note
