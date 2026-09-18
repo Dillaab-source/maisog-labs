@@ -2,11 +2,11 @@
 
 CYCLE_ID: SENTINEL-S1-ACTIVATION-CLOSURE
 TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S1_ACTIVATION_CLOSURE_ONLY
+STATUS: S1_CLOSED
+AUTHORIZED_SCOPE: NONE_UNTIL_NEXT_EXPLICIT_AUTHORIZATION
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
 LAST_ARCHITECT_REVIEWED_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
 CURRENT_REMEDIATION_CYCLE: 3
@@ -16,43 +16,62 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current baseline
 
-S0 remains frozen and authoritative.
+S0 remains frozen and authoritative as the historical architecture baseline.
 
-S1 Governance Kernel technical work is Architect-approved.
+S1 Governance Kernel is fully closed and active as Sentinel governance-capability baseline:
 
-The activation/closure implementation at:
+`v1.3.0`
 
-`47a86f841e4c4eb40359ca0091ca2f5146a25676`
+## Final closure provenance
 
-is technically conforming, but final S1/v1.3.0 closure is awaiting Paulo's explicit confirmation of `D-013` provenance.
+Technical stage gate:
+- `ML-DEVOS-AS-004` — `SENTINEL S1 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-Current Architect Sync:
-- `ML-DEVOS-AS-005`
+Activation/closure verification:
+- `ML-DEVOS-AS-005` — `SENTINEL S1 ACTIVATION CLOSURE: ARCHITECT_APPROVED`
 
-Current verdict:
-- `SENTINEL S1 ACTIVATION CLOSURE: TECHNICALLY CONFORMING — PAULO CONFIRMATION REQUIRED`
+Paulo decisions:
+- `D-013` — S1 activation and v1.3.0 closure
+- `D-014` — direct confirmation that D-013 is accurate and authoritative
 
-## Paulo confirmation required
+ADR:
+- `ML-DEVOS-ADR-001` — S1 Governance Kernel adoption and v1.2.0 → v1.3.0 transition
 
-Paulo must explicitly confirm or reject the D-013 decision recorded in `brain/DECISION_LOG.md`.
+Durable sync archives:
+- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
+- `devos/changes/architect-syncs/ML-DEVOS-AS-005.md`
 
-Sufficient confirmation:
+## Active S1-origin rules
 
-`I confirm D-013 exactly as recorded in brain/DECISION_LOG.md. I approve S1 Governance Kernel activation, CORE-008/009/016/017/018 activation, the v1.2.0 → v1.3.0 transition, ML-DEVOS-ADR-001, and the documentation-only S1 closure. This does not authorize S2, deployment, or main merge.`
+The following rules are active at effective version `1.3.0`:
 
-## Explicitly prohibited while awaiting Paulo
+- `CORE-008`
+- `CORE-009`
+- `CORE-016`
+- `CORE-017`
+- `CORE-018`
 
-- no S2 or later phase
-- no runtime Policy/Task/Evidence/Capability engines
-- no CI/workflow implementation
-- no GitHub ruleset/branch-protection changes
-- no website/admin implementation
-- no project migration
-- no production deployment
-- no protected/main merge
+The thirteen S0-origin rules remain active at effective version `1.2.0`.
+
+## Scope boundary
+
+S1 closure does not authorize:
+
+- S2 or later phases
+- Policy Engine runtime
+- Task Engine runtime
+- Orchestrator
+- Evidence Gate runtime
+- Capability Gateway runtime
+- CI/workflow implementation
+- GitHub rulesets or branch-protection changes
+- website/admin implementation
+- project migration
+- production deployment
+- protected/main merge
 
 ## Current gate
 
-`PAULO_DECISION_REQUIRED`
+`S1 CLOSED — AWAITING NEXT EXPLICIT PAULO AUTHORIZATION`
 
-After Paulo confirms D-013, Architect may record final S1/v1.3.0 closure verification and normalize state.
+No actor has authority to begin S2 from this state without a new explicit decision following the active Sentinel governance process.
