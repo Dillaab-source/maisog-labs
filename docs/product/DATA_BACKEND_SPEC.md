@@ -299,17 +299,17 @@ Two distinct capabilities, not one — do not conflate them:
 - **Authentication boundary:** `IMPLEMENTED` at repository level under `WEB-INC-001` — a Cloudflare Access JWT assertion is fail-closed-verified server-side for `/admin`/`/admin/*` (`worker/index.mjs`/`worker/auth.mjs`).
 - **Mutation/editorial authorization capability:** `NOT IMPLEMENTED`. No create/update/publish/unpublish/delete/upload path exists anywhere in this repository. Every future mutation path must still be gated server-side by its own authorization check — never trust a client-side check alone (`WEB-SEC-002`, `007`, `008`) — and having an authentication boundary today does not itself grant, or substitute for, that future authorization.
 
-Read access to any `draft_revision_id` content must be restricted to authenticated admins; the public read path must only ever follow `published_revision_id`, exactly as `lib/content/public.mjs` already guarantees for the current single-file model. The current reality, precisely:
+Read access to any `draft_revision_id` content must be restricted to authenticated admins; the public read path must only ever follow `published_revision_id`, exactly as `lib/content/public.mjs` already guarantees for the current single-file model. The current reality, precisely, as of `WEB-INC-002` (`ML-DEVOS-RFC-004`/`ML-DEVOS-AS-015`/`D-025`):
 
-`AUTH BOUNDARY EXISTS` + `LOCAL SERVER-SIDE D1 SUBSTRATE EXISTS` ≠ `PROTECTED D1 ADMIN READ ENDPOINT EXISTS`
+`AUTH BOUNDARY EXISTS` + `LOCAL SERVER-SIDE D1 SUBSTRATE EXISTS` + `BOUNDED READ-ONLY DASHBOARD ENDPOINT EXISTS` ≠ `MUTATION AUTHORIZATION EXISTS` ≠ `REMOTE/PRODUCTION D1 EXISTS`
 
-- the deployment is **not** globally asset-only anymore: `/admin`/`/admin/*` has a selective Worker-first auth path (`WEB-INC-001`);
+- the deployment is **not** globally asset-only: `/admin`/`/admin/*` has a selective Worker-first auth path (`WEB-INC-001`);
 - `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) added a **local, server-only D1 repository/data-access substrate** (`worker/d1/repository.mjs`) capable of reading published/draft revisions and reconstructing the current-content projection;
-- but **no authenticated D1 dashboard or protected editorial-read HTTP endpoint exists yet** — nothing wires that substrate to `worker/index.mjs`, `app/`, or any client path; `WEB-INC-002` still owns building that protected read capability (see `TECHNICAL_DESIGN.md` § "Proposed target architecture" and `BUILD_PLAN.md`'s `WEB-INC-002` disposition, `AS10-R006`);
-- public rendering still reads only `data/site.js` (unchanged by either `WEB-INC-001` or `WEB-INC-005`);
-- remote/production D1 does not exist and is not authorized (`REMOTE_D1_AUTHORIZED: NO`).
+- `WEB-INC-002` (`ML-DEVOS-RFC-004`/`ML-DEVOS-AS-015`/`D-025`) connected that substrate to exactly one authenticated, read-only editorial data endpoint — `GET /admin/api/dashboard` (`worker/admin/dashboard.mjs`) — that returns an explicit allowlisted status projection (id, slug where applicable, derived lifecycle state, published/draft revision IDs, a bounded display label, and a sections-only order/visible summary) for `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, and `sections`. Authentication is verified before any route/method dispatch or D1 read; every non-GET method and every unrecognized `/admin/api/*` path is rejected before any D1 call. This is a **read capability only** — it grants no mutation authority;
+- public rendering still reads only `data/site.js` (unchanged by `WEB-INC-001`, `WEB-INC-005`, or `WEB-INC-002`);
+- remote/production D1 does not exist and is not authorized (`REMOTE_D1_AUTHORIZED: NO`); no content mutation, publish/unpublish, CRUD, audit, media, journal, or theme capability exists (`MUTATION_AUTHORIZED: NO`).
 
-This does not broaden any implementation claim beyond what already exists: authentication and a local data-access substrate are not the same thing as a protected read endpoint, and neither implies mutation authorization exists.
+This does not broaden any implementation claim beyond what now exists: the dashboard read endpoint is bounded and allowlisted, it is not a general-purpose draft/content export or admin API, and it does not itself grant, or substitute for, future mutation authorization.
 
 ## Auditability
 

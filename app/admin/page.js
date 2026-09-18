@@ -1,8 +1,13 @@
-// WEB-INC-001 authentication-boundary placeholder only (ML-DEVOS-RFC-002 §5).
-// This page exists solely to prove the Worker auth boundary in worker/auth.mjs
-// blocks unauthenticated requests and allows authenticated ones through. It
-// reads no private/editorial content, has no mutation controls, and is not
-// the WEB-INC-002 dashboard.
+// WEB-INC-002 (ML-DEVOS-RFC-004 / ML-DEVOS-AS-015 / D-025) read-only admin
+// dashboard shell. Upgraded from the WEB-INC-001 authentication-boundary
+// placeholder. This page itself renders no editorial data — it is a static
+// shell served only after the Worker's fail-closed Cloudflare Access
+// verification succeeds (worker/auth.mjs); `DashboardClient` fetches the
+// single authorized endpoint (GET /admin/api/dashboard) client-side and
+// renders bounded status only. No create/edit/save/delete/publish/upload/
+// theme/journal/audit control exists on this page.
+import DashboardClient from "./DashboardClient";
+
 export const metadata = {
   title: "Admin",
   robots: { index: false, follow: false },
@@ -10,13 +15,13 @@ export const metadata = {
 
 export default function AdminPage() {
   return (
-    <main style={{ padding: "3rem 1.5rem", fontFamily: "system-ui, sans-serif", maxWidth: "40rem" }}>
-      <h1>Admin</h1>
+    <main style={{ padding: "3rem 1.5rem", fontFamily: "system-ui, sans-serif", maxWidth: "48rem" }}>
+      <h1>Admin dashboard</h1>
       <p>
-        You have reached the MaisogLabs admin authentication-boundary placeholder. This page confirms the
-        Cloudflare Access assertion for this request was verified server-side before this asset was served.
+        Read-only status view of current content. No editing, publishing, or content-mutation controls exist
+        here.
       </p>
-      <p>No editorial data, dashboard, or content controls exist here yet.</p>
+      <DashboardClient />
     </main>
   );
 }

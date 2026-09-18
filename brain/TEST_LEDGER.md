@@ -47,7 +47,31 @@ As of this Phase 1 cycle, no ledger entry has Architect-reproduced or production
 | `tests/d1-migration.test.mjs` — "D1 validator date validity matches the current content contract exactly, rejecting impossible calendar dates" | D1 validator/legacy contract convergence (`AS14-F003`) | Implementer-reported PASS | Implementer-reported |
 | `tests/d1-migration.test.mjs` — "D1 validator project stack capacity matches the current content contract exactly: up to 100 entries" | D1 validator/legacy contract convergence (`AS14-F003`) | Implementer-reported PASS | Implementer-reported |
 
-Command: `npm test` (`node --test tests/*.test.mjs`). Result recorded in Phase 0 (`# pass 27, # fail 0`); re-run for Phase 1 with the same result; re-run for `WEB-INC-001` with `tests/worker-auth.test.mjs` added (`# pass 43`); re-run for `WEB-INC-001` Remediation Cycle 1 with 14 new config-validation tests added — `# pass 57, # fail 0` (27 existing `content.test.mjs` + 30 `worker-auth.test.mjs`) — see "`WEB-INC-001` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-005` with `tests/d1-migration.test.mjs` added — `# pass 69, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 12 `d1-migration.test.mjs`) — see "`WEB-INC-005` command evidence" below; re-run for `WEB-INC-005` Remediation Cycle 1 (`ML-DEVOS-AS-014`) with 7 new tests added — `# pass 76, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs`) — see "`WEB-INC-005` Remediation Cycle 1 command evidence" below.
+Command: `npm test` (`node --test tests/*.test.mjs`). Result recorded in Phase 0 (`# pass 27, # fail 0`); re-run for Phase 1 with the same result; re-run for `WEB-INC-001` with `tests/worker-auth.test.mjs` added (`# pass 43`); re-run for `WEB-INC-001` Remediation Cycle 1 with 14 new config-validation tests added — `# pass 57, # fail 0` (27 existing `content.test.mjs` + 30 `worker-auth.test.mjs`) — see "`WEB-INC-001` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-005` with `tests/d1-migration.test.mjs` added — `# pass 69, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 12 `d1-migration.test.mjs`) — see "`WEB-INC-005` command evidence" below; re-run for `WEB-INC-005` Remediation Cycle 1 (`ML-DEVOS-AS-014`) with 7 new tests added — `# pass 76, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs`) — see "`WEB-INC-005` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-002` with `tests/worker-admin-dashboard.test.mjs` added — `# pass 96, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs`) — see "`WEB-INC-002` command evidence" below.
+
+### `tests/worker-admin-dashboard.test.mjs` (`WEB-INC-002`, `ML-DEVOS-AS-015` — 20 tests)
+
+| Test | Covers |
+|---|---|
+| "unauthenticated GET /admin/api/dashboard is rejected with zero D1 invocation" | `AS15-F002` |
+| "malformed/expired/wrong-audience assertions against the dashboard endpoint cause zero D1 invocation" | `AS15-F002` |
+| "invalid auth configuration causes zero D1 invocation even with a validly signed token" | `AS15-F002` |
+| "authenticated GET /admin/api/dashboard reads seeded local D1 and returns the bounded projection" | `AS15-F015` #6 |
+| "dashboard derives all four lifecycle states correctly from navigation fixtures" | `AS15-F010`, `AS15-F015` #7 |
+| "sections carry a bounded order/visible summary using the same draft-then-published precedence" | `AS15-F010` |
+| "projects carry their slug in the dashboard projection" | RFC-004 §5 |
+| "the dashboard response excludes every non-allowlisted field, including sensitive legacy content" | `AS15-F004`, `AS15-F005`, `AS15-F015` #8 |
+| "POST/PUT/PATCH/DELETE /admin/api/dashboard returns 405 ... zero D1 invocation" (4 tests) | `AS15-F006`, `AS15-F015` #9 |
+| "authenticated GET to an unknown /admin/api/* path returns protected 404 with zero D1 invocation" | `AS15-F001`, `AS15-F015` #10 |
+| "missing DB after valid authentication returns a generic 503" | `AS15-F007`, `AS15-F015` #11 |
+| "a D1 read failure after valid authentication returns a generic 500 without leaking the underlying error" | `AS15-F007`, `AS15-F015` #12 |
+| "every protected /admin response carries Cache-Control: no-store" | `AS15-F008`, `AS15-F015` #13 |
+| "the protected admin static asset response also carries Cache-Control: no-store" | `AS15-F008` |
+| "dashboard JSON sets an explicit JSON content type and X-Content-Type-Options: nosniff" | `AS15-F008`, `AS15-F015` #14 |
+| "no permissive CORS header is present on any protected admin response" | `AS15-F008`, `AS15-F015` #15 |
+| "the dashboard path performs no INSERT/UPDATE/DELETE/REPLACE/DDL — only SELECT statements" | `AS15-F006`, `AS15-F013`, `AS15-F015` #18 |
+
+All 20 tests: implementer-reported PASS.
 
 ## Plan-defined test IDs — current status
 
@@ -136,5 +160,20 @@ Every D1 CLI command above used `--local` explicitly, or (for `wrangler deploy -
 | Secret/config scan | Re-run over `worker/`, `migrations/`, `scripts/`, `tests/worker-auth.test.mjs`, `tests/d1-migration.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and the unrelated `url.password` property-name check; no `.env*` files; no `database_id` in `wrangler.jsonc` |
 
 No `migrations/0001_web_inc_005_init.sql`, `worker/d1/repository.mjs`, `worker/d1/schema.mjs`, `scripts/d1-migrate.mjs`, or `wrangler.jsonc` change was needed for this remediation cycle — the composite foreign-key design and table set already satisfied `AS14-F001`/`F002`/`F003`'s requirements once `worker/d1/migrate.mjs` and `worker/d1/validate.mjs` were corrected.
+
+## `WEB-INC-002` command evidence (implementer-reported, `ML-DEVOS-AS-015`)
+
+| Command | Result |
+|---|---|
+| `npm test` | 96 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs`, both unchanged and still passing, + 19 `d1-migration.test.mjs`, unchanged and still passing, + 20 new `worker-admin-dashboard.test.mjs`) |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`); "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| `node scripts/d1-migrate.mjs` (fresh local D1 state, used to seed local `wrangler dev`) | 23 entities created, 0 no-op — unchanged migration behavior, confirms no schema/migration regression |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers runtime, not just the Node test harness) | `GET /` → `200` (public unaffected); `GET /admin` → `401` with `Cache-Control: no-store`; `GET /admin/api/dashboard` → `401` with `Cache-Control: no-store`; `GET /admin/api/nope` → `401`; `POST /admin/api/dashboard` → `401` — every protected path fails closed identically before any route/method dispatch, exactly as required (`AS15-F002`), reproduced in the real Miniflare/Workers runtime rather than only the pure-JS `handleRequest` unit tests |
+| `curl http://localhost:8799/cdn-cgi/local/explorer/api/d1/database` (local Wrangler dev-session introspection) | Confirmed the `DB` binding is live and attached to the running local Worker instance |
+| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table' ..."` | Returned exactly the same 14 authorized tables plus `d1_migrations`(if present)/`_cf_METADATA`/`sqlite_sequence` — confirms `AS15-F013`: no schema change, no new table |
+| Secret/config scan | `grep` for `process.env`, PEM/private-key markers, and secret/credential/token/account-id keyword patterns across `worker/`, `app/admin/`, `tests/worker-admin-dashboard.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and deliberate `SECRET_*_SHOULD_NOT_LEAK` test-fixture placeholder strings used to prove non-leakage; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty (no new dependency) |
+
+Every D1/Wrangler command above is `--local` or non-mutating; none used `--remote`; `wrangler.jsonc` was not modified. The `wrangler dev` HTTP evidence is genuine runtime evidence (the actual local Workers/Miniflare runtime, not the Node test harness), while the 500/503/leakage/lifecycle/cache-header assertions rely on the deterministic Node test suite's local D1 (`getPlatformProxy({ remoteBindings: false })`) since a real production Cloudflare Access application does not exist to drive an authenticated `wrangler dev` request end-to-end. All of this remains implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it.
 
 Do not represent any `NOT IMPLEMENTED` row above as `PASS` in a future handoff without the actual feature and test existing first.

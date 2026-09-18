@@ -6,9 +6,9 @@ Maisog Labs V4 is a statically exported Next.js portfolio deployed to Cloudflare
 ## Runtime flow
 Ordinary public routes: visitor → Cloudflare Worker static assets (asset-first) → statically generated Next.js site, unchanged by `WEB-INC-001`.
 
-`/admin` and `/admin/*` only: visitor → Worker (`worker/index.mjs`, routed via `wrangler.jsonc`'s `assets.run_worker_first`) → server-side Cloudflare Access assertion verification (`worker/auth.mjs`, using `jose`) → on success, the same Assets binding serves the static admin placeholder; on failure, `401 Unauthorized` with no asset served. This is the only server-executed request path in the current deployment; no other route touches the Worker script.
+`/admin` and `/admin/*` only: visitor → Worker (`worker/index.mjs`, routed via `wrangler.jsonc`'s `assets.run_worker_first`) → server-side Cloudflare Access assertion verification (`worker/auth.mjs`, using `jose`); on failure, `401 Unauthorized` with no asset/data served, `Cache-Control: no-store`. On success only, `worker/auth.mjs` dispatches (`WEB-INC-002`, `worker/admin/dashboard.mjs`): `GET /admin/api/dashboard` returns a bounded, allowlisted JSON status projection read from `env.DB`; any other method against that path returns `405` with zero D1 call; any other unrecognized `/admin/api/*` path returns a protected `404` with zero D1 call; every other `/admin`/`/admin/*` path (the dashboard shell HTML/JS) is still served by the Assets binding. This is the only server-executed request path in the current deployment; no other route touches the Worker script.
 
-There is still no database or persistent storage touched by any request path. `WEB-INC-001` adds an authentication boundary only — no content read/write, no session storage. `WEB-INC-005` adds a `d1_databases` binding to `wrangler.jsonc`, but it is local-only (`remote: false`, no `database_id`) and is never read by `worker/index.mjs` or any request handler — see "Phase 2 content boundary" below.
+Ordinary public routes still touch no database or persistent storage. `WEB-INC-001` added an authentication boundary only. `WEB-INC-005` added a local-only `d1_databases` binding (`remote: false`, no `database_id`). As of `WEB-INC-002` (`ML-DEVOS-RFC-004`/`ML-DEVOS-AS-015`/`D-025`), that binding **is** read by `worker/index.mjs` (via `worker/admin/dashboard.mjs`) — but only for the single authenticated `GET /admin/api/dashboard` route, only after Access verification succeeds, and only for bounded reads (no `INSERT`/`UPDATE`/`DELETE`). See "Phase 2 content boundary" below for the still-unchanged public path.
 
 ## V4 foundation presentation layer
 
@@ -24,17 +24,17 @@ Future features may add:
 - Cloudflare Worker endpoints for secure server-side integrations.
 - Claude/OpenAI API access through server-side code only.
 - n8n webhooks for automations.
-- D1 for structured content and audit history, after server-side authorization is established. `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) implemented a **local-only** revision substrate for current content (`migrations/`, `worker/d1/`) for migration/parity/integrity testing; it is not yet the public source and no public/admin read or write path uses it.
+- D1 for structured content and audit history, after server-side authorization is established. `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) implemented a **local-only** revision substrate for current content (`migrations/`, `worker/d1/`) for migration/parity/integrity testing; `WEB-INC-002` (`ML-DEVOS-RFC-004`/`ML-DEVOS-AS-015`/`D-025`) added exactly one bounded, authenticated, read-only admin status endpoint (`GET /admin/api/dashboard`) on top of it. D1 is still not the public source, still local-only (no remote/production resource), and still has no write/mutation path anywhere.
 - R2 for media, after the content and authorization boundaries are tested.
 - MCP tools for agent integrations.
 
 ## Boundaries
-- `app/` owns routing and page composition (including the `app/admin/page.js` authentication-boundary placeholder — not a content-editing surface).
+- `app/` owns routing and page composition, including `app/admin/page.js` and `app/admin/DashboardClient.js` — the `WEB-INC-002` read-only admin dashboard shell (not a content-editing surface; no create/edit/save/delete/publish control exists).
 - `components/` owns reusable presentation units.
 - `data/` owns structured editable content.
 - `public/` owns static assets.
 - `docs/` owns human/AI-maintainer documentation.
-- `worker/` owns the server-executed authentication boundary for `/admin`/`/admin/*` only (`WEB-INC-001`, `ML-DEVOS-RFC-002`). It performs no content mutation and no database access. `worker/d1/` (`WEB-INC-005`, `ML-DEVOS-RFC-003`) owns the bounded, server-only D1 revision-substrate migration/data-access modules; nothing under `worker/d1/` is imported by `worker/index.mjs`, `app/`, or any client bundle.
+- `worker/` owns the server-executed authentication boundary for `/admin`/`/admin/*` (`WEB-INC-001`, `ML-DEVOS-RFC-002`) plus, as of `WEB-INC-002` (`ML-DEVOS-RFC-004`), the post-authentication route dispatch (`worker/auth.mjs`'s `dispatch` callback) to the bounded read-only dashboard handler `worker/admin/dashboard.mjs`. It performs no content mutation. `worker/d1/` (`WEB-INC-005`, `ML-DEVOS-RFC-003`) owns the bounded, server-only D1 revision-substrate migration/data-access modules; as of `WEB-INC-002`, `worker/admin/dashboard.mjs` is the one server-side caller of `worker/d1/repository.mjs`'s read functions — nothing under `worker/d1/` or `worker/admin/` is imported by `app/`, `DashboardClient.js`, or any other client bundle.
 
 ## Security baseline
 - Never expose provider API keys in browser code.

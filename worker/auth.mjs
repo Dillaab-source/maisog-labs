@@ -70,12 +70,33 @@ function unauthorized() {
   });
 }
 
+// WEB-INC-002 (ML-DEVOS-RFC-004 / ML-DEVOS-AS-015 / D-025) AS15-F008: every
+// response for a protected path — success or failure, static asset or
+// dashboard JSON — must carry `Cache-Control: no-store`. Enforced once here
+// at the Worker boundary rather than relying on each branch to remember it.
+function withNoStore(response) {
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-store");
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+function defaultDispatch({ request, assets }) {
+  return assets.fetch(request);
+}
+
 // Pure, Workers-runtime-agnostic request handler. `assets` is anything with a
 // `fetch(request)` method (the real env.ASSETS binding in production, a stub in
 // tests). `getJWKS(teamDomain)` is only ever invoked after config validation
 // passes, so an invalid configuration can never trigger a JWKS/network lookup.
-// No content mutation, no database access, no state beyond this check.
-export async function handleRequest(request, { assets, teamDomain, audience, getJWKS }) {
+//
+// `dispatch({ request, url, assets })` (WEB-INC-002, optional) is invoked only
+// after authentication succeeds — never before — and its return value (or the
+// default asset-serving behavior when omitted) is the only thing that may
+// determine post-auth routing/data access. This preserves the required
+// ordering `VALIDATE AUTH CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD
+// DISPATCH → D1 READ` (AS15-F002): no dispatch decision, D1 call, or route
+// classification can happen before the token is verified.
+export async function handleRequest(request, { assets, teamDomain, audience, getJWKS, dispatch }) {
   const url = new URL(request.url);
 
   if (!isProtectedPath(url.pathname)) {
@@ -83,7 +104,7 @@ export async function handleRequest(request, { assets, teamDomain, audience, get
   }
 
   if (!isValidAuthConfig({ teamDomain, audience })) {
-    return unauthorized();
+    return withNoStore(unauthorized());
   }
 
   const token = request.headers.get(ACCESS_ASSERTION_HEADER);
@@ -91,8 +112,10 @@ export async function handleRequest(request, { assets, teamDomain, audience, get
     const jwks = getJWKS(teamDomain);
     await verifyAccessAssertion(token, { jwks, issuer: `https://${teamDomain}`, audience });
   } catch {
-    return unauthorized();
+    return withNoStore(unauthorized());
   }
 
-  return assets.fetch(request);
+  const respond = dispatch ?? defaultDispatch;
+  const response = await respond({ request, url, assets });
+  return withNoStore(response);
 }

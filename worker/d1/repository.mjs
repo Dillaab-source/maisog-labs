@@ -207,4 +207,71 @@ export function reconstructPublishedSections(db) {
   return readPublishedCollection(db, "sections");
 }
 
+// WEB-INC-002 (ML-DEVOS-RFC-004 / ML-DEVOS-AS-015 / D-025) bounded dashboard
+// status reads. These return every base entity row (regardless of pointer
+// state — including archived, where both pointers are null) alongside
+// whatever published/draft revision content exists, via LEFT JOIN so a
+// missing pointer simply yields null columns rather than omitting the row.
+// This is still a plain read-only SELECT — no INSERT/UPDATE/DELETE, no
+// caller-controlled SQL/table/column selection (AS15-F006). The caller
+// (worker/admin/dashboard.mjs) is responsible for turning these raw rows
+// into the allowlisted dashboard projection; nothing here is returned
+// directly to a client (AS15-F004).
+const DASHBOARD_LABEL_COLUMN = {
+  navigation: "label",
+  foundations: "label",
+  projects: "title",
+  services: "title",
+  processSteps: "title",
+  sections: null,
+};
+
+const DASHBOARD_EXTRA_COLUMNS = {
+  sections: ["sort_order", "visible"],
+};
+
+export async function readDashboardStatusRows(db, collectionKey) {
+  const collection = COLLECTIONS[collectionKey];
+  if (!collection) throw new Error(`Unknown collection: ${collectionKey}`);
+
+  const labelColumn = DASHBOARD_LABEL_COLUMN[collectionKey];
+  const extraColumns = DASHBOARD_EXTRA_COLUMNS[collectionKey] ?? [];
+  const extraBaseColumns = (collection.extraBaseColumns ?? []).map(column => `e.${column} AS ${column}`);
+
+  const selectParts = [
+    "e.id AS entity_id",
+    ...extraBaseColumns,
+    "e.published_revision_id AS published_revision_id",
+    "e.draft_revision_id AS draft_revision_id",
+    ...(labelColumn ? [`pub.${labelColumn} AS published_label`, `draft.${labelColumn} AS draft_label`] : []),
+    ...extraColumns.flatMap(column => [`pub.${column} AS published_${column}`, `draft.${column} AS draft_${column}`]),
+  ];
+
+  const sql = `
+    SELECT ${selectParts.join(", ")}
+    FROM ${collection.entityTable} e
+    LEFT JOIN ${collection.revisionsTable} pub ON pub.id = e.published_revision_id AND pub.${collection.entityIdColumn} = e.id
+    LEFT JOIN ${collection.revisionsTable} draft ON draft.id = e.draft_revision_id AND draft.${collection.entityIdColumn} = e.id
+    ORDER BY e.id
+  `;
+  const result = await db.prepare(sql).all();
+  return result.results;
+}
+
+export async function readSiteSettingsStatusRow(db) {
+  const [pointerRow, published, draft] = await Promise.all([
+    db.prepare("SELECT id, published_revision_id, draft_revision_id FROM site_settings WHERE id = 'default'").first(),
+    readPublishedSiteSettings(db),
+    readDraftSiteSettingsForTrustedServerCode(db),
+  ]);
+  if (!pointerRow) return null;
+  return {
+    id: pointerRow.id,
+    publishedRevisionId: pointerRow.published_revision_id ?? null,
+    draftRevisionId: pointerRow.draft_revision_id ?? null,
+    publishedLabel: published?.site?.name ?? null,
+    draftLabel: draft?.site?.name ?? null,
+  };
+}
+
 export { COLLECTIONS };

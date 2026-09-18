@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-002-READ-DASHBOARD
-TURN: CLAUDE
-STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_002_PROTECTED_READ_DASHBOARD_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 03ab9d896bd0169cbcfb3e4aa62aa83ec9adf72f
+LAST_IMPLEMENTER_HANDOFF_SHA: PENDING_COMMIT_SEE_NEXT_BOOKKEEPING_COMMIT
 LAST_ARCHITECT_REVIEWED_SHA: 359710161d44e18408211fc890fa1e211b2cd6e9
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -364,6 +364,20 @@ Architect must independently inspect:
 - failure/cache behavior;
 - exact scope/provenance.
 
+## Builder implementation disposition (awaiting Architect review)
+
+Builder reports `WEB-INC-002` implemented exactly as authorized — see `coordination/IMPLEMENTER_HANDOFF.md` for full disposition:
+
+- Exactly one new editorial data endpoint: `GET /admin/api/dashboard`, dispatched only after `worker/auth.mjs`'s existing WEB-INC-001 fail-closed authentication succeeds (`VALIDATE AUTH CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD DISPATCH → D1 READ`, proven with zero-D1-invocation tests on every auth-negative case).
+- Allowlist serializer (`worker/admin/dashboard.mjs`) positively constructs `id`/`slug`/`state`/`publishedRevisionId`/`draftRevisionId`/`displayLabel`/(`order`,`visible` for sections only); leakage tests prove sensitive legacy fields (summary, stack, category, email, provenance, SEO/hero/about copy) never appear.
+- Lifecycle derivation matches ADR-003 exactly (`published`/`draft`/`published_with_draft`/`archived`, pointer-derived only); `site_settings` returned as one bounded record.
+- All non-GET methods on the dashboard endpoint and all unknown `/admin/api/*` paths rejected before any D1 call (`405`/protected `404` respectively); missing DB → generic `503`; D1 read failure → generic `500` with no leakage.
+- Every protected `/admin` response carries `Cache-Control: no-store`; dashboard JSON additionally sets `Content-Type: application/json` and `X-Content-Type-Options: nosniff`; no CORS header added.
+- Dashboard UI (`app/admin/page.js` + `app/admin/DashboardClient.js`) contains no mutation control of any kind and imports no server/D1 module.
+- 14-table WEB-INC-005 schema unchanged; `migrations/0001_web_inc_005_init.sql` untouched; public path (`data/site.js → ... → app/page.js`) untouched; no remote D1, no deployment, no later `WEB-INC-*` work.
+
+`npm test`: 96/96 passing (76 existing + 20 new). `npm run build` succeeded, unchanged routes. Local `wrangler dev` smoke evidence confirms the same fail-closed behavior in the real Workers runtime. This disposition is Builder-reported (`ACTOR_REPORTED`) and awaits independent Architect verification.
+
 ## Current gate
 
-`CLAUDE WEB-INC-002 PROTECTED READ-ONLY DASHBOARD IMPLEMENTATION TURN`
+`ARCHITECT REVIEW OF WEB-INC-002 IMPLEMENTATION — VERIFY DISPOSITION OF ML-DEVOS-AS-015 FINDINGS AS15-F001 THROUGH AS15-F015`
