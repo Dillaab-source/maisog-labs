@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-005: MaisogLabs WEB-INC-008 Append-Only Audit Substrate
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Proposed change class: `ARCHITECTURE`
 
