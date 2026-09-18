@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://maisog-labs.internal/devos/governance/registry/waiver-record.schema.json",
   "title": "Sentinel Waiver Record",
-  "description": "Static shape for a filed waiver INSTANCE (as distinct from a rule record's `exceptions` field, which documents built-in exceptions the rule itself always had). Introduced in S1 remediation cycle 1 (S1-F003) because no waiver schema/validator existed even though the waiver template referenced one. Descriptive only -- no runtime consumes this schema.",
+  "description": "Static shape for a filed waiver INSTANCE (as distinct from a rule record's `exceptions` field, which documents built-in exceptions the rule itself always had). Introduced in S1 remediation cycle 1 (S1-F003) because no waiver schema/validator existed even though the waiver template referenced one. Descriptive only -- no runtime consumes this schema. Remediation cycle 2 (S1-F003) added paulo_decision_ref/architect_sync_ref: the JSON Schema declares them as optional strings because whether either is REQUIRED depends on the target rule's own authority fields in ../rules/*.json, which this schema cannot see -- that conditional binding is enforced by validate-waivers.mjs, not expressible as a static schema constraint here.",
   "type": "object",
   "required": [
     "waiver_id", "rule_waived", "scope", "reason", "risk", "approver",
@@ -39,6 +39,16 @@
       },
       "description": "Evidence class(es) supporting that the compensating controls actually work."
     },
-    "status": { "type": "string", "enum": ["ACTIVE", "EXPIRED", "REVOKED"] }
+    "status": { "type": "string", "enum": ["ACTIVE", "EXPIRED", "REVOKED"] },
+    "paulo_decision_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "S1-F003 (cycle 2): a brain/DECISION_LOG.md entry ID (or equivalent explicit Paulo record) evidencing Paulo's approval of this specific waiver. validate-waivers.mjs REQUIRES this field, non-empty, whenever the waived rule's authority.paulo_approval_required is true -- an arbitrary 'approver' string is not itself sufficient authority evidence for such a rule."
+    },
+    "architect_sync_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "S1-F003 (cycle 2): an Architect Sync ID (e.g. ML-DEVOS-AS-NNN) evidencing Architect review of this specific waiver. validate-waivers.mjs REQUIRES this field, non-empty, whenever the waived rule's authority.architect_sync_required is true."
+    }
   }
 }

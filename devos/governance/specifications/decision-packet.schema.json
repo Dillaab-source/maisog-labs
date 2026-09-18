@@ -45,9 +45,9 @@
   },
   "allOf": [
     {
-      "description": "S1-F006: payload (exact) and payload_hash (hashed) are mutually exclusive -- a packet binds to exactly one representation, never both and never neither.",
+      "description": "S1-F006 (remediation cycle 2): payload (exact) and payload_hash+payload_hash_algorithm (hashed) are mutually exclusive -- a packet binds to exactly one representation, never both and never neither. The exact-payload branch now also forbids an orphaned payload_hash_algorithm with no payload_hash, which the cycle-1 schema left possible.",
       "oneOf": [
-        { "required": ["payload"], "not": { "required": ["payload_hash"] } },
+        { "required": ["payload"], "not": { "anyOf": [ { "required": ["payload_hash"] }, { "required": ["payload_hash_algorithm"] } ] } },
         { "required": ["payload_hash", "payload_hash_algorithm"], "not": { "required": ["payload"] } }
       ]
     },

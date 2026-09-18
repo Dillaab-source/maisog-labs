@@ -43,16 +43,32 @@
       "additionalProperties": false,
       "properties": {
         "evidence": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all_of", "any_of"],
+          "properties": {
+            "all_of": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+              },
+              "description": "Every listed evidence class is independently required (AND semantics). Empty array means this rule imposes no fixed baseline beyond any_of below."
+            },
+            "any_of": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+              },
+              "description": "At least one listed evidence class is required (OR semantics) whenever this array is non-empty. Empty array means no OR-set is imposed beyond all_of above."
+            }
           },
-          "description": "The MINIMUM evidence class(es) always required for this rule's applies_when condition. Never a claim that every listed evidence class from EVIDENCE_PROVENANCE_MODEL.md is universally required (S1-F002) — stronger, claim-specific evidence beyond this baseline is determined by the Task Contract/policy, not hardcoded here."
+          "description": "S1-F002 correction: the minimum evidence combination required for this rule's applies_when condition, with explicit AND (`all_of`) vs OR (`any_of`) semantics — a flat array could not distinguish 'both required' from 'either satisfies.' Never a claim that every evidence class from EVIDENCE_PROVENANCE_MODEL.md is universally required; stronger, claim-specific evidence beyond this baseline is determined by the Task Contract/policy, not hardcoded here."
         },
         "evidence_note": {
           "type": "string",
-          "description": "Free-text clarification of when stronger or different evidence applies beyond the baseline `evidence` array, since this schema cannot express full claim-specific conditionality (S1-F002)."
+          "description": "Free-text clarification of when stronger or different evidence applies beyond the baseline `evidence` combination, since this schema cannot express full claim-specific conditionality (S1-F002)."
         },
         "qa": { "type": "boolean" },
         "independent_review": { "type": "boolean" },

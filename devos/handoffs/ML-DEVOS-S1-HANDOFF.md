@@ -181,3 +181,84 @@ Also verified (in the session scratchpad, never committed, then deleted): the ru
 ## Architect review request
 
 Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`. Requesting the Architect independently verify each `S1-F001`…`S1-F009` resolution against the mapping table above, re-run both validators, and issue a verdict.
+
+---
+
+# Remediation Cycle 2
+
+The Architect's `ML-DEVOS-AS-004` re-review of the cycle-1 remediation commit (`65c02a44e54618b70b23417f11802fb8fca148a4`) returned `SENTINEL S1 STAGE GATE: NOT APPROVED — CHANGES REQUESTED (CYCLE 2)`. `S1-F001` and `S1-F005` were confirmed `RESOLVED` and are **not** touched again this cycle. `S1-F002`, `S1-F003`, `S1-F004`, `S1-F006`, `S1-F007`, `S1-F008`, and `S1-F009` were each `PARTIALLY RESOLVED` with a specific remaining blocker/correction, remediated below.
+
+## Compared against
+
+`65c02a44e54618b70b23417f11802fb8fca148a4` (the reviewed remediation). Base for this cycle: `origin/governance/maisoglabs-v0.1` HEAD `c3ae9dc` (`docs(sync): return Sentinel S1 remediation cycle 2 to Claude`), fetched and fast-forwarded into the working branch before any file was touched. `c3ae9dc` is two Architect-only commits ahead of `65c02a4` (`9268888` re-review, `c3ae9dc` return-to-Claude); neither touched any file outside `coordination/`.
+
+## Finding → exact changed file/section mapping
+
+| Finding | Files changed | What changed |
+|---|---|---|
+| **S1-F002** | `devos/governance/registry/rule-record.schema.json` (`requires.evidence` restructured); `devos/governance/rules/core-rules.json` (all 18 rules' `requires.evidence`, plus a new `_comment` paragraph); `devos/governance/registry/validate-rules.mjs` (new evidence-shape checks); `devos/governance/registry/RULE_RECORD_SCHEMA.md` | `requires.evidence` changed from a flat array (ambiguous AND/OR) to `{ all_of: [...], any_of: [...] }` with explicit semantics. `CORE-016` (MAIN) and `CORE-017` (DEPLOYED) now correctly use `any_of` (their own prose says "and/or"/"or"); every other rule's single-or-empty evidence list moved into `all_of` unchanged in substance. `CORE-018` (VERIFIED) keeps `all_of: ["RUNTIME_OBSERVED"]` — untouched, still strictly required. |
+| **S1-F003** | `devos/governance/registry/waiver-record.schema.json` (new optional `paulo_decision_ref`/`architect_sync_ref` fields); `devos/governance/registry/validate-waivers.mjs` (authority cross-check, expiry-authoritative check); `devos/templates/WAIVER_TEMPLATE.md`; `devos/changes/waivers/README.md` | A waiver record now must carry `paulo_decision_ref` when its target rule's `authority.paulo_approval_required` is `true`, and `architect_sync_ref` when the target's `authority.architect_sync_required` is `true` — closing the gap where an arbitrary `approver` string alone satisfied the validator against any waivable rule regardless of class. `expires_at` is now authoritative: an `ACTIVE` waiver whose expiry has passed is rejected on every run, not only checked for ordering against `issued_at`. |
+| **S1-F004** | `devos/governance/registry/validate-rules.mjs` (rewritten); `devos/governance/registry/validate-waivers.mjs` (`loadRuleIndex()` rewritten fail-closed); `devos/governance/registry/RULE_RECORD_SCHEMA.md` | `validate-rules.mjs` now enforces the schema it claims to validate: a missing/non-array top-level `rules` is a hard failure (previously silently became `[]`); `rule_id` regex; non-empty-string minimums on `title`/`description`/`applies_when`/`introduced_by`; `additionalProperties: false` at the rule, `authority`, `requires`, and `requires.evidence` levels; `scope`/`project` mutual consistency; `created_at`/`updated_at` date format; `effective_version`/`proposed_effective_version` semver format. `validate-waivers.mjs`'s `loadRuleIndex()` no longer swallows a broken registry with a bare `catch {}` — a rule-registry file that fails to parse or lacks a valid top-level `rules` array now aborts waiver validation entirely with a `FATAL`/non-zero exit, rather than silently continuing with a partial or empty index. |
+| **S1-F006** | `devos/governance/specifications/decision-packet.schema.json`; `devos/governance/specifications/DECISION_PACKET_SPEC.md` | The exact-`payload` branch of the `oneOf` now forbids **both** `payload_hash` and `payload_hash_algorithm` (previously only forbade `payload_hash`, leaving an orphaned `payload_hash_algorithm` possible alongside a plain `payload`). The hashed branch (`payload_hash` + `payload_hash_algorithm` required, `payload` forbidden) is unchanged, already correct. |
+| **S1-F007** | `devos/governance/specifications/VERSIONING_POLICY.md` | Removed the stale claim that `core-rules.json` records `effective_version: "1.2.0"` for every rule; replaced with an explicit S0-origin (13 rules, `ACTIVE`/`1.2.0`) vs. S1-origin (5 rules, `PROPOSED`/`null`/proposed `1.3.0`) split. Added a new "S1 bootstrap transition into the RFC/ADR system" section naming `D-012`+`ML-DEVOS-AS-003` as the pre-RFC bootstrap authorization/design records (since the RFC/ADR mechanism did not exist when S1 was authorized), requiring a first durable ADR plus an explicit `1.2.0 → 1.3.0` transition record at final S1 closure (not performed this cycle), and stating explicitly that `CORE-016`/`CORE-017`/`CORE-018` are themselves `CORE_POLICY`-class and therefore require their own class's Paulo gate to activate — an Architect stage-gate `APPROVED` verdict alone does not activate them or apply `1.3.0`. |
+| **S1-F008** | New: `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`, `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`; modified: `devos/changes/architect-syncs/README.md` | Backfilled both durable records from actual Git history via `git show <SHA>:coordination/ARCHITECT_REVIEW.md` — **not** reconstructed from conversational memory, per the cycle's explicit instruction. `ML-DEVOS-AS-001.md` combines the original findings at `571146a06cba1ddc996fd68cd25a68fa4544c5ec` with the `AS0-001A` amendment at `ce53eceb4a8da38f09f971c8fb20b4b618552010`, each section labeled with its exact source commit. `ML-DEVOS-AS-002.md` combines the full initial `S0-F001`…`S0-F008` findings at `5962c978e363745d8bbea8b39b3aff7ae0711329` with the final S0 closure/approval at `af76cc7b3e6188caa5d2881f7dccb41511f5cd05`. The README's "Known backfill gap" section is replaced with "Backfill gap — CLOSED," naming the same four commits. |
+| **S1-F009** | This file; `coordination/IMPLEMENTER_HANDOFF.md` | See "Corrected file-count breakdown" below — replaces the cycle-1 handoff's internally inconsistent "26 files: 1 deleted, 23 modified, 5 new" (which summed to 29, not 26) with the independently-verifiable, git-derived counts. |
+
+No finding required touching `S1-F001`'s or `S1-F005`'s prior fixes; `git diff 65c02a4..HEAD` confirms none of the files listed in this cycle's mapping table above overlap with those two findings' cycle-1 changes to `core-rules.json`'s authority/risk fields or to `PROJECT_ONBOARDING_SPEC.md`/`RFC_TEMPLATE.md`.
+
+## Corrected file-count breakdown (S1-F009)
+
+Independently verified via `git diff --name-status 28a110b..65c02a4`:
+
+- **`devos/**` only: 26 files total — 19 modified, 6 added, 1 removed.** (The cycle-1 handoff's own "26 files: 1 deleted, 23 modified, 5 new" was internally inconsistent — those three numbers sum to 29, not 26 — and the 23/5 split was wrong; the correct split is 19/6.)
+- **Full `28a110b..65c02a4` compare (including `coordination/`): 29 files.** The extra 3 beyond the `devos/**` count of 26 are `coordination/ARCHITECT_REVIEW.md`, `coordination/IMPLEMENTER_HANDOFF.md`, and `coordination/STATE.md`, changed across the intervening Architect/Builder review cycle (not all by the same commit).
+
+This cycle's own change (`65c02a4..HEAD`, this commit): 13 `devos/` files modified, 2 `devos/` files added (`ML-DEVOS-AS-001.md`, `ML-DEVOS-AS-002.md`), 0 removed — 15 `devos/` files total — plus `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` (2 files, both required every cycle), for 17 files overall. No file was deleted this cycle.
+
+## Retained + rerun static validators — what each proves and does not prove (cycle 2)
+
+| Validator | Proves (as of cycle 2) | Does NOT prove |
+|---|---|---|
+| `validate-rules.mjs` | Every rule file is valid JSON (fail-closed), including that the top-level `rules` field itself exists and is an array (a missing/non-array `rules` is now a hard failure — S1-F004). Every rule record has exactly the fields `rule-record.schema.json` requires/allows (`additionalProperties: false` enforced at the rule, `authority`, `requires`, and `requires.evidence` levels). Every field's type/pattern/format matches the schema: `rule_id` regex, non-empty-string fields, `class`/`scope`/`risk`/`status`/evidence enums, `scope`/`project` mutual consistency, `created_at`/`updated_at` date format, `effective_version`/`proposed_effective_version` semver format. `requires.evidence` is the new `{ all_of, any_of }` shape with valid evidence-class members (S1-F002). No duplicate `rule_id`; every `supersedes` resolves; every rule meets its class's minimum authority/risk (S1-F001); `status`/version-field consistency (S1-F007). | That a rule's prose accurately reflects its cited source (human/Architect judgment); anything about waiver instances (separate validator); any runtime behavior — it is a one-shot, manually invoked lint pass, nothing more; that `introduced_by`/`decision_id` citations actually exist elsewhere in the repository. |
+| `validate-waivers.mjs` | Every waiver instance is valid JSON. All required fields present. `expires_at` present, strictly after `issued_at`, and now **authoritative over `status`** — an `ACTIVE` waiver whose expiry has passed is rejected regardless of stated status (S1-F003). `rule_waived` exists and is `waivable: true`. The waiver carries `paulo_decision_ref`/`architect_sync_ref` whenever the target rule's own `authority.paulo_approval_required`/`architect_sync_required` demands it (S1-F003). Fail-closed against its own dependency: if the rule registry cannot be parsed or lacks a valid `rules` array, waiver validation aborts entirely with a non-zero exit rather than silently proceeding with a partial index (S1-F004). | That `compensating_controls` actually mitigate the risk (human/Architect judgment); that a cited `approver`/`paulo_decision_ref`/`architect_sync_ref` refers to a genuine, real record — only that the required reference is present and non-empty when demanded; it does not rewrite a stale `ACTIVE` waiver's stored `status` to `EXPIRED` — that remains a manual act, only rejected at validation time. |
+
+**Evidence this cycle (`ACTOR_REPORTED`, this cycle's own commands, against the real repository data):**
+
+```
+$ node devos/governance/registry/validate-rules.mjs
+core-rules.json: 18 rule(s) parsed
+  OK — no structural or class-minimum issues found.
+PASS: 0 error(s) across 1 file(s).
+
+$ node devos/governance/registry/validate-waivers.mjs
+No waiver instance files (*.json) found in .../devos/changes/waivers. This is expected -- no waiver has been filed as of this cycle.
+```
+
+**Synthetic defect/behavior tests performed this cycle** (in the session scratchpad, never committed, deleted after use):
+
+- `validate-rules.mjs` was run against 13 deliberately broken registry files, one per new/retained check: non-array top-level `rules`; an unknown top-level field; a malformed `rule_id`; the OLD flat-array `evidence` shape (to confirm it is now correctly rejected, not silently accepted); a bad `created_at` date; a bad `effective_version` semver; an `authority` object missing a required field; a `scope`/`project` mismatch; a duplicate `rule_id`; a dangling `supersedes`; a risk below its class floor; a `PROPOSED` rule with an inconsistent version-field pair; and syntactically malformed JSON. All 13 were caught with the expected, specific error message; the malformed-JSON case failed closed with an exact parse-error location.
+- `validate-waivers.mjs` was run against 6 synthetic waiver records against a synthetic 3-rule registry: (a) a waiver naming a `waivable: false` rule — rejected; (b) a waiver whose `expires_at` had passed while `status: "ACTIVE"` — rejected (S1-F003 expiry-authoritative check); (c) a waiver against a `paulo_approval_required: true` rule missing `paulo_decision_ref` — rejected; (d) a waiver against an `architect_sync_required: true` rule missing `architect_sync_ref` — rejected; (e) a fully correct waiver with both reference fields present and a future expiry — accepted; (f) an already-expired waiver correctly marked `status: "EXPIRED"` — accepted (proving the expiry check only fires against `ACTIVE`, not against an already-honestly-updated record). Separately, the rule registry that `validate-waivers.mjs` depends on was replaced with syntactically malformed JSON, and the script correctly aborted with a `FATAL`/non-zero exit rather than silently proceeding with an empty index (S1-F004).
+
+## Confirmations requested by this cycle's instructions
+
+- **S0 constitutional meaning was not changed:** confirmed — `devos/architecture/ML-DEVOS-ARCH-001.md` and `devos/plans/ML-DEVOS-SIP-001.md` are untouched this cycle (outside this cycle's authorized `devos/**` governance-kernel scope in any case); no S0-origin rule's `description`, `class`, or substantive meaning changed in `core-rules.json` — only its `requires.evidence` field's *shape* changed (array → `{all_of, any_of}`), preserving the same evidence classes each rule already required.
+- **S0-origin rules remain effective at 1.2.0, S1-origin rules remain PROPOSED for 1.3.0:** confirmed — unchanged from cycle 1: `CORE-001`–`CORE-007`, `CORE-010`–`CORE-015` (13 rules) carry `status: "ACTIVE"`, `effective_version: "1.2.0"`; `CORE-008`, `CORE-009`, `CORE-016`, `CORE-017`, `CORE-018` (5 rules) carry `status: "PROPOSED"`, `effective_version: null`, `proposed_effective_version: "1.3.0"`. No rule's status/version fields were touched this cycle.
+- **No rule was silently activated; v1.3.0 remains unapplied:** confirmed — no file in this cycle's diff sets any rule's `status` to `ACTIVE` or `effective_version` to `1.3.0`; `VERSIONING_POLICY.md`'s new "bootstrap transition" section explicitly states that activation of `CORE-016`/`017`/`018` requires their own `CORE_POLICY`-class Paulo gate, separate from and later than the Architect stage-gate approval this cycle seeks.
+- **No frozen S0 rule was weakened:** confirmed — the `S1-F002` evidence-shape change is a structural clarification of AND/OR semantics, not a substantive relaxation: every evidence class a rule previously listed is still required in the new shape (moved into `all_of` unless the rule's own prose already meant OR, in which case cycle 1 had already, correctly, listed the OR-eligible classes together — cycle 2 only makes that OR relationship explicit, it does not add or remove any evidence class).
+
+## Confirm: only authorized paths changed
+
+`git diff --name-status 65c02a4..HEAD` (recorded in `coordination/IMPLEMENTER_HANDOFF.md`) is limited to `devos/**` plus `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. No application/runtime/deployment/configuration path, `.github/` directory, `.devos/` overlay, or `projects/` directory exists anywhere in the diff. No S0 frozen architecture file was touched. `coordination/ARCHITECT_REVIEW.md` was never overwritten by Claude. No S2+ work was performed.
+
+## Known limitations carried into / introduced by this cycle
+
+- `overlay.yaml`'s "may not weaken core rules" constraint is still checked only by Architect review, not mechanically — automating it would require a Policy Engine, explicitly out of scope.
+- `requirements.yaml`/`risks.yaml`/`capabilities.yaml` (project onboarding) remain unschematized — not part of any `S1-F001`…`S1-F009` finding.
+- The Governance Bundle spec remains unimplemented beyond its manifest shape.
+- `paulo_decision_ref`/`architect_sync_ref` on a waiver are checked only for presence/non-emptiness, not for actually citing a genuine, matching record — verifying the cited record is real and says what the waiver claims remains human/Architect judgment, exactly as `approver` always has been.
+- The first durable ADR for the Governance Kernel and the explicit `1.2.0 → 1.3.0` version-transition record are both still outstanding, by design — `VERSIONING_POLICY.md` now states this is required at final S1 closure, not before.
+- This remediation's own claims are `ACTOR_REPORTED` until the Architect independently inspects them.
+
+## Architect review request (cycle 2)
+
+Requested review mode: `STAGE GATE REVIEW / SENTINEL ARCHITECTURE SYNC`. Requesting the Architect independently verify each `S1-F002`, `S1-F003`, `S1-F004`, `S1-F006`, `S1-F007`, `S1-F008`, `S1-F009` resolution against the mapping table above, confirm `S1-F001`/`S1-F005` remain untouched and still resolved, re-run both validators, and issue a verdict.

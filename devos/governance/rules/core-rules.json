@@ -26,7 +26,14 @@
     "has been filed yet even for S1's own new rules. This is expected, not an error.",
     "",
     "No rule's meaning was weakened relative to its S0 source. Where S1-F001 required a",
-    "correction, the correction always moved authority/risk metadata UP (stricter), never down."
+    "correction, the correction always moved authority/risk metadata UP (stricter), never down.",
+    "",
+    "S1-F002 (remediation cycle 2): every rule's requires.evidence field is now an object",
+    "{ all_of: [...], any_of: [...] } rather than a flat array, removing the AND/OR ambiguity",
+    "the Architect flagged. all_of lists evidence classes that are ALL independently required;",
+    "any_of lists evidence classes where AT LEAST ONE satisfies the requirement. CORE-016 and",
+    "CORE-017 now correctly use any_of (their policy text says 'and/or'/'or'); CORE-018 keeps",
+    "all_of: [RUNTIME_OBSERVED] since VERIFIED has no weaker substitute."
   ],
   "rules": [
     {
@@ -38,11 +45,20 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any actor or mechanism considers taking a governance-significant action.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": true,
         "evidence_gate": false
@@ -66,17 +82,26 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any actor or mechanism has a technical capability that could perform a governance-significant action.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §5; Trust Boundary TB-7",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a75; Trust Boundary TB-7",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -94,18 +119,27 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A Builder completes any unit of work.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "evidence_note": "INDEPENDENTLY_REPRODUCED is additionally required specifically when the Builder's claim concerns executable/runtime behavior; a documentation-only claim needs only INDEPENDENTLY_INSPECTED. Exact binding is claim-specific per the Task Contract (S1-F002 correction) -- this is not a universal requirement for every Builder claim.",
         "qa": false,
         "independent_review": true,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §3 (Builder); TRUST_BOUNDARIES.md TB-2; ROLE_RESPONSIBILITY_MATRIX.md cross-cutting rule 1",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73 (Builder); TRUST_BOUNDARIES.md TB-2; ROLE_RESPONSIBILITY_MATRIX.md cross-cutting rule 1",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -123,17 +157,26 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any future Evidence Gate implementation evaluates a change.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §3-§4; AS0-002; TRUST_BOUNDARIES.md TB-6",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73-\u00a74; AS0-002; TRUST_BOUNDARIES.md TB-6",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -151,18 +194,27 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A completed change requires Independent Review before merge/release.",
       "waivable": true,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "evidence_note": "INDEPENDENTLY_REPRODUCED is additionally required specifically when the reviewed claim concerns executable/runtime behavior, not universally for every review (S1-F002 correction).",
         "qa": false,
         "independent_review": true,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §3; AS0-007; TRUST_BOUNDARIES.md TB-5; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73; AS0-007; TRUST_BOUNDARIES.md TB-5; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -180,18 +232,25 @@
       "project": null,
       "risk": "high",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any status claim is made about a requirement, task, or artifact.",
       "waivable": false,
       "requires": {
-        "evidence": [],
+        "evidence": {
+          "all_of": [],
+          "any_of": []
+        },
         "evidence_note": "This is a meta-rule about evidence discipline itself, not a claim with its own fixed evidence requirement. Which evidence class is required for a GIVEN claim is claim-specific and determined by the Task Contract/policy (see EVIDENCE_PROVENANCE_MODEL.md) -- it is never all five classes at once (S1-F002 correction; the prior version listed every evidence class as required, which was incoherent).",
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §6, §8; EVIDENCE_PROVENANCE_MODEL.md binding rules; S0-F004 correction; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a76, \u00a78; EVIDENCE_PROVENANCE_MODEL.md binding rules; S0-F004 correction; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -209,18 +268,27 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any claim distinguishes, or risks conflating, MAIN, DEPLOYED, and VERIFIED status for the same change.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "evidence_note": "This baseline confirms the claim correctly distinguishes the three states. Stage-specific evidence for actually claiming MAIN, DEPLOYED, or VERIFIED individually is defined in CORE-016, CORE-017, and CORE-018 respectively -- not here.",
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §10; AS0-002 disposition; split into CORE-016/017/018 per S1-F002 correction",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a710; AS0-002 disposition; split into CORE-016/017/018 per S1-F002 correction",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -238,11 +306,20 @@
       "project": null,
       "risk": "high",
       "status": "PROPOSED",
-      "authority": { "owner": "Paulo", "architect_sync_required": false, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": false,
+        "paulo_approval_required": true
+      },
       "applies_when": "A new capability (tool, API, connector, credential) is proposed for onboarding.",
       "waivable": true,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
@@ -266,11 +343,20 @@
       "project": null,
       "risk": "highest",
       "status": "PROPOSED",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A project overlay or local rule is proposed or modified.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
@@ -294,17 +380,26 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any claim is made about what Sentinel's architecture or governance currently is.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §9; D-011 'Source of truth amendment'; BOOTSTRAP_SOURCE_OF_TRUTH.md",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a79; D-011 'Source of truth amendment'; BOOTSTRAP_SOURCE_OF_TRUTH.md",
       "decision_id": "D-011",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -322,11 +417,20 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Any instruction proposes to change Sentinel architecture or governance.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
@@ -350,18 +454,27 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "Proposal or authorization of a protected-branch merge or production deployment (the pre-execution stage).",
       "waivable": false,
       "requires": {
-        "evidence": ["CI_ATTESTED"],
+        "evidence": {
+          "all_of": [
+            "CI_ATTESTED"
+          ],
+          "any_of": []
+        },
         "evidence_note": "This rule governs the proposal/authorization stage only. RUNTIME_OBSERVED evidence cannot exist yet at that stage -- see CORE-018 for the post-deployment verification claim, which does require it (S1-F002 correction; the prior version required both CI_ATTESTED and RUNTIME_OBSERVED merely to propose a merge/deployment).",
         "qa": true,
         "independent_review": true,
         "evidence_gate": true
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §3, §9; TRUST_BOUNDARIES.md TB-1; AS0-012; S0-F003 correction (this rule's substance originates in S0, before D-012; D-012's human-gate rule in ML-DEVOS-AS-003 reaffirms rather than introduces it)",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73, \u00a79; TRUST_BOUNDARIES.md TB-1; AS0-012; S0-F003 correction (this rule's substance originates in S0, before D-012; D-012's human-gate rule in ML-DEVOS-AS-003 reaffirms rather than introduces it)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -379,17 +492,26 @@
       "project": null,
       "risk": "highest",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "The Architect exercises its review capability.",
       "waivable": false,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §3; S0-F007 correction; TRUST_BOUNDARIES.md TB-3; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73; S0-F007 correction; TRUST_BOUNDARIES.md TB-3; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -407,17 +529,26 @@
       "project": null,
       "risk": "high",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "QA validates a Builder's work that makes an executable/runtime claim.",
       "waivable": true,
       "requires": {
-        "evidence": ["INDEPENDENTLY_REPRODUCED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_REPRODUCED"
+          ],
+          "any_of": []
+        },
         "qa": true,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §3; TRUST_BOUNDARIES.md TB-4; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73; TRUST_BOUNDARIES.md TB-4; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -435,17 +566,26 @@
       "project": null,
       "risk": "high",
       "status": "ACTIVE",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A project's relationship to Sentinel core is being defined or questioned.",
       "waivable": true,
       "requires": {
-        "evidence": ["INDEPENDENTLY_INSPECTED"],
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 §2 invariant 6; S0-F006 correction; REPOSITORY_OVERLAY_TOPOLOGY.md; risk/authority corrected per S1-F001 (was risk: medium, paulo_approval_required: false -- both below the ARCHITECTURE class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 \u00a72 invariant 6; S0-F006 correction; REPOSITORY_OVERLAY_TOPOLOGY.md; risk/authority corrected per S1-F001 (was risk: medium, paulo_approval_required: false -- both below the ARCHITECTURE class minimum)",
       "decision_id": "D-011",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -463,18 +603,28 @@
       "project": null,
       "risk": "high",
       "status": "PROPOSED",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A change is claimed to have reached MAIN (a protected branch).",
       "waivable": true,
       "requires": {
-        "evidence": ["INDEPENDENTLY_REPRODUCED", "CI_ATTESTED"],
+        "evidence": {
+          "all_of": [],
+          "any_of": [
+            "INDEPENDENTLY_REPRODUCED",
+            "CI_ATTESTED"
+          ]
+        },
         "evidence_note": "RUNTIME_OBSERVED is never required for this claim -- see CORE-017 (DEPLOYED) and CORE-018 (VERIFIED) for the stages where runtime-adjacent evidence applies.",
         "qa": true,
         "independent_review": true,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 §10) into stage-specific evidence rules -- genuinely new S1 content",
+      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 \u00a710) into stage-specific evidence rules -- genuinely new S1 content",
       "decision_id": "D-012",
       "adr_id": null,
       "effective_version": null,
@@ -492,18 +642,28 @@
       "project": null,
       "risk": "high",
       "status": "PROPOSED",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A change is claimed DEPLOYED.",
       "waivable": true,
       "requires": {
-        "evidence": ["ACTOR_REPORTED", "CI_ATTESTED"],
+        "evidence": {
+          "all_of": [],
+          "any_of": [
+            "ACTOR_REPORTED",
+            "CI_ATTESTED"
+          ]
+        },
         "evidence_note": "RUNTIME_OBSERVED belongs to the VERIFIED claim (CORE-018), not this one.",
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 §10) into stage-specific evidence rules -- genuinely new S1 content",
+      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 \u00a710) into stage-specific evidence rules -- genuinely new S1 content",
       "decision_id": "D-012",
       "adr_id": null,
       "effective_version": null,
@@ -521,17 +681,26 @@
       "project": null,
       "risk": "high",
       "status": "PROPOSED",
-      "authority": { "owner": "Paulo", "architect_sync_required": true, "paulo_approval_required": true },
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
       "applies_when": "A change is claimed VERIFIED.",
       "waivable": true,
       "requires": {
-        "evidence": ["RUNTIME_OBSERVED"],
+        "evidence": {
+          "all_of": [
+            "RUNTIME_OBSERVED"
+          ],
+          "any_of": []
+        },
         "qa": false,
         "independent_review": false,
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 §10) into stage-specific evidence rules -- genuinely new S1 content",
+      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 \u00a710) into stage-specific evidence rules -- genuinely new S1 content",
       "decision_id": "D-012",
       "adr_id": null,
       "effective_version": null,

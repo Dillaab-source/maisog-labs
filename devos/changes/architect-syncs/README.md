@@ -6,11 +6,13 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
-- `ML-DEVOS-AS-003.md` — archived this cycle, from the exact live `coordination/ARCHITECT_REVIEW.md` content at archival time.
+- `ML-DEVOS-AS-001.md` — backfilled in S1 remediation cycle 2 (`S1-F008`), from actual Git history at `571146a06cba1ddc996fd68cd25a68fa4544c5ec` (original findings) and `ce53eceb4a8da38f09f971c8fb20b4b618552010` (the `AS0-001A` amendment).
+- `ML-DEVOS-AS-002.md` — backfilled in S1 remediation cycle 2 (`S1-F008`), from actual Git history at `5962c978e363745d8bbea8b39b3aff7ae0711329` (full initial `S0-F001`…`S0-F008` findings) and `af76cc7b3e6188caa5d2881f7dccb41511f5cd05` (final S0 closure/approval).
+- `ML-DEVOS-AS-003.md` — archived in S1 remediation cycle 1, from the exact live `coordination/ARCHITECT_REVIEW.md` content at archival time.
 
-## Known backfill gap
+## Backfill gap — CLOSED (S1-F008, remediation cycle 2)
 
-`ML-DEVOS-AS-001`'s findings (`AS0-001`…`AS0-012`, amendment `AS0-001A`) and `ML-DEVOS-AS-002`'s full original findings (`S0-F001`…`S0-F008`) are **not** archived here. By the time this mechanism was created, the rolling `coordination/ARCHITECT_REVIEW.md` file had already moved past their full original text — only summary closure statements remain live in that file. This gap is disclosed rather than filled by reconstructing the missing text from conversational memory, which would not be independently verifiable against the current repository. If the full original text of AS-001/AS-002 is still available in the Architect's own records, backfilling these two files is a reasonable `PATCH`-class follow-up for a future cycle; it is not treated as required for this cycle's stage gate, since `S1-F008` asked for the durable-archive *mechanism* to exist, which it now does, with `ML-DEVOS-AS-003` as its first real (and completely verifiable) entry.
+Remediation cycle 1 disclosed that `ML-DEVOS-AS-001`/`AS-002`'s full original findings text was not archived, believing the rolling `coordination/ARCHITECT_REVIEW.md` file had permanently moved past their full original text. The Architect's cycle-2 review (`ML-DEVOS-AS-004`) correctly identified that this belief was factually wrong: Git history preserves every prior version of that file regardless of how many times it has since been overwritten. This cycle retrieved the exact historical content with `git show <SHA>:coordination/ARCHITECT_REVIEW.md` against the commits cited above — not reconstructed from conversational memory — and archived it as `ML-DEVOS-AS-001.md`/`ML-DEVOS-AS-002.md`. No backfill gap remains for these two syncs.
 
 ## Rule
 
