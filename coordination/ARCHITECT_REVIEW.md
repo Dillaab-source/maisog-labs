@@ -8,13 +8,13 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-010 — Product Build Pack Remediation Cycle 1 Verification
+# ML-DEVOS-AS-010 — Product Build Pack Remediation Cycle 2 Verification
 
 Cycle: `MAISOGLABS-PRODUCT-BUILD-PACK`
 Review mode: `POST-REMEDIATION ARCHITECTURE SYNC / CROSS-ARTIFACT CONSISTENCY REVIEW`
 Authority chain: `D-020 → D-021 → ML-DEVOS-AS-010`
-Reviewed Builder remediation commit: `ffec06778a9b297eedf16d27efacc334daa81abd`
-Builder remediation base: `a5fd502611b54da62a264404a4282081af4d03b4`
+Reviewed Builder remediation commit: `646ec537c3184650b44039a9dc5111b116cddb9a`
+Builder remediation base: `00241a1bc6b72879e686b5e0e9b897bdc7726f81`
 
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -26,18 +26,20 @@ Active Sentinel governance-capability baseline:
 
 Before issuing this verdict, the Architect:
 
-1. pulled the live governance branch and current state;
-2. confirmed the live branch contains Builder remediation commit `ffec067...`;
-3. noted that live HEAD is now one later Architect-owned planning commit, `c5f1fc8...` (`D-022`), which changes only `brain/DECISION_LOG.md` and is outside the Builder remediation diff;
-4. independently compared exact Builder range `a5fd502... → ffec067...`;
-5. read the remediated Product Build Pack artifacts and current handoff/state from the exact Builder commit;
-6. compared the governance-routing text with active `CHANGE_GOVERNANCE_POLICY.md`;
-7. independently checked the seven prior findings `AS10-R001` through `AS10-R007`;
-8. checked cross-document publication semantics, increment boundaries, provenance accuracy, scope drift, and hidden implementation authorization.
+1. pulled the live governance branch and current `coordination/STATE.md`;
+2. confirmed live HEAD is exactly Builder remediation commit `646ec537...`;
+3. inspected the exact Builder handoff and prior Architect Sync;
+4. independently compared `00241a1... → 646ec537...`;
+5. read the remediated Product Build Pack artifacts from the exact Builder commit;
+6. rechecked the previously resolved AS-010 findings for regression;
+7. checked publication isolation across entity rows, revision rows, media relationships, and design settings;
+8. checked table/entity ownership against the dependency-ordered `WEB-INC-*` plan;
+9. checked the durable handoff's changed-file count against the exact Git diff;
+10. checked for scope drift, hidden implementation authorization, S3 work, deployment, or main-merge authorization.
 
 ## Exact Builder remediation diff
 
-GitHub compare `a5fd502611b54da62a264404a4282081af4d03b4 → ffec06778a9b297eedf16d27efacc334daa81abd` reports:
+GitHub compare `00241a1bc6b72879e686b5e0e9b897bdc7726f81 → 646ec537c3184650b44039a9dc5111b116cddb9a` reports:
 
 - exactly **1 Builder commit**;
 - exactly **7 changed files**:
@@ -49,213 +51,166 @@ GitHub compare `a5fd502611b54da62a264404a4282081af4d03b4 → ffec06778a9b297eedf
   - `docs/product/TECHNICAL_DESIGN.md`
   - `docs/product/UI_UX_SPEC.md`
 
-No application/runtime/config/deployment/DevOS/brain/project-registry path changed in the Builder remediation commit.
+No application/runtime/config/deployment/DevOS/brain/project-registry path changed.
 
-Scope remains within the authorized documentation-only remediation boundary.
+`docs/product/PRD.md` remained untouched.
 
 ## Prior findings — independently verified
 
-### AS10-R001 — RESOLVED
+### AS10-R001 — RESOLVED / PRESERVED
 
-`BUILD_PLAN.md` now restores Sentinel's active classification/authorization spine before implementation:
+Sentinel classification and authorization routing remains present before implementation.
 
-`CLASSIFY → required record/proposal → Architect Sync where required → Paulo gate where required → AUTHORIZED → build`.
+### AS10-R002 — RESOLVED / PRESERVED
 
-All eight active change classes are represented, and the plan correctly states that a `WEB-INC-*` identifier is planning metadata rather than authority.
-
-### AS10-R002 — RESOLVED
-
-`BUILD_PLAN.md` now separates:
-
-- an unordered stable-ID candidate catalog; and
-- a dependency-ordered execution sequence.
-
-The execution sequence is mechanically present as:
+The stable-ID catalog remains separate from the dependency-ordered sequence:
 
 `001 → 005 → 002 → 008 → 003 → 004 → 006 → 007`.
 
-The prior `WEB-INC-003`-before-`WEB-INC-005` contradiction is removed.
+### AS10-R003 — RESOLVED / PRESERVED
 
-### AS10-R003 — RESOLVED
+Every current structured content domain remains explicitly mapped.
 
-`DATA_BACKEND_SPEC.md` now maps all current structured content domains, including the previously omitted:
+### AS10-R004 — RESOLVED / PRESERVED
 
-- `foundations[]`;
-- `services[]`;
-- `process.steps[]`.
+Media relationships remain relational junction tables rather than an array falsely described as a database foreign key.
 
-The mapping is typed rather than an unbounded catch-all blob, and `services[]` is explicitly preserved unless a future decision retires it.
+### AS10-R005 — RESOLVED FOR CORE EDITORIAL ENTITIES
 
-### AS10-R004 — RESOLVED
+The published/draft pointer model remains consistent for normal editorial entities and public published-only reads.
 
-The proposed relational target now uses:
+### AS10-R006 — RESOLVED / PRESERVED
 
-- `project_media`;
-- `journal_media`;
+The protected admin/editorial read path remains correctly dependent on a protected server-side substrate.
 
-as junction tables instead of describing a JSON/array value as a database foreign key.
+### AS10-R007 — RESOLVED / PRESERVED
 
-Historical references to the old `media_ids[]` design are explanatory only and do not remain as the target relationship model.
+Authoritative website-plan section references remain corrected.
 
-### AS10-R005 — PARTIALLY RESOLVED; new isolation defect found
+### AS10-R008 — PARTIALLY RESOLVED; one remaining immutability gap
 
-The central revision-pointer model is now present:
+The remediation successfully fixes the main publication-isolation problems:
 
-- `published_revision_id`;
-- `draft_revision_id`;
-- companion `<entity>_revisions` tables;
-- public reads follow published revisions;
-- draft edits do not overwrite the published revision;
-- preview follows the authenticated draft revision;
-- publish is an atomic pointer swap.
+- base editorial entities now contain identity + immutable creation metadata + revision pointers;
+- `order` moved into revision rows;
+- `lifecycle_state` was removed;
+- slug semantics are explicit and immutable after creation;
+- `sections` now has `section_revisions`;
+- theme/design changes now follow draft → preview → publish;
+- project/journal media associations are keyed to the content revision rather than the base entity.
 
-`APP_FLOW.md` is consistent with that model for normal editorial content.
+However, the new binding invariant says:
 
-However, independent cross-document review found that **not every public-affecting mutable value is actually revision-isolated**. See `AS10-R008` below.
+> every mutable value that can affect public presentation is sourced from published revision/state only.
 
-### AS10-R006 — RESOLVED
+The current target model still leaves two classes of public-affecting records without an explicit immutability rule:
 
-The read-only admin dashboard no longer assumes private editorial state can be obtained from the current static asset deployment.
+1. **`media` rows** — `storage_key`, `content_type`, and especially `alt_text` are public-affecting values read through a published revision's media association, but the spec does not say they are immutable after upload. If a referenced `media` row is edited in place, public output can change without publishing a new project/journal revision.
+2. **`project_media` / `journal_media` junction rows** — keying them to a revision is correct, but `role` and `order` are still mutable columns. If a junction row attached to the currently published revision is edited in place, the published output can change without a new publish operation.
 
-`BUILD_PLAN.md`, `TECHNICAL_DESIGN.md`, and `APP_FLOW.md` consistently require a protected server-side editorial read substrate before draft/archived data can be shown to an authenticated dashboard.
+Required final remediation:
 
-### AS10-R007 — RESOLVED
+- declare media asset records immutable after creation/upload for every public-affecting field, with replacements/alt-text changes creating a new media record (or introduce media revisions, if preferred);
+- declare junction rows immutable association snapshots once attached to a revision;
+- any attachment/reorder/role change must occur on the draft revision's own junction rows and become public only when that draft revision is published;
+- make `APP_FLOW.md` / `DATA_BACKEND_SPEC.md` consistent with that rule;
+- then the publication invariant will be literally true for the whole proposed public read graph.
 
-The reviewed source citations now use the correct authoritative website-plan sections:
+No exact SQL is required.
 
-- §9 — `WEB-REQ-*`
-- §10 — `ADM-REQ-*`
-- §11 — `DESIGN-*`
-- §13 — `WEB-SEC-*`
-- §14 — `RISK-WEB-*`
+### AS10-R009 — RESOLVED
 
-The prior section-number errors in Technical Design, UI/UX, Data/Backend, and the handoff mapping are corrected.
+`BUILD_PLAN.md` now provides a clear ownership matrix.
 
-## New findings from independent remediation review
+Independent review confirms the intended split is coherent:
 
-### AS10-R008 — BLOCKER — publication isolation is incomplete for public-affecting base fields
+- `WEB-INC-005` — current-content storage/revision substrate;
+- `WEB-INC-008` — append-only audit substrate;
+- `WEB-INC-003` — mutation behavior and audit-integration proof;
+- `WEB-INC-004` — media + project-media schema/integration;
+- `WEB-INC-006` — journal + journal-media;
+- `WEB-INC-007` — theme/design settings.
 
-The remediation introduces a good revision-pointer model, but several values that directly affect public output remain on the logical/base entity instead of inside the published/draft revision boundary.
+The dependency order remains topologically valid.
 
-Examples in `DATA_BACKEND_SPEC.md` include:
+### AS10-R010 — NOT FULLY RESOLVED — current handoff repeats the file-count defect
 
-- `navigation.order`;
-- `foundations.order`;
-- `projects.order`;
-- `projects.slug`;
-- `services.order`;
-- `process_steps.order`;
-- `journal_entries.order` / `published_at`;
-- entity-level `lifecycle_state` where it can affect visibility;
-- `sections.order` and `sections.visible`, which are explicitly public design controls but have **no revision pair at all**.
+The remediation correctly repairs the **historical Cycle 1** count and explicitly records that the prior handoff's six-file statement was wrong.
 
-This creates a contradiction with the stated invariant that public rendering follows only `published_revision_id` while drafts are isolated.
-
-For example, changing an entity's `order` while editing a draft could change public ordering even though the published revision itself was not changed. Likewise, changing `sections.visible` or `sections.order` can alter the public site without going through the same draft/preview/publish boundary.
-
-Required remediation:
-
-- define the logical/base entity as identity + stable immutable metadata + revision pointers only;
-- move every mutable public-affecting value into the revision record **or** explicitly define it as immutable after creation;
-- specifically resolve ordering semantics for navigation/foundations/projects/services/process steps/journal;
-- resolve slug semantics: either immutable stable identity, or revisioned with uniqueness validation at publish time;
-- make section visibility/order revision-aware, either through `sections + section_revisions` or by folding those controls into an already revisioned settings entity;
-- update `APP_FLOW.md` §2l so design-setting changes are staged as a draft/preview/publish operation rather than “persist and apply on next render” directly;
-- ensure public rendering can be described truthfully as consuming only the published revision/state for all mutable public presentation values.
-
-Exact SQL remains out of scope.
-
-### AS10-R009 — REQUIRED — increment boundaries remain ambiguous around WEB-INC-005 and later feature increments
-
-`WEB-INC-005` currently says its bounded scope is to:
-
-> “stand up the D1-backed entities and revision tables in DATA_BACKEND_SPEC.md”
-
-Taken literally, that includes future-only entities such as journal, theme settings, media/audit-related structures, while later increments `WEB-INC-004`, `006`, `007`, and `008` are separately defined to introduce those capabilities/data structures.
-
-That weakens the claimed bounded-increment model and creates uncertainty over which increment actually owns each schema/table.
-
-Required remediation:
-
-- give every proposed target table/entity one clear owning `WEB-INC-*`;
-- narrow `WEB-INC-005` to the storage/revision substrate and migration of **current** content domains needed for the protected read path and later mutation work;
-- assign future-only schema to the increment that introduces that feature, unless a clearly justified shared-foundation table must exist earlier;
-- make `WEB-INC-006` unambiguous about whether it creates `journal_entries/journal_entry_revisions` or merely adds behavior to tables already created elsewhere;
-- make `WEB-INC-004` own media/R2 and its junction tables at the point their referenced entities exist;
-- make `WEB-INC-008` independently reviewable: schema/append-only audit substrate may be reviewed before first mutation, while mutation-to-audit integration evidence belongs to the first mutation increment or an explicitly atomic combined release gate;
-- preserve the topological sequence while making ownership non-overlapping.
-
-### AS10-R010 — REQUIRED — Builder handoff provenance is factually inaccurate
-
-The exact Git compare independently reports **7 changed files**.
-
-But `coordination/IMPLEMENTER_HANDOFF.md` states:
+But the new Cycle 2 handoff itself says:
 
 > “Exactly 6 files”
 
-and its “Exact changed-file list” omits `docs/product/DATA_BACKEND_SPEC.md`, even though that file contains the largest substantive remediation in this cycle and is present in the exact commit diff.
+under `Exact changed-file list (this cycle)`.
 
-The user's summary correctly said seven; the durable Builder handoff does not.
+The exact Git compare independently shows **7 changed files**, because `coordination/STATE.md` was modified in the same commit.
 
-Required remediation:
+The handoff then acknowledges that state was updated, but excluding it from an “exact changed-file list” still makes the count factually wrong.
 
-- correct the handoff to exactly 7 changed files;
-- include `docs/product/DATA_BACKEND_SPEC.md` in the exact list;
-- keep its evidence class `ACTOR_REPORTED`; the Architect's exact diff remains `INDEPENDENTLY_INSPECTED`.
+Required final remediation:
 
-This is a provenance correction, not a runtime/product failure.
+- change the Cycle 2 exact changed-file count to **7**;
+- include `coordination/STATE.md` in that exact list;
+- retain the historical Cycle 1 correction;
+- do not call a list “exact” while excluding a file present in the commit diff.
 
-## What remains independently PASS
+This remains a provenance issue, not a product/runtime failure.
 
-The remediation continues to preserve:
+## What independently passes
 
-- exact docs-only scope;
-- no application/runtime/config/deployment change;
-- brownfield truth labeling;
-- one-document/one-concern ownership;
+The following now pass and should not be reopened unless the final corrections require local consistency edits:
+
+- documentation-only authorized scope;
+- brownfield/current-vs-target truth discipline;
 - source-of-truth precedence;
-- Sentinel five-actor model;
-- Website `PHASE 0..14` vs Sentinel `S0..S14` separation;
+- one-document/one-concern ownership;
+- five-actor Sentinel model;
+- website vs Sentinel phase taxonomy separation;
 - `WEB-INC-*` namespace isolation;
-- no hidden implementation authorization;
-- Worker/D1/R2/auth/admin remain `PROPOSED TARGET / NOT IMPLEMENTED`;
-- no S3, project onboarding, CI/rulesets, deployment, or main merge.
+- governance routing before implementation;
+- complete current-domain migration mapping;
+- revision model for editorial content;
+- section visibility/order revisioning;
+- design-setting draft/preview/publish flow;
+- table/entity ownership matrix;
+- secure protected editorial read path;
+- no unsupported implementation claims;
+- no S3, project onboarding, CI/rulesets, deployment, or protected/main merge.
 
 ## Evidence disposition
 
 Builder assertions remain `ACTOR_REPORTED`.
 
-The Architect independently inspected the exact Builder diff and relevant repository artifacts. The dispositions in this review are therefore `INDEPENDENTLY_INSPECTED`.
+The Architect independently inspected the exact Git diff and relevant repository artifacts. This review is `INDEPENDENTLY_INSPECTED`.
 
 No runtime behavior changed, so no runtime reproduction is claimed.
 
 ## Verdict
 
-`ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 2`
+`ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 3 (FINAL ALLOWED CYCLE)`
 
-Remediation Cycle 1 successfully resolves `AS10-R001`, `R002`, `R003`, `R004`, `R006`, and `R007`, and materially improves `R005`.
+Cycle 2 resolves `AS10-R009` and the major body of `AS10-R008`, and correctly repairs the historical part of `AS10-R010`.
 
-The Product Build Pack is close to closure, but it should not become the implementation baseline until:
+Two tightly bounded corrections remain:
 
-1. the revision boundary covers all mutable public-affecting state;
-2. schema/table ownership across `WEB-INC-*` is unambiguous and bounded;
-3. the durable Builder handoff accurately records the exact diff.
+1. close the media/junction immutability hole so the public-rendering invariant is truly end-to-end;
+2. make the current Cycle 2 durable handoff's exact diff count truthful.
 
-## Authorized Remediation Cycle 2 scope
+This is the final configured remediation cycle under `MAX_REMEDIATION_CYCLES: 3`.
+
+## Authorized Remediation Cycle 3 scope
 
 Claude may modify only:
 
-- `docs/product/TECHNICAL_DESIGN.md` if consistency wording is needed;
-- `docs/product/UI_UX_SPEC.md` if design-state wording is needed;
-- `docs/product/APP_FLOW.md`;
+- `docs/product/APP_FLOW.md` if needed for media/attachment publication wording;
 - `docs/product/DATA_BACKEND_SPEC.md`;
-- `docs/product/BUILD_PLAN.md`;
+- `docs/product/BUILD_PLAN.md` only if a local ownership/acceptance wording adjustment is required by the media immutability correction;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
 
-`docs/product/PRD.md` should remain unchanged unless the new remediation exposes a genuine PRD-level contradiction.
+`PRD.md`, `TECHNICAL_DESIGN.md`, and `UI_UX_SPEC.md` should remain unchanged unless the final correction exposes a direct contradiction.
 
-No application/runtime/config/deployment/DevOS/brain/project-registry file is authorized for Builder modification.
+No application/runtime/config/deployment/DevOS/brain/project-registry file may be changed.
 
 ## Explicit boundaries remain
 
@@ -275,12 +230,6 @@ No application/runtime/config/deployment/DevOS/brain/project-registry file is au
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Branch-head note
-
-The exact Builder remediation under review is `ffec067...`.
-
-Live branch HEAD is one later Architect-owned planning-record commit, `c5f1fc8...` (`D-022`). That later Decision Log change is separate from and does not contaminate this Builder-diff verdict.
-
 ## Current Architecture Sync status
 
-`ML-DEVOS-AS-010: CHANGES_REQUESTED — CLAUDE REMEDIATION CYCLE 2`
+`ML-DEVOS-AS-010: CHANGES_REQUESTED — CLAUDE REMEDIATION CYCLE 3 (FINAL)`
