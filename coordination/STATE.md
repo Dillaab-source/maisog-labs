@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-008-AUDIT-SUBSTRATE
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_008_APPEND_ONLY_AUDIT_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: fc962fd033df9b5409246e8052e547f4a08e0767
+LAST_IMPLEMENTER_HANDOFF_SHA: d4791b945d2853067d51f20fca11db3846a1cf1e
 LAST_ARCHITECT_REVIEWED_SHA: 9b1e6d721ad82bdcac3b165ebaca10f36f8cfbf9
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -359,6 +359,10 @@ Only then may Architect issue PASS / CHANGES_REQUESTED.
 
 Because WEB-INC-008 is `ARCHITECTURE`, final accepted implementation requires a post-review ADR before closure.
 
+## Builder handoff (this cycle)
+
+Implementation commit: `d4791b945d2853067d51f20fca11db3846a1cf1e` on base `d96ca8a1c6244d07185db2e225ad11741a1f4eef`. Full detail, exact changed-file list, and the complete evidence log required above are in `coordination/IMPLEMENTER_HANDOFF.md`. Summary: exactly one new table (`audit_log`, current schema 15 tables total) added via `migrations/0002_web_inc_008_audit_log.sql` (`migrations/0001_web_inc_005_init.sql` byte-unchanged); `worker/d1/audit.mjs` exposes only `validateAuditEvent`/`appendAuditEvent`; append-only proven at both the application layer (no update/delete helper) and the database layer (`BEFORE UPDATE`/`BEFORE DELETE` triggers, confirmed both by `tests/d1-audit.test.mjs` and a direct `wrangler d1 execute --local` probe); `npm test` 112/112 passing; `GET /admin/api/dashboard` unchanged and exposes no audit data; no HTTP audit API/UI, no editorial mutation, no persistent identity/session table, no sensitive field, and no later `WEB-INC-*` work. The Implementer has not self-certified this as `ARCHITECT VERIFIED`.
+
 ## Current gate
 
-`WEB-INC-008 AUTHORIZED — CLAUDE MAY IMPLEMENT ONLY THE BOUNDED LOCAL/REPOSITORY APPEND-ONLY AUDIT SUBSTRATE UNDER RFC-005 / AS-017 / D-026`
+`WEB-INC-008 IMPLEMENTATION HANDED OFF — TURN: ARCHITECT — INDEPENDENT REVIEW REQUIRED AGAINST RFC-005 / AS-017 / D-026 BEFORE ANY CLOSURE OR POST-REVIEW ADR`

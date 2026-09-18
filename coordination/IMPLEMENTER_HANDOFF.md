@@ -8,140 +8,102 @@ Branch: `governance/maisoglabs-v0.1`
 
 ## Cycle / Change ID
 
-`MAISOGLABS-WEB-INC-002-READ-DASHBOARD` — **AUTHORIZED IMPLEMENTATION**
+`MAISOGLABS-WEB-INC-008-AUDIT-SUBSTRATE` — **AUTHORIZED IMPLEMENTATION**
 
-Authority chain: `ML-DEVOS-RFC-004` → `ML-DEVOS-AS-015` (`ARCHITECT_APPROVED — WEB-INC-002 RFC-004 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`) → `D-025` (Paulo: "Proceed with WEB-INC-002 authorization.").
+Authority chain: `ML-DEVOS-RFC-005` → `ML-DEVOS-AS-017` (`ARCHITECT_APPROVED — WEB-INC-008 RFC-005 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`) → `D-026` (Paulo: "Proceed with WEB-INC-008 authorization. Authorize Claude to implement WEB-INC-008 — Append-Only Audit Substrate exactly within ML-DEVOS-RFC-005 and all binding constraints in ML-DEVOS-AS-017.").
 
 ## Objective
 
-Connect the accepted `WEB-INC-001` authentication boundary to the accepted `WEB-INC-005` local D1 substrate for exactly one bounded, read-only, authenticated admin status endpoint (`GET /admin/api/dashboard`), with authentication strictly preceding all routing/data access, an explicit allowlist serializer, and no mutation capability of any kind.
+Create and independently prove the append-only `audit_log` storage/write primitive that later mutation increments (`WEB-INC-003` and beyond) must call. This increment does **not** itself prove that any real admin mutation emits a row into it, because no mutation capability exists yet — that proof is `WEB-INC-003`'s acceptance criterion.
 
 ## Branch / commit state
 
-- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `ac3c883aba55e69d85b3ec38171462cae350d68a` — matches exactly the SHA the request required.
-- Read in full before any edit: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-015`, all 15 findings `AS15-F001`–`F015`), `devos/changes/rfcs/ML-DEVOS-RFC-004.md` (full proposed architecture), `devos/changes/architect-syncs/ML-DEVOS-AS-015.md` (durable archive, confirmed byte-identical in substance to the rolling review), `brain/DECISION_LOG.md` `D-025`, `devos/changes/adrs/ML-DEVOS-ADR-003.md` (the WEB-INC-005 storage-architecture ADR this increment builds on). Also read the existing `worker/auth.mjs`, `worker/index.mjs`, `worker/d1/repository.mjs`, `app/admin/page.js`, `tests/worker-auth.test.mjs`, and `wrangler.jsonc` to understand the exact accepted behavior this increment must preserve.
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `d96ca8a1c6244d07185db2e225ad11741a1f4eef` — matches exactly the SHA the request required.
+- Result SHA (implementation commit): `d4791b945d2853067d51f20fca11db3846a1cf1e`
+- Read in full before any edit: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-017`, all 17 findings `AS17-F001`–`F017`), `devos/changes/rfcs/ML-DEVOS-RFC-005.md` (full proposed architecture), `devos/changes/architect-syncs/ML-DEVOS-AS-017.md` (durable archive, confirmed byte-identical in substance to the rolling review), `brain/DECISION_LOG.md` `D-026`, `devos/changes/adrs/ML-DEVOS-ADR-003.md` (WEB-INC-005 local D1 substrate) and `ML-DEVOS-ADR-004.md` (WEB-INC-002 read-only dashboard boundary). Also read `worker/d1/schema.mjs`, `tests/d1-migration.test.mjs`, and `tests/worker-admin-dashboard.test.mjs` in full to plan changes that preserve every existing accepted behavior exactly.
 
-## Exact changed-file list — 17 files
-
-To avoid repeating the exact undercounting defect an earlier increment's Architect review caught (`ML-DEVOS-AS-014` `AS14-F005` — a Builder handoff that named every substantive path correctly but miscounted the heading by omitting the two coordination files from the same commit), this count explicitly includes `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`, since both are part of this same implementation commit: **15 substantive implementation/config/documentation paths + 2 coordination paths = 17 total.**
+## Exact changed-file list — 10 files (this commit)
 
 **New (3):**
-- `worker/admin/dashboard.mjs` — the bounded post-authentication route dispatcher: `GET /admin/api/dashboard` handler, allowlist serializer, lifecycle/display-label derivation, protected-404/405/503/500 handling
-- `app/admin/DashboardClient.js` — the one bounded client component (fetches the same-origin dashboard endpoint, renders status only)
-- `tests/worker-admin-dashboard.test.mjs` — 20 new tests
+- `migrations/0002_web_inc_008_audit_log.sql` — the `audit_log` table DDL plus two `BEFORE UPDATE`/`BEFORE DELETE` triggers enforcing append-only at the database layer
+- `worker/d1/audit.mjs` — `validateAuditEvent(event)` (strict allowlist validator) and `appendAuditEvent(db, event)` (the bounded, fixed-SQL, server-owned-timestamp, failure-propagating writer); no HTTP handler, no client-reachable import
+- `tests/d1-audit.test.mjs` — 16 new tests
 
-**Modified, substantive (12):**
-- `worker/auth.mjs` — `handleRequest` gained an optional `dispatch({ request, url, assets })` callback, invoked only after authentication succeeds (default behavior unchanged when omitted — every existing caller/test that doesn't pass `dispatch` behaves exactly as before); every protected-path response (success or failure) now gets `Cache-Control: no-store` via a single `withNoStore()` wrapper
-- `worker/index.mjs` — wires `handleAdminDispatch` as the `dispatch` callback, passing `env.DB`
-- `worker/d1/repository.mjs` — added `readDashboardStatusRows(db, collectionKey)` and `readSiteSettingsStatusRow(db)`: bounded, read-only `SELECT`-only projections (LEFT JOIN across both pointers so every entity appears regardless of lifecycle state, including archived)
-- `app/admin/page.js` — upgraded from the WEB-INC-001 authentication-only placeholder into the dashboard shell, rendering `DashboardClient`
-- `brain/GOVERNANCE_MAP.md`, `brain/IMPLEMENTATION_STATUS.md`, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, `docs/ARCHITECTURE.md`, `docs/product/PRD.md`, `docs/product/BUILD_PLAN.md`, `docs/product/DATA_BACKEND_SPEC.md` — current-state documentation updated to record what actually became implemented, resolving the "no authenticated D1 dashboard/protected-read endpoint exists" statements that this increment would otherwise leave stale, without overclaiming mutation/session/remote-D1 capability
+**Modified, substantive (1):**
+- `worker/d1/schema.mjs` — purely additive: new exports `AUDIT_TABLE_NAMES`, `CURRENT_PRODUCT_TABLE_NAMES`, `readAuditMigrationSql()`, `applyAuditMigration(db)`, `applyCurrentSchema(db)`. Every pre-existing export (`AUTHORIZED_TABLE_NAMES`, `readMigrationSql`, `applySchema`, `listProductTables`) is byte-unchanged — confirmed by `git diff worker/d1/schema.mjs`, which shows only additions, no deletions/modifications to existing lines.
 
-**Modified, coordination (2):**
+**Modified, documentation (6):**
+- `brain/GOVERNANCE_MAP.md`, `brain/IMPLEMENTATION_STATUS.md`, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, `docs/product/BUILD_PLAN.md`, `docs/product/DATA_BACKEND_SPEC.md` — updated to record that the audit substrate now exists at the schema/writer level, explicitly without claiming any real admin mutation has ever produced a row (`RISK-WEB-014` stays `NOT YET APPLICABLE`).
+
+**Not part of this commit, added in the immediately following bookkeeping commit (2):**
 - `coordination/IMPLEMENTER_HANDOFF.md` (this file)
 - `coordination/STATE.md`
 
-**Not touched, exactly as required:** `migrations/0001_web_inc_005_init.sql` (schema unchanged — confirmed identical table set via `wrangler d1 execute`), `worker/d1/schema.mjs`, `worker/d1/migrate.mjs`, `worker/d1/validate.mjs`, `scripts/d1-migrate.mjs`, `wrangler.jsonc`, `tests/content.test.mjs`, `tests/d1-migration.test.mjs`, `tests/worker-auth.test.mjs`, `data/site.js`, `lib/content/*`, `app/page.js`, `components/`, `package.json`, `package-lock.json`. Confirmed by `git diff --stat` against every one of these paths returning empty.
+**Not touched, exactly as required (confirmed empty via `git diff --stat` against every path):** `migrations/0001_web_inc_005_init.sql`, `worker/admin/dashboard.mjs`, `worker/auth.mjs`, `worker/index.mjs`, `worker/d1/migrate.mjs`, `worker/d1/validate.mjs`, `worker/d1/repository.mjs`, `scripts/d1-migrate.mjs`, `app/admin/*`, `app/page.js`, `data/site.js`, `lib/content/*`, `wrangler.jsonc`, `package.json`, `package-lock.json`, `tests/content.test.mjs`, `tests/worker-auth.test.mjs`, `tests/d1-migration.test.mjs`, `tests/worker-admin-dashboard.test.mjs`.
 
 No new dependency was added (`package.json`/`package-lock.json` unchanged).
 
-## Route inventory
+## Schema change (exact)
 
-| Route | Method | Auth required | Behavior |
-|---|---|---|---|
-| `/admin`, `/admin/*` (non-API) | any | yes (`WEB-INC-001`) | unchanged: serves the protected static dashboard shell via the Assets binding |
-| `GET /admin/api/dashboard` | GET | yes | returns the bounded allowlisted JSON status projection (200) |
-| `/admin/api/dashboard` | POST/PUT/PATCH/DELETE/other | yes | `405`, zero D1 invocation |
-| `/admin/api/*` (any other path) | any | yes | protected `404`, zero D1 invocation, never falls through to static assets |
-| any `/admin`/`/admin/*` path | any | invalid/missing auth | `401`, exactly as `WEB-INC-001` already behaved — dispatch is never reached |
+One new table, `audit_log`, via `migrations/0002_web_inc_008_audit_log.sql`, applied strictly after `0001_web_inc_005_init.sql`:
 
-Exactly one new editorial data endpoint exists: `GET /admin/api/dashboard`. No generic `/admin/api/*` service was created.
-
-## Dashboard JSON schema (exact, with example)
-
-```json
-{
-  "siteSettings": {
-    "id": "default",
-    "state": "published",
-    "publishedRevisionId": 1,
-    "draftRevisionId": null,
-    "displayLabel": "Maisog Labs"
-  },
-  "navigation": [
-    {
-      "id": "nav-projects",
-      "state": "published",
-      "publishedRevisionId": 1,
-      "draftRevisionId": null,
-      "displayLabel": "Projects"
-    }
-  ],
-  "foundations": [ /* same shape as navigation, no slug/section fields */ ],
-  "projects": [
-    {
-      "id": "project-clinicflow",
-      "slug": "clinicflow",
-      "state": "published",
-      "publishedRevisionId": 5,
-      "draftRevisionId": null,
-      "displayLabel": "ClinicFlow"
-    }
-  ],
-  "services": [ /* same shape as navigation */ ],
-  "processSteps": [ /* same shape as navigation */ ],
-  "sections": [
-    {
-      "id": "home",
-      "state": "published",
-      "publishedRevisionId": 1,
-      "draftRevisionId": null,
-      "displayLabel": "home",
-      "order": 1,
-      "visible": true
-    }
-  ]
-}
+```sql
+CREATE TABLE IF NOT EXISTS audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  occurred_at TEXT NOT NULL,
+  actor TEXT NOT NULL,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  revision_id INTEGER,
+  result TEXT NOT NULL CHECK (result IN ('success', 'failure'))
+);
 ```
 
-`state` is always one of `published` / `draft` / `published_with_draft` / `archived`, derived purely from `publishedRevisionId`/`draftRevisionId` (never a stored column). `slug` appears only on `projects` entries; `order`/`visible` appear only on `sections` entries. No other key exists on any object at any level.
+Plus two triggers (`audit_log_reject_update`, `audit_log_reject_delete`) that unconditionally `RAISE(ABORT, ...)` on any direct `UPDATE`/`DELETE` against this table.
 
-## Allowlist serializer (`AS15-F004`)
+**Current local product schema: exactly 15 tables** — the 14 `WEB-INC-005`-owned tables (unchanged) plus `audit_log`. Confirmed by both `tests/d1-audit.test.mjs` (`CURRENT_PRODUCT_TABLE_NAMES`) and a direct `wrangler d1 execute --local` query (see command log below).
 
-`worker/admin/dashboard.mjs`'s `serializeEntityRow`/`serializeSiteSettings` positively construct every field from a named source value — there is no raw-row pass-through and no "delete a few sensitive fields from the rest" pattern. A new column added to any `*_revisions` table in the future cannot become visible through this endpoint without an explicit code change to these two functions. Verified by the "the dashboard response excludes every non-allowlisted field, including sensitive legacy content" test, which seeds `project_revisions`/`service_revisions`/`site_settings_revisions` rows containing deliberately distinctive `SECRET_*_SHOULD_NOT_LEAK` values (summary, category, stack, SEO/hero/about copy, email, provenance) and asserts none of them — nor the raw column names `stack_json`/`created_by`/`summary`/`category`/`accent`/`featured`/`body`/`contact`/`email` — appear anywhere in the raw response text, then asserts every object's key set is a subset of the allowed keys.
+`audit_log` declares no foreign key of its own, and no existing table gets a foreign key into it (`PRAGMA foreign_key_list(audit_log)` returns zero rows, confirmed by test) — `entity_type`/`entity_id`/`revision_id` are logical, non-cascading references only, so audit history survives future entity deletion.
 
-## Authentication-first ordering (`AS15-F002`, `AS15-F003`)
+## Audit row model (exact)
 
-`worker/auth.mjs`'s `handleRequest` is structured so that `dispatch` (and therefore any D1 access) is invoked only after the existing config-validation and JWT-verification steps both succeed — the same code path and the same fail-closed checks as `WEB-INC-001`, completely unmodified in logic. Proven directly:
+| Field | Type | Constraint |
+|---|---|---|
+| `id` | `INTEGER` | DB-assigned, immutable |
+| `occurred_at` | `TEXT` | server-owned (`new Date().toISOString()` inside `appendAuditEvent`), never accepted from the caller |
+| `actor` | `TEXT` | opaque trusted-server reference only; validated as printable ASCII, 1–100 chars — never a JWT/Access claim/credential |
+| `action` | `TEXT` | validated against `^[a-z][a-z0-9_-]{0,79}$` |
+| `entity_type` | `TEXT` | same pattern as `action` |
+| `entity_id` | `TEXT` | validated against `^[a-zA-Z0-9_-]{1,200}$` |
+| `revision_id` | `INTEGER`, nullable | `null`/`undefined` or a positive safe integer only |
+| `result` | `TEXT` | exactly `'success'` or `'failure'`, both DB `CHECK`-constrained and JS-validated |
 
-- "unauthenticated GET /admin/api/dashboard is rejected with zero D1 invocation" — a `db` spy that records every `prepare()` call shows zero calls after a 401.
-- "malformed/expired/wrong-audience assertions against the dashboard endpoint cause zero D1 invocation" — same spy, same result, across three distinct token-level failure modes.
-- "invalid auth configuration causes zero D1 invocation even with a validly signed token" — a valid token cannot compensate for invalid config, exactly as `WEB-INC-001` already required, and this now additionally covers the dashboard path specifically.
-- All 30 pre-existing `tests/worker-auth.test.mjs` tests (unmodified) continue to pass unchanged, proving default (`dispatch` omitted) behavior for ordinary `/admin` asset requests is byte-for-byte the same as before this increment.
+No JWT, Access token, credential, raw request body, full content snapshot, stack trace, SQL error string, or unrestricted metadata field exists anywhere in this row shape or in `worker/d1/audit.mjs`.
 
-## Read-only D1 construction (`AS15-F006`, `AS15-F013`)
+## Append-only enforcement (both layers, `AS17-F005`)
 
-`worker/d1/repository.mjs`'s two new functions are plain `SELECT ... LEFT JOIN ...` statements built from a fixed per-collection table/column configuration — no caller-supplied SQL, table name, or column name is ever accepted. The "the dashboard path performs no INSERT/UPDATE/DELETE/REPLACE/DDL — only SELECT statements" test wraps the real seeded database's `prepare()` to record every SQL string `buildDashboardPayload` issues and asserts each one matches `/^SELECT\b/i`. The 14-table WEB-INC-005 schema (`migrations/0001_web_inc_005_init.sql`) is untouched; no table was added.
+- **Application layer:** `worker/d1/audit.mjs` exports exactly `validateAuditEvent` and `appendAuditEvent` — there is no update/delete helper of any kind, and no caller-provided SQL/table/column path exists.
+- **Database layer, independent of the application:** the migration's `BEFORE UPDATE`/`BEFORE DELETE` triggers reject any direct `UPDATE`/`DELETE` against `audit_log`, proven two ways:
+  - `tests/d1-audit.test.mjs`: "a direct UPDATE against audit_log is rejected at the database layer" and "...DELETE..." — both issue raw SQL directly against a seeded local D1 instance, bypassing `appendAuditEvent` entirely, and assert the row is unchanged/still present afterward.
+  - A direct `wrangler d1 execute DB --local` probe against a real local D1 instance (see command log): both `UPDATE audit_log SET result='failure'` and `DELETE FROM audit_log` were rejected with `SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)` and the exact configured abort message.
 
-## Lifecycle/display-label semantics (`AS15-F010`, `AS15-F011`)
+## Failure semantics (`AS17-F007`)
 
-Verified against a hand-built fixture covering all four states on `navigation` (published, draft, published_with_draft, archived): published-pointer-only → `published`; draft-pointer-only → `draft`; both → `published_with_draft` (display label prefers the draft label); neither → `archived` (display label falls back to the stable id, per `AS15-F010`'s explicit allowance — no historical-revision lookup is attempted). `site_settings` is returned as exactly one bounded record (`AS15-F011`), never exploded into per-field entities.
+`appendAuditEvent` validates first (via `validateAuditEvent`, throwing synchronously on any malformed field with zero rows written), then issues exactly one fixed parameterized `INSERT`. Any D1-level failure of that `INSERT` propagates by throwing/rejecting — there is no `try/catch` anywhere in this module that could swallow a storage failure and report success instead. Proven by "a forced audit INSERT failure propagates/rejects and is never reported as success," which supplies a stub `db` whose `run()` always rejects and asserts `appendAuditEvent` rejects with that same error. Separately, a *business*-level failure (e.g. a future admin mutation that itself fails) is represented by an audit row with `result: 'failure'` persisting normally — proven by "appendAuditEvent persists a valid failure event and never transforms it to success." These are two distinct, both-tested guarantees, per `D-026`'s explicit failure-semantics split.
 
-## Failure/cache/header hardening (`AS15-F007`, `AS15-F008`)
+## Identity boundary (`D-026`)
 
-- Missing/undefined `db` → generic `503`, zero D1 call (checked before any repository function is invoked).
-- A `db` whose reads reject with a deliberately sensitive fake error (`SENSITIVE_FAKE_SQL_ERROR_MUST_NOT_LEAK: SELECT * FROM secrets`) → generic `500`; the test asserts the response body neither contains that literal string nor the word "select" in any case.
-- Every protected `/admin`/`/admin/*` response — the 401 from `worker/auth.mjs`, the static admin asset 200, and every dashboard-path response (200/404/405/500/503) — carries `Cache-Control: no-store`, enforced once at the `handleRequest` boundary rather than per-handler.
-- Dashboard JSON additionally sets `Content-Type: application/json` and `X-Content-Type-Options: nosniff`.
-- No `Access-Control-Allow-Origin` (or any other CORS) header is ever set — verified by asserting its absence.
+`actor` is validated as a bounded (≤100 char), printable-ASCII opaque string. No persistent admin/user/session/role table was created anywhere in this diff. "The audit writer refuses to persist a JWT-shaped or oversized actor value" constructs a realistic fake JWT (three base64url-ish segments joined by `.`, 200+ chars) and asserts both `validateAuditEvent` and `appendAuditEvent` reject it, with zero rows written.
 
-## UI scope (`AS15-F009`)
+## No exposure beyond the bounded writer (`AS17-F006`, `AS17-F010`)
 
-`app/admin/DashboardClient.js` is a plain `"use client"` React component using `fetch`/`useState`/`useEffect` only. It imports no `worker/d1/*`, no server repository module, no SQL, and no D1 binding — confirmed by direct inspection (no such import exists anywhere under `app/`). It renders loading/error/data states and a read-only list per domain; it contains no button, form, or handler for create/edit/save/delete/publish/unpublish/upload/theme/journal/audit actions, hidden or visible.
+- No HTTP audit-write or audit-read endpoint of any kind exists. `worker/d1/audit.mjs` is not imported by `worker/admin/dashboard.mjs`, `worker/index.mjs`, `worker/auth.mjs`, or any file under `app/`.
+- `GET /admin/api/dashboard`'s behavior is completely unchanged: `worker/admin/dashboard.mjs` was not modified. "buildDashboardPayload's output is unchanged and exposes no audit data even when audit_log has rows" seeds two audit rows (one with a distinctive `actor` value) and asserts the dashboard payload's top-level key set is exactly the same seven keys as before, and that neither the distinctive actor string nor the word "audit" appears anywhere in the serialized response.
 
 ## Test results
 
-`npm test`: **96 passed, 0 failed** — 27 `tests/content.test.mjs` (unchanged) + 30 `tests/worker-auth.test.mjs` (unchanged) + 19 `tests/d1-migration.test.mjs` (unchanged) + 20 new `tests/worker-admin-dashboard.test.mjs`.
+`npm test`: **112 passed, 0 failed** — 27 `tests/content.test.mjs` (unchanged) + 30 `tests/worker-auth.test.mjs` (unchanged) + 19 `tests/d1-migration.test.mjs` (unchanged, including "schema migration creates exactly the 14 authorized tables" still passing byte-for-byte from `applySchema()` alone) + 20 `tests/worker-admin-dashboard.test.mjs` (unchanged) + 16 new `tests/d1-audit.test.mjs`.
 
 `npm run build`: succeeded, same three routes (`/`, `/_not-found`, `/admin`) as before this increment.
 
@@ -149,23 +111,29 @@ Verified against a hand-built fixture covering all four states on `navigation` (
 
 | Command | Result |
 |---|---|
-| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `ac3c883...` before any file was touched |
-| `npm test` | 96 passed, 0 failed |
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `d96ca8a1c...` before any file was touched |
+| `node --test tests/d1-audit.test.mjs` (isolated) | 16 passed, 0 failed |
+| `npm test` (full suite) | 112 passed, 0 failed |
+| `node --test tests/d1-migration.test.mjs` (isolated re-run) | 19 passed, 0 failed — confirms the pre-existing 14-table test is untouched and still passing |
 | `npm run build` | Succeeded, unchanged routes |
-| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`); "--dry-run: exiting now."; no external Cloudflare resource created or modified |
-| `node scripts/d1-migrate.mjs` (fresh local D1 state) | 23 entities created, 0 no-op — unchanged migration behavior |
-| `npx wrangler dev --local` + `curl` (real Workers/Miniflare runtime, unauthenticated) | `GET /` → `200`; `GET /admin` → `401` + `Cache-Control: no-store`; `GET /admin/api/dashboard` → `401` + `Cache-Control: no-store`; `GET /admin/api/nope` → `401`; `POST /admin/api/dashboard` → `401` — every protected path fails closed before any route dispatch, reproduced in the actual local Workers runtime, not only the Node unit-test harness |
-| `curl http://localhost:8799/cdn-cgi/local/explorer/api/d1/database` (local `wrangler dev` introspection) | Confirmed the `DB` binding is live in the running local Worker |
-| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table' ..."` | Exactly the same 14 authorized tables as before this increment — no schema change |
-| Secret/config scan | `grep` for `process.env`, PEM/private-key markers, secret/credential/token/account-id keyword patterns across `worker/`, `app/admin/`, `tests/worker-admin-dashboard.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and deliberate `SECRET_*_SHOULD_NOT_LEAK` test-fixture placeholders used to prove non-leakage; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; `0001_web_inc_005_init.sql` → 16 commands executed successfully; `0002_web_inc_008_audit_log.sql` → 5 commands executed successfully; both recorded `✅` |
+| `npx wrangler d1 execute DB --local --command "SELECT name, type FROM sqlite_master WHERE type IN ('table','trigger') AND name NOT LIKE '_cf_%' AND name NOT LIKE 'sqlite_%' AND name != 'd1_migrations' ORDER BY type, name"` | Exactly the 14 `WEB-INC-005` tables + `audit_log` (15 tables total) + triggers `audit_log_reject_delete`/`audit_log_reject_update` |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` | `n: 15` |
+| `npx wrangler d1 execute DB --local --command "INSERT INTO audit_log (...) VALUES (...)"` | Row inserted successfully (raw-SQL positive-path confirmation) |
+| `npx wrangler d1 execute DB --local --command "UPDATE audit_log SET result='failure'"` | Rejected: `audit_log is append-only: UPDATE is not permitted: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)` |
+| `npx wrangler d1 execute DB --local --command "DELETE FROM audit_log"` | Rejected: `audit_log is append-only: DELETE is not permitted: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)` |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB` → `maisog-labs-web-inc-005-local`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `database_id`, no `remote: true`; "--dry-run: exiting now." |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, AWS-style key patterns across `migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/schema.mjs`, `worker/d1/audit.mjs`, `tests/d1-audit.test.mjs` — the only match is the deliberately-constructed fake JWT-shaped negative test fixture described above, proving rejection rather than a real credential; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty |
+| `git diff worker/d1/schema.mjs` | Confirms only additive changes — no existing export's implementation changed |
+| `git diff --stat` against every "not touched" path listed above | Empty for every path |
 
-Every command above is `--local`, non-mutating (`--dry-run`), or a pure read-only local introspection call; none used `--remote`. `wrangler.jsonc` was not modified — no `database_id`, `remote: false` unchanged.
+Every D1/Wrangler command above used `--local` explicitly or performed no resource mutation at all (`--dry-run`); none used `--remote`. `wrangler.jsonc` was not modified (`remote: false` unchanged, no `database_id`).
 
 ## Known limitations
 
-- The authenticated-success dashboard read path is proven by the deterministic Node test suite (local D1 via `getPlatformProxy({ remoteBindings: false })` and a locally-generated test JWKS/key pair), not by an authenticated `wrangler dev` HTTP round trip — no real Cloudflare Access application exists to drive one, exactly the same limitation `WEB-INC-001`'s evidence already carried.
-- The dashboard client component has not been visually verified in a browser (no browser available in this environment); its correctness is verified at the HTTP/JSON contract level via the test suite, not via UI screenshot.
-- `worker/auth.mjs`'s new `dispatch` parameter is additive and optional; no test exercises a third-party caller supplying a malformed `dispatch` function, since `worker/index.mjs` is the only production caller and always supplies a well-formed one.
+- The append-only database-level enforcement is proven against D1's local Wrangler/Miniflare SQLite simulation, both via the Node test suite and via a direct `wrangler d1 execute --local` CLI probe — not against a real Cloudflare D1 (remote) resource, which does not exist and is not authorized.
+- `appendAuditEvent`'s actor validation bounds length/character set and cannot semantically prove a caller passed a genuinely opaque server-side reference rather than some other short printable string; this is a structural defense (rejects the long, punctuation-heavy shape of a real JWT/Access assertion by construction), not a cryptographic guarantee, consistent with `D-026`'s identity-boundary scope for this increment.
+- No real admin mutation exists anywhere in this repository, so no test can (and none attempts to) prove a real action produced an audit row — only that the substrate itself accepts well-formed events and rejects malformed ones. That integration proof is `WEB-INC-003`'s acceptance criterion.
 - This evidence remains `ACTOR_REPORTED` until independently reviewed.
 
 ## Explicit confirmations
@@ -173,10 +141,15 @@ Every command above is `--local`, non-mutating (`--dry-run`), or a pure read-onl
 - **No remote Cloudflare resource was created or modified.** No `wrangler d1 create`; every D1 command is `--local` or non-mutating; `wrangler.jsonc` unchanged (`remote: false`, no `database_id`); no production Cloudflare Access configuration touched.
 - **No deployment occurred.**
 - **No public D1 cutover occurred.** `app/page.js`, `lib/content/local.mjs`, `lib/content/public.mjs`, `lib/content/schema.mjs`, `data/site.js` are byte-identical to the base commit; `npm run build` output unchanged.
-- **No D1/schema change occurred.** `migrations/0001_web_inc_005_init.sql` is byte-identical to the base commit; the table inventory is unchanged (verified via `wrangler d1 execute`).
-- **No later `WEB-INC-*` work began.** No CRUD, publish/unpublish, audit substrate, media/R2, journal, or theme/design mutation code exists anywhere in this diff.
-- **`REMOTE_D1_AUTHORIZED`, `MUTATION_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **`migrations/0001_web_inc_005_init.sql` is byte-identical to the base commit** — confirmed by `git diff --stat` returning empty for that path.
+- **`GET /admin/api/dashboard` is unchanged and exposes no audit data.** `worker/admin/dashboard.mjs` was not modified; explicitly tested with seeded `audit_log` rows present.
+- **No editorial mutation capability of any kind was added.** No create/edit/publish/unpublish/delete/upload path exists anywhere in this diff.
+- **No persistent admin/user/session/role table was created.**
+- **No HTTP audit API and no audit UI exist.**
+- **No `WEB-INC-003` or any later increment's work began.**
+- **`AUDIT_APPEND_AUTHORIZED: YES`** (for this bounded implementation only) **; `MUTATION_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`** and has not begun any next increment.
 
 ## Commit
 
-Files above are committed to `governance/maisoglabs-v0.1` (and mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`) as commit `fc962fd033df9b5409246e8052e547f4a08e0767` on top of base `ac3c883aba55e69d85b3ec38171462cae350d68a` — also recorded in `coordination/STATE.md`'s `LAST_IMPLEMENTER_HANDOFF_SHA`. A second, immediately following documentation-only commit records this exact SHA into both files (a commit cannot self-reference its own hash), consistent with the pattern established across the `WEB-INC-005` cycles.
+Implementation files above are committed to `governance/maisoglabs-v0.1` as commit `d4791b945d2853067d51f20fca11db3846a1cf1e` on top of base `d96ca8a1c6244d07185db2e225ad11741a1f4eef`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` (a commit cannot self-reference its own hash), consistent with the pattern established across every prior cycle in this engagement. Both commits are mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
