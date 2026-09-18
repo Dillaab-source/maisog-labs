@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-PRODUCT-BUILD-PACK
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: MAISOGLABS_PRODUCT_BUILD_PACK_DOCS_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: ed1220f6127e70b67cfe52ac41461cc825866df3  # NOTE: this is the base HEAD this Builder cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
-LAST_ARCHITECT_REVIEWED_SHA: ed1220f6127e70b67cfe52ac41461cc825866df3
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_IMPLEMENTER_HANDOFF_SHA: da91051b0e7c2c228748ece25859b12a33fa1009
+LAST_ARCHITECT_REVIEWED_SHA: da91051b0e7c2c228748ece25859b12a33fa1009
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -74,17 +74,23 @@ Claude may create/update only:
 - no production deployment
 - no protected/main merge
 
-## Builder completion state (this cycle)
+## Builder remediation state
 
-Documentation implementation is complete. Claude has set:
+Architect review of `da91051b0e7c2c228748ece25859b12a33fa1009` returned:
 
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `PAULO_DECISION_REQUIRED: NO`
+- `ML-DEVOS-AS-010: CHANGES_REQUESTED — REMEDIATION CYCLE 1`
 
-and stopped. See `coordination/IMPLEMENTER_HANDOFF.md` for the six-document diff, `AS10-F003`–`AS10-F012` disposition, requirement/source mapping, and pre-handoff validation results. This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it per the review rule below.
+Required findings to resolve:
+
+- `AS10-R001` — restore active Sentinel change-classification / RFC / Architect-Sync / Paulo-gate routing before future implementation;
+- `AS10-R002` — make `BUILD_PLAN.md` genuinely dependency-ordered;
+- `AS10-R003` — map every current content domain into the proposed backend migration model;
+- `AS10-R004` — use structurally truthful D1 relational media relationships;
+- `AS10-R005` — define draft/published revision coexistence semantics;
+- `AS10-R006` — clarify secure read path for the proposed read-only admin dashboard;
+- `AS10-R007` — correct source-section citations.
+
+Builder may modify only the Product Build Pack documents plus normal handoff/state files. No runtime/code/config/DevOS/brain/project-registry change is authorized.
 
 ## Architect review rule
 
@@ -119,4 +125,4 @@ Key additional constraints:
 
 ## Current gate
 
-`ARCHITECT PRODUCT BUILD PACK VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-010`
+`CLAUDE PRODUCT BUILD PACK REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-010`
