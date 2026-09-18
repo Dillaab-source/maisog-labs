@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-PRODUCT-BUILD-PACK
-TURN: CLAUDE
-STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: MAISOGLABS_PRODUCT_BUILD_PACK_DOCS_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 5670038f499965af7c8fde2e3b5b287416540c21
-LAST_ARCHITECT_REVIEWED_SHA: 5670038f499965af7c8fde2e3b5b287416540c21
+LAST_IMPLEMENTER_HANDOFF_SHA: ed1220f6127e70b67cfe52ac41461cc825866df3  # NOTE: this is the base HEAD this Builder cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
+LAST_ARCHITECT_REVIEWED_SHA: ed1220f6127e70b67cfe52ac41461cc825866df3
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
@@ -74,9 +74,9 @@ Claude may create/update only:
 - no production deployment
 - no protected/main merge
 
-## Required Builder completion state
+## Builder completion state (this cycle)
 
-When documentation implementation is complete, Claude must set:
+Documentation implementation is complete. Claude has set:
 
 - `TURN: ARCHITECT`
 - `STATUS: READY_FOR_ARCHITECT`
@@ -84,7 +84,7 @@ When documentation implementation is complete, Claude must set:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 - `PAULO_DECISION_REQUIRED: NO`
 
-and stop.
+and stopped. See `coordination/IMPLEMENTER_HANDOFF.md` for the six-document diff, `AS10-F003`–`AS10-F012` disposition, requirement/source mapping, and pre-handoff validation results. This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it per the review rule below.
 
 ## Architect review rule
 
@@ -119,4 +119,4 @@ Key additional constraints:
 
 ## Current gate
 
-`CLAUDE PRODUCT BUILD PACK DOCUMENTATION TURN — SUBJECT TO ML-DEVOS-AS-010`
+`ARCHITECT PRODUCT BUILD PACK VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-010`
