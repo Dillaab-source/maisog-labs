@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 0a3d3831e16e520c74e391512253c57e3061916a  # NOTE: this is the base HEAD this implementation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
-LAST_ARCHITECT_REVIEWED_SHA: 8dbf5c6350de153caaf5d0016989963e1be321da
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_IMPLEMENTER_HANDOFF_SHA: 210711c4d5043f495b44d1c3edf49e7105053d6b
+LAST_ARCHITECT_REVIEWED_SHA: 210711c4d5043f495b44d1c3edf49e7105053d6b
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -41,14 +41,21 @@ Paulo implementation decision:
 
 Paulo's instruction `Proceed with authorizations` has been applied to this next dependency-ordered increment only. It is not blanket authorization for later increments.
 
-## Builder objective — COMPLETE, submitted for Architect verification
+## Builder review state
 
-Implemented a minimal fail-closed server-side authentication boundary for:
+Architect review of `210711c4d5043f495b44d1c3edf49e7105053d6b` returned:
 
-- `/admin`
-- `/admin/*`
+- `ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 1`
 
-while preserving the current public website as static/asset-first and introducing no protected editorial reads or mutations. See `coordination/IMPLEMENTER_HANDOFF.md` for the exact diff, per-constraint disposition, and evidence (`ACTOR_REPORTED` until independently reproduced).
+Required remediation:
+
+- `AS12-F001` — validate required auth configuration itself fail-closed; missing/blank/placeholder/malformed team domain or audience must not weaken issuer/audience verification or trigger protected asset serving;
+- `AS12-F002` — converge stale current-state documentation with the now-real Worker/JWT implementation;
+- `AS12-F003` — pin Static Assets HTML canonicalization behavior and prove alternate admin URL forms such as `/admin.html` cannot bypass the protected path.
+
+Preserve the passing core token verification and selective Worker-first routing.
+
+No external Cloudflare mutation, D1/R2, later WEB-INC, deployment, main merge, S3, CI, or ruleset work is authorized.
 
 ## Authorized repository implementation
 
@@ -190,4 +197,4 @@ Architect must independently reproduce deterministic auth tests where practical 
 
 ## Current gate
 
-`ARCHITECT WEB-INC-001 AUTHENTICATION-BOUNDARY VERIFICATION TURN`
+`CLAUDE WEB-INC-001 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-012`
