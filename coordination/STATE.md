@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL-S2-REPOSITORY-FOUNDATION
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S2_REPOSITORY_FOUNDATION_ONLY
+CYCLE_ID: SENTINEL-S2-CLOSURE
+TURN: CLAUDE
+STATUS: AUTHORIZED_FOR_CLOSURE
+AUTHORIZED_SCOPE: SENTINEL_S2_DOCUMENTATION_CLOSURE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: c76bf6a6390581963d2ded2e5db18d96b4a346b4
 LAST_ARCHITECT_REVIEWED_SHA: c76bf6a6390581963d2ded2e5db18d96b4a346b4
 CURRENT_REMEDIATION_CYCLE: 0
@@ -19,84 +19,66 @@ MAIN_MERGE_AUTHORIZED: NO
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
 
-Active governance-capability baseline:
+Active governance-capability baseline before closure:
 - `v1.3.0`
 
-S1:
-- CLOSED
+S2 implementation:
+- Builder commit `c76bf6a6390581963d2ded2e5db18d96b4a346b4`
 
-## S2 authority chain
-
-Proposal authorization:
-- `D-015`
-
-RFC:
-- `ML-DEVOS-RFC-001`
-
-Pre-implementation Architect Sync:
-- `ML-DEVOS-AS-006`
-
-Implementation authorization:
-- `D-016`
-
-Builder implementation:
-- `c76bf6a6390581963d2ded2e5db18d96b4a346b4`
-
-Implementation Architect Sync:
+Technical review:
 - `ML-DEVOS-AS-007`
+- verdict: `SENTINEL S2 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-Architect verdict:
-- `SENTINEL S2 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
+## Paulo closure authorization
 
-## Architect comparison performed
+`D-017` authorizes documentation/static-governance S2 closure only.
 
-The Architect independently:
+Authorized closure work:
+- adopt S2 DevOS Repository Foundation into the active Sentinel baseline;
+- create the durable S2 ADR;
+- apply the `v1.3.0 → v1.4.0` MINOR transition;
+- update documentation/static-governance records marking S2 closed;
+- archive/register concluded S2 Architect Sync records where appropriate;
+- update handoff/coordination records for final Architect verification.
 
-1. pulled live branch/state;
-2. read current state and prior Architect Sync;
-3. inspected Builder commit `c76bf6a...`;
-4. compared exact diff against `D-016`, `ML-DEVOS-RFC-001`, and `ML-DEVOS-AS-006`;
-5. independently inspected changed artifacts;
-6. verified no website/runtime/S0/S1/later-phase scope violation.
+## Builder boundary
 
-See `coordination/ARCHITECT_REVIEW.md` for the full `ML-DEVOS-AS-007` review.
+Claude performs closure implementation.
 
-## Current version state
+Architect does not implement closure.
 
-Active:
-- `v1.3.0`
+After Claude handoff, Architect must pull live state/sync and compare the exact closure diff against:
+- `D-017`;
+- `ML-DEVOS-RFC-001`;
+- `ML-DEVOS-AS-006`;
+- `ML-DEVOS-AS-007`;
+- current authorized closure scope.
 
-Proposed on successful S2 closure:
-- `v1.4.0`
-
-No version transition has been applied yet.
-
-## Paulo closure decision required
-
-Paulo must explicitly decide whether to:
-
-1. adopt the S2 DevOS Repository Foundation as part of the active Sentinel baseline;
-2. authorize creation of the durable S2 ADR;
-3. apply the `v1.3.0 → v1.4.0` MINOR transition;
-4. authorize documentation/static-governance closure updates marking S2 closed.
-
-This decision does NOT authorize S3.
-
-## Explicitly prohibited while awaiting Paulo
+## Explicitly prohibited
 
 - no S3 or later phases
 - no project onboarding
-- no product `.devos/` overlay
+- no product `.devos/` overlays
 - no website migration
+- no product-source relocation
 - no runtime Policy/Task/Capability/Orchestrator/Evidence engines
 - no CI/workflows
-- no GitHub rulesets or branch protection
+- no GitHub rulesets/branch protection
 - no production deployment
 - no protected/main merge
-- no v1.4.0 activation without Paulo closure decision
+
+## Required Builder completion state
+
+When closure implementation is complete, Claude must set:
+
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
+- `PAULO_DECISION_REQUIRED: NO`
+
+and stop.
 
 ## Current gate
 
-`PAULO_DECISION_REQUIRED`
-
-S2 implementation is technically approved. Awaiting explicit Paulo closure/version decision.
+`CLAUDE CLOSURE TURN`
