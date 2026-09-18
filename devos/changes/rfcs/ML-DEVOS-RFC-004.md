@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-004: MaisogLabs WEB-INC-002 Protected Read-Only Admin Dashboard
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Proposed change class: `ARCHITECTURE`
 
