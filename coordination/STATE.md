@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-LEGACY-ARCHIVE-REMEDIATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_LEGACY_ARCHIVE_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: LEGACY_ARCHIVE_REMEDIATION_CLOSED
+AUTHORIZED_SCOPE: NONE_UNTIL_NEXT_EXPLICIT_AUTHORIZATION
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4  # NOTE: this Builder cycle's own resulting commit SHA is not yet known at write time (a commit cannot record its own hash in advance); Architect should replace this with the actual pushed HEAD SHA after inspection.
-LAST_ARCHITECT_REVIEWED_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
+LAST_IMPLEMENTER_HANDOFF_SHA: 5670038f499965af7c8fde2e3b5b287416540c21
+LAST_ARCHITECT_REVIEWED_SHA: 5670038f499965af7c8fde2e3b5b287416540c21
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
@@ -25,84 +25,58 @@ Active Sentinel governance-capability baseline:
 S2:
 - CLOSED
 
-## Authority chain
+## Legacy archive maintenance
 
 Audit authorization:
 - `D-018`
 
-Audit Architect Sync:
-- `ML-DEVOS-AS-009`
-
-Audit verdict:
-- `AUDIT COMPLETE — REMEDIATION REQUIRED`
-
 Remediation authorization:
 - `D-019`
 
-## Authorized Builder scope
+Architect Sync:
+- `ML-DEVOS-AS-009`
 
-Claude may modify only:
+Builder remediation:
+- `5670038f499965af7c8fde2e3b5b287416540c21`
 
-- `devos/changes/architect-syncs/ML-DEVOS-AS-001.md`
-- `devos/changes/architect-syncs/ML-DEVOS-AS-002.md`
-- `devos/changes/architect-syncs/ML-DEVOS-AS-004.md`
-- `devos/changes/architect-syncs/README.md`
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-- durable handoff/provenance documentation only where strictly needed to truthfully describe this remediation
+Final Architect verdict:
+- `ML-DEVOS-AS-009: ARCHITECT_APPROVED — LEGACY ARCHIVE REMEDIATION CLOSED`
 
-## Required remediation method
+Resolved findings:
+- `LAA-001`
+- `LAA-002`
+- `LAA-003`
+- `LAA-004`
 
-For each target archive:
+All eight historical fenced snapshots across AS-001, AS-002, and AS-004 were independently compared against their cited Git snapshots and confirmed byte-exact.
 
-1. retrieve the actual historical `coordination/ARCHITECT_REVIEW.md` snapshot(s) from Git;
-2. embed each historical snapshot byte-for-byte inside clearly identified fenced blocks;
-3. keep explanatory metadata/summary outside the verbatim blocks;
-4. mechanically verify each fenced block against the cited source SHA;
-5. preserve historical decisions/verdicts;
-6. preserve S0/S1/S2 architecture semantics.
+## Separate recorded future direction
 
-For `ML-DEVOS-AS-004`:
-- preserve the full multi-cycle provenance;
-- preferred method: archive all historical AS-004 review snapshots from the initial review and remediation cycles as separate byte-exact fenced snapshots.
+`D-020` records the future MaisogLabs Product Build Pack direction:
 
-## Explicitly prohibited
+- `docs/product/PRD.md`
+- `docs/product/TECHNICAL_DESIGN.md`
+- `docs/product/UI_UX_SPEC.md`
+- `docs/product/APP_FLOW.md`
+- `docs/product/DATA_BACKEND_SPEC.md`
+- `docs/product/BUILD_PLAN.md`
+
+This is planning-only. No `docs/product/*` implementation is authorized yet.
+
+## Explicitly not authorized
 
 - no S3 proposal or implementation
+- no product-build-pack implementation
 - no project onboarding
 - no project registry population
 - no product `.devos/` overlay
-- no website migration
+- no website/admin/backend implementation
 - no runtime Policy/Task/Capability/Orchestrator/Evidence engines
 - no CI/workflows
 - no GitHub rulesets/branch protection
 - no production deployment
 - no protected/main merge
-- no change to the substance of historical S0/S1/S2 decisions
-
-## Builder completion state (this cycle)
-
-Remediation is complete. Claude has set:
-
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `PAULO_DECISION_REQUIRED: NO`
-
-and stopped. See `coordination/IMPLEMENTER_HANDOFF.md` for the full method, mechanical-verification results (all 8 fenced snapshots across `ML-DEVOS-AS-001.md`/`ML-DEVOS-AS-002.md`/`ML-DEVOS-AS-004.md` confirmed `IDENTICAL` against fresh `git show <SHA>`), and per-finding disposition of `LAA-001`–`LAA-004`. This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it per the review rule below.
-
-## Architect review rule
-
-Before issuing a verdict, the Architect must:
-
-1. pull the live Sentinel branch/state;
-2. read the current Architect Sync;
-3. inspect the exact Builder handoff commit;
-4. compare the exact diff against `D-019` and `ML-DEVOS-AS-009`;
-5. independently compare the archived fenced snapshots against their cited historical Git snapshots;
-6. only then issue PASS / CHANGES_REQUESTED.
 
 ## Current gate
 
-`ARCHITECT LEGACY-ARCHIVE REMEDIATION VERIFICATION TURN`
+`AWAITING NEXT EXPLICIT PAULO AUTHORIZATION`
