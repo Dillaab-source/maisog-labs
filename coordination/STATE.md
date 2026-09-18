@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-005-D1-SUBSTRATE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_005_D1_SUBSTRATE_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 84014db2c13c170ce14fbf1a55fa17b407947d3b
-LAST_ARCHITECT_REVIEWED_SHA: eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b
-CURRENT_REMEDIATION_CYCLE: 2
+LAST_ARCHITECT_REVIEWED_SHA: 84014db2c13c170ce14fbf1a55fa17b407947d3b
+CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
@@ -104,14 +104,39 @@ Remaining narrow corrections:
 
 No runtime/data-layer reopening is authorized.
 
-## Remediation Cycle 2 disposition (Builder, awaiting Architect verification)
+## Remediation Cycle 2 Architect disposition
 
-Builder reports both findings resolved — see `coordination/IMPLEMENTER_HANDOFF.md` § "Remediation Cycle 2" for the full disposition:
+Architect review of Cycle 2 remediation commit `84014db2c13c170ce14fbf1a55fa17b407947d3b` and bookkeeping HEAD `7a8bc885af687b98b3d10c334831310cbb720d94` returned:
 
-- `AS14-F004`: `docs/product/DATA_BACKEND_SPEC.md`'s "Admin identity references" and "Authorization boundaries" sections now state the `WEB-INC-001` authentication boundary is `IMPLEMENTED` at repository level, distinguish it from the still-`NOT IMPLEMENTED` mutation/editorial authorization capability and persistent identity/session representation, acknowledge the `WEB-INC-005` local server-side D1 data-access substrate, and state that no authenticated D1 dashboard/read endpoint exists, public rendering still reads `data/site.js`, and remote/production D1 remains absent.
-- `AS14-F005`: the Remediation Cycle 1 changed-file heading is corrected from 7 to 9, with an explicit correction note; the historical 17→19 original-implementation correction is untouched.
+- `ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 3 (FINAL)`
 
-Exactly 3 files changed this cycle: `docs/product/DATA_BACKEND_SPEC.md`, `coordination/IMPLEMENTER_HANDOFF.md`, `coordination/STATE.md`. No runtime, migration, validator, test, migration-SQL, or Wrangler-config file was touched. This disposition is Builder-reported (`ACTOR_REPORTED`) and awaits independent Architect verification.
+Resolved / preserved:
+
+- `AS14-F001` — RESOLVED / preserved.
+- `AS14-F002` — RESOLVED / preserved.
+- `AS14-F003` — RESOLVED / preserved.
+- `AS14-F005` — RESOLVED: Cycle 1 exact diff now correctly records 9 paths; historical 17→19 correction preserved; Cycle 2 exact diff correctly records 3 paths.
+- `AS14-F006` through `AS14-F010` — PASS / preserved.
+
+Final remaining current-state corrections in `docs/product/DATA_BACKEND_SPEC.md`:
+
+1. Replace the blanket stale statement:
+   `Until D1/R2 exist, none of the above risk controls can be implemented...`
+
+   with precise current-state wording:
+   - local-only D1 revision-substrate and migration/integrity controls now exist;
+   - R2/media controls do not exist;
+   - remote/production D1 and public-cutover controls remain unimplemented/unverified;
+   - admin mutation/audit/media controls remain unimplemented.
+
+2. Clarify the stale migration sentence:
+   `No migration is authorized or performed by this cycle...`
+
+   Preserve the historical Product Build Pack meaning, but add current WEB-INC-005 reality:
+   - WEB-INC-005 later implemented and locally exercised the migration mechanism under RFC-003 → AS-013 → D-024;
+   - no public cutover, remote migration, or production D1 migration has occurred.
+
+No runtime/data-layer reopening is authorized.
 
 ## Builder objective
 
@@ -353,4 +378,4 @@ Architect must independently inspect migration SQL, table inventory, data-access
 
 ## Current gate
 
-`ARCHITECT REVIEW OF WEB-INC-005 REMEDIATION CYCLE 2 — VERIFY DISPOSITION OF ML-DEVOS-AS-014 FINDINGS AS14-F004 AND AS14-F005`
+`CLAUDE WEB-INC-005 REMEDIATION CYCLE 3 (FINAL) — SUBJECT TO ML-DEVOS-AS-014`
