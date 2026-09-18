@@ -4,6 +4,7 @@ Filed RFCs live here as `ML-DEVOS-RFC-<NNN>.md`, using `../../templates/RFC_TEMP
 
 ## Current contents
 
+- `ML-DEVOS-RFC-003.md` — MaisogLabs `WEB-INC-005` D1 revision-substrate/current-content migration architecture proposal. Classified `ARCHITECTURE`, approved by `ML-DEVOS-AS-013`, and implementation authorized by `D-024`. Remote D1 creation/migration, public cutover, deployment, and protected/main merge remain separately gated and are not authorized by the RFC.
 - `ML-DEVOS-RFC-002.md` — MaisogLabs `WEB-INC-001` authentication-boundary product architecture proposal. Classified `ARCHITECTURE`, reviewed and approved by `ML-DEVOS-AS-011`, and implementation authorized by `D-023`. Production Cloudflare Access configuration and deployment remain separately gated and are not authorized by the RFC.
 - `ML-DEVOS-RFC-001.md` — S2 DevOS Repository Foundation. Filed under `D-015`, reviewed by `ML-DEVOS-AS-006`, implemented under `D-016` (`c76bf6a`), and closed at Sentinel `v1.4.0` under `D-017`/`ML-DEVOS-ADR-002`. Its own text is preserved unedited as the historical proposal record; its status banner records the closure outcome, per `CHANGE_GOVERNANCE_POLICY.md` §3's rule that an accepted RFC is never itself rewritten into an ADR.
 
