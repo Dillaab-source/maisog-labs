@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-LEGACY-ARCHIVE-REMEDIATION
-TURN: CLAUDE
-STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_LEGACY_ARCHIVE_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
+LAST_IMPLEMENTER_HANDOFF_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4  # NOTE: this Builder cycle's own resulting commit SHA is not yet known at write time (a commit cannot record its own hash in advance); Architect should replace this with the actual pushed HEAD SHA after inspection.
 LAST_ARCHITECT_REVIEWED_SHA: 9b53058388cc2f869606aead8fa55f667b196cd4
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -80,9 +80,9 @@ For `ML-DEVOS-AS-004`:
 - no protected/main merge
 - no change to the substance of historical S0/S1/S2 decisions
 
-## Required Builder completion state
+## Builder completion state (this cycle)
 
-When remediation is complete, Claude must set:
+Remediation is complete. Claude has set:
 
 - `TURN: ARCHITECT`
 - `STATUS: READY_FOR_ARCHITECT`
@@ -90,7 +90,7 @@ When remediation is complete, Claude must set:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 - `PAULO_DECISION_REQUIRED: NO`
 
-and stop.
+and stopped. See `coordination/IMPLEMENTER_HANDOFF.md` for the full method, mechanical-verification results (all 8 fenced snapshots across `ML-DEVOS-AS-001.md`/`ML-DEVOS-AS-002.md`/`ML-DEVOS-AS-004.md` confirmed `IDENTICAL` against fresh `git show <SHA>`), and per-finding disposition of `LAA-001`–`LAA-004`. This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it per the review rule below.
 
 ## Architect review rule
 
@@ -105,4 +105,4 @@ Before issuing a verdict, the Architect must:
 
 ## Current gate
 
-`CLAUDE LEGACY-ARCHIVE REMEDIATION TURN`
+`ARCHITECT LEGACY-ARCHIVE REMEDIATION VERIFICATION TURN`
