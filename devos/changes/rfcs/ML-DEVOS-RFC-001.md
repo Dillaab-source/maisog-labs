@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-001 — S2 DevOS Repository Foundation
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED` — architecturally compatible; implementation still requires explicit Paulo decision
 
 Proposed change class: `ARCHITECTURE`
 
@@ -8,7 +8,10 @@ Proposed by: Architect (ChatGPT), under Paulo authorization `D-015`
 
 Target phase: `S2 — DevOS Repository Foundation`
 
-Target baseline: Sentinel governance-capability baseline `v1.3.0`
+Target baselines:
+
+- Frozen architecture baseline: `ML-DEVOS-ARCH-001 / v1.2.0`
+- Active Sentinel governance-capability baseline: `v1.3.0`
 
 ## Problem
 
@@ -48,10 +51,11 @@ with a schema under:
 
 The manifest records, at minimum:
 
-- Sentinel baseline/version identity;
+- frozen architecture baseline identity, separate from the active Sentinel capability baseline;
+- active governance-capability baseline identity and closure references;
 - repository identity;
 - canonical DevOS root;
-- source-of-truth statement;
+- source-of-truth precedence statement;
 - reserved subsystem roots;
 - owning future phase for each root;
 - implementation status for each root;
@@ -62,6 +66,30 @@ The manifest records, at minimum:
 
 The manifest is static metadata only. It is not a Task Engine, Policy Engine, Orchestrator, runtime loader, or enforcement mechanism.
 
+The manifest MUST keep the frozen architecture baseline and active capability baseline distinct. A conforming representation must express the equivalent of:
+
+```json
+{
+  "architecture_baseline": {
+    "id": "ML-DEVOS-ARCH-001",
+    "version": "1.2.0",
+    "status": "FROZEN"
+  },
+  "sentinel_capability_baseline": {
+    "version": "1.3.0",
+    "adr": "ML-DEVOS-ADR-001"
+  }
+}
+```
+
+Exact field names may vary; the semantic separation may not.
+
+Source-of-truth precedence is also mandatory:
+
+`Frozen Architecture + Active Governance Kernel + Decisions/ADRs/Durable Architect Syncs > DevOS manifest > project registry index`
+
+The manifest may summarize or reference higher-authority records; it may never redefine them.
+
 ### 2. Reserved DevOS subsystem roots
 
 Create only the directory boundaries and ownership documentation needed so later phases do not invent competing paths.
@@ -70,13 +98,13 @@ Proposed roots:
 
 ```text
 devos/
-├── contracts/       # S3 ownership
-├── state/           # S4 ownership
-├── orchestration/   # S8 ownership
-├── capabilities/    # S5 ownership
-├── evidence/        # S7/S9 ownership
-├── memory/          # S11 ownership
-└── schemas/         # shared schemas, beginning with S2 foundation schemas
+├── contracts/       # owner: S3
+├── state/           # owner: S4
+├── orchestration/   # owner: S8
+├── capabilities/    # owner: S5
+├── evidence/        # owner: S7; consumer: S9
+├── memory/          # owner: S11
+└── schemas/         # owner: S2 foundation; later phases may add schemas without redefining ownership boundaries
 ```
 
 In S2 these directories contain documentation/README boundary declarations and, where needed, static schemas only.
@@ -84,6 +112,15 @@ In S2 these directories contain documentation/README boundary declarations and, 
 They MUST NOT contain executable implementations of the later phases.
 
 A reserved directory means "this is the canonical future home," not "this subsystem exists."
+
+Each reserved root has exactly one canonical owning phase. Later phases may consume artifacts from a root but may not redefine its ownership without a separately governed architecture change.
+
+Every S2-created reserved-root README must state:
+
+- `STATUS: NOT IMPLEMENTED`;
+- canonical owning phase;
+- any known consuming phase(s);
+- that no executable subsystem exists there in S2.
 
 ### 3. Project registry foundation
 
@@ -106,6 +143,8 @@ The S2 registry is intentionally empty at activation:
 
 S2 establishes the registry shape and location only.
 
+The registry is an **index of governed-project registrations**. It is not authoritative project memory, project task state, project evidence, project requirements, project risks, project capability state, or local project governance. Once a project is actually onboarded, those sources remain in the project's own repository / `.devos/` overlay and the registry points to them rather than duplicating them.
+
 It does not onboard the current website, PUSAKAL, ClinicFlow, or any other product.
 
 A future project appears in the registry only through the active `PROJECT_ONBOARDING` process and explicit Paulo authorization.
@@ -120,16 +159,25 @@ The registry schema should support future entries containing at least:
 - onboarding decision reference;
 - onboarding ADR/reference where applicable.
 
+Future registry-entry invariants must include:
+
+- globally unique `project_id` within the registry;
+- repository locator and overlay locator/mode;
+- no `ACTIVE` project without an onboarding decision reference;
+- no implication that application source has moved into this monorepo merely because a project is registered.
+
 No actual project entry is authorized in S2.
 
 ### 4. Foundation validation
 
-S2 may add zero-dependency static validation for the two S2 JSON artifacts:
+S2 MUST add deterministic zero-dependency static validation for the two S2 JSON artifacts:
 
 - `devos/devos-manifest.json`;
 - `projects/registry.json`.
 
 Validation may prove syntax/shape/reference invariants only.
+
+For S2 closure specifically, validation MUST also prove that `projects/registry.json` remains empty. The first non-empty project entry requires a later, separately authorized `PROJECT_ONBOARDING` decision.
 
 It must not become runtime policy enforcement and must not validate or imply project onboarding that has not occurred.
 
@@ -142,6 +190,10 @@ This RFC affects only the Sentinel core repository:
 Authorized S2 implementation, if later approved, may create or modify only repository-foundation/static-governance paths needed for the S2 foundation, plus coordination/handoff records.
 
 Expected implementation paths:
+
+Top-level `projects/` remains registry/metadata/overlay material only. Future `projects/<project>/` content, if introduced, is metadata/overlay material unless a separately authorized migration explicitly says otherwise. Independent product repositories remain first-class and are not mirrored into this monorepo by S2.
+
+
 
 ```text
 devos/devos-manifest.json
@@ -289,7 +341,8 @@ Mitigation:
 Risk: new manifest/registry compete with S0/S1 architecture/governance as constitutional authority.
 
 Mitigation:
-- manifest is descriptive foundation metadata subordinate to frozen architecture and active Governance Kernel;
+- manifest is descriptive foundation metadata subordinate to frozen architecture, active Governance Kernel, decisions, ADRs, and durable Architect Syncs;
+- explicit precedence is recorded in both RFC and manifest;
 - it cannot redefine authority/rules;
 - constitutional changes still require their own class/path.
 
@@ -325,9 +378,11 @@ For S2 implementation claims:
 
 Architect must inspect the exact implementation diff and verify only authorized foundation/static-governance paths changed.
 
-### Required for static validator behavior, if validators are added
+### Required for static validator behavior
 
 Builder execution is `ACTOR_REPORTED`.
+
+Because static validation is mandatory for S2 closure, Builder must run both validators and report exact commands/results.
 
 For a claim that validators behave as intended, at least one of:
 
@@ -347,7 +402,7 @@ If Paulo later approves implementation after Architect Sync:
 1. Builder works only on an isolated S2 branch/worktree if available procedurally; no S6 isolation subsystem is implied.
 2. Add manifest/schema and project registry/schema.
 3. Add reserved roots with boundary READMEs only.
-4. Add static validators only if they remain S2 foundation validation.
+4. Add mandatory static validators for manifest and project registry; keep them limited to S2 foundation validation.
 5. Update S2 handoff/coordination records.
 6. Architect independently reviews the exact diff.
 7. If accepted, create the S2 ADR.
@@ -388,17 +443,22 @@ Not compatible with any interpretation that S2 itself may:
 S2 may be considered technically complete only if all of the following are true:
 
 1. a static DevOS foundation manifest exists and validates against its declared schema;
-2. reserved subsystem roots exist with explicit future-phase ownership and `NOT IMPLEMENTED` boundaries;
-3. project registry exists and is empty;
-4. project registry validates against its declared schema;
-5. no `.devos/` product overlay exists as a result of S2;
-6. no project is marked onboarded/active by S2;
-7. no website/application/runtime/build/deployment file is moved, deleted, renamed, or behaviorally modified;
-8. no executable Task/Policy/Capability/Orchestrator/Evidence/CI subsystem is introduced;
-9. `brain/` and `coordination/` remain live unless separately authorized;
-10. implementation diff is independently inspected;
-11. S2 ADR is written only after implementation and Architect approval;
-12. S3 remains unauthorized at S2 closure unless separately approved.
+2. the manifest separately records frozen architecture baseline `ML-DEVOS-ARCH-001 / v1.2.0` and active capability baseline `v1.3.0`;
+3. the manifest records source-of-truth precedence and cannot override higher-authority governance records;
+4. reserved subsystem roots exist with exactly one canonical owning phase, optional consuming phases, explicit `NOT IMPLEMENTED` boundaries, and no executable later-phase code;
+5. the manifest records `executable_runtime_present: false` (or an equivalent explicit invariant) for the S2 foundation;
+6. project registry exists and is empty;
+7. project registry validates against its declared schema and the validator rejects a non-empty registry during S2 closure;
+8. project registry is documented as an index only, pointing to project-owned authoritative overlays rather than duplicating project memory/state/evidence/governance;
+9. no `.devos/` product overlay exists as a result of S2;
+10. no project is marked onboarded/active by S2;
+11. no website/application/runtime/build/deployment file is moved, deleted, renamed, or behaviorally modified;
+12. no executable Task/Policy/Capability/Orchestrator/Evidence/CI subsystem is introduced;
+13. every reserved-root README is inspected for `NOT IMPLEMENTED` status and correct owner/consumer declarations;
+14. `brain/` and `coordination/` remain live unless separately authorized;
+15. implementation diff is independently inspected;
+16. S2 ADR is written only after implementation and Architect approval;
+17. S3 remains unauthorized at S2 closure unless separately approved.
 
 ## Version impact
 
