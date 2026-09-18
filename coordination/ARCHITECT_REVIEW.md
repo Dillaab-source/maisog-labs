@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION RECORDED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT
 Product / Risk Owner: Paulo
@@ -8,239 +8,184 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-011 — WEB-INC-001 Authentication Boundary Architecture Sync
+# ML-DEVOS-AS-012 — WEB-INC-001 Implementation Review
 
 Cycle: `MAISOGLABS-WEB-INC-001-AUTH`
-Reviewed proposal: `ML-DEVOS-RFC-002`
-RFC commit: `8dbf5c6350de153caaf5d0016989963e1be321da`
+Review mode: `POST-IMPLEMENTATION ARCHITECTURE / SECURITY REVIEW`
+Authority chain: `ML-DEVOS-RFC-002 → ML-DEVOS-AS-011 → D-023`
+Reviewed Builder commit: `210711c4d5043f495b44d1c3edf49e7105053d6b`
+Builder base: `0a3d3831e16e520c74e391512253c57e3061916a`
 
-Frozen architecture baseline:
-- `ML-DEVOS-ARCH-001 / v1.2.0`
+## Required review discipline performed
 
-Active Sentinel governance-capability baseline:
-- `v1.4.0`
+Before issuing this verdict, the Architect:
 
-Product specification baseline:
-- `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
+1. pulled the live governance branch and current `coordination/STATE.md`;
+2. read the current Builder handoff and the concluded `ML-DEVOS-AS-011`;
+3. independently compared `0a3d383... → 210711c...`;
+4. inspected the Worker/auth code, Wrangler configuration, admin placeholder, tests, architecture/product-tech docs, and governance traceability changes;
+5. compared the implementation against `ML-DEVOS-RFC-002`, `D-023`, and the Product Build Pack;
+6. checked current Cloudflare Workers/Access documentation and current `jose` verification semantics for the load-bearing auth assumptions;
+7. attempted independent runtime reproduction in the local review sandbox. The sandbox could not resolve GitHub for cloning and did not have `jose` preinstalled, so no independent executable-test result is claimed from this review. This limitation does not replace code/config inspection.
 
-## Classification
+## Exact Builder diff — PASS
 
-`ARCHITECTURE`
+GitHub compare `0a3d3831e16e520c74e391512253c57e3061916a → 210711c4d5043f495b44d1c3edf49e7105053d6b` reports exactly one Builder commit and 16 changed files:
 
-The classification in `ML-DEVOS-RFC-002` is correct.
+- `.gitignore`
+- `app/admin/page.js`
+- `brain/GOVERNANCE_MAP.md`
+- `brain/PROJECT_GOVERNANCE.md`
+- `brain/RISK_REGISTER.md`
+- `brain/TEST_LEDGER.md`
+- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md`
+- `docs/ARCHITECTURE.md`
+- `docs/product/TECHNICAL_DESIGN.md`
+- `package-lock.json`
+- `package.json`
+- `tests/worker-auth.test.mjs`
+- `worker/auth.mjs`
+- `worker/index.mjs`
+- `wrangler.jsonc`
 
-`WEB-INC-001` introduces:
-
-- the first server-executed request boundary into a currently asset-only website deployment;
-- a new authentication trust boundary for `/admin`;
-- a Worker script + static Assets routing model where the current repository has static assets only;
-- a reusable protected-path seam later admin capabilities will depend on.
-
-That is a product-architecture change rather than a mere local implementation detail.
-
-No Sentinel constitutional/core rule changes.
-
-## Repository-grounded compatibility review
-
-### Current deployment
-
-Repository evidence confirms:
-
-- Next.js static export;
-- `out/` deployed through Wrangler Static Assets;
-- current `wrangler.jsonc` has no Worker script entrypoint;
-- no database;
-- no server-side app dependency;
-- no authentication/session/identity-provider implementation;
-- no `/admin` route today.
-
-Therefore an authenticated `/admin` cannot be truthfully implemented as only a client-side route guard.
-
-### Existing content boundary
-
-The RFC preserves the current governed public-content chain:
-
-`data/site.js → lib/content/local.mjs → lib/content/schema.mjs → lib/content/public.mjs → app/page.js`
-
-`WEB-INC-001` does not replace it and does not introduce D1/private editorial reads.
-
-### Dependency order
-
-The Product Build Pack requires:
-
-`WEB-INC-001 → WEB-INC-005 → WEB-INC-002 → ...`
-
-The RFC respects that order.
-
-It introduces authentication only. It does not pull storage or dashboard/data behavior forward.
-
-## External architecture check
-
-Current Cloudflare documentation independently supports the key technical assumptions used by the RFC:
-
-- Cloudflare Access applications can protect specific paths rather than an entire hostname;
-- Access self-hosted applications are deny-by-default unless a user matches an Allow policy;
-- Cloudflare sends the Access application assertion in `Cf-Access-Jwt-Assertion`, and documents server-side JWT validation;
-- Workers Static Assets supports selective `assets.run_worker_first` path patterns and explicitly lists authentication checks as a use case.
-
-These external facts support technical feasibility only. They do not grant Sentinel authority.
+The implementation stays inside the authorized WEB-INC-001 repository boundary. No D1/R2, later WEB-INC, S3, CI/ruleset, deployment, or main-merge work is present.
 
 ## Findings
 
-### AS11-F001 — PASS — selective Worker-first routing preserves public static path
+### AS12-F001 — BLOCKER — auth configuration is not itself fail-closed
 
-The proposed use of:
+The token-verification path correctly uses `jose.jwtVerify()` with issuer and audience when those values exist.
 
-- `/admin`
-- `/admin/*`
+However, `worker/index.mjs` does not explicitly reject missing/blank/misconfigured `ACCESS_AUD` or `ACCESS_TEAM_DOMAIN` before constructing the verifier.
 
-as the only Worker-first paths is compatible with the current static/public deployment.
+This matters because:
 
-Binding implementation constraint:
+- Cloudflare's own current Workers example explicitly checks that the expected audience environment value exists before attempting JWT verification and rejects the request when it is missing;
+- `jose`'s audience verification option is optional. If no audience option is supplied, audience validation is not performed.
 
-- ordinary public routes/assets must remain asset-first;
-- Builder must not set global `run_worker_first: true` unless separately reviewed and authorized.
+Therefore a future configuration where the team domain is valid but `ACCESS_AUD` is absent could accept a validly signed token from the same issuer without enforcing the application-specific audience requirement. That violates `AS11-F002` / `D-023`'s fail-closed wrong-audience invariant.
 
-### AS11-F002 — PASS — fail-closed server-side JWT verification is required
+Required remediation:
 
-The RFC correctly rejects client-only authentication.
+- add explicit runtime configuration validation before protected-path auth is attempted;
+- missing, blank, placeholder, or malformed required auth configuration must fail closed and must never serve the admin asset;
+- at minimum validate both team domain and application audience;
+- invalid configuration should return a non-success response before `assets.fetch`;
+- no JWKS/network lookup should be attempted when required auth configuration is invalid;
+- add deterministic tests for missing/blank/placeholder audience and missing/blank/placeholder team domain;
+- preserve existing wrong-audience/wrong-issuer/untrusted-key tests.
 
-For protected paths, the Worker must reject requests when the Access assertion is:
+The implementation may keep the current bare-host team-domain convention or adopt Cloudflare's full-`https://...` convention, but one contract must be explicit and consistently validated.
 
-- absent;
-- malformed;
-- expired/not yet valid;
-- signed by an untrusted key;
-- issued for the wrong Access team/domain;
-- carrying the wrong application audience.
+### AS12-F002 — BLOCKER — current-state documentation contradicts the new implementation
 
-A successful token check must be required before serving the admin asset.
+Several current-state statements were not converged after WEB-INC-001.
 
-### AS11-F003 — PASS WITH CONSTRAINT — production Access configuration remains separate
+Examples:
 
-Repository implementation and production Cloudflare Access configuration are separate operations.
+`docs/product/TECHNICAL_DESIGN.md` still says, in its current-architecture/dependency sections:
 
-This authorization covers only the repository-side WEB-INC-001 implementation/test work.
+- there is no auth library;
+- the deployment is asset-only;
+- there is no server-side application dependency.
 
-It does **not** authorize:
+The same document later correctly states that WEB-INC-001 added `jose`, a Worker auth boundary, and selective Worker-first routing.
 
-- creation/modification of a production Cloudflare Access application;
-- identity-provider configuration;
-- adding an administrator identity to a real Access policy;
-- production deployment.
+Its proposed-target introduction also still says **“None of the following exists”** even though the authentication-boundary item immediately below is now marked `CURRENTLY IMPLEMENTED`.
 
-Those remain future sensitive operations requiring a concrete Decision Packet and explicit Paulo authorization.
+`brain/PROJECT_GOVERNANCE.md` likewise still describes the current deployment as asset-only and its “Current restrictions” section still contains stale Phase-1 wording saying no authentication/admin implementation is authorized, while the same file now records WEB-INC-001 as implemented.
 
-### AS11-F004 — PASS — minimal admin placeholder is acceptable
+Required remediation:
 
-A minimal static `/admin` placeholder may be added solely to prove the boundary.
+- make all current-deployment/current-dependency statements repository-truthful after WEB-INC-001;
+- distinguish “no database/persistent application state” from the now-real server-executed Worker path;
+- record `jose` as the current auth/JWT dependency;
+- remove the stale “asset-only” description where it is no longer true;
+- fix the proposed-target wording so it does not claim the already-implemented authentication boundary is nonexistent;
+- replace stale Phase-1 restriction text with the current WEB-INC-001/later-increment gate;
+- keep the no-deployment/no-main-merge restrictions unchanged.
 
-It must not become `WEB-INC-002` by scope creep.
+This is a source-of-truth/convergence defect, not runtime scope drift.
 
-No:
+### AS12-F003 — REQUIRED SECURITY EVIDENCE — prove alternate static admin URLs cannot bypass the Worker
 
-- D1;
-- private editorial data;
-- content mutation;
-- project/journal controls;
-- media upload;
-- theme controls.
+The build emits `out/admin.html`, while Worker-first routing currently names `/admin` and `/admin/*`.
 
-### AS11-F005 — REQUIRED IMPLEMENTATION EVIDENCE
+Cloudflare's current Static Assets documentation says the default `html_handling` is `auto-trailing-slash` and that requests to a file-style URL such as `/file.html` are redirected to the canonical extensionless path instead of serving the HTML directly.
 
-Before Architect approval of Builder output, Builder must provide:
+That default appears compatible with this implementation, because `/admin.html` should redirect to `/admin`, which is protected.
 
-- exact implementation commit/diff;
-- build result;
-- focused auth test results;
-- missing-token rejection;
-- malformed-token rejection;
-- wrong-audience rejection;
-- expired-token rejection;
-- valid signed test-token acceptance;
-- evidence ordinary public routes retain asset-first behavior;
-- explicit secret scan / confirmation that no production credential or admin identity was committed.
+But this redirect behavior is now part of the security boundary and Builder did not include it in the reported local smoke test.
 
-Builder evidence remains `ACTOR_REPORTED` until independently reviewed.
+Required remediation/evidence:
 
-The Architect should independently reproduce the deterministic local auth tests where practical.
+- explicitly pin `assets.html_handling` to the intended canonicalization mode rather than relying on an implicit default; and
+- add a Wrangler-runtime smoke test or equivalent evidence showing an unauthenticated request to `/admin.html` does not return the admin asset directly and ultimately lands on the protected canonical path;
+- also check the relevant `/admin/` and `/admin/index.html` canonical forms where applicable;
+- do not widen Worker routing to unrelated public paths.
 
-### AS11-F006 — REQUIRED TEST-DESIGN CONSTRAINT
+### AS12-F004 — PASS — core token verification logic is directionally correct
 
-Tests must not depend on real production Cloudflare identity configuration.
+Independent code inspection confirms:
 
-Use deterministic test keys/JWKS and test audience/issuer values.
+- the Access assertion header is read server-side;
+- protected-path asset serving occurs only after `jwtVerify()` succeeds;
+- missing/malformed/expired/not-yet-valid/wrong-audience/wrong-issuer/untrusted-key cases are covered by Builder tests;
+- ordinary non-admin requests are delegated to assets without an auth check inside the pure handler;
+- no content mutation/database access exists.
 
-Production runtime verification is impossible and must not be claimed until a separately authorized production Access application and deployment exist.
+Cloudflare's current documentation also confirms that `Cf-Access-Jwt-Assertion` is the recommended header to validate and that issuer/audience validation with `jose` is the expected pattern.
 
-### AS11-F007 — PASS — rollback remains bounded
+### AS12-F005 — PASS — selective Worker-first routing is correctly scoped
 
-Because this increment writes no content/database state, repository rollback is bounded:
+`wrangler.jsonc` uses an array rather than global `true`, and the configured Worker-first paths are limited to the admin boundary.
 
-- revert Worker/auth/admin-placeholder implementation;
-- restore the previous asset-only Wrangler contract.
+Current Cloudflare Workers documentation confirms array-based `assets.run_worker_first` is the supported mechanism for selective authentication middleware while leaving other assets asset-first.
 
-No content migration rollback is involved.
+### AS12-F006 — PASS — Builder scope boundary held
 
-## Security / trust-boundary verdict
-
-The proposed boundary is compatible with Sentinel and with the verified Product Build Pack provided all implementation constraints above are followed.
-
-Critical invariant:
-
-`NO VALID SERVER-VERIFIED ACCESS IDENTITY → NO ADMIN ASSET`
-
-Capability ≠ Authority remains intact.
-
-## Scope approved for Builder
-
-Builder may implement exactly `ML-DEVOS-RFC-002` subject to this Architect Sync.
-
-Expected allowed implementation surface:
-
-- bounded Worker/auth helper files;
-- `wrangler.jsonc`;
-- minimal `app/admin/page.js` or equivalent static placeholder;
-- `package.json` / lockfile only for dependencies actually needed;
-- focused auth tests;
-- architecture/product-tech documentation updates that describe what actually became implemented;
-- relevant risk/test/governance traceability updates;
-- normal `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`.
-
-Builder must stop if implementation requires:
-
-- D1/R2;
-- external production Cloudflare resource mutation;
-- a different identity model;
-- broader Worker-first routing;
-- new persistent admin/session storage;
-- any later `WEB-INC-*`;
-- S3;
-- CI/rulesets;
-- deployment/main merge.
-
-That would require a new classification/review decision.
-
-## Verdict
-
-`ML-DEVOS-AS-011: ARCHITECT_APPROVED — WEB-INC-001 RFC-002 COMPATIBLE FOR BOUNDED IMPLEMENTATION`
-
-Paulo's instruction `Proceed with authorizations` is treated as authorization to advance the next dependency-ordered Product Build Pack increment through its required Sentinel authorization chain. The corresponding implementation decision is recorded separately in `brain/DECISION_LOG.md`.
-
-## Deployment authority
+No production Cloudflare Access application/policy, identity-provider configuration, D1/R2 resource, deployment, or main merge was created by the Builder commit.
 
 `DEPLOY_AUTHORIZED: NO`
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Next review rule
+## Evidence disposition
 
-After Builder handoff, Architect must pull the live branch/state, inspect the exact implementation commit, compare it against:
+The exact Git diff and repository contents in this review are `INDEPENDENTLY_INSPECTED`.
 
-- `ML-DEVOS-RFC-002`;
-- this `ML-DEVOS-AS-011`;
-- the implementation decision;
-- `docs/product/BUILD_PLAN.md`;
-- current repository architecture/security constraints;
+Cloudflare/JWT behavior cited above is independently corroborated against current vendor/library documentation.
 
-and independently reproduce the deterministic auth tests where practical before issuing PASS / CHANGES_REQUESTED.
+Builder test/build/dry-run/local-Wrangler results remain `ACTOR_REPORTED` in this review because the Architect sandbox could not install/execute the repo dependencies. No `INDEPENDENTLY_REPRODUCED` execution claim is made.
+
+## Verdict
+
+`ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 1`
+
+The implementation is close and remains within the authorized increment, but the authentication boundary should not be accepted until:
+
+1. required auth configuration itself fails closed;
+2. the repository's current-state documents converge on the actual Worker/auth implementation;
+3. alternate static admin URL canonicalization is explicitly pinned/tested as part of the security boundary.
+
+## Authorized remediation scope
+
+Claude may modify only what is necessary to resolve the findings above, including:
+
+- `worker/index.mjs`;
+- `worker/auth.mjs` if helper factoring is useful;
+- `tests/worker-auth.test.mjs`;
+- `wrangler.jsonc`;
+- `docs/ARCHITECTURE.md`;
+- `docs/product/TECHNICAL_DESIGN.md`;
+- `brain/PROJECT_GOVERNANCE.md`;
+- `brain/GOVERNANCE_MAP.md`, `brain/RISK_REGISTER.md`, and `brain/TEST_LEDGER.md` only if traceability wording/evidence status needs correction;
+- normal `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`;
+- package files only if genuinely required by the remediation (no new dependency is currently expected).
+
+No external Cloudflare mutation, D1/R2, later WEB-INC work, deployment, main merge, S3, CI, or ruleset work is authorized.
+
+## Current gate
+
+`CLAUDE WEB-INC-001 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-012`
