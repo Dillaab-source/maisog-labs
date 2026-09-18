@@ -10,7 +10,7 @@ Concluding source snapshot:
 - file blob: `16260c9d44626227ec66fe6a8847963f5ddca5e1`
 
 Archive method:
-- The fenced block below reproduces the concluding `coordination/ARCHITECT_REVIEW.md` snapshot from the cited commit.
+- The fenced block below reproduces the concluding `coordination/ARCHITECT_REVIEW.md` snapshot from the cited commit byte-for-byte.
 - Explanatory metadata is outside the fenced block.
 - This durable archive is created only after `ML-DEVOS-AS-010` concluded.
 
@@ -222,4 +222,5 @@ The Product Build Pack itself is now verified; implementation remains a separate
 ## Current Architecture Sync status
 
 `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
+
 ```
