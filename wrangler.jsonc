@@ -2,8 +2,24 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "maisog-labs",
   "compatibility_date": "2026-09-11",
+  "main": "worker/index.mjs",
   "assets": {
     "directory": "./out",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // WEB-INC-001: only /admin and /admin/* are routed to the Worker for
+    // authentication. Every other request continues to be served asset-first,
+    // exactly as before this increment. Do not widen this list or set this to
+    // `true` without a separately reviewed/authorized change (ML-DEVOS-AS-011
+    // AS11-F001).
+    "run_worker_first": ["/admin", "/admin/*"]
+  },
+  // Non-secret runtime configuration only (ML-DEVOS-RFC-002 §4). No secret,
+  // private key, credential, or administrator identity is set here. Real
+  // values are configured outside tracked source before any production
+  // Access application exists; these placeholders are inert until then.
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_ACCESS_TEAM_DOMAIN",
+    "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD"
   }
 }

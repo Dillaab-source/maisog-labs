@@ -4,9 +4,11 @@
 Maisog Labs V4 is a statically exported Next.js portfolio deployed to Cloudflare. Phase 1 now includes the approved cosmic visual direction while keeping the final production logo independently replaceable.
 
 ## Runtime flow
-Visitor → Cloudflare Worker static assets → statically generated Next.js site.
+Ordinary public routes: visitor → Cloudflare Worker static assets (asset-first) → statically generated Next.js site, unchanged by `WEB-INC-001`.
 
-There is no database and no server-side application dependency in Phase 1.
+`/admin` and `/admin/*` only: visitor → Worker (`worker/index.mjs`, routed via `wrangler.jsonc`'s `assets.run_worker_first`) → server-side Cloudflare Access assertion verification (`worker/auth.mjs`, using `jose`) → on success, the same Assets binding serves the static admin placeholder; on failure, `401 Unauthorized` with no asset served. This is the only server-executed request path in the current deployment; no other route touches the Worker script.
+
+There is still no database and no persistent server-side application dependency. `WEB-INC-001` adds an authentication boundary only — no content read/write, no session storage.
 
 ## V4 foundation presentation layer
 
@@ -27,11 +29,12 @@ Future features may add:
 - MCP tools for agent integrations.
 
 ## Boundaries
-- `app/` owns routing and page composition.
+- `app/` owns routing and page composition (including the `app/admin/page.js` authentication-boundary placeholder — not a content-editing surface).
 - `components/` owns reusable presentation units.
 - `data/` owns structured editable content.
 - `public/` owns static assets.
 - `docs/` owns human/AI-maintainer documentation.
+- `worker/` owns the server-executed authentication boundary for `/admin`/`/admin/*` only (`WEB-INC-001`, `ML-DEVOS-RFC-002`). It performs no content mutation and no database access.
 
 ## Security baseline
 - Never expose provider API keys in browser code.
@@ -40,10 +43,12 @@ Future features may add:
 - Use least-privilege credentials for external services.
 
 ## Deployment contract
-The existing Wrangler asset-only Worker deployment expects:
+The Wrangler deployment expects:
 - Build command: `npm run build`
 - Output directory: `out`
 - Next.js static export enabled in `next.config.mjs`
+- Worker entrypoint: `worker/index.mjs` (`wrangler.jsonc`'s `main`), selectively routed only for `/admin` and `/admin/*` via `assets.run_worker_first` — every other route remains asset-first, exactly as before `WEB-INC-001`.
+- Non-secret runtime vars `ACCESS_TEAM_DOMAIN`/`ACCESS_AUD` are placeholders in `wrangler.jsonc`; real values are set outside tracked source and only after a separately authorized production Cloudflare Access application exists (`ML-DEVOS-RFC-002` §§3–4, `ML-DEVOS-AS-011` `AS11-F003`). No production deployment or Cloudflare Access configuration is authorized by this increment.
 
 If a future feature requires server-side rendering or dynamic routes that cannot be statically exported, document the change here before modifying deployment infrastructure.
 

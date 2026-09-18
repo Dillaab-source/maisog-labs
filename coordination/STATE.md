@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: CLAUDE
-STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 91f6901e92d49d78f711d48bfb2dd60e693ef187
+LAST_IMPLEMENTER_HANDOFF_SHA: 0a3d3831e16e520c74e391512253c57e3061916a  # NOTE: this is the base HEAD this implementation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
 LAST_ARCHITECT_REVIEWED_SHA: 8dbf5c6350de153caaf5d0016989963e1be321da
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -41,14 +41,14 @@ Paulo implementation decision:
 
 Paulo's instruction `Proceed with authorizations` has been applied to this next dependency-ordered increment only. It is not blanket authorization for later increments.
 
-## Builder objective
+## Builder objective — COMPLETE, submitted for Architect verification
 
-Implement a minimal fail-closed server-side authentication boundary for:
+Implemented a minimal fail-closed server-side authentication boundary for:
 
 - `/admin`
 - `/admin/*`
 
-while preserving the current public website as static/asset-first and introducing no protected editorial reads or mutations yet.
+while preserving the current public website as static/asset-first and introducing no protected editorial reads or mutations. See `coordination/IMPLEMENTER_HANDOFF.md` for the exact diff, per-constraint disposition, and evidence (`ACTOR_REPORTED` until independently reproduced).
 
 ## Authorized repository implementation
 
@@ -136,7 +136,7 @@ Before returning to Architect:
 11. explicit list of known limitations;
 12. explicit confirmation that no external Cloudflare resource was changed.
 
-Builder evidence is `ACTOR_REPORTED` until independently verified.
+Builder evidence is `ACTOR_REPORTED` until independently verified. All 12 items above are addressed in `coordination/IMPLEMENTER_HANDOFF.md` § "Required Builder evidence."
 
 ## Explicitly prohibited
 
@@ -190,4 +190,4 @@ Architect must independently reproduce deterministic auth tests where practical 
 
 ## Current gate
 
-`CLAUDE WEB-INC-001 AUTHENTICATION-BOUNDARY IMPLEMENTATION TURN`
+`ARCHITECT WEB-INC-001 AUTHENTICATION-BOUNDARY VERIFICATION TURN`

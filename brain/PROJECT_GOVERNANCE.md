@@ -53,10 +53,10 @@ Draft/archived content in `data/site.js` is filtered out of the public projectio
 
 ## Current admin/auth status
 
-`ADMIN STATUS: NOT IMPLEMENTED`
-`AUTHENTICATION STATUS: NOT IMPLEMENTED`
+`ADMIN STATUS: AUTHENTICATION BOUNDARY ONLY IMPLEMENTED (WEB-INC-001)`
+`AUTHENTICATION STATUS: SERVER-SIDE FAIL-CLOSED VERIFICATION IMPLEMENTED FOR /admin, /admin/* ONLY — NO SESSION/EDITORIAL/MUTATION CAPABILITY`
 
-No `/admin` route, authentication library, session/cookie/JWT logic, or identity-provider integration exists anywhere in `app/`, `components/`, `data/`, `lib/`, or `tests/` as of this baseline (verified in the Phase 0 handoff and re-checked, unchanged, for this Phase 1 cycle — see `IMPLEMENTATION_STATUS.md`).
+As of `WEB-INC-001` (`ML-DEVOS-RFC-002` → `ML-DEVOS-AS-011` → `D-023`), a Worker entrypoint (`worker/index.mjs`, `worker/auth.mjs`) fail-closed-verifies a Cloudflare Access JWT assertion for `/admin` and `/admin/*` only, gating a minimal static placeholder (`app/admin/page.js`) — see `docs/ARCHITECTURE.md` § "Runtime flow" and `docs/product/TECHNICAL_DESIGN.md` § "Public/admin boundary — current" for the exact mechanism. This is repository-implemented and locally/deterministically tested (`tests/worker-auth.test.mjs`); no production Cloudflare Access application exists yet, so this is not production-verified (`coordination/IMPLEMENTER_HANDOFF.md` evidence classes apply). No session/cookie mechanism, no editorial/private data read, no content mutation, and no database access exist anywhere in `app/`, `components/`, `data/`, `lib/`, or `worker/` — every capability beyond this authentication check remains `NOT IMPLEMENTED`.
 
 ## Current restrictions
 
