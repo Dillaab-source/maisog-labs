@@ -1,6 +1,6 @@
 # MaisogLabs App Flow
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK`
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **Remediation Cycle 2** (§2l and §3 updated to agree with `DATA_BACKEND_SPEC.md`'s `AS10-R008` publication-isolation fix)
 
 Owns states and transitions for both the public visitor experience and the (currently nonexistent) admin experience. This is the priority artifact identified by `D-020`/`D-021` alongside `DATA_BACKEND_SPEC.md`, so it is deliberately the most detailed document in this pack. Every flow below is classified `CURRENTLY IMPLEMENTED`, `PROPOSED TARGET`, or `NOT IMPLEMENTED`; nothing here invents a route, API, or runtime capability that does not exist (`AS10-F003`).
 
@@ -77,7 +77,7 @@ Authentication/session mechanism (identity provider, cookie/JWT scheme) is undec
 [PROPOSED TARGET] Admin dashboard
       ├─ Projects (list, published/draft revision state per project)
       ├─ Journal (list, published/draft revision state per entry)  [depends on journal existing at all]
-      ├─ Sections (visibility/order)                        (DESIGN-002, DESIGN-003)
+      ├─ Sections (visibility/order — draft/publish, see §2l)  (DESIGN-002, DESIGN-003)
       ├─ Design settings (theme tokens within allowed ranges) (DESIGN-001…014)
       ├─ Media library                                       (ADM-REQ-006)
       └─ Audit log (read-only)                               (WEB-SEC-009)
@@ -220,7 +220,9 @@ Server-side validation (type/size/content) — no upload is trusted client-side
 
 No upload/write API exists today; `RISK-WEB-012` ("Media upload abuse") is `NOT YET APPLICABLE` until this flow is built.
 
-### 2l. Design-setting concept — `PROPOSED TARGET`
+### 2l. Design-setting concept — `PROPOSED TARGET` (corrected, `AS10-R008`)
+
+The prior cycle's "adjust → persist → next render" flow bypassed the revision boundary — a design-setting change could reach public output without an explicit publish step, exactly the isolation gap `AS10-R008` found. The corrected flow routes through the same draft → preview → publish pattern as every other editorial content type:
 
 ```
 [PROPOSED TARGET]
@@ -230,14 +232,32 @@ Admin adjusts a design setting (DESIGN-001…014)
 Server validates the value is within the allowed/validated range for that
 setting (DESIGN-014) — arbitrary CSS/JS is never accepted
       │
-      ▼
-Setting persists (target: theme_settings, see DATA_BACKEND_SPEC.md) and is
-applied to the public render on next build/serve
+      ├─ invalid ──▶ §2g "validation failure"
+      └─ valid ──▶ write/update a row in theme_settings_revisions and point
+                   theme_settings.draft_revision_id at it (mirrors §2c/§2d;
+                   theme_settings.published_revision_id is NOT touched)
+                       │
+                       ▼
+                 Admin previews (§2e): render reflects
+                 theme_settings.draft_revision_id only, admin-session-gated
+                       │
+                       ▼
+                 Admin publishes (§2f): theme_settings.published_revision_id
+                 := draft_revision_id (atomic pointer swap), draft cleared,
+                 audit entry written (WEB-SEC-009)
+                       │
+                       ▼
+                 Public render follows theme_settings.published_revision_id
+                 only — never the draft, at any point before this step
 ```
+
+Section visibility/order (`DESIGN-002`, `DESIGN-003`) follows the identical pattern against `sections`/`section_revisions` (`DATA_BACKEND_SPEC.md` § "`sections` — brought under the same revision model"): a draft reorder or visibility toggle lives only in `section_revisions` via `sections.draft_revision_id` and cannot change the live public section layout until published.
 
 ## 3. Public published-only rendering — `CURRENTLY IMPLEMENTED`
 
 This is the one admin-adjacent guarantee that already exists and must not regress: `projectPublishedContent()` (`lib/content/public.mjs`) filters every record collection (`navigation`, `foundations`, `projects`, `services`, `process.steps`) to `state === "published"` before the page ever sees it, and requires the root document itself to be `published` or it throws. Any future admin/backend replacement of `data/site.js` must preserve this same guarantee at its own boundary (`brain/PROJECT_GOVERNANCE.md` D-007) — this is the acceptance bar for `WEB-REQ-008` and `RISK-WEB-013` going forward, not a new bar invented here. In the proposed target model (`DATA_BACKEND_SPEC.md` § "Publication / revision model"), the equivalent guarantee is: public rendering follows only each entity's `published_revision_id`, never `draft_revision_id`, and an entity with a null `published_revision_id` does not appear publicly at all — a structurally different mechanism from today's flat `state` filter, but the same guarantee it must preserve.
+
+**Publication isolation is now complete, not just content-level (`AS10-R008`):** this guarantee extends to every value that can affect what a visitor sees, not only whether a record is shown at all. Ordering (`navigation`/`foundations`/`projects`/`services`/`process_steps`/`sections`), section visibility, and media attachment order/role (`project_media`/`journal_media`, now keyed to the revision) all live inside the same published/draft revision boundary — none of them can bypass it by living on a mutable base-entity field. `DATA_BACKEND_SPEC.md` § "Public rendering invariant" states this as a binding rule: every mutable value that can affect public presentation is sourced from published revision/state only, and draft changes cannot alter public output before publish.
 
 ## Context-efficiency note
 
