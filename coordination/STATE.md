@@ -97,6 +97,26 @@ Before issuing a verdict, the Architect must:
 5. check for duplication, contradictions, hidden implementation authorization, or unsupported assumptions;
 6. only then issue PASS / CHANGES_REQUESTED.
 
+## Architect Sync overlay
+
+Current Architect Sync:
+- `ML-DEVOS-AS-010`
+
+Status:
+- `ARCHITECT_APPROVED — ACTIVE BUILD CONSTRAINTS FOR D-021`
+
+Builder must read `coordination/ARCHITECT_REVIEW.md` before authoring the Product Build Pack and satisfy `AS10-F003` through `AS10-F012`.
+
+Key additional constraints:
+- treat the Product Build Pack as project-local documentation/process, not a Sentinel architecture/version change;
+- preserve brownfield repository reality over retroactive specification;
+- keep one owner per kind of truth and reference stable requirement IDs rather than copying prose;
+- distinguish legacy website `PHASE 0..14` from Sentinel `S0..S14`;
+- use a separate product increment namespace such as `WEB-INC-*`;
+- use the live state/Decisions/ADRs for current phase status, not the frozen S0 roadmap's old status column;
+- include clarify / consistency analysis / convergence stages in the documented future workflow;
+- keep target backend/admin architecture explicitly `PROPOSED TARGET / NOT IMPLEMENTED`.
+
 ## Current gate
 
-`CLAUDE PRODUCT BUILD PACK DOCUMENTATION TURN`
+`CLAUDE PRODUCT BUILD PACK DOCUMENTATION TURN — SUBJECT TO ML-DEVOS-AS-010`
