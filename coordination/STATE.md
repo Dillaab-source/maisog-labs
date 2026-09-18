@@ -2,13 +2,13 @@
 
 CYCLE_ID: SENTINEL-S2-REPOSITORY-FOUNDATION-PROPOSAL
 TURN: ARCHITECT
-STATUS: S2_PROPOSAL_AUTHORIZED
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: SENTINEL_S2_ARCHITECTURE_PROPOSAL_ONLY
 ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
-LAST_ARCHITECT_REVIEWED_SHA: 47a86f841e4c4eb40359ca0091ca2f5146a25676
+LAST_ARCHITECT_REVIEWED_SHA: 410d1de1ebfd33eff2d1d5b33fb7baf7140d693a
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 DEPLOY_AUTHORIZED: NO
@@ -26,71 +26,59 @@ S0:
 S1:
 - CLOSED / Governance Kernel active
 
-Relevant closure records:
-- `D-013`
-- `D-014`
-- `ML-DEVOS-ADR-001`
-- `ML-DEVOS-AS-004`
-- `ML-DEVOS-AS-005`
+Current S2 proposal:
+- `ML-DEVOS-RFC-001`
+- reviewed commit `410d1de1ebfd33eff2d1d5b33fb7baf7140d693a`
 
-## New Paulo authorization
+Current Architect Sync:
+- `ML-DEVOS-AS-006`
 
-`D-015` authorizes initiation of the next Sentinel phase process:
+## Current verdict
 
-`S2 — DevOS Repository Foundation`
+`ML-DEVOS-AS-006: CHANGES_REQUESTED — RFC REFINEMENT REQUIRED BEFORE PAULO IMPLEMENTATION APPROVAL`
 
-Classification:
+S2 implementation is not authorized.
 
-`ARCHITECTURE`
+## Required RFC synchronization
 
-## Authorized scope now
+The Architect must refine `ML-DEVOS-RFC-001` before Paulo is asked for S2 implementation approval.
 
-Architect may prepare the S2 architecture proposal/RFC only.
+Required changes:
 
-The proposal must define, at minimum:
+1. separate frozen architecture baseline `ML-DEVOS-ARCH-001 / v1.2.0` from active Sentinel governance-capability baseline `v1.3.0`;
+2. define source-of-truth precedence so the manifest cannot compete with architecture/governance/decision records;
+3. define `projects/registry.json` as an index only, not project memory/state/governance;
+4. make deterministic static validation mandatory for S2 closure;
+5. require the S2 project registry to remain empty at S2 closure;
+6. assign each reserved subsystem root one canonical owning phase plus optional consuming phases;
+7. synchronize top-level `projects/` semantics with the frozen topology;
+8. make placeholder-vs-implementation boundaries explicit stage-gate acceptance checks.
 
-- exact S2 problem statement and goals;
-- monorepo foundation/topology;
-- project registry shape;
-- DevOS core directory responsibilities;
-- repository ownership/source-of-truth boundaries;
-- how existing website/runtime files are preserved;
-- whether any `.devos/` overlays are introduced in S2 or deferred;
-- migration/non-migration rules;
-- acceptance criteria;
-- evidence requirements;
-- risks and rollback/reversibility;
-- explicit non-goals;
-- relationship to S3 typed Task Contracts and later phases.
+## Preserved boundaries
 
-The S2 proposal must follow the active v1.3.0 path:
+Keep unchanged:
 
-`RFC → Architect Sync → Paulo Decision → Implementation → ADR`
-
-## Important gate
-
-S2 **implementation is not yet authorized**.
-
-After the S2 RFC is prepared and Architect-reviewed, Paulo must explicitly authorize implementation before Claude/Builder may modify repository-foundation artifacts.
-
-## Explicitly prohibited
-
-- no S2 implementation yet
-- no S3 or later phase
-- no Policy Engine runtime
-- no Task Engine runtime
-- no Orchestrator
-- no Evidence Gate runtime
-- no Capability Gateway runtime
+- no website migration
+- no project onboarding
+- no product `.devos/` overlay
+- no application/runtime move/delete/rewrite
+- no S3+ implementation
+- no Policy/Task/Evidence/Capability runtime
 - no CI/workflows
-- no GitHub rulesets or branch-protection changes
-- no website/admin implementation
-- no project migration
+- no GitHub rulesets/branch-protection changes
 - no production deployment
 - no protected/main merge
 
+## Version disposition
+
+Proposed only:
+
+`v1.3.0 → v1.4.0 MINOR`
+
+No version transition is authorized yet.
+
 ## Current gate
 
-`S2 ARCHITECTURE PROPOSAL AUTHORIZED — ARCHITECT TURN`
+`S2 RFC REFINEMENT — ARCHITECT TURN`
 
-Next action: Architect prepares the S2 RFC/Architecture Sync package for Paulo review.
+After the RFC is refined, Architect must re-review it. Only an Architect-approved RFC may be routed to Paulo for the separate S2 implementation decision.
