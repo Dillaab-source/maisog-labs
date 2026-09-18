@@ -12,185 +12,194 @@ Working branch: `governance/maisoglabs-v0.1`
 
 Cycle: `SENTINEL-S2-CLOSURE`
 Review mode: `FINAL CLOSURE VERIFICATION / SENTINEL ARCHITECTURE SYNC`
-Reviewed Builder closure commit: `661283e9ce1f548a4e9494b51fc7021d63268a91`
-Closure base: `7b83ef0cd221eff800440923a601500b28d22c80`
+Reviewed remediation commit: `af05f0d913ccad8971458f0a479250f79d7d94bd`
+Remediation base: `3e4751850a133838d9ee8758f52212c31aeb2b79`
+Original closure candidate: `661283e9ce1f548a4e9494b51fc7021d63268a91`
 
 Authority chain reviewed:
 
-`D-015 → ML-DEVOS-RFC-001 → ML-DEVOS-AS-006 → D-016 → c76bf6a → ML-DEVOS-AS-007 → D-017 → 661283e`
+`D-015 → ML-DEVOS-RFC-001 → ML-DEVOS-AS-006 → D-016 → c76bf6a → ML-DEVOS-AS-007 → D-017 → 661283e → ML-DEVOS-AS-008 → af05f0d`
 
 ## Required review discipline performed
 
-Before issuing this verdict, the Architect:
+Before issuing this re-review verdict, the Architect:
 
 1. pulled the live Sentinel branch/state;
-2. read the current `coordination/STATE.md`;
-3. read the current Architect Sync and `D-017`;
-4. compared `7b83ef0...` → `661283e...` directly;
-5. independently inspected the closure artifacts rather than relying on Claude's summary;
-6. compared the closure output against `D-017`, `ML-DEVOS-RFC-001`, `ML-DEVOS-AS-006`, and `ML-DEVOS-AS-007`;
-7. checked the claimed durable-sync archival against the actual historical Git snapshots.
+2. read the current `coordination/STATE.md`, `coordination/IMPLEMENTER_HANDOFF.md`, and this live Architect Sync;
+3. compared the exact Builder remediation commit `3e47518...` → `af05f0d...`;
+4. independently inspected both rebuilt durable Architect Sync archives;
+5. independently compared their fenced historical content against the cited historical Git snapshots;
+6. independently inspected both validator files and compared their executable structure against the pre-remediation versions;
+7. checked the Builder's own diff-count/evidence claims against GitHub compare results.
 
-## Diff scope
+## Exact remediation diff
 
-GitHub compare reports exactly one Builder closure commit and 14 changed files:
+GitHub compare `3e475185...` → `af05f0d913...` reports:
 
-- 3 new closure records;
-- 11 modified documentation/static-governance records;
-- no deletions.
+- exactly **1 Builder commit**;
+- exactly **8 changed files**;
+- all 8 are within the authorized remediation scope.
 
-No website/application/runtime/build/deployment file changed.
+Changed files:
 
-No frozen S0 architecture file changed.
+1. `coordination/IMPLEMENTER_HANDOFF.md`
+2. `coordination/STATE.md`
+3. `devos/changes/architect-syncs/ML-DEVOS-AS-006.md`
+4. `devos/changes/architect-syncs/ML-DEVOS-AS-007.md`
+5. `devos/changes/architect-syncs/README.md`
+6. `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`
+7. `devos/schemas/validate-devos-manifest.mjs`
+8. `devos/schemas/validate-project-registry.mjs`
 
-No S3+ runtime or implementation was introduced.
-
-The project registry remains empty.
-
-`DEPLOY_AUTHORIZED` and `MAIN_MERGE_AUTHORIZED` remain `NO`.
+No S3/runtime/website/project-registry/deployment path changed.
 
 ## Finding disposition
 
-### S2-C001 — PASS — D-017 closure scope
+### S2-C001 — PASS
 
-The closure commit is limited to documentation/static-governance work authorized by `D-017`:
+No change. D-017 closure scope remains respected.
 
-- S2 ADR creation;
-- v1.3.0 → v1.4.0 baseline/version records;
-- RFC/ADR/versioning/manifest closure records;
-- durable Architect Sync archival;
-- handoff/state updates.
+### S2-C002 — PASS
 
-No S3 or prohibited operational work is present.
+No change. ADR-002 and the authorized v1.4.0 transition remain coherent.
 
-### S2-C002 — PASS — ADR-002 and version transition
+### S2-C003 — PASS
 
-`ML-DEVOS-ADR-002` correctly records:
+No change. Manifest/version closure structure remains coherent.
 
-- adoption of the S2 DevOS Repository Foundation;
-- the `v1.3.0 → v1.4.0` MINOR transition;
-- the implementation commit `c76bf6a...`;
-- `ML-DEVOS-AS-006` / `ML-DEVOS-AS-007`;
-- Paulo closure decision `D-017`;
-- explicit non-authorization of S3 and later operational work.
+### S2-C004 — PASS
 
-The frozen S0 architecture remains `ML-DEVOS-ARCH-001 / v1.2.0`.
+No change. S2 implementation and non-destructive product boundary remain preserved.
 
-### S2-C003 — PASS — manifest/version closure structure
+### S2-C005 — RESOLVED — durable Architect Sync archival provenance
 
-`devos/devos-manifest.json` now records:
+The rebuilt archives now contain the actual historical Architect Review snapshots inside fenced blocks.
 
-- frozen architecture baseline `v1.2.0`;
-- active Sentinel governance-capability baseline `v1.4.0`;
-- `ML-DEVOS-ADR-002`;
-- `D-017`;
-- an append-only S2 `closure_history` entry.
+Independent Architect comparison confirms:
 
-No fabricated S1 manifest-history entry was added; S1 remains durably recorded in `D-013` / `ML-DEVOS-ADR-001`.
+- `ML-DEVOS-AS-006.md` Part 1 fenced content is byte-for-byte equal to `coordination/ARCHITECT_REVIEW.md` at `b613c62...`;
+- `ML-DEVOS-AS-006.md` Part 2 fenced content is byte-for-byte equal to `coordination/ARCHITECT_REVIEW.md` at `f6ee953...`;
+- `ML-DEVOS-AS-007.md` fenced content is byte-for-byte equal to `coordination/ARCHITECT_REVIEW.md` at `69ba513...`.
 
-### S2-C004 — PASS — implementation preservation and non-destructive boundary
+The prior false "verbatim" provenance claim is therefore corrected for AS-006/AS-007.
 
-The closure diff does not modify the reserved-root READMEs, the project registry, the project-registry schema/validator, website/runtime files, frozen S0 architecture, or core rules.
+### S2-C006 — RESOLVED — standing registry-emptiness invariant
 
-S3 remains unstarted.
+The live validators no longer use "during S2" as the operative registry-emptiness rule.
 
-### S2-C005 — BLOCKER — durable Architect Sync archives falsely claim verbatim preservation
+Both now use the standing guard:
 
-The new durable archives claim they are copied **verbatim** from the historical live `coordination/ARCHITECT_REVIEW.md` snapshots.
+`REGISTRY_MUST_BE_EMPTY_UNTIL_ONBOARDING`
 
-Independent comparison shows this claim is false.
+and express the rule as:
 
-For `ML-DEVOS-AS-007`:
+`projects/registry.json remains empty until a separately authorized PROJECT_ONBOARDING decision permits population.`
 
-- historical final Architect Review at commit `69ba513...`: 8,105 characters;
-- archived `ML-DEVOS-AS-007.md`: 7,844 characters;
-- exact equality: **false**;
-- archive contains the full historical snapshot verbatim: **false**.
+Occurrences of the old constant name remain only in explanatory comments documenting the rename; they are not active identifiers or operative semantics.
 
-For `ML-DEVOS-AS-006`:
+The Architect compared the pre/post validator executable structure after normalizing the constant rename and user-facing message strings. The structural logic is unchanged:
 
-- the archive does not contain the full initial `b613c62...` snapshot verbatim;
-- the archive does not contain the full final `f6ee953...` snapshot verbatim.
+- manifest validator: structurally equivalent;
+- project-registry validator: structurally equivalent;
+- manifest EMPTY guard remains present;
+- registry non-empty guard remains present.
 
-The archives appear materially faithful summaries, but their metadata explicitly says "copied verbatim, not paraphrased." That provenance claim cannot remain false in a durable governance record.
+Claude's reported execution of synthetic fixtures remains `ACTOR_REPORTED`; the Architect does not relabel those runs as independently reproduced.
 
-**Required remediation:** choose one truthful model and apply it consistently:
+### S2-C007 — PASS
 
-A. archive the actual historical Architect Review snapshot(s) verbatim from Git, preserving their exact text and identifying the source SHA; or
+Evidence provenance remains honest for validator execution claims.
 
-B. explicitly label the files as faithful summaries/extracts, remove every "verbatim" claim, and make clear that the immutable original remains the cited historical Git snapshot.
+### S2-C008 — REQUIRED — remediation diff bookkeeping is false
 
-Architect preference: **A**, because the change-governance policy describes the durable Architect Sync archive as the long-term repository history after the rolling coordination file is overwritten.
+The substantive remediation is correct, but the Builder handoff/state contain incorrect Git evidence claims.
 
-### S2-C006 — BLOCKER — validator semantics remain stale after S2 closure
+The repository currently says:
 
-Claude's narrated output said the "during S2" wording was corrected so the empty-registry invariant would truthfully persist until an authorized project onboarding.
+> `git diff --name-status 661283e..HEAD` — exactly 7 files
 
-The repository does not reflect that correction.
+and also says:
 
-Independent inspection shows:
+> Diff against Architect handoff base `661283e`: 7 files
 
-- `validate-project-registry.mjs` still contains "during S2" twice;
-- `validate-devos-manifest.mjs` still contains "during S2";
-- both still use `S2_CLOSURE_REQUIRES_EMPTY_REGISTRY`;
-- the registry validator still prints: "Registry is empty, as required during S2."
+These claims are false.
 
-Now that the same closure commit declares S2 closed at `v1.4.0`, this wording is stale and temporally misleading.
+Independent GitHub compare establishes two different facts that must not be conflated:
 
-The actual intended invariant is stronger and clearer:
+**Builder-authored remediation diff**
 
-`projects/registry.json remains empty until a separately authorized PROJECT_ONBOARDING decision changes that state.`
+`3e4751850a133838d9ee8758f52212c31aeb2b79 → af05f0d913ccad8971458f0a479250f79d7d94bd`
+
+- 1 commit;
+- 8 changed files.
+
+**Full history from the original closure candidate**
+
+`661283e9ce1f548a4e9494b51fc7021d63268a91 → af05f0d913ccad8971458f0a479250f79d7d94bd`
+
+- 3 commits;
+- 9 changed files;
+- includes the Architect-owned `coordination/ARCHITECT_REVIEW.md` change in addition to the Builder remediation files.
+
+The current handoff even enumerates eight Builder-touched paths while labeling them "exactly 7 files."
+
+This is bookkeeping, not a substantive S2 architecture defect, but Sentinel's evidence discipline requires repository claims about exact diffs to be accurate.
 
 **Required remediation:**
 
-- update both validators' comments/messages/constant naming to express the standing pre-onboarding invariant rather than an "S2 is active" invariant;
-- preserve the same fail-closed behavior;
-- do not add any onboarding entry or runtime toggle;
-- update the closure handoff text if needed so its claims match the actual repository.
+- correct `coordination/IMPLEMENTER_HANDOFF.md`;
+- correct `coordination/STATE.md`;
+- correct `devos/handoffs/ML-DEVOS-S2-HANDOFF.md` wherever it uses `661283e..HEAD` as proof that only Builder-authored files changed;
+- use the actual Builder base `3e475185...` for the Builder-authored remediation diff;
+- if the full `661283e... → af05f0d...` history is mentioned, state 3 commits / 9 files and explain that the extra path is the Architect review/state routing history;
+- do not modify the already-correct S2-C005/S2-C006 implementation.
 
-This is documentation/static-validation truthfulness remediation only; it does not authorize project onboarding.
+### Legacy archive disclosure — NON-BLOCKING FOR THIS S2 CLOSURE
 
-### S2-C007 — PASS — evidence provenance remains honest
+The Builder disclosed that older durable archives `ML-DEVOS-AS-001`, `AS-002`, and `AS-004` may use similar "verbatim" language.
 
-Claude's validator executions remain `ACTOR_REPORTED`.
+This review does not decide whether those older records are defective because they are outside the authorized S2 closure-remediation scope.
 
-The Architect independently inspected the changed files and exact Git diff.
-
-No `INDEPENDENTLY_REPRODUCED`, `CI_ATTESTED`, or `RUNTIME_OBSERVED` claim is made.
+They should be handled as a separate governance-maintenance audit after S2 closure, not silently modified in this cycle.
 
 ## Verdict
 
-`SENTINEL S2 CLOSURE: CHANGES_REQUESTED`
+`SENTINEL S2 CLOSURE: CHANGES_REQUESTED — REMEDIATION CYCLE 2`
 
-The S2 implementation itself remains technically approved.
+Substantive closure architecture is conforming.
 
-The `D-017` version/closure authorization is not revoked.
+`S2-C005` and `S2-C006` are resolved.
 
-However, the closure package at `661283e...` is **not yet final-verifiable** because two repository-truth/provenance defects remain:
+Only the exact-diff/evidence bookkeeping defect `S2-C008` remains.
 
-1. durable Architect Sync archives falsely claim verbatim preservation;
-2. validator wording still describes an active-S2 condition after S2 has been closed.
+No rollback is requested.
 
-No rollback of the S2 implementation is requested.
+No new Paulo decision is required.
 
 No S3 work is authorized.
 
-## Authorized remediation scope
+## Authorized remediation scope — cycle 2
 
-Claude may modify only the files needed to resolve `S2-C005` and `S2-C006`, plus normal handoff/state records.
+Claude may modify only:
 
-Expected paths are limited to:
-
-- `devos/changes/architect-syncs/ML-DEVOS-AS-006.md`;
-- `devos/changes/architect-syncs/ML-DEVOS-AS-007.md`;
-- `devos/schemas/validate-devos-manifest.mjs`;
-- `devos/schemas/validate-project-registry.mjs`;
-- closure handoff/index documentation only where needed for truthfulness;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+- `coordination/STATE.md`;
+- `devos/handoffs/ML-DEVOS-S2-HANDOFF.md`;
 
-Do not modify implementation topology, project registry contents, website/runtime files, core rules, deployment state, or begin S3.
+and only to correct the exact-diff/evidence bookkeeping described in `S2-C008`.
+
+Do not modify:
+
+- AS-006/AS-007 archives;
+- validators;
+- ADR-002;
+- manifest/versioning records;
+- project registry;
+- S2 implementation topology;
+- website/runtime files;
+- D-017;
+- any S3+ artifact.
 
 ## Current Architecture Sync status
 
-`ML-DEVOS-AS-008: CHANGES_REQUESTED — S2 CLOSURE REMEDIATION CYCLE 1`
+`ML-DEVOS-AS-008: CHANGES_REQUESTED — S2 CLOSURE REMEDIATION CYCLE 2`
