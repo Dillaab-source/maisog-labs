@@ -8,14 +8,14 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-014 — WEB-INC-005 Implementation Review
+# ML-DEVOS-AS-014 — WEB-INC-005 Remediation Cycle 1 Verification
 
 Cycle: `MAISOGLABS-WEB-INC-005-D1-SUBSTRATE`
-Review mode: `POST-IMPLEMENTATION ARCHITECTURE / DATA-INTEGRITY / SOURCE-OF-TRUTH REVIEW`
-Authority chain: `ML-DEVOS-RFC-003 → ML-DEVOS-AS-013 → D-024`
-Reviewed Builder implementation commit: `e0304a89ddfb5595866f1990cd9fca161e78ae2b`
-Builder implementation base: `7122c9d9887e5801a9c3ec03285db7273f1529c8`
-Builder handoff-metadata HEAD: `4e5d631f88cadb7166c73efb8dec9481f3bde219`
+Review mode: `POST-REMEDIATION ARCHITECTURE / DATA-INTEGRITY / SOURCE-OF-TRUTH REVIEW`
+Authority chain: `ML-DEVOS-RFC-003 → ML-DEVOS-AS-013 → D-024 → ML-DEVOS-AS-014`
+Reviewed remediation commit: `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b`
+Remediation base: `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2`
+Builder handoff-metadata HEAD: `d6204805da837fac02c3e5412b37296309d8e339`
 
 Frozen architecture baseline:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -27,309 +27,262 @@ Product baseline:
 - `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
 - `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
 
-## Required review discipline performed
+## Review discipline performed
 
 Before issuing this verdict, the Architect:
 
 1. pulled the live governance branch and current `coordination/STATE.md`;
-2. confirmed the live branch is at Builder metadata commit `4e5d631...`, with implementation commit `e0304a8...` immediately below it;
-3. read the live Builder handoff and current state;
+2. confirmed live HEAD `d620480...` and Builder remediation commit `eb15913...`;
+3. read the current Builder handoff and prior `ML-DEVOS-AS-014` findings;
 4. independently compared:
-   - `7122c9d... → e0304a8...` for the implementation commit;
-   - `e0304a8... → 4e5d631...` for the handoff-SHA bookkeeping commit;
-   - `7122c9d... → 4e5d631...` for the complete Builder handoff sequence;
-5. inspected the D1 migration SQL, schema loader, validation layer, migration/seed logic, repository/read layer, local CLI, tests, Wrangler configuration, and the modified current-state documentation;
-6. compared the implementation against `ML-DEVOS-RFC-003`, `ML-DEVOS-AS-013`, `D-024`, D-007, and the verified Product Build Pack;
-7. attempted independent executable reproduction in the Architect sandbox. GitHub DNS resolution is unavailable in that sandbox, so the repository could not be cloned and the Builder's npm/Wrangler execution could not be independently rerun. No `INDEPENDENTLY_REPRODUCED` execution claim is made.
+   - `cd2b854... → eb15913...` for Remediation Cycle 1;
+   - `eb15913... → d620480...` for SHA-bookkeeping metadata;
+   - `cd2b854... → d620480...` for the complete remediation sequence;
+5. inspected the remediated migration planner/write phase, validator predicates, regression tests, current-state docs, test ledger, handoff, and state;
+6. rechecked the preserved-pass boundaries against `ML-DEVOS-RFC-003`, `ML-DEVOS-AS-013`, and `D-024`;
+7. checked current Cloudflare D1 documentation for the transaction semantics relied upon by the single-`db.batch()` write phase;
+8. performed a repository-wide wording sweep within the remediated current-state documents for remaining stale authentication/storage claims.
 
-## Exact Builder diff
+## Exact Remediation Cycle 1 diff
 
-### Implementation commit
+GitHub compare `cd2b854ffe5d2e5edbdc72bd383d5ba636b99ae2 → eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b` reports:
 
-GitHub compare `7122c9d9887e5801a9c3ec03285db7273f1529c8 → e0304a89ddfb5595866f1990cd9fca161e78ae2b` reports:
+- exactly **1 remediation implementation commit**;
+- exactly **9 changed paths**:
+  - `brain/IMPLEMENTATION_STATUS.md`
+  - `brain/TEST_LEDGER.md`
+  - `coordination/IMPLEMENTER_HANDOFF.md`
+  - `coordination/STATE.md`
+  - `docs/product/DATA_BACKEND_SPEC.md`
+  - `docs/product/PRD.md`
+  - `tests/d1-migration.test.mjs`
+  - `worker/d1/migrate.mjs`
+  - `worker/d1/validate.mjs`
 
-- exactly **1 implementation commit**;
-- exactly **19 changed files**.
+GitHub compare `eb159131e4712ede9e2cd8c385d3a9efeb1b0d9b → d6204805da837fac02c3e5412b37296309d8e339` reports:
 
-### Metadata commit
-
-GitHub compare `e0304a89ddfb5595866f1990cd9fca161e78ae2b → 4e5d631f88cadb7166c73efb8dec9481f3bde219` reports:
-
-- exactly **1 documentation-only bookkeeping commit**;
-- exactly **2 changed files**:
+- exactly **1 bookkeeping commit**;
+- exactly **2 changed paths**:
   - `coordination/IMPLEMENTER_HANDOFF.md`
   - `coordination/STATE.md`
 
-The full base-to-live-HEAD sequence remains the same **19 changed paths**, across 2 commits.
-
-No public application route, legacy public content source, WEB-INC-001 auth code, package dependency, later WEB-INC implementation, deployment, or protected/main merge changed.
+No public app/content-path file, WEB-INC-001 auth file, Wrangler D1 configuration, migration DDL, package dependency, remote Cloudflare resource, later WEB-INC implementation, deployment, or main merge changed in this remediation.
 
 ## Finding dispositions
 
-### AS14-F001 — BLOCKER — migration is atomic only per entity, not per migration run
+### AS14-F001 — RESOLVED
 
-`worker/d1/migrate.mjs` correctly uses one `db.batch()` for each newly created entity + revision + pointer.
+The remediation now uses a full read-only preflight over the entire migration target before executing any write.
 
-However, `migrateCurrentContent()` processes the document entity-by-entity and performs a separate committed batch for each entity.
+If any entity resolves to `refuse`, `migrateCurrentContent()` throws before the write phase.
 
-That means a failure discovered later in the migration can leave earlier entities written.
+If all plans resolve to `create` or `noop`, every create statement across the migration is flattened into one `db.batch()` call.
 
-This violates the binding `AS13-F009` requirement that the migration must not partially apply before reporting failure.
+The late-conflict regression test deliberately pre-creates a conflicting `process_steps` entity after earlier collections would otherwise have succeeded, then proves all authorized tables are byte/row-equivalent before and after the refused run.
 
-The current test titled:
+Cloudflare D1 documents `batch()` as transactional: if one statement in the sequence fails, the entire sequence is aborted/rolled back. This supports the all-or-nothing write-phase design the remediation now uses.
 
-> “migration refuses to overwrite an entity whose stored content differs from the intended target, with no partial write”
+The Builder's test execution remains `ACTOR_REPORTED`; the Architect independently inspected the code/test design and the current D1 transaction contract.
 
-does not prove whole-run atomicity. It changes `site.tagline`, and `site_settings` is the **first** entity checked, so the failure occurs before the migration has a chance to write any earlier entity.
+### AS14-F002 — RESOLVED
 
-Required remediation:
-
-- make the complete migration run side-effect bounded as one logical operation;
-- acceptable designs include:
-  - full preflight of every entity and pointer/invariant before the first write, followed by a transactional/batched write phase; or
-  - one all-or-nothing D1 transaction/batch for the complete set of writes;
-- add a negative test where the conflict is deliberately **late** in the sequence (for example, a conflicting project/service after earlier entities are absent) and prove the entire database is byte/row-equivalent before vs. after the failed migration;
-- a failed run must not leave newly created site settings/navigation/foundations/etc. behind.
-
-### AS14-F002 — BLOCKER — deterministic no-op accepts the wrong same-entity revision pointer
-
-For an existing entity, `upsertEntity()` currently checks publication state with:
-
-`Boolean(existingEntity.published_revision_id) === intendedPublished`
-
-and:
-
-`Boolean(existingEntity.draft_revision_id) === intendedDraft`.
-
-This checks only whether a pointer is non-null.
-
-It does **not** prove the pointer targets revision 1 — the exact revision that the fixed migration snapshot created and compared.
-
-Therefore an entity can have:
-
-- revision 1 matching the seed;
-- a second revision present;
-- `published_revision_id` or `draft_revision_id` pointing at revision 2;
-
-and the migration can incorrectly report `noop` merely because the pointer is truthy.
-
-That violates the AS13-F009 requirement that the repeat run must not silently accept corrupted pointers.
-
-Required remediation:
-
-- compare pointer identity, not pointer truthiness;
-- for the fixed migration snapshot, the expected pointer must equal the exact matching revision-1 ID for published/draft records;
-- archived records must have both pointers exactly null;
-- the no-op equivalence check should also include immutable migration provenance/creation metadata that the migration promises to preserve (`created_at` / `created_by`) rather than treating altered provenance as equivalent;
-- add a test that deliberately points an entity at a second same-entity revision and proves rerun refuses rather than returning `noop`;
-- add a provenance-corruption test or equivalent exact-equivalence assertion.
-
-### AS14-F003 — REQUIRED — D1 validator does not fully preserve the current content contract
-
-`worker/d1/validate.mjs` says its predicates intentionally mirror the current `lib/content/schema.mjs` rules, but several material constraints differ.
-
-Independent comparison found at least:
-
-1. **Order range**
-   - legacy: safe integer `0..10000`;
-   - D1 validator: safe integer `>= 0` with no upper bound.
-
-2. **Icon enum**
-   - legacy: one of `foundation, experience, systems, security, automation, lab, contact, arrow`;
-   - D1 foundation/project/process-step validators: arbitrary non-empty text up to 40 chars.
-
-3. **updatedAt calendar validity**
-   - legacy requires `new Date(value).toISOString().slice(0,10) === value`;
-   - D1 validator only checks regex + finite `Date.parse`, which permits normalized impossible dates such as `2026-02-30`.
-
-4. **Project stack capacity**
-   - legacy array validation allows up to 100 entries;
-   - D1 validator silently narrows this to 20.
-
-The live source is still protected by `validateContent(source)`, so the current migration happens to receive legacy-valid input. But WEB-INC-005 is creating the successor data/validation substrate, and RFC-003 explicitly forbids silently weakening or narrowing the current content contract.
-
-Required remediation:
-
-- align the D1 validation predicates with the exact current contract unless an explicit architecture/product decision changes a constraint;
-- preserve the legacy order maximum;
-- preserve the icon enum;
-- preserve exact date validity;
-- do not silently reduce stack capacity;
-- add focused tests that prove the D1 validator and the current contract agree on these boundary cases.
-
-### AS14-F004 — REQUIRED — current-state documentation is internally contradictory after Builder changes
-
-Several files modified in WEB-INC-005 are current-state surfaces but still contain pre-WEB-INC-001 / pre-WEB-INC-005 claims.
-
-Examples:
-
-#### `brain/IMPLEMENTATION_STATUS.md`
-
-Still says:
-
-- `Admin portal (/admin) | NOT STARTED | No route under app/`
-- `Authentication | NOT STARTED | No auth library...`
-- explicit non-claim: no admin/authentication implementation
-
-Those are false after the accepted WEB-INC-001 repository implementation.
-
-The accurate state is:
-
-- auth-only `/admin` placeholder exists;
-- server-side JWT authentication boundary exists;
-- no admin content-edit/mutation dashboard exists.
-
-#### `docs/product/PRD.md`
-
-The current-vs-target table still says:
-
-- `Admin surface | NOT IMPLEMENTED`
-- `Authentication | NOT IMPLEMENTED`
-
-and the requirements narrative still describes all `ADM-REQ-*` / `WEB-SEC-*` as not started.
-
-That contradicts the accepted WEB-INC-001 state.
-
-#### `docs/product/DATA_BACKEND_SPEC.md`
-
-Its `Current storage model — CURRENTLY IMPLEMENTED` section still says:
-
-> “There is no database, no D1... today”
-
-while the same repository now contains a local-only D1 revision substrate.
-
-The correct distinction is:
-
-- **actual public source/read path:** still Git-backed `data/site.js`;
-- **repository/local persistence substrate:** D1 now exists locally under WEB-INC-005;
-- **remote/production D1:** does not exist.
-
-Required remediation:
-
-- converge these current-state surfaces on that three-way distinction;
-- do not overclaim a full admin portal or production D1;
-- keep the accepted auth-only boundary explicit;
-- keep public source-of-truth/cutover status explicit.
-
-### AS14-F005 — REQUIRED — Builder handoff exact-diff provenance is wrong
-
-The handoff says:
-
-> `Exact changed-file list — 17 files`
-
-The exact Git compare of the implementation commit shows **19 changed files**.
-
-The handoff listed 17 substantive code/config/doc paths but omitted the two coordination files that are in the implementation commit:
-
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-
-The immediately following bookkeeping commit modifies those same two files again to record `e0304a8...`.
-
-Required remediation:
-
-- correct the implementation diff count to **19 changed paths**;
-- distinguish **17 substantive implementation/config/documentation paths + 2 coordination paths** if useful;
-- record the two-commit handoff sequence truthfully:
-  - implementation: `e0304a8...`
-  - SHA-bookkeeping metadata: `4e5d631...`;
-- retain evidence-class separation:
-  - Builder claims = `ACTOR_REPORTED`;
-  - Architect exact Git compare = `INDEPENDENTLY_INSPECTED`.
-
-## Findings that pass / should be preserved
-
-### AS14-F006 — PASS — table ownership
-
-The migration SQL defines exactly the 14 authorized WEB-INC-005 product tables. No `audit_log`, media, journal, theme, or admin-identity/session table was introduced.
-
-### AS14-F007 — PASS — staged public path
-
-`data/site.js`, `lib/content/local.mjs`, `lib/content/public.mjs`, `lib/content/schema.mjs`, and `app/page.js` remain outside the Builder implementation diff.
-
-The public site has not been cut over to D1.
-
-### AS14-F008 — PASS — cross-entity pointer architecture
-
-The composite foreign-key design is structurally appropriate for preventing a base entity pointer from targeting another entity's revision, and a negative test exists for that case.
-
-This does not resolve AS14-F002, which concerns the **wrong revision of the same entity**.
-
-### AS14-F009 — PASS — server-only boundary
-
-The D1 repository layer is not wired into `worker/index.mjs`, `app/`, or a browser/client path in this increment.
-
-No dashboard, editorial HTTP read API, CRUD, or publish/unpublish endpoint was added.
-
-### AS14-F010 — PASS — local/remote boundary in repository configuration
+The no-op equivalence logic now checks exact state rather than pointer truthiness.
 
 Independent inspection confirms:
 
-- no real `database_id` is tracked;
-- the D1 binding is marked `remote: false`;
-- the local CLI/test code explicitly requests `remoteBindings: false`;
-- no remote-D1 implementation code or production cutover exists in the diff.
+- published state requires `published_revision_id === revision1.id` and `draft_revision_id === null`;
+- draft state requires `draft_revision_id === revision1.id` and `published_revision_id === null`;
+- archived state requires both pointers exactly null;
+- base `created_at`, revision `created_at`, revision `created_by`, and immutable project slug/content-equivalence state participate in the no-op decision.
 
-The Builder's command execution claims remain `ACTOR_REPORTED`; this review does not claim independent runtime reproduction.
+Regression tests now cover:
+
+- same-entity revision 2 repointing;
+- altered migration provenance.
+
+Both are expected to refuse rather than silently return `noop`.
+
+### AS14-F003 — RESOLVED
+
+The D1 validator now aligns the four identified contract divergences with `lib/content/schema.mjs`:
+
+- `order`: safe integer `0..10000`;
+- `icon`: exact existing enum;
+- `updatedAt`: exact calendar-date round trip;
+- project stack: up to 100 entries.
+
+Focused boundary tests are present for each.
+
+No legacy content-contract change was introduced.
+
+### AS14-F004 — PARTIALLY RESOLVED — remaining stale statements in DATA_BACKEND_SPEC
+
+The remediation correctly fixed the headline current-state surfaces:
+
+- `brain/IMPLEMENTATION_STATUS.md` now records the auth-only `/admin` placeholder and repository-level JWT boundary;
+- `docs/product/PRD.md` now distinguishes implemented authentication from the still-unimplemented editing/admin capability;
+- `docs/product/DATA_BACKEND_SPEC.md` now distinguishes:
+  - public authoritative `data/site.js`;
+  - local/repository D1 substrate;
+  - absent remote/production D1.
+
+However, the same `DATA_BACKEND_SPEC.md` still contains stale pre-WEB-INC-001 / pre-WEB-INC-005 current-state statements:
+
+1. Under **Admin identity references** it says:
+   - `The exact identity/authentication mechanism ... is NOT IMPLEMENTED`.
+
+   That is now too broad. WEB-INC-001 implemented the Cloudflare Access assertion/JWT authentication boundary. What remains unimplemented is the persistent admin identity/session representation and editorial identity binding.
+
+2. Under **Authorization boundaries** it still says:
+   - `the (currently nonexistent) authentication/authorization boundary`.
+
+   The auth boundary now exists. Mutation authorization/write capability does not.
+
+3. The same paragraph says the protected read path cannot be retrofitted onto the current:
+   - `static/asset-only deployment`
+
+   and requires first standing up a server-side data-access substrate.
+
+   That wording is stale twice:
+   - the deployment now has a selective Worker auth path from WEB-INC-001, so it is not globally asset-only;
+   - WEB-INC-005 now has the local server-side D1 data-access substrate.
+
+The correct current distinction is:
+
+- authentication boundary: repository implementation exists;
+- persistent identity/session/editorial authorization model: not implemented;
+- protected D1 dashboard/read endpoint: not implemented;
+- server-side D1 substrate: exists locally;
+- public/static content source remains `data/site.js`;
+- remote/production D1 remains absent.
+
+Required Cycle 2 correction:
+
+- update these stale sentences only;
+- do not imply an authenticated D1 dashboard/read endpoint exists;
+- do not imply mutation authorization exists;
+- preserve the distinction between authentication and later authorization/session/editorial identity capabilities.
+
+### AS14-F005 — PARTIALLY RESOLVED — historical provenance fixed, current remediation count still mislabeled
+
+The historical WEB-INC-005 implementation provenance is now correctly repaired:
+
+- original Builder report: 17 paths;
+- Architect exact compare: 19 paths;
+- the two omitted coordination files are named;
+- the original implementation commit and follow-up bookkeeping commit are recorded separately;
+- evidence classes remain distinct.
+
+However, the current Remediation Cycle 1 handoff begins:
+
+> `Exact Remediation Cycle 1 changed-file list — 7 files`
+
+then lists seven substantive files and afterward says:
+
+> `Plus the normal coordination/IMPLEMENTER_HANDOFF.md ... and coordination/STATE.md.`
+
+Exact Git compare reports **9 changed paths**, not 7.
+
+The handoff does contain all nine path names, so this is a count/label defect rather than missing provenance content, but an "exact" changed-file heading must state the exact total.
+
+Required Cycle 2 correction:
+
+- change the current Remediation Cycle 1 exact count from 7 to 9;
+- optionally state `7 substantive remediation paths + 2 coordination paths = 9 total`;
+- preserve the exact 9-path list;
+- preserve the historical 19-path correction.
+
+## Preserved-pass findings
+
+### AS14-F006 — PASS / PRESERVED
+
+Exactly the 14 authorized product tables remain the only WEB-INC-005 tables.
+
+### AS14-F007 — PASS / PRESERVED
+
+The public content path remains unchanged and authoritative:
+
+`data/site.js → schema.mjs → public.mjs → local.mjs → app/page.js`.
+
+No D1 public cutover occurred.
+
+### AS14-F008 — PASS / PRESERVED
+
+Composite cross-entity pointer protection remains unchanged.
+
+### AS14-F009 — PASS / PRESERVED
+
+D1 remains server-only and is not exposed through a new HTTP/admin/client path.
+
+### AS14-F010 — PASS / PRESERVED
+
+The local/remote boundary remains unchanged:
+
+- no `database_id`;
+- `remote: false`;
+- no remote D1 implementation or deployment.
 
 ## Evidence disposition
 
 `INDEPENDENTLY_INSPECTED`:
 
-- exact Git commit/diff structure;
-- migration SQL;
-- migration/no-op logic;
-- validation predicates;
-- repository/read layer;
-- test source;
-- local-only configuration shape;
-- current-state documentation.
+- exact Git remediation and metadata diffs;
+- whole-run preflight/write design;
+- exact pointer/provenance no-op logic;
+- validator predicates;
+- regression-test source;
+- current-state documentation;
+- preserved-scope boundaries.
 
 `ACTOR_REPORTED`:
 
-- 69/69 tests;
+- 76/76 tests;
 - build success;
-- local D1 migration execution;
-- second-run command output;
-- Wrangler local command output;
+- fresh/second-run local migration execution;
+- Wrangler local commands;
+- manual local `db.batch()` rollback probe;
 - Wrangler dry-run;
 - secret scan.
 
-`INDEPENDENTLY_REPRODUCED`: none in this pass. The Architect sandbox could not resolve `github.com` to clone/install the repository.
+`INDEPENDENTLY_REPRODUCED`: none in this pass.
 
 ## Verdict
 
-`ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 1`
+`ML-DEVOS-AS-014: CHANGES_REQUESTED — WEB-INC-005 REMEDIATION CYCLE 2`
 
-The implementation has the correct overall architecture and stays within the authorized local-only D1 scope, but WEB-INC-005 cannot close while:
+The substantive migration-integrity and validation blockers are resolved.
 
-1. a failed full migration can leave partial earlier writes;
-2. repeat-run equivalence can accept the wrong same-entity revision pointer;
-3. the successor validator diverges from the current content contract;
-4. current-state documentation contradicts already accepted repository reality; and
-5. the durable Builder handoff misstates the exact diff.
+Cycle 2 is deliberately narrow and documentation/provenance-only:
 
-## Authorized Remediation Cycle 1 scope
+1. finish `DATA_BACKEND_SPEC.md` current-state convergence; and
+2. correct the current remediation exact changed-file count from 7 to 9.
 
-Claude may modify only what is necessary to resolve the findings above, including:
+No runtime/data-layer reopening is authorized.
 
-- `worker/d1/migrate.mjs`;
-- `worker/d1/validate.mjs`;
-- `tests/d1-migration.test.mjs`;
-- `migrations/0001_web_inc_005_init.sql` only if needed to preserve/strengthen the existing content constraints;
-- `brain/IMPLEMENTATION_STATUS.md`;
-- `brain/RISK_REGISTER.md`;
-- `brain/TEST_LEDGER.md`;
-- `docs/product/PRD.md`;
+## Authorized Remediation Cycle 2 scope
+
+Claude may modify only:
+
 - `docs/product/DATA_BACKEND_SPEC.md`;
-- `docs/product/BUILD_PLAN.md` only if evidence/status wording must be corrected;
-- `docs/ARCHITECTURE.md` only if a directly related current-state statement needs convergence;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
 
-`worker/d1/repository.mjs`, `worker/d1/schema.mjs`, `scripts/d1-migrate.mjs`, and `wrangler.jsonc` should remain unchanged unless the remediation reveals a direct technical necessity.
+No other file is authorized unless a direct contradiction created by these exact corrections is discovered and the Builder stops for Architect guidance.
 
-No public app/content-path file, WEB-INC-001 auth file, package/dependency file, remote Cloudflare resource, later WEB-INC implementation, deployment, main merge, S3, CI, or ruleset work is authorized.
+Do not modify:
+
+- migration/runtime code;
+- validators;
+- tests;
+- migration SQL;
+- repository/data-access modules;
+- Wrangler config;
+- public app/content path;
+- WEB-INC-001 auth code;
+- package files;
+- Product PRD;
+- implementation/risk/test governance files;
+- later WEB-INC work.
 
 ## Deployment / remote-resource authority
 
@@ -341,4 +294,4 @@ No public app/content-path file, WEB-INC-001 auth file, package/dependency file,
 
 ## Current gate
 
-`CLAUDE WEB-INC-005 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-014`
+`CLAUDE WEB-INC-005 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-014`
