@@ -8,184 +8,213 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-012 — WEB-INC-001 Implementation Review
+# ML-DEVOS-AS-012 — WEB-INC-001 Remediation Cycle 1 Verification
 
 Cycle: `MAISOGLABS-WEB-INC-001-AUTH`
-Review mode: `POST-IMPLEMENTATION ARCHITECTURE / SECURITY REVIEW`
-Authority chain: `ML-DEVOS-RFC-002 → ML-DEVOS-AS-011 → D-023`
-Reviewed Builder commit: `210711c4d5043f495b44d1c3edf49e7105053d6b`
-Builder base: `0a3d3831e16e520c74e391512253c57e3061916a`
+Review mode: `POST-REMEDIATION ARCHITECTURE / SECURITY / SOURCE-OF-TRUTH REVIEW`
+Authority chain: `ML-DEVOS-RFC-002 → ML-DEVOS-AS-011 → D-023 → ML-DEVOS-AS-012`
+Reviewed Builder remediation commit: `4a8cc86bf3caabecccb1b6ec24ad1f19269966e6`
+Builder remediation base: `b0aa71a4ac0f4b0c9636ad4114b021a236eeafc5`
 
 ## Required review discipline performed
 
 Before issuing this verdict, the Architect:
 
 1. pulled the live governance branch and current `coordination/STATE.md`;
-2. read the current Builder handoff and the concluded `ML-DEVOS-AS-011`;
-3. independently compared `0a3d383... → 210711c...`;
-4. inspected the Worker/auth code, Wrangler configuration, admin placeholder, tests, architecture/product-tech docs, and governance traceability changes;
-5. compared the implementation against `ML-DEVOS-RFC-002`, `D-023`, and the Product Build Pack;
-6. checked current Cloudflare Workers/Access documentation and current `jose` verification semantics for the load-bearing auth assumptions;
-7. attempted independent runtime reproduction in the local review sandbox. The sandbox could not resolve GitHub for cloning and did not have `jose` preinstalled, so no independent executable-test result is claimed from this review. This limitation does not replace code/config inspection.
+2. confirmed live HEAD is exactly Builder remediation commit `4a8cc86...`;
+3. read the current Builder handoff and the previous `ML-DEVOS-AS-012` findings;
+4. independently compared exact Builder range `b0aa71a... → 4a8cc86...`;
+5. inspected `worker/auth.mjs`, `worker/index.mjs`, `wrangler.jsonc`, the updated auth tests, Product Technical Design, Project Governance, Governance Map, Risk Register, Test Ledger, handoff, and state;
+6. compared the remediation against `ML-DEVOS-RFC-002`, `ML-DEVOS-AS-011`, `D-023`, and the active Product Build Pack;
+7. checked for regression of the previously passing JWT-verification and selective Worker-first invariants;
+8. checked traceability/provenance claims against the exact Git diff.
 
-## Exact Builder diff — PASS
+## Exact remediation diff
 
-GitHub compare `0a3d3831e16e520c74e391512253c57e3061916a → 210711c4d5043f495b44d1c3edf49e7105053d6b` reports exactly one Builder commit and 16 changed files:
+GitHub compare `b0aa71a4ac0f4b0c9636ad4114b021a236eeafc5 → 4a8cc86bf3caabecccb1b6ec24ad1f19269966e6` reports:
 
-- `.gitignore`
-- `app/admin/page.js`
-- `brain/GOVERNANCE_MAP.md`
-- `brain/PROJECT_GOVERNANCE.md`
-- `brain/RISK_REGISTER.md`
-- `brain/TEST_LEDGER.md`
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/product/TECHNICAL_DESIGN.md`
-- `package-lock.json`
-- `package.json`
-- `tests/worker-auth.test.mjs`
-- `worker/auth.mjs`
-- `worker/index.mjs`
-- `wrangler.jsonc`
+- exactly **1 Builder commit**;
+- exactly **11 changed files**:
+  - `brain/GOVERNANCE_MAP.md`
+  - `brain/PROJECT_GOVERNANCE.md`
+  - `brain/RISK_REGISTER.md`
+  - `brain/TEST_LEDGER.md`
+  - `coordination/IMPLEMENTER_HANDOFF.md`
+  - `coordination/STATE.md`
+  - `docs/product/TECHNICAL_DESIGN.md`
+  - `tests/worker-auth.test.mjs`
+  - `worker/auth.mjs`
+  - `worker/index.mjs`
+  - `wrangler.jsonc`
 
-The implementation stays inside the authorized WEB-INC-001 repository boundary. No D1/R2, later WEB-INC, S3, CI/ruleset, deployment, or main-merge work is present.
+No D1/R2, later `WEB-INC-*`, S3, CI/ruleset, production deployment, or main-merge change appears in the Builder remediation diff.
 
-## Findings
+## Finding dispositions
 
-### AS12-F001 — BLOCKER — auth configuration is not itself fail-closed
+### AS12-F001 — RESOLVED
 
-The token-verification path correctly uses `jose.jwtVerify()` with issuer and audience when those values exist.
-
-However, `worker/index.mjs` does not explicitly reject missing/blank/misconfigured `ACCESS_AUD` or `ACCESS_TEAM_DOMAIN` before constructing the verifier.
-
-This matters because:
-
-- Cloudflare's own current Workers example explicitly checks that the expected audience environment value exists before attempting JWT verification and rejects the request when it is missing;
-- `jose`'s audience verification option is optional. If no audience option is supplied, audience validation is not performed.
-
-Therefore a future configuration where the team domain is valid but `ACCESS_AUD` is absent could accept a validly signed token from the same issuer without enforcing the application-specific audience requirement. That violates `AS11-F002` / `D-023`'s fail-closed wrong-audience invariant.
-
-Required remediation:
-
-- add explicit runtime configuration validation before protected-path auth is attempted;
-- missing, blank, placeholder, or malformed required auth configuration must fail closed and must never serve the admin asset;
-- at minimum validate both team domain and application audience;
-- invalid configuration should return a non-success response before `assets.fetch`;
-- no JWKS/network lookup should be attempted when required auth configuration is invalid;
-- add deterministic tests for missing/blank/placeholder audience and missing/blank/placeholder team domain;
-- preserve existing wrong-audience/wrong-issuer/untrusted-key tests.
-
-The implementation may keep the current bare-host team-domain convention or adopt Cloudflare's full-`https://...` convention, but one contract must be explicit and consistently validated.
-
-### AS12-F002 — BLOCKER — current-state documentation contradicts the new implementation
-
-Several current-state statements were not converged after WEB-INC-001.
-
-Examples:
-
-`docs/product/TECHNICAL_DESIGN.md` still says, in its current-architecture/dependency sections:
-
-- there is no auth library;
-- the deployment is asset-only;
-- there is no server-side application dependency.
-
-The same document later correctly states that WEB-INC-001 added `jose`, a Worker auth boundary, and selective Worker-first routing.
-
-Its proposed-target introduction also still says **“None of the following exists”** even though the authentication-boundary item immediately below is now marked `CURRENTLY IMPLEMENTED`.
-
-`brain/PROJECT_GOVERNANCE.md` likewise still describes the current deployment as asset-only and its “Current restrictions” section still contains stale Phase-1 wording saying no authentication/admin implementation is authorized, while the same file now records WEB-INC-001 as implemented.
-
-Required remediation:
-
-- make all current-deployment/current-dependency statements repository-truthful after WEB-INC-001;
-- distinguish “no database/persistent application state” from the now-real server-executed Worker path;
-- record `jose` as the current auth/JWT dependency;
-- remove the stale “asset-only” description where it is no longer true;
-- fix the proposed-target wording so it does not claim the already-implemented authentication boundary is nonexistent;
-- replace stale Phase-1 restriction text with the current WEB-INC-001/later-increment gate;
-- keep the no-deployment/no-main-merge restrictions unchanged.
-
-This is a source-of-truth/convergence defect, not runtime scope drift.
-
-### AS12-F003 — REQUIRED SECURITY EVIDENCE — prove alternate static admin URLs cannot bypass the Worker
-
-The build emits `out/admin.html`, while Worker-first routing currently names `/admin` and `/admin/*`.
-
-Cloudflare's current Static Assets documentation says the default `html_handling` is `auto-trailing-slash` and that requests to a file-style URL such as `/file.html` are redirected to the canonical extensionless path instead of serving the HTML directly.
-
-That default appears compatible with this implementation, because `/admin.html` should redirect to `/admin`, which is protected.
-
-But this redirect behavior is now part of the security boundary and Builder did not include it in the reported local smoke test.
-
-Required remediation/evidence:
-
-- explicitly pin `assets.html_handling` to the intended canonicalization mode rather than relying on an implicit default; and
-- add a Wrangler-runtime smoke test or equivalent evidence showing an unauthenticated request to `/admin.html` does not return the admin asset directly and ultimately lands on the protected canonical path;
-- also check the relevant `/admin/` and `/admin/index.html` canonical forms where applicable;
-- do not widen Worker routing to unrelated public paths.
-
-### AS12-F004 — PASS — core token verification logic is directionally correct
+The remediation now validates authentication configuration before protected-path token verification.
 
 Independent code inspection confirms:
 
-- the Access assertion header is read server-side;
-- protected-path asset serving occurs only after `jwtVerify()` succeeds;
-- missing/malformed/expired/not-yet-valid/wrong-audience/wrong-issuer/untrusted-key cases are covered by Builder tests;
-- ordinary non-admin requests are delegated to assets without an auth check inside the pure handler;
-- no content mutation/database access exists.
+- `isValidTeamDomain`, `isValidAudience`, and `isValidAuthConfig` exist;
+- missing, blank, placeholder, scheme-bearing/path-bearing/malformed team-domain values are rejected;
+- missing, blank, or placeholder audience values are rejected;
+- protected-path handling checks config before invoking `getJWKS`;
+- invalid config returns `401` without `assets.fetch`;
+- the tests include a spy asserting no `getJWKS` call for invalid configuration;
+- a validly signed test token is explicitly unable to compensate for invalid config.
 
-Cloudflare's current documentation also confirms that `Cf-Access-Jwt-Assertion` is the recommended header to validate and that issuer/audience validation with `jose` is the expected pattern.
+The critical fail-closed configuration invariant is now represented in code:
 
-### AS12-F005 — PASS — selective Worker-first routing is correctly scoped
+`INVALID REQUIRED AUTH CONFIG → NO JWKS RESOLUTION → NO ADMIN ASSET`
 
-`wrangler.jsonc` uses an array rather than global `true`, and the configured Worker-first paths are limited to the admin boundary.
+The previous token-level issuer/audience/signature/expiry tests remain present.
 
-Current Cloudflare Workers documentation confirms array-based `assets.run_worker_first` is the supported mechanism for selective authentication middleware while leaving other assets asset-first.
+### AS12-F002 — PARTIALLY RESOLVED — residual current-state contradictions remain
 
-### AS12-F006 — PASS — Builder scope boundary held
+The main stale statements identified in Cycle 1 were corrected:
 
-No production Cloudflare Access application/policy, identity-provider configuration, D1/R2 resource, deployment, or main merge was created by the Builder commit.
+- `jose` is now recorded as the implemented JWT dependency;
+- the Worker + Assets deployment shape is recorded;
+- the Product Technical Design no longer globally says there is no server-executed path;
+- the proposed-target introduction no longer says the already-implemented authentication boundary does not exist;
+- Project Governance no longer points to the closed Phase-1 bootstrap authorization as the current gate.
+
+However, independent source-of-truth inspection found several remaining stale current-state statements:
+
+1. `docs/product/TECHNICAL_DESIGN.md` still says under **System boundaries**:
+   - `app/` currently has only route `/` plus generated `/_not-found`.
+   
+   That is now false because `app/admin/page.js` exists and the build produces `/admin`.
+
+2. The same System-boundaries list omits the now-real `worker/` runtime boundary even though `docs/ARCHITECTURE.md` correctly records it.
+
+3. `brain/GOVERNANCE_MAP.md` still records `WEB-REQ-004` evidence as:
+   - `ADMIN STATUS: NOT IMPLEMENTED (no /admin route in app/)`.
+   
+   That is now factually false. The requirement itself is still correctly `NOT STARTED` because admin-managed content editing does not exist; the evidence/rationale must instead say that an **auth-only /admin placeholder exists, but no content-editing/persistence capability exists and edits still require source changes**.
+
+4. `brain/RISK_REGISTER.md` still contains stale wording such as:
+   - `RISK-WEB-007`: “no admin exists”;
+   - `RISK-WEB-011`: “no admin exists yet to introduce a new injection surface”.
+   
+   The correct distinction is that an admin authentication placeholder now exists, while no admin **write/edit/mutation** surface exists.
+
+Required remediation:
+
+- correct the route inventory in `TECHNICAL_DESIGN.md`;
+- add `worker/` to its current system-boundary list;
+- correct `WEB-REQ-004` evidence without changing its still-correct `NOT STARTED` status;
+- replace stale “no admin exists” risk wording with precise “no admin write/edit/mutation surface exists” wording;
+- do not broaden implementation scope while correcting the records.
+
+### AS12-F003 — RESOLVED AT REPOSITORY / LOCAL-EVIDENCE LEVEL
+
+`wrangler.jsonc` now explicitly pins:
+
+`assets.html_handling: "auto-trailing-slash"`
+
+and preserves selective Worker-first routing:
+
+`["/admin", "/admin/*"]`.
+
+The Builder reports local Wrangler evidence for:
+
+- `/admin` → 401 unauthenticated;
+- `/admin/` → 401 unauthenticated;
+- `/admin.html` → 307 to `/admin`, empty body, followed by 401;
+- `/admin/index.html` → 401.
+
+The pinned configuration and routing shape are independently inspected and consistent with the remediation request.
+
+The exact local Wrangler smoke-test outputs remain `ACTOR_REPORTED` in this Architect review; production behavior remains unclaimed and still requires later `RUNTIME_OBSERVED` evidence after a separately authorized deployment.
+
+### AS12-F004 — PASS / PRESERVED
+
+Core JWT verification remains fail closed for the required token-failure classes.
+
+### AS12-F005 — PASS / PRESERVED
+
+Worker-first routing remains selective and was not widened globally.
+
+### AS12-F006 — PASS / PRESERVED
+
+The Builder stayed within the authorized WEB-INC-001 remediation boundary.
+
+### AS12-F007 — REQUIRED — durable Builder handoff has an exact-diff provenance defect
+
+`coordination/IMPLEMENTER_HANDOFF.md` says:
+
+> “Exactly 9 files”
+
+for this remediation cycle.
+
+The exact Git compare reports **11 changed files**.
+
+The handoff's list covers the nine substantive remediation artifacts but omits the two normal coordination files that are nevertheless part of the commit:
+
+- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md`
+
+Because the heading says **Exact changed-file list**, these files must be counted.
+
+Required remediation:
+
+- correct the Cycle 1 remediation handoff from 9 to 11 changed files;
+- include both coordination files in the exact list;
+- preserve the distinction between substantive remediation files and normal handoff/state files if useful, but do not call a partial list exact;
+- record that the Architect independently detected the count mismatch from Git compare.
+
+This is a provenance/bookkeeping defect, not a runtime/security failure.
+
+## Security verdict
+
+The runtime/security remediation itself is materially improved and the three original security/config findings are resolved at the repository-design/code-inspection level.
+
+No new security blocker was found in the auth logic during this pass.
+
+The remaining blockers are source-of-truth convergence and exact-diff provenance.
+
+## Evidence disposition
+
+- exact Git diff and repository/code/config inspection: `INDEPENDENTLY_INSPECTED`;
+- Builder `npm test`, build, dry-run, and local Wrangler smoke results: `ACTOR_REPORTED`;
+- no production authentication/deployment evidence exists or is claimed.
+
+No independent execution result is claimed in this pass.
+
+## Verdict
+
+`ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 2`
+
+The auth implementation itself is now close to closure. Remediation Cycle 2 is deliberately narrow and documentation/provenance-focused.
+
+WEB-INC-001 should not close until:
+
+1. all current-state records agree that the auth-only `/admin` and `worker/` boundary now exist while write/edit/storage features do not; and
+2. the Builder handoff truthfully records the exact 11-file remediation diff.
+
+## Authorized Remediation Cycle 2 scope
+
+Claude may modify only:
+
+- `docs/product/TECHNICAL_DESIGN.md`;
+- `brain/GOVERNANCE_MAP.md`;
+- `brain/RISK_REGISTER.md`;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
+
+`brain/PROJECT_GOVERNANCE.md` should remain unchanged unless a direct contradiction with the above corrections is discovered.
+
+No runtime/auth code, tests, Wrangler config, package files, application route, D1/R2, later `WEB-INC-*`, S3, CI/ruleset, production Cloudflare configuration, deployment, or main-merge change is authorized in this remediation cycle.
+
+## Deployment authority
 
 `DEPLOY_AUTHORIZED: NO`
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Evidence disposition
-
-The exact Git diff and repository contents in this review are `INDEPENDENTLY_INSPECTED`.
-
-Cloudflare/JWT behavior cited above is independently corroborated against current vendor/library documentation.
-
-Builder test/build/dry-run/local-Wrangler results remain `ACTOR_REPORTED` in this review because the Architect sandbox could not install/execute the repo dependencies. No `INDEPENDENTLY_REPRODUCED` execution claim is made.
-
-## Verdict
-
-`ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 1`
-
-The implementation is close and remains within the authorized increment, but the authentication boundary should not be accepted until:
-
-1. required auth configuration itself fails closed;
-2. the repository's current-state documents converge on the actual Worker/auth implementation;
-3. alternate static admin URL canonicalization is explicitly pinned/tested as part of the security boundary.
-
-## Authorized remediation scope
-
-Claude may modify only what is necessary to resolve the findings above, including:
-
-- `worker/index.mjs`;
-- `worker/auth.mjs` if helper factoring is useful;
-- `tests/worker-auth.test.mjs`;
-- `wrangler.jsonc`;
-- `docs/ARCHITECTURE.md`;
-- `docs/product/TECHNICAL_DESIGN.md`;
-- `brain/PROJECT_GOVERNANCE.md`;
-- `brain/GOVERNANCE_MAP.md`, `brain/RISK_REGISTER.md`, and `brain/TEST_LEDGER.md` only if traceability wording/evidence status needs correction;
-- normal `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`;
-- package files only if genuinely required by the remediation (no new dependency is currently expected).
-
-No external Cloudflare mutation, D1/R2, later WEB-INC work, deployment, main merge, S3, CI, or ruleset work is authorized.
-
 ## Current gate
 
-`CLAUDE WEB-INC-001 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-012`
+`CLAUDE WEB-INC-001 REMEDIATION CYCLE 2 — SUBJECT TO ML-DEVOS-AS-012`
