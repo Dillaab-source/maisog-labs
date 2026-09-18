@@ -6,6 +6,9 @@
 //   ACCESS_TEAM_DOMAIN — e.g. "your-team.cloudflareaccess.com"
 //   ACCESS_AUD         — the Access application audience (AUD) tag
 // No secret, private key, or administrator identity is read or stored here.
+// If either value is missing/blank/left as its committed placeholder,
+// handleRequest fails closed before this file's getJWKS is ever called
+// (AS12-F001) — see worker/auth.mjs's isValidAuthConfig.
 import { createRemoteJWKSet } from "jose";
 import { handleRequest } from "./auth.mjs";
 
@@ -24,9 +27,9 @@ export default {
   async fetch(request, env) {
     return handleRequest(request, {
       assets: env.ASSETS,
-      jwks: getJWKS(env.ACCESS_TEAM_DOMAIN),
-      issuer: `https://${env.ACCESS_TEAM_DOMAIN}`,
+      teamDomain: env.ACCESS_TEAM_DOMAIN,
       audience: env.ACCESS_AUD,
+      getJWKS,
     });
   },
 };

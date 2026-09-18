@@ -1,9 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
-import { isProtectedPath, verifyAccessAssertion, handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
+import {
+  isProtectedPath,
+  verifyAccessAssertion,
+  handleRequest,
+  isValidTeamDomain,
+  isValidAudience,
+  isValidAuthConfig,
+  ACCESS_ASSERTION_HEADER,
+  PLACEHOLDER_TEAM_DOMAIN,
+  PLACEHOLDER_AUD,
+} from "../worker/auth.mjs";
 
-const ISSUER = "https://test-team.cloudflareaccess.com";
+const TEAM_DOMAIN = "test-team.cloudflareaccess.com";
+const ISSUER = `https://${TEAM_DOMAIN}`;
 const AUDIENCE = "test-audience-aud-tag";
 const ALG = "ES256";
 const KID = "test-key-1";
@@ -40,6 +51,19 @@ function fakeAssets(response = new Response("asset", { status: 200 })) {
   };
 }
 
+// Spies on getJWKS so tests can assert it was never called — the required
+// AS12-F001 evidence that invalid config never reaches JWKS/network resolution.
+function jwksSpy(jwks) {
+  const calls = [];
+  return {
+    calls,
+    getJWKS(teamDomain) {
+      calls.push(teamDomain);
+      return jwks;
+    },
+  };
+}
+
 test("isProtectedPath matches only /admin and /admin/*", () => {
   assert.equal(isProtectedPath("/admin"), true);
   assert.equal(isProtectedPath("/admin/"), true);
@@ -49,6 +73,111 @@ test("isProtectedPath matches only /admin and /admin/*", () => {
   assert.equal(isProtectedPath("/foo"), false);
   assert.equal(isProtectedPath("/projects"), false);
 });
+
+// --- AS12-F001: auth configuration itself must fail closed --------------
+
+test("isValidTeamDomain rejects missing/blank/placeholder/malformed values", () => {
+  assert.equal(isValidTeamDomain(undefined), false);
+  assert.equal(isValidTeamDomain(null), false);
+  assert.equal(isValidTeamDomain(""), false);
+  assert.equal(isValidTeamDomain("   "), false);
+  assert.equal(isValidTeamDomain(PLACEHOLDER_TEAM_DOMAIN), false);
+  assert.equal(isValidTeamDomain("https://test-team.cloudflareaccess.com"), false); // scheme not allowed
+  assert.equal(isValidTeamDomain("test team.cloudflareaccess.com"), false); // whitespace
+  assert.equal(isValidTeamDomain("not-a-domain"), false); // no dot
+  assert.equal(isValidTeamDomain("test-team.cloudflareaccess.com/extra"), false); // path not allowed
+});
+
+test("isValidTeamDomain accepts a well-formed bare team domain", () => {
+  assert.equal(isValidTeamDomain(TEAM_DOMAIN), true);
+});
+
+test("isValidAudience rejects missing/blank/placeholder values", () => {
+  assert.equal(isValidAudience(undefined), false);
+  assert.equal(isValidAudience(null), false);
+  assert.equal(isValidAudience(""), false);
+  assert.equal(isValidAudience("   "), false);
+  assert.equal(isValidAudience(PLACEHOLDER_AUD), false);
+});
+
+test("isValidAudience accepts a well-formed audience", () => {
+  assert.equal(isValidAudience(AUDIENCE), true);
+});
+
+test("isValidAuthConfig requires both team domain and audience to be independently valid", () => {
+  assert.equal(isValidAuthConfig({ teamDomain: TEAM_DOMAIN, audience: AUDIENCE }), true);
+  assert.equal(isValidAuthConfig({ teamDomain: undefined, audience: AUDIENCE }), false);
+  assert.equal(isValidAuthConfig({ teamDomain: TEAM_DOMAIN, audience: undefined }), false);
+  assert.equal(isValidAuthConfig({ teamDomain: PLACEHOLDER_TEAM_DOMAIN, audience: AUDIENCE }), false);
+  assert.equal(isValidAuthConfig({ teamDomain: TEAM_DOMAIN, audience: PLACEHOLDER_AUD }), false);
+  assert.equal(isValidAuthConfig({ teamDomain: "", audience: "" }), false);
+});
+
+for (const [label, badTeamDomain] of [
+  ["missing", undefined],
+  ["blank", "   "],
+  ["placeholder", PLACEHOLDER_TEAM_DOMAIN],
+  ["malformed (scheme)", "https://team.cloudflareaccess.com"],
+]) {
+  test(`handleRequest fails closed on /admin with ${label} team domain, without calling getJWKS or assets`, async () => {
+    const { jwks } = await buildTestIdentity();
+    const assets = fakeAssets();
+    const spy = jwksSpy(jwks);
+    const response = await handleRequest(
+      new Request("https://maisoglabs.example/admin"),
+      { assets, teamDomain: badTeamDomain, audience: AUDIENCE, getJWKS: spy.getJWKS },
+    );
+    assert.equal(response.status, 401);
+    assert.equal(assets.calls.length, 0);
+    assert.equal(spy.calls.length, 0, "getJWKS must never be called when config is invalid");
+  });
+}
+
+for (const [label, badAudience] of [
+  ["missing", undefined],
+  ["blank", "   "],
+  ["placeholder", PLACEHOLDER_AUD],
+]) {
+  test(`handleRequest fails closed on /admin with ${label} audience, without calling getJWKS or assets`, async () => {
+    const { jwks } = await buildTestIdentity();
+    const assets = fakeAssets();
+    const spy = jwksSpy(jwks);
+    const response = await handleRequest(
+      new Request("https://maisoglabs.example/admin"),
+      { assets, teamDomain: TEAM_DOMAIN, audience: badAudience, getJWKS: spy.getJWKS },
+    );
+    assert.equal(response.status, 401);
+    assert.equal(assets.calls.length, 0);
+    assert.equal(spy.calls.length, 0, "getJWKS must never be called when config is invalid");
+  });
+}
+
+test("handleRequest fails closed on /admin with invalid config even when a validly signed token is presented", async () => {
+  const { privateKey, kid, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey, kid);
+  const assets = fakeAssets();
+  const spy = jwksSpy(jwks);
+  const response = await handleRequest(
+    new Request("https://maisoglabs.example/admin", { headers: { [ACCESS_ASSERTION_HEADER]: token } }),
+    { assets, teamDomain: PLACEHOLDER_TEAM_DOMAIN, audience: PLACEHOLDER_AUD, getJWKS: spy.getJWKS },
+  );
+  assert.equal(response.status, 401);
+  assert.equal(assets.calls.length, 0);
+  assert.equal(spy.calls.length, 0, "a valid token must not compensate for invalid config, and must not trigger JWKS lookup");
+});
+
+test("handleRequest does not validate config for ordinary public routes (no gate to check)", async () => {
+  const assets = fakeAssets(new Response("home", { status: 200 }));
+  const spy = jwksSpy(undefined);
+  const response = await handleRequest(new Request("https://maisoglabs.example/"), {
+    assets, teamDomain: undefined, audience: undefined, getJWKS: spy.getJWKS,
+  });
+  assert.equal(response.status, 200);
+  assert.equal(assets.calls.length, 1);
+  assert.equal(spy.calls.length, 0);
+});
+
+// --- verifyAccessAssertion: preserved token-level tests ------------------
 
 test("verifyAccessAssertion rejects a missing token", async () => {
   const { jwks } = await buildTestIdentity();
@@ -110,11 +239,13 @@ test("verifyAccessAssertion accepts a correctly signed token with the expected i
   assert.equal(payload.aud, AUDIENCE);
 });
 
+// --- handleRequest: preserved end-to-end routing/rejection tests ---------
+
 test("handleRequest serves ordinary public routes asset-first with no token check", async () => {
   const { jwks } = await buildTestIdentity();
   const assets = fakeAssets(new Response("home", { status: 200 }));
   const response = await handleRequest(new Request("https://maisoglabs.example/"), {
-    assets, jwks, issuer: ISSUER, audience: AUDIENCE,
+    assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks,
   });
   assert.equal(response.status, 200);
   assert.equal(await response.text(), "home");
@@ -127,7 +258,7 @@ test("handleRequest serves an ordinary non-admin path asset-first even with a to
   const assets = fakeAssets(new Response("projects", { status: 200 }));
   const response = await handleRequest(
     new Request("https://maisoglabs.example/projects", { headers: { [ACCESS_ASSERTION_HEADER]: token } }),
-    { assets, jwks, issuer: ISSUER, audience: AUDIENCE },
+    { assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks },
   );
   assert.equal(response.status, 200);
   assert.equal(assets.calls.length, 1);
@@ -137,7 +268,7 @@ test("handleRequest rejects /admin with no token and never calls assets", async 
   const { jwks } = await buildTestIdentity();
   const assets = fakeAssets();
   const response = await handleRequest(new Request("https://maisoglabs.example/admin"), {
-    assets, jwks, issuer: ISSUER, audience: AUDIENCE,
+    assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks,
   });
   assert.equal(response.status, 401);
   assert.equal(assets.calls.length, 0);
@@ -148,7 +279,7 @@ test("handleRequest rejects /admin/* with a malformed token", async () => {
   const assets = fakeAssets();
   const response = await handleRequest(
     new Request("https://maisoglabs.example/admin/settings", { headers: { [ACCESS_ASSERTION_HEADER]: "garbage" } }),
-    { assets, jwks, issuer: ISSUER, audience: AUDIENCE },
+    { assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks },
   );
   assert.equal(response.status, 401);
   assert.equal(assets.calls.length, 0);
@@ -161,7 +292,7 @@ test("handleRequest rejects /admin with an expired token", async () => {
   const assets = fakeAssets();
   const response = await handleRequest(
     new Request("https://maisoglabs.example/admin/", { headers: { [ACCESS_ASSERTION_HEADER]: token } }),
-    { assets, jwks, issuer: ISSUER, audience: AUDIENCE },
+    { assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks },
   );
   assert.equal(response.status, 401);
   assert.equal(assets.calls.length, 0);
@@ -173,7 +304,7 @@ test("handleRequest rejects /admin with the wrong audience", async () => {
   const assets = fakeAssets();
   const response = await handleRequest(
     new Request("https://maisoglabs.example/admin/settings", { headers: { [ACCESS_ASSERTION_HEADER]: token } }),
-    { assets, jwks, issuer: ISSUER, audience: AUDIENCE },
+    { assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks },
   );
   assert.equal(response.status, 401);
   assert.equal(assets.calls.length, 0);
@@ -185,7 +316,7 @@ test("handleRequest allows a correctly signed token to reach the admin asset", a
   const assets = fakeAssets(new Response("admin placeholder", { status: 200 }));
   const response = await handleRequest(
     new Request("https://maisoglabs.example/admin", { headers: { [ACCESS_ASSERTION_HEADER]: token } }),
-    { assets, jwks, issuer: ISSUER, audience: AUDIENCE },
+    { assets, teamDomain: TEAM_DOMAIN, audience: AUDIENCE, getJWKS: () => jwks },
   );
   assert.equal(response.status, 200);
   assert.equal(await response.text(), "admin placeholder");

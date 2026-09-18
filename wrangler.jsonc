@@ -7,6 +7,13 @@
     "directory": "./out",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
+    // WEB-INC-001 remediation (AS12-F003): explicitly pinned rather than left
+    // to an implicit default. "auto-trailing-slash" redirects a file-style
+    // request (e.g. /admin.html) to its canonical extensionless path
+    // (/admin) instead of serving the HTML directly, so an alternate static
+    // URL form is never served as a 200 outside the Worker-first auth check
+    // below. Verified locally — see coordination/IMPLEMENTER_HANDOFF.md.
+    "html_handling": "auto-trailing-slash",
     // WEB-INC-001: only /admin and /admin/* are routed to the Worker for
     // authentication. Every other request continues to be served asset-first,
     // exactly as before this increment. Do not widen this list or set this to

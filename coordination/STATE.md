@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_001_AUTH_BOUNDARY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 210711c4d5043f495b44d1c3edf49e7105053d6b
+LAST_IMPLEMENTER_HANDOFF_SHA: b0aa71a4ac0f4b0c9636ad4114b021a236eeafc5  # NOTE: this is the base HEAD this remediation cycle started from; this cycle's own resulting commit SHA is not yet known at write time. Architect should replace this with the actual pushed HEAD SHA after inspection.
 LAST_ARCHITECT_REVIEWED_SHA: 210711c4d5043f495b44d1c3edf49e7105053d6b
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -47,15 +47,15 @@ Architect review of `210711c4d5043f495b44d1c3edf49e7105053d6b` returned:
 
 - `ML-DEVOS-AS-012: CHANGES_REQUESTED — WEB-INC-001 REMEDIATION CYCLE 1`
 
-Required remediation:
+Findings resolved this cycle (see `coordination/IMPLEMENTER_HANDOFF.md` for full disposition):
 
-- `AS12-F001` — validate required auth configuration itself fail-closed; missing/blank/placeholder/malformed team domain or audience must not weaken issuer/audience verification or trigger protected asset serving;
-- `AS12-F002` — converge stale current-state documentation with the now-real Worker/JWT implementation;
-- `AS12-F003` — pin Static Assets HTML canonicalization behavior and prove alternate admin URL forms such as `/admin.html` cannot bypass the protected path.
+- `AS12-F001` — `worker/auth.mjs` now validates the auth configuration itself (`isValidTeamDomain`/`isValidAudience`/`isValidAuthConfig`) before any JWKS/network lookup; missing/blank/placeholder/malformed team domain or audience fails closed with no `getJWKS` call (proven by a call-count spy in 9 new tests). A valid token cannot compensate for invalid config;
+- `AS12-F002` — `docs/product/TECHNICAL_DESIGN.md` and `brain/PROJECT_GOVERNANCE.md` current-state wording converged: `jose` recorded as the implemented JWT dependency, "asset-only mode"/"None of the following exists"/"no server-side application dependency" corrected, stale `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` restriction replaced with a pointer to the live gate;
+- `AS12-F003` — `wrangler.jsonc`'s `assets.html_handling` pinned to `"auto-trailing-slash"`; local `wrangler dev` smoke tests confirm `/admin.html` redirects (empty body, no content leak) to `/admin`, which then correctly returns `401` unauthenticated, and `/admin/index.html` returns `401` directly. Worker-first routing was not widened.
 
-Preserve the passing core token verification and selective Worker-first routing.
+This disposition is `ACTOR_REPORTED` until the Architect independently reproduces it. The passing core token verification (`AS12-F004`) and selective Worker-first routing (`AS12-F005`) are preserved, not regressed.
 
-No external Cloudflare mutation, D1/R2, later WEB-INC, deployment, main merge, S3, CI, or ruleset work is authorized.
+No external Cloudflare mutation, D1/R2, later WEB-INC, deployment, main merge, S3, CI, or ruleset work was performed.
 
 ## Authorized repository implementation
 
@@ -143,7 +143,7 @@ Before returning to Architect:
 11. explicit list of known limitations;
 12. explicit confirmation that no external Cloudflare resource was changed.
 
-Builder evidence is `ACTOR_REPORTED` until independently verified. All 12 items above are addressed in `coordination/IMPLEMENTER_HANDOFF.md` § "Required Builder evidence."
+Builder evidence is `ACTOR_REPORTED` until independently verified. All 12 items above remain addressed in `coordination/IMPLEMENTER_HANDOFF.md`, now updated with Remediation Cycle 1's config-fail-closed and alternate-admin-URL evidence.
 
 ## Explicitly prohibited
 
@@ -197,4 +197,4 @@ Architect must independently reproduce deterministic auth tests where practical 
 
 ## Current gate
 
-`CLAUDE WEB-INC-001 REMEDIATION CYCLE 1 — SUBJECT TO ML-DEVOS-AS-012`
+`ARCHITECT WEB-INC-001 REMEDIATION CYCLE 1 VERIFICATION TURN — SUBJECT TO ML-DEVOS-AS-012`

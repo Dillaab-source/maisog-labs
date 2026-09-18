@@ -32,7 +32,7 @@ Governance applies prospectively from the legacy baseline SHA above. Commits on 
 
 ## Current deployment model
 
-Static Next.js export (`next.config.mjs`: `output: "export"`) served by a Cloudflare Worker in asset-only mode via Wrangler — **not** Cloudflare Pages. Evidence: `wrangler.jsonc` (`assets.directory: "./out"`), `package.json` (`"deploy": "wrangler deploy"`), `docs/ARCHITECTURE.md`. This Phase 1 cycle corrected a prior documentation contradiction where `AGENTS.md` and `README.md` described the target as "Cloudflare Pages" (Architect finding F-003); both now describe the Worker/Wrangler asset deployment and point to `docs/ARCHITECTURE.md` as canonical. No infrastructure was changed — this was a documentation-only correction.
+Static Next.js export (`next.config.mjs`: `output: "export"`) served by Wrangler — **not** Cloudflare Pages. As of `WEB-INC-001`, this is a Worker script (`worker/index.mjs`, `wrangler.jsonc`'s `main`) plus a static Assets binding, with Worker-first routing selectively enabled for `/admin`/`/admin/*` only (`assets.run_worker_first`); every other route remains asset-first, exactly as the prior asset-only contract was. Evidence: `wrangler.jsonc` (`assets.directory: "./out"`, `main`, `run_worker_first`), `package.json` (`"deploy": "wrangler deploy"`), `docs/ARCHITECTURE.md`. This Phase 1 cycle corrected a prior documentation contradiction where `AGENTS.md` and `README.md` described the target as "Cloudflare Pages" (Architect finding F-003); both now describe the Worker/Wrangler asset deployment and point to `docs/ARCHITECTURE.md` as canonical — that correction remains true; only the underlying deployment shape itself has since evolved, via a separately authorized and reviewed increment (`ML-DEVOS-RFC-002`/`ML-DEVOS-AS-011`/`D-023`), not silently.
 
 ## Current storage model
 
@@ -62,7 +62,7 @@ As of `WEB-INC-001` (`ML-DEVOS-RFC-002` → `ML-DEVOS-AS-011` → `D-023`), a Wo
 
 - **No deployment** is authorized except by explicit, separate Paulo authorization. Current value: `DEPLOY_AUTHORIZED: NO` (`coordination/STATE.md`).
 - **No merge to `main`** is authorized except by explicit, separate Paulo authorization. Current value: `MAIN_MERGE_AUTHORIZED: NO` (`coordination/STATE.md`).
-- No admin implementation, authentication, D1/R2 integration, or public-website redesign is authorized under the current phase (`PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY`).
+- No further website implementation is authorized beyond what a specific, currently active governance record permits. As of this cycle that is `WEB-INC-001`'s authentication boundary only (`ML-DEVOS-RFC-002`/`ML-DEVOS-AS-011`/`D-023`) — see `coordination/STATE.md` for the live gate. D1/R2 integration, any later `WEB-INC-*`, and further public-website redesign remain unauthorized until their own separate RFC/Architect-Sync/Paulo-decision chain is completed; this line is updated at each such authorization rather than left pointing at the closed `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` gate.
 - No experimental/legacy branch (see inventory below) may be merged into the governance branch without a separate, explicit authorization and review.
 
 ## Legacy / non-governance branch inventory

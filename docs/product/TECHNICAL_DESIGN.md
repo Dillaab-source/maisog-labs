@@ -1,12 +1,12 @@
 # MaisogLabs Technical Design
 
-Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK`
+Status: `DRAFT — DOCUMENTATION-ONLY PRODUCT BUILD PACK` — **`WEB-INC-001` Remediation Cycle 1** (resolves `AS12-F002`: converges current-state wording — dependency list, deployment contract, runtime flow, "None of the following exists" — with the actual `jose`/Worker/auth implementation)
 
 Owns **HOW**. Requirements/rationale live in `PRD.md`; UI/UX detail lives in `UI_UX_SPEC.md`; state transitions live in `APP_FLOW.md`; data contracts live in `DATA_BACKEND_SPEC.md`. Source-of-truth precedence and brownfield classification follow `PRD.md` exactly (`AS10-F003`, `AS10-F005`).
 
 ## Current technical architecture — `CURRENTLY IMPLEMENTED`
 
-Runtime flow (`docs/ARCHITECTURE.md`): visitor → Cloudflare Worker static assets → statically generated Next.js site. No database, no server-side application dependency.
+Runtime flow (`docs/ARCHITECTURE.md`): ordinary public routes remain visitor → Cloudflare Worker static assets (asset-first) → statically generated Next.js site, unchanged by `WEB-INC-001`. `/admin` and `/admin/*` only: visitor → Worker (`worker/index.mjs`) → fail-closed Cloudflare Access verification (`worker/auth.mjs`) → the same Assets binding. **There is now one server-executed request path** (the `/admin`/`/admin/*` auth boundary) — this is narrower than, and must not be conflated with, the separate and still-true statement that **there is no database and no persistent application state**: no D1/R2, no session storage, no editorial read, no mutation, and no content served through any code path other than the two above.
 
 ```
 data/site.js  →  lib/content/local.mjs  →  lib/content/schema.mjs  →  lib/content/public.mjs  →  app/page.js
@@ -27,9 +27,9 @@ This is the governed content boundary (`brain/PROJECT_GOVERNANCE.md` § "Current
 - `public/` — static assets.
 - `docs/` — human/AI-maintainer documentation.
 
-**Dependencies (`package.json`):** `next@16.3.5`, `react`/`react-dom@19.2.4`; `wrangler@^4.35.0` (dev). No auth library, no ORM/DB client, no upload/storage SDK is present anywhere in the dependency tree.
+**Dependencies (`package.json`):** `next@16.3.5`, `react`/`react-dom@19.2.4`; `wrangler@^4.35.0` (dev); `jose@^6.2.12` — the maintained JWT verification library `WEB-INC-001` added, used only by `worker/auth.mjs`/`worker/index.mjs` for Cloudflare Access assertion verification. No ORM/DB client and no upload/storage SDK is present anywhere in the dependency tree.
 
-**Deployment contract (`CURRENTLY IMPLEMENTED`):** `next build` with static export → `out/` → served by a Cloudflare Worker in asset-only mode via Wrangler (`wrangler.jsonc`: `assets.directory: "./out"`, `not_found_handling: "404-page"`; `package.json`: `"deploy": "wrangler deploy"`). This is the canonical deployment description (`brain/DECISION_LOG.md` D-006); this Product Build Pack changes no deployment configuration.
+**Deployment contract (`CURRENTLY IMPLEMENTED`):** `next build` with static export → `out/` → served by Wrangler via a Worker script (`worker/index.mjs`, `wrangler.jsonc`'s `main`) plus a static Assets binding (`assets.directory: "./out"`, `not_found_handling: "404-page"`, `html_handling: "auto-trailing-slash"`; `package.json`: `"deploy": "wrangler deploy"`). This is no longer "asset-only mode" — Worker-first routing is selectively enabled for `/admin`/`/admin/*` only (`assets.run_worker_first`); every other route is still served asset-first, exactly as the prior asset-only contract was. `brain/DECISION_LOG.md` D-006 remains the canonical record of the pre-`WEB-INC-001` asset-only baseline this extends, not replaces, for non-admin routes.
 
 ## Public/admin boundary — current
 
@@ -39,13 +39,13 @@ This is the governed content boundary (`brain/PROJECT_GOVERNANCE.md` § "Current
 
 ## Proposed target architecture — `PROPOSED TARGET / NOT IMPLEMENTED`
 
-The existing website governance plan already records a Worker/D1/R2/auth direction as the preferred future shape if compatible with Sentinel (`docs/ARCHITECTURE.md` § "Planned evolution"; `AS10-F012`). This document restates that direction at design level only. **None of the following exists.** Creating this document does not provision D1/R2, create APIs, implement authentication, activate an admin portal, or migrate current static content (`AS10-F012`).
+The existing website governance plan already records a Worker/D1/R2/auth direction as the preferred future shape if compatible with Sentinel (`docs/ARCHITECTURE.md` § "Planned evolution"; `AS10-F012`). This document restates that direction at design level only. **Authentication is the one item below already implemented, as of `WEB-INC-001` — see its entry for exact scope; every other item remains fully unimplemented.** Creating or updating this document does not provision D1/R2, create APIs, activate an admin portal, or migrate current static content (`AS10-F012`).
 
 - **Cloudflare Worker API routes** — server-side endpoints for admin mutations, sitting alongside (not replacing) the existing static-asset Worker.
 - ~~**Authentication boundary**~~ — **`CURRENTLY IMPLEMENTED` as of `WEB-INC-001`**, not proposed target any longer; see § "Public/admin boundary — current" above. Still fully `PROPOSED TARGET / NOT IMPLEMENTED`: session/cookie state beyond the per-request Access assertion check, and gating any future mutation endpoint (no mutation endpoint exists yet to gate).
 - **D1** — structured storage for `site_settings`, `navigation`, `sections`, `foundations`, `projects`, `services`, `process_steps`, `journal_entries`, `theme_settings`, `audit_log`, plus each one's companion `_revisions` table and the revision-scoped junction tables (`project_media`, `journal_media`) described below (contracts owned by `DATA_BACKEND_SPEC.md`, not this file). Every base entity carries only identity and revision pointers; every public-affecting value (including ordering, section visibility, and media attachment order) lives in the revision/junction rows (`AS10-R008`).
 - **R2** — media storage, introduced only after content/authorization boundaries are tested (`docs/ARCHITECTURE.md`).
-- **Protected editorial read path** — a server-side data-access layer that can read `draft`/unpublished editorial state on behalf of an authenticated admin. This does **not** exist today and cannot be approximated by exposing anything from the current static `out/` assets or `data/site.js` at request time — the current deployment is asset-only/static (`wrangler.jsonc`), so there is no server-side code path to protect a read with. Any admin-facing read of non-public state requires this substrate to exist first (see `AS10-R006` disposition in `coordination/IMPLEMENTER_HANDOFF.md` and `APP_FLOW.md` §2b/§2e).
+- **Protected editorial read path** — a server-side data-access layer that can read `draft`/unpublished editorial state on behalf of an authenticated admin. This does **not** exist today and cannot be approximated by exposing anything from the current static `out/` assets or `data/site.js` at request time — `WEB-INC-001`'s server-executed path proves *identity*, not *data access*: `worker/index.mjs` performs no content read, no database query, and no editorial-state lookup of any kind. Any admin-facing read of non-public state still requires its own substrate to exist first (see `AS10-R006` disposition in `coordination/IMPLEMENTER_HANDOFF.md` and `APP_FLOW.md` §2b/§2e).
 - **Public read path** — the public site would continue to read only a published-only projection, analogous to today's `projectPublishedContent()` (`lib/content/public.mjs`), but sourced from D1 instead of `data/site.js`, following each entity's `published_revision_id` pointer (see `DATA_BACKEND_SPEC.md` § "Publication / revision model").
 
 A future implementation increment for any of the above requires its own bounded authorization and independent Architect review (`AS10-F012`) — this document grants none.
@@ -53,7 +53,8 @@ A future implementation increment for any of the above requires its own bounded 
 ## Security constraints
 
 Current (`CURRENTLY IMPLEMENTED`):
-- No secrets in source: no `process.env` usage, no `.env` files in the repository (verified by search, `brain/RISK_REGISTER.md` `RISK-WEB-004`).
+- No secrets in source: no `process.env` usage, no `.env` files in the repository, and `wrangler.jsonc`'s `vars` carry only inert placeholder strings, never a real Access team domain/audience (verified by search, `brain/RISK_REGISTER.md` `RISK-WEB-004`).
+- `worker/auth.mjs` fail-closed-verifies the Cloudflare Access assertion **and** its own required configuration for `/admin`/`/admin/*`: a missing, blank, placeholder, or malformed team domain/audience is rejected before any JWKS/network lookup is attempted and before the admin asset can be served (`AS12-F001`) — a misconfigured deployment cannot accidentally authorize a request.
 - `lib/content/schema.mjs` rejects unknown fields, control characters, and unsafe link targets (`href()` allowlists in-page anchors and validated `mailto:` only) — mitigates `RISK-WEB-011` for the current content-editing surface.
 - Draft/archived records are filtered from the public projection at build time (`lib/content/public.mjs`) — but this is **not** confidentiality: the Git source, including drafts, remains public (`docs/CONTENT.md`, `RISK-WEB-013`).
 
