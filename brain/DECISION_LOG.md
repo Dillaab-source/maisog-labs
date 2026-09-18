@@ -183,3 +183,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Builder boundary:** Claude implements this remediation. The Architect does not rewrite the archive artifacts and will independently pull live state/history and verify the exact Builder diff before issuing a closure verdict.
 - **Explicitly not authorized:** S3 proposal or implementation; project onboarding; product `.devos/` overlays; website migration; runtime Policy/Task/Capability/Orchestrator/Evidence engines; CI/workflows; GitHub rulesets/branch protection; production deployment; protected/main merge; changes to the underlying historical decisions themselves.
 - **Evidence:** Paulo explicitly said `Approve legacy archive remediation.`
+
+
+### D-020 — Record MaisogLabs Product Build Pack direction
+
+- **Decided by:** Paulo (Product / Risk Owner), after reviewing the existing MaisogLabs documentation against current AI-assisted software-development practices.
+- **Decision:** Record a future MaisogLabs product-specification layer that consolidates product intent without duplicating or weakening Sentinel/DevOS governance.
+- **Target product-document set:** `docs/product/PRD.md`; `docs/product/TECHNICAL_DESIGN.md`; `docs/product/UI_UX_SPEC.md`; `docs/product/APP_FLOW.md`; `docs/product/DATA_BACKEND_SPEC.md`; `docs/product/BUILD_PLAN.md`.
+- **Reuse rule:** existing authoritative material should be referenced/consolidated rather than copied blindly. Sentinel architecture/governance remains authoritative for scope, authority, evidence, change control, and review.
+- **Priority gaps:** `APP_FLOW.md` and `DATA_BACKEND_SPEC.md` are the first genuinely missing product artifacts to formalize. The other documents should primarily consolidate/reference existing requirements, architecture, design, and implementation-plan material.
+- **Working lifecycle recorded:** `Product Spec → Architect consistency check → acceptance criteria → dependency-ordered bounded tasks → Claude implementation increment → tests/evidence → Architect independent review → next increment`.
+- **Boundary:** this record is a planning decision only. It does **not** authorize creation of the six files yet, website/admin/backend implementation, S3 proposal or implementation, project onboarding, runtime work, deployment, or main merge.
+- **Sequencing:** formal implementation of this Product Build Pack should be opened as a separate governed change after the active legacy-archive remediation is independently closed, so it does not contaminate the current remediation diff or Sentinel phase gates.
+- **Evidence:** Paulo explicitly said, `Okay let’s put that into record`, referring to the Product Build Pack and spec-to-build workflow described immediately beforehand.
