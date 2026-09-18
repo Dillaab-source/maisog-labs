@@ -1,16 +1,17 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-WEB-INC-001-AUTH
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NONE_PENDING_NEW_PAULO_DECISION
+CYCLE_ID: MAISOGLABS-WEB-INC-005-D1-SUBSTRATE
+TURN: CLAUDE
+STATUS: AUTHORIZED_FOR_IMPLEMENTATION
+AUTHORIZED_SCOPE: WEB_INC_005_D1_SUBSTRATE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: a55eca3b6876152c1b3b9f306c04da376aadd89c
-LAST_ARCHITECT_REVIEWED_SHA: a55eca3b6876152c1b3b9f306c04da376aadd89c
-CURRENT_REMEDIATION_CYCLE: 3
+LAST_ARCHITECT_REVIEWED_SHA: d6daeca63e0fcfdd5d7a1625ef98098c37e8eb7f
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
+REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
@@ -25,183 +26,263 @@ Active Sentinel governance-capability baseline:
 Verified Product Build Pack:
 - `ML-DEVOS-AS-010: ARCHITECT_APPROVED — PRODUCT BUILD PACK VERIFIED / REMEDIATION CLOSED`
 
+Closed dependency:
+- `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+
 ## Authority chain for this cycle
 
 RFC:
-- `ML-DEVOS-RFC-002 — MaisogLabs WEB-INC-001 Authentication Boundary`
+- `ML-DEVOS-RFC-003 — MaisogLabs WEB-INC-005 D1 Revision Substrate and Current-Content Migration`
 - status: `ACCEPTED`
 - change class: `ARCHITECTURE`
 
 Architect Sync:
-- `ML-DEVOS-AS-011: ARCHITECT_APPROVED — WEB-INC-001 RFC-002 COMPATIBLE FOR BOUNDED IMPLEMENTATION`
-- durable archive: `devos/changes/architect-syncs/ML-DEVOS-AS-011.md`
+- `ML-DEVOS-AS-013: ARCHITECT_APPROVED — WEB-INC-005 RFC-003 COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`
+- durable archive: `devos/changes/architect-syncs/ML-DEVOS-AS-013.md`
 
 Paulo implementation decision:
-- `D-023 — Authorize WEB-INC-001 authentication-boundary implementation`
+- `D-024 — Authorize WEB-INC-005 D1 revision-substrate implementation`
 
-Paulo's instruction `Proceed with authorizations` has been applied to this next dependency-ordered increment only. It is not blanket authorization for later increments.
+Paulo explicitly instructed `Proceed with WEB-INC-005 authorization.` This authority applies to WEB-INC-005 only and does not authorize later increments or remote Cloudflare operations.
 
-## WEB-INC-001 closure state
+## Builder objective
 
-Final Builder remediation reviewed:
-- `a55eca3b6876152c1b3b9f306c04da376aadd89c`
+Implement the current-content D1 entity/revision substrate and deterministic migration/parity tooling locally in the repository while preserving the existing public build path.
 
-Final Architect verdict:
-- `ML-DEVOS-AS-012: ARCHITECT_APPROVED — WEB-INC-001 REPOSITORY IMPLEMENTATION ACCEPTED / REMEDIATION CLOSED`
+Current public path remains authoritative during this increment:
 
-All findings `AS12-F001` through `AS12-F007` are resolved or preserved PASS under the final Architect review.
+`data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`
 
-Durable Architect Sync archive:
-- `devos/changes/architect-syncs/ML-DEVOS-AS-012.md`
-- concluding source snapshot mechanically verified byte-for-byte against `coordination/ARCHITECT_REVIEW.md` at commit `eb6eea88a97043ecbd8fd3a4c3c3a306b7619109`.
+D1 is introduced in parallel and must prove parity. No public cutover is authorized.
 
-Repository implementation state:
-- `WEB-INC-001` authentication boundary is accepted as a governed repository implementation;
-- `/admin` remains an authentication-only placeholder;
-- no D1/R2, protected editorial reads, content mutation, CRUD, journal/media management, theme controls, or audit behavior exist yet;
-- no production Cloudflare Access application/policy has been created or modified;
-- no production deployment or protected/main merge is authorized.
+## Authorized table inventory — exactly these 14
 
-The next dependency-ordered Product Build Pack increment is `WEB-INC-005`, but it is not authorized yet.
+1. `site_settings`
+2. `site_settings_revisions`
+3. `navigation`
+4. `navigation_revisions`
+5. `foundations`
+6. `foundation_revisions`
+7. `projects`
+8. `project_revisions`
+9. `services`
+10. `service_revisions`
+11. `process_steps`
+12. `process_step_revisions`
+13. `sections`
+14. `section_revisions`
+
+No other product table is authorized.
 
 ## Authorized repository implementation
 
 Claude / Builder may:
 
-- add a bounded Worker entrypoint/auth helper for protected admin paths;
-- update `wrangler.jsonc` for a Worker script, Assets binding, and selective Worker-first routing for `/admin` and `/admin/*` only;
-- add a minimal static `/admin` placeholder/shell solely to exercise the authentication boundary;
-- add only dependency/dependencies actually required for maintained JWT verification and deterministic tests;
-- add focused authentication/security tests;
-- update `docs/ARCHITECTURE.md` and/or `docs/product/TECHNICAL_DESIGN.md` only to describe what actually became implemented;
-- update relevant risk/test/governance traceability records only where required by the implemented increment;
+- add D1 migration SQL for the 14 authorized tables;
+- add a local-safe D1 binding/configuration shape;
+- add deterministic local seed/migration tooling;
+- add bounded server-side D1 data-access and projection/reconstruction modules;
+- add D1 parity, integrity, migration-state, repeat-run, and negative-path tests;
+- add local scripts necessary to exercise migrations and parity;
+- update architecture/data/product/governance/test documentation only to record what actually became implemented;
 - update `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`.
+
+Prefer existing Wrangler/D1 tooling and no ORM/new dependency unless genuinely necessary.
 
 Exact changed paths must be reported in the Builder handoff.
 
-## Binding implementation constraints
+## Binding storage model
 
-### Protected-path routing
+Base entity rows contain only:
 
-Worker-first routing must be selective:
+- stable identity;
+- immutable `created_at`;
+- immutable project `slug` where applicable;
+- nullable `published_revision_id`;
+- nullable `draft_revision_id`.
 
-- `/admin`
-- `/admin/*`
+Do not place `order`, visibility, lifecycle/publication state, mutable public content, or other public-affecting editable values on base rows.
 
-Ordinary public routes/assets remain asset-first.
+Revision ownership must be preserved: a base entity pointer must not successfully target another entity's revision.
 
-Global `run_worker_first: true` is not authorized.
+Entity status remains derived from the two pointers.
 
-### Authentication
+## Current-content migration contract
 
-For protected paths, the Worker must fail closed unless the Cloudflare Access assertion is server-side verified.
+Current record collections map to:
 
-Reject at minimum:
+- `navigation[]` → navigation pair;
+- `foundations[]` → foundations pair;
+- `projects[]` → projects pair;
+- `services[]` → services pair;
+- `process.steps[]` → process-steps pair.
 
-- missing assertion;
-- malformed assertion;
-- expired/not-yet-valid assertion;
-- untrusted signature/key;
-- wrong issuer/team;
-- wrong application audience.
+Singleton current domains map into a typed/schema-validated `site_settings_revisions` representation.
 
-A valid assertion is required before the admin asset is served.
+Do not store the whole current content document as an opaque free-form JSON blob.
 
-### Secrets / identity
+Migration state mapping:
 
-Do not commit:
+- source `published` → published revision pointer;
+- source `draft` → draft revision pointer only;
+- source `archived` → revision preserved with both pointers null.
 
-- production credentials;
-- private signing keys;
-- real administrator identity data;
-- production Access secrets;
-- provider secrets.
+Project slug remains immutable on the base row.
 
-Local tests must use deterministic test keys/JWKS and test issuer/audience values.
+## Sections bootstrap
 
-### Admin placeholder boundary
+Create published/visible section revisions for:
 
-The minimal admin placeholder is only an authentication-boundary test surface.
+1. `home`
+2. `projects`
+3. `process`
+4. `about`
 
-It must not include:
+`main-content` is not a managed section.
 
-- D1/private content;
-- dashboard data;
-- CRUD;
-- publish/unpublish;
-- media upload;
-- theme controls;
-- later `WEB-INC-*` functionality.
+No section-editing UI or mutation endpoint is authorized.
 
-## Required Builder evidence
+## Migration provenance
 
-Before returning to Architect:
+Do not create an admin identity/session table.
 
-1. exact implementation diff;
-2. `npm run build` result;
-3. focused auth test result;
-4. missing-token rejection;
-5. malformed-token rejection;
-6. expired-token rejection;
-7. wrong-audience rejection;
-8. valid signed deterministic test-token acceptance;
-9. evidence ordinary public routes remain asset-first/unaffected;
-10. secret/identity scan or equivalent evidence that no production secret/private key/admin identity was committed;
-11. explicit list of known limitations;
-12. explicit confirmation that no external Cloudflare resource was changed.
+For imported current content, revision `created_by` uses deterministic textual provenance such as:
 
-Builder evidence is `ACTOR_REPORTED` until independently verified. All 12 items above remain addressed in `coordination/IMPLEMENTER_HANDOFF.md`; this cycle only corrected its exact-diff provenance and the surrounding documentation, per `AS12-F007`/`AS12-F002`.
+`migration:web-inc-005`
+
+or an equivalently explicit stable value.
+
+This is provenance, not authorization.
+
+## Local-only D1 rule
+
+All implementation/evidence work is local/repository only.
+
+Allowed:
+
+- local Wrangler D1 simulation;
+- local migration apply;
+- local seed;
+- local query/parity/integrity tests.
+
+Not allowed:
+
+- `wrangler d1 create`;
+- remote D1 migration/query/import/export;
+- a real production D1 ID in tracked source;
+- `remote: true` D1 binding;
+- any remote Cloudflare D1 mutation;
+- Worker deployment.
+
+If a placeholder remote ID makes Wrangler configuration invalid, use a separate local-only config/environment rather than creating a remote database.
+
+Every D1 command recorded as Builder evidence must be demonstrably local-only.
+
+## Public behavior invariant
+
+Do not switch:
+
+- `lib/content/local.mjs`;
+- `app/page.js`;
+- the actual public render path
+
+to D1 in this increment.
+
+Do not delete or retire `data/site.js`.
+
+The D1 published projection exists for parity/testing only at this stage.
+
+If implementation appears to require a public cutover, STOP and return for a new decision.
+
+## Data-access boundary
+
+A bounded server-side data layer may:
+
+- read current published revisions;
+- read draft revisions only when explicitly requested by trusted server-side code;
+- reconstruct the current-content model for parity testing.
+
+Do not add:
+
+- an HTTP editorial-read endpoint;
+- admin dashboard UI;
+- mutation endpoint;
+- publish/unpublish handler;
+- client/browser D1 access.
+
+## Required Builder tests/evidence
+
+Before returning to Architect, provide:
+
+1. exact implementation commit and exact changed-file list;
+2. exact D1 table inventory proving only the 14 authorized tables exist;
+3. migration SQL summary;
+4. fresh local migration-apply result;
+5. deterministic seed/migration result;
+6. second-run behavior proving no duplicate/corrupt revisions or pointers;
+7. deep semantic parity:
+   `D1 reconstructed published projection == projectPublishedContent(siteContent)`;
+8. parity includes all current domains, including `services`;
+9. sections substrate verified separately against current page structure;
+10. published/draft/archived fixture mapping;
+11. draft reorder cannot affect published projection/order;
+12. cross-entity revision-pointer assignment is rejected;
+13. project slug uniqueness/reserved-slug enforcement;
+14. revision-number uniqueness per entity;
+15. foreign-key/integrity behavior;
+16. all existing content tests;
+17. all existing WEB-INC-001 auth tests;
+18. full `npm test` count/result;
+19. successful `npm run build`;
+20. Wrangler config/bundle validation with no remote mutation;
+21. exact command log proving D1 commands were local-only;
+22. secret/config scan;
+23. explicit confirmation no remote Cloudflare D1 resource was created/modified;
+24. explicit confirmation public rendering still reads `data/site.js`;
+25. known limitations.
+
+Builder evidence remains `ACTOR_REPORTED` until independently verified.
 
 ## Explicitly prohibited
 
 This cycle does NOT authorize:
 
-- `WEB-INC-005` or any later `WEB-INC-*`;
-- D1;
-- R2;
-- protected editorial reads;
-- admin dashboard data;
-- project/journal CRUD;
-- content mutation;
-- audit-log persistence;
-- theme/design controls;
-- production Cloudflare Access application/policy creation or modification;
-- identity-provider configuration;
-- real production secret/config provisioning;
-- production deployment;
+- any table outside the 14 listed above;
+- `audit_log`;
+- media or R2;
+- journal;
+- theme settings;
+- persistent admin identity/session tables;
+- `WEB-INC-002` or any later `WEB-INC-*`;
+- admin dashboard/read API;
+- content CRUD;
+- publish/unpublish APIs;
+- public D1 cutover;
+- deletion/retirement of `data/site.js`;
+- production D1 creation/provisioning;
+- remote D1 operations;
+- production Cloudflare Access changes;
+- deployment;
 - protected/main merge;
-- S3 or later Sentinel phases;
-- project onboarding;
-- product `.devos/` overlay;
+- Sentinel S3 or later;
+- project onboarding/product `.devos/`;
 - CI/workflows;
 - GitHub rulesets/branch protection.
-
-## External Cloudflare operation gate
-
-Any real Cloudflare Access application/policy change is a separate sensitive operation.
-
-Before that occurs:
-
-1. prepare a concrete Sentinel Decision Packet;
-2. bind it to the exact Cloudflare target/path/policy/change/rollback;
-3. receive explicit Paulo authorization;
-4. use an authorized Cloudflare capability;
-5. capture runtime evidence after any separately authorized deployment.
-
-No such external operation is authorized in this cycle.
 
 ## Architect review rule
 
 After Builder handoff, Architect must pull the live branch/state and independently compare the exact Builder commit against:
 
-- `ML-DEVOS-RFC-002`;
-- `ML-DEVOS-AS-011`;
-- `D-023`;
+- `ML-DEVOS-RFC-003`;
+- `ML-DEVOS-AS-013`;
+- `D-024`;
+- `D-007`;
+- `docs/product/DATA_BACKEND_SPEC.md`;
 - `docs/product/BUILD_PLAN.md`;
-- current website architecture/security constraints.
+- current repository behavior.
 
-Architect must independently reproduce deterministic auth tests where practical before issuing PASS / CHANGES_REQUESTED.
+Architect must independently inspect migration SQL, table inventory, data-access code, parity strategy, repeat-run behavior, and state/integrity tests before issuing PASS / CHANGES_REQUESTED.
 
 ## Current gate
 
-`WEB-INC-001 CLOSED — NEW PAULO AUTHORIZATION REQUIRED BEFORE WEB-INC-005 OR ANY PRODUCTION CLOUDFLARE OPERATION`
+`CLAUDE WEB-INC-005 D1 REVISION-SUBSTRATE IMPLEMENTATION TURN`
