@@ -1,21 +1,88 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-003-PROJECT-MUTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: REMEDIATION_AUTHORIZED
 AUTHORIZED_SCOPE: WEB_INC_003_PROJECT_MUTATION_CAPABILITY_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: a016cc2aafea494ad00ecfd79b545ccdcb0c1221
 LAST_ARCHITECT_REVIEWED_SHA: 23db231cc99725fd00637a18bd11ea37d2ef862c
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 MUTATION_AUTHORIZED: YES
 AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
+
+## Remediation Cycle 1 — exact authorized scope
+
+Architect review:
+- `ML-DEVOS-AS-021: CHANGES_REQUESTED — WEB-INC-003 REMEDIATION CYCLE 1 LIMITED TO COMMIT-TIME STALE-WRITE ENFORCEMENT, BOUNDED MUTATION IDENTITY, TRUE BODY-SIZE BOUNDING, AND ROUTE/DB ORDERING`
+- Architect review commit: `8307fcc70b29294db5637118ab9120e51f0435ff`
+
+Claude is authorized only to remediate:
+
+1. **Commit-time stale-write enforcement**
+   - expected published/draft pointer state must be enforced inside the atomic mutation boundary, not only by a pre-read;
+   - concurrent/interleaved stale edit/publish/unpublish must fail with bounded `409`;
+   - no stale business mutation or success audit may survive.
+
+2. **Bounded mutation identity**
+   - verified Access `sub` must be non-empty and explicitly bounded before project D1 access;
+   - whitespace-only / oversized subjects must be rejected with `403` and zero project D1 access;
+   - accepted maximum subject must still produce a valid ADR-005 audit actor.
+
+3. **True body-size bounding**
+   - enforce the 32 KiB budget in bytes, not JavaScript character count;
+   - use declared Content-Length as an early reject when available;
+   - add multibyte coverage proving the limit cannot be bypassed.
+
+4. **Route/method classification before DB requirement**
+   - unsupported route/method returns 404/405 without requiring DB;
+   - only a recognized route that needs D1 returns 503 when DB is absent.
+
+Required regression tests:
+- deterministic interleaving/TOCTOU tests for edit, publish, and unpublish;
+- subject boundary tests;
+- multibyte body-limit test;
+- missing-DB 404/405/503 ordering tests.
+
+Do not:
+- redesign WEB-INC-003;
+- change migrations/schema;
+- add tables;
+- add routes;
+- add project delete;
+- mutate other content domains;
+- touch remote D1/deployment/public cutover;
+- begin later WEB-INC work.
+
+If commit-time stale enforcement cannot be implemented safely with the existing schema and documented D1 behavior:
+
+`STOP → RETURN TO ARCHITECT`
+
+Absolute gates remain:
+
+`MUTATION_AUTHORIZED: YES` — only for this bounded remediation.
+
+`AUDIT_APPEND_AUTHORIZED: YES` — only as required by WEB-INC-003.
+
+`REMOTE_D1_AUTHORIZED: NO`
+
+`DEPLOY_AUTHORIZED: NO`
+
+`MAIN_MERGE_AUTHORIZED: NO`
+
+After remediation:
+- run focused project tests;
+- run all prior WEB-INC regression suites;
+- run full `npm test`;
+- run build;
+- update handoff/state;
+- return exact remediation SHA and changed-file list to Architect.
 
 ## Current baselines
 
