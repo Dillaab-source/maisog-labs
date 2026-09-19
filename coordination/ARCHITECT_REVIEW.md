@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION RECORDED / BUILDER TURN MAY OPEN`
+Status: `ARCHITECT_APPROVED — WEB-INC-006 JOURNAL ACCEPTED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,22 +8,22 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-028 — WEB-INC-006 Local Journal Architecture Sync
+# ML-DEVOS-AS-029 — WEB-INC-006 Final Implementation Review
 
-RFC:
-- `ML-DEVOS-RFC-009`
+Cycle:
+- `MAISOGLABS-WEB-INC-006-JOURNAL`
 
-Product increment:
-- `WEB-INC-006 — Journal`
+Authority chain:
+- `WEB-REQ-009 → ML-DEVOS-RFC-009 → ML-DEVOS-AS-028 → D-031`
 
-Change class:
-- `ARCHITECTURE`
+Implementation base:
+- `28039221fc2b6fede35cee7ce02ff76be3dbcea0`
 
-Reviewed proposal base:
-- `ec51e08f7ec69b313e661036b6197a0d759dfd9c`
+Builder implementation:
+- `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e`
 
-RFC commit:
-- `a1a927401d270bb53a8b0a93c121c72ca7208bcc`
+Builder handoff/state:
+- `5f4d07efdd5714de8c44225998a4d9c052888069`
 
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -31,258 +31,297 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.5.0`
 
-## Repository-grounded context
+## Independent review
 
-The Architect independently confirmed:
+The Architect independently:
 
-- WEB-INC-004 is closed by `ML-DEVOS-AS-027` / `ML-DEVOS-ADR-007`;
-- current schema has 17 product tables;
-- current Worker-first routing is limited to `/admin` and `/admin/*`;
-- the accepted project mutation lifecycle already supplies the revision/pointer/stale-write/audit pattern Journal should reuse;
-- the accepted media subsystem already supplies immutable revision-scoped media snapshot semantics;
-- `WEB-REQ-009` is now defined in `docs/product/PRD.md`;
-- no Journal implementation exists yet.
+1. live-checked branch HEAD, STATE, and IMPLEMENTER_HANDOFF;
+2. separated the single implementation commit from the bookkeeping commit;
+3. inspected migration 0004;
+4. inspected Journal D1 mutation helpers;
+5. inspected protected admin Journal dispatch;
+6. inspected public Journal SQL and route dispatch;
+7. inspected Worker auth/public-routing separation;
+8. inspected Wrangler Worker-first route expansion;
+9. inspected the static `/journal` shell/client;
+10. inspected validation/media/dashboard/schema integration;
+11. inspected focused test source for pointer ownership, immutable revision/media behavior, stale writes, public draft non-disclosure, and publish-time media revalidation.
+
+Builder runtime/test/visual/CLI results remain `ACTOR_REPORTED`.
 
 ## Findings
 
-### AS28-F001 — PASS — ARCHITECTURE classification is correct
+### AS29-F001 — PASS — implementation commit is bounded
 
-Although journal mutations reuse an existing capability pattern, WEB-INC-006 changes the system architecture by:
+Implementation commit `cdc8f84...` contains the Journal subsystem and its tests/presentation only.
 
-- adding three persistent tables;
-- adding a new public content type;
-- widening Worker-first routing beyond the admin boundary;
-- creating the first unauthenticated public Worker → D1 read path.
+Bookkeeping commit `5f4d07e...` contains coordination handoff/state only.
 
-The stronger architecture route is required.
+No deployment or main merge is present.
 
-### AS28-F002 — PASS — table ownership is bounded
+### AS29-F002 — PASS — schema target is exactly the authorized three-table addition
 
-RFC-009 permits exactly:
+Migration 0004 adds exactly:
 
 - `journal_entries`;
 - `journal_entry_revisions`;
 - `journal_media`.
 
-Target product-table count is exactly:
+The schema helper preserves prior frozen exports and adds a separate full-schema path targeting 20 product tables.
 
-`17 → 20`
+No prior migration was modified by the implementation compare.
 
-No theme table, media table replacement, or unrelated schema is authorized.
+### AS29-F003 — PASS — pointer ownership is database-enforced
 
-### AS28-F003 — PASS — public Worker boundary is explicit and narrow
+`journal_entries` uses composite foreign keys so:
 
-The current `wrangler.jsonc` Worker-first list is admin-only.
+- `published_revision_id`;
+- `draft_revision_id`
 
-RFC-009 may widen it only for:
+can reference only revisions belonging to the same journal entry.
+
+This prevents cross-entry pointer corruption.
+
+### AS29-F004 — PASS — journal revision content is immutable with a narrow publish transition
+
+The database rejects ordinary UPDATE and DELETE of `journal_entry_revisions`.
+
+The only accepted post-insert transition is:
+
+`published_at: NULL → non-null`
+
+while all other revision fields remain unchanged.
+
+Application publish generates the timestamp server-side.
+
+A second timestamp rewrite is rejected.
+
+### AS29-F005 — PASS — journal media is a revision-scoped immutable snapshot
+
+`journal_media`:
+
+- belongs to `journal_entry_revisions.id`;
+- references existing `media.id`;
+- enforces role `cover|gallery`;
+- rejects duplicate association;
+- rejects duplicate role/order slot;
+- rejects UPDATE;
+- rejects DELETE.
+
+Admin create/edit validates referenced media as active before constructing the snapshot.
+
+### AS29-F006 — PASS — create/edit lifecycle preserves immutable history
+
+Create inserts:
+
+- base entity;
+- revision 1;
+- optional media snapshot;
+- draft pointer;
+- success audit
+
+in one batch.
+
+Edit creates a new revision.
+
+When media is omitted, the source revision snapshot is inherited.
+
+When supplied, the supplied media list becomes the complete new snapshot.
+
+Prior revisions and prior journal_media rows are not rewritten.
+
+### AS29-F007 — PASS — stale-write protection is retained
+
+Journal mutation reuses the accepted commit-time stale-pointer guard technique.
+
+Focused interleaving test source reproduces the same class of race already addressed for projects.
+
+No last-write-wins behavior is intentionally introduced.
+
+### AS29-F008 — PASS — publish revalidates persisted content and media
+
+Before pointer promotion the handler:
+
+- re-reads the exact draft revision;
+- re-runs full Journal content validation;
+- reads the exact draft media snapshot;
+- verifies all referenced media still exist and remain active.
+
+Only after those checks does it execute the atomic publish batch.
+
+### AS29-F009 — PASS — public reads follow the published pointer only
+
+Public index SQL joins:
+
+`journal_entries.published_revision_id → journal_entry_revisions.id`
+
+with ownership correlation to the same entry.
+
+Public detail first resolves the entry's current published pointer and then reads exactly that owned revision.
+
+Neither query reads or falls back to `draft_revision_id`.
+
+Draft-only, unpublished, and superseding-draft content therefore have no authorized public read path.
+
+### AS29-F010 — PASS — public index ordering is deterministic
+
+Index ordering is:
+
+`published_at DESC, revision_id DESC`
+
+which provides newest-published-first behavior plus a deterministic tie-break.
+
+### AS29-F011 — PASS — public response projection is bounded
+
+Public index/detail select and return positive allowlists.
+
+Journal media projection contains only:
+
+- id;
+- content type;
+- alt text;
+- role;
+- order.
+
+No storage key, uploaded-by identity, draft pointer, audit data, or binding/resource information is selected for the public projection.
+
+### AS29-F012 — PASS — public/admin routing separation is structural
+
+`worker/auth.mjs` classifies only:
+
+- `/api/journal`;
+- `/api/journal/*`
+
+into the public dispatch before Access verification.
+
+All `/admin/*` paths continue through the existing Access verification flow.
+
+Public Journal dispatch itself recognizes only the root and one-slug detail shape and rejects unsupported methods before D1 access.
+
+### AS29-F013 — PASS — Worker-first expansion is exact
+
+`wrangler.jsonc` expands Worker-first paths only to:
 
 - `/api/journal`;
 - `/api/journal/*`.
 
-Those routes are public, unauthenticated, read-only, GET-only paths.
+No other public path was added.
 
-No other public request path becomes Worker-first.
+D1/R2 bindings remain explicitly `remote: false`.
 
-This is a deliberate architecture decision rather than an accidental side effect.
+### AS29-F014 — PASS — static export contract is preserved
 
-### AS28-F004 — PASS — public-read isolation is strong
+`app/journal/page.js` remains a static shell.
 
-The public index/detail contract follows only:
+It reads only existing static site content for branding.
 
-`journal_entries.published_revision_id`
+The client component fetches Journal API data at runtime.
 
-and must never:
+No D1 module is imported by the Next.js page.
 
-- fall back to `draft_revision_id`;
-- expose draft-only entries;
-- expose unpublished entries;
-- expose an arbitrary historical revision.
+No SSR conversion or build-time D1 access was introduced.
 
-This preserves the core revision/publication invariant.
+### AS29-F015 — PASS — body rendering is plain text
 
-### AS28-F005 — PASS — WEB-REQ-009 closes the missing public requirement gap
+Journal body validation normalizes line endings, rejects control/angle-bracket input outside allowed plain-text characters, and bounds length.
 
-The build plan explicitly required a new stable public requirement before Journal implementation.
+The client renders the body as normal React text content.
 
-`WEB-REQ-009` now owns:
+No `dangerouslySetInnerHTML`, Markdown interpreter, or rich-text executor is introduced.
 
-- published-only public reads;
-- newest-published-first index ordering;
-- immutable-slug detail lookup;
-- draft/unpublished non-disclosure.
+### AS29-F016 — PASS — dashboard Journal projection is bounded
 
-No implementation may claim Journal public acceptance without proving it.
+The dashboard reads Journal lifecycle metadata and labels only.
 
-### AS28-F006 — PASS — body format is deliberately simple and safe
+Summary/body are not selected by the Journal dashboard query and therefore cannot leak through that projection.
 
-RFC-009 resolves the previously-undecided body format to:
+### AS29-F017 — PASS — audit integration stays fixed at Journal call sites
 
-`plain text only`
-
-for this increment.
-
-No Markdown execution, rich text engine, HTML interpolation, or `dangerouslySetInnerHTML` is authorized.
-
-This keeps WEB-INC-006 focused on publication architecture rather than content-renderer security.
-
-### AS28-F007 — PASS — publication timestamp semantics are explicit
-
-`published_at` belongs to the revision and is server-controlled.
-
-The only permitted post-insert revision mutation is:
-
-`published_at: NULL → generated timestamp`
-
-at first publication.
-
-The database must reject all other revision mutation and any second timestamp rewrite.
-
-This creates the chronological ordering signal without making ordinary revision content mutable.
-
-### AS28-F008 — PASS — journal media follows accepted immutable snapshot semantics
-
-`journal_media` is revision-scoped and must mirror the already-accepted `project_media` guarantees:
-
-- active existing media only;
-- immutable rows;
-- duplicate association prevention;
-- duplicate role/order slot prevention;
-- omitted edit media inherits source snapshot;
-- supplied media fully defines the new revision snapshot.
-
-No public R2 object-serving path is created.
-
-### AS28-F009 — PASS — protected mutation lifecycle reuses accepted controls
-
-Admin Journal routes are bounded to:
-
-- create draft;
-- edit draft;
-- preview;
-- publish;
-- unpublish.
-
-No delete, generic write, slug rename, or arbitrary mutation endpoint is authorized.
-
-Mutations remain subject to:
-
-- verified Access identity;
-- bounded subject;
-- same-origin;
-- bounded JSON body;
-- server-side validation;
-- expected pointer inputs;
-- commit-time stale-write protection;
-- audit success/failure semantics.
-
-### AS28-F010 — PASS — public and admin routing are separated
-
-The Builder must classify exact public Journal GET routes before the Access-auth admin dispatch.
-
-Public routes must never inherit admin authentication requirements.
-
-Admin routes must never bypass Access because public Journal routing exists.
-
-Tests must cover both directions.
-
-### AS28-F011 — PASS — static Next.js contract is preserved
-
-The public `/journal` route remains a static shell.
-
-It may fetch the public Journal API client-side.
-
-RFC-009 does not authorize:
-
-- SSR conversion;
-- server components reading D1 at runtime;
-- build-time D1 access;
-- replacing the static export deployment model.
-
-### AS28-F012 — PASS — dashboard scope is bounded
-
-The authenticated dashboard may gain Journal lifecycle metadata only.
-
-It must not expose journal body text by default.
-
-This is consistent with the dashboard's status/projection role.
-
-### AS28-F013 — PASS — audit extension is bounded
-
-Only these new audit actions are authorized:
+The Journal implementation uses exactly these new action literals:
 
 - `journal_create_draft`;
 - `journal_edit_draft`;
 - `journal_publish`;
 - `journal_unpublish`.
 
-No generic Journal audit action family is introduced.
+Success audits are included in mutation batches; bounded failure paths use the existing append-only failure audit mechanism.
 
-### AS28-F014 — PASS — local resource boundary remains intact
+No caller-controlled audit action is exposed.
 
-D1 and R2 remain:
+### AS29-L001 — ACCEPTED LIMITATION — base-row immutable metadata is application-enforced, not independently frozen by a new DB trigger
 
-`remote: false`
+RFC-009 describes Journal `id`, `slug`, and `created_at` as identity/immutable metadata.
 
-No remote resource, production identifier, credential, public R2 domain, deployment, or cutover is authorized.
+The authorized HTTP surface contains no rename/update path for those fields, and all normal Journal mutations preserve them.
 
-CORE-019 real-remote-resource authority is therefore not activated by this local-only build.
+The D1 table does not add a separate trigger preventing a hypothetical direct SQL UPDATE of those base metadata columns.
 
-### AS28-F015 — PASS — no premature WEB-INC-007 or Sentinel expansion
+This is accepted because:
 
-WEB-INC-006 does not authorize:
+- no direct-SQL Journal mutation capability exists;
+- remote D1 remains unauthorized;
+- the accepted commit-time stale guard deliberately uses a self-assignment of `slug`, so naively adding an `UPDATE OF slug` rejection trigger would break the existing race-protection technique;
+- the same stale-guard coupling is already an accepted limitation pattern from WEB-INC-003.
 
-- theme/design controls;
-- Sentinel S3+;
-- CI/rulesets;
-- Capability Gateway;
-- Task Engine;
-- Orchestrator.
+A future schema/CAS redesign or direct-DB writer must revisit this.
 
-### AS28-F016 — PASS — evidence requirements are sufficient
+### AS29-L002 — ACCEPTED CLARIFICATION — audit substrate has bounded-name validation, not a global literal action enum
 
-RFC-009 requires direct evidence for:
+RFC-009 used “audit action allowlist” language.
 
-- migration/table inventory;
-- pointer ownership;
-- revision immutability;
-- one-time publish timestamp;
-- media snapshots;
-- stale-write protection;
-- publish revalidation;
-- public non-disclosure;
-- routing separation;
-- audit behavior;
-- dashboard status;
-- full tests/build;
-- local Wrangler smoke;
-- no-remote confirmation.
+The previously accepted audit substrate validates action names structurally rather than maintaining a central literal enum.
 
-Builder runtime evidence remains `ACTOR_REPORTED` until Architect review.
+WEB-INC-006 still satisfies the authority intent because Journal call sites hardcode exactly the four authorized Journal action names and accept no action string from the HTTP request.
 
-## Paulo gate
+No generic Journal audit capability was introduced.
 
-Paulo explicitly authorized proceeding with the next increment twice after UI-PATCH-001 closure, including the instruction:
+### AS29-L003 — ACCEPTED LIMITATION — direct SQL could supply an arbitrary non-null first published_at value
 
-`Authorized`
+The application generates `published_at` server-side and the admin request cannot supply it.
 
-The second authorization was given while WEB-INC-006 was explicitly identified as the active next Journal cycle.
+The DB trigger enforces the one-time NULL→non-null transition and prevents later rewrites, but it does not independently validate ISO timestamp syntax for a hypothetical direct SQL writer.
 
-That satisfies the Paulo product/risk gate for the exact bounded RFC-009 implementation scope.
+This is accepted for the current local-only architecture because no direct DB writer is authorized.
 
-It does not authorize deployment, remote resources, main merge, WEB-INC-007, or Sentinel expansion.
+If direct DB mutation or remote operational tooling is later introduced, timestamp-shape enforcement must be revisited.
 
-## Verdict
+### AS29-F018 — ACCEPTED ACTOR_REPORTED evidence
 
-`ML-DEVOS-AS-028: ARCHITECT_APPROVED — WEB-INC-006 LOCAL JOURNAL ARCHITECTURE COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`
+Claude reports:
 
-Claude may be given a Builder turn only after:
+- admin Journal suite: `44/44`;
+- public Journal suite: `16/16`;
+- full suite: `269/269`;
+- `npm run build`: success;
+- static routes include `/journal`;
+- fresh local migrations produce exactly 20 product tables;
+- local Wrangler smoke verifies public/admin route separation;
+- screenshot verification of Journal index/detail;
+- dry-run binding set unchanged;
+- no remote D1/R2;
+- no deployment;
+- no main merge.
 
-- RFC-009 status is updated to `ACCEPTED`;
-- D-031 records Paulo's bounded authorization;
-- `coordination/STATE.md` explicitly names WEB-INC-006 and keeps all remote/release gates closed.
+These claims remain `ACTOR_REPORTED`.
 
-Because WEB-INC-006 is `ARCHITECTURE`, final accepted implementation requires:
+For this local/repository architecture increment, independent source/diff inspection plus the reported deterministic/local evidence is sufficient under CORE-020.
 
-- independent Architect implementation review;
-- durable Architect Sync archive;
-- post-acceptance ADR.
+## Final verdict
+
+`ML-DEVOS-AS-029: ARCHITECT_APPROVED — WEB-INC-006 LOCAL JOURNAL SUBSYSTEM ACCEPTED`
+
+`WEB-REQ-009` is implemented at repository/local level.
+
+No production/remote verification is claimed.
+
+## Post-acceptance requirement
+
+Because WEB-INC-006 is `ARCHITECTURE`, record a durable ADR before final cycle closure.
+
+No authority is created for:
+
+- remote D1/R2;
+- deployment;
+- protected/main merge;
+- WEB-INC-007;
+- Sentinel S3+.
