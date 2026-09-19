@@ -467,3 +467,17 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Explicitly not authorized:** remote D1/R2, production resource provisioning, public R2 object serving, arbitrary visual-code editor, general CMS expansion, homepage/project D1 content cutover, SSR conversion, deployment, protected/main merge, Sentinel S3+, CI/rulesets/Capability Gateway/Task Engine/Orchestrator.
 - **Evidence class:** Builder test/runtime/CLI/visual claims remain `ACTOR_REPORTED` until independent Architect review.
 - **Evidence of Paulo authority:** Paulo instructed `Okay proceed` after WEB-INC-006 closure/document reconciliation, with WEB-INC-007 identified as the sole remaining core increment.
+
+
+### D-033 — Require screenshot-reference design workflow for WEB-INC-007
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision:** WEB-INC-007 must support a reference-driven design workflow in which Paulo can upload a UI screenshot to ChatGPT, the Architect converts it into a structured bounded design plan, and Claude applies the plan through the authenticated MaisogLabs design controls/APIs.
+- **Required flow:** `REFERENCE → ARCHITECT ANALYSIS → CONTROL MAPPING → DRAFT → PREVIEW → PAULO REVIEW → PUBLISH`.
+- **Architect responsibility:** classify requested visual traits as `DIRECT MATCH`, `APPROXIMATION`, or `GAP` against the approved WEB-INC-007 control vocabulary.
+- **Builder/application responsibility:** apply only mapped approved controls; never bypass the admin/control layer with direct SQL, arbitrary CSS/JS/HTML, or silent source-code edits.
+- **Runtime architecture:** no embedded LLM/image-analysis service is required inside MaisogLabs. Screenshot analysis remains external/Architect-side; MaisogLabs stores only validated design settings.
+- **Gap rule:** if a reference requires a capability outside WEB-INC-007, stop at preview/analysis and propose a separate bounded design change.
+- **Third-party hygiene:** references may inspire layout/spacing/hierarchy/style relationships, but third-party logos, proprietary copy, unique illustrations, photography, or trademark identity are not to be copied without rights.
+- **Authority unchanged:** no new table, route, remote resource, deployment, main merge, or Sentinel S3+ authority is created.
+- **Evidence of Paulo authority:** Paulo stated that the system should let him upload a UI screenshot here, have ChatGPT analyze and plan it, and have Claude apply the edit through the admin portal.
