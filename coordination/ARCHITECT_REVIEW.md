@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED`
+Status: `ARCHITECT_APPROVED — WEB-INC-004 REMEDIATION CLOSED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,19 +8,22 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-026 — WEB-INC-004 Implementation Review / Remediation Cycle 1
+# ML-DEVOS-AS-027 — WEB-INC-004 Final Remediation Review
 
-Cycle: `MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM`  
-Authority chain: `ML-DEVOS-RFC-007 → ML-DEVOS-AS-023 → D-029 → ML-DEVOS-AS-026`
+Cycle: `MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM`
 
-Authorized implementation base:
-- `281d726c348e04003b9226ebb766cab50b86439c`
+Authority chain:
 
-Builder implementation:
-- `ca6a93b65353968353b9ba3670e162468abdb33a`
+`ML-DEVOS-RFC-007 → ML-DEVOS-AS-023 → D-029 → implementation ca6a93b → ML-DEVOS-AS-026 → remediation 681fc90 → ML-DEVOS-AS-027`
 
-Builder handoff/state:
-- `7ee93df48f44fed70a3b03453a86354aba6494ec`
+Remediation base:
+- `7c7e6d35c43c2e16b18d53a65c8acf06c7c3df41`
+
+Remediation implementation:
+- `681fc90dc42239c2bd5866af1c6a0d430212416a`
+
+Remediation handoff/state:
+- `3edfa51b25b8f87757eaac7096e7b2829c81e009`
 
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -28,292 +31,177 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.5.0`
 
-## Review discipline
+## Independent review performed
 
-The Architect independently:
+The Architect independently inspected:
 
-1. live-checked branch HEAD / STATE / IMPLEMENTER_HANDOFF;
-2. separated the one implementation commit from the one bookkeeping commit;
-3. independently inspected the exact implementation file set;
-4. inspected the new migration, upload/list handler, R2/D1 compensation path, signature validation, project-media helpers, project create/edit/preview integration, R2 binding, and focused regression source;
-5. compared the implementation against RFC-007 and AS23-F001–F018;
-6. kept Builder command/test claims at `ACTOR_REPORTED`.
+- exact remediation commit separation;
+- amended `migrations/0003_web_inc_004_media.sql`;
+- media-state DDL;
+- DB alt-text constraint;
+- JS alt-text normalization and API use;
+- project-media duplicate association and duplicate slot enforcement;
+- focused state/alt-text/slot regression source;
+- unchanged scope boundaries through compare metadata.
 
-## Exact provenance
+Builder runtime/test/CLI results remain `ACTOR_REPORTED`.
 
-Implementation compare:
+## Findings
 
-`281d726c348e04003b9226ebb766cab50b86439c → ca6a93b65353968353b9ba3670e162468abdb33a`
+### AS27-F001 — PASS — remediation scope stayed bounded
 
-contains exactly **1 implementation commit** and **13 changed files**.
+The remediation commit changes exactly six files:
 
-Bookkeeping compare:
+- `migrations/0003_web_inc_004_media.sql`
+- `worker/admin/media.mjs`
+- `worker/d1/media.mjs`
+- `worker/d1/validate.mjs`
+- `tests/worker-admin-media.test.mjs`
+- `tests/worker-admin-projects.test.mjs`
 
-`ca6a93b65353968353b9ba3670e162468abdb33a → 7ee93df48f44fed70a3b03453a86354aba6494ec`
+No new route, table, migration number, binding, public path, journal/theme work, deployment, or Sentinel phase was added.
 
-contains exactly **1 bookkeeping commit** and **6 governance/evidence files**.
+### AS27-F002 — PASS — AS26-F008 media-state domain fixed
 
-No runtime code is hidden in the bookkeeping commit.
+The media table now enforces exactly:
 
-## Findings that PASS
+`state IN ('active', 'archived')`
 
-### AS26-F001 — PASS — implementation surface is bounded
+with default:
 
-The implementation adds exactly:
-- `media`;
-- `project_media`;
-- local R2 binding;
-- protected upload/list behavior;
-- project revision media snapshots;
-- exact-draft preview metadata.
+`active`
 
-No journal/theme/public-media/deployment/main-merge/later-WEB-INC/Sentinel-phase implementation appears in the implementation diff.
+The immutable-field trigger intentionally excludes `state`, allowing a future separately authorized state-only transition without allowing mutation of public-affecting media metadata.
 
-### AS26-F002 — PASS — local-only R2 boundary
+No archive HTTP endpoint exists.
 
-`wrangler.jsonc` adds only:
+Focused regression source covers:
+- default active;
+- active → archived;
+- invalid state rejection.
 
-`MEDIA`
+`AS26-F008: CLOSED`
 
-with:
+### AS27-F003 — PASS — AS26-F009 alt-text normalization/storage invariant fixed
 
-`remote: false`
+Application behavior now:
 
-No public bucket/custom-domain/production credential path is introduced.
+1. decodes the alt-text header;
+2. runs `validateAltText`;
+3. normalizes with JS `.trim()`;
+4. rejects empty, >300-character, control-character, and angle-bracket values;
+5. stores and returns the same normalized string.
 
-### AS26-F003 — PASS — upload boundary and file validation are structurally sound
+Database behavior now requires:
 
-The upload handler enforces:
-- verified Access before admin dispatch;
-- bounded mutation subject;
-- same-origin;
-- JPEG/PNG/WebP allowlist;
-- actual-byte 5 MiB streaming limit;
-- zero-byte rejection;
-- magic/signature vs declared MIME match;
-- server-generated UUID/key;
-- no original filename/path input.
+`alt_text = trim(alt_text)`
 
-SVG/arbitrary content cannot match the allowlisted signature detector.
+and:
 
-### AS26-F004 — PASS — R2/D1 compensation semantics match RFC-007
+`length(alt_text) BETWEEN 1 AND 300`
 
-The code performs:
+This independently rejects empty, ASCII-space-only, padded-ASCII-space, and over-limit persisted values.
 
-1. full validation;
-2. local R2 put;
-3. D1 batch for media row + success audit;
-4. success response only after both succeed.
+Focused source covers:
+- empty;
+- whitespace-only API input;
+- exactly 300;
+- over 300;
+- API normalization;
+- direct DB empty/space-only/untrimmed/length rejection.
 
-D1 failure after R2 put attempts compensating object deletion and never fabricates a D1 success state.
+`AS26-F009: CLOSED`
 
-Compensation-delete failure remains a documented orphan-object limitation, as permitted by AS23-F009.
+### AS27-L001 — ACCEPTED LIMITATION — SQLite trim is narrower than JS trim
 
-### AS26-F005 — PASS — project revision media integration is structurally atomic
+SQLite's default `trim()` removes ASCII space rather than every JS/Unicode whitespace category.
 
-Project create/edit insert the new revision's `project_media` statements into the same D1 batch as:
-- revision creation;
-- pointer movement;
-- project success audit.
+Therefore a hypothetical direct SQL writer could construct some non-space-whitespace edge cases that the DB CHECK alone does not normalize identically to JS.
 
-Edit omission inherits the source revision's snapshot.
-Explicit media input defines the new revision's complete snapshot.
-Prior revision rows are not updated/deleted.
+This is accepted for WEB-INC-004 because:
 
-WEB-INC-003 stale-write guard remains structurally unchanged.
+- AS26-F009 explicitly required the DB to **at minimum** reject empty/space-only and >300 values;
+- every authorized media-write path in this repository passes through stricter JS normalization and control-character rejection first;
+- no direct-SQL media mutation capability or archive API is authorized;
+- fixing full Unicode whitespace equivalence at SQLite level would add complexity disproportionate to the current local-only capability.
 
-### AS26-F006 — PASS — exact-draft preview boundary
+If a future direct database writer is introduced, this limitation must be revisited.
 
-Preview reads associations for exactly `draft_revision_id` and returns a positive media metadata projection.
+### AS27-F004 — PASS — AS26-F010 duplicate slot protection fixed at both layers
 
-No storage key, bucket config, uploader subject, or object credentials are exposed.
+Application validation now independently tracks:
 
-### AS26-F007 — PASS — old migrations/public source remain untouched
+- duplicate association: `(mediaId, role)`;
+- duplicate display slot: `(role, order)`.
 
-The implementation compare does not modify:
-- `migrations/0001_web_inc_005_init.sql`;
-- `migrations/0002_web_inc_008_audit_log.sql`;
-- `app/page.js`;
-- `data/site.js`;
-- `lib/content/*`;
-- package files.
+Database DDL preserves:
 
-The public source boundary therefore remains unchanged.
+`UNIQUE (project_revision_id, media_id, role)`
 
-## Required remediation
+and adds:
 
-### AS26-F008 — BLOCKING — media state domain contradicts RFC-007 / DATA_BACKEND_SPEC
+`UNIQUE (project_revision_id, role, sort_order)`
 
-Current migration:
+so two different media rows cannot occupy the same role/order slot within one revision.
 
-```sql
-state TEXT NOT NULL DEFAULT 'active' CHECK (state IN ('active'))
-```
+Focused source proves:
+- duplicate association rejection;
+- duplicate role/order slot rejection;
+- distinct valid slots succeed;
+- direct DB duplicate-slot insertion is rejected.
 
-Approved contract:
+`AS26-F010: CLOSED`
 
-`state exactly active|archived`
+### AS27-F005 — PASS — original WEB-INC-004 architecture remains intact
 
-and the DATA_BACKEND_SPEC explicitly describes `state` as the one structurally mutable bookkeeping field, e.g. `active → archived`.
+The remediation does not alter:
 
-The current constraint makes `archived` impossible and therefore contradicts the accepted schema contract.
+- local R2/D1 boundary;
+- R2 → D1 compensation design;
+- project-revision snapshot atomicity;
+- stale-write protection;
+- exact-draft preview behavior;
+- public static-source boundary;
+- auth/origin/type/size validation;
+- immutable historical media/junction semantics.
 
-Required remediation:
+### AS27-F006 — PASS — migration handling is appropriate pre-acceptance
 
-- change migration 0003's state constraint to exactly `active|archived`;
-- keep default `active`;
-- add direct D1 regression evidence:
-  - valid active insert;
-  - valid state-only transition to archived;
-  - invalid state rejected;
-- do **not** add an archive HTTP endpoint.
+RFC/AS-026 explicitly required amending `0003_web_inc_004_media.sql` in place because the migration is local-only, pre-acceptance, and undeployed.
 
-Because 0003 is not accepted/deployed and this is local-only pre-acceptance work, amend 0003 rather than creating a new migration. Validate against a fresh local database so Wrangler's prior local migration ledger cannot mask the amended migration content.
+No `0004` was introduced.
 
-### AS26-F009 — BLOCKING — DB-level alt-text constraint does not enforce approved non-empty/trimmed invariant
+Compare evidence shows `0001`/`0002` were not changed by remediation.
 
-Current migration:
+### AS27-F007 — ACCEPTED ACTOR_REPORTED runtime evidence
 
-```sql
-alt_text TEXT NOT NULL CHECK (length(alt_text) <= 300)
-```
+Claude reports:
 
-This permits:
-- `''`;
-- whitespace-only values;
-- untrimmed values.
-
-The application validator rejects blank text, but RFC-007 lists bounded non-empty alt text in the media table's accepted constraints and targets trimmed 1–300 characters.
-
-Required remediation:
-
-- make storage normalization/invariant explicit and consistent;
-- persist trimmed alt text;
-- database constraint must at minimum reject empty/space-only and >300 characters;
-- application response/storage value must agree after normalization;
-- add focused tests for:
-  - empty;
-  - whitespace-only;
-  - >300;
-  - leading/trailing-space input normalization (or fail-closed rejection, if chosen consistently);
-  - direct DB empty/space-only rejection.
-
-Do not broaden the upload API.
-
-### AS26-F010 — BLOCKING — duplicate media slot is not prevented
-
-RFC-007 requires:
-
-`prevent duplicate slot/association within one revision`
-
-Current migration only has:
-
-```sql
-UNIQUE (project_revision_id, media_id, role)
-```
-
-and the application only deduplicates:
-
-`(mediaId, role)`
-
-This prevents duplicate associations but **does not prevent duplicate slots**, e.g. two different media rows both claiming:
-
-`role='gallery', sort_order=0`
-
-or otherwise the same role/order slot.
-
-Required remediation:
-
-- preserve the current duplicate-association protection;
-- additionally reject duplicate `(role, order)` slots within one project revision at both:
-  - application validation;
-  - database constraint/index level;
-- add tests proving:
-  - duplicate association rejected;
-  - two different media IDs using the same role/order slot rejected;
-  - distinct valid slots still succeed.
-
-Do not invent new roles or a new media model.
-
-## Governance bookkeeping note
-
-The live STATE header is authoritative and correctly says:
-
-`TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT`.
-
-However lower historical/pre-authorization prose still contains stale statements such as:
-
-`No Builder authority exists yet`
-
-and an old `Absolute gates` block showing local mutation/audit gates as `NO`.
-
-This is not a runtime defect, but the live coordination file should not contain contradictory current-authority prose.
-
-The Architect will normalize STATE as part of routing remediation; no Builder product-code scope is added by this housekeeping correction.
-
-## Evidence disposition
-
-`INDEPENDENTLY_INSPECTED`:
-- implementation/bookkeeping commit separation;
-- exact changed-file surfaces;
-- migration DDL;
-- upload validation/R2/D1 write ordering;
-- project snapshot integration;
-- preview projection;
-- local-only binding configuration;
-- focused test source.
-
-`ACTOR_REPORTED`:
-- media suite 22/22;
-- project suite 60/60;
-- full suite 195/195;
+- media tests: `33/33`;
+- project tests: `63/63`;
+- full suite: `209/209`;
 - build success;
-- local migration/table inventory;
-- local trigger probes;
-- local Wrangler smoke;
-- dry run;
-- secret/config scan.
+- amended migrations applied to a fresh local D1 database;
+- exactly 17 product tables;
+- dry-run bindings unchanged;
+- no `remote: true`;
+- secret/config scan clean.
 
-No independent runtime reproduction is claimed.
+These remain `ACTOR_REPORTED`, not silently upgraded.
 
-## Remediation scope
+For this local-only repository architecture increment, independent source/diff inspection plus bounded actor-reported local runtime evidence is sufficient under CORE-020.
 
-Remediation cycle 1 is limited to:
+## Final verdict
 
-1. AS26-F008 — `active|archived` schema domain;
-2. AS26-F009 — non-empty/trimmed alt-text invariant;
-3. AS26-F010 — duplicate slot prevention;
-4. directly related focused/regression tests/evidence;
-5. handoff/state bookkeeping.
+`ML-DEVOS-AS-027: ARCHITECT_APPROVED — WEB-INC-004 LOCAL MEDIA SUBSYSTEM ACCEPTED / REMEDIATION CLOSED`
 
-No redesign.
-No new routes.
-No new tables.
-No new migration number.
-No remote resource.
-No public-media serving.
-No journal/theme/later increment.
-No deployment/main merge.
-No Sentinel S3+.
+All AS-026 blocking findings are closed.
 
-## Verdict
+Known limitation retained:
+- `AS27-L001` — SQLite default trim is narrower than JS trim for hypothetical direct-SQL edge cases.
 
-`ML-DEVOS-AS-026: CHANGES_REQUESTED — WEB-INC-004 REMEDIATION CYCLE 1 LIMITED TO MEDIA STATE DOMAIN, ALT-TEXT DB/NORMALIZATION INVARIANT, AND DUPLICATE SLOT PROTECTION`
+## Post-acceptance requirement
 
-## Authority during remediation
+Because WEB-INC-004 is `ARCHITECTURE`, create a durable ADR before final cycle closure.
 
-`MEDIA_MUTATION_AUTHORIZED: YES`
-
-`MUTATION_AUTHORIZED: YES`
-
-`AUDIT_APPEND_AUTHORIZED: YES`
-
-only for the exact bounded WEB-INC-004 remediation above.
-
-`REMOTE_R2_AUTHORIZED: NO`
-
-`REMOTE_D1_AUTHORIZED: NO`
-
-`DEPLOY_AUTHORIZED: NO`
-
-`MAIN_MERGE_AUTHORIZED: NO`
+No remote R2/D1, deployment, public cutover, protected/main merge, later WEB-INC, or Sentinel S3+ authority is created by this acceptance.
