@@ -32,6 +32,8 @@ Active Sentinel governance-capability baseline:
 - `ML-DEVOS-RFC-010 — ACCEPTED`
 - `ML-DEVOS-AS-030 — ARCHITECT_APPROVED`
 - `D-032 — Paulo-authorized implementation`
+- `ML-DEVOS-AS-031 — screenshot-reference workflow approved`
+- `D-033 — screenshot-reference workflow required`
 
 ## Authorized Builder scope
 
@@ -48,6 +50,27 @@ Claude may implement only WEB-INC-007 as specified by RFC-010:
 - public GET-only `/api/design`;
 - published-only public design runtime using fixed mappings and bounded numeric CSS variables;
 - local-only tests/build/Wrangler/visual evidence.
+
+## Screenshot-reference operating workflow
+
+WEB-INC-007 must support the workflow defined in:
+
+- `docs/product/DESIGN_REFERENCE_WORKFLOW.md`
+- `ML-DEVOS-AS-031`
+- `D-033`
+
+Required operational flow:
+
+`Paulo screenshot → ChatGPT Architect analysis → structured control plan → Claude applies through authenticated design UI/API → Preview → Paulo review → Publish`
+
+Builder implication:
+
+- control names/options/ranges must be deterministic and inspectable;
+- Save Draft / Preview / Publish must be explicit;
+- reference-driven application must not require raw CSS/JS/HTML or direct D1 edits;
+- unsupported reference details must surface as gaps rather than triggering silent code changes.
+
+No AI/image-analysis runtime inside MaisogLabs is required or authorized by this workflow.
 
 ## Critical design boundaries
 
