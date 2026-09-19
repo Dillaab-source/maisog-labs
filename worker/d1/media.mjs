@@ -107,15 +107,29 @@ export async function readProjectMediaSnapshot(db, projectRevisionId) {
 
 // Validates a caller-supplied (or inherited) complete media snapshot list
 // for a new revision (AS23-F012): each entry is exactly {mediaId, role,
-// order}, and no (mediaId, role) pair may repeat within the same snapshot —
-// the database's own UNIQUE (project_revision_id, media_id, role)
-// constraint would reject a duplicate anyway, but this fails fast with a
-// clear validation error rather than surfacing a raw D1 batch failure.
+// order}. Two independent duplicate checks are enforced, mirroring the two
+// independent UNIQUE constraints on `project_media`
+// (migrations/0003_web_inc_004_media.sql):
+//
+// - no (mediaId, role) pair may repeat — the same media item cannot occupy
+//   the same role twice in one snapshot (the original AS23-F012 check);
+// - no (role, order) pair may repeat — two *different* media items cannot
+//   both claim the same display slot in one snapshot (Remediation Cycle 1,
+//   `ML-DEVOS-AS-026` `AS26-F010`: the original implementation only checked
+//   the first case, so two different media rows could both be inserted as
+//   e.g. `role: 'gallery', order: 0`, and the database had no constraint to
+//   catch it either).
+//
+// Both are database-backed as well (`UNIQUE (project_revision_id, media_id,
+// role)` and `UNIQUE (project_revision_id, role, sort_order)`), so this is a
+// fail-fast, clear-error duplicate of the DB-level guarantee, not the only
+// place either is enforced.
 export function validateMediaSnapshotEntries(entries) {
   if (!Array.isArray(entries) || entries.length > 50) {
     throw new Error("media snapshot: expected a bounded list of entries");
   }
-  const seen = new Set();
+  const seenAssociations = new Set();
+  const seenSlots = new Set();
   return entries.map(entry => {
     if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
       throw new Error("media snapshot entry: expected object");
@@ -130,11 +144,16 @@ export function validateMediaSnapshotEntries(entries) {
     if (!validateOrder(entry.order)) {
       throw new Error("media snapshot entry.order: invalid value");
     }
-    const dedupeKey = `${mediaId}:${role}`;
-    if (seen.has(dedupeKey)) {
+    const associationKey = `${mediaId}:${role}`;
+    if (seenAssociations.has(associationKey)) {
       throw new Error("media snapshot: duplicate (mediaId, role) entry");
     }
-    seen.add(dedupeKey);
+    seenAssociations.add(associationKey);
+    const slotKey = `${role}:${entry.order}`;
+    if (seenSlots.has(slotKey)) {
+      throw new Error("media snapshot: duplicate (role, order) slot");
+    }
+    seenSlots.add(slotKey);
     return { mediaId, role, order: entry.order };
   });
 }

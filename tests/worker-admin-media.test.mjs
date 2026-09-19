@@ -523,6 +523,187 @@ test("an unrecognized /admin/api/media/* sub-path is protected 404, not the uplo
   assert.equal(dbSpyInstance.calls.length, 0);
 });
 
+// --- Remediation Cycle 1 (ML-DEVOS-AS-026 AS26-F009): alt-text invariant ---
+
+test("POST /admin/api/media rejects an empty alt-text header (400)", async () => {
+  const { db, media, cleanup } = await openTestEnv();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const response = await callAdmin(uploadRequest({ token, contentType: "image/jpeg", altText: "", body: JPEG_BYTES }), { db, media, jwks });
+    assert.equal(response.status, 400);
+    assert.equal(await countRows(db, "media"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/media rejects a whitespace-only alt-text header (400)", async () => {
+  const { db, media, cleanup } = await openTestEnv();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const response = await callAdmin(uploadRequest({ token, contentType: "image/jpeg", altText: "   ", body: JPEG_BYTES }), { db, media, jwks });
+    assert.equal(response.status, 400);
+    assert.equal(await countRows(db, "media"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/media accepts alt text at exactly 300 characters", async () => {
+  const { db, media, cleanup } = await openTestEnv();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const exactly300 = "x".repeat(300);
+    const response = await callAdmin(uploadRequest({ token, contentType: "image/jpeg", altText: exactly300, body: JPEG_BYTES }), {
+      db,
+      media,
+      jwks,
+    });
+    assert.equal(response.status, 201);
+    const body = await response.json();
+    assert.equal(body.altText.length, 300);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/media rejects alt text over 300 characters (400)", async () => {
+  const { db, media, cleanup } = await openTestEnv();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const response = await callAdmin(
+      uploadRequest({ token, contentType: "image/jpeg", altText: "x".repeat(301), body: JPEG_BYTES }),
+      { db, media, jwks }
+    );
+    assert.equal(response.status, 400);
+    assert.equal(await countRows(db, "media"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/media normalizes leading/trailing whitespace in alt text; the stored and returned values agree on the trimmed form", async () => {
+  const { db, media, cleanup } = await openTestEnv();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const response = await callAdmin(
+      uploadRequest({ token, contentType: "image/jpeg", altText: "  padded alt text  ", body: JPEG_BYTES }),
+      { db, media, jwks }
+    );
+    assert.equal(response.status, 201);
+    const body = await response.json();
+    assert.equal(body.altText, "padded alt text", "the response echoes the trimmed form, not the raw padded input");
+
+    const row = await db.prepare("SELECT alt_text FROM media WHERE id = ?").bind(body.id).first();
+    assert.equal(row.alt_text, "padded alt text", "the stored value is the same trimmed form as the response");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a direct DB INSERT with an empty alt_text is rejected at the database layer", async () => {
+  const { db, cleanup } = await openTestEnv();
+  try {
+    await assert.rejects(
+      db
+        .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind("11111111-1111-1111-1111-111111111111", "media/x.jpg", "image/jpeg", 100, "", new Date().toISOString(), "cf-access:t")
+        .run()
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a direct DB INSERT with a whitespace-only alt_text is rejected at the database layer", async () => {
+  const { db, cleanup } = await openTestEnv();
+  try {
+    await assert.rejects(
+      db
+        .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind("22222222-2222-2222-2222-222222222222", "media/y.jpg", "image/jpeg", 100, "   ", new Date().toISOString(), "cf-access:t")
+        .run()
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a direct DB INSERT with an untrimmed alt_text is rejected at the database layer", async () => {
+  const { db, cleanup } = await openTestEnv();
+  try {
+    await assert.rejects(
+      db
+        .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind("33333333-3333-3333-3333-333333333333", "media/z.jpg", "image/jpeg", 100, " untrimmed ", new Date().toISOString(), "cf-access:t")
+        .run()
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
+// --- Remediation Cycle 1 (ML-DEVOS-AS-026 AS26-F008): media state domain ---
+
+test("a media row defaults to state 'active' on insert", async () => {
+  const { db, cleanup } = await openTestEnv();
+  try {
+    const id = "44444444-4444-4444-4444-444444444444";
+    await db
+      .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(id, "media/a.jpg", "image/jpeg", 100, "alt", new Date().toISOString(), "cf-access:t")
+      .run();
+    const row = await db.prepare("SELECT state FROM media WHERE id = ?").bind(id).first();
+    assert.equal(row.state, "active");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a state-only transition from active to archived is accepted at the database layer, leaving every other field untouched", async () => {
+  const { db, cleanup } = await openTestEnv();
+  try {
+    const id = "55555555-5555-5555-5555-555555555555";
+    const uploadedAt = new Date().toISOString();
+    await db
+      .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(id, "media/b.jpg", "image/jpeg", 100, "alt", uploadedAt, "cf-access:t")
+      .run();
+
+    await db.prepare("UPDATE media SET state = 'archived' WHERE id = ?").bind(id).run();
+
+    const row = await db.prepare("SELECT * FROM media WHERE id = ?").bind(id).first();
+    assert.equal(row.state, "archived");
+    assert.equal(row.storage_key, "media/b.jpg");
+    assert.equal(row.content_type, "image/jpeg");
+    assert.equal(row.size_bytes, 100);
+    assert.equal(row.alt_text, "alt");
+    assert.equal(row.uploaded_at, uploadedAt);
+    assert.equal(row.uploaded_by, "cf-access:t");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("an invalid media state is rejected at the database layer", async () => {
+  const { db, cleanup } = await openTestEnv();
+  try {
+    const id = "66666666-6666-6666-6666-666666666666";
+    await db
+      .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(id, "media/c.jpg", "image/jpeg", 100, "alt", new Date().toISOString(), "cf-access:t")
+      .run();
+    await assert.rejects(db.prepare("UPDATE media SET state = 'deleted' WHERE id = ?").bind(id).run());
+  } finally {
+    await cleanup();
+  }
+});
+
 // --- pure signature-detection unit coverage ---
 
 test("detectImageContentType matches exactly the three allowed signatures and nothing else", () => {

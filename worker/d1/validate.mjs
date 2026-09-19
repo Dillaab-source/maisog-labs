@@ -277,18 +277,29 @@ export function validateProjectId(id) {
   return id;
 }
 
-// WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029) addition: media
-// alt text. Same bounded, control-character-free `text()` shape used
-// throughout this file, capped at 300 characters to match the
-// `media.alt_text` column's own `CHECK (length(alt_text) <= 300)`
-// (migrations/0003_web_inc_004_media.sql) so an application-level rejection
-// always occurs before any database round trip.
-export const validateAltText = value => {
-  if (!text(300)(value)) {
+// WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029) addition, amended
+// by Remediation Cycle 1 (`ML-DEVOS-AS-026` `AS26-F009`): media alt text.
+// RFC-007 targets "trimmed 1-300 characters" — the original implementation
+// checked `value.trim().length > 0` but returned the raw, untrimmed value,
+// so a value with leading/trailing whitespace could be validated yet stored
+// untrimmed, disagreeing with what a caller would expect from "trimmed" and
+// with `media.alt_text`'s amended `CHECK (alt_text = trim(alt_text) AND
+// length(alt_text) BETWEEN 1 AND 300)` (migrations/0003_web_inc_004_media.sql)
+// once the value is JS-`trim()`-normalized before that DB check ever runs.
+// This now normalizes first and validates/returns the trimmed value, so the
+// exact same normalized string is what gets stored and what is echoed back
+// in every response (upload, list, preview) — never two different forms of
+// the same input.
+export function validateAltText(value) {
+  if (typeof value !== "string") {
     throw new Error("media alt text: invalid value");
   }
-  return value;
-};
+  const trimmed = value.trim();
+  if (trimmed.length < 1 || trimmed.length > 300 || hasControlOrAngleBracketChar(trimmed)) {
+    throw new Error("media alt text: invalid value");
+  }
+  return trimmed;
+}
 
 // WEB-INC-004 addition: the closed, bounded role enum a project_media
 // snapshot entry may declare — mirrors the DB-level

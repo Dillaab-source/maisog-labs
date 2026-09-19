@@ -1466,6 +1466,95 @@ test("POST /admin/api/projects rejects a media snapshot with a duplicate (mediaI
   }
 });
 
+test("POST /admin/api/projects rejects a media snapshot where two different media IDs claim the same (role, order) slot, and commits nothing (AS26-F010)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const mediaA = await insertActiveMedia(db);
+    const mediaB = await insertActiveMedia(db);
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: {
+          ...validProjectPayload(),
+          media: [
+            { mediaId: mediaA, role: "gallery", order: 0 },
+            { mediaId: mediaB, role: "gallery", order: 0 },
+          ],
+        },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 400);
+    assert.equal(await countRows(db, "projects"), 0);
+    assert.equal(await countRows(db, "project_media"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/projects accepts distinct valid slots: two different media IDs at the same order but different roles, and two entries for the same role at different orders (AS26-F010)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const mediaA = await insertActiveMedia(db);
+    const mediaB = await insertActiveMedia(db);
+    const mediaC = await insertActiveMedia(db);
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: {
+          ...validProjectPayload(),
+          media: [
+            { mediaId: mediaA, role: "cover", order: 0 },
+            { mediaId: mediaB, role: "gallery", order: 0 },
+            { mediaId: mediaC, role: "gallery", order: 1 },
+          ],
+        },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 201);
+    const created = await response.json();
+    assert.deepEqual(await projectMediaRows(db, created.draftRevisionId), [
+      { mediaId: mediaA, role: "cover", order: 0 },
+      { mediaId: mediaB, role: "gallery", order: 0 },
+      { mediaId: mediaC, role: "gallery", order: 1 },
+    ]);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a direct DB INSERT of a second project_media row claiming an already-used (role, order) slot in the same revision is rejected at the database layer (AS26-F010)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const mediaA = await insertActiveMedia(db);
+    const mediaB = await insertActiveMedia(db);
+    const created = await createProject(db, jwks, token);
+
+    await db
+      .prepare("INSERT INTO project_media (project_revision_id, media_id, role, sort_order) VALUES (?, ?, ?, ?)")
+      .bind(created.draftRevisionId, mediaA, "gallery", 0)
+      .run();
+
+    await assert.rejects(
+      db
+        .prepare("INSERT INTO project_media (project_revision_id, media_id, role, sort_order) VALUES (?, ?, ?, ?)")
+        .bind(created.draftRevisionId, mediaB, "gallery", 0)
+        .run()
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
 test("PUT .../draft omitting media inherits the source revision's association snapshot; the prior revision's rows are untouched (AS23-F012)", async () => {
   const { db, cleanup } = await openTestDb();
   try {

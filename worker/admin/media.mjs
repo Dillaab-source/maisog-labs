@@ -15,6 +15,7 @@ import { jsonResponse } from "./dashboard.mjs";
 import { detectImageContentType, ALLOWED_MEDIA_CONTENT_TYPES, EXTENSION_FOR_CONTENT_TYPE, MAX_MEDIA_BYTES } from "../media/signature.mjs";
 import { listActiveMedia, buildMediaUploadBatch } from "../d1/media.mjs";
 import { appendAuditEvent } from "../d1/audit.mjs";
+import { validateAltText } from "../d1/validate.mjs";
 
 export const MEDIA_UPLOAD_PATH = "/admin/api/media";
 const ALT_TEXT_HEADER = "X-Media-Alt-Text";
@@ -93,11 +94,16 @@ async function handleUpload({ request, url, db, media, sub }) {
     return jsonResponse(415, { error: "Unsupported Media Type" });
   }
 
+  // Remediation Cycle 1 (`ML-DEVOS-AS-026` `AS26-F009`): normalize (trim)
+  // and validate the alt text here, once, immediately after decoding —
+  // `altText` from this point on is always the exact same trimmed string
+  // that `buildMediaUploadBatch` stores and this handler echoes back, never
+  // two different forms of the same input.
   const rawAltTextHeader = request.headers.get(ALT_TEXT_HEADER);
   let altText;
   try {
     if (rawAltTextHeader === null) throw new Error("missing alt text header");
-    altText = decodeURIComponent(rawAltTextHeader);
+    altText = validateAltText(decodeURIComponent(rawAltTextHeader));
   } catch {
     return jsonResponse(400, { error: "Validation failed" });
   }
