@@ -419,3 +419,17 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **CORE-019 note:** local R2 simulation does not activate the real remote-resource gate because it cannot touch a real remote resource.
 - **CORE-020 evidence note:** Builder runtime evidence remains `ACTOR_REPORTED`; Architect must independently inspect the exact diff and required evidence before acceptance.
 - **Evidence of Paulo authority:** Paulo instructed: `Okay let’s keep that on record and let’s proceed with the build keep Only the goods ones.`
+
+
+### D-030 — Authorize queued UI-PATCH-001 soft geometry pass
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision:** Authorize `UI-PATCH-001 — Soft Geometry Pass` as the next presentation-only product patch after WEB-INC-004 closes.
+- **Intent:** keep the approved V3 cinematic composition but make the interface softer, calmer, more premium, and less sharp/HUD-like.
+- **Primary implementation surface:** `app/globals.css`; minimal component/class-name edits only if strictly necessary.
+- **Authorized visual changes:** softer corner-radius hierarchy, rounder CTAs, gentler panel borders/shadows, more breathing room, softer dividers/frames, restrained motion and typography-spacing adjustments.
+- **Preserve:** orbital identity, cinematic background, public content/data source, responsive hierarchy, reduced-motion behavior, current routing and composition.
+- **Explicitly not authorized:** WEB-INC-007 theme system, theme tables, admin design controls, free-form CSS/JS, content rewrite, logo redesign, route/API/auth/data/Worker/D1/R2 changes, dependency changes, remote resources, deployment, or protected/main merge.
+- **Sequencing rule:** this patch is authorized now but must not begin until WEB-INC-004 remediation is Architect-accepted and that cycle is closed. `coordination/STATE.md` remains authoritative for the active turn.
+- **Implementation brief:** `docs/product/UI_PATCH_001_SOFT_GEOMETRY.md`.
+- **Evidence of Paulo authority:** Paulo instructed: `Okay proceed` after approving the softer design direction.
