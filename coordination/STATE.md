@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-003-PROJECT-MUTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_003_PROJECT_MUTATION_CAPABILITY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 7fa8cf62b8238f4874e842752838fbd0920498b3
-LAST_ARCHITECT_REVIEWED_SHA: 32a305971c623c82d2048969acc530b97c295499
+LAST_IMPLEMENTER_HANDOFF_SHA: a016cc2aafea494ad00ecfd79b545ccdcb0c1221
+LAST_ARCHITECT_REVIEWED_SHA: 23db231cc99725fd00637a18bd11ea37d2ef862c
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MUTATION_AUTHORIZED: YES
@@ -323,6 +323,10 @@ When implementation/testing is complete:
 
 Claude must not self-approve and must not begin the next increment.
 
+## Builder handoff (this cycle)
+
+Implementation commit: `a016cc2aafea494ad00ecfd79b545ccdcb0c1221` on base `5ba7c496a05d2541324c5ecc565c1937ca023b1e`. Full detail, exact changed-file list, and the complete evidence log required above are in `coordination/IMPLEMENTER_HANDOFF.md`. Summary: exactly the five authorized routes implemented (`worker/admin/projects.mjs` + `worker/d1/projects.mjs`); mutation requires a bounded non-empty verified Access `sub` (empty-sub rejected `403`, zero D1 access); same-origin/JSON/bounded-body request hardening on every mutating route; create/edit each write one new immutable `project_revisions` row (never `UPDATE`d in place), slug immutable; existing-project mutations require `expectedPublishedRevisionId`/`expectedDraftRevisionId` and fail `409` on stale state with zero mutation; publish fully revalidates the persisted draft before atomically promoting it; every successful mutation and its success audit row commit as one `db.batch()` transaction, proven by a real-D1 test that forces a genuine SQL-level failure on the audit statement and confirms the paired project/revision insert rolls back with it (no `last_insert_rowid()`/preallocation — the same safe subquery pattern `worker/d1/migrate.mjs` already uses); bounded authenticated failures record `result: failure` audit rows; schema unchanged (still exactly 15 tables, both migration files byte-identical to base); `GET /admin/api/dashboard` unchanged; no delete, no other content-domain mutation, no admin UI, no remote D1, no public cutover, no deployment, no later `WEB-INC-*` work. `npm test`: 152/152 passing. The Implementer has not self-certified this as `ARCHITECT VERIFIED`.
+
 ## Current gate
 
-`WEB-INC-003 AUTHORIZED — CLAUDE MAY IMPLEMENT ONLY THE BOUNDED LOCAL/REPOSITORY PROJECT MUTATION CAPABILITY UNDER RFC-006 / AS-020 / D-027`
+`WEB-INC-003 IMPLEMENTATION HANDED OFF — TURN: ARCHITECT — INDEPENDENT REVIEW REQUIRED AGAINST RFC-006 / AS-020 / D-027 BEFORE ANY CLOSURE OR POST-REVIEW ADR`
