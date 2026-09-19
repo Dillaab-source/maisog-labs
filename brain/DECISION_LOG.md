@@ -392,3 +392,30 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Explicitly unimplemented / not authorized:** S3 Typed Task Contracts; S4 State Machine Kernel; S5 Capability & Permission Gateway; S6 isolated execution; S7 Evidence & QA Plane; S8 Orchestrator; S9 executable Evidence Gate; S10 full GitHub Enforcement; S11 Memory & Observability; S12–S14; CI workflows; GitHub rulesets; Policy/Task Engine; capability broker; automated credential issuance/revocation; telemetry pipeline.
 - **WEB-INC-004 separation:** this governance change does not authorize WEB-INC-004 implementation and must not widen any R2/D1/deploy/main-merge gate.
 - **Evidence of Paulo authority:** Paulo instructed: `Save, record and implement good changes to now keep unplemneted plan on the records.`
+
+
+### D-029 — Authorize WEB-INC-004 local media subsystem implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-RFC-007` and `ML-DEVOS-AS-023`, under Sentinel governance-capability baseline `v1.5.0`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-004 — Local Media Subsystem`** exactly within RFC-007 and every binding finding `AS23-F001` through `AS23-F018`.
+- **Authorized implementation scope:**
+  - add `media` and `project_media` only;
+  - add ordered migration `migrations/0003_web_inc_004_media.sql` only;
+  - use locally simulated R2 only;
+  - add `POST /admin/api/media` validated upload;
+  - add `GET /admin/api/media` protected metadata list;
+  - extend existing project create/edit with optional complete media snapshots for the new revision;
+  - preserve inheritance when media selection is omitted on edit;
+  - extend exact-draft preview with bounded media metadata;
+  - add required audit integration and local tests.
+- **Upload constraints:** JPEG/PNG/WebP only; SVG/arbitrary files/archives/remote URL import forbidden; 5 MiB actual-byte limit; declared type must match validated file signature; server generates media ID and storage key.
+- **Immutability:** media public-affecting fields and existing `project_media` rows are immutable after creation; replacement means new media/new revision snapshot, never in-place public-affecting mutation.
+- **Cross-store consistency:** local R2 write precedes D1 media-row + success-audit batch; D1 failure after object write must attempt compensating object deletion; no success response or success audit on failure.
+- **Project atomicity:** new project revision + project_media snapshot + draft pointer transition + existing project success audit must remain one D1 atomic batch; WEB-INC-003 stale-write guard remains binding.
+- **Schema target:** exactly 17 product tables; migrations 0001/0002 remain byte-identical.
+- **Local-only authority:** local D1/R2/Wrangler simulation, tests, build, config/dry-run/secret checks only.
+- **Authorized gates:** `MEDIA_MUTATION_AUTHORIZED: YES`, `MUTATION_AUTHORIZED: YES` only as required for this exact media/project-revision integration, and `AUDIT_APPEND_AUTHORIZED: YES` only for this exact implementation.
+- **Explicitly not authorized:** real/remote R2; `remote: true`; remote D1; public bucket/custom domain; public media route; D1/R2 public cutover; media delete/update endpoint; journal/journal_media; theme/design; production Access changes; deployment; protected/main merge; later WEB-INC; Sentinel S3+; CI/rulesets/Task Engine/Capability Gateway/Orchestrator.
+- **CORE-019 note:** local R2 simulation does not activate the real remote-resource gate because it cannot touch a real remote resource.
+- **CORE-020 evidence note:** Builder runtime evidence remains `ACTOR_REPORTED`; Architect must independently inspect the exact diff and required evidence before acceptance.
+- **Evidence of Paulo authority:** Paulo instructed: `Okay let’s keep that on record and let’s proceed with the build keep Only the goods ones.`
