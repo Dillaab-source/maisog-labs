@@ -481,3 +481,13 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Third-party hygiene:** references may inspire layout/spacing/hierarchy/style relationships, but third-party logos, proprietary copy, unique illustrations, photography, or trademark identity are not to be copied without rights.
 - **Authority unchanged:** no new table, route, remote resource, deployment, main merge, or Sentinel S3+ authority is created.
 - **Evidence of Paulo authority:** Paulo stated that the system should let him upload a UI screenshot here, have ChatGPT analyze and plan it, and have Claude apply the edit through the admin portal.
+
+
+### D-034 — Authorize WEB-REL-001 Production Release Readiness assessment
+
+- **Decided by:** Paulo (Product / Risk Owner), after core WEB roadmap closure.
+- **Decision:** Authorize Claude / Builder to perform the assessment-only work defined in `docs/release/WEB_REL_001_PRODUCTION_READINESS.md` and `ML-DEVOS-RFC-011`.
+- **Purpose:** prepare the first governed production release decision packet after local/repository core completion.
+- **Authorized work:** repository inspection, local/read-only checks, dry-run packaging checks, local migrations/smoke, release diff inventory, current-state doc reconciliation, GitHub protection/CI recommendation, exact future Cloudflare resource-scope recommendation, rollback plan, post-deploy verification plan.
+- **Explicitly not authorized:** ruleset/branch-protection mutation, GitHub Actions activation, main merge/direct push, remote D1/R2, Access production config, credential creation/storage, deploy, DNS/domain change, public R2 serving, production data write, homepage/projects D1 cutover, new product feature, Sentinel S3+.
+- **Evidence of Paulo authority:** Paulo instructed `Proceed` immediately after core WEB roadmap completion.
