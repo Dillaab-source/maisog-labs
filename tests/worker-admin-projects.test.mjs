@@ -109,6 +109,37 @@ function batchFailingDb(realDb, message = "SIMULATED_BATCH_FAILURE") {
   };
 }
 
+// WEB-INC-003 Remediation Cycle 1 (ML-DEVOS-AS-021 AS21-F007): deterministic
+// TOCTOU/interleaving simulation. Wraps a real db so the *first* call to the
+// project-mutation pre-read query (`readProjectForMutation`'s exact SQL)
+// returns a caller-supplied stale snapshot, while every other statement —
+// including the mutation's own db.batch() and any later re-read — executes
+// against the real, already-migrated database. This faithfully models "a
+// competing pointer change commits after the handler's pre-read but before
+// its batch executes": the handler proceeds as if the stale snapshot were
+// still current, then the commit-time guard in worker/d1/projects.mjs must
+// independently catch the mismatch against the row's true live state.
+function interleavingDb(realDb, { staleRow }) {
+  let projectReadCallCount = 0;
+  return {
+    prepare(sql) {
+      if (sql.startsWith("SELECT id, slug, published_revision_id, draft_revision_id FROM projects")) {
+        projectReadCallCount += 1;
+        if (projectReadCallCount === 1) {
+          return {
+            bind() {
+              return this;
+            },
+            first: async () => staleRow,
+          };
+        }
+      }
+      return realDb.prepare(sql);
+    },
+    batch: statements => realDb.batch(statements),
+  };
+}
+
 function mutationRequest(pathname, { method, token, origin = ORIGIN, contentType = "application/json", body } = {}) {
   const headers = { Origin: origin, "Content-Type": contentType };
   if (token) headers[ACCESS_ASSERTION_HEADER] = token;
@@ -218,6 +249,69 @@ test("a valid Access token with no usable subject can still read preview", async
   }
 });
 
+// --- AS21-F008 (Remediation Cycle 1): bounded mutation subject ---
+
+test("an empty-string subject cannot mutate (403, zero D1 invocation)", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey, { sub: "" });
+  const spy = dbSpy();
+  const { response } = await callAdmin(
+    mutationRequest("/admin/api/projects", { method: "POST", token, body: validProjectPayload() }),
+    { db: spy, jwks }
+  );
+  assert.equal(response.status, 403);
+  assert.equal(spy.calls.length, 0);
+});
+
+test("a whitespace-only subject cannot mutate (403, zero D1 invocation)", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey, { sub: "   \t\n  " });
+  const spy = dbSpy();
+  const { response } = await callAdmin(
+    mutationRequest("/admin/api/projects", { method: "POST", token, body: validProjectPayload() }),
+    { db: spy, jwks }
+  );
+  assert.equal(response.status, 403);
+  assert.equal(spy.calls.length, 0);
+});
+
+test("an oversized subject (91 chars, one past the 90-char bound) cannot mutate (403, zero D1 invocation)", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey, { sub: "s".repeat(91) });
+  const spy = dbSpy();
+  const { response } = await callAdmin(
+    mutationRequest("/admin/api/projects", { method: "POST", token, body: validProjectPayload() }),
+    { db: spy, jwks }
+  );
+  assert.equal(response.status, 403);
+  assert.equal(spy.calls.length, 0);
+});
+
+test("the maximum accepted subject (exactly 90 chars) completes a normal mutation and produces a valid bounded cf-access:<sub> audit actor", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const maxSubject = "s".repeat(90);
+    const token = await signToken(privateKey, { sub: maxSubject });
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", { method: "POST", token, body: validProjectPayload() }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 201);
+
+    const auditRow = await db
+      .prepare("SELECT * FROM audit_log WHERE entity_id = ? AND action = 'project_create_draft'")
+      .bind("project-atomic-lab")
+      .first();
+    const expectedActor = `cf-access:${maxSubject}`;
+    assert.equal(expectedActor.length, 100, "sanity check: exactly ADR-005's ACTOR_PATTERN upper bound");
+    assert.equal(auditRow.actor, expectedActor);
+    assert.equal(auditRow.result, "success");
+  } finally {
+    await cleanup();
+  }
+});
+
 // --- AS20-F004: same-origin + JSON + bounded body ---
 
 test("a mutating request with a missing/mismatched Origin is rejected (403) before any D1 access", async () => {
@@ -258,6 +352,46 @@ test("an oversized mutating request body is rejected (413) before any D1 access"
     token,
     body: validProjectPayload({ summary: oversizedSummary }),
   });
+  const { response } = await callAdmin(request, { db: spy, jwks });
+  assert.equal(response.status, 413);
+  assert.equal(spy.calls.length, 0);
+});
+
+test("AS21-F009: a declared Content-Length over the budget is rejected (413) as an early reject, before the body is read", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey);
+  const spy = dbSpy();
+  const request = new Request(`${ORIGIN}/admin/api/projects`, {
+    method: "POST",
+    headers: {
+      Origin: ORIGIN,
+      "Content-Type": "application/json",
+      "Content-Length": String(64 * 1024),
+      [ACCESS_ASSERTION_HEADER]: token,
+    },
+    body: JSON.stringify(validProjectPayload()),
+  });
+  const { response } = await callAdmin(request, { db: spy, jwks });
+  assert.equal(response.status, 413);
+  assert.equal(spy.calls.length, 0);
+});
+
+test("AS21-F009: a multibyte body that exceeds the 32 KiB byte budget is rejected (413) even though its JS string length is well under 32768", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey);
+  const spy = dbSpy();
+
+  // Each "あ" is 1 UTF-16 code unit (JS string length) but 3 bytes in UTF-8.
+  // 11000 repetitions: JS length ~11000 (far under the old, buggy
+  // character-counted 32768 threshold) but real UTF-8 byte length = 33000+
+  // (over the true 32 KiB = 32768-byte budget). A character-count-based
+  // check would have wrongly accepted this; a byte-accurate check must not.
+  const multibyteChar = "あ"; // "あ"
+  const rawBody = JSON.stringify({ note: multibyteChar.repeat(11000) });
+  assert.ok(rawBody.length < 32768, "sanity check: JS string length stays under the old buggy threshold");
+  assert.ok(Buffer.byteLength(rawBody, "utf8") > 32768, "sanity check: real UTF-8 byte length exceeds the true budget");
+
+  const request = mutationRequest("/admin/api/projects", { method: "POST", token, body: rawBody });
   const { response } = await callAdmin(request, { db: spy, jwks });
   assert.equal(response.status, 413);
   assert.equal(spy.calls.length, 0);
@@ -772,6 +906,195 @@ test("POST .../unpublish with nothing published is rejected (409) with zero poin
   }
 });
 
+// --- AS21-F007 (Remediation Cycle 1): commit-time stale-write enforcement ---
+// These deterministically simulate a competing pointer change that commits
+// *after* the handler's pre-read but *before* its batch executes, using
+// interleavingDb (see helper above) — a pre-read-only guard would miss
+// every one of these; the commit-time guard in worker/d1/projects.mjs must
+// catch them independently.
+
+test("edit vs a competing draft change: the stale edit is rejected (409), the competing draft survives, no orphan revision, no success audit", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const created = await createProject(db, jwks, token);
+
+    // The "competing" edit — a genuinely separate, successful request that
+    // commits for real before the stale request's batch runs.
+    const { response: competingResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Competing Edit" }),
+          expectedPublishedRevisionId: created.publishedRevisionId,
+          expectedDraftRevisionId: created.draftRevisionId,
+        },
+      }),
+      { db, jwks }
+    );
+    const competing = await competingResponse.json();
+    assert.notEqual(competing.draftRevisionId, created.draftRevisionId);
+
+    // The stale request's pre-read is forced to see the pre-competing-edit
+    // snapshot, exactly as if it had read the row a moment before the
+    // competing edit committed.
+    const staleRow = { id: created.id, slug: created.slug, published_revision_id: null, draft_revision_id: created.draftRevisionId };
+    const staleDb = interleavingDb(db, { staleRow });
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Stale Edit Must Not Apply" }),
+          expectedPublishedRevisionId: null,
+          expectedDraftRevisionId: created.draftRevisionId,
+        },
+      }),
+      { db: staleDb, jwks }
+    );
+    assert.equal(response.status, 409);
+
+    const projectRow = await db.prepare("SELECT * FROM projects WHERE id = ?").bind("project-atomic-lab").first();
+    assert.equal(projectRow.draft_revision_id, competing.draftRevisionId, "the competing edit's draft pointer survives untouched");
+
+    const revisionRows = (
+      await db.prepare("SELECT * FROM project_revisions WHERE project_id = ? ORDER BY revision_number").bind("project-atomic-lab").all()
+    ).results;
+    assert.equal(revisionRows.length, 2, "no orphan revision row from the stale attempt");
+    assert.equal(revisionRows[1].title, "Competing Edit", "the competing edit's content, not the stale request's, is what exists");
+
+    const successAudits = (
+      await db
+        .prepare("SELECT * FROM audit_log WHERE entity_id = ? AND action = 'project_update_draft' AND result = 'success'")
+        .bind("project-atomic-lab")
+        .all()
+    ).results;
+    assert.equal(successAudits.length, 1, "exactly the competing edit's success row — none for the stale attempt");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("publish vs a competing draft change: the stale publish is rejected (409), the competing draft survives unpublished, no success audit", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const created = await createProject(db, jwks, token);
+
+    // Competing edit moves the draft pointer after the stale request would
+    // have read the original draft.
+    const { response: competingResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Competing Edit Before Publish" }),
+          expectedPublishedRevisionId: null,
+          expectedDraftRevisionId: created.draftRevisionId,
+        },
+      }),
+      { db, jwks }
+    );
+    const competing = await competingResponse.json();
+
+    const staleRow = { id: created.id, slug: created.slug, published_revision_id: null, draft_revision_id: created.draftRevisionId };
+    const staleDb = interleavingDb(db, { staleRow });
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/publish", {
+        method: "POST",
+        token,
+        body: { expectedPublishedRevisionId: null, expectedDraftRevisionId: created.draftRevisionId },
+      }),
+      { db: staleDb, jwks }
+    );
+    assert.equal(response.status, 409);
+
+    const projectRow = await db.prepare("SELECT * FROM projects WHERE id = ?").bind("project-atomic-lab").first();
+    assert.equal(projectRow.published_revision_id, null, "the stale publish never took effect");
+    assert.equal(projectRow.draft_revision_id, competing.draftRevisionId, "the competing draft pointer survives untouched");
+
+    const successAudits = (
+      await db
+        .prepare("SELECT * FROM audit_log WHERE entity_id = ? AND action = 'project_publish' AND result = 'success'")
+        .bind("project-atomic-lab")
+        .all()
+    ).results;
+    assert.equal(successAudits.length, 0, "no success audit row for the stale publish attempt");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("unpublish vs a competing pointer change: the stale unpublish is rejected (409), the competing state survives, no success audit", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const created = await createProject(db, jwks, token);
+    await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/publish", {
+        method: "POST",
+        token,
+        body: { expectedPublishedRevisionId: null, expectedDraftRevisionId: created.draftRevisionId },
+      }),
+      { db, jwks }
+    );
+
+    // Competing edit creates a new independent draft after publish, which
+    // the stale unpublish request's pre-read snapshot predates.
+    const { response: competingResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Competing Draft After Publish" }),
+          expectedPublishedRevisionId: created.draftRevisionId,
+          expectedDraftRevisionId: null,
+        },
+      }),
+      { db, jwks }
+    );
+    const competing = await competingResponse.json();
+
+    const staleRow = {
+      id: created.id,
+      slug: created.slug,
+      published_revision_id: created.draftRevisionId,
+      draft_revision_id: null,
+    };
+    const staleDb = interleavingDb(db, { staleRow });
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/unpublish", {
+        method: "POST",
+        token,
+        body: { expectedPublishedRevisionId: created.draftRevisionId, expectedDraftRevisionId: null },
+      }),
+      { db: staleDb, jwks }
+    );
+    assert.equal(response.status, 409);
+
+    const projectRow = await db.prepare("SELECT * FROM projects WHERE id = ?").bind("project-atomic-lab").first();
+    assert.equal(projectRow.published_revision_id, created.draftRevisionId, "the stale unpublish never took effect");
+    assert.equal(projectRow.draft_revision_id, competing.draftRevisionId, "the competing draft pointer survives untouched");
+
+    const successAudits = (
+      await db
+        .prepare("SELECT * FROM audit_log WHERE entity_id = ? AND action = 'project_unpublish' AND result = 'success'")
+        .bind("project-atomic-lab")
+        .all()
+    ).results;
+    assert.equal(successAudits.length, 0, "no success audit row for the stale unpublish attempt");
+  } finally {
+    await cleanup();
+  }
+});
+
 // --- AS20-F009/F010: real D1 atomicity/rollback proof ---
 
 test("a forced audit-statement failure inside a create-draft-shaped batch rolls back the project/revision insert too", async () => {
@@ -880,6 +1203,32 @@ test("GET /admin/api/projects (wrong method on the create route) returns 405 wit
   const { response } = await callAdmin(readRequest("/admin/api/projects", { token }), { db: spy, jwks });
   assert.equal(response.status, 405);
   assert.equal(spy.calls.length, 0);
+});
+
+// --- AS21-F010 (Remediation Cycle 1): route/method classification precedes the DB-binding requirement ---
+
+test("an unrecognized project sub-route returns 404, not 503, even when DB is absent", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey);
+  const { response } = await callAdmin(readRequest("/admin/api/projects/some-id/delete", { token }), { db: undefined, jwks });
+  assert.equal(response.status, 404);
+});
+
+test("a wrong method on a recognized project route returns 405, not 503, even when DB is absent", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey);
+  const { response } = await callAdmin(readRequest("/admin/api/projects", { token }), { db: undefined, jwks });
+  assert.equal(response.status, 405);
+});
+
+test("a recognized project route+method returns 503 when DB is absent", async () => {
+  const { privateKey, jwks } = await buildTestIdentity();
+  const token = await signToken(privateKey);
+  const { response } = await callAdmin(
+    mutationRequest("/admin/api/projects", { method: "POST", token, body: validProjectPayload() }),
+    { db: undefined, jwks }
+  );
+  assert.equal(response.status, 503);
 });
 
 // --- headers / no leakage ---

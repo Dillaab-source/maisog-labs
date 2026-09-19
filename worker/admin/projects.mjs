@@ -89,6 +89,52 @@ function safeEntityIdOrUnassigned(id) {
   }
 }
 
+// WEB-INC-003 Remediation Cycle 1 (ML-DEVOS-AS-021 AS21-F009): reads the
+// request body under a real byte budget rather than a JavaScript string
+// character count. `String.prototype.length` counts UTF-16 code units, not
+// UTF-8 bytes — a body built from multibyte characters (e.g. CJK, each 3
+// bytes in UTF-8 but 1 UTF-16 code unit) can be far larger in bytes than
+// its `.length` suggests, letting it slip past a character-counted check
+// while still exceeding the real budget once re-encoded. This reads the
+// body as a byte stream, counting real bytes as they arrive and aborting
+// the moment the budget is exceeded — no multibyte content can bypass the
+// limit, and an oversized body is never fully buffered into memory.
+async function readBoundedBodyBytes(request, maxBytes) {
+  const declaredLength = request.headers.get("Content-Length");
+  if (declaredLength !== null) {
+    const parsed = Number(declaredLength);
+    if (Number.isFinite(parsed) && parsed > maxBytes) {
+      return { tooLarge: true };
+    }
+  }
+
+  if (!request.body) {
+    return { bytes: new Uint8Array(0) };
+  }
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return { tooLarge: true };
+    }
+    chunks.push(value);
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { bytes };
+}
+
 // AS20-F004: same-origin Origin, JSON content type, bounded body. Applied
 // to every mutating (non-GET) route before any D1 access. Returns the
 // parsed JSON body on success, or a Response to return immediately on
@@ -104,13 +150,14 @@ async function readAndValidateMutationRequest(request, url) {
     return { error: jsonResponse(415, { error: "Unsupported Media Type" }) };
   }
 
-  const rawBody = await request.text();
-  if (rawBody.length > MAX_MUTATION_BODY_BYTES) {
+  const { tooLarge, bytes } = await readBoundedBodyBytes(request, MAX_MUTATION_BODY_BYTES);
+  if (tooLarge) {
     return { error: jsonResponse(413, { error: "Payload Too Large" }) };
   }
 
   let body;
   try {
+    const rawBody = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     body = JSON.parse(rawBody);
   } catch {
     return { error: jsonResponse(400, { error: "Malformed JSON body" }) };
@@ -141,6 +188,29 @@ function pointersMatch(row, expected) {
   const currentPublished = row.published_revision_id ?? null;
   const currentDraft = row.draft_revision_id ?? null;
   return currentPublished === expected.expectedPublishedRevisionId && currentDraft === expected.expectedDraftRevisionId;
+}
+
+// WEB-INC-003 Remediation Cycle 1 (ML-DEVOS-AS-021 AS21-F007): after a
+// rejected edit/publish/unpublish batch, the commit-time guard in
+// worker/d1/projects.mjs (see stalePointerGuardedSlugAssignment) is the
+// only thing that can have caused it via a poisoned `slug` CHECK
+// violation, and only when the row's live pointers no longer matched the
+// request's expected values at execution time. Because the whole
+// transaction rolled back, re-reading the row now returns exactly the
+// state it was in immediately before this attempt — so comparing that
+// state against the same `expected` values distinguishes "the guard fired
+// (stale) → 409" from "some other storage failure → 500" without needing
+// to inspect the driver's error message.
+async function classifyMutationBatchFailure(db, id, expected) {
+  try {
+    const current = await readProjectForMutation(db, id);
+    if (current && pointersMatch(current, expected)) {
+      return 500;
+    }
+    return 409;
+  } catch {
+    return 500;
+  }
 }
 
 // POST /admin/api/projects — create draft (AS20-F002, AS20-F005).
@@ -247,11 +317,24 @@ async function handleEditDraft({ request, url, db, sub, id }) {
   const createdAt = new Date().toISOString();
   let statements;
   try {
-    statements = await buildEditDraftBatch(db, { id, fields, createdAt, createdBy: actor, actor });
+    statements = await buildEditDraftBatch(db, {
+      id,
+      fields,
+      createdAt,
+      createdBy: actor,
+      actor,
+      expectedPublishedRevisionId: expected.expectedPublishedRevisionId,
+      expectedDraftRevisionId: expected.expectedDraftRevisionId,
+    });
     await db.batch(statements);
   } catch {
+    // Commit-time stale-write guard fired, or some other storage failure —
+    // classifyMutationBatchFailure distinguishes them (AS21-F007). Either
+    // way the transaction rolled back: no partial revision row, no pointer
+    // change, no success audit row survives.
+    const status = await classifyMutationBatchFailure(db, id, expected);
     await tryAppendFailureAudit(db, { actor, action: "project_update_draft", entityId: id });
-    return jsonResponse(500, { error: "Internal Server Error" });
+    return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
   }
 
   const updated = await readProjectForMutation(db, id);
@@ -321,10 +404,21 @@ async function handlePublish({ request, url, db, sub, id }) {
   }
 
   try {
-    await db.batch(buildPublishBatch(db, { id, draftRevisionId: row.draft_revision_id, actor }));
+    await db.batch(
+      buildPublishBatch(db, {
+        id,
+        draftRevisionId: row.draft_revision_id,
+        expectedPublishedRevisionId: expected.expectedPublishedRevisionId,
+        expectedDraftRevisionId: expected.expectedDraftRevisionId,
+        actor,
+      })
+    );
   } catch {
+    // Commit-time stale-write guard fired, or some other storage failure —
+    // classifyMutationBatchFailure distinguishes them (AS21-F007).
+    const status = await classifyMutationBatchFailure(db, id, expected);
     await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
-    return jsonResponse(500, { error: "Internal Server Error" });
+    return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
   }
 
   const updated = await readProjectForMutation(db, id);
@@ -362,10 +456,21 @@ async function handleUnpublish({ request, url, db, sub, id }) {
   }
 
   try {
-    await db.batch(buildUnpublishBatch(db, { id, publishedRevisionId: row.published_revision_id, actor }));
+    await db.batch(
+      buildUnpublishBatch(db, {
+        id,
+        publishedRevisionId: row.published_revision_id,
+        expectedPublishedRevisionId: expected.expectedPublishedRevisionId,
+        expectedDraftRevisionId: expected.expectedDraftRevisionId,
+        actor,
+      })
+    );
   } catch {
+    // Commit-time stale-write guard fired, or some other storage failure —
+    // classifyMutationBatchFailure distinguishes them (AS21-F007).
+    const status = await classifyMutationBatchFailure(db, id, expected);
     await tryAppendFailureAudit(db, { actor, action: "project_unpublish", entityId: id, revisionId: row.published_revision_id });
-    return jsonResponse(500, { error: "Internal Server Error" });
+    return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
   }
 
   const updated = await readProjectForMutation(db, id);
@@ -376,13 +481,19 @@ async function handleUnpublish({ request, url, db, sub, id }) {
 // `/admin/api/projects` / `/admin/api/projects/*` path. Unrecognized method
 // or sub-route combinations fail closed to 405/404 with zero D1 access
 // (AS20-F002) — never falls through to a broader/generic mutation path.
+//
+// WEB-INC-003 Remediation Cycle 1 (ML-DEVOS-AS-021 AS21-F010): route/method
+// classification happens *before* the `!db` check, not after — an
+// unsupported sub-route or wrong method never requires a DB binding at
+// all, so it must return 404/405 even when DB is absent. Only a route+
+// method combination this dispatcher actually recognizes and would call
+// into D1 for checks `!db` and returns 503 when it's missing.
 export async function handleProjectsDispatch({ request, url, db, sub }) {
-  if (!db) return jsonResponse(503, { error: "Service Unavailable" });
-
   const pathname = url.pathname;
 
   if (pathname === PROJECTS_ROOT_PATH) {
     if (request.method !== "POST") return jsonResponse(405, { error: "Method Not Allowed" });
+    if (!db) return jsonResponse(503, { error: "Service Unavailable" });
     return handleCreateDraft({ request, url, db, sub });
   }
 
@@ -391,18 +502,22 @@ export async function handleProjectsDispatch({ request, url, db, sub }) {
     const [, id, action] = match;
     if (action === "draft") {
       if (request.method !== "PUT") return jsonResponse(405, { error: "Method Not Allowed" });
+      if (!db) return jsonResponse(503, { error: "Service Unavailable" });
       return handleEditDraft({ request, url, db, sub, id });
     }
     if (action === "preview") {
       if (request.method !== "GET") return jsonResponse(405, { error: "Method Not Allowed" });
+      if (!db) return jsonResponse(503, { error: "Service Unavailable" });
       return handlePreview({ db, id });
     }
     if (action === "publish") {
       if (request.method !== "POST") return jsonResponse(405, { error: "Method Not Allowed" });
+      if (!db) return jsonResponse(503, { error: "Service Unavailable" });
       return handlePublish({ request, url, db, sub, id });
     }
     if (action === "unpublish") {
       if (request.method !== "POST") return jsonResponse(405, { error: "Method Not Allowed" });
+      if (!db) return jsonResponse(503, { error: "Service Unavailable" });
       return handleUnpublish({ request, url, db, sub, id });
     }
   }

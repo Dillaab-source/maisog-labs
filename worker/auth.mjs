@@ -84,14 +84,38 @@ function defaultDispatch({ request, assets }) {
   return assets.fetch(request);
 }
 
+// WEB-INC-003 Remediation Cycle 1 (ML-DEVOS-AS-021 AS21-F008): the audit
+// actor is `cf-access:<sub>`, and `worker/d1/audit.mjs`'s ACTOR_PATTERN
+// bounds the *whole* actor string to 100 printable-ASCII characters. The
+// "cf-access:" prefix is 10 characters, so `sub` itself must never exceed
+// 90 — otherwise an oversized-but-non-empty subject could pass this gate,
+// let a mutation handler perform project D1 reads, and only fail much
+// later when the audit statement is built. Bounding and validating the
+// character set here means a subject this function accepts is guaranteed
+// to produce a valid ADR-005 audit actor; nothing downstream can reject it
+// on format grounds.
+const MAX_MUTATION_SUBJECT_LENGTH = 90;
+const PRINTABLE_MUTATION_SUBJECT_PATTERN = /^[\x20-\x7e]+$/;
+
 // WEB-INC-003 (ML-DEVOS-RFC-006 / ML-DEVOS-AS-020 / D-027): reduces a
 // verified Access JWT payload to the one bounded mutation-identity value
 // project mutation routes are authorized to use — the `sub` claim — never
 // the full payload/claims object (AS20-F003). A service-token-style
-// assertion whose `sub` is empty/missing yields `undefined`, which
-// downstream mutation handlers must treat as "not mutation-authorized".
+// assertion whose `sub` is missing, empty, whitespace-only, oversized, or
+// contains a non-printable-ASCII character yields `undefined`, which
+// downstream mutation handlers must treat as "not mutation-authorized"
+// (AS21-F008). The returned value is always trimmed.
 function extractMutationSubject(payload) {
-  return typeof payload?.sub === "string" && payload.sub.trim().length > 0 ? payload.sub : undefined;
+  if (typeof payload?.sub !== "string") return undefined;
+  const trimmed = payload.sub.trim();
+  if (
+    trimmed.length === 0 ||
+    trimmed.length > MAX_MUTATION_SUBJECT_LENGTH ||
+    !PRINTABLE_MUTATION_SUBJECT_PATTERN.test(trimmed)
+  ) {
+    return undefined;
+  }
+  return trimmed;
 }
 
 // Pure, Workers-runtime-agnostic request handler. `assets` is anything with a
