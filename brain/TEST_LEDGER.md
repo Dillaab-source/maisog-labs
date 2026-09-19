@@ -171,6 +171,36 @@ Evidence classification:
 
 Accepted limitations are recorded as `AS29-L001`, `AS29-L002`, and `AS29-L003`.
 
+## `WEB-INC-007` final evidence
+
+Initial implementation:
+- `17577838d1007210cd1893fdb71ea8063d764fa8`
+
+Remediation:
+- `9773d76641bef0b9f57b94d78087438f4d2ffc15`
+
+Final Architect review:
+- `ML-DEVOS-AS-033`
+
+Architecture record:
+- `ML-DEVOS-ADR-009`
+
+Builder-reported final evidence:
+- admin design suite: 49/49;
+- public design suite: 13/13;
+- overlay mapping suite: 7/7;
+- full suite: 338/338;
+- static build: success;
+- local product-table count: 22;
+- visual draft preview works on homepage and Journal;
+- unauthenticated preview falls back to published/baseline;
+- overlay intensity 40/68/85 produces distinct monotonic output while 68 preserves baseline;
+- no remote D1/R2, deployment, or main merge.
+
+Evidence classification:
+- final source/diff independently inspected in `ML-DEVOS-AS-033`;
+- runtime/test/build/CLI/visual claims remain `ACTOR_REPORTED`.
+
 ## Plan-defined test IDs — current status
 
 | ID | Description | Status | Notes |
@@ -188,7 +218,7 @@ Accepted limitations are recorded as `AS29-L001`, `AS29-L002`, and `AS29-L003`.
 | TEST-ADM-006 | Invalid content is rejected (at the Admin write boundary) | `PASS` (projects + Journal) | Project validation remains covered by `WEB-INC-003`; Journal validation is covered by `WEB-INC-006` for bounded id/slug/title/summary/plain-text body/media input, with invalid requests rejected before successful business mutation. |
 | TEST-ADM-007 | Failed write does not report success | `PASS` (projects + Journal) | Project atomicity/failure semantics remain covered by `WEB-INC-003`; Journal focused tests cover stale conflicts, invalid persisted draft/media revalidation failures, and batch-failure paths without reporting success. Append-only audit failure behavior remains backed by `WEB-INC-008`. |
 | TEST-ADM-008 | Media upload validation works | `PASS` | `WEB-INC-004`: `tests/worker-admin-media.test.mjs` covers accepted JPEG/PNG/WebP uploads, SVG rejection, signature/Content-Type-mismatch rejection, an unsupported-signature-disguised-as-allowed-type rejection, zero-byte and over-5-MiB rejection (both a declared-`Content-Length` early reject and an actual-body-size reject), and a missing-alt-text-header rejection. Implementer-reported; not yet Architect-reproduced |
-| TEST-ADM-009 | Theme settings remain within allowed values | `NOT IMPLEMENTED` | No theme-settings feature exists |
+| TEST-ADM-009 | Theme settings remain within allowed values | `PASS` (local/repository) | `WEB-INC-007`: `tests/worker-admin-design.test.mjs` covers all fixed enum vocabularies, numeric range boundaries, unknown-field rejection, injection attempts, draft/publish isolation, auth, and stale-write behavior. Final remediation adds `tests/design-overlay.test.mjs` 7/7 for DESIGN-008 full-range behavior. Final full suite Builder-reported: 338/338; source/diff accepted by `ML-DEVOS-AS-033`. |
 | TEST-ADM-010 | Public users cannot perform admin mutations | `PASS` (projects + Journal) | Project auth-negative tests remain valid; `WEB-INC-006` adds unauthenticated/invalid-sub tests for Journal mutation/preview paths with zero pre-auth D1 access. Public `/api/journal*` routes are intentionally read-only GET paths and do not expose mutation. |
 | TEST-DATA-001 | Existing static content migration preserves data | `PASS` (local-only substrate) | `WEB-INC-005`: `tests/d1-migration.test.mjs` "fresh migration ... achieves deep parity with `projectPublishedContent(siteContent)`" — deep-equal across every domain including `services`. This is a local D1 revision-substrate migration, not yet the public system's cutover migration; the risk this test ID tracks (`RISK-WEB-015`) remains `MITIGATED`, not `VERIFIED`, until Architect-reproduced |
 | TEST-DATA-002 | Draft content remains unpublished | `PASS` | Existing static-content filtering remains covered; `WEB-INC-006` additionally proves public Journal index/detail follow only `published_revision_id` and do not disclose draft-only, unpublished, or superseding-draft content. Journal runtime tests are ACTOR_REPORTED; source isolation was independently inspected in `ML-DEVOS-AS-029`. |
