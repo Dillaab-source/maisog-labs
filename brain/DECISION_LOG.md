@@ -344,3 +344,35 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Review rule:** after Builder handoff, the Architect must live-check the branch/state and independently inspect the exact implementation diff against `ML-DEVOS-RFC-005`, `ML-DEVOS-AS-017`, this decision, ADR-003/ADR-004, the accepted WEB-INC-001/005/002 behavior, and the verified Product Build Pack before PASS / CHANGES_REQUESTED.
 - **Post-review requirement:** because this is `ARCHITECTURE`, accepted implementation requires a post-review ADR before cycle closure.
 - **Evidence of Paulo authority:** Paulo explicitly instructed: `Proceed with WEB-INC-008 authorization. Authorize Claude to implement WEB-INC-008 — Append-Only Audit Substrate exactly within ML-DEVOS-RFC-005 and all binding constraints in ML-DEVOS-AS-017. No editorial/content mutation, WEB-INC-003, remote D1, deployment, public D1 cutover, or protected/main merge is authorized.`
+
+
+### D-027 — Authorize WEB-INC-003 project mutation capability implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after WEB-INC-008 closed and after the Architect grounded/classified/reviewed the next dependency-ordered increment through `ML-DEVOS-RFC-006` and `ML-DEVOS-AS-020`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-003 — Project Mutation Capability`** exactly within `ML-DEVOS-RFC-006`, subject to every binding constraint `AS20-F001` through `AS20-F020` in `ML-DEVOS-AS-020`.
+- **Change class:** `CAPABILITY` — a new sensitive authenticated editorial write capability composed from already accepted auth, revision-storage, read-dashboard, and audit architectures.
+- **Authorized mutation scope:** projects only — create draft, replace/edit draft by creating a new immutable revision, protected draft preview, publish, and unpublish.
+- **Authorized protected routes only:**
+  - `POST /admin/api/projects`
+  - `PUT /admin/api/projects/:id/draft`
+  - `GET /admin/api/projects/:id/preview`
+  - `POST /admin/api/projects/:id/publish`
+  - `POST /admin/api/projects/:id/unpublish`
+- **Mutation identity requirement:** valid Cloudflare Access authentication plus a bounded non-empty verified Access `sub`; service-token-style empty-sub identity is not mutation-authorized.
+- **Request-hardening requirement:** mutating requests must be same-origin, JSON, body-size bounded, no permissive CORS, and protected responses remain no-store/nosniff.
+- **Immutable revision requirement:** editing creates a new `project_revisions` row; no existing revision content row may be updated in place; slug is immutable after creation.
+- **Concurrency requirement:** existing-project mutation requests must carry expected published/draft pointer state; stale state must fail with bounded `409` and no mutation.
+- **Publish requirement:** fully revalidate persisted draft; atomically promote exact draft to published, clear draft pointer, preserve history, and append exactly one `project_publish / success` audit event.
+- **Unpublish requirement:** atomically clear published pointer, preserve revision history and any separate draft pointer, and append exactly one `project_unpublish / success` audit event.
+- **Atomicity requirement:** every successful state-changing mutation and its success audit event must commit as one local D1 transaction/batch; forced audit failure must prevent business-state commit.
+- **Revision-ID stop condition:** Builder must not rely on undocumented/race-prone revision-ID allocation or modify schema to satisfy atomicity. If the current integer-autoincrement schema cannot safely support the required atomic semantics using documented local D1 behavior, Builder must stop and return to Architect.
+- **Failure-audit semantics:** bounded authenticated business failures should append `result: failure` when audit storage remains available; storage failure must never produce a success response.
+- **Audit allowlist:** only `project_create_draft`, `project_update_draft`, `project_publish`, `project_unpublish` for entity type `project`.
+- **Schema gate:** exactly 15 product tables remain; no migration/schema change is authorized.
+- **Public-source invariant:** `D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE`; public rendering remains on `data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`.
+- **Local-only authority:** local D1 mutation tests, local Worker/Wrangler simulation, local route/rollback tests, build/test/dry-run only.
+- **Mutation gate:** `MUTATION_AUTHORIZED: YES` for this exact WEB-INC-003 project mutation capability only.
+- **Audit gate:** audit append is authorized only as required inside this exact WEB-INC-003 mutation implementation; it does not grant generic audit-write authority.
+- **Explicitly not authorized:** project delete; slug rename; mutation of any other content domain; schema changes; media/R2; journal; theme/design; persistent session/role database; audit UI/API; remote/production D1; production Cloudflare Access changes; public D1 cutover; deployment; protected/main merge; later WEB-INC work; Sentinel S3+; CI/workflows/rulesets.
+- **Review rule:** after Builder handoff, the Architect must live-check the branch and independently inspect the exact implementation diff against `ML-DEVOS-RFC-006`, `ML-DEVOS-AS-020`, this decision, ADR-003/004/005, and accepted WEB-INC-001/005/002/008 behavior before PASS / CHANGES_REQUESTED.
+- **Evidence of Paulo authority:** Paulo explicitly instructed: `Proceed with WEB-INC-003 implementation authorization. Authorize Claude to implement WEB-INC-003 — Project Mutation Capability exactly within ML-DEVOS-RFC-006 and every binding constraint in ML-DEVOS-AS-020. Authorize only the bounded local/repository project create-draft, edit-draft, protected preview, publish, and unpublish capability. No project delete, schema change, other content-domain mutation, media/R2, journal, theme/design controls, remote D1, public D1 cutover, production deployment, protected/main merge, later WEB-INC work, or Sentinel S3+ is authorized.`
