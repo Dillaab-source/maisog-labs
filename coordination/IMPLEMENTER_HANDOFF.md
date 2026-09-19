@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — Remediation Cycle 1 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — WEB-INC-004 Local Media Subsystem (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Remediation Cycle 1 update:** see the "WEB-INC-003 Remediation Cycle 1" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section describes the original (pre-remediation) implementation handoff and remains accurate except where the remediation section says otherwise.
+**WEB-INC-004 update:** see the "WEB-INC-004 — Local Media Subsystem" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including the "WEB-INC-003 Remediation Cycle 1" section) describes prior, already-closed cycles and remains accurate as historical record.
 
 ---
 
@@ -271,3 +271,133 @@ Every D1/Wrangler command above used `--local` explicitly or performed no resour
 ### Remediation commit
 
 Remediation files above are committed to `governance/maisoglabs-v0.1` as commit `a1ff241c5c4f912564627ee13824496ecf9b197b` on top of remediation base `5f2991f1c26c79bdda687ff6b4adba4c8e00c50b`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits are mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-INC-004 — Local Media Subsystem
+
+Cycle ID: `MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM`
+
+Authority chain: `ML-DEVOS-RFC-007` → `ML-DEVOS-AS-023` (`ARCHITECT_APPROVED — WEB-INC-004 LOCAL MEDIA SUBSYSTEM COMPATIBLE FOR BOUNDED REPOSITORY/LOCAL IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`) → `D-029` (Paulo: "Okay let's keep that on record and let's proceed with the build keep Only the goods ones."). Active Sentinel governance-capability baseline at implementation time: `v1.5.0` (`D-028`/`ML-DEVOS-ADR-006`) — this does not change AS-023's verdict or gates.
+
+### Objective
+
+Add a locally-simulated R2 + D1 media subsystem, bounded to exactly the scope AS23-F001–F018 authorize: two new tables (`media`, `project_media`), a local-only R2 binding, `POST`/`GET /admin/api/media`, and an optional atomic media snapshot on existing project create/edit — composing the already-accepted `WEB-INC-001` auth boundary, `WEB-INC-005` revision substrate, `WEB-INC-008` audit substrate, and `WEB-INC-003` project mutation capability into one bounded new write capability. No delete/update media route, no journal/theme work, no remote R2/D1, no deployment.
+
+### Branch / commit state
+
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `281d726c348e04003b9226ebb766cab50b86439c` — matches exactly the SHA the request required.
+- Result SHA (implementation commit): `ca6a93b65353968353b9ba3670e162468abdb33a`
+- Read in full before any edit, in the exact required order: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-023`, all 18 findings `AS23-F001`–`F018`), `devos/changes/rfcs/ML-DEVOS-RFC-007.md` (full, 484 lines), `devos/changes/architect-syncs/ML-DEVOS-AS-023.md` (diffed against the rolling review and confirmed byte-identical substance), `brain/DECISION_LOG.md`'s `D-029` entry, `docs/SENTINEL_REVIEW_NOTES.md` (full, advisory-only). Also re-read `wrangler.jsonc`, `worker/d1/schema.mjs`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `worker/d1/audit.mjs`, `worker/index.mjs`, `worker/admin/dashboard.mjs`, and `migrations/0001_web_inc_005_init.sql`/`0002_web_inc_008_audit_log.sql` in full, and confirmed via `git log` that none of these paths had drifted since the last `WEB-INC-003` remediation commit.
+
+### Exact changed-file list — 13 files
+
+**New (5):**
+- `migrations/0003_web_inc_004_media.sql` — the `media` and `project_media` tables, their `CHECK` constraints, and four immutability/DELETE-protection triggers
+- `worker/media/signature.mjs` — magic-byte JPEG/PNG/WebP detection (`detectImageContentType`), plus `ALLOWED_MEDIA_CONTENT_TYPES`/`EXTENSION_FOR_CONTENT_TYPE`/`MAX_MEDIA_BYTES`
+- `worker/d1/media.mjs` — D1 helpers: `readMediaRow`, `readActiveMediaRowsByIds`, `listActiveMedia`, `buildMediaUploadBatch`, `readProjectMediaSnapshot`, `validateMediaSnapshotEntries`, `buildProjectMediaInsertStatements`
+- `worker/admin/media.mjs` — the HTTP dispatcher for `POST`/`GET /admin/api/media`: request hardening, magic-byte validation, R2-before-D1 write ordering with compensating delete, positive-projection list
+- `tests/worker-admin-media.test.mjs` — 22 new tests
+
+**Modified, substantive (6):**
+- `worker/d1/schema.mjs` — purely additive: `MEDIA_TABLE_NAMES`, `ALL_PRODUCT_TABLE_NAMES`, `readMediaMigrationSql()`, `applyMediaMigration(db)`, `applyAllMigrations(db)`. Every pre-existing export (`AUTHORIZED_TABLE_NAMES`, `CURRENT_PRODUCT_TABLE_NAMES`, `applySchema`, `applyAuditMigration`, `applyCurrentSchema`, `listProductTables`) is byte-unchanged — confirmed by `git diff worker/d1/schema.mjs` and by `tests/d1-migration.test.mjs`/`tests/d1-audit.test.mjs` continuing to pass unmodified (`AS23-F016`).
+- `worker/d1/validate.mjs` — purely additive: `validateAltText(value)`, `validateMediaRole(value)`/`MEDIA_ROLE_VALUES`, `validateMediaId(id)`.
+- `worker/d1/projects.mjs` — `buildCreateDraftBatch`/`buildEditDraftBatch` gain an additive `mediaEntries = []` parameter and now also insert that new revision's `project_media` rows (via the subquery-correlation pattern, same technique as the existing audit helper) inside the same batch. `stalePointerGuardedSlugAssignment()` and `buildPublishBatch`/`buildUnpublishBatch` are byte-unchanged — confirmed by `git diff`.
+- `worker/admin/projects.mjs` — `handleCreateDraft`/`handleEditDraft` accept an optional `media` field (resolve-and-validate-existence on create; inherit-from-source-revision-when-omitted on edit); `handlePreview` now also returns bounded media metadata for the exact draft revision. The existing `readBoundedBodyBytes`/`MAX_MUTATION_BODY_BYTES` byte-accurate body reader (`AS21-F009`) is untouched — confirmed by `git diff`.
+- `worker/index.mjs` — threads `env.MEDIA` (the new R2 binding) into `handleAdminDispatch`, mirroring the existing `env.DB` wiring.
+- `worker/admin/dashboard.mjs` — routes `/admin/api/media` to the new `handleMediaDispatch`, after the existing dashboard/projects routing and before the generic `/admin/api/*` 404 fallback.
+- `wrangler.jsonc` — adds `r2_buckets: [{ binding: "MEDIA", bucket_name: "maisog-labs-web-inc-004-local", remote: false }]`.
+- `tests/worker-admin-projects.test.mjs` — fixture schema application switched from `applyCurrentSchema` to `applyAllMigrations` (required once preview/create/edit unconditionally touch `project_media`); the pre-existing "schema remains exactly 15 product tables" regression test updated in place to assert 17 against `ALL_PRODUCT_TABLE_NAMES`; 9 new tests added for the media-snapshot integration surface.
+
+**No other file changed.** In particular: `migrations/0001_web_inc_005_init.sql` and `migrations/0002_web_inc_008_audit_log.sql` are byte-identical; no journal/theme file; no admin UI file; `app/page.js`/`data/site.js`/`lib/content/*` untouched. `git diff --stat` against those paths plus `package.json` is empty for every one.
+
+### Schema evidence (AS23-F003)
+
+`migrations/0003_web_inc_004_media.sql` adds exactly two tables:
+- `media(id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by, state)` — `content_type` `CHECK`-restricted to `image/jpeg`/`image/png`/`image/webp`; `size_bytes` `CHECK`-bounded to `(0, 5242880]`; `alt_text` `CHECK`-bounded to 300 characters; `state` `CHECK`-restricted to `'active'` (the sole exception the immutability trigger leaves open, per AS23-F004, even though no code path in this increment ever changes it); `media_reject_immutable_field_update` (`BEFORE UPDATE OF id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by`) and `media_reject_delete` (`BEFORE DELETE`, unconditional) enforce immutability/non-deletability at the database layer.
+- `project_media(id, project_revision_id, media_id, role, sort_order)` — `role` `CHECK`-restricted to `'cover'`/`'gallery'`; `UNIQUE (project_revision_id, media_id, role)`; `FOREIGN KEY (project_revision_id) REFERENCES project_revisions(id)`; `FOREIGN KEY (media_id) REFERENCES media(id)`; `project_media_reject_update`/`project_media_reject_delete` (both unconditional) enforce full immutability/non-deletability.
+
+Product-table count: `15 → 17`.
+
+### Empirical DDL/trigger validation (before finalizing the migration)
+
+A disposable scratch script (not committed) applied `applyAllMigrations` against a real local D1 instance via `getPlatformProxy` and confirmed: exactly 17 tables; a direct `UPDATE media SET alt_text = ...` on an existing row is rejected (`SQLITE_CONSTRAINT_TRIGGER`); a `state`-only no-op `UPDATE` succeeds; `DELETE FROM media` is rejected; an `image/svg+xml` insert is rejected by the `content_type` `CHECK`; an oversized `size_bytes` insert is rejected by its `CHECK`; a valid `project_media` insert succeeds; a direct `UPDATE`/`DELETE` against an existing `project_media` row is rejected; a `project_media` insert referencing a nonexistent `media_id` is rejected by the foreign key; an invalid `role` is rejected by its `CHECK`; re-running `applyAllMigrations` is idempotent. The script was deleted after use.
+
+### Upload/list boundary evidence (AS23-F006/F007/F008/F009/F010/F011)
+
+- **Boundary order**: `POST /admin/api/media` checks route/method → `sub` (403 if absent) → `Origin === url.origin` (403) → declared `Content-Type` in the allowlist (415) → alt-text header present/decodable (400) → byte-accurate bounded body read with an early `Content-Length` reject (413) → zero-byte reject (400) → magic-byte signature must match the declared type (400, rejects SVG/arbitrary content/mismatches by construction) — all before any R2/D1 call.
+- **Server-generated identity (AS23-F008)**: `id = crypto.randomUUID()`, `storageKey = `media/${id}.${extension}``, extension derived from the validated content type — never from client input. (`worker/d1/validate.mjs`'s `validateMediaId` was corrected mid-implementation to accept the actual UUID shape — see "Errors caught and fixed" below.)
+- **Cross-store ordering/compensation (AS23-F009)**: R2 `put` happens before the D1 batch; an R2 failure never attempts a D1 write; a D1 batch failure after a successful R2 write triggers a best-effort `media.delete(storageKey)`, and the request still fails (`500`) whether or not that compensating delete itself succeeds — proven by three dedicated tests, including one where the compensating delete also throws.
+- **Audit (AS23-F010)**: the success `media_upload`/`media` audit row commits in the same D1 batch as the media row (`buildMediaUploadBatch`); a failure audit is appended separately, best-effort, after any failure path.
+- **Listing (AS23-F011)**: `GET /admin/api/media` returns only `{id, contentType, sizeBytes, altText, uploadedAt}` per row — `storage_key`, `uploaded_by`, and `state` are never selected by `listActiveMedia`/`readActiveMediaRowsByIds` in the first place, not merely omitted at serialization time.
+
+### Project integration evidence (AS23-F012/F013/F014/F016)
+
+- Create/edit accept an optional `media: [{mediaId, role, order}]`. On create, omission means an empty snapshot (no prior revision to inherit from). On edit, omission inherits the source revision's (`expectedDraftRevisionId ?? expectedPublishedRevisionId`) exact association snapshot; supplying `media` fully replaces the new revision's snapshot. Referenced media must resolve to an active row (`readActiveMediaRowsByIds`); a missing/duplicate-role reference is rejected `400` with nothing committed.
+- Atomicity: the new revision insert, its `project_media` inserts (subquery-correlated on `(project_id, revision_number)`, same pattern as the existing audit helper), the pointer move, and the success audit all run in the one existing `db.batch()` call — a forced batch failure (via a `batchFailingDb` wrapper around a real, already-migrated database) leaves zero project/revision/`project_media` rows.
+- The existing `WEB-INC-003` commit-time stale-write guard (`stalePointerGuardedSlugAssignment`) is untouched; a dedicated regression test attaches a `media` field to a stale-edit attempt (via the existing `interleavingDb` TOCTOU simulation) and confirms the `409` rejection and zero `project_media` commit are unaffected (`AS23-F016`).
+- Preview (`GET /admin/api/projects/:id/preview`) returns media metadata for the exact `draft_revision_id` only; a dedicated test publishes one media snapshot, edits the draft to a different one, and confirms preview shows only the draft's snapshot while the published revision's own `project_media` rows remain unchanged (`AS23-F014`).
+
+### Errors caught and fixed during this cycle
+
+- **`validateMediaId` UUID-shape bug**: the first draft reused `validateProjectId`'s `^[a-z][a-z0-9-]{0,79}$` pattern (requires a leading lowercase *letter*) for server-generated media ids, but `crypto.randomUUID()` frequently produces an id starting with a digit (any hex character `0`–`9a`–`f`). This was caught by `tests/worker-admin-media.test.mjs` failing non-deterministically (~62% of runs) with `400 Validation failed` instead of `201`, traced with a standalone debug script, and fixed by giving `validateMediaId` its own exact-UUID-shape pattern (`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`) instead of reusing the project-id pattern.
+- **Existing-suite regression from the new `project_media` table**: after wiring `handlePreview`/create/edit to always query `project_media` (even with an empty snapshot), 7 pre-existing tests in `tests/worker-admin-projects.test.mjs` started failing with `D1_ERROR: no such table: project_media`, because that file's fixture only ran `applyCurrentSchema` (the 15-table schema). Fixed by switching the fixture to `applyAllMigrations` and updating the one test that asserted an exact 15-table count to assert 17 — a necessary, intentional consequence of this cycle's authorized schema/route extension, not a defect being papered over.
+
+### Test results
+
+- `node --test tests/worker-admin-media.test.mjs` (isolated): **22 passed, 0 failed**.
+- `node --test tests/worker-admin-projects.test.mjs` (isolated): **60 passed, 0 failed** (51 preserved + 9 new).
+- `npm test` (full suite): **195 passed, 0 failed** (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 17 `d1-audit.test.mjs`, all five unchanged and still passing, + 60 `worker-admin-projects.test.mjs` + 22 new `worker-admin-media.test.mjs`).
+
+### Local-only evidence — full command log
+
+| Command | Result |
+|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `281d726c3...` before any file was touched |
+| Empirical scratch probe of the new migration's DDL/triggers against a real local D1 instance (not committed) | See "Empirical DDL/trigger validation" above — all assertions passed |
+| `node --test tests/worker-admin-media.test.mjs` | 22 passed, 0 failed |
+| `node --test tests/worker-admin-projects.test.mjs` | 60 passed, 0 failed |
+| `npm test` (full suite) | 195 passed, 0 failed |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; `0001` → 16 commands, `0002` → 5 commands, `0003_web_inc_004_media.sql` → 8 commands, all three recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --json --command "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'd1_migrations' ORDER BY name;"` | Returned exactly the 15 existing tables plus `media`/`project_media` (17 product tables) alongside Wrangler's own `_cf_METADATA` bookkeeping table |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers/Miniflare runtime) | `GET /` → `200` (public unaffected); `POST /admin/api/media` (no token) → `401` + `Cache-Control: no-store`; `GET /admin/api/media` (no token) → `401`; `DELETE /admin/api/media` (no token) → `401`; `GET /admin/api/media/whatever` (no token) → `401` |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table shows the new `env.MEDIA` R2 binding (`maisog-labs-web-inc-004-local`) alongside the unchanged `env.DB`/`env.ASSETS`/`env.ACCESS_TEAM_DOMAIN`/`env.ACCESS_AUD` bindings — no `remote: true`, no bucket/database production identifier; "--dry-run: exiting now." |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, `bucket_name`/`remote:\s*true`, and AWS-style key patterns across every new/changed file — zero matches beyond explanatory "no secret"/"no credential" comments; no `.env*` files; `wrangler.jsonc`'s new `r2_buckets` entry is `remote: false` with no production identifier |
+| `git diff --stat` against every "not touched" path (`migrations/0001_*`, `migrations/0002_*`, `app/page.js`, `data/site.js`, `lib/content/*`, `package.json`) | Empty for every path |
+| `git diff worker/d1/schema.mjs` | Confirms every pre-existing export is byte-unchanged |
+| `git diff worker/d1/projects.mjs` | Confirms `stalePointerGuardedSlugAssignment()`/`buildPublishBatch`/`buildUnpublishBatch` are byte-unchanged |
+| `git diff worker/admin/projects.mjs` | Confirms `readBoundedBodyBytes`/`MAX_MUTATION_BODY_BYTES` are untouched |
+
+Every D1/Wrangler/R2 command above used `--local`/local-simulation-only explicitly or performed no resource mutation at all (`--dry-run`); none used `--remote`; `wrangler.jsonc`'s new binding carries `remote: false`.
+
+### Governance documentation updated this cycle
+
+- `brain/IMPLEMENTATION_STATUS.md` — "Persistent storage — media (R2)" and "Media management/upload" flipped from `NOT STARTED` to `IMPLEMENTED` (local-only); "Explicit non-claims" narrowed to reflect that media/project_media now exist, with new explicit non-claims for remote R2/D1, public media routes, and Sentinel S3+ work.
+- `brain/RISK_REGISTER.md` — `RISK-WEB-012` (media upload abuse) flipped from `NOT YET APPLICABLE` to `MITIGATED`, with the documented compensating-delete-failure operational limitation called out explicitly, not silently treated as resolved; `RISK-WEB-004` (secret exposure) updated to note the new R2 binding carries no credential/production identifier either.
+- `brain/GOVERNANCE_MAP.md` — `ADM-REQ-006` ("Admin can upload/select approved media") broken out of the `ADM-REQ-005…009` aggregate into its own row, `IMPLEMENTED` for projects only, no admin UI.
+- `brain/TEST_LEDGER.md` — `TEST-ADM-008` flipped from `NOT IMPLEMENTED` to `PASS`; `TEST-ADM-004` extended to note the media-snapshot coverage; new `tests/worker-admin-media.test.mjs` summary subsection; new "`WEB-INC-004` command evidence" section with the full command log above and the documented operational limitation.
+- `docs/product/BUILD_PLAN.md`/`docs/product/DATA_BACKEND_SPEC.md` were reviewed and found already accurate (they described `WEB-INC-004`'s `media`/`project_media` ownership prospectively); no edit was needed or made.
+
+### Known limitations
+
+- **Orphaned R2 object on double failure (AS23-F009, accepted)**: if a D1 batch failure's own compensating R2 delete also fails, the just-written local R2 object remains orphaned — no D1 media row references it, no success audit exists for it. The request still fails (no fabricated D1 consistency), and this is exercised directly by a dedicated test. Preventing this orphan would require a distributed-transaction mechanism, which RFC-007/AS23-F009 explicitly does not require this cycle.
+- **`role` enum is a scope decision, not an RFC-dictated value**: `project_media.role` is restricted to `'cover'`/`'gallery'`, a bounded closed set chosen to match the plan's `{mediaId, role, order}` snapshot-entry shape; no other role value is accepted or planned for this cycle.
+- **No admin UI**: this cycle is API-only, exactly as authorized — no upload form, no media picker, no project-editor media control exists anywhere under `app/admin/`.
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made.
+
+### Explicit confirmations
+
+- **No real/remote R2 was touched.** `wrangler.jsonc`'s `MEDIA` binding is `remote: false`, no `bucket_name` resembling a production identifier, no custom domain, no credentials. Every R2 operation in every test and CLI command above ran against the local Wrangler/Miniflare simulation only.
+- **No real/remote D1 was touched.** The `DB` binding is unchanged (`remote: false`, no `database_id`); every D1 command above used `--local` or performed no mutation.
+- **No public bucket, public media route, or public D1/R2 cutover exists.** The public site continues to read only `data/site.js`/`public/`; `app/page.js`/`lib/content/*` are byte-unchanged.
+- **No deployment occurred.** `npx wrangler deploy` was run only with `--dry-run`.
+- **No protected/`main` merge occurred.** All work is on `governance/maisoglabs-v0.1` (mirrored to `claude/phase-0-governance-scope-w8o3jp`).
+- **No later increment's work began.** No journal/`journal_media`, no theme/design table or route, no `WEB-INC-006`/`007` work.
+- **No Sentinel S3+/CI-rulesets/Capability-Gateway/Task-Engine/Orchestrator/sandbox-subsystem work began**, per `AS23-F017` and `docs/SENTINEL_REVIEW_NOTES.md`'s explicit "keep the build simple" conclusion.
+- **`MEDIA_MUTATION_AUTHORIZED: YES`, `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`** apply only to this exact bounded `WEB-INC-004` scope; **`REMOTE_R2_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`.** Per `CORE-020`, all runtime/test results above remain `ACTOR_REPORTED` until independently reviewed.
+
+### Implementation commit
+
+The files above are committed to `governance/maisoglabs-v0.1` as commit `ca6a93b65353968353b9ba3670e162468abdb33a` on top of base `281d726c348e04003b9226ebb766cab50b86439c`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
