@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-011: MaisogLabs Production Release Readiness Gate
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Change class: `LOCAL_RULE`
 
