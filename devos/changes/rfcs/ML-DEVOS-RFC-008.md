@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-008: Sentinel Risk Escalation Rules
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Change class: `CORE_POLICY`
 
