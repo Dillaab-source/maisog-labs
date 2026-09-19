@@ -84,17 +84,28 @@ function defaultDispatch({ request, assets }) {
   return assets.fetch(request);
 }
 
+// WEB-INC-003 (ML-DEVOS-RFC-006 / ML-DEVOS-AS-020 / D-027): reduces a
+// verified Access JWT payload to the one bounded mutation-identity value
+// project mutation routes are authorized to use — the `sub` claim — never
+// the full payload/claims object (AS20-F003). A service-token-style
+// assertion whose `sub` is empty/missing yields `undefined`, which
+// downstream mutation handlers must treat as "not mutation-authorized".
+function extractMutationSubject(payload) {
+  return typeof payload?.sub === "string" && payload.sub.trim().length > 0 ? payload.sub : undefined;
+}
+
 // Pure, Workers-runtime-agnostic request handler. `assets` is anything with a
 // `fetch(request)` method (the real env.ASSETS binding in production, a stub in
 // tests). `getJWKS(teamDomain)` is only ever invoked after config validation
 // passes, so an invalid configuration can never trigger a JWKS/network lookup.
 //
-// `dispatch({ request, url, assets })` (WEB-INC-002, optional) is invoked only
-// after authentication succeeds — never before — and its return value (or the
-// default asset-serving behavior when omitted) is the only thing that may
-// determine post-auth routing/data access. This preserves the required
-// ordering `VALIDATE AUTH CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD
-// DISPATCH → D1 READ` (AS15-F002): no dispatch decision, D1 call, or route
+// `dispatch({ request, url, assets, sub })` (WEB-INC-002, optional; `sub`
+// added by WEB-INC-003) is invoked only after authentication succeeds —
+// never before — and its return value (or the default asset-serving
+// behavior when omitted) is the only thing that may determine post-auth
+// routing/data access. This preserves the required ordering `VALIDATE AUTH
+// CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD DISPATCH → MUTATION/READ`
+// (AS15-F002/AS20-F003): no dispatch decision, D1 call, or route
 // classification can happen before the token is verified.
 export async function handleRequest(request, { assets, teamDomain, audience, getJWKS, dispatch }) {
   const url = new URL(request.url);
@@ -108,14 +119,16 @@ export async function handleRequest(request, { assets, teamDomain, audience, get
   }
 
   const token = request.headers.get(ACCESS_ASSERTION_HEADER);
+  let sub;
   try {
     const jwks = getJWKS(teamDomain);
-    await verifyAccessAssertion(token, { jwks, issuer: `https://${teamDomain}`, audience });
+    const payload = await verifyAccessAssertion(token, { jwks, issuer: `https://${teamDomain}`, audience });
+    sub = extractMutationSubject(payload);
   } catch {
     return withNoStore(unauthorized());
   }
 
   const respond = dispatch ?? defaultDispatch;
-  const response = await respond({ request, url, assets });
+  const response = await respond({ request, url, assets, sub });
   return withNoStore(response);
 }

@@ -479,10 +479,14 @@ for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
 // --- AS15-F001 / AS15-F015 #10: authenticated unknown /admin/api/* -> protected 404 ---
 
 test("authenticated GET to an unknown /admin/api/* path returns protected 404 with zero D1 invocation", async () => {
+  // "/admin/api/projects" was this test's fixture path before WEB-INC-003
+  // (ML-DEVOS-RFC-006/ML-DEVOS-AS-020/D-027) authorized it as a real route
+  // — it is exercised on its own terms in tests/worker-admin-projects.test.mjs
+  // now, so this test uses a path that remains genuinely unknown.
   const { privateKey, jwks } = await buildTestIdentity();
   const token = await signToken(privateKey);
   const spy = dbSpy();
-  const { response, assets } = await callDashboard(protectedRequest("/admin/api/projects", { token }), { db: spy, jwks });
+  const { response, assets } = await callDashboard(protectedRequest("/admin/api/nope", { token }), { db: spy, jwks });
   assert.equal(response.status, 404);
   assert.equal(spy.calls.length, 0);
   assert.equal(assets.calls.length, 0, "must not fall through to static asset handling");

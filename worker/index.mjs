@@ -37,7 +37,7 @@ export default {
       teamDomain: env.ACCESS_TEAM_DOMAIN,
       audience: env.ACCESS_AUD,
       getJWKS,
-      dispatch: ({ request, url, assets }) => handleAdminDispatch({ request, url, assets, db: env.DB }),
+      dispatch: ({ request, url, assets, sub }) => handleAdminDispatch({ request, url, assets, db: env.DB, sub }),
     });
   },
 };

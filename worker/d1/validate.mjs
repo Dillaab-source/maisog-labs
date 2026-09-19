@@ -263,3 +263,16 @@ export function validateProjectSlug(slug) {
   }
   return slug;
 }
+
+// WEB-INC-003 (ML-DEVOS-RFC-006 / ML-DEVOS-AS-020 / D-027) addition: the
+// stable `projects.id` a create-draft request supplies. Same bounded
+// lowercase-hyphenated shape already used throughout this repository's
+// entity ids (e.g. "project-fixture", "nav-published"), but with no
+// reserved-word list of its own — reserved-word protection lives on `slug`
+// (validateProjectSlug above), not on `id`.
+export function validateProjectId(id) {
+  if (typeof id !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(id)) {
+    throw new Error("project id: invalid format");
+  }
+  return id;
+}

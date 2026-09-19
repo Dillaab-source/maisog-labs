@@ -12,6 +12,7 @@ import {
   readDashboardStatusRows,
   readSiteSettingsStatusRow,
 } from "../d1/repository.mjs";
+import { isProjectsApiPath, handleProjectsDispatch } from "./projects.mjs";
 
 export const DASHBOARD_PATH = "/admin/api/dashboard";
 
@@ -19,7 +20,10 @@ function isAdminApiPath(pathname) {
   return pathname.startsWith("/admin/api/");
 }
 
-function jsonResponse(status, body) {
+// Exported for worker/admin/projects.mjs (WEB-INC-003) to reuse the exact
+// same response construction — same headers, same absence of any CORS
+// header — rather than duplicating it.
+export function jsonResponse(status, body) {
   // `Cache-Control: no-store` is applied uniformly to every protected
   // response by `worker/auth.mjs`'s `handleRequest` wrapper — not repeated
   // here — so there is exactly one place that rule can be forgotten to
@@ -132,7 +136,7 @@ export async function buildDashboardPayload(db) {
 // valid Cloudflare Access assertion has been verified — see `dispatch` in
 // `handleRequest` — so every branch below may assume the caller is
 // authenticated; none of them re-checks identity.
-export async function handleAdminDispatch({ request, url, assets, db }) {
+export async function handleAdminDispatch({ request, url, assets, db, sub }) {
   const pathname = url.pathname;
 
   if (pathname === DASHBOARD_PATH) {
@@ -152,6 +156,16 @@ export async function handleAdminDispatch({ request, url, assets, db }) {
       // (AS15-F007) — the caught error is discarded, not inspected.
       return jsonResponse(500, { error: "Internal Server Error" });
     }
+  }
+
+  // WEB-INC-003 (ML-DEVOS-RFC-006 / ML-DEVOS-AS-020 / D-027): the only
+  // other authenticated editorial routes this repository exposes. Routed
+  // here, after the dashboard check above and before the generic
+  // "/admin/api/*" 404 fallback below, so the dashboard's exact existing
+  // behavior is completely unchanged and no route outside this exact
+  // allowlist gains mutation reach.
+  if (isProjectsApiPath(pathname)) {
+    return handleProjectsDispatch({ request, url, db, sub });
   }
 
   if (isAdminApiPath(pathname)) {
