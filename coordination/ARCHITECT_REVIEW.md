@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
+Status: `CHANGES_REQUESTED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,12 +8,20 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-020 — WEB-INC-003 Project Mutation Capability Architecture Sync
+# ML-DEVOS-AS-021 — WEB-INC-003 Implementation Review / Remediation Cycle 1
 
 Cycle: `MAISOGLABS-WEB-INC-003-PROJECT-MUTATION`  
-Reviewed proposal: `ML-DEVOS-RFC-006`  
-RFC proposal commit: `32a305971c623c82d2048969acc530b97c295499`  
-Grounded pre-proposal repository HEAD: `f2f2247934b931744223787b5a49aabce47ba624`
+Review mode: `FINAL CAPABILITY / MUTATION / AUTH / AUDIT REVIEW`  
+Authority chain: `ML-DEVOS-RFC-006 → ML-DEVOS-AS-020 → D-027 → ML-DEVOS-AS-021`
+
+Authorized implementation base:
+- `5ba7c496a05d2541324c5ecc565c1937ca023b1e`
+
+Builder implementation commit:
+- `a016cc2aafea494ad00ecfd79b545ccdcb0c1221`
+
+Builder bookkeeping HEAD:
+- `f3623c8666205336ffa13a023c6f8c32e637d36b`
 
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -21,61 +29,72 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.4.0`
 
-Accepted dependencies:
-- `ML-DEVOS-AS-012` — WEB-INC-001 auth boundary
-- `ML-DEVOS-AS-014` / `ML-DEVOS-ADR-003` — local D1 revision substrate
-- `ML-DEVOS-AS-016` / `ML-DEVOS-ADR-004` — protected read-only dashboard
-- `ML-DEVOS-AS-019` / `ML-DEVOS-ADR-005` — append-only audit substrate
+## Review discipline performed
 
-## Grounding performed
+Before issuing this verdict, the Architect:
 
-Before issuing this proposal verdict, the Architect live-checked and inspected:
+1. live-checked the authoritative governance branch;
+2. read current `coordination/STATE.md` and `coordination/IMPLEMENTER_HANDOFF.md`;
+3. compared exact implementation range `5ba7c496... → a016cc2a...`;
+4. separately compared bookkeeping range `a016cc2a... → f3623c86...`;
+5. independently inspected:
+   - `worker/auth.mjs`;
+   - `worker/index.mjs`;
+   - `worker/admin/dashboard.mjs`;
+   - `worker/admin/projects.mjs`;
+   - `worker/d1/projects.mjs`;
+   - `worker/d1/audit.mjs`;
+   - `worker/d1/validate.mjs`;
+   - `tests/worker-admin-projects.test.mjs`;
+   - the modified dashboard regression test;
+6. compared implementation behavior against RFC-006, AS-020, D-027, ADR-003/004/005, and the accepted WEB-INC-001/005/002/008 boundaries.
 
-- closed WEB-INC-008 `coordination/STATE.md`;
-- verified Product Build Plan WEB-INC-003 scope;
-- active Sentinel Change Governance Policy;
-- Capability Change Specification;
-- current WEB-INC-001 auth implementation;
-- current WEB-INC-002 admin dispatcher;
-- existing project/revision D1 schema;
-- WEB-INC-008 audit writer;
-- current D1 repository helpers;
-- APP_FLOW create/edit/draft/preview/publish/unpublish design;
-- DATA_BACKEND_SPEC project revision/pointer model;
-- current Decision Log;
-- current RFC/Architect Sync numbering.
+Builder runtime/test evidence remains `ACTOR_REPORTED` unless independently reproduced.
 
-External implementation constraints were also checked against current Cloudflare documentation:
+## Exact provenance — PASS
 
-- Access application tokens produced through identity authentication carry a principal `sub`;
-- Access service-token application tokens carry empty `sub`;
-- D1 `batch()` is transactional and rolls back the sequence if a statement fails.
+Implementation compare:
 
-Those facts support the proposal's human-subject mutation gate and atomic mutation+success-audit requirement.
+`5ba7c496a05d2541324c5ecc565c1937ca023b1e → a016cc2aafea494ad00ecfd79b545ccdcb0c1221`
 
-## Classification
+contains exactly **1 implementation commit** and exactly **15 changed files**:
 
-`CAPABILITY`
+New:
+- `worker/admin/projects.mjs`
+- `worker/d1/projects.mjs`
+- `tests/worker-admin-projects.test.mjs`
 
-### AS20-F001 — PASS / BINDING — sensitive write capability, not new architecture
+Substantive modified:
+- `worker/d1/audit.mjs`
+- `worker/d1/validate.mjs`
+- `worker/auth.mjs`
+- `worker/index.mjs`
+- `worker/admin/dashboard.mjs`
+- `tests/worker-admin-dashboard.test.mjs`
 
-WEB-INC-003 does not create a new storage subsystem or table.
+Documentation modified:
+- `brain/GOVERNANCE_MAP.md`
+- `brain/IMPLEMENTATION_STATUS.md`
+- `brain/RISK_REGISTER.md`
+- `brain/TEST_LEDGER.md`
+- `docs/product/BUILD_PLAN.md`
+- `docs/product/DATA_BACKEND_SPEC.md`
 
-It composes already-accepted architecture:
+Bookkeeping compare:
 
-`verified Access identity → project revision substrate → audit substrate`
+`a016cc2aafea494ad00ecfd79b545ccdcb0c1221 → f3623c8666205336ffa13a023c6f8c32e637d36b`
 
-into the first authenticated editorial write capability.
+contains exactly **1 bookkeeping commit** and exactly **2 changed files**:
+- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md`
 
-Because that new capability crosses the current read-only trust boundary, Architect Sync and explicit Paulo authorization are required.
+No runtime/product code is hidden in the bookkeeping commit.
 
-No Sentinel version bump is implied.
+## Finding dispositions
 
-## Binding findings
+### AS21-F001 — PASS — authorized route surface is bounded
 
-### AS20-F002 — REQUIRED — exact route allowlist only
-
-Only these additional protected routes may be introduced:
+The committed dispatcher exposes only:
 
 - `POST /admin/api/projects`
 - `PUT /admin/api/projects/:id/draft`
@@ -83,345 +102,273 @@ Only these additional protected routes may be introduced:
 - `POST /admin/api/projects/:id/publish`
 - `POST /admin/api/projects/:id/unpublish`
 
-No generic admin mutation endpoint.
+No DELETE path or generic mutation route exists.
 
-No project DELETE route.
+### AS21-F002 — PASS — authentication remains before mutation dispatch
 
-Unknown authenticated `/admin/api/*` remains protected `404`.
+The verified Access assertion is still processed before post-auth dispatch.
 
-Unsupported methods remain `405` with zero unintended mutation.
+The implementation passes only a reduced subject value downstream rather than the full JWT payload.
 
-### AS20-F003 — REQUIRED — verified human subject required for mutation
+No mutation path is reachable before the existing WEB-INC-001 verification succeeds.
 
-Authentication must remain:
+### AS21-F003 — PASS — immutable revision model is structurally respected
 
-`VALIDATE AUTH CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD DISPATCH → MUTATION`
+Create/edit behavior inserts new `project_revisions` rows.
 
-The verified JWT payload may be reduced server-side to a bounded subject reference for mutation.
+No project revision content row is updated in place.
 
-Mutation requires:
+Slug is not accepted by edit.
 
-- identity-based Access token;
-- non-empty bounded `sub`.
+No project/revision delete behavior is introduced.
 
-A service-token-style Access token with empty `sub` may authenticate to the boundary where policy allows it, but it is **not mutation-authorized** in WEB-INC-003.
+### AS21-F004 — PASS — success mutation + audit batching is structurally sound
 
-Do not persist:
-- full JWT;
-- email;
-- complete claims object.
+Create/edit/publish/unpublish success paths place business state statements and the success audit INSERT in the same `db.batch()`.
 
-Audit actor should derive only from the verified subject, within ADR-005 bounds.
+The create/edit revision-ID correlation uses a bounded project+revision_number subquery against the existing UNIQUE constraint rather than `last_insert_rowid()` or ID preallocation.
 
-### AS20-F004 — REQUIRED — browser mutation request hardening
+The committed test suite contains a real local-D1 rollback test that deliberately causes the audit statement to fail and asserts the preceding business statements roll back.
 
-Every mutating endpoint must:
+### AS21-F005 — PASS — audit surface remains bounded
 
-- require same-origin `Origin`;
-- require JSON content type;
-- bound request body size;
-- reject unsupported media type before mutation;
-- retain `Cache-Control: no-store`;
-- set JSON `X-Content-Type-Options: nosniff`;
-- set no permissive CORS.
+The new audit helper remains fixed-SQL and server-only.
 
-No form-encoded mutation requests.
+The project-specific revision lookup is hardcoded to `project_revisions`.
 
-### AS20-F005 — REQUIRED — immutable revision model
+No arbitrary table/column/SQL surface, audit HTTP route, audit UPDATE, or audit DELETE capability is added.
 
-Create:
-- creates one base project row;
-- creates one immutable revision;
-- points `draft_revision_id` to it;
-- keeps `published_revision_id = null`.
+### AS21-F006 — PASS — public/schema boundaries remain intact
 
-Edit:
-- creates a **new** revision row;
-- moves only `draft_revision_id`;
-- never updates an existing revision content row;
-- never changes `published_revision_id`.
+No migration file changed.
 
-Slug is immutable after create.
+No schema helper changed.
 
-No revision/project delete capability.
+No public content-source file changed.
 
-### AS20-F006 — REQUIRED — stale-write protection
+The accepted 15-table schema remains the intended inventory.
 
-Every existing-project mutation must carry:
+`D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE` remains true.
 
-- `expectedPublishedRevisionId`;
-- `expectedDraftRevisionId`.
+### AS21-F007 — BLOCKING — stale-write enforcement is pre-read only and has a TOCTOU window
 
-Stale pointer state must produce bounded `409 Conflict`.
+This is the primary blocker.
 
-A stale request must make no pointer/content change.
+RFC-006 / AS20-F006 require stale pointer state to prevent mutation rather than silently overwrite a newer edit/publish/unpublish decision.
 
-The implementation must not silently overwrite a newer draft/publish/unpublish decision.
+Current implementation performs:
 
-### AS20-F007 — REQUIRED — publish semantics
+1. `readProjectForMutation(...)`;
+2. compares expected pointers in JavaScript;
+3. later executes an atomic batch whose project pointer UPDATE is **unconditional with respect to the expected pointer state**.
 
-Publish requires a current draft.
+Examples:
 
-Before pointer transition:
-- reload the exact persisted draft;
-- fully revalidate it server-side.
+`buildPublishBatch`:
+```sql
+UPDATE projects
+SET published_revision_id = ?, draft_revision_id = NULL
+WHERE id = ?
+```
 
-Success must:
-- point `published_revision_id` to the exact draft revision;
-- clear `draft_revision_id`;
-- preserve prior published/history revisions;
-- append exactly one `project_publish / success` audit event.
+`buildUnpublishBatch`:
+```sql
+UPDATE projects
+SET published_revision_id = NULL
+WHERE id = ?
+```
 
-### AS20-F008 — REQUIRED — unpublish semantics
+Edit similarly moves the draft pointer without including the expected published/draft state in the commit-time mutation.
 
-Unpublish success must:
-- set `published_revision_id = null`;
-- preserve the revision row;
-- preserve any independent `draft_revision_id`;
-- append exactly one `project_unpublish / success` audit event.
+Therefore a concurrent state transition can occur after the pre-read but before this batch executes.
 
-No content/history deletion.
+Example failure mode:
 
-### AS20-F009 — REQUIRED — atomic success transition + audit
+1. Request A reads `published=null, draft=10` and passes its expected-pointer check.
+2. Request B creates/moves the draft pointer to revision 11 and commits.
+3. Request A then executes its previously-built publish batch.
+4. Because the UPDATE checks only `id`, Request A can publish revision 10 and clear draft revision 11, overwriting the newer decision despite the stale-write contract.
 
-A successful state-changing business operation and its success audit event must be one atomic D1 transaction/batch.
+The current stale tests prove only requests that are **already stale before the pre-read**.
 
-Cloudflare D1 currently documents `batch()` as transactional: if a statement in the sequence fails, the sequence aborts/rolls back.
+There is no test that introduces a competing pointer change between the pre-read and the batch execution.
 
-The Builder must prove the concrete implementation has no partial state on forced audit failure.
+#### Required remediation
 
-The Builder may add a narrow internal prepared audit-statement helper if needed for one transaction, provided:
-- audit validation remains binding;
-- SQL is fixed;
-- no arbitrary table/column/SQL surface appears;
-- no audit update/delete route appears.
+The expected pointer condition must be enforced **inside the same atomic commit boundary** as the mutation and success audit.
 
-### AS20-F010 — REQUIRED — revision-ID allocation must be proven, not assumed
+A pre-read may remain for bounded responses/revalidation, but it cannot be the sole concurrency guard.
 
-The current revision schema uses integer autoincrement IDs.
+The implementation must ensure:
 
-The Builder must not depend on undocumented connection-scoped behavior to connect:
-- a newly inserted revision;
-- the entity's pointer;
-- the audit revision ID;
+- edit/publish/unpublish commit only if both current pointer values still equal the request's expected values at transaction execution time;
+- a commit-time stale condition aborts the success transaction;
+- no success audit row survives;
+- no pointer/content mutation survives;
+- the response is bounded `409 Conflict`, not false success and not an undifferentiated success path.
 
-inside the required atomic transition.
+Builder may use a bounded SQL/D1 precondition/guard compatible with the existing schema.
 
-A safe implementation strategy must be demonstrated with local D1 tests.
+No schema change is authorized.
 
-If the existing schema/D1 API cannot satisfy atomic mutation+audit semantics without:
-- schema change;
-- undocumented `last_insert_rowid()` behavior;
-- race-prone preallocation;
-- weakening pointer/audit atomicity;
+If documented D1 behavior cannot satisfy this requirement with the existing schema, STOP and return to Architect.
 
-the Builder must **STOP and return to Architect**.
+#### Required tests
 
-No schema change is authorized under this capability.
+Add deterministic interleaving tests that simulate a competing state change **after handler pre-read and before batch execution**, at minimum:
 
-### AS20-F011 — REQUIRED — failure audit semantics
+- edit vs competing draft change;
+- publish vs competing draft change;
+- unpublish vs competing pointer change.
 
-When storage remains available, authenticated valid mutation attempts that fail due to:
+Each must prove:
+- response `409`;
+- competing/newer state remains intact;
+- no stale request revision/pointer mutation survives;
+- no `success` audit row is written for the stale request;
+- one bounded failure audit may be recorded after rollback where storage remains available.
 
-- validation;
-- not-found;
-- uniqueness/state conflict;
-- stale pointers;
-- publish revalidation;
+### AS21-F008 — BLOCKING — mutation subject is non-empty but not bounded
 
-must produce a bounded `result: failure` audit event where a safe entity reference is available.
+AS20-F003 requires a **bounded non-empty** verified Access `sub`.
 
-For transaction/storage failure:
-- no partial business mutation survives;
-- server may attempt failure audit after rollback;
-- if audit storage itself is unavailable, request still fails;
-- never report success merely because failure auditing also failed.
+Current `extractMutationSubject(payload)` accepts any non-empty string:
 
-No recursive audit-of-audit requirement.
+```js
+typeof payload?.sub === "string" && payload.sub.trim().length > 0
+```
 
-### AS20-F012 — REQUIRED — audit action allowlist
+It does not enforce the bound required by the capability contract.
 
-Only:
+The downstream audit actor is:
 
-- `project_create_draft`
-- `project_update_draft`
-- `project_publish`
-- `project_unpublish`
+`cf-access:<sub>`
 
-for entity type:
+and ADR-005's audit validator limits actor length to 100 characters.
 
-`project`
+As a result, an oversized subject may pass the mutation-identity gate and reach later D1/read/build logic, only to fail indirectly when constructing the audit event.
 
-No arbitrary caller-controlled action/entity type.
+That is not equivalent to a bounded mutation authorization decision.
 
-### AS20-F013 — REQUIRED — bounded errors and positive response construction
+#### Required remediation
 
-Expected bounded status classes include:
+At the auth identity-reduction boundary:
 
-- 400 validation/malformed
-- 401 existing auth failure
-- 403 no mutation-eligible subject
-- 404 project/route not found
-- 405 unsupported method
-- 409 conflict/stale state
-- 413 oversized body
-- 415 unsupported media type
-- 500 generic internal/storage failure
-- 503 missing DB after valid authentication
+- normalize/trim as appropriate;
+- enforce an explicit maximum compatible with the `cf-access:` audit prefix and ADR-005 actor bound;
+- reject unusable/oversized mutation subject before any project D1 access;
+- mutation route must return bounded `403`;
+- preview may retain the existing authenticated-read semantics.
 
-Never leak:
-- raw D1/SQL;
-- stack;
-- token/claims;
-- subject;
-- internal config/schema.
+Add tests proving:
+- missing/empty subject → 403, zero D1;
+- whitespace-only subject → 403, zero D1;
+- oversized subject → 403, zero D1;
+- maximum accepted bounded subject can complete a normal mutation and produce a valid bounded actor.
 
-Responses must be positive allowlists.
+### AS21-F009 — REQUIRED REMEDIATION — request-body limit is character-counted after full buffering
 
-### AS20-F014 — REQUIRED — preview remains protected and draft-only
+The code names the limit `MAX_MUTATION_BODY_BYTES`, but enforces:
 
-`GET /admin/api/projects/:id/preview`:
+```js
+const rawBody = await request.text();
+if (rawBody.length > MAX_MUTATION_BODY_BYTES)
+```
 
-- runs only after Access verification;
-- reads only the entity's exact `draft_revision_id`;
-- exposes validated project presentation fields only;
-- is not public;
-- does not mutate;
-- produces no mutation audit event.
+`String.length` is not UTF-8 byte length, and the full body is buffered before the size decision.
 
-No draft pointer means bounded failure, not fallback to published content.
+The existing test uses ASCII only, so it does not prove the stated byte-bound behavior.
 
-### AS20-F015 — REQUIRED — current public source remains unchanged
+#### Required remediation
 
-Critical limitation:
+Enforce a real bounded request-body budget.
 
-`D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE`
+At minimum:
+- reject an over-limit declared `Content-Length` before body parsing when available;
+- enforce the actual body budget in bytes, not JavaScript character count;
+- do not permit multibyte content to bypass the 32 KiB budget.
 
-The public site remains:
+A streaming bounded read is preferred where practical so the limit also constrains buffering.
 
-`data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`
+Add a multibyte regression demonstrating the byte limit cannot be bypassed.
 
-WEB-INC-003 must not perform D1 public cutover.
+### AS21-F010 — REQUIRED REMEDIATION — route/method classification should precede DB-binding requirement
 
-Admin UI wording must not imply that local D1 publish has deployed/changed production.
+`handleProjectsDispatch` currently begins:
 
-### AS20-F016 — REQUIRED — exactly 15 product tables remain
+```js
+if (!db) return jsonResponse(503, ...)
+```
 
-No migration/schema change.
+before route/method classification.
 
-Do not modify:
-- `migrations/0001_web_inc_005_init.sql`
-- `migrations/0002_web_inc_008_audit_log.sql`
+That means an authenticated wrong-method or unknown project API request can return `503` when DB is absent instead of the capability's bounded `404/405` behavior, despite requiring zero D1 access.
 
-No new table.
+For consistency with the accepted WEB-INC-002 dispatcher and AS20-F002:
 
-If implementation needs schema evolution, stop and return to Architect.
+- classify exact project route/method first;
+- return 404/405 for unsupported route/method without requiring DB;
+- only a recognized route that actually needs D1 should require the DB binding and return 503 when absent.
 
-### AS20-F017 — REQUIRED — project-only UI scope
+Add missing-DB tests for:
+- unknown project sub-route → 404;
+- wrong method → 405;
+- recognized valid project route → 503.
 
-Protected admin UI may add project-only:
+## Evidence provenance
 
-- new;
-- edit draft;
-- preview;
-- publish;
-- unpublish.
+Independently inspected:
+- exact implementation/bookkeeping ranges;
+- auth subject handoff;
+- route dispatcher;
+- request hardening implementation;
+- mutation repository statements;
+- audit prepared-statement helpers;
+- stale pointer pre-read implementation;
+- atomic batch shapes;
+- focused test source;
+- unchanged schema/public paths from exact diff.
 
-It must not add:
-- project delete;
-- media;
-- journal;
-- theme/design;
-- general site-content editor;
-- generic mutation console.
+Builder `ACTOR_REPORTED`:
+- `npm test`: 152/152;
+- `npm run build`;
+- local Wrangler/D1 command evidence;
+- dry-run/config/secret scans.
 
-### AS20-F018 — REQUIRED — local/repository only
+No runtime reproduction is claimed by this review.
 
-Allowed after Paulo implementation authorization:
+## Required remediation — Cycle 1
 
-- local D1 mutation tests;
-- local Worker/Wrangler simulation;
-- local authenticated route testing;
-- local forced failure/rollback evidence;
-- build/test/dry-run.
+Remediation is bounded to AS21-F007 through AS21-F010.
 
-Not allowed:
+Do not redesign WEB-INC-003.
 
-- remote D1;
-- real database_id;
-- `remote: true`;
-- production Access mutation;
-- deployment;
-- public D1 cutover;
-- protected/main merge.
+Do not add schema/migrations.
 
-### AS20-F019 — REQUIRED EVIDENCE
+Do not expand routes or product domains.
 
-Builder handoff must satisfy RFC-006's complete evidence list, including at minimum:
+Builder must:
 
-- exact base/result and changed files;
-- unchanged schema + exactly 15 tables;
-- zero writes before auth;
-- empty-sub mutation refusal;
-- Origin/JSON/body bounds;
-- create/edit/preview/publish/unpublish success/failure;
-- stale conflict protection;
-- immutable revision history;
-- atomic success mutation + audit;
-- forced audit failure rollback;
-- failure audit behavior;
-- no delete;
-- route/method fail-closed behavior;
-- error/header/CORS controls;
-- all prior auth/D1/dashboard/audit regressions;
-- full tests/build;
-- local-only validation;
-- explicit no remote/deploy/cutover/later-increment confirmation.
+1. move stale-state enforcement into the atomic mutation boundary;
+2. add interleaving/TOCTOU regression tests;
+3. bound mutation `sub` before any project D1 access and add boundary tests;
+4. enforce the request-body budget in bytes with multibyte coverage;
+5. classify unsupported route/method before requiring DB and add missing-DB regressions;
+6. run focused project tests;
+7. run all prior WEB-INC regression suites;
+8. run full `npm test` and build;
+9. update only necessary implementation/tests/evidence/handoff/state;
+10. return exact remediation SHA/diff to Architect.
 
-Execution remains `ACTOR_REPORTED` until independently reproduced.
+If fixing AS21-F007 requires schema evolution or undocumented D1 semantics:
 
-### AS20-F020 — REQUIRED — capability authority ends with the cycle
+`STOP → RETURN TO ARCHITECT`
 
-If Paulo later authorizes implementation:
+## Gates remain
 
-`MUTATION_AUTHORIZED: YES`
+`MUTATION_AUTHORIZED: YES` — only for this bounded WEB-INC-003 remediation.
 
-applies only to the exact WEB-INC-003 project mutation capability.
-
-It does not authorize:
-- other entities;
-- remote/production resources;
-- cutover/deploy;
-- subsequent WEB-INC work.
-
-On cycle closure, mutation authority resets to `NO`.
-
-The implemented capability may remain in code, but future use/expansion requires the next explicit authority context.
-
-## Compatibility conclusion
-
-RFC-006 is compatible with the accepted Sentinel/product architecture subject to AS20-F001 through AS20-F020.
-
-The proposal does not require:
-- Sentinel architecture change;
-- Sentinel version bump;
-- database schema change;
-- remote resource provisioning;
-- public source cutover.
-
-## Verdict
-
-`ML-DEVOS-AS-020: ARCHITECT_APPROVED — WEB-INC-003 PROJECT MUTATION CAPABILITY COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
-
-This approves capability design compatibility only.
-
-It does **not** authorize Claude to implement.
-
-## Current authority gates
-
-`MUTATION_AUTHORIZED: NO`
-
-`AUDIT_APPEND_AUTHORIZED: NO`
+`AUDIT_APPEND_AUTHORIZED: YES` — only as required by WEB-INC-003.
 
 `REMOTE_D1_AUTHORIZED: NO`
 
@@ -429,15 +376,10 @@ It does **not** authorize Claude to implement.
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-## Paulo gate
+No later WEB-INC work is authorized.
 
-Because RFC-006 materially defines the first editorial write capability after the user's authorization to begin the governance cycle, Paulo must explicitly authorize implementation of this exact bounded proposal after this Architect Sync.
+## Verdict
 
-Until then:
-- Builder action is prohibited;
-- no project mutation code may be added;
-- no prior increment authority carries forward.
+`ML-DEVOS-AS-021: CHANGES_REQUESTED — WEB-INC-003 REMEDIATION CYCLE 1 LIMITED TO COMMIT-TIME STALE-WRITE ENFORCEMENT, BOUNDED MUTATION IDENTITY, TRUE BODY-SIZE BOUNDING, AND ROUTE/DB ORDERING`
 
-## Current Architect Sync status
-
-`ML-DEVOS-AS-020: ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
+No final capability acceptance is issued yet.
