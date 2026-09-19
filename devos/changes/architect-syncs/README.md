@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-033.md` — WEB-INC-007 final implementation review. Concluded `ARCHITECT_APPROVED — WEB-INC-007 ACCEPTED / CORE WEB ROADMAP COMPLETE`; remediation blockers from AS-032 are closed.
 - `ML-DEVOS-AS-032.md` — WEB-INC-007 implementation review. Concluded `CHANGES_REQUESTED` for two bounded presentation blockers only: authenticated visual draft preview for screenshot-reference review, and full-range DESIGN-008 overlay-intensity behavior. Schema/routing/validation/publication isolation otherwise passed review.
 - `ML-DEVOS-AS-031.md` — WEB-INC-007 screenshot-reference workflow addendum. Concluded `ARCHITECT_APPROVED`: Paulo may upload a UI screenshot to ChatGPT, the Architect maps it into bounded design controls, Claude applies those controls through the authenticated admin UI/API, and unsupported traits are flagged as gaps rather than converted into arbitrary source/CSS changes.
 - `ML-DEVOS-AS-030.md` — WEB-INC-007 Theme / Design Controls architecture review. Concluded `ARCHITECT_APPROVED` for bounded local/repository implementation: two theme tables, existing section revisions for visibility/order, protected design controls/preview/publish, and published-only `GET /api/design`; arbitrary CSS/JS/HTML/URLs, remote resources, deployment, and main merge remain prohibited.
