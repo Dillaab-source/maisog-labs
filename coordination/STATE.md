@@ -1,15 +1,15 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-007-THEME-DESIGN-CONTROLS
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
 AUTHORIZED_SCOPE: WEB_INC_007_THEME_DESIGN_CONTROLS_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 17577838d1007210cd1893fdb71ea8063d764fa8
-LAST_ARCHITECT_REVIEWED_SHA: cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e
-CURRENT_REMEDIATION_CYCLE: 0
+LAST_ARCHITECT_REVIEWED_SHA: 17577838d1007210cd1893fdb71ea8063d764fa8
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: YES
@@ -173,6 +173,18 @@ WEB-INC-007 implementation is complete and submitted for Architect review. See `
 - `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` unchanged; no remote D1/R2 touched
 - This closes the dependency-ordered core WEB roadmap (RFC-010) but creates no deploy/remote-resource/main-merge authority by itself (AS30-F016)
 
+## Remediation Cycle 1
+
+Architect review:
+- `ML-DEVOS-AS-032 — CHANGES_REQUESTED`
+
+Builder must remediate only:
+
+1. `AS32-B001` — provide an authenticated real visual draft preview suitable for screenshot-reference review while keeping public design reads published-only;
+2. `AS32-B002` — make overlay intensity 40..85 meaningful across the entire range while preserving 68 as the current baseline.
+
+No other scope expansion is authorized.
+
 ## Current gate
 
-`WEB-INC-007 SUBMITTED — READY_FOR_ARCHITECT REVIEW`
+`WEB-INC-007 REMEDIATION CYCLE 1 — CLAUDE TO FIX AS32-B001 / AS32-B002 ONLY AND RETURN TO ARCHITECT`
