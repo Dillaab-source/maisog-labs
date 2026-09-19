@@ -55,3 +55,47 @@ The `DESIGN-001`…`014` catalog (`docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN
 ## Context-efficiency note
 
 This spec intentionally does not reproduce Brand V3's color/typography values, the full `DESIGN-*` catalog prose, or CSS implementation detail. See the files listed above.
+
+
+## Paulo-approved visual refinement — softer geometry (NOT IMPLEMENTED)
+
+Status: `APPROVED DIRECTION — DEFERRED / NOT PART OF WEB-INC-004`
+
+Paulo's current visual preference is to make the interface feel **softer and less sharp** without changing the approved V3 cinematic composition.
+
+Preserve:
+- the orbital Maisog Labs identity;
+- the cool-space / warm-architecture cinematic background;
+- the existing overall hero/project/process composition;
+- restrained glass/system-card language;
+- calm, engineered motion.
+
+Future presentation work should move toward:
+
+- larger, softer corner radii on cards/panels;
+- pill or softly rounded CTA/button shapes;
+- fewer hard rectangular edges;
+- thinner/lower-contrast panel borders;
+- gentler glass highlights and shadows;
+- slightly more internal padding and breathing room;
+- softer section/card transitions instead of abrupt geometric cuts;
+- reduced visual hardness in dividers, frames, and status panels;
+- softer typography spacing where it improves the overall calm feel.
+
+Avoid:
+- excessive blur;
+- bubbly/cartoon styling;
+- over-rounded mobile-app aesthetics;
+- strong neon glow;
+- loss of the cinematic/system identity;
+- making the interface feel vague or low-contrast.
+
+Target feel:
+
+`cinematic + modern + calm + premium + soft-edged`
+
+rather than:
+
+`sharp + rigid + HUD-like + heavily technical`
+
+This direction is intentionally documentation-only for now. Runtime CSS/components must not be changed during the active WEB-INC-004 remediation cycle. A later separately authorized design increment may implement and preview these refinements.
