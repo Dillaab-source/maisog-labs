@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — WEB-INC-004 Remediation Cycle 1 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — UI-PATCH-001 Soft Geometry Pass (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**WEB-INC-004 Remediation Cycle 1 update:** see the "WEB-INC-004 Remediation Cycle 1" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including the original "WEB-INC-004 — Local Media Subsystem" and "WEB-INC-003 Remediation Cycle 1" sections) describes prior, already-closed cycles and remains accurate as historical record except where this remediation section says otherwise.
+**UI-PATCH-001 update:** see the "UI-PATCH-001 — Soft Geometry Pass" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
 
 ---
 
@@ -495,3 +495,105 @@ Every D1/Wrangler command above used `--local`/local-simulation-only explicitly 
 ### Remediation commit
 
 The files above are committed to `governance/maisoglabs-v0.1` as commit `681fc90dc42239c2bd5866af1c6a0d430212416a` on top of remediation base `7c7e6d35c43c2e16b18d53a65c8acf06c7c3df41`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## UI-PATCH-001 — Soft Geometry Pass
+
+Cycle ID: `MAISOGLABS-UI-PATCH-001-SOFT-GEOMETRY`
+
+Authority chain: `D-030` (Paulo, "Okay proceed" after approving the softer design direction) → active cycle authorization (`coordination/STATE.md`/`coordination/ARCHITECT_REVIEW.md`, "`UI-PATCH-001 AUTHORIZED — CLAUDE TO IMPLEMENT SOFT GEOMETRY PASS AND HAND OFF FOR ARCHITECT REVIEW`").
+
+### Objective
+
+Implement a bounded, presentation-only softening pass on the public site: replace the current `sharp + rigid + HUD-like + heavily technical` visual treatment with `cinematic + modern + calm + premium + soft-edged`, while preserving the approved V3 cinematic composition, content, navigation, public data source, and all application functionality exactly. No theme system, no admin design controls, no route/API/auth/Worker/D1/R2/schema/dependency change.
+
+### Branch / commit state
+
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `4fac5ecc79394f9bb073961b24a923fccf04602b` — matches exactly the SHA the request required.
+- Result SHA (implementation commit): `61db9abb3c1f246fdf43850843db7967ab291645`
+- Read in full before any edit, in the exact required order: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `docs/product/UI_PATCH_001_SOFT_GEOMETRY.md`, `docs/product/UI_UX_SPEC.md`, `brand/V3/DESIGN_MAP.md`, `brand/V3/guidelines/V3_DIRECTION.md`, `brain/DECISION_LOG.md`'s `D-030` entry. Also read `app/globals.css` in full (the sole authorized implementation surface) before making any change.
+
+### Exact changed-file list — 1 file
+
+- `app/globals.css` — the only file changed. No component/class-name edit was needed anywhere (`components/ProjectRail.js`, `components/BlueprintIcon.js`, `app/page.js`, `app/layout.js` are all byte-unchanged) — every required softening was achievable purely through the existing selectors' own CSS declarations.
+
+**No other file changed.** `git diff --stat` against `package.json`, `package-lock.json`, `wrangler.jsonc`, `worker/`, `migrations/`, `app/page.js`, `app/admin/`, `data/site.js`, `lib/content/` is empty for every path.
+
+### Before/after summary
+
+Introduced a small, coherent corner-radius token hierarchy in `:root` (`--radius-sm: 10px`, `--radius-md: 16px`, `--radius-lg: 22px`) instead of hardcoding one radius (or none) everywhere, then applied it by tier:
+
+| Element | Before | After |
+|---|---|---|
+| `.header-action`, `.primary-action` (CTA buttons) | Hard `border-radius: 3px`; near-rectangular | `var(--radius-md)` (16px) — softly rounded, restrained, not a full pill; padding increased (17px→20px / 20px→24px horizontal) for breathing room |
+| `.dock-icon`, `.panel-icon`, `.process-icon` (icon containers, shared rule) | No radius on `.panel-icon`/`.process-icon` (hard square); `.dock-icon` had `3px` | `var(--radius-sm)` (10px) applied to the shared selector — consistent soft-square icon frames across the foundation dock, project cards, and process dock |
+| `.foundation-dock`, `.project-panel`, `.process-grid`, `.about-panel` (cards/panels) | No radius at all — sharp rectangular HUD boxes | `var(--radius-lg)` (22px); `.foundation-dock`/`.project-panel`/`.process-grid` also gained `overflow: hidden` so hover backgrounds and interior accents clip cleanly to the new rounded corners |
+| `.project-panel::after` (inner decorative border overlay) | Sharp inset border, no radius | `calc(var(--radius-lg) - 6px)` — concentric with the now-rounded outer card |
+| `.rail-controls button`, `.skip-link` | Hard square / `0.3rem` | `var(--radius-sm)` |
+| `.blueprint-frame` (fixed corner overlay) | Sharp rectangle, `border` alpha 0.22 | `var(--radius-lg)`; border alpha reduced to 0.16 |
+| `.blueprint-frame i` (decorative corner brackets) | 34×34px, opacity 0.7, sharp joint | 26×26px, opacity 0.45, `border-radius: 4px` on the joint — smaller, quieter, softer, per the brief's explicit "may be softened, shortened, reduced in opacity, or made less dominant" |
+| Divider/border contrast (`.foundation-dock` border, `.foundation-dock a` dividers, `.process-grid article` dividers, incl. all 3 responsive-breakpoint redeclarations of the same divider color; `.dock-icon`/`.process-icon` borders) | `rgba(122, 162, 255, 0.34)` / `0.18` / `0.58` | Reduced to `0.24` / `0.12` / `0.46` respectively — gentler without losing legible separation |
+| Shadows (`.foundation-dock`, `.project-panel` default + hover, `.primary-action`) | e.g. `0 24px 70px rgba(0,0,0,0.44)` | Softened alpha/spread modestly, e.g. `0 24px 60px rgba(0,0,0,0.36)` — kept the sense of depth, reduced the harshness |
+| `.project-panel`, `.process-grid article` internal padding | 26px / 28px | 30px / 32px — modest extra breathing room |
+
+Everything else (colors, typography, layout grid, composition, copy, the cinematic background asset, the orbital logo, motion timings, and the entire `@media (prefers-reduced-motion: reduce)` block) is byte-unchanged.
+
+### Visual verification (this cycle's own evidence, beyond source inspection)
+
+Ran `npm run build` against both the pre-change and post-change source (via `git stash`), served both `out/` directories locally, and captured headless-Chromium screenshots (Playwright, pre-installed Chromium) at desktop (1440×900) and mobile (390×844) viewports for the hero/header, foundation dock, project rail, and process/about sections. Confirmed visually:
+- CTAs read as softly rounded rather than sharp rectangles;
+- project cards, process dock, and the foundation dock now have clearly rounded outer corners instead of hard HUD-box edges, while interior grid dividers stay crisp (no accidental over-rounding of everything);
+- icon frames are consistently softened across all three icon contexts;
+- the same softening is coherent at both the 1440px and 390px viewports, including the foundation dock's 2×2 mobile grid;
+- content, copy, layout positions, and the cinematic background composition are pixel-identical to before except for the intended geometry/border/shadow changes.
+
+### Responsive / reduced-motion preservation (by source inspection)
+
+- No media query (`max-width: 1050px` / `740px` / `540px`) redefines `border-radius`, `overflow`, or introduces a new shape rule — every softened property lives on the base (cascading) selector, so mobile/tablet inherit the same treatment automatically. The only mobile-specific edits were the 3 divider-color redeclarations inside the `740px`/`1050px`/`540px` blocks that independently hardcoded the same alpha value as the desktop rule (`rgba(122, 162, 255, 0.18)`) — these were updated to `0.12` in lockstep so desktop and mobile stay coherent, per the validation checklist.
+- The `@media (prefers-reduced-motion: reduce)` block (lines 192-195 pre-change, same content post-change) was not touched — confirmed by `git diff` showing zero lines changed in or near that block.
+- No animation/transition duration, timing function, or new motion was added; the only `transform`/`transition` properties already present are unchanged.
+
+### Functional-boundary confirmation
+
+`git diff --stat` against `package.json`, `wrangler.jsonc`, every `worker/` file, every `migrations/` file, `app/page.js`, `app/admin/`, `data/site.js`, and `lib/content/` is empty — no route, API, auth, Worker, D1, R2, schema, content, or dependency file changed. `app/globals.css` is a pure presentation file with no logic; this change cannot affect any of those boundaries by construction.
+
+### Test results
+
+- `npm test` (full suite): **209 passed, 0 failed** — unaffected, since no application code was touched.
+- `npm run build`: succeeded, identical routes (`/`, `/_not-found`, `/admin`).
+
+### Local-only evidence — full command log
+
+| Command | Result |
+|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `4fac5ec...` before any file was touched |
+| `npm test` | 209 passed, 0 failed |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `git stash` + `npm run build` (pre-change) + `git stash pop` + `npm run build` (post-change) | Both succeeded; used only to produce the before/after screenshot comparison, working tree restored exactly afterward (`git status` clean except the intended `app/globals.css` change) |
+| Headless-Chromium (Playwright, pre-installed browser) screenshots of both builds at 1440×900 and 390×844 | See "Visual verification" above |
+| `git diff --stat` against `package.json`, `package-lock.json`, `wrangler.jsonc`, `worker/`, `migrations/`, `app/page.js`, `app/admin/`, `data/site.js`, `lib/content/` | Empty for every path |
+| `git diff app/globals.css` | Confirms the `@media (prefers-reduced-motion: reduce)` block and every color/typography/layout value not listed in the before/after table above are byte-unchanged |
+
+No deployment, no remote resource, no `wrangler` D1/R2 command of any kind was run this cycle — there was nothing to migrate, deploy, or touch remotely, since this is a pure CSS change with no runtime/data surface.
+
+### Known limitations
+
+- No automated visual-regression test exists in this repository (`TEST-WEB-003: NOT IMPLEMENTED`, per `brain/TEST_LEDGER.md`) — the visual verification above is this cycle's own screenshot comparison, not a permanent regression guard. This is a pre-existing gap, not something this cycle was scoped to close.
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made.
+
+### Explicit confirmations
+
+- **No theme-system architecture, `theme_settings`/`theme_settings_revisions` table, or admin design control was implemented.**
+- **No free-form CSS/JS input, logo redesign, or content rewrite occurred.** The canonical orbital logo assets and every piece of copy are byte-unchanged.
+- **No route, API, auth, Worker, D1, R2, or schema/migration file changed.**
+- **No dependency was added.** `package.json`/`package-lock.json` are unchanged.
+- **No real/remote resource was touched, and no deployment occurred.** No `wrangler` command was run this cycle.
+- **No protected/`main` merge occurred.** All work is on `governance/maisoglabs-v0.1` (mirrored to `claude/phase-0-governance-scope-w8o3jp`).
+- **No later WEB-INC or Sentinel S3+ work began.**
+- **All runtime/data authorities remain `NO`:** `MEDIA_MUTATION_AUTHORIZED`, `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED`, `REMOTE_R2_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` — unchanged by this cycle, and this cycle needed none of them.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`.** All runtime/test/visual evidence above remains `ACTOR_REPORTED` until independently reviewed.
+
+### Implementation commit
+
+The file above is committed to `governance/maisoglabs-v0.1` as commit `61db9abb3c1f246fdf43850843db7967ab291645` on top of base `4fac5ecc79394f9bb073961b24a923fccf04602b`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
