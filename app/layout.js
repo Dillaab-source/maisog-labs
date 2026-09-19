@@ -1,5 +1,6 @@
 import "./globals.css";
 import { getPublicContent } from "../lib/content/local.mjs";
+import DesignRuntime from "./DesignRuntime";
 
 export async function generateMetadata() {
   const { seo, site } = await getPublicContent();
@@ -20,7 +21,10 @@ export default async function RootLayout({ children }) {
   const { meta } = await getPublicContent();
   return (
     <html lang={meta.locale}>
-      <body>{children}</body>
+      <body>
+        <DesignRuntime />
+        {children}
+      </body>
     </html>
   );
 }

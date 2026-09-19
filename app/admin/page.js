@@ -1,12 +1,16 @@
 // WEB-INC-002 (ML-DEVOS-RFC-004 / ML-DEVOS-AS-015 / D-025) read-only admin
-// dashboard shell. Upgraded from the WEB-INC-001 authentication-boundary
-// placeholder. This page itself renders no editorial data — it is a static
+// dashboard shell, upgraded from the WEB-INC-001 authentication-boundary
+// placeholder, and extended by WEB-INC-007 (ML-DEVOS-RFC-010 /
+// ML-DEVOS-AS-030 / D-032) with the first authenticated design-control
+// surface. This page itself renders no editorial data — it is a static
 // shell served only after the Worker's fail-closed Cloudflare Access
-// verification succeeds (worker/auth.mjs); `DashboardClient` fetches the
-// single authorized endpoint (GET /admin/api/dashboard) client-side and
-// renders bounded status only. No create/edit/save/delete/publish/upload/
-// theme/journal/audit control exists on this page.
+// verification succeeds (worker/auth.mjs); `DashboardClient` and
+// `DesignControls` each fetch only their own authorized same-origin
+// endpoints client-side. No project/media/journal create/edit/save/delete/
+// upload/audit control exists on this page — `DesignControls` is bounded
+// to exactly the theme/section design routes RFC-010 authorizes.
 import DashboardClient from "./DashboardClient";
+import DesignControls from "./DesignControls";
 
 export const metadata = {
   title: "Admin",
@@ -18,10 +22,11 @@ export default function AdminPage() {
     <main style={{ padding: "3rem 1.5rem", fontFamily: "system-ui, sans-serif", maxWidth: "48rem" }}>
       <h1>Admin dashboard</h1>
       <p>
-        Read-only status view of current content. No editing, publishing, or content-mutation controls exist
-        here.
+        Read-only status view of current content, plus bounded theme/section design controls below. No project,
+        Journal, or media editing exists on this page.
       </p>
       <DashboardClient />
+      <DesignControls />
     </main>
   );
 }

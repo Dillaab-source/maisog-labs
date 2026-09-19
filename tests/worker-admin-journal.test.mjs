@@ -12,7 +12,7 @@ import { getPlatformProxy } from "wrangler";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
 import { handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
 import { handleAdminDispatch, buildDashboardPayload, DASHBOARD_PATH } from "../worker/admin/dashboard.mjs";
-import { applyFullSchema, FULL_PRODUCT_TABLE_NAMES } from "../worker/d1/schema.mjs";
+import { applyFullSchema, FULL_PRODUCT_TABLE_NAMES, applyThemeMigration } from "../worker/d1/schema.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 const ORIGIN = "https://maisoglabs.example";
@@ -1068,6 +1068,14 @@ test("every journal route response carries Cache-Control: no-store", async () =>
 test("GET /admin/api/dashboard exposes bounded journal lifecycle metadata only, never body/summary content", async () => {
   const { db, cleanup } = await openTestDb();
   try {
+    // buildDashboardPayload now also reads theme_settings (WEB-INC-007);
+    // this file's own openTestDb() fixture is frozen at the 20-table
+    // WEB-INC-006 schema (see the "exactly 20 product tables" assertion
+    // above), so only this one dashboard-calling test gets the extra
+    // migration applied locally, exactly like the analogous journal-table
+    // addition did for tests/d1-audit.test.mjs/tests/worker-admin-projects.test.mjs
+    // in the prior cycle.
+    await applyThemeMigration(db);
     const { privateKey, jwks } = await buildTestIdentity();
     const token = await signToken(privateKey);
     await createJournal(db, jwks, token, { summary: "SECRET_SUMMARY_SHOULD_NOT_LEAK", body: "SECRET_BODY_SHOULD_NOT_LEAK" });

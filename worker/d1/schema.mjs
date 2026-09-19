@@ -26,6 +26,7 @@ const MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0001_
 const AUDIT_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0002_web_inc_008_audit_log.sql");
 const MEDIA_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0003_web_inc_004_media.sql");
 const JOURNAL_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0004_web_inc_006_journal.sql");
+const THEME_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0005_web_inc_007_theme.sql");
 
 // Exactly the 14 tables authorized by D-024 / ML-DEVOS-AS-013 (AS13-F002).
 // Order matches the authorized inventory in coordination/STATE.md.
@@ -170,4 +171,41 @@ export async function applyJournalMigration(db) {
 export async function applyFullSchema(db) {
   await applyAllMigrations(db);
   await applyJournalMigration(db);
+}
+
+// WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032) addition
+// (AS30-F002): exactly two new product tables, theme_settings and
+// theme_settings_revisions. Per the RFC's "migrations 0001-0004 must remain
+// byte-identical" requirement, this does not touch any export above — those
+// remain the exact byte-for-byte 20-table evidence that existing tests
+// already assert against via FULL_PRODUCT_TABLE_NAMES/applyFullSchema. The
+// complete (22-table) schema gets its own, separately named exports
+// instead.
+export const THEME_TABLE_NAMES = ["theme_settings", "theme_settings_revisions"];
+
+export const COMPLETE_PRODUCT_TABLE_NAMES = [...FULL_PRODUCT_TABLE_NAMES, ...THEME_TABLE_NAMES];
+
+export function readThemeMigrationSql() {
+  return fs.readFileSync(THEME_MIGRATION_SQL_PATH, "utf8");
+}
+
+// Applies only the WEB-INC-007 theme migration (0005), including its
+// deterministic bootstrap data. Callers that need the complete schema
+// should use applyCompleteSchema(db) below, which applies 0001-0004 then
+// 0005 in order; this narrower export exists so a test can apply the theme
+// migration on top of a database that already ran applyFullSchema()
+// without re-running 0001-0004.
+export async function applyThemeMigration(db) {
+  const statements = unstable_splitSqlQuery(readThemeMigrationSql()).filter(statement => statement.trim().length > 0);
+  await db.batch(statements.map(statement => db.prepare(statement)));
+}
+
+// Applies the complete 22-table schema (0001 through 0005, in order) to a D1
+// binding. Like every apply* export above, every DDL statement is CREATE
+// TABLE/TRIGGER IF NOT EXISTS and every bootstrap DML statement is written
+// to be idempotent (INSERT OR IGNORE / guarded UPDATE), so this is safe to
+// run repeatedly (AS13-F009).
+export async function applyCompleteSchema(db) {
+  await applyFullSchema(db);
+  await applyThemeMigration(db);
 }

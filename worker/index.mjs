@@ -1,9 +1,11 @@
 // WEB-INC-001 Worker entrypoint, extended by WEB-INC-002 (ML-DEVOS-RFC-004 /
 // ML-DEVOS-AS-015 / D-025) with a post-authentication read-only dashboard
-// dispatch, and by WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 /
+// dispatch, by WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 /
 // ML-DEVOS-AS-028 / D-031) with a public, unauthenticated, read-only
-// journal API dispatch. Referenced by wrangler.jsonc's "main". Only
-// /admin, /admin/*, /api/journal, and /api/journal/* are routed here
+// journal API dispatch, and by WEB-INC-007 (ML-DEVOS-RFC-010 /
+// ML-DEVOS-AS-030 / D-032) with a public, unauthenticated, read-only design
+// API dispatch. Referenced by wrangler.jsonc's "main". Only /admin,
+// /admin/*, /api/journal, /api/journal/*, and /api/design are routed here
 // (assets.run_worker_first) — every other request never reaches this file
 // and is served asset-first by Wrangler.
 //
@@ -19,13 +21,18 @@
 // `env.MEDIA` are never read by this file before handleRequest has already
 // verified the Access assertion, since they are only passed into the
 // `dispatch` closure invoked after that verification succeeds (AS15-F002).
-// `publicDispatch` is the one deliberate exception (AS28-F010): it is
-// invoked for the exact public journal paths before any Access
+// `publicDispatch` is the one deliberate exception (AS28-F010, AS30-F008):
+// it is invoked for the exact public journal/design paths before any Access
 // verification is attempted at all — see worker/auth.mjs's handleRequest.
+// It routes to the design dispatch only for the exact `/api/design` path
+// (never a wildcard, RFC-010) and to the journal dispatch otherwise, since
+// worker/auth.mjs only ever calls `publicDispatch` for one of those two
+// path families in the first place.
 import { createRemoteJWKSet } from "jose";
-import { handleRequest } from "./auth.mjs";
+import { handleRequest, isPublicDesignApiPath } from "./auth.mjs";
 import { handleAdminDispatch } from "./admin/dashboard.mjs";
 import { handlePublicJournalDispatch } from "./public/journal.mjs";
+import { handlePublicDesignDispatch } from "./public/design.mjs";
 
 let cachedJWKS;
 let cachedTeamDomain;
@@ -46,7 +53,10 @@ export default {
       audience: env.ACCESS_AUD,
       getJWKS,
       dispatch: ({ request, url, assets, sub }) => handleAdminDispatch({ request, url, assets, db: env.DB, media: env.MEDIA, sub }),
-      publicDispatch: ({ request, url }) => handlePublicJournalDispatch({ request, url, db: env.DB }),
+      publicDispatch: ({ request, url }) =>
+        isPublicDesignApiPath(url.pathname)
+          ? handlePublicDesignDispatch({ request, url, db: env.DB })
+          : handlePublicJournalDispatch({ request, url, db: env.DB }),
     });
   },
 };

@@ -12,7 +12,7 @@ import { getPlatformProxy } from "wrangler";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
 import { handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
 import { handleAdminDispatch, buildDashboardPayload, DASHBOARD_PATH } from "../worker/admin/dashboard.mjs";
-import { applySchema, applyJournalMigration } from "../worker/d1/schema.mjs";
+import { applySchema, applyJournalMigration, applyThemeMigration } from "../worker/d1/schema.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 
@@ -98,6 +98,12 @@ async function openTestDb() {
   // this fixture predates and does not need the audit (0002) or media
   // (0003) migrations for anything it actually exercises.
   await applyJournalMigration(proxy.env.DB);
+  // WEB-INC-007: buildDashboardPayload now also reads theme_settings
+  // (RFC-010 "Dashboard integration"). This file has no frozen table-count
+  // assertion of its own to protect (unlike tests/d1-audit.test.mjs /
+  // tests/worker-admin-projects.test.mjs), so the shared fixture is safely
+  // upgraded directly rather than patching one test locally.
+  await applyThemeMigration(proxy.env.DB);
   return {
     db: proxy.env.DB,
     async cleanup() {
@@ -341,6 +347,7 @@ test("authenticated GET /admin/api/dashboard reads seeded local D1 and returns t
       "sections",
       "siteSettings",
       "journal",
+      "theme",
     ].sort());
 
     assert.deepEqual(body.siteSettings, {
@@ -450,7 +457,7 @@ test("the dashboard response excludes every non-allowlisted field, including sen
     }
 
     const body = JSON.parse(rawText);
-    const allowedTopLevelKeys = ["siteSettings", "navigation", "foundations", "projects", "services", "processSteps", "sections", "journal"];
+    const allowedTopLevelKeys = ["siteSettings", "navigation", "foundations", "projects", "services", "processSteps", "sections", "journal", "theme"];
     assert.deepEqual(Object.keys(body).sort(), [...allowedTopLevelKeys].sort());
 
     const allowedEntityKeys = ["id", "slug", "state", "publishedRevisionId", "draftRevisionId", "displayLabel", "order", "visible"];
@@ -464,6 +471,13 @@ test("the dashboard response excludes every non-allowlisted field, including sen
     const allowedSiteSettingsKeys = ["id", "state", "publishedRevisionId", "draftRevisionId", "displayLabel"];
     for (const key of Object.keys(body.siteSettings)) {
       assert.ok(allowedSiteSettingsKeys.includes(key), `unexpected key '${key}' in siteSettings`);
+    }
+    // WEB-INC-007: bounded theme lifecycle status only — no preset/numeric
+    // DESIGN-* field may ever appear here (RFC-010 "Dashboard integration").
+    if (body.theme !== null) {
+      for (const key of Object.keys(body.theme)) {
+        assert.ok(allowedSiteSettingsKeys.includes(key), `unexpected key '${key}' in theme`);
+      }
     }
   } finally {
     await cleanup();

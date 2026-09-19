@@ -56,6 +56,20 @@ const AUDIT_INSERT_WITH_JOURNAL_REVISION_LOOKUP_SQL =
   "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
   "VALUES (?, ?, ?, ?, ?, (SELECT id FROM journal_entry_revisions WHERE journal_entry_id = ? AND revision_number = ?), ?)";
 
+// WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032) addition: the same
+// same-transaction subquery strategy as the two lookups above, keyed on
+// theme_settings_revisions' UNIQUE (theme_settings_id, revision_number)
+// constraint — see buildThemeRevisionAuditStatement below.
+const AUDIT_INSERT_WITH_THEME_REVISION_LOOKUP_SQL =
+  "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
+  "VALUES (?, ?, ?, ?, ?, (SELECT id FROM theme_settings_revisions WHERE theme_settings_id = ? AND revision_number = ?), ?)";
+
+// Keyed on section_revisions' UNIQUE (section_id, revision_number)
+// constraint — see buildSectionRevisionAuditStatement below.
+const AUDIT_INSERT_WITH_SECTION_REVISION_LOOKUP_SQL =
+  "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
+  "VALUES (?, ?, ?, ?, ?, (SELECT id FROM section_revisions WHERE section_id = ? AND revision_number = ?), ?)";
+
 function fail(message) {
   throw new Error(`invalid audit event: ${message}`);
 }
@@ -220,6 +234,66 @@ export function buildJournalRevisionAuditStatement(db, { actor, action, entityId
       validated.entityType,
       validated.entityId,
       journalEntryId,
+      revisionNumber,
+      validated.result
+    );
+}
+
+// WEB-INC-007 addition: the theme-settings equivalent of
+// buildProjectRevisionAuditStatement/buildJournalRevisionAuditStatement
+// above, for exactly the same reason — theme_edit_draft inserts a brand-new
+// theme_settings_revisions row inside the same db.batch() transaction that
+// must also record that row's id as the audit event's revision_id. entityType
+// is fixed to "theme_settings" by this function, never caller-supplied; only
+// call-site literals `theme_edit_draft`/`theme_publish` (RFC-010 "Audit
+// actions") are used by worker/admin/design.mjs — this function itself does
+// not restrict `action` beyond the shared NAME_PATTERN, exactly like its two
+// siblings above.
+export function buildThemeRevisionAuditStatement(db, { actor, action, entityId, themeSettingsId, revisionNumber, result }) {
+  const validated = validateCoreFields({ actor, action, entityType: "theme_settings", entityId, result });
+  if (typeof themeSettingsId !== "string" || !ENTITY_ID_PATTERN.test(themeSettingsId)) {
+    fail("themeSettingsId must be a bounded id string");
+  }
+  if (!Number.isSafeInteger(revisionNumber) || revisionNumber < 1) {
+    fail("revisionNumber must be a positive safe integer");
+  }
+  const occurredAt = new Date().toISOString();
+  return db
+    .prepare(AUDIT_INSERT_WITH_THEME_REVISION_LOOKUP_SQL)
+    .bind(
+      occurredAt,
+      validated.actor,
+      validated.action,
+      validated.entityType,
+      validated.entityId,
+      themeSettingsId,
+      revisionNumber,
+      validated.result
+    );
+}
+
+// The section-design equivalent, keyed on section_revisions instead.
+// entityType is fixed to "section" by this function, never caller-supplied.
+// Only call-site literals `section_design_edit_draft`/`section_design_publish`
+// (RFC-010 "Audit actions") are used by worker/admin/design.mjs.
+export function buildSectionRevisionAuditStatement(db, { actor, action, entityId, sectionId, revisionNumber, result }) {
+  const validated = validateCoreFields({ actor, action, entityType: "section", entityId, result });
+  if (typeof sectionId !== "string" || !ENTITY_ID_PATTERN.test(sectionId)) {
+    fail("sectionId must be a bounded id string");
+  }
+  if (!Number.isSafeInteger(revisionNumber) || revisionNumber < 1) {
+    fail("revisionNumber must be a positive safe integer");
+  }
+  const occurredAt = new Date().toISOString();
+  return db
+    .prepare(AUDIT_INSERT_WITH_SECTION_REVISION_LOOKUP_SQL)
+    .bind(
+      occurredAt,
+      validated.actor,
+      validated.action,
+      validated.entityType,
+      validated.entityId,
+      sectionId,
       revisionNumber,
       validated.result
     );

@@ -408,3 +408,93 @@ export function validateJournalBody(value) {
   }
   return normalized;
 }
+
+// WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032, screenshot-
+// reference addendum ML-DEVOS-AS-031 / D-033) design-control validators.
+//
+// Every DESIGN-001..014 field is a fixed enum or a bounded integer — never
+// free-form CSS/JS/HTML, a color string, a font/image URL, a selector, a
+// class name, or a custom property name (AS30-F004). Each enum/range check
+// below mirrors the corresponding `CHECK` constraint in
+// migrations/0005_web_inc_007_theme.sql exactly, so an application-layer
+// rejection and a (defense-in-depth) DB-layer rejection always agree.
+const enumField = allowed => value => typeof value === "string" && allowed.includes(value);
+const intInRange = (min, max) => value => Number.isSafeInteger(value) && value >= min && value <= max;
+
+export const HERO_BACKGROUND_PRESET_VALUES = ["cinematic-v3", "deep-night", "minimal-orbit"];
+export const CARD_STYLE_PRESET_VALUES = ["soft-glass", "quiet-border", "solid-night"];
+export const LAYOUT_DENSITY_PRESET_VALUES = ["compact", "comfortable", "spacious"];
+export const TYPOGRAPHY_PRESET_VALUES = ["cinematic", "editorial", "system"];
+export const HEADING_SCALE_PRESET_VALUES = ["compact", "standard", "display"];
+export const PANEL_PRESET_VALUES = ["soft-glass", "clear-glass", "opaque-night"];
+export const ANIMATION_PRESET_VALUES = ["calm", "minimal", "off"];
+export const REDUCED_MOTION_MODE_VALUES = ["respect-system", "always-reduced"];
+export const PROJECT_RAIL_MODE_VALUES = ["snap", "free-scroll"];
+export const JOURNAL_CARD_MODE_VALUES = ["stack", "rail"];
+export const ACCENT_PRESET_VALUES = ["cobalt", "teal", "violet"];
+
+const THEME_REVISION_FIELDS = [
+  "heroBackgroundPreset",
+  "cardStylePreset",
+  "layoutDensityPreset",
+  "typographyPreset",
+  "headingScalePreset",
+  "overlayIntensity",
+  "panelPreset",
+  "animationPreset",
+  "reducedMotionMode",
+  "projectRailMode",
+  "journalCardMode",
+  "accentPreset",
+  "panelOpacityPct",
+  "borderIntensityPct",
+  "radiusScalePct",
+];
+
+// Strict positive allowlist: every one of the 15 DESIGN-*-owned fields must
+// be present and valid, and no unknown field is accepted (AS30-F004's
+// "unknown-field rejection" evidence requirement).
+export function validateThemeRevisionContent(value) {
+  assertNoUnknownFields(value, THEME_REVISION_FIELDS, "themeRevision");
+  assertField(value.heroBackgroundPreset, enumField(HERO_BACKGROUND_PRESET_VALUES), "themeRevision.heroBackgroundPreset");
+  assertField(value.cardStylePreset, enumField(CARD_STYLE_PRESET_VALUES), "themeRevision.cardStylePreset");
+  assertField(value.layoutDensityPreset, enumField(LAYOUT_DENSITY_PRESET_VALUES), "themeRevision.layoutDensityPreset");
+  assertField(value.typographyPreset, enumField(TYPOGRAPHY_PRESET_VALUES), "themeRevision.typographyPreset");
+  assertField(value.headingScalePreset, enumField(HEADING_SCALE_PRESET_VALUES), "themeRevision.headingScalePreset");
+  assertField(value.overlayIntensity, intInRange(40, 85), "themeRevision.overlayIntensity");
+  assertField(value.panelPreset, enumField(PANEL_PRESET_VALUES), "themeRevision.panelPreset");
+  assertField(value.animationPreset, enumField(ANIMATION_PRESET_VALUES), "themeRevision.animationPreset");
+  assertField(value.reducedMotionMode, enumField(REDUCED_MOTION_MODE_VALUES), "themeRevision.reducedMotionMode");
+  assertField(value.projectRailMode, enumField(PROJECT_RAIL_MODE_VALUES), "themeRevision.projectRailMode");
+  assertField(value.journalCardMode, enumField(JOURNAL_CARD_MODE_VALUES), "themeRevision.journalCardMode");
+  assertField(value.accentPreset, enumField(ACCENT_PRESET_VALUES), "themeRevision.accentPreset");
+  assertField(value.panelOpacityPct, intInRange(55, 90), "themeRevision.panelOpacityPct");
+  assertField(value.borderIntensityPct, intInRange(10, 45), "themeRevision.borderIntensityPct");
+  assertField(value.radiusScalePct, intInRange(80, 120), "themeRevision.radiusScalePct");
+  return value;
+}
+
+// DESIGN-002/003: the fixed, closed set of section ids WEB-INC-007 may
+// control — deliberately a distinct, narrower list from any project/journal
+// id validator; no new section id can ever be accepted (RFC-010 "No new
+// section IDs").
+export const MANAGED_SECTION_IDS = ["home", "projects", "process", "about"];
+
+export function validateManagedSectionId(id) {
+  if (typeof id !== "string" || !MANAGED_SECTION_IDS.includes(id)) {
+    throw new Error("section id: not a managed section");
+  }
+  return id;
+}
+
+// DESIGN-003's order range is a narrower 0..20 (RFC-010), not the generic
+// content-model order validator's 0..10000 — a distinct, purpose-built
+// bound rather than reusing `order` above.
+export const sectionDesignOrder = value => Number.isSafeInteger(value) && value >= 0 && value <= 20;
+
+export function validateSectionDesignContent(value) {
+  assertNoUnknownFields(value, ["order", "visible"], "sectionDesignRevision");
+  assertField(value.order, sectionDesignOrder, "sectionDesignRevision.order");
+  assertField(value.visible, v => typeof v === "boolean", "sectionDesignRevision.visible");
+  return value;
+}

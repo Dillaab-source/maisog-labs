@@ -12,10 +12,12 @@ import {
   readDashboardStatusRows,
   readSiteSettingsStatusRow,
   readJournalDashboardStatusRows,
+  readThemeDashboardStatusRow,
 } from "../d1/repository.mjs";
 import { isProjectsApiPath, handleProjectsDispatch } from "./projects.mjs";
 import { isMediaApiPath, handleMediaDispatch } from "./media.mjs";
 import { isJournalApiPath, handleJournalDispatch } from "./journal.mjs";
+import { isDesignApiPath, handleDesignDispatch } from "./design.mjs";
 
 export const DASHBOARD_PATH = "/admin/api/dashboard";
 
@@ -112,17 +114,27 @@ function serializeEntityRow(row, { includeSlug = false, includeSectionSummary = 
 // a fixed, read-only projection (worker/d1/repository.mjs) — no arbitrary
 // SQL, no caller-controlled table/column selection, no write of any kind.
 export async function buildDashboardPayload(db) {
-  const [siteSettingsRow, navigationRows, foundationsRows, projectsRows, servicesRows, processStepsRows, sectionsRows, journalRows] =
-    await Promise.all([
-      readSiteSettingsStatusRow(db),
-      readDashboardStatusRows(db, "navigation"),
-      readDashboardStatusRows(db, "foundations"),
-      readDashboardStatusRows(db, "projects"),
-      readDashboardStatusRows(db, "services"),
-      readDashboardStatusRows(db, "processSteps"),
-      readDashboardStatusRows(db, "sections"),
-      readJournalDashboardStatusRows(db),
-    ]);
+  const [
+    siteSettingsRow,
+    navigationRows,
+    foundationsRows,
+    projectsRows,
+    servicesRows,
+    processStepsRows,
+    sectionsRows,
+    journalRows,
+    themeRow,
+  ] = await Promise.all([
+    readSiteSettingsStatusRow(db),
+    readDashboardStatusRows(db, "navigation"),
+    readDashboardStatusRows(db, "foundations"),
+    readDashboardStatusRows(db, "projects"),
+    readDashboardStatusRows(db, "services"),
+    readDashboardStatusRows(db, "processSteps"),
+    readDashboardStatusRows(db, "sections"),
+    readJournalDashboardStatusRows(db),
+    readThemeDashboardStatusRow(db),
+  ]);
 
   return {
     siteSettings: serializeSiteSettings(siteSettingsRow),
@@ -137,6 +149,12 @@ export async function buildDashboardPayload(db) {
     // exact same allowlisted shape every other entity collection above
     // already uses. No summary/body field exists anywhere on this row.
     journal: journalRows.map(row => serializeEntityRow(row, { includeSlug: true })),
+    // WEB-INC-007 (RFC-010 "Dashboard integration"): bounded theme lifecycle
+    // status only — id/state/publishedRevisionId/draftRevisionId. No preset
+    // or numeric DESIGN-* field exists anywhere on this row (see
+    // readThemeDashboardStatusRow), so no theme control value can reach the
+    // dashboard payload through this path.
+    theme: themeRow ? serializeEntityRow(themeRow) : null,
   };
 }
 
@@ -195,6 +213,16 @@ export async function handleAdminDispatch({ request, url, assets, db, media, sub
   // gains journal mutation reach.
   if (isJournalApiPath(pathname)) {
     return handleJournalDispatch({ request, url, db, sub });
+  }
+
+  // WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032): the only other
+  // authenticated editorial routes this repository exposes. Routed here,
+  // after the dashboard/projects/media/journal checks above and before the
+  // generic "/admin/api/*" 404 fallback below, so none of those existing
+  // behaviors changes and no route outside this exact allowlist gains
+  // design mutation reach.
+  if (isDesignApiPath(pathname)) {
+    return handleDesignDispatch({ request, url, db, sub });
   }
 
   if (isAdminApiPath(pathname)) {

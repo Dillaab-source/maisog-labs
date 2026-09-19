@@ -8,17 +8,31 @@
   --teal: #35c7c4;
   --violet: #8e7dff;
   --coral: #ff8178;
-  --line: rgba(122, 162, 255, 0.25);
-  --panel: rgba(5, 11, 24, 0.74);
+  /* WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032, DESIGN-014):
+     --line/--panel's alpha channels and the radius tokens below are driven
+     by CSS custom properties that app/DesignRuntime.js sets from the
+     published theme's panel_opacity_pct/border_intensity_pct/
+     radius_scale_pct — never from a server-provided CSS string. Each
+     fallback below is the exact literal value this file used before this
+     increment (0.25 / 0.74 / scale 1), so a page with no DesignRuntime
+     applied (or a design-fetch failure) renders byte-identically to the
+     pre-WEB-INC-007 baseline (RFC-010 "Fail-safe baseline"). */
+  --line: rgba(122, 162, 255, var(--design-border-alpha, 0.25));
+  --panel: rgba(5, 11, 24, var(--design-panel-alpha, 0.74));
   --serif: Georgia, "Times New Roman", serif;
   --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   /* UI-PATCH-001 (D-030): a small, coherent corner-radius hierarchy —
      controls/icons round least, cards/panels round most — rather than one
-     radius (or none) applied uniformly everywhere. */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
+     radius (or none) applied uniformly everywhere. WEB-INC-007 scales all
+     three by the same published radius_scale_pct/100 factor (default 1 —
+     byte-identical to the UI-PATCH-001 literals). */
+  --radius-sm-base: 10px;
+  --radius-md-base: 16px;
+  --radius-lg-base: 22px;
+  --radius-sm: calc(var(--radius-sm-base) * var(--design-radius-scale, 1));
+  --radius-md: calc(var(--radius-md-base) * var(--design-radius-scale, 1));
+  --radius-lg: calc(var(--radius-lg-base) * var(--design-radius-scale, 1));
 }
 
 * { box-sizing: border-box; }
@@ -37,13 +51,39 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .v4-shell {
   position: relative; min-height: 100vh; overflow: hidden; isolation: isolate;
   background: linear-gradient(180deg, transparent 0 72vh, rgba(2, 7, 17, 0.9) 105vh, var(--night-deep) 145vh);
+  /* WEB-INC-007 (DESIGN-002/003): a flex column so the four managed
+     sections (each given a default `order` matching their current document
+     position immediately below) can be reordered by
+     app/DesignRuntime.js via an inline `order` style, without moving their
+     content into D1 or converting the site to SSR. Every other child here
+     is position:fixed/absolute (cinematic-background, blueprint-grid,
+     blueprint-frame, site-header, skip-link) and therefore already outside
+     normal flow, so this is a no-visual-op for the current default order —
+     verified by before/after screenshot comparison. */
+  display: flex; flex-direction: column;
 }
 .cinematic-background {
   position: fixed; z-index: -5; inset: 0;
   background: url("/images/maisog-v4-cosmic-background.webp") 50% top / cover no-repeat;
 }
+/* WEB-INC-007 (DESIGN-001): deep-night/minimal-orbit are CSS-only
+   backgrounds (RFC-010 "an approved static presentation preset, not an
+   arbitrary upload/object-key control") that replace the image entirely —
+   no network fetch, no admin-supplied URL/data URI of any kind. */
+html[data-hero-bg="deep-night"] .cinematic-background {
+  background: radial-gradient(ellipse at 50% 22%, rgba(18, 30, 56, 0.92), var(--night-deep) 72%);
+}
+html[data-hero-bg="minimal-orbit"] .cinematic-background {
+  background: radial-gradient(circle at 50% 28%, rgba(122, 162, 255, 0.22), transparent 55%), var(--night-deep);
+}
 .cinematic-background::after {
   content: ""; position: absolute; inset: 0;
+  /* WEB-INC-007 (DESIGN-008): overlay_intensity/68 — 68 is the bootstrap
+     default, so the default renders at opacity 1 (byte-identical to the
+     pre-WEB-INC-007 baseline); the CSS `opacity` property already clamps
+     any value above 1, so values from 68 up to the allowed max (85) taper
+     off in effect while values below 68 visibly lighten the overlay. */
+  opacity: var(--design-overlay-opacity, 1);
   background:
     radial-gradient(circle at 50% 31%, transparent 0 8%, rgba(5, 11, 24, 0.12) 30%, rgba(2, 7, 17, 0.68) 95%),
     linear-gradient(90deg, rgba(2, 7, 17, 0.8), rgba(2, 7, 17, 0.16) 44%, rgba(2, 7, 17, 0.2) 72%, rgba(2, 7, 17, 0.68));
@@ -87,7 +127,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .header-action:hover { background: rgba(47, 107, 255, 0.18); border-color: var(--cobalt-soft); }
 
-.hero { position: relative; min-height: 100svh; padding: 150px clamp(28px, 6vw, 110px); display: flex; align-items: center; }
+.hero { position: relative; min-height: 100svh; padding: 150px clamp(28px, 6vw, 110px); display: flex; align-items: center; order: 1; }
 .hero-copy { position: relative; z-index: 5; width: min(500px, 44vw); margin-top: -2vh; padding: 28px 0; text-shadow: 0 2px 22px rgba(0, 0, 0, 0.68); }
 .hero-copy::before { content: ""; position: absolute; z-index: -1; inset: -34px -48px; background: radial-gradient(ellipse at left, rgba(2, 7, 17, 0.82), transparent 72%); filter: blur(3px); }
 .eyebrow, .section-kicker, .coordinate, .human-ai-note span, .dock-number, .panel-index, .panel-copy > span, .swipe-note { font-family: var(--mono); letter-spacing: 0.18em; }
@@ -120,7 +160,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   position: absolute; z-index: 10; left: clamp(28px, 4vw, 72px); right: clamp(28px, 4vw, 72px); bottom: 27px;
   min-height: 105px; display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden;
   background: linear-gradient(180deg, rgba(5, 11, 24, 0.76), rgba(2, 7, 17, 0.92));
-  border: 1px solid rgba(122, 162, 255, 0.24); border-radius: var(--radius-lg); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.06); backdrop-filter: blur(18px);
+  border: 1px solid rgba(122, 162, 255, 0.24); border-radius: var(--radius-lg); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.06); backdrop-filter: blur(var(--design-blur, 18px));
 }
 .foundation-dock a { position: relative; min-width: 0; padding: 22px 20px; display: grid; grid-template-columns: 42px 1fr; align-items: center; gap: 13px; transition: background 200ms ease, transform 200ms ease; }
 .foundation-dock a:not(:last-child) { border-right: 1px solid rgba(122, 162, 255, 0.12); }
@@ -134,14 +174,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .foundation-dock strong { font: 500 1.12rem var(--serif); }.foundation-dock small { margin-top: 4px; color: rgba(174, 184, 200, 0.68); font-size: 0.66rem; }
 
 .content-section { position: relative; z-index: 4; width: min(1420px, calc(100% - 56px)); margin: 0 auto; scroll-margin-top: 40px; }
-.projects-section { min-height: 88svh; padding: 110px 0 80px; }
+.projects-section { min-height: 88svh; padding: 110px 0 80px; order: 2; }
 .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 50px; padding: 0 4px 24px; border-bottom: 1px solid var(--line); }
 .section-kicker { color: var(--cobalt-soft); font-size: 0.61rem; }
 .section-heading h2 { margin: 8px 0 0; font: 500 clamp(2.7rem, 5vw, 5.5rem) / 0.95 var(--serif); }
 .section-heading > p { max-width: 420px; margin: 0 0 8px; color: var(--muted); font-size: 0.92rem; line-height: 1.65; }
 .project-rail-wrap { position: relative; margin-top: 20px; }
 .project-rail { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(310px, 32vw); gap: 16px; overflow-x: auto; padding: 2px 2px 18px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: rgba(122, 162, 255, 0.6) transparent; }
-.project-panel { --tone: var(--cobalt-soft); position: relative; min-height: 380px; padding: 30px; display: flex; flex-direction: column; scroll-snap-align: start; overflow: hidden; border: 1px solid var(--tone); border-radius: var(--radius-lg); background: linear-gradient(150deg, rgba(47, 107, 255, 0.12), rgba(5, 11, 24, 0.9) 58%); box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 20px 50px rgba(0, 0, 0, 0.26); backdrop-filter: blur(18px); transition: transform 200ms ease, box-shadow 200ms ease; }
+.project-panel { --tone: var(--cobalt-soft); position: relative; min-height: 380px; padding: 30px; display: flex; flex-direction: column; scroll-snap-align: start; overflow: hidden; border: 1px solid var(--tone); border-radius: var(--radius-lg); background: linear-gradient(150deg, rgba(47, 107, 255, 0.12), rgba(5, 11, 24, 0.9) 58%); box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 20px 50px rgba(0, 0, 0, 0.26); backdrop-filter: blur(var(--design-blur, 18px)); transition: transform 200ms ease, box-shadow 200ms ease; }
 .project-panel::after { content: ""; position: absolute; inset: 9px; pointer-events: none; border: 1px solid rgba(122, 162, 255, 0.12); border-radius: calc(var(--radius-lg) - 6px); }
 .project-panel:hover { transform: translateY(-6px); box-shadow: inset 0 1px rgba(255, 255, 255, 0.07), 0 28px 64px rgba(0, 0, 0, 0.36); }
 .tone-gold { --tone: var(--ivory); }.tone-blue { --tone: var(--cobalt-soft); }.tone-red { --tone: var(--coral); }.tone-violet { --tone: var(--violet); }
@@ -153,18 +193,18 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .rail-controls { position: absolute; z-index: 5; top: -64px; right: 0; display: flex; gap: 7px; }.rail-controls button { width: 42px; height: 38px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(5, 11, 24, 0.8); color: var(--ivory); cursor: pointer; font-size: 1rem; }.rail-controls button:hover { border-color: var(--cobalt-soft); color: var(--cobalt-soft); }
 .swipe-note { margin: 8px 0 0; color: rgba(174, 184, 200, 0.58); font-size: 0.56rem; text-align: right; }
 
-.process-section { padding: 80px 0 100px; }.compact-heading { justify-content: flex-start; }
-.process-grid { margin-top: 22px; display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--panel); backdrop-filter: blur(16px); }
+.process-section { padding: 80px 0 100px; order: 3; }.compact-heading { justify-content: flex-start; }
+.process-grid { margin-top: 22px; display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--panel); backdrop-filter: blur(var(--design-blur, 16px)); }
 .process-grid article { position: relative; min-height: 235px; padding: 32px; }.process-grid article:not(:last-child) { border-right: 1px solid rgba(122, 162, 255, 0.12); }
 .process-index { position: absolute; right: 16px; top: 14px; color: rgba(174, 184, 200, 0.5); font: 0.61rem var(--mono); }
 .process-icon { width: 52px; height: 52px; color: var(--cobalt-soft); border: 1px solid rgba(122, 162, 255, 0.46); }.process-grid h3 { margin: 34px 0 8px; font: 500 1.55rem var(--serif); }.process-grid p { margin: 0; color: var(--muted); font-size: 0.78rem; line-height: 1.55; }
 
-.about-section { min-height: 70svh; padding: 90px 0 130px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr); align-items: center; gap: 8vw; }
-.about-panel { max-width: 740px; padding: clamp(28px, 4vw, 58px); border: 1px solid var(--line); border-radius: var(--radius-lg); background: linear-gradient(140deg, rgba(5, 15, 32, 0.94), rgba(2, 7, 17, 0.78)); backdrop-filter: blur(18px); }
+.about-section { min-height: 70svh; padding: 90px 0 130px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 0.7fr); align-items: center; gap: 8vw; order: 4; }
+.about-panel { max-width: 740px; padding: clamp(28px, 4vw, 58px); border: 1px solid var(--line); border-radius: var(--radius-lg); background: linear-gradient(140deg, rgba(5, 15, 32, 0.94), rgba(2, 7, 17, 0.78)); backdrop-filter: blur(var(--design-blur, 18px)); }
 .about-panel h2 { margin: 16px 0; font: 500 clamp(2.4rem, 4.2vw, 4.8rem) / 0.96 var(--serif); }.about-panel > p { max-width: 620px; margin: 0 0 28px; color: var(--muted); font-size: 0.94rem; line-height: 1.75; }.about-panel .primary-action { width: fit-content; }
 .about-section blockquote { margin: 0; padding-left: 26px; border-left: 1px solid var(--cobalt-soft); text-shadow: 0 3px 20px #000; }.about-section blockquote p { margin: 0; font: italic 1.55rem / 1.5 var(--serif); }.about-section cite { display: block; margin-top: 18px; color: var(--cobalt-soft); font: normal 0.59rem var(--mono); letter-spacing: 0.2em; }
 
-.site-footer { position: relative; z-index: 4; min-height: 150px; padding: 34px clamp(28px, 4vw, 72px); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); background: rgba(2, 7, 17, 0.86); }
+.site-footer { position: relative; z-index: 4; min-height: 150px; padding: 34px clamp(28px, 4vw, 72px); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); background: rgba(2, 7, 17, 0.86); order: 999; }
 .site-footer > div { display: flex; align-items: center; gap: 24px; color: rgba(174, 184, 200, 0.62); font: 0.57rem var(--mono); letter-spacing: 0.13em; }.site-footer > div:last-child { flex-direction: column; align-items: flex-end; gap: 8px; }.brand-lockup--compact { transform: scale(0.82); transform-origin: left center; margin-right: -34px; }
 
 @media (max-width: 1050px) {
@@ -193,6 +233,116 @@ button, a { -webkit-tap-highlight-color: transparent; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
+
+/* WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032, screenshot-
+   reference addendum ML-DEVOS-AS-031 / D-033): pre-authored CSS variants
+   keyed by the fixed `data-*` attributes/CSS custom properties
+   app/DesignRuntime.js applies to `<html>` from the published theme
+   (GET /api/design). Every rule below is a fixed, already-authored
+   selector — nothing here is generated from a server-provided string, and
+   no rule changes unless DesignRuntime sets the matching attribute/custom
+   property (RFC-010 "CSS implementation": "Do not replace globals.css with
+   dynamically generated CSS"). The default/bootstrap value of every
+   control (hero-bg=cinematic-v3, card-style=soft-glass, density=comfortable,
+   typography=cinematic, heading-scale=standard, panel=soft-glass,
+   animation=calm, reduced-motion-mode=respect-system, project-rail=snap,
+   journal-cards=stack, accent=cobalt) sets no attribute at all (see
+   app/DesignRuntime.js), so a page with no DesignRuntime applied renders
+   byte-identically to the pre-WEB-INC-007 V3 + UI-PATCH-001 baseline. */
+
+/* DESIGN-011: "always-reduced" only ever ADDS the same reduction the
+   existing `prefers-reduced-motion: reduce` media query above already
+   applies — it can never override or disable a user's own OS-level
+   preference (AS30-F011); that media query remains fully independent and
+   always in effect regardless of this attribute. */
+html[data-reduced-motion-mode="always-reduced"] { scroll-behavior: auto; }
+html[data-reduced-motion-mode="always-reduced"] *,
+html[data-reduced-motion-mode="always-reduced"] *::before,
+html[data-reduced-motion-mode="always-reduced"] *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important;
+}
+
+/* DESIGN-010: calm (default, no attribute) leaves every existing animation/
+   transition untouched. minimal turns off only the ambient idle pulse.
+   off additionally removes the hover/focus transitions on the interactive
+   surfaces UI-PATCH-001 softened, for a fully static presentation. */
+html[data-animation="minimal"] .contact-signal,
+html[data-animation="off"] .contact-signal { animation: none; }
+html[data-animation="off"] .site-nav a,
+html[data-animation="off"] .header-action,
+html[data-animation="off"] .primary-action,
+html[data-animation="off"] .foundation-dock a,
+html[data-animation="off"] .project-panel,
+html[data-animation="off"] .journal-card { transition: none; }
+
+/* DESIGN-004: card style. soft-glass is the default (no attribute, current
+   UI-PATCH-001 backgrounds unchanged). quiet-border/solid-night restyle
+   exactly the card/panel surfaces UI-PATCH-001 already softened. */
+html[data-card-style="quiet-border"] .project-panel,
+html[data-card-style="quiet-border"] .about-panel,
+html[data-card-style="quiet-border"] .process-grid {
+  background: rgba(5, 11, 24, 0.5);
+}
+html[data-card-style="solid-night"] .project-panel,
+html[data-card-style="solid-night"] .about-panel,
+html[data-card-style="solid-night"] .process-grid {
+  background: var(--night-deep); backdrop-filter: none;
+}
+
+/* DESIGN-009: glass/panel preset. clear-glass thins the blur/opacity of
+   every `var(--design-blur)`/`var(--panel)` surface; opaque-night removes
+   the glass effect entirely for maximum contrast/legibility. Layered
+   independently of DESIGN-004's background-color changes above — a
+   reference screenshot may call for either or both. */
+html[data-panel="clear-glass"] { --design-blur: 6px; --design-panel-alpha: 0.4; }
+html[data-panel="opaque-night"] { --design-blur: 0px; --design-panel-alpha: 0.98; }
+
+/* DESIGN-005: layout density. comfortable is the default (no attribute,
+   current padding unchanged). */
+html[data-density="compact"] .process-grid article { padding: 22px; }
+html[data-density="compact"] .about-panel { padding: clamp(20px, 3vw, 40px); }
+html[data-density="compact"] .foundation-dock a { padding: 16px 14px; }
+html[data-density="spacious"] .process-grid article { padding: 42px; }
+html[data-density="spacious"] .about-panel { padding: clamp(36px, 5vw, 76px); }
+html[data-density="spacious"] .foundation-dock a { padding: 28px 24px; }
+
+/* DESIGN-006: typography. cinematic is the default (no attribute, current
+   --serif/--sans unchanged). Both alternatives use only fonts already
+   declared in this stylesheet's existing local/system stacks — never a
+   remote/uploaded font. */
+html[data-typography="editorial"] { --serif: Georgia, "Times New Roman", "Iowan Old Style", serif; }
+html[data-typography="system"] { --serif: ui-serif, Georgia, serif; --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+/* DESIGN-007: heading scale. standard is the default (no attribute,
+   current clamp() values unchanged). */
+html[data-heading-scale="compact"] .hero h1 { font-size: clamp(2.8rem, 5vw, 5rem); }
+html[data-heading-scale="compact"] .section-heading h2 { font-size: clamp(2rem, 4vw, 4rem); }
+html[data-heading-scale="display"] .hero h1 { font-size: clamp(4.2rem, 7.5vw, 8.5rem); }
+html[data-heading-scale="display"] .section-heading h2 { font-size: clamp(3rem, 5.6vw, 6.5rem); }
+
+/* DESIGN-012: project rail. snap is the default (no attribute, current
+   scroll-snap-type unchanged). free-scroll removes snapping only — no
+   autoplay exists on this rail in either mode. */
+html[data-project-rail="free-scroll"] .project-rail { scroll-snap-type: none; }
+html[data-project-rail="free-scroll"] .project-panel { scroll-snap-align: none; }
+
+/* DESIGN-013: Journal card behavior. stack is the default (no attribute,
+   current wrapping grid unchanged). rail turns the index into a horizontal
+   scrolling row, mirroring the project rail's own geometry — no autoplay
+   in either mode. */
+html[data-journal-cards="rail"] .journal-index {
+  grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(280px, 80vw);
+  overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px;
+}
+html[data-journal-cards="rail"] .journal-card { scroll-snap-align: start; }
+
+/* DESIGN-014: accent preset. cobalt is the default (no attribute) — every
+   existing rule in this stylesheet already reads the accent color via
+   `var(--cobalt)`/`var(--cobalt-soft)`, so redefining those two custom
+   properties here cascades the accent change everywhere without touching
+   any individual rule. */
+html[data-accent="teal"] { --cobalt: var(--teal); --cobalt-soft: #7fe0dd; }
+html[data-accent="violet"] { --cobalt: var(--violet); --cobalt-soft: #b3a6ff; }
 
 /* WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031):
    the static /journal shell. Reuses the existing V3 + soft-geometry tokens

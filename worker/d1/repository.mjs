@@ -288,6 +288,28 @@ export async function readJournalDashboardStatusRows(db) {
   return result.results;
 }
 
+// WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032) addition: the
+// bounded theme lifecycle status the authenticated dashboard may expose
+// (RFC-010 "Dashboard integration" — "bounded theme lifecycle status ...
+// do not expose complete theme revision contents"). A standalone query, not
+// a `COLLECTIONS` entry, for the same reason readJournalDashboardStatusRows
+// above is standalone: theme_settings is a singleton with no `order`/label
+// concept the generic collection abstraction assumes. No preset/enum/numeric
+// DESIGN-* field is selected here — only the two pointer ids — so no theme
+// control value can ever reach the dashboard payload through this path; the
+// dedicated `/admin/api/design` endpoint owns exposing control values.
+export async function readThemeDashboardStatusRow(db) {
+  const row = await db.prepare("SELECT id, published_revision_id, draft_revision_id FROM theme_settings WHERE id = 'default'").first();
+  if (!row) return null;
+  return {
+    entity_id: row.id,
+    published_revision_id: row.published_revision_id,
+    draft_revision_id: row.draft_revision_id,
+    published_label: null,
+    draft_label: null,
+  };
+}
+
 export async function readSiteSettingsStatusRow(db) {
   const [pointerRow, published, draft] = await Promise.all([
     db.prepare("SELECT id, published_revision_id, draft_revision_id FROM site_settings WHERE id = 'default'").first(),

@@ -28,6 +28,19 @@ export function isPublicJournalApiPath(pathname) {
   return PUBLIC_JOURNAL_API_PATH_PATTERN.test(pathname);
 }
 
+// WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032, AS30-F008): the
+// second and only other public path this Worker widens
+// `assets.run_worker_first` for. Unlike the Journal pattern above, this is
+// an EXACT match, never a prefix/wildcard — RFC-010 "No wildcard
+// /api/design/* route is authorized" — so any other `/api/design/...`
+// sub-path is not classified as public at all and falls through to ordinary
+// static asset/404 handling, never to this Worker's admin dispatch either.
+const PUBLIC_DESIGN_API_PATH = "/api/design";
+
+export function isPublicDesignApiPath(pathname) {
+  return pathname === PUBLIC_DESIGN_API_PATH;
+}
+
 // The literal placeholder values committed in wrangler.jsonc. If either is
 // ever actually deployed unchanged, that is a misconfiguration, not a valid
 // team domain/audience, and must fail closed exactly like a missing value.
@@ -147,17 +160,18 @@ function extractMutationSubject(payload) {
 // (AS15-F002/AS20-F003): no dispatch decision, D1 call, or route
 // classification can happen before the token is verified.
 //
-// `publicDispatch({ request, url })` (WEB-INC-006, optional) is the one
-// exception to that ordering, by design (AS28-F010): the exact
-// `/api/journal`/`/api/journal/*` paths are classified and handled first,
-// before isProtectedPath/Access verification ever runs, since they are
+// `publicDispatch({ request, url })` (WEB-INC-006, optional; widened by
+// WEB-INC-007) is the one exception to that ordering, by design
+// (AS28-F010, AS30-F008): the exact `/api/journal`/`/api/journal/*` and
+// `/api/design` paths are classified and handled first, before
+// isProtectedPath/Access verification ever runs, since they are
 // intentionally public and read-only. No Access assertion is checked, no
 // `sub` is extracted, and the admin `dispatch` branch below is never
 // reached for these paths.
 export async function handleRequest(request, { assets, teamDomain, audience, getJWKS, dispatch, publicDispatch }) {
   const url = new URL(request.url);
 
-  if (isPublicJournalApiPath(url.pathname)) {
+  if (isPublicJournalApiPath(url.pathname) || isPublicDesignApiPath(url.pathname)) {
     if (publicDispatch) return publicDispatch({ request, url });
     return assets.fetch(request);
   }
