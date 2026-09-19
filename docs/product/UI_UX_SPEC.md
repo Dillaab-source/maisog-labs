@@ -57,9 +57,9 @@ The `DESIGN-001`…`014` catalog (`docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN
 This spec intentionally does not reproduce Brand V3's color/typography values, the full `DESIGN-*` catalog prose, or CSS implementation detail. See the files listed above.
 
 
-## Paulo-approved visual refinement — softer geometry (NOT IMPLEMENTED)
+## Paulo-approved visual refinement — softer geometry (IMPLEMENTED)
 
-Status: `APPROVED DIRECTION — DEFERRED / NOT PART OF WEB-INC-004`
+Status: `ARCHITECT_APPROVED — UI-PATCH-001`
 
 Paulo's current visual preference is to make the interface feel **softer and less sharp** without changing the approved V3 cinematic composition.
 
@@ -98,4 +98,4 @@ rather than:
 
 `sharp + rigid + HUD-like + heavily technical`
 
-This direction is intentionally documentation-only for now. Runtime CSS/components must not be changed during the active WEB-INC-004 remediation cycle. A later separately authorized design increment may implement and preview these refinements.
+This direction was implemented as `UI-PATCH-001` in `app/globals.css` after WEB-INC-004 closed. The bounded patch softened geometry only; it did not implement the future WEB-INC-007 theme-control system.
