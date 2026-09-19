@@ -38,22 +38,26 @@ Navigation targets are restricted by `lib/content/schema.mjs`'s `href()` validat
 
 Only `published` projects reach the page at all (filtered in `lib/content/public.mjs`); only `featured` published projects appear in the homepage rail (`app/page.js`: `content.projects.filter(project => project.featured)`). There is no project detail route — each project is a card within the single page, sourced from `data/site.js` fields (`slug`, `category`, `title`, `summary`, `stack`, `accent`, `icon`). A visitor cannot reach a project that is `draft` or `archived`; those states exist in the schema but are stripped before the public projection is built (`RISK-WEB-013`).
 
-### 1c. Journal browsing — `NOT IMPLEMENTED`
+### 1c. Journal browsing — `IMPLEMENTED (LOCAL/REPOSITORY)`
 
-No `journal` field exists in `lib/content/schema.mjs`, no journal route or component exists (`brain/GOVERNANCE_MAP.md` row "Journal": `NOT STARTED`). Any journal flow below is `FUTURE OPTION` / `PROPOSED TARGET` only:
+`WEB-INC-006` is accepted by `ML-DEVOS-AS-029` / `ML-DEVOS-ADR-008`.
 
 ```
-[PROPOSED TARGET] Visitor → journal index (published entries, newest first)
-                          → journal entry detail (published only)
+Visitor → static /journal shell
+        → GET /api/journal
+        → published entries only, newest first
+        → select entry
+        → GET /api/journal/:slug
+        → exact current published revision only
 ```
 
-No schema, route, or component work is authorized by naming this flow here.
+The public Journal API follows only `journal_entries.published_revision_id`. It never falls back to `draft_revision_id`, and draft-only/unpublished/historical revisions are not returned. The shell remains statically exported; Journal data is fetched client-side at runtime. This is repository/local implementation only — no remote D1 or production verification is claimed.
 
-## 2. Admin flow — `NOT IMPLEMENTED` end-to-end
+## 2. Admin flow — `PARTIALLY IMPLEMENTED / DOMAIN-BOUNDED`
 
-`ADMIN STATUS: NOT IMPLEMENTED` (`brain/PROJECT_GOVERNANCE.md`). No `/admin` route exists in `app/` today. Every flow in this section is `PROPOSED TARGET` design intent, tracked against the existing `ADM-REQ-*`/`WEB-SEC-*` catalog. Naming these flows does not implement, provision, or authorize any of them (`AS10-F012`).
+`/admin` exists behind the accepted Cloudflare Access boundary and exposes a read-only status UI. Bounded local APIs now exist for project mutation (`WEB-INC-003`), media upload/list (`WEB-INC-004`), and Journal lifecycle (`WEB-INC-006`). A complete general-purpose editing UI, Theme/Design controls, remote resources, and production verification do not yet exist. Sections below therefore distinguish implemented domain flows from remaining proposed-target UX.
 
-### 2a. Admin authentication — `PROPOSED TARGET`
+### 2a. Admin authentication — `IMPLEMENTED AT REPOSITORY LEVEL`
 
 ```
 [PROPOSED TARGET]
@@ -69,9 +73,9 @@ Session valid & authorized? ──no──▶ fail closed: unauthorized (WEB-SEC
 Admin dashboard (§2b)
 ```
 
-Authentication/session mechanism (identity provider, cookie/JWT scheme) is undecided and owned by `TECHNICAL_DESIGN.md` / `DATA_BACKEND_SPEC.md`, not this flow document.
+Authentication is implemented as per-request Cloudflare Access JWT assertion verification in `worker/auth.mjs`; no persistent application session store is introduced. Production Cloudflare Access configuration remains unverified/separately gated.
 
-### 2b. Dashboard — `PROPOSED TARGET`
+### 2b. Dashboard — `IMPLEMENTED READ-ONLY STATUS; EDITING UX STILL OPEN`
 
 ```
 [PROPOSED TARGET] Admin dashboard
@@ -83,7 +87,7 @@ Authentication/session mechanism (identity provider, cookie/JWT scheme) is undec
       └─ Audit log (read-only)                               (WEB-SEC-009)
 ```
 
-**Read path correction (`AS10-R006`):** the dashboard reads through the protected server-side editorial data-access substrate (`DATA_BACKEND_SPEC.md` § "Publication / revision model"; `TECHNICAL_DESIGN.md` § "Proposed target architecture"), never draft/archived content sourced directly from the current static `data/site.js`/`out/` deployment. The current production deployment is asset-only/static (`wrangler.jsonc`); it has no server-side code path that could safely gate a draft/archived read, so a dashboard cannot exist safely before that substrate does. `BUILD_PLAN.md`'s `WEB-INC-002` is scoped and sequenced accordingly: it depends on both the auth boundary (`WEB-INC-001`) and the protected data-access substrate (`WEB-INC-005` or an equivalent explicitly authorized substrate), and its acceptance criteria require the dashboard's editorial reads to come from that substrate, not from public static assets.
+**Current read path:** the dashboard reads bounded lifecycle/status projections from local D1 only after Access verification. Journal status was added by `WEB-INC-006`. The dashboard still does not provide a general content-editing UI; mutation capabilities live behind bounded admin APIs and remain domain-specific.
 
 ### 2c. Create / edit — `PROPOSED TARGET`
 
@@ -204,7 +208,7 @@ avoidable; next authenticated action requires re-authentication;
 no mutation is accepted on an expired/invalid session (WEB-SEC-002, 011)
 ```
 
-### 2k. Media concept — `PROPOSED TARGET` (extended, `AS10-R011`)
+### 2k. Media concept — `IMPLEMENTED LOCAL SUBSYSTEM; PUBLIC SERVING STILL OPEN`
 
 ```
 [PROPOSED TARGET]
