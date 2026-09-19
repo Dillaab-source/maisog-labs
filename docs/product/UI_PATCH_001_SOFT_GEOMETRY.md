@@ -1,6 +1,6 @@
 # UI-PATCH-001 — Soft Geometry Pass
 
-Status: `AUTHORIZED — QUEUED AFTER WEB-INC-004 CLOSURE`
+Status: `ARCHITECT_APPROVED — IMPLEMENTED`
 
 Owner: Paulo  
 Builder: Claude  
@@ -148,3 +148,23 @@ The current WEB-INC-004 turn-lock remains authoritative until that closure.
 After closure, UI-PATCH-001 may become the next product cycle without needing a fresh design-direction decision because Paulo explicitly authorized it on 2026-09-20.
 
 Implementation authority does not include deployment or main merge.
+
+
+## Closure
+
+Implementation:
+- `61db9abb3c1f246fdf43850843db7967ab291645`
+
+Architect acceptance:
+- `UI-PATCH-001: ARCHITECT_APPROVED`
+
+Accepted outcome:
+- softer radius hierarchy;
+- softer CTA/card/panel geometry;
+- reduced border/divider/shadow hardness;
+- responsive/reduced-motion behavior preserved;
+- no functional/data/runtime boundary change.
+
+Builder validation:
+- `npm test`: 209/209 (`ACTOR_REPORTED`)
+- `npm run build`: success (`ACTOR_REPORTED`)
