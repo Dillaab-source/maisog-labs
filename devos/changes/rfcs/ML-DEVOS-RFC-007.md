@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-007: MaisogLabs WEB-INC-004 Local Media Subsystem
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Change class: `ARCHITECTURE`
 
