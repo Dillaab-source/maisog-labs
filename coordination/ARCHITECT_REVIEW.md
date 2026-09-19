@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
+Status: `ARCHITECT_APPROVED — PAULO AUTHORIZATION SATISFIED BY CURRENT INSTRUCTION`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,414 +8,132 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-023 — WEB-INC-004 Local Media Subsystem Architecture Sync
+# ML-DEVOS-AS-024 — Sentinel Risk Escalation Rules Architecture Sync
 
-Cycle: `MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM`  
-Reviewed proposal: `ML-DEVOS-RFC-007`  
-RFC proposal commit: `787b632c903eb497ea2b75f42ae30401d74e5b60`  
-Grounded pre-proposal repository HEAD: `25fd64dfa0e76662cf7d098b3ca7f044c7c77231`
+Cycle: `SENTINEL-RISK-ESCALATION-RULES-2026-09-19`  
+Reviewed proposal: `ML-DEVOS-RFC-008`  
+RFC proposal commit: `6eebe8a06d3da56cdf5d76726151809a32b2178b`  
+Grounded pre-proposal repository HEAD: `51aa8ac8393975d15a005e9db09a8eb66422bb13`
 
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
 
-Active Sentinel governance-capability baseline:
+Active Sentinel governance-capability baseline before this change:
 - `v1.4.0`
-
-Accepted dependencies:
-- `ML-DEVOS-AS-012` — authentication boundary
-- `ML-DEVOS-AS-014` / `ML-DEVOS-ADR-003` — local D1 revision substrate
-- `ML-DEVOS-AS-019` / `ML-DEVOS-ADR-005` — append-only audit substrate
-- `ML-DEVOS-AS-022` — project mutation capability
-
-## Grounding performed
-
-The Architect live-checked:
-
-- current closed `coordination/STATE.md`;
-- Product Build Plan WEB-INC-004 scope and dependency order;
-- APP_FLOW media flow;
-- DATA_BACKEND_SPEC media and project_media invariants;
-- current migrations / table inventory;
-- current `wrangler.jsonc`;
-- current test inventory;
-- active change-governance policy;
-- canonical `SENTINEL_REVIEW_NOTES.md` remote-resource trigger.
-
-Current Cloudflare documentation was also checked to confirm that R2 can be exercised through local Wrangler simulation without authorizing or touching remote R2 resources, while remote bindings are separately explicit.
 
 ## Classification
 
-`ARCHITECTURE`
+`CORE_POLICY`
 
-### AS23-F001 — PASS / BINDING — stronger architecture class governs
+### AS24-F001 — PASS — no constitutional rewrite
 
-WEB-INC-004 introduces:
+RFC-008 does not change:
+- Paulo's final authority;
+- Architect / Builder separation;
+- `CAPABILITY != AUTHORITY`;
+- source-of-truth precedence;
+- Builder self-certification prohibition;
+- constitutional delegation rules.
 
-- two new persistent product tables;
-- a new object-storage subsystem/binding;
-- cross-store consistency semantics between D1 and object storage;
-- project-revision media snapshot semantics.
+The change therefore does not require `CONSTITUTIONAL` classification.
 
-The upload permission itself is a sensitive capability, but the stronger `ARCHITECTURE` path governs the increment.
+### AS24-F002 — PASS — remote-resource rule is an authority-shaping policy, not authority itself
 
-No Sentinel architecture/version change is implied; this is MaisogLabs product architecture.
+CORE-019 requires future real remote/cloud authorization to identify exact scope, identity/credential class, environment, allowed/denied operations, revocation/rollback, and evidence expectations.
 
-## Binding findings
+It never grants remote authority.
 
-### AS23-F002 — REQUIRED — local R2 only
+This strengthens existing `CAPABILITY != AUTHORITY` semantics without changing who may authorize.
 
-This cycle may configure and exercise only a locally simulated R2 binding.
+### AS24-F003 — PASS — evidence escalation supplements existing evidence rules
 
-Binding may be named:
+CORE-020 does not replace CORE-006/016/017/018.
 
-`MEDIA`
+It provides a consequence-sensitive routing rule:
 
-or an explicitly equivalent stable name.
+- local/low-risk claims may use lighter evidence;
+- stronger integration/remote/production claims require stronger independent/deterministic evidence;
+- `DEPLOYED` and `VERIFIED` retain their existing exact meanings.
 
-Must not introduce:
+No universal "always strongest evidence" rule is introduced.
 
-- `remote: true`;
-- real bucket provisioning;
-- remote R2 credentials;
-- public bucket;
-- custom domain;
-- production resource identifier;
-- deployment.
+### AS24-F004 — PASS — merge/production trigger is bounded
 
-Local object-store simulation is allowed only for repository/local tests.
+CORE-021 does not implement S10 or GitHub rulesets.
 
-### AS23-F003 — REQUIRED — exactly two new product tables
+It requires a focused protection review before first protected-main/production authority.
 
-Add only:
+This is appropriately risk-triggered rather than globally mandatory.
 
-- `media`
-- `project_media`
+### AS24-F005 — PASS — no premature S3–S14 implementation
 
-through a new ordered migration:
+RFC-008 explicitly keeps S3–S14 and all executable enforcement mechanisms unimplemented.
 
-`migrations/0003_web_inc_004_media.sql`
+No Task Engine, Capability Gateway, CI, ruleset, orchestrator, policy engine, credential broker, or telemetry pipeline is created.
 
-The existing migrations remain byte-identical.
+### AS24-F006 — PASS — version impact is MINOR
 
-Expected product-table inventory becomes:
+The three rules add backwards-compatible governance capability without changing constitutional meaning.
 
-`15 → 17`
+Proposed transition:
 
-No `journal_media` or journal/theme table is authorized.
+`v1.4.0 → v1.5.0`
 
-### AS23-F004 — REQUIRED — immutable media public-affecting fields
+Frozen architecture identity remains `ML-DEVOS-ARCH-001 / v1.2.0`.
 
-On an existing media row, these fields are immutable:
+### AS24-F007 — PASS — active WEB-INC-004 authority remains unchanged
 
-- storage_key;
-- content_type;
-- size_bytes;
-- alt_text;
-- uploaded_at;
-- uploaded_by.
+This Sentinel governance change is orthogonal to the active MaisogLabs product gate.
 
-Only bookkeeping `state` may structurally change.
+WEB-INC-004 remains:
 
-No media update endpoint is authorized.
+`TURN: PAULO`
 
-Changing file bytes or alt text means creating a **new media row**.
+`STATUS: PAULO_DECISION_REQUIRED`
 
-Database enforcement must reject direct UPDATE attempts against immutable media fields.
+and all product/remote/deploy/merge gates remain unchanged.
 
-Historical media records must not be deletable through admin behavior, and database-level DELETE protection should preserve historical-reference integrity.
-
-### AS23-F005 — REQUIRED — revision-scoped immutable junction snapshots
-
-`project_media` belongs to `project_revisions.id`, never the base project row.
-
-Existing association rows are immutable.
-
-No in-place update of:
-
-- media_id;
-- role;
-- order.
-
-No free-standing association mutation endpoint.
-
-A changed attachment set is represented only as the new project's **new revision snapshot**.
-
-Older revision junction rows remain unchanged.
-
-### AS23-F006 — REQUIRED — upload route exactly bounded
-
-Only one media mutation route is introduced:
-
-`POST /admin/api/media`
-
-Required boundary:
-
-`VALID ACCESS → BOUNDED SUBJECT → SAME ORIGIN → MEDIA VALIDATION → LOCAL R2/D1 WRITE`
-
-No generic upload endpoint.
-
-No multipart requirement.
-
-No client-selected storage key/path.
-
-No client-selected media ID.
-
-No remote URL import.
-
-No archive/ZIP upload.
-
-### AS23-F007 — REQUIRED — media types and byte limits
-
-Only:
-
-- `image/jpeg`
-- `image/png`
-- `image/webp`
-
-are allowed.
-
-SVG is explicitly forbidden.
-
-Maximum payload:
-
-`5 MiB actual bytes`
-
-Reject:
-
-- zero-byte bodies;
-- over-limit bodies;
-- MIME/signature mismatches;
-- unsupported signatures/types.
-
-Do not trust `Content-Type` by itself.
-
-Use bounded file-signature validation.
-
-### AS23-F008 — REQUIRED — generated object identity
-
-The server generates both:
-
-- media ID;
-- storage key.
-
-The key must not incorporate an untrusted original filename.
-
-A deterministic or random server-generated path is acceptable provided it is bounded and collision-safe.
-
-File extension is derived from the validated media type.
-
-### AS23-F009 — REQUIRED — cross-store compensation
-
-R2 and D1 cannot be treated as one distributed transaction.
-
-The accepted success ordering is:
-
-1. validate;
-2. generate ID/key;
-3. write object to local R2;
-4. run one D1 batch containing media-row insert + `media_upload / success` audit;
-5. return success.
-
-If object write fails:
-- no D1 success state.
-
-If object write succeeds and the D1 batch fails:
-- attempt compensating delete of that just-created object;
-- do not leave a D1 media row;
-- no success audit survives;
-- request fails.
-
-If compensating object delete also fails:
-- request still fails;
-- do not fabricate D1 consistency;
-- record the orphan as an operational limitation/evidence.
-
-This cycle does not require a distributed transaction mechanism.
-
-### AS23-F010 — REQUIRED — media upload audit
-
-Fixed action:
-
-`media_upload`
-
-Entity type:
-
-`media`
-
-Success audit commits in the same D1 batch as the media metadata row.
-
-Failure audit may be appended after failure when D1 remains available.
-
-No arbitrary caller-controlled audit action/type.
-
-### AS23-F011 — REQUIRED — protected media listing only
-
-Add exactly:
-
-`GET /admin/api/media`
-
-It is authenticated read-only.
-
-Return a positive metadata projection.
-
-Do not expose credentials, bucket configuration, uploader identity, or raw internal D1 details.
-
-No public media list route.
-
-### AS23-F012 — REQUIRED — project create/edit may accept media snapshots
-
-Extend only:
-
-- `POST /admin/api/projects`
-- `PUT /admin/api/projects/:id/draft`
-
-with an optional complete media snapshot for the **new revision**.
-
-Each entry:
-
-- mediaId;
-- role;
-- order.
-
-Referenced media must exist and be active.
-
-If edit omits media selection, copy/inherit the source revision's associations so text-only edits do not silently drop media.
-
-If supplied, the provided list is the complete new-revision snapshot.
-
-No older revision association is mutated.
-
-### AS23-F013 — REQUIRED — atomic project-revision media snapshot
-
-For create/edit project operations, the same D1 batch must cover:
-
-- project revision creation;
-- new revision's project_media inserts;
-- draft pointer movement;
-- existing project mutation success audit.
-
-A failure in any new junction insert must roll back the new revision/pointer/success audit.
-
-WEB-INC-003 stale-write enforcement remains binding.
-
-### AS23-F014 — REQUIRED — preview is exact-draft metadata only
-
-Existing project preview may include media metadata for the exact current `draft_revision_id`.
-
-Do not fall back to published revision associations.
-
-Do not expose raw bucket/object credentials.
-
-A raw media-byte preview route is not required by this cycle.
-
-### AS23-F015 — REQUIRED — public boundary remains unchanged
-
-Critical invariant:
-
-`LOCAL R2 OBJECT + D1 MEDIA ROW != PUBLIC WEBSITE MEDIA`
-
-The public site continues to use the existing static source path.
-
-No public D1/R2 media serving.
-
-No cutover.
-
-No deployment.
-
-### AS23-F016 — REQUIRED — existing WEB-INC-003 accepted limitation must not be accidentally broken
-
-WEB-INC-003 currently has the accepted `AS22-L001` dependency on the project slug CHECK for commit-time stale-write abort behavior.
-
-The new migration must not alter that CHECK or project-table semantics.
-
-Any proposed project schema rewrite requires return to Architect.
-
-### AS23-F017 — REQUIRED — no premature Sentinel enforcement build
-
-The canonical review note says remote resources are a review trigger, not an automatic requirement to build S3–S7.
-
-Because this cycle is local-only and does not grant real remote R2, there is no justification to implement new Sentinel enforcement machinery merely for this increment.
-
-Do not start:
-
-- S3+;
-- CI/rulesets;
-- Capability Gateway;
-- Task Engine;
-- Orchestrator;
-- sandbox subsystem.
-
-### AS23-F018 — REQUIRED EVIDENCE
-
-Builder handoff must satisfy RFC-007's evidence contract, including:
-
-- exact base/result SHA;
-- exact changed files;
-- 17-table inventory;
-- old migration immutability;
-- media/project_media DB constraints;
-- direct DB immutability checks;
-- local R2 config only;
-- auth/origin/subject boundary tests;
-- JPEG/PNG/WebP signature validation;
-- mismatch/SVG/oversize/empty rejection;
-- generated key/id proof;
-- R2 failure behavior;
-- D1-after-R2 failure compensation;
-- successful object + metadata + audit path;
-- media list projection;
-- project create/edit media snapshot behavior;
-- inheritance when omitted;
-- complete replacement when supplied;
-- inactive/missing media rejection;
-- atomic project revision + junction + pointer + audit behavior;
-- stale edit regression;
-- exact draft preview media;
-- unchanged published-revision associations;
-- all previous regression suites;
-- full tests/build;
-- local-only Wrangler/R2 validation;
-- dry-run/config/secret scan;
-- explicit no remote R2/D1, cutover, deploy, later increment, main merge.
-
-Builder runtime evidence remains `ACTOR_REPORTED` unless independently reproduced.
-
-## Compatibility conclusion
-
-RFC-007 is compatible with current MaisogLabs/Sentinel architecture subject to AS23-F001 through AS23-F018.
-
-The local-only design avoids the remote-resource threshold that would otherwise trigger a stronger question about advancing Sentinel enforcement.
+Local simulated R2 does not count as real remote-resource authority.
 
 ## Verdict
 
-`ML-DEVOS-AS-023: ARCHITECT_APPROVED — WEB-INC-004 LOCAL MEDIA SUBSYSTEM COMPATIBLE FOR BOUNDED REPOSITORY/LOCAL IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
+`ML-DEVOS-AS-024: ARCHITECT_APPROVED — SENTINEL RISK ESCALATION RULES COMPATIBLE AS CORE_POLICY / V1.5.0 MINOR GOVERNANCE-CAPABILITY UPDATE`
 
-This approves architecture compatibility only.
+## Paulo authorization
 
-It does **not** authorize Claude to implement yet.
+Paulo explicitly instructed:
 
-## Current gates
+`Save, record and implement good changes now; keep unimplemented plan on the records.`
 
-`MEDIA_MUTATION_AUTHORIZED: NO`
+This is sufficient explicit authorization to implement RFC-008 as bounded by this Architect Sync.
 
-`MUTATION_AUTHORIZED: NO`
+It does not authorize:
+- S3–S14;
+- CI/rulesets;
+- remote resource access;
+- WEB-INC-004 implementation;
+- deployment;
+- main merge.
 
-`AUDIT_APPEND_AUTHORIZED: NO`
+## Required implementation
 
-`REMOTE_R2_AUTHORIZED: NO`
+Activate exactly:
 
-`REMOTE_D1_AUTHORIZED: NO`
+- CORE-019 — Remote Resource Authority Must Be Explicitly Scoped
+- CORE-020 — Evidence Sufficiency Escalates With Consequence
+- CORE-021 — First Protected-Main / Production Operation Triggers Technical-Protection Review
 
-`DEPLOY_AUTHORIZED: NO`
+Update:
+- Change Governance Policy
+- Evidence Provenance Model
+- core rule registry
+- Versioning Policy
+- DevOS manifest
+- canonical Sentinel review notes
+- Decision/ADR/history indexes
 
-`MAIN_MERGE_AUTHORIZED: NO`
-
-## Paulo gate
-
-The user message `Proceed with the build` authorized opening this WEB-INC-004 governance/build cycle.
-
-Because RFC-007 / AS-023 now define the exact local-media architecture and security boundary, explicit implementation authorization of this bounded scope is required before Builder work.
+No product/runtime source change.
 
 ## Current Architect Sync status
 
-`ML-DEVOS-AS-023: ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
+`ML-DEVOS-AS-024: ARCHITECT_APPROVED — AUTHORIZED FOR BOUNDED CORE_POLICY IMPLEMENTATION`
