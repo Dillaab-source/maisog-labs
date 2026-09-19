@@ -1,15 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-WEB-INC-007-THEME-DESIGN-CONTROLS
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NONE
+CYCLE_ID: MAISOGLABS-WEB-REL-001-PRODUCTION-READINESS
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: WEB_REL_001_ASSESSMENT_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-LAST_IMPLEMENTER_HANDOFF_SHA: 9773d76641bef0b9f57b94d78087438f4d2ffc15
-LAST_ARCHITECT_REVIEWED_SHA: 9773d76641bef0b9f57b94d78087438f4d2ffc15
-CURRENT_REMEDIATION_CYCLE: 1
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -27,69 +25,92 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.5.0`
 
-## Closed WEB-INC-007 cycle
+Core WEB roadmap:
+- `100% COMPLETE — LOCAL/REPOSITORY`
 
-Authority and review chain:
-- `ML-DEVOS-RFC-010`
-- `ML-DEVOS-AS-030`
-- `D-032`
-- `ML-DEVOS-AS-031`
-- `D-033`
-- initial implementation `17577838d1007210cd1893fdb71ea8063d764fa8`
-- `ML-DEVOS-AS-032 — CHANGES_REQUESTED`
-- remediation `9773d76641bef0b9f57b94d78087438f4d2ffc15`
-- `ML-DEVOS-AS-033 — ARCHITECT_APPROVED`
-- `ML-DEVOS-ADR-009 — ACCEPTED`
+## Authority chain
 
-Accepted repository/local capabilities include:
-- exactly 22 product tables;
-- authenticated bounded Theme / Design Controls;
-- screenshot-reference draft workflow;
-- authenticated visual draft preview;
-- published-only `GET /api/design`;
-- fixed-mapping public design runtime;
-- section visibility/order controls for home/projects/process/about;
-- full-range overlay intensity with baseline 68 preserved.
+- `docs/release/WEB_REL_001_PRODUCTION_READINESS.md`
+- `ML-DEVOS-RFC-011 — ACCEPTED`
+- `ML-DEVOS-AS-034 — ARCHITECT_APPROVED`
+- `D-034 — Paulo-authorized assessment`
 
-Builder-reported final evidence:
-- design overlay tests: 7/7;
-- full suite: 338/338;
-- build: success;
-- all public/app routes remain static;
-- fresh local migrations: 22 product tables;
-- no remote D1/R2;
-- no deployment;
-- no main merge.
+## Authorized Builder scope
 
-## Core WEB roadmap
+Claude may perform assessment-only release readiness work:
 
-Dependency-ordered core roadmap:
+- fast-forward to the authoritative governance branch;
+- inspect main/governance diff and release state;
+- run local/read-only/dry-run test/build/package checks;
+- run fresh local D1 migrations and inventory the 22 product tables;
+- run local public/admin route smoke consistent with existing local capability;
+- inspect repository rulesets/branch protection/workflow status;
+- prepare the complete release-readiness packet;
+- reconcile stale current-state release documentation where needed;
+- recommend exact minimum GitHub protections and CI design;
+- recommend exact future Cloudflare D1/R2/Access/Worker resource scopes;
+- prepare rollback and post-deploy runtime-verification plans.
 
-1. `WEB-INC-001` — CLOSED
-2. `WEB-INC-005` — CLOSED
-3. `WEB-INC-002` — CLOSED
-4. `WEB-INC-008` — CLOSED
-5. `WEB-INC-003` — CLOSED
-6. `WEB-INC-004` — CLOSED
-7. `WEB-INC-006` — CLOSED
-8. `WEB-INC-007` — CLOSED
+## Absolute prohibitions
 
-`CORE WEB ROADMAP: 100% COMPLETE — LOCAL/REPOSITORY`
+`REMOTE_R2_AUTHORIZED: NO`
 
-## Production/release boundary
+`REMOTE_D1_AUTHORIZED: NO`
 
-Roadmap completion does not authorize or imply:
+`DEPLOY_AUTHORIZED: NO`
 
-- production deployment;
-- remote D1/R2 provisioning;
+`MAIN_MERGE_AUTHORIZED: NO`
+
+Also prohibited:
+- ruleset or branch-protection mutation;
+- GitHub Actions workflow activation;
+- direct push/merge to main;
 - production Access configuration;
-- public R2 object serving;
-- homepage/projects D1 public cutover;
-- protected/main merge;
-- production verification.
+- credential creation/storage;
+- Cloudflare deploy;
+- DNS/domain mutation;
+- production data writes;
+- public R2 serving;
+- homepage/projects D1 cutover;
+- new product features;
+- Sentinel S3+.
 
-All such work requires a new separately governed decision.
+## Current release facts
 
-## Current gate
+At phase opening:
+- main HEAD: `887849283ee9cd16e8d60b937bac95b1c85bf3d9`;
+- governance HEAD before readiness docs: `aeb335f43cfd95d81bd550231a88d48ec47cb8ad`;
+- governance was 355 commits ahead of main;
+- no rulesets;
+- branches unprotected;
+- no GitHub Actions workflows/runs;
+- production Access values are placeholders;
+- D1/R2 are local-only.
 
-`CORE WEB ROADMAP COMPLETE — RETURNED TO PAULO FOR NEXT PHASE DECISION`
+## Required handoff
+
+Claude must provide:
+
+- exact base/result SHA;
+- complete readiness packet;
+- exact command/evidence log;
+- release blockers;
+- proposed GitHub protection/CI setup;
+- proposed future Cloudflare production resource scopes;
+- rollback plan;
+- runtime verification checklist;
+- exact next Paulo decisions required.
+
+Then set:
+
+`TURN: ARCHITECT`
+
+`STATUS: READY_FOR_ARCHITECT`
+
+`IMPLEMENTER_ACTION_REQUIRED: NO`
+
+`ARCHITECT_ACTION_REQUIRED: YES`
+
+Commit/push and stop.
+
+No release action is authorized.
