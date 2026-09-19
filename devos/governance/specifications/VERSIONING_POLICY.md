@@ -16,7 +16,7 @@ Every material change should retain, at minimum: the RFC (if any), the Architect
 
 ## Current Sentinel version
 
-**Sentinel's active governance-capability baseline is `v1.4.0`, as of `2026-09-18` (`D-017`, `ML-DEVOS-ADR-002`).** This is the version of the *DevOS Repository Foundation layer* S2 added on top of the Governance Kernel S1 closed at `v1.3.0` (`D-013`, `ML-DEVOS-ADR-001`) — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before.
+**Sentinel's active governance-capability baseline is `v1.5.0`, as of `2026-09-19` (`D-028`, `ML-DEVOS-ADR-006`).** This is the version of the *DevOS Repository Foundation layer* S2 added on top of the Governance Kernel S1 closed at `v1.3.0` (`D-013`, `ML-DEVOS-ADR-001`) — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before.
 
 `devos/governance/rules/core-rules.json` now records two provenance groups, both fully effective (per `RULE_RECORD_SCHEMA.md`'s "Status/version consistency" section):
 
@@ -62,3 +62,26 @@ S2 — DevOS Repository Foundation followed the same explicit, non-silent path t
 `ML-DEVOS-RFC-001` proposed no new `CORE-*` rule, so no rule in `devos/governance/rules/core-rules.json` changes status or `adr_id` at S2 closure — S2's closure is entirely a repository-foundation/manifest-level event, distinct from S1's rule-activation event.
 
 No later Sentinel phase (S3+) is authorized by this closure. `D-017` and `ML-DEVOS-ADR-002` are both explicit that S2 closure and any future S3 authorization are separate decisions, exactly as `D-016` kept S2's own implementation authorization separate from its closure.
+
+
+## Risk-escalation core-policy update — v1.5.0 applied
+
+RFC-008 added three backwards-compatible Sentinel-wide CORE_POLICY rules:
+
+- CORE-019 — Remote Resource Authority Must Be Explicitly Scoped
+- CORE-020 — Evidence Sufficiency Escalates With Consequence
+- CORE-021 — First Protected-Main / Production Operation Triggers Technical-Protection Review
+
+The change followed:
+
+`ML-DEVOS-RFC-008 → ML-DEVOS-AS-024 → D-028 → implementation → ML-DEVOS-AS-025 → ML-DEVOS-ADR-006`
+
+Semantic impact: **MINOR**.
+
+`v1.4.0 → v1.5.0`
+
+This update adds governance policy only. It does not implement S3–S14, CI, rulesets, a Task/Policy Engine, Capability Gateway, sandbox, Orchestrator, executable Evidence Gate, credential broker, or telemetry pipeline.
+
+The frozen S0 architecture identity remains:
+
+`ML-DEVOS-ARCH-001 / v1.2.0`
