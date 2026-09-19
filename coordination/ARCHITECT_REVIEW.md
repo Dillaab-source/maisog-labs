@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — PAULO AUTHORIZATION SATISFIED BY CURRENT INSTRUCTION`
+Status: `ARCHITECT_APPROVED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,132 +8,166 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-024 — Sentinel Risk Escalation Rules Architecture Sync
+# ML-DEVOS-AS-025 — Sentinel Risk Escalation Rules Implementation Review
 
 Cycle: `SENTINEL-RISK-ESCALATION-RULES-2026-09-19`  
-Reviewed proposal: `ML-DEVOS-RFC-008`  
-RFC proposal commit: `6eebe8a06d3da56cdf5d76726151809a32b2178b`  
-Grounded pre-proposal repository HEAD: `51aa8ac8393975d15a005e9db09a8eb66422bb13`
+Authority chain: `ML-DEVOS-RFC-008 → ML-DEVOS-AS-024 → D-028 → ML-DEVOS-AS-025`
 
-Frozen Sentinel architecture:
-- `ML-DEVOS-ARCH-001 / v1.2.0`
+Implementation base after D-028:
+- `1017be3ff8b8eb86387ebc34433567d2d72089c0`
 
-Active Sentinel governance-capability baseline before this change:
-- `v1.4.0`
+Reviewed implementation head:
+- `4d1437a72b56f181414802368ab52508e4b7244c`
 
-## Classification
+## Exact implementation scope
 
-`CORE_POLICY`
+The implementation range contains exactly seven changed files:
 
-### AS24-F001 — PASS — no constitutional rewrite
+- `coordination/STATE.md` — baseline reference only (`v1.4.0 → v1.5.0`), no authority/gate change;
+- `devos/devos-manifest.json`;
+- `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`;
+- `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`;
+- `devos/governance/rules/core-rules.json`;
+- `devos/governance/specifications/VERSIONING_POLICY.md`;
+- `docs/SENTINEL_REVIEW_NOTES.md`.
 
-RFC-008 does not change:
-- Paulo's final authority;
-- Architect / Builder separation;
-- `CAPABILITY != AUTHORITY`;
-- source-of-truth precedence;
-- Builder self-certification prohibition;
-- constitutional delegation rules.
+No product/runtime application file changed.
 
-The change therefore does not require `CONSTITUTIONAL` classification.
+## Findings
 
-### AS24-F002 — PASS — remote-resource rule is an authority-shaping policy, not authority itself
+### AS25-F001 — PASS — CORE-019 is active and bounded
 
-CORE-019 requires future real remote/cloud authorization to identify exact scope, identity/credential class, environment, allowed/denied operations, revocation/rollback, and evidence expectations.
+`CORE-019 — Remote Resource Authority Must Be Explicitly Scoped`
 
-It never grants remote authority.
+is ACTIVE at effective version `1.5.0`.
 
-This strengthens existing `CAPABILITY != AUTHORITY` semantics without changing who may authorize.
+It requires future real remote/cloud authorization to identify:
+- provider/service;
+- bounded resource scope;
+- environment;
+- allowed/denied operations;
+- identity/credential class;
+- credential lifetime/revocation;
+- public/production/sensitive status;
+- rollback/revocation path;
+- audit/evidence expectation.
 
-### AS24-F003 — PASS — evidence escalation supplements existing evidence rules
+It grants no authority by itself.
 
-CORE-020 does not replace CORE-006/016/017/018.
+Local simulation remains explicitly exempt where it cannot touch a real remote resource.
 
-It provides a consequence-sensitive routing rule:
+### AS25-F002 — PASS — CORE-020 is active without breaking existing evidence semantics
 
-- local/low-risk claims may use lighter evidence;
-- stronger integration/remote/production claims require stronger independent/deterministic evidence;
-- `DEPLOYED` and `VERIFIED` retain their existing exact meanings.
+`CORE-020 — Evidence Sufficiency Escalates With Consequence`
 
-No universal "always strongest evidence" rule is introduced.
+is ACTIVE at effective version `1.5.0`.
 
-### AS24-F004 — PASS — merge/production trigger is bounded
+It preserves:
+- provider-independent provenance classes;
+- no silent evidence-class upgrades;
+- CORE-016 MAIN semantics;
+- CORE-017 DEPLOYED semantics;
+- CORE-018 VERIFIED semantics.
 
-CORE-021 does not implement S10 or GitHub rulesets.
+It does not impose irrelevant CI/runtime evidence on low-risk local/documentation work.
 
-It requires a focused protection review before first protected-main/production authority.
+### AS25-F003 — PASS — CORE-021 is an escalation trigger, not hidden S10 implementation
 
-This is appropriately risk-triggered rather than globally mandatory.
+`CORE-021 — First Protected-Main / Production Operation Triggers Technical-Protection Review`
 
-### AS24-F005 — PASS — no premature S3–S14 implementation
+is ACTIVE at effective version `1.5.0`.
 
-RFC-008 explicitly keeps S3–S14 and all executable enforcement mechanisms unimplemented.
+It requires a focused technical-protection review before first protected-main or production authority, but does not itself create:
+- GitHub rulesets;
+- CI workflows;
+- deployment environments;
+- full S10 enforcement.
 
-No Task Engine, Capability Gateway, CI, ruleset, orchestrator, policy engine, credential broker, or telemetry pipeline is created.
+### AS25-F004 — PASS — machine-readable registry is valid
 
-### AS24-F006 — PASS — version impact is MINOR
+`core-rules.json` parses successfully.
 
-The three rules add backwards-compatible governance capability without changing constitutional meaning.
+CORE-019/020/021:
+- are unique;
+- are ACTIVE;
+- carry `effective_version: 1.5.0`;
+- cite `D-028`;
+- cite `ML-DEVOS-ADR-006`;
+- preserve CORE_POLICY minimum authority.
 
-Proposed transition:
+### AS25-F005 — PASS — v1.5.0 baseline is explicitly recorded
+
+The Versioning Policy records:
 
 `v1.4.0 → v1.5.0`
 
-Frozen architecture identity remains `ML-DEVOS-ARCH-001 / v1.2.0`.
+as a MINOR governance-capability update.
 
-### AS24-F007 — PASS — active WEB-INC-004 authority remains unchanged
+The DevOS manifest records:
+- active baseline: `1.5.0`;
+- decision: `D-028`;
+- ADR: `ML-DEVOS-ADR-006`;
+- closure history entry: `GOV-RISK-ESCALATION`.
 
-This Sentinel governance change is orthogonal to the active MaisogLabs product gate.
+Frozen architecture remains:
 
-WEB-INC-004 remains:
+`ML-DEVOS-ARCH-001 / v1.2.0`
+
+### AS25-F006 — PASS — future enforcement phases remain unimplemented
+
+The manifest still records future subsystem roots as `NOT_IMPLEMENTED` with no executable runtime:
+
+- S3 contracts;
+- S4 state;
+- S5 capabilities;
+- S7 evidence;
+- S8 orchestration;
+- S11 memory.
+
+The canonical review note explicitly preserves S3–S14 and related CI/gateway/orchestration machinery as future work only.
+
+### AS25-F007 — PASS — WEB-INC-004 authority is unchanged
+
+Current product state remains:
 
 `TURN: PAULO`
 
 `STATUS: PAULO_DECISION_REQUIRED`
 
-and all product/remote/deploy/merge gates remain unchanged.
+`MEDIA_MUTATION_AUTHORIZED: NO`
 
-Local simulated R2 does not count as real remote-resource authority.
+`MUTATION_AUTHORIZED: NO`
 
-## Verdict
+`AUDIT_APPEND_AUTHORIZED: NO`
 
-`ML-DEVOS-AS-024: ARCHITECT_APPROVED — SENTINEL RISK ESCALATION RULES COMPATIBLE AS CORE_POLICY / V1.5.0 MINOR GOVERNANCE-CAPABILITY UPDATE`
+`REMOTE_R2_AUTHORIZED: NO`
 
-## Paulo authorization
+`REMOTE_D1_AUTHORIZED: NO`
 
-Paulo explicitly instructed:
+`DEPLOY_AUTHORIZED: NO`
 
-`Save, record and implement good changes now; keep unimplemented plan on the records.`
+`MAIN_MERGE_AUTHORIZED: NO`
 
-This is sufficient explicit authorization to implement RFC-008 as bounded by this Architect Sync.
+Only the active Sentinel baseline reference changed to `v1.5.0`.
 
-It does not authorize:
-- S3–S14;
-- CI/rulesets;
-- remote resource access;
-- WEB-INC-004 implementation;
-- deployment;
-- main merge.
+## Evidence disposition
 
-## Required implementation
+`INDEPENDENTLY_INSPECTED`:
+- exact implementation diff;
+- valid JSON parsing of rule registry and manifest;
+- rule IDs/status/version/ADR/decision linkage;
+- policy/evidence/version alignment;
+- reserved future subsystem states;
+- unchanged product authority gates.
 
-Activate exactly:
+No runtime/CI evidence is claimed or required because this change implements governance records only and no executable enforcement subsystem.
 
-- CORE-019 — Remote Resource Authority Must Be Explicitly Scoped
-- CORE-020 — Evidence Sufficiency Escalates With Consequence
-- CORE-021 — First Protected-Main / Production Operation Triggers Technical-Protection Review
+## Final verdict
 
-Update:
-- Change Governance Policy
-- Evidence Provenance Model
-- core rule registry
-- Versioning Policy
-- DevOS manifest
-- canonical Sentinel review notes
-- Decision/ADR/history indexes
+`ML-DEVOS-AS-025: ARCHITECT_APPROVED — SENTINEL RISK ESCALATION RULES IMPLEMENTED / V1.5.0 GOVERNANCE-CAPABILITY UPDATE ACCEPTED`
 
-No product/runtime source change.
+## Post-review requirement
 
-## Current Architect Sync status
+Create `ML-DEVOS-ADR-006` to record the accepted policy change and v1.5.0 transition.
 
-`ML-DEVOS-AS-024: ARCHITECT_APPROVED — AUTHORIZED FOR BOUNDED CORE_POLICY IMPLEMENTATION`
+After archival/ADR closure, return the rolling Architect Review surface to the active WEB-INC-004 AS-023 product gate so the current Builder/Paulo workflow remains unambiguous.
