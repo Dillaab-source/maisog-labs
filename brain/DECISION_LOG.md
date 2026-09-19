@@ -433,3 +433,19 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Sequencing rule:** this patch is authorized now but must not begin until WEB-INC-004 remediation is Architect-accepted and that cycle is closed. `coordination/STATE.md` remains authoritative for the active turn.
 - **Implementation brief:** `docs/product/UI_PATCH_001_SOFT_GEOMETRY.md`.
 - **Evidence of Paulo authority:** Paulo instructed: `Okay proceed` after approving the softer design direction.
+
+
+### D-031 — Authorize WEB-INC-006 local Journal implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-RFC-009` and `ML-DEVOS-AS-028`, under Sentinel governance-capability baseline `v1.5.0`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-006 — Local Journal Subsystem`** exactly within RFC-009 and AS28-F001 through AS28-F016.
+- **Authorized schema:** add exactly `journal_entries`, `journal_entry_revisions`, and `journal_media` via `migrations/0004_web_inc_006_journal.sql`; target exactly 20 product tables; migrations 0001–0003 remain byte-identical.
+- **Authorized admin lifecycle:** create draft, edit draft, preview, publish, unpublish only; no delete, generic mutation, or slug rename.
+- **Authorized public read boundary:** GET-only `/api/journal` and `/api/journal/:slug`, published-pointer-only, plus a static `/journal` shell. No other public Worker-first route is authorized.
+- **Body format:** escaped/plain text only for this increment; no Markdown/HTML/rich-text execution.
+- **Media:** revision-scoped `journal_media` snapshots referencing active existing media only; no public media-object serving.
+- **Audit:** add only `journal_create_draft`, `journal_edit_draft`, `journal_publish`, `journal_unpublish`.
+- **Local-only authority:** D1/R2 local simulation, repository changes, tests, build, local Wrangler smoke, dry-run/config checks.
+- **Explicitly not authorized:** remote D1/R2, production resource provisioning, public R2 object routes, homepage/project D1 cutover, deployment, protected/main merge, WEB-INC-007, Sentinel S3+, CI/rulesets/Capability Gateway/Task Engine/Orchestrator.
+- **Evidence class:** Builder test/runtime claims remain `ACTOR_REPORTED` until independent Architect review.
+- **Evidence of Paulo authority:** Paulo explicitly replied `Authorized` twice while WEB-INC-006 Journal was identified as the next active increment.
