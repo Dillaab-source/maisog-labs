@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-006: MaisogLabs WEB-INC-003 Project Mutation Capability
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Change class: `CAPABILITY`
 
