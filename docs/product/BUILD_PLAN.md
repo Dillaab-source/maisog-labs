@@ -146,6 +146,7 @@ Future governed work uses Sentinel's five actors — **Paulo, Architect, Builder
 - **Design refs:** `APP_FLOW.md` §2l; `DATA_BACKEND_SPEC.md` § `theme_settings`/`theme_settings_revisions`; `UI_UX_SPEC.md` § "Design controls".
 - **Bounded scope:** validated, range-constrained theme controls only — never free-form CSS/JS input (`DESIGN-014`).
 - **Likely change class:** `CAPABILITY`.
+- **Architecture status:** `ML-DEVOS-RFC-010` accepted; `ML-DEVOS-AS-030` Architect-approved; `D-032` authorizes bounded local/repository implementation. Builder implementation pending. No remote D1/R2, deployment, main merge, public R2 serving, SSR conversion, arbitrary CSS/JS/HTML, or Sentinel S3+ authority.
 
 ## B. Dependency-ordered execution sequence (`AS10-R002`)
 
