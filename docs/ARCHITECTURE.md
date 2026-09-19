@@ -1,61 +1,210 @@
 # Architecture
 
 ## Overview
-Maisog Labs V4 is a statically exported Next.js portfolio deployed to Cloudflare. Phase 1 now includes the approved cosmic visual direction while keeping the final production logo independently replaceable.
+
+Maisog Labs V4 is a statically exported Next.js portfolio served through Cloudflare Workers + Assets.
+
+Repository/local architecture currently includes:
+
+- static public homepage/content from `data/site.js`;
+- authenticated `/admin` Worker boundary;
+- local-only D1 revision/audit substrate;
+- bounded project mutation APIs;
+- local-only R2 media subsystem;
+- bounded Journal mutation APIs;
+- published-only public Journal read APIs;
+- static `/journal` shell;
+- no remote D1/R2 or production cutover.
+
+Accepted architecture records include `ML-DEVOS-ADR-003`, `ADR-005`, `ADR-007`, and `ADR-008`.
 
 ## Runtime flow
-Ordinary public routes: visitor → Cloudflare Worker static assets (asset-first) → statically generated Next.js site, unchanged by `WEB-INC-001`.
 
-`/admin` and `/admin/*` only: visitor → Worker (`worker/index.mjs`, routed via `wrangler.jsonc`'s `assets.run_worker_first`) → server-side Cloudflare Access assertion verification (`worker/auth.mjs`, using `jose`); on failure, `401 Unauthorized` with no asset/data served, `Cache-Control: no-store`. On success only, `worker/auth.mjs` dispatches (`WEB-INC-002`, `worker/admin/dashboard.mjs`): `GET /admin/api/dashboard` returns a bounded, allowlisted JSON status projection read from `env.DB`; any other method against that path returns `405` with zero D1 call; any other unrecognized `/admin/api/*` path returns a protected `404` with zero D1 call; every other `/admin`/`/admin/*` path (the dashboard shell HTML/JS) is still served by the Assets binding. This is the only server-executed request path in the current deployment; no other route touches the Worker script.
+### Ordinary public routes
 
-Ordinary public routes still touch no database or persistent storage. `WEB-INC-001` added an authentication boundary only. `WEB-INC-005` added a local-only `d1_databases` binding (`remote: false`, no `database_id`). As of `WEB-INC-002` (`ML-DEVOS-RFC-004`/`ML-DEVOS-AS-015`/`D-025`), that binding **is** read by `worker/index.mjs` (via `worker/admin/dashboard.mjs`) — but only for the single authenticated `GET /admin/api/dashboard` route, only after Access verification succeeds, and only for bounded reads (no `INSERT`/`UPDATE`/`DELETE`). See "Phase 2 content boundary" below for the still-unchanged public path.
+Most public routes remain asset-first:
 
-## V4 foundation presentation layer
+```
+visitor → Cloudflare Assets → statically exported Next.js pages
+```
 
-1. `app/page.js` composes the public homepage, project rail, process, about, and contact paths.
-2. `app/globals.css` owns the responsive Lunar Tech presentation, background layering, glass panels, and reduced-motion behavior.
-3. `data/site.js` remains the local source for reusable public content until a later CMS phase.
-4. `components/Logo.js` contains the replaceable 4B-style header lockup. Its signature source is provisional until the final vector is approved.
-5. `components/ProjectRail.js` is the only client component; the rest of the page remains statically rendered.
-6. The clean cinematic artwork is a local optimized WebP asset. The original infographic is not used as a page background.
+The homepage and existing project presentation still read:
 
-## Planned evolution
-Future features may add:
-- Cloudflare Worker endpoints for secure server-side integrations.
-- Claude/OpenAI API access through server-side code only.
-- n8n webhooks for automations.
-- D1 for structured content and audit history, after server-side authorization is established. `WEB-INC-005` (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) implemented a **local-only** revision substrate for current content (`migrations/`, `worker/d1/`) for migration/parity/integrity testing; `WEB-INC-002` (`ML-DEVOS-RFC-004`/`ML-DEVOS-AS-015`/`D-025`) added exactly one bounded, authenticated, read-only admin status endpoint (`GET /admin/api/dashboard`) on top of it. D1 is still not the public source, still local-only (no remote/production resource), and still has no write/mutation path anywhere.
-- R2 for media, after the content and authorization boundaries are tested.
-- MCP tools for agent integrations.
+```
+data/site.js → lib/content/local.mjs → schema.mjs → public.mjs → app/page.js
+```
 
-## Boundaries
-- `app/` owns routing and page composition, including `app/admin/page.js` and `app/admin/DashboardClient.js` — the `WEB-INC-002` read-only admin dashboard shell (not a content-editing surface; no create/edit/save/delete/publish control exists).
-- `components/` owns reusable presentation units.
-- `data/` owns structured editable content.
-- `public/` owns static assets.
-- `docs/` owns human/AI-maintainer documentation.
-- `worker/` owns the server-executed authentication boundary for `/admin`/`/admin/*` (`WEB-INC-001`, `ML-DEVOS-RFC-002`) plus, as of `WEB-INC-002` (`ML-DEVOS-RFC-004`), the post-authentication route dispatch (`worker/auth.mjs`'s `dispatch` callback) to the bounded read-only dashboard handler `worker/admin/dashboard.mjs`. It performs no content mutation. `worker/d1/` (`WEB-INC-005`, `ML-DEVOS-RFC-003`) owns the bounded, server-only D1 revision-substrate migration/data-access modules; as of `WEB-INC-002`, `worker/admin/dashboard.mjs` is the one server-side caller of `worker/d1/repository.mjs`'s read functions — nothing under `worker/d1/` or `worker/admin/` is imported by `app/`, `DashboardClient.js`, or any other client bundle.
+That path has **not** been cut over to D1.
 
-## Security baseline
-- Never expose provider API keys in browser code.
-- Never commit `.env` files or secrets.
-- Validate inputs at any future Worker/API boundary.
-- Use least-privilege credentials for external services.
+### Public Journal routes
+
+`WEB-INC-006` adds the first public Worker→D1 read path.
+
+Worker-first routing is enabled only for:
+
+- `/api/journal`
+- `/api/journal/*`
+
+These routes are:
+
+- unauthenticated;
+- GET-only;
+- read-only;
+- published-pointer-only;
+- local/repository implemented;
+- not production-verified.
+
+The static `/journal` page is still produced by Next.js static export. Its client component fetches the public Journal API at runtime.
+
+### Admin routes
+
+Worker-first routing remains enabled for:
+
+- `/admin`
+- `/admin/*`
+
+Flow:
+
+```
+request
+  → worker/auth.mjs
+  → validate Access configuration
+  → verify Cloudflare Access assertion
+  → protected admin dispatch
+```
+
+After successful Access verification, bounded admin capabilities include:
+
+- `GET /admin/api/dashboard`
+- project create/edit/preview/publish/unpublish
+- media upload/list
+- Journal create/edit/preview/publish/unpublish
+
+No generic mutation route exists.
+
+The admin UI itself remains primarily a read-only status surface; the domain mutation capabilities are API-level, not yet a complete editing UX.
+
+## Local persistence
+
+### D1
+
+Local D1 is explicitly configured with:
+
+`remote: false`
+
+The accepted local schema contains exactly **20 product tables** after migrations 0001–0004.
+
+Current accepted domains include:
+
+- site/navigation/foundations/projects/services/process/sections revision substrate;
+- append-only audit log;
+- media + project_media;
+- journal_entries + journal_entry_revisions + journal_media.
+
+D1 is **not** the general public source of truth for the homepage/projects.
+
+Journal is the only accepted public D1 read domain so far.
+
+### R2
+
+The `MEDIA` R2 binding is local-only:
+
+`remote: false`
+
+It supports the accepted admin media subsystem.
+
+There is no:
+
+- public R2 bucket/domain;
+- public media-object serving route;
+- production bucket provisioning;
+- remote R2 authority.
+
+## Presentation layer
+
+- `app/page.js` — static homepage composition.
+- `app/journal/page.js` — static Journal shell.
+- `app/journal/JournalClient.js` — runtime client fetch for public Journal reads.
+- `app/admin/*` — authenticated admin/status presentation.
+- `app/globals.css` — V3 cinematic presentation plus accepted `UI-PATCH-001` soft geometry.
+- `components/Logo.js`, `ProjectRail.js`, `BlueprintIcon.js` — reusable presentation units.
+
+## Worker boundaries
+
+- `worker/index.mjs` — top-level Worker entrypoint.
+- `worker/auth.mjs` — protected admin authentication plus exact public-Journal routing separation.
+- `worker/admin/dashboard.mjs` — authenticated admin dispatch/status.
+- `worker/admin/projects.mjs` — project lifecycle API.
+- `worker/admin/media.mjs` — media upload/list API.
+- `worker/admin/journal.mjs` — Journal lifecycle API.
+- `worker/public/journal.mjs` — published-only public Journal API.
+- `worker/d1/*` — bounded D1 data access, schema, validation, audit, and mutation helpers.
+
+Nothing under `worker/d1/` is imported into public client bundles.
 
 ## Deployment contract
-The Wrangler deployment expects:
-- Build command: `npm run build`
-- Output directory: `out`
-- Next.js static export enabled in `next.config.mjs`
-- Worker entrypoint: `worker/index.mjs` (`wrangler.jsonc`'s `main`), selectively routed only for `/admin` and `/admin/*` via `assets.run_worker_first` — every other route remains asset-first, exactly as before `WEB-INC-001`.
-- Non-secret runtime vars `ACCESS_TEAM_DOMAIN`/`ACCESS_AUD` are placeholders in `wrangler.jsonc`; real values are set outside tracked source and only after a separately authorized production Cloudflare Access application exists (`ML-DEVOS-RFC-002` §§3–4, `ML-DEVOS-AS-011` `AS11-F003`). No production deployment or Cloudflare Access configuration is authorized by this increment.
 
-If a future feature requires server-side rendering or dynamic routes that cannot be statically exported, document the change here before modifying deployment infrastructure.
+The repository deployment shape remains:
 
-## Phase 2 content boundary
+- build: `npm run build`
+- output: `out/`
+- Worker entrypoint: `worker/index.mjs`
+- Assets binding: `ASSETS`
+- static export remains enabled
+- `assets.run_worker_first` is bounded to:
+  - `/admin`
+  - `/admin/*`
+  - `/api/journal`
+  - `/api/journal/*`
 
-The build reads `data/site.js` through `lib/content/local.mjs`, validates the entire document with `schema.mjs`, and projects published records through `public.mjs`. The page and metadata consume only that projection. Client components must never import the raw source or adapter.
+Current tracked Cloudflare resource configuration remains local/inert:
 
-Storage remains local and Git-backed for the actual public build. `lib/content/local.mjs` itself is unchanged and unread by any D1 code — it remains a seam, not a database connection. As of `WEB-INC-005`, a local-only D1 revision substrate exists in parallel (`migrations/`, `worker/d1/`) for migration/parity/integrity testing only; it is not wired into this reader and does not affect what `app/page.js` consumes (`brain/PROJECT_GOVERNANCE.md` § "Current storage model"). Static output still requires rebuilding and redeploying after edits. Draft filtering is not authentication: source in a public repository remains public, including drafts. Never store private content or credentials there.
+- D1: `remote: false`
+- R2: `remote: false`
+- Access team/audience values: placeholders only
 
-Schema validation rejects unknown fields, unsupported versions, unsafe links, duplicate identifiers, malformed data, and unsupported presentation tokens. Invalid content stops the build. There is no public preview or write endpoint. Admin identity stays outside editable public content; admin setup and Cloudflare deployment remain pending.
+No deployment, production Access configuration, remote D1/R2, or protected/main merge is authorized by the current closed state.
+
+## Security baseline
+
+Current controls include:
+
+- fail-closed Cloudflare Access verification for admin paths;
+- bounded non-empty mutation subject;
+- same-origin mutation requests;
+- bounded actual request bytes;
+- strict JSON/media validation;
+- immutable revision/junction history patterns;
+- stale-write protection;
+- append-only audit log;
+- positive allowlist public/admin projections;
+- published-pointer-only Journal public reads;
+- no public media storage keys;
+- no secrets committed in tracked source.
+
+## Current content boundary
+
+Two public-content paths now coexist:
+
+1. **Homepage / existing site content** — static Git-backed `data/site.js` path.
+2. **Journal** — static shell + local published-only Worker/D1 API.
+
+This is intentional.
+
+`D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE` remains true for homepage/projects.
+
+No general public D1 cutover has occurred.
+
+## Remaining core increment
+
+The dependency-ordered WEB roadmap has one remaining core increment:
+
+`WEB-INC-007 — Theme / Design Controls`
+
+No authority for WEB-INC-007 exists in the current closed state.
+
+## Production caveat
+
+Repository/local implementation evidence is not production verification.
+
+Remote resources, deployment, protected/main merge, and production verification remain separately gated.
