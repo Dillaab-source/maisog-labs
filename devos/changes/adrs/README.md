@@ -4,6 +4,7 @@ Accepted ADRs live here as `ML-DEVOS-ADR-<NNN>.md`, using `../../templates/ADR_T
 
 ## Current contents
 
+- `ML-DEVOS-ADR-006.md` — adopts CORE-019/020/021 Sentinel risk-escalation policy and the `v1.4.0 → v1.5.0` governance-capability transition. No S3–S14 runtime/enforcement mechanism is implemented; WEB-INC-004 and all remote/deploy/main-merge authority remain separately gated.
 - `ML-DEVOS-ADR-001.md` — the first durable ADR, recording adoption of the S1 Governance Kernel as the active Sentinel governance-capability baseline and the explicit `v1.2.0 → v1.3.0` version transition, per Paulo decision `D-013` and Architect Sync `ML-DEVOS-AS-004`'s final `ARCHITECT_APPROVED` verdict.
 - `ML-DEVOS-ADR-002.md` — records adoption of the S2 DevOS Repository Foundation (`ML-DEVOS-RFC-001`) as part of the active Sentinel baseline and the explicit `v1.3.0 → v1.4.0` version transition, per Paulo decision `D-017` and Architect Syncs `ML-DEVOS-AS-006`/`ML-DEVOS-AS-007`.
 - `ML-DEVOS-ADR-003.md` — records adoption of the MaisogLabs `WEB-INC-005` local/repository D1 revision substrate (`ML-DEVOS-RFC-003`) alongside the still-authoritative `data/site.js` public content source, after `ML-DEVOS-AS-014` accepted the implementation/remediation sequence. Product architecture only; no Sentinel version bump, remote D1, public cutover, deployment, or later WEB-INC authorization.
