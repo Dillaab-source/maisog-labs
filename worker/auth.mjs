@@ -13,6 +13,21 @@ export function isProtectedPath(pathname) {
   return PROTECTED_PATH_PATTERN.test(pathname);
 }
 
+// WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031,
+// AS28-F003/F010): the first and only public path this Worker widens
+// `assets.run_worker_first` for beyond the admin boundary. These routes are
+// deliberately public/unauthenticated/read-only — classifying them here,
+// before isProtectedPath/the Access-auth branch even runs, is what makes
+// "public routes must never inherit admin authentication requirements, and
+// admin routes must never bypass Access because public Journal routing
+// exists" (AS28-F010) a structural property of handleRequest below, not
+// just a convention.
+const PUBLIC_JOURNAL_API_PATH_PATTERN = /^\/api\/journal(\/.*)?$/;
+
+export function isPublicJournalApiPath(pathname) {
+  return PUBLIC_JOURNAL_API_PATH_PATTERN.test(pathname);
+}
+
 // The literal placeholder values committed in wrangler.jsonc. If either is
 // ever actually deployed unchanged, that is a misconfiguration, not a valid
 // team domain/audience, and must fail closed exactly like a missing value.
@@ -131,8 +146,21 @@ function extractMutationSubject(payload) {
 // CONFIG → VERIFY ACCESS ASSERTION → ROUTE/METHOD DISPATCH → MUTATION/READ`
 // (AS15-F002/AS20-F003): no dispatch decision, D1 call, or route
 // classification can happen before the token is verified.
-export async function handleRequest(request, { assets, teamDomain, audience, getJWKS, dispatch }) {
+//
+// `publicDispatch({ request, url })` (WEB-INC-006, optional) is the one
+// exception to that ordering, by design (AS28-F010): the exact
+// `/api/journal`/`/api/journal/*` paths are classified and handled first,
+// before isProtectedPath/Access verification ever runs, since they are
+// intentionally public and read-only. No Access assertion is checked, no
+// `sub` is extracted, and the admin `dispatch` branch below is never
+// reached for these paths.
+export async function handleRequest(request, { assets, teamDomain, audience, getJWKS, dispatch, publicDispatch }) {
   const url = new URL(request.url);
+
+  if (isPublicJournalApiPath(url.pathname)) {
+    if (publicDispatch) return publicDispatch({ request, url });
+    return assets.fetch(request);
+  }
 
   if (!isProtectedPath(url.pathname)) {
     return assets.fetch(request);

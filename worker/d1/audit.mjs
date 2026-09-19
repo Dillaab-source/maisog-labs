@@ -48,6 +48,14 @@ const AUDIT_INSERT_WITH_PROJECT_REVISION_LOOKUP_SQL =
   "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
   "VALUES (?, ?, ?, ?, ?, (SELECT id FROM project_revisions WHERE project_id = ? AND revision_number = ?), ?)";
 
+// WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031)
+// addition: the same fixed audit INSERT shape, but with revision_id
+// resolved via a same-transaction subquery against journal_entry_revisions
+// instead — see buildJournalRevisionAuditStatement below.
+const AUDIT_INSERT_WITH_JOURNAL_REVISION_LOOKUP_SQL =
+  "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
+  "VALUES (?, ?, ?, ?, ?, (SELECT id FROM journal_entry_revisions WHERE journal_entry_id = ? AND revision_number = ?), ?)";
+
 function fail(message) {
   throw new Error(`invalid audit event: ${message}`);
 }
@@ -180,6 +188,38 @@ export function buildProjectRevisionAuditStatement(db, { actor, action, entityId
       validated.entityType,
       validated.entityId,
       projectId,
+      revisionNumber,
+      validated.result
+    );
+}
+
+// WEB-INC-006 addition: the journal-entry equivalent of
+// buildProjectRevisionAuditStatement above, for exactly the same reason —
+// journal create-draft/edit-draft each insert a brand-new
+// journal_entry_revisions row inside the same db.batch() transaction that
+// must also record that row's id as the audit event's revision_id, and its
+// autoincrement id is not known in JS until after the INSERT runs. Same
+// same-transaction subquery strategy, keyed on journal_entry_revisions'
+// UNIQUE (journal_entry_id, revision_number) constraint. entityType is
+// fixed to "journal_entry" by this function, never caller-supplied.
+export function buildJournalRevisionAuditStatement(db, { actor, action, entityId, journalEntryId, revisionNumber, result }) {
+  const validated = validateCoreFields({ actor, action, entityType: "journal_entry", entityId, result });
+  if (typeof journalEntryId !== "string" || !ENTITY_ID_PATTERN.test(journalEntryId)) {
+    fail("journalEntryId must be a bounded id string");
+  }
+  if (!Number.isSafeInteger(revisionNumber) || revisionNumber < 1) {
+    fail("revisionNumber must be a positive safe integer");
+  }
+  const occurredAt = new Date().toISOString();
+  return db
+    .prepare(AUDIT_INSERT_WITH_JOURNAL_REVISION_LOOKUP_SQL)
+    .bind(
+      occurredAt,
+      validated.actor,
+      validated.action,
+      validated.entityType,
+      validated.entityId,
+      journalEntryId,
       revisionNumber,
       validated.result
     );

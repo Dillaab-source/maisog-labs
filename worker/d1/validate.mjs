@@ -327,3 +327,84 @@ export function validateMediaId(id) {
   }
   return id;
 }
+
+// WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031)
+// addition: journal entry slug/id use the exact same bounded shape as
+// `validateProjectSlug`/`validateProjectId` above, plus two journal-specific
+// reserved names — `journal` (the public page route) and `api` (the public
+// API prefix) — so a journal slug can never collide with a real route
+// segment. Mirrors `migrations/0004_web_inc_006_journal.sql`'s
+// `journal_entries.slug` CHECK exactly.
+export const JOURNAL_RESERVED_SLUGS = [...RESERVED_SLUGS, "journal", "api"];
+
+export function validateJournalSlug(slug) {
+  if (typeof slug !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(slug)) {
+    throw new Error("journal slug: invalid format");
+  }
+  if (JOURNAL_RESERVED_SLUGS.includes(slug)) {
+    throw new Error("journal slug: reserved slug");
+  }
+  return slug;
+}
+
+export function validateJournalId(id) {
+  if (typeof id !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(id)) {
+    throw new Error("journal id: invalid format");
+  }
+  return id;
+}
+
+// Journal title/summary follow the exact same "trim first, validate/return
+// the trimmed value" pattern as `validateAltText` above (AS26-F009), so the
+// same normalized string is what gets stored and what every response
+// echoes back — never two different forms of the same input. Bounds match
+// `journal_entry_revisions`' own `title`/`summary` CHECK constraints
+// exactly (1-160 / 1-800 trimmed characters).
+export function validateJournalTitle(value) {
+  if (typeof value !== "string") {
+    throw new Error("journal title: invalid value");
+  }
+  const trimmed = value.trim();
+  if (trimmed.length < 1 || trimmed.length > 160 || hasControlOrAngleBracketChar(trimmed)) {
+    throw new Error("journal title: invalid value");
+  }
+  return trimmed;
+}
+
+export function validateJournalSummary(value) {
+  if (typeof value !== "string") {
+    throw new Error("journal summary: invalid value");
+  }
+  const trimmed = value.trim();
+  if (trimmed.length < 1 || trimmed.length > 800 || hasControlOrAngleBracketChar(trimmed)) {
+    throw new Error("journal summary: invalid value");
+  }
+  return trimmed;
+}
+
+// Journal body is plain text only (RFC-009 "body format ... plain text
+// only" — no HTML/Markdown execution/interpolation is ever attempted
+// anywhere in this repository, AS28-F006). Line endings are normalized to a
+// bare `\n` before any other check runs, so a value built from CRLF/CR
+// input is validated (and stored) in the same normalized form the database
+// CHECK expects (`instr(body, char(13)) = 0`,
+// migrations/0004_web_inc_006_journal.sql). Control characters other than
+// `\n`/`\t` and angle brackets are rejected — the same defense-in-depth
+// posture as every other text field in this file — and the normalized
+// value must not be entirely whitespace.
+export function validateJournalBody(value) {
+  if (typeof value !== "string") {
+    throw new Error("journal body: invalid value");
+  }
+  const normalized = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  if (normalized.length < 1 || normalized.length > 20000 || normalized.trim().length === 0) {
+    throw new Error("journal body: invalid value");
+  }
+  for (const ch of normalized) {
+    const code = ch.codePointAt(0);
+    if ((code <= 0x1f && code !== 0x0a && code !== 0x09) || ch === "<" || ch === ">") {
+      throw new Error("journal body: invalid value");
+    }
+  }
+  return normalized;
+}

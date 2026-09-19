@@ -18,8 +18,13 @@
     // authentication. Every other request continues to be served asset-first,
     // exactly as before this increment. Do not widen this list or set this to
     // `true` without a separately reviewed/authorized change (ML-DEVOS-AS-011
-    // AS11-F001).
-    "run_worker_first": ["/admin", "/admin/*"]
+    // AS11-F001). WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 /
+    // ML-DEVOS-AS-028 / D-031, AS28-F003) is the one authorized widening
+    // since: /api/journal and /api/journal/* are public, unauthenticated,
+    // GET-only, read-only paths, classified before the Access-auth admin
+    // dispatch in worker/auth.mjs's handleRequest (AS28-F010). No other
+    // public path becomes Worker-first.
+    "run_worker_first": ["/admin", "/admin/*", "/api/journal", "/api/journal/*"]
   },
   // Non-secret runtime configuration only (ML-DEVOS-RFC-002 §4). No secret,
   // private key, credential, or administrator identity is set here. Real

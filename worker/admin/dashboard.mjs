@@ -11,9 +11,11 @@
 import {
   readDashboardStatusRows,
   readSiteSettingsStatusRow,
+  readJournalDashboardStatusRows,
 } from "../d1/repository.mjs";
 import { isProjectsApiPath, handleProjectsDispatch } from "./projects.mjs";
 import { isMediaApiPath, handleMediaDispatch } from "./media.mjs";
+import { isJournalApiPath, handleJournalDispatch } from "./journal.mjs";
 
 export const DASHBOARD_PATH = "/admin/api/dashboard";
 
@@ -110,7 +112,7 @@ function serializeEntityRow(row, { includeSlug = false, includeSectionSummary = 
 // a fixed, read-only projection (worker/d1/repository.mjs) — no arbitrary
 // SQL, no caller-controlled table/column selection, no write of any kind.
 export async function buildDashboardPayload(db) {
-  const [siteSettingsRow, navigationRows, foundationsRows, projectsRows, servicesRows, processStepsRows, sectionsRows] =
+  const [siteSettingsRow, navigationRows, foundationsRows, projectsRows, servicesRows, processStepsRows, sectionsRows, journalRows] =
     await Promise.all([
       readSiteSettingsStatusRow(db),
       readDashboardStatusRows(db, "navigation"),
@@ -119,6 +121,7 @@ export async function buildDashboardPayload(db) {
       readDashboardStatusRows(db, "services"),
       readDashboardStatusRows(db, "processSteps"),
       readDashboardStatusRows(db, "sections"),
+      readJournalDashboardStatusRows(db),
     ]);
 
   return {
@@ -129,6 +132,11 @@ export async function buildDashboardPayload(db) {
     services: servicesRows.map(row => serializeEntityRow(row)),
     processSteps: processStepsRows.map(row => serializeEntityRow(row)),
     sections: sectionsRows.map(row => serializeEntityRow(row, { includeSectionSummary: true })),
+    // WEB-INC-006 (AS28-F012): bounded journal lifecycle metadata only —
+    // id/slug/state/publishedRevisionId/draftRevisionId/displayLabel, the
+    // exact same allowlisted shape every other entity collection above
+    // already uses. No summary/body field exists anywhere on this row.
+    journal: journalRows.map(row => serializeEntityRow(row, { includeSlug: true })),
   };
 }
 
@@ -177,6 +185,16 @@ export async function handleAdminDispatch({ request, url, assets, db, media, sub
   // upload/list reach.
   if (isMediaApiPath(pathname)) {
     return handleMediaDispatch({ request, url, db, media, sub });
+  }
+
+  // WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031):
+  // the only other authenticated editorial routes this repository exposes.
+  // Routed here, after the dashboard/projects/media checks above and
+  // before the generic "/admin/api/*" 404 fallback below, so none of those
+  // existing behaviors changes and no route outside this exact allowlist
+  // gains journal mutation reach.
+  if (isJournalApiPath(pathname)) {
+    return handleJournalDispatch({ request, url, db, sub });
   }
 
   if (isAdminApiPath(pathname)) {

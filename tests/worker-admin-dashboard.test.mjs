@@ -12,7 +12,7 @@ import { getPlatformProxy } from "wrangler";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
 import { handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
 import { handleAdminDispatch, buildDashboardPayload, DASHBOARD_PATH } from "../worker/admin/dashboard.mjs";
-import { applySchema } from "../worker/d1/schema.mjs";
+import { applySchema, applyJournalMigration } from "../worker/d1/schema.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 
@@ -92,6 +92,12 @@ async function openTestDb() {
     remoteBindings: false,
   });
   await applySchema(proxy.env.DB);
+  // WEB-INC-006: buildDashboardPayload now also reads journal_entries/
+  // journal_entry_revisions (AS28-F012). Applying only migration 0004 on
+  // top of 0001 is sufficient for this file's own dashboard-read tests —
+  // this fixture predates and does not need the audit (0002) or media
+  // (0003) migrations for anything it actually exercises.
+  await applyJournalMigration(proxy.env.DB);
   return {
     db: proxy.env.DB,
     async cleanup() {
@@ -334,6 +340,7 @@ test("authenticated GET /admin/api/dashboard reads seeded local D1 and returns t
       "services",
       "sections",
       "siteSettings",
+      "journal",
     ].sort());
 
     assert.deepEqual(body.siteSettings, {
@@ -443,11 +450,11 @@ test("the dashboard response excludes every non-allowlisted field, including sen
     }
 
     const body = JSON.parse(rawText);
-    const allowedTopLevelKeys = ["siteSettings", "navigation", "foundations", "projects", "services", "processSteps", "sections"];
+    const allowedTopLevelKeys = ["siteSettings", "navigation", "foundations", "projects", "services", "processSteps", "sections", "journal"];
     assert.deepEqual(Object.keys(body).sort(), [...allowedTopLevelKeys].sort());
 
     const allowedEntityKeys = ["id", "slug", "state", "publishedRevisionId", "draftRevisionId", "displayLabel", "order", "visible"];
-    for (const collection of ["navigation", "foundations", "projects", "services", "processSteps", "sections"]) {
+    for (const collection of ["navigation", "foundations", "projects", "services", "processSteps", "sections", "journal"]) {
       for (const item of body[collection]) {
         for (const key of Object.keys(item)) {
           assert.ok(allowedEntityKeys.includes(key), `unexpected key '${key}' in ${collection} item`);

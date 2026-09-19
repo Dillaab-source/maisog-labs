@@ -258,6 +258,36 @@ export async function readDashboardStatusRows(db, collectionKey) {
   return result.results;
 }
 
+// WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031,
+// AS28-F012) addition: the bounded journal lifecycle status the
+// authenticated dashboard may expose. Deliberately a standalone,
+// purpose-built query rather than a new `COLLECTIONS` entry — journal has
+// no `order`/visibility concept the generic collection abstraction assumes
+// (`sortRecords`/`readPublishedCollection`, used by the legacy parity
+// projection above), and this row shape is intentionally a narrower,
+// separate query so adding it can never affect `COLLECTIONS` or any
+// existing collection-keyed caller. The label column is `title` — the same
+// display-label precedence (`serializeEntityRow` in
+// worker/admin/dashboard.mjs) then reduces it to a bounded `displayLabel`,
+// exactly like `projects`. `summary`/`body` are never selected here, so
+// they can never reach the dashboard payload (AS28-F012 "must not expose
+// full body content by default").
+export async function readJournalDashboardStatusRows(db) {
+  const sql = `
+    SELECT je.id AS entity_id, je.slug AS slug,
+           je.published_revision_id AS published_revision_id,
+           je.draft_revision_id AS draft_revision_id,
+           pub.title AS published_label,
+           draft.title AS draft_label
+    FROM journal_entries je
+    LEFT JOIN journal_entry_revisions pub ON pub.id = je.published_revision_id AND pub.journal_entry_id = je.id
+    LEFT JOIN journal_entry_revisions draft ON draft.id = je.draft_revision_id AND draft.journal_entry_id = je.id
+    ORDER BY je.id
+  `;
+  const result = await db.prepare(sql).all();
+  return result.results;
+}
+
 export async function readSiteSettingsStatusRow(db) {
   const [pointerRow, published, draft] = await Promise.all([
     db.prepare("SELECT id, published_revision_id, draft_revision_id FROM site_settings WHERE id = 'default'").first(),

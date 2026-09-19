@@ -177,3 +177,32 @@ export function buildProjectMediaInsertStatements(db, { projectId, revisionNumbe
       .bind(projectId, revisionNumber, entry.mediaId, entry.role, entry.order)
   );
 }
+
+// WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031)
+// addition: the journal equivalent of readProjectMediaSnapshot above, for
+// AS28-F008's "inherit when edit omits media selection."
+export async function readJournalMediaSnapshot(db, journalEntryRevisionId) {
+  const result = await db
+    .prepare("SELECT media_id, role, sort_order FROM journal_media WHERE journal_entry_revision_id = ? ORDER BY sort_order, id")
+    .bind(journalEntryRevisionId)
+    .all();
+  return result.results.map(row => ({ mediaId: row.media_id, role: row.role, order: row.sort_order }));
+}
+
+// WEB-INC-006 addition: the journal equivalent of
+// buildProjectMediaInsertStatements above. `journalEntryId`/`revisionNumber`
+// — not a raw journal_entry_revision_id — for exactly the same reason: at
+// the point this batch is assembled, the new journal_entry_revisions row
+// has not been inserted yet, so each statement resolves its id via the
+// same same-transaction subquery pattern, keyed on journal_entry_revisions'
+// existing UNIQUE (journal_entry_id, revision_number) constraint.
+export function buildJournalMediaInsertStatements(db, { journalEntryId, revisionNumber, entries }) {
+  return entries.map(entry =>
+    db
+      .prepare(
+        "INSERT INTO journal_media (journal_entry_revision_id, media_id, role, sort_order) " +
+          "VALUES ((SELECT id FROM journal_entry_revisions WHERE journal_entry_id = ? AND revision_number = ?), ?, ?, ?)"
+      )
+      .bind(journalEntryId, revisionNumber, entry.mediaId, entry.role, entry.order)
+  );
+}

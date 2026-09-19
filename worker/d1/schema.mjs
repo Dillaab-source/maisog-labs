@@ -25,6 +25,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0001_web_inc_005_init.sql");
 const AUDIT_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0002_web_inc_008_audit_log.sql");
 const MEDIA_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0003_web_inc_004_media.sql");
+const JOURNAL_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0004_web_inc_006_journal.sql");
 
 // Exactly the 14 tables authorized by D-024 / ML-DEVOS-AS-013 (AS13-F002).
 // Order matches the authorized inventory in coordination/STATE.md.
@@ -133,4 +134,40 @@ export async function applyMediaMigration(db) {
 export async function applyAllMigrations(db) {
   await applyCurrentSchema(db);
   await applyMediaMigration(db);
+}
+
+// WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031)
+// addition (AS28-F002): exactly three new product tables, journal_entries,
+// journal_entry_revisions, and journal_media. Per AS28-F002/the RFC's
+// "migrations 0001-0003 must remain byte-identical" requirement, this does
+// not touch any export above — those remain the exact byte-for-byte
+// 17-table evidence that tests/worker-admin-projects.test.mjs and
+// tests/worker-admin-media.test.mjs already assert against via
+// ALL_PRODUCT_TABLE_NAMES/applyAllMigrations. The full (20-table) schema
+// gets its own, separately named exports instead.
+export const JOURNAL_TABLE_NAMES = ["journal_entries", "journal_entry_revisions", "journal_media"];
+
+export const FULL_PRODUCT_TABLE_NAMES = [...ALL_PRODUCT_TABLE_NAMES, ...JOURNAL_TABLE_NAMES];
+
+export function readJournalMigrationSql() {
+  return fs.readFileSync(JOURNAL_MIGRATION_SQL_PATH, "utf8");
+}
+
+// Applies only the WEB-INC-006 journal migration (0004). Callers that need
+// the full current schema should use applyFullSchema(db) below, which
+// applies 0001, 0002, 0003, then 0004 in order; this narrower export exists
+// so a test can apply the journal migration on top of a database that
+// already ran applyAllMigrations() without re-running 0001-0003.
+export async function applyJournalMigration(db) {
+  const statements = unstable_splitSqlQuery(readJournalMigrationSql()).filter(statement => statement.trim().length > 0);
+  await db.batch(statements.map(statement => db.prepare(statement)));
+}
+
+// Applies the full 20-table schema (0001, 0002, 0003, then 0004, in order)
+// to a D1 binding. Like every apply* export above, every statement is
+// CREATE TABLE/TRIGGER IF NOT EXISTS, so this is idempotent/safe to run
+// repeatedly (AS13-F009).
+export async function applyFullSchema(db) {
+  await applyAllMigrations(db);
+  await applyJournalMigration(db);
 }

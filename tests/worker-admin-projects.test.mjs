@@ -12,7 +12,7 @@ import { getPlatformProxy } from "wrangler";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
 import { handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
 import { handleAdminDispatch, buildDashboardPayload, DASHBOARD_PATH } from "../worker/admin/dashboard.mjs";
-import { applyAllMigrations, ALL_PRODUCT_TABLE_NAMES } from "../worker/d1/schema.mjs";
+import { applyAllMigrations, ALL_PRODUCT_TABLE_NAMES, applyJournalMigration } from "../worker/d1/schema.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 const ORIGIN = "https://maisoglabs.example";
@@ -1295,9 +1295,16 @@ test("the current schema remains exactly 17 product tables after project mutatio
   }
 });
 
-test("GET /admin/api/dashboard remains unchanged (same 7 keys, no audit/mutation data) after project mutation activity", async () => {
+test("GET /admin/api/dashboard remains unchanged (same 8 keys, no audit/mutation data) after project mutation activity", async () => {
   const { db, cleanup } = await openTestDb();
   try {
+    // WEB-INC-006: buildDashboardPayload now also reads journal_entries/
+    // journal_entry_revisions (AS28-F012). This file's own fixture
+    // (openTestDb, applyAllMigrations — the frozen 17-table WEB-INC-004
+    // evidence asserted just above) must not change, so the journal
+    // migration is applied additionally, only for this test.
+    await applyJournalMigration(db);
+
     const { privateKey, jwks } = await buildTestIdentity();
     const token = await signToken(privateKey);
     const created = await createProject(db, jwks, token);
@@ -1319,6 +1326,7 @@ test("GET /admin/api/dashboard remains unchanged (same 7 keys, no audit/mutation
       "services",
       "sections",
       "siteSettings",
+      "journal",
     ].sort());
     const rawText = JSON.stringify(payload);
     assert.ok(!rawText.toLowerCase().includes("audit"));

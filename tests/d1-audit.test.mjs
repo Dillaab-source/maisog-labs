@@ -9,7 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { getPlatformProxy } from "wrangler";
-import { applyCurrentSchema, CURRENT_PRODUCT_TABLE_NAMES } from "../worker/d1/schema.mjs";
+import { applyCurrentSchema, CURRENT_PRODUCT_TABLE_NAMES, applyJournalMigration } from "../worker/d1/schema.mjs";
 import { validateAuditEvent, appendAuditEvent } from "../worker/d1/audit.mjs";
 import { buildDashboardPayload } from "../worker/admin/dashboard.mjs";
 
@@ -290,6 +290,13 @@ test("audit_log declares no foreign key (logical references only)", async () => 
 test("buildDashboardPayload's output is unchanged and exposes no audit data even when audit_log has rows", async () => {
   const { db, cleanup } = await openTestDb();
   try {
+    // WEB-INC-006: buildDashboardPayload now also reads journal_entries/
+    // journal_entry_revisions (AS28-F012). This test's own fixture
+    // (openTestDb, applyCurrentSchema — the frozen 15-table WEB-INC-008
+    // evidence asserted elsewhere in this file) must not change, so the
+    // journal migration is applied additionally, only for this test.
+    await applyJournalMigration(db);
+
     await appendAuditEvent(db, validEvent({ actor: "SHOULD_NOT_LEAK_INTO_DASHBOARD" }));
     await appendAuditEvent(db, validEvent({ result: "failure" }));
 
@@ -303,6 +310,7 @@ test("buildDashboardPayload's output is unchanged and exposes no audit data even
       "services",
       "sections",
       "siteSettings",
+      "journal",
     ].sort());
 
     const rawText = JSON.stringify(payload);
