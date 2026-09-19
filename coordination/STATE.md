@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-003-PROJECT-MUTATION
-TURN: CLAUDE
-STATUS: REMEDIATION_AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_003_PROJECT_MUTATION_CAPABILITY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: a016cc2aafea494ad00ecfd79b545ccdcb0c1221
-LAST_ARCHITECT_REVIEWED_SHA: 23db231cc99725fd00637a18bd11ea37d2ef862c
+LAST_IMPLEMENTER_HANDOFF_SHA: a1ff241c5c4f912564627ee13824496ecf9b197b
+LAST_ARCHITECT_REVIEWED_SHA: 8307fcc70b29294db5637118ab9120e51f0435ff
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 MUTATION_AUTHORIZED: YES
@@ -390,10 +390,21 @@ When implementation/testing is complete:
 
 Claude must not self-approve and must not begin the next increment.
 
-## Builder handoff (this cycle)
+## Builder handoff (original implementation cycle)
 
-Implementation commit: `a016cc2aafea494ad00ecfd79b545ccdcb0c1221` on base `5ba7c496a05d2541324c5ecc565c1937ca023b1e`. Full detail, exact changed-file list, and the complete evidence log required above are in `coordination/IMPLEMENTER_HANDOFF.md`. Summary: exactly the five authorized routes implemented (`worker/admin/projects.mjs` + `worker/d1/projects.mjs`); mutation requires a bounded non-empty verified Access `sub` (empty-sub rejected `403`, zero D1 access); same-origin/JSON/bounded-body request hardening on every mutating route; create/edit each write one new immutable `project_revisions` row (never `UPDATE`d in place), slug immutable; existing-project mutations require `expectedPublishedRevisionId`/`expectedDraftRevisionId` and fail `409` on stale state with zero mutation; publish fully revalidates the persisted draft before atomically promoting it; every successful mutation and its success audit row commit as one `db.batch()` transaction, proven by a real-D1 test that forces a genuine SQL-level failure on the audit statement and confirms the paired project/revision insert rolls back with it (no `last_insert_rowid()`/preallocation — the same safe subquery pattern `worker/d1/migrate.mjs` already uses); bounded authenticated failures record `result: failure` audit rows; schema unchanged (still exactly 15 tables, both migration files byte-identical to base); `GET /admin/api/dashboard` unchanged; no delete, no other content-domain mutation, no admin UI, no remote D1, no public cutover, no deployment, no later `WEB-INC-*` work. `npm test`: 152/152 passing. The Implementer has not self-certified this as `ARCHITECT VERIFIED`.
+Implementation commit: `a016cc2aafea494ad00ecfd79b545ccdcb0c1221` on base `5ba7c496a05d2541324c5ecc565c1937ca023b1e`. Summary: exactly the five authorized routes implemented (`worker/admin/projects.mjs` + `worker/d1/projects.mjs`); mutation requires a bounded non-empty verified Access `sub`; same-origin/JSON/bounded-body request hardening; create/edit each write one new immutable `project_revisions` row; existing-project mutations require `expectedPublishedRevisionId`/`expectedDraftRevisionId`; every successful mutation and its success audit row commit as one `db.batch()` transaction; schema unchanged. `npm test`: 152/152 passing. Reviewed by `ML-DEVOS-AS-021`: 6 of 10 findings `PASS`, two (`AS21-F007`, `AS21-F008`) `BLOCKING` and two (`AS21-F009`, `AS21-F010`) `REQUIRED REMEDIATION`.
+
+## Builder handoff (Remediation Cycle 1 — this cycle)
+
+Remediation commit: `a1ff241c5c4f912564627ee13824496ecf9b197b` on remediation base `5f2991f1c26c79bdda687ff6b4adba4c8e00c50b`. Full detail, exact mechanism explanation, and the complete evidence log required above are in `coordination/IMPLEMENTER_HANDOFF.md`'s "WEB-INC-003 Remediation Cycle 1" section. Summary: closes `AS21-F007`–`F010` only.
+
+- **`AS21-F007`** (commit-time stale-write enforcement): `worker/d1/projects.mjs`'s edit/publish/unpublish pointer `UPDATE` statements now enforce `expectedPublishedRevisionId`/`expectedDraftRevisionId` inside the same atomic batch via a self-referential `CASE` guard evaluated against the row's live state; on mismatch, the guard's false branch writes the literal `'home'` into `slug`, which the existing unmodified `CHECK` constraint rejects — aborting the whole `db.batch()` transaction so no stale mutation and no false-success audit row can commit. Proven by three deterministic `interleavingDb`-based TOCTOU tests (edit/publish/unpublish vs a competing change) that would have passed silently under the old pre-read-only guard. The mechanism was empirically probed against a real local D1 instance first, which also ruled out SQLite's `changes()` function as unsuitable for this purpose.
+- **`AS21-F008`** (bounded mutation subject): `worker/auth.mjs`'s `extractMutationSubject` now trims and rejects empty/whitespace-only/oversized (`>90` chars)/non-printable-ASCII subjects before dispatch, guaranteeing the resulting `cf-access:<sub>` audit actor always fits `ACTOR_PATTERN`'s 100-char bound.
+- **`AS21-F009`** (true byte-limit): `worker/admin/projects.mjs`'s new `readBoundedBodyBytes` streams and counts real bytes (with an early `Content-Length` reject), replacing the old `String.length`-based check that multibyte content could bypass.
+- **`AS21-F010`** (route/DB ordering): `handleProjectsDispatch` now classifies route/method before checking for the DB binding, so unsupported routes/methods return `404`/`405` without requiring DB.
+
+`tests/worker-admin-projects.test.mjs` adds 12 tests (51 total). `npm test`: 164/164 passing. No schema/migration/route/domain change. Changed files this commit: `worker/d1/projects.mjs`, `worker/auth.mjs`, `worker/admin/projects.mjs`, `tests/worker-admin-projects.test.mjs`, `brain/TEST_LEDGER.md`. The Implementer has not self-certified this as `ARCHITECT VERIFIED`.
 
 ## Current gate
 
-`WEB-INC-003 IMPLEMENTATION HANDED OFF — TURN: ARCHITECT — INDEPENDENT REVIEW REQUIRED AGAINST RFC-006 / AS-020 / D-027 BEFORE ANY CLOSURE OR POST-REVIEW ADR`
+`WEB-INC-003 REMEDIATION CYCLE 1 HANDED OFF — TURN: ARCHITECT — INDEPENDENT REVIEW OF THE FOUR FIXES REQUIRED AGAINST AS-021 BEFORE ANY CLOSURE OR POST-REVIEW ADR`
