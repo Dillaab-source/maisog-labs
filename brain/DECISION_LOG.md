@@ -449,3 +449,21 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Explicitly not authorized:** remote D1/R2, production resource provisioning, public R2 object routes, homepage/project D1 cutover, deployment, protected/main merge, WEB-INC-007, Sentinel S3+, CI/rulesets/Capability Gateway/Task Engine/Orchestrator.
 - **Evidence class:** Builder test/runtime claims remain `ACTOR_REPORTED` until independent Architect review.
 - **Evidence of Paulo authority:** Paulo explicitly replied `Authorized` twice while WEB-INC-006 Journal was identified as the next active increment.
+
+
+### D-032 — Authorize WEB-INC-007 Theme / Design Controls implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-RFC-010` and `ML-DEVOS-AS-030`, under Sentinel governance-capability baseline `v1.5.0`.
+- **Decision:** Authorize Claude / Builder to implement **`WEB-INC-007 — Theme / Design Controls`** exactly within RFC-010 and AS30-F001 through AS30-F016.
+- **Authorized schema:** add exactly `theme_settings` and `theme_settings_revisions` via `migrations/0005_web_inc_007_theme.sql`; target exactly 22 product tables; migrations 0001–0004 remain byte-identical.
+- **Authorized section controls:** reuse existing `sections`/`section_revisions` for visibility/order of exactly `home`, `projects`, `process`, `about`.
+- **Authorized admin design routes:** bounded design status, preview, theme draft edit/publish, fixed-section draft edit/publish only.
+- **Authorized public read boundary:** exactly GET-only `/api/design`, published-only, positive allowlist, fail-safe to the static V3 + UI-PATCH-001 baseline.
+- **Authorized public runtime:** fixed mappings/data attributes/bounded numeric CSS variables only; no server-provided CSS/JS/HTML execution.
+- **Design input boundary:** fixed enums/presets and bounded integer ranges only. No arbitrary CSS, JS, HTML, color strings, font/image URLs, selectors, class names, custom-property names, R2 keys, or uploaded hero-object serving.
+- **Admin UI:** a bounded authenticated design-control UI may be added using selects/toggles/range controls and explicit Save Draft / Preview / Publish feedback.
+- **Audit:** only `theme_edit_draft`, `theme_publish`, `section_design_edit_draft`, `section_design_publish`.
+- **Local-only authority:** D1/R2 local simulation, repository changes, tests, build, local Wrangler smoke, visual evidence, dry-run/config checks.
+- **Explicitly not authorized:** remote D1/R2, production resource provisioning, public R2 object serving, arbitrary visual-code editor, general CMS expansion, homepage/project D1 content cutover, SSR conversion, deployment, protected/main merge, Sentinel S3+, CI/rulesets/Capability Gateway/Task Engine/Orchestrator.
+- **Evidence class:** Builder test/runtime/CLI/visual claims remain `ACTOR_REPORTED` until independent Architect review.
+- **Evidence of Paulo authority:** Paulo instructed `Okay proceed` after WEB-INC-006 closure/document reconciliation, with WEB-INC-007 identified as the sole remaining core increment.
