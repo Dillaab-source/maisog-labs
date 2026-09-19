@@ -1,142 +1,288 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — UI-PATCH-001 CLOSED`
+Status: `ARCHITECT_APPROVED — PAULO IMPLEMENTATION AUTHORIZATION RECORDED / BUILDER TURN MAY OPEN`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
 Working branch: `governance/maisoglabs-v0.1`
 
-# UI-PATCH-001 — Soft Geometry Pass Final Review
+---
 
-Cycle:
-- `MAISOGLABS-UI-PATCH-001-SOFT-GEOMETRY`
+# ML-DEVOS-AS-028 — WEB-INC-006 Local Journal Architecture Sync
 
-Paulo authorization:
-- `D-030`
+RFC:
+- `ML-DEVOS-RFC-009`
 
-Implementation brief:
-- `docs/product/UI_PATCH_001_SOFT_GEOMETRY.md`
+Product increment:
+- `WEB-INC-006 — Journal`
 
-Implementation base:
-- `4fac5ecc79394f9bb073961b24a923fccf04602b`
+Change class:
+- `ARCHITECTURE`
 
-Builder implementation:
-- `61db9abb3c1f246fdf43850843db7967ab291645`
+Reviewed proposal base:
+- `ec51e08f7ec69b313e661036b6197a0d759dfd9c`
 
-Builder handoff/state:
-- `c3ee19aace204a15636e787bf8d8a3849a6b2e6f`
+RFC commit:
+- `a1a927401d270bb53a8b0a93c121c72ca7208bcc`
 
-## Independent review
+Frozen Sentinel architecture:
+- `ML-DEVOS-ARCH-001 / v1.2.0`
 
-The Architect independently inspected:
+Active Sentinel governance-capability baseline:
+- `v1.5.0`
 
-- exact implementation/bookkeeping commit separation;
-- the before/after `app/globals.css`;
-- the radius-token hierarchy;
-- CTA/button geometry;
-- foundation/project/process/about panel geometry;
-- blueprint-frame softening;
-- border/divider alpha changes;
-- shadow changes;
-- responsive breakpoint edits;
-- the unchanged reduced-motion block;
-- compare metadata proving the implementation commit changes only `app/globals.css`.
+## Repository-grounded context
 
-Builder screenshot/test/build claims remain `ACTOR_REPORTED`.
+The Architect independently confirmed:
+
+- WEB-INC-004 is closed by `ML-DEVOS-AS-027` / `ML-DEVOS-ADR-007`;
+- current schema has 17 product tables;
+- current Worker-first routing is limited to `/admin` and `/admin/*`;
+- the accepted project mutation lifecycle already supplies the revision/pointer/stale-write/audit pattern Journal should reuse;
+- the accepted media subsystem already supplies immutable revision-scoped media snapshot semantics;
+- `WEB-REQ-009` is now defined in `docs/product/PRD.md`;
+- no Journal implementation exists yet.
 
 ## Findings
 
-### UI01-F001 — PASS — implementation is presentation-only
+### AS28-F001 — PASS — ARCHITECTURE classification is correct
 
-Implementation commit changes exactly one file:
+Although journal mutations reuse an existing capability pattern, WEB-INC-006 changes the system architecture by:
 
-- `app/globals.css`
+- adding three persistent tables;
+- adding a new public content type;
+- widening Worker-first routing beyond the admin boundary;
+- creating the first unauthenticated public Worker → D1 read path.
 
-No route, component logic, API, auth, Worker, D1, R2, schema, migration, dependency, content, or public-data-source file changed.
+The stronger architecture route is required.
 
-### UI01-F002 — PASS — soft geometry direction implemented coherently
+### AS28-F002 — PASS — table ownership is bounded
 
-A small radius hierarchy is introduced:
+RFC-009 permits exactly:
 
-- `--radius-sm: 10px`
-- `--radius-md: 16px`
-- `--radius-lg: 22px`
+- `journal_entries`;
+- `journal_entry_revisions`;
+- `journal_media`.
 
-The hierarchy is applied by component type rather than mechanically giving every element the same radius.
+Target product-table count is exactly:
 
-### UI01-F003 — PASS — sharp HUD treatment is reduced without losing system identity
+`17 → 20`
 
-The patch softens:
+No theme table, media table replacement, or unrelated schema is authorized.
 
-- header and primary CTAs;
-- foundation dock;
-- dock/panel/process icon containers;
-- project panels and their inset border;
-- rail controls;
-- process grid;
-- about panel;
-- blueprint frame/corner brackets;
-- hard divider/border alpha;
-- heavy shadow treatment.
+### AS28-F003 — PASS — public Worker boundary is explicit and narrow
 
-The existing cinematic palette, layout, orbital identity, and system language remain intact.
+The current `wrangler.jsonc` Worker-first list is admin-only.
 
-### UI01-F004 — PASS — responsive behavior remains coherent
+RFC-009 may widen it only for:
 
-The base geometry cascades to responsive breakpoints.
+- `/api/journal`;
+- `/api/journal/*`.
 
-Breakpoint-specific divider alpha values were updated consistently with the base treatment.
+Those routes are public, unauthenticated, read-only, GET-only paths.
 
-No responsive layout structure or hierarchy was redesigned.
+No other public request path becomes Worker-first.
 
-### UI01-F005 — PASS — reduced-motion/accessibility behavior preserved
+This is a deliberate architecture decision rather than an accidental side effect.
 
-The existing:
+### AS28-F004 — PASS — public-read isolation is strong
 
-`@media (prefers-reduced-motion: reduce)`
+The public index/detail contract follows only:
 
-block is unchanged.
+`journal_entries.published_revision_id`
 
-No new animation or timing behavior was introduced.
+and must never:
 
-Focus-visible behavior remains unchanged.
+- fall back to `draft_revision_id`;
+- expose draft-only entries;
+- expose unpublished entries;
+- expose an arbitrary historical revision.
 
-### UI01-F006 — PASS — no theme-system scope creep
+This preserves the core revision/publication invariant.
 
-The patch does not implement:
+### AS28-F005 — PASS — WEB-REQ-009 closes the missing public requirement gap
 
-- WEB-INC-007;
-- theme settings tables;
-- admin theme controls;
-- editable/free-form CSS/JS;
-- new design runtime/storage architecture.
+The build plan explicitly required a new stable public requirement before Journal implementation.
 
-This remains a bounded visual patch.
+`WEB-REQ-009` now owns:
 
-### UI01-F007 — ACCEPTED ACTOR_REPORTED validation
+- published-only public reads;
+- newest-published-first index ordering;
+- immutable-slug detail lookup;
+- draft/unpublished non-disclosure.
 
-Claude reports:
+No implementation may claim Journal public acceptance without proving it.
 
-- `npm test`: 209/209;
-- `npm run build`: success;
-- identical route set;
-- desktop/mobile before-after screenshot review;
-- no remote resources;
-- no deployment;
-- no main merge.
+### AS28-F006 — PASS — body format is deliberately simple and safe
 
-These remain `ACTOR_REPORTED`.
+RFC-009 resolves the previously-undecided body format to:
 
-For a one-file presentation-only patch, independent source/diff inspection plus the reported test/build evidence is sufficient.
+`plain text only`
 
-## Final verdict
+for this increment.
 
-`UI-PATCH-001: ARCHITECT_APPROVED — SOFT GEOMETRY PASS ACCEPTED`
+No Markdown execution, rich text engine, HTML interpolation, or `dangerouslySetInnerHTML` is authorized.
 
-Target direction achieved:
+This keeps WEB-INC-006 focused on publication architecture rather than content-renderer security.
 
-`cinematic + modern + calm + premium + soft-edged`
+### AS28-F007 — PASS — publication timestamp semantics are explicit
 
-without crossing into WEB-INC-007 or changing functional boundaries.
+`published_at` belongs to the revision and is server-controlled.
 
-No RFC or ADR is required for this bounded presentation patch.
+The only permitted post-insert revision mutation is:
+
+`published_at: NULL → generated timestamp`
+
+at first publication.
+
+The database must reject all other revision mutation and any second timestamp rewrite.
+
+This creates the chronological ordering signal without making ordinary revision content mutable.
+
+### AS28-F008 — PASS — journal media follows accepted immutable snapshot semantics
+
+`journal_media` is revision-scoped and must mirror the already-accepted `project_media` guarantees:
+
+- active existing media only;
+- immutable rows;
+- duplicate association prevention;
+- duplicate role/order slot prevention;
+- omitted edit media inherits source snapshot;
+- supplied media fully defines the new revision snapshot.
+
+No public R2 object-serving path is created.
+
+### AS28-F009 — PASS — protected mutation lifecycle reuses accepted controls
+
+Admin Journal routes are bounded to:
+
+- create draft;
+- edit draft;
+- preview;
+- publish;
+- unpublish.
+
+No delete, generic write, slug rename, or arbitrary mutation endpoint is authorized.
+
+Mutations remain subject to:
+
+- verified Access identity;
+- bounded subject;
+- same-origin;
+- bounded JSON body;
+- server-side validation;
+- expected pointer inputs;
+- commit-time stale-write protection;
+- audit success/failure semantics.
+
+### AS28-F010 — PASS — public and admin routing are separated
+
+The Builder must classify exact public Journal GET routes before the Access-auth admin dispatch.
+
+Public routes must never inherit admin authentication requirements.
+
+Admin routes must never bypass Access because public Journal routing exists.
+
+Tests must cover both directions.
+
+### AS28-F011 — PASS — static Next.js contract is preserved
+
+The public `/journal` route remains a static shell.
+
+It may fetch the public Journal API client-side.
+
+RFC-009 does not authorize:
+
+- SSR conversion;
+- server components reading D1 at runtime;
+- build-time D1 access;
+- replacing the static export deployment model.
+
+### AS28-F012 — PASS — dashboard scope is bounded
+
+The authenticated dashboard may gain Journal lifecycle metadata only.
+
+It must not expose journal body text by default.
+
+This is consistent with the dashboard's status/projection role.
+
+### AS28-F013 — PASS — audit extension is bounded
+
+Only these new audit actions are authorized:
+
+- `journal_create_draft`;
+- `journal_edit_draft`;
+- `journal_publish`;
+- `journal_unpublish`.
+
+No generic Journal audit action family is introduced.
+
+### AS28-F014 — PASS — local resource boundary remains intact
+
+D1 and R2 remain:
+
+`remote: false`
+
+No remote resource, production identifier, credential, public R2 domain, deployment, or cutover is authorized.
+
+CORE-019 real-remote-resource authority is therefore not activated by this local-only build.
+
+### AS28-F015 — PASS — no premature WEB-INC-007 or Sentinel expansion
+
+WEB-INC-006 does not authorize:
+
+- theme/design controls;
+- Sentinel S3+;
+- CI/rulesets;
+- Capability Gateway;
+- Task Engine;
+- Orchestrator.
+
+### AS28-F016 — PASS — evidence requirements are sufficient
+
+RFC-009 requires direct evidence for:
+
+- migration/table inventory;
+- pointer ownership;
+- revision immutability;
+- one-time publish timestamp;
+- media snapshots;
+- stale-write protection;
+- publish revalidation;
+- public non-disclosure;
+- routing separation;
+- audit behavior;
+- dashboard status;
+- full tests/build;
+- local Wrangler smoke;
+- no-remote confirmation.
+
+Builder runtime evidence remains `ACTOR_REPORTED` until Architect review.
+
+## Paulo gate
+
+Paulo explicitly authorized proceeding with the next increment twice after UI-PATCH-001 closure, including the instruction:
+
+`Authorized`
+
+The second authorization was given while WEB-INC-006 was explicitly identified as the active next Journal cycle.
+
+That satisfies the Paulo product/risk gate for the exact bounded RFC-009 implementation scope.
+
+It does not authorize deployment, remote resources, main merge, WEB-INC-007, or Sentinel expansion.
+
+## Verdict
+
+`ML-DEVOS-AS-028: ARCHITECT_APPROVED — WEB-INC-006 LOCAL JOURNAL ARCHITECTURE COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`
+
+Claude may be given a Builder turn only after:
+
+- RFC-009 status is updated to `ACCEPTED`;
+- D-031 records Paulo's bounded authorization;
+- `coordination/STATE.md` explicitly names WEB-INC-006 and keeps all remote/release gates closed.
+
+Because WEB-INC-006 is `ARCHITECTURE`, final accepted implementation requires:
+
+- independent Architect implementation review;
+- durable Architect Sync archive;
+- post-acceptance ADR.
