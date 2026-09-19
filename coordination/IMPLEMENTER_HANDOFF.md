@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — WEB-INC-007 Theme / Design Controls (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — WEB-INC-007 Theme / Design Controls, Remediation Cycle 1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**WEB-INC-007 update:** see the "WEB-INC-007 — Theme / Design Controls" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
+**WEB-INC-007 Remediation Cycle 1 update:** see the "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)" section at the very end of this document for the current cycle's exact scope, commit, and evidence. The "WEB-INC-007 — Theme / Design Controls" section just above it describes the original (pre-remediation) implementation and remains accurate as historical record for everything the remediation did not change. Everything above that (including "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
 
 ---
 
@@ -895,3 +895,104 @@ In all four files, dashboard-key-list assertions were updated to include the new
 ### Implementation commit
 
 The files above are committed to `governance/maisoglabs-v0.1` as commit `17577838d1007210cd1893fdb71ea8063d764fa8` on top of base `ac2666860195a6e1c151ae363f7d176b61c12cde`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)
+
+### Objective
+
+Remediate exactly the two blockers `ML-DEVOS-AS-032` raised against the original WEB-INC-007 implementation (`coordination/ARCHITECT_REVIEW.md`, durably archived at `devos/changes/architect-syncs/ML-DEVOS-AS-032.md`):
+
+- **AS32-B001** — the authenticated "Preview" surface returned formatted JSON only; there was no real visual draft preview a screenshot-reference session could use to review a draft against Brand V3/soft-geometry/responsive/contrast/reduced-motion before publish.
+- **AS32-B002** — `overlay_intensity`'s advertised `40..85` range silently saturated above the `68` baseline, because the CSS `opacity` property clamps at 1 and the runtime's only mapping was `intensity / 68`.
+
+Nine findings (`AS32-F001`–`AS32-F009`) already `PASS`ed independent review and are unaffected; per the remediation verdict, schema/table architecture, public route scope, design vocabularies/ranges, media architecture, and every resource/release gate remain out of scope for this cycle.
+
+### Base / result SHA
+
+- Remediation base (the prior cycle's bookkeeping commit, already Architect-reviewed): `07a30cbcaadf793550b30ced208bd2bf34e7e021`
+- Fast-forwarded to the Architect's review commit before starting: `a78a33bd7b910bbe17862085abbdaf9611836b0a`
+- Remediation implementation commit: `9773d76641bef0b9f57b94d78087438f4d2ffc15`
+
+### Exact changed files (5: 2 new, 3 modified) — nothing else
+
+**New (2):**
+- `lib/design/overlay.mjs` — the pure, DOM-free `overlay_intensity -> {opacity, boost}` mapping (AS32-B002), with its own direct unit test.
+- `tests/design-overlay.test.mjs` — 7 tests.
+
+**Modified (3):**
+- `app/DesignRuntime.js` — recognizes `?design-preview=1` and, only then, fetches the existing protected `GET /admin/api/design/preview` instead of the public `GET /api/design`, applying the result through the same `applyTheme`/`applySections` functions; falls back to the published projection on any failure (401 or otherwise). `applyOverlayIntensity` now delegates to `lib/design/overlay.mjs` instead of computing a single unbounded-above-1 value inline.
+- `app/admin/DesignControls.js` — adds two plain links ("Open Homepage Preview", "Open Journal Preview") to `/?design-preview=1` / `/journal?design-preview=1`; no new API call in this file.
+- `app/globals.css` — adds `.cinematic-background::before` as a second, independent darkening layer reading a new `--design-overlay-boost` custom property (0 at/below the 68 baseline, so invisible by default).
+
+**No server/worker/schema/routing file changed.** `worker/admin/design.mjs` (including `handlePreview`), `worker/public/design.mjs`, `worker/d1/*`, `migrations/*`, `wrangler.jsonc`, `app/page.js`, `app/layout.js`, and `app/admin/page.js` are all byte-identical — confirmed by `git diff --stat` against every one of those paths returning empty. No new public API route was added; `GET /admin/api/design/preview`'s handler, response shape, and authentication requirement are unchanged.
+
+### AS32-B001 remediation — visual authenticated draft preview
+
+**Mechanism** (the "preferred low-complexity solution" from the Architect review, implemented as described): `app/DesignRuntime.js` checks `new URLSearchParams(window.location.search).get("design-preview") === "1"` on every page load. When present, it fetches `/admin/api/design/preview` (same-origin, so an admin's browser that already holds a valid Cloudflare Access session sends it automatically, exactly as it would for any other request to that path) instead of `/api/design`, and applies the draft-if-present-else-published result through the *same* `applyTheme(root, data.theme)` / `applySections(data.sections)` functions the published path already used — there is no separate/parallel application code path, so nothing new could introduce an arbitrary-CSS/JS/HTML capability. If that fetch fails for any reason (401 because the visitor has no valid Access session, a network error, a malformed response), the `.catch` falls back to fetching and applying the ordinary published `/api/design` projection instead — a signed-out visitor who opens a `?design-preview=1` link therefore sees only the ordinary published/baseline presentation, never draft data. `app/admin/DesignControls.js` adds two plain `<a>` links deep-linking to `/?design-preview=1` and `/journal?design-preview=1` (`target="_blank"`) — they make no API call themselves; the preview mechanism lives entirely in `DesignRuntime.js`.
+
+**Required evidence:**
+
+1. **Visual preview of an unpublished theme draft** — a Playwright session with `page.route("**/admin/api/design/preview", ...)` intercepted to return a draft payload (`minimal-orbit` background, `solid-night` cards, `violet` accent, `opaque-night` panel, `off` animation) rendered `/?design-preview=1` with the violet-accented button and the minimal-orbit background clearly visible, replacing the default cinematic-v3/cobalt baseline.
+2. **Visual preview of unpublished section order/visibility** — the same intercepted draft payload set `projects.visible = false`; a full-page screenshot of the resulting render shows the page flowing directly from the hero to the Process section, with no Projects section at all (confirmed by visual inspection: the "From question to system" process heading immediately follows the hero, where "Explore the work" → Projects would otherwise appear).
+3. **Proof public `GET /api/design` remains unchanged/published-only** — `worker/public/design.mjs` is byte-identical (confirmed by `git diff --stat`); `tests/worker-public-design.test.mjs`'s 13 tests (unmodified) still pass unchanged.
+4. **Proof unauthenticated preview cannot retrieve draft data** — a second Playwright session with the same route intercepted to return `401 {"error":"Unauthorized"}` (simulating a visitor with no valid Cloudflare Access session, exactly like the real, unmodified `worker/admin/design.mjs` returns for an unauthenticated request) rendered `/?design-preview=1` and produced a screenshot pixel-identical in composition to the ordinary default baseline — cobalt accent button, cinematic-v3 cosmic background, no draft styling of any kind reached the page.
+5. **Source inspection showing preview still uses fixed design mappings** — `applyTheme`/`applySections` (the only two functions that ever touch the DOM from fetched data) are unchanged by this remediation and are the exact same functions the published path already used; every enum value they accept is still independently re-validated against a hardcoded vocabulary array, every numeric value is still bounds-checked, and `dangerouslySetInnerHTML`/`<style>`-from-string/`eval` remain absent (grepped and confirmed).
+6. **Screenshot evidence showing draft visual state before publish** — see item 1/2 above; captured while no D1 write of any kind occurred (the entire draft payload was a Playwright network-route mock, not a persisted database row), so "before publish" is unambiguous.
+7. **Default/public presentation remains unchanged until publish** — item 4's screenshot demonstrates this directly; additionally, a real (non-mocked) `wrangler dev` + `curl GET /api/design` continued to return only the actual published D1 state throughout this remediation (see command log below), never anything resembling the mocked draft payload.
+
+### AS32-B002 remediation — full-range overlay intensity
+
+**Mechanism**: `lib/design/overlay.mjs`'s `computeOverlayLayers(value)` returns `{ opacity, boost }`. For `value <= 68`: `opacity = value / 68` (unchanged from before — 0.588 at 40, up to 1 at 68), `boost = 0`. For `value > 68`: `opacity` is pinned to exactly `1` (never re-derived from a value that could exceed 1), and `boost = (value - 68) / (85 - 68)` scales linearly 0..1 across the upper half. `app/globals.css`'s new `.cinematic-background::before { opacity: var(--design-overlay-boost, 0); background: var(--night-deep); }` is a second, wholly independent CSS property from `::after`'s own `opacity` — it cannot be clamped away by the first layer's own saturation, so 70/75/85 each add progressively more darkening instead of silently becoming no-ops. At exactly 68, `boost = 0` and the `::before` layer is fully transparent, so the render is byte-identical to the pre-remediation baseline (which had no `::before` rule at all).
+
+**Required evidence:**
+
+1. **Source-level mapping inspection** — `lib/design/overlay.mjs` (26 lines of pure logic, no DOM/React dependency) plus `app/globals.css`'s new `.cinematic-background::before` rule.
+2. **Boundary tests at 40, 68, 85** — `tests/design-overlay.test.mjs`, 7 passing tests: baseline exactness (`68 -> {opacity:1, boost:0}`), minimum (`40 -> {opacity:0.588…, boost:0}`), maximum (`85 -> {opacity:1, boost:1}`), a monotonic "combined visual weight" (`opacity + boost`) check across 40/68/85, a strict-increase check across every value from 69 through 85 proving `boost` never plateaus, confirmation `opacity` stays exactly `1` throughout that same upper range (the property that used to silently saturate), and out-of-range/non-finite input handling.
+3. **Evidence that 40 < 68 < 85 in actual visual effect** — both the unit test's "combined visual weight" assertion (`opacity + boost` strictly increases: 40 → 0.588, 68 → 1.0, 85 → 2.0) and the screenshot comparison below.
+4. **Screenshot comparison at the three values** — a real (non-mocked) local Wrangler + D1 instance had its published `theme_settings_revisions.overlay_intensity` set to 40, then 68, then 85 in turn, with a fresh Playwright screenshot of `/` captured at each: 40 renders the brightest/most-visible cosmic background; 68 (the baseline) renders visibly darker at the frame edges than 40; 85 renders dramatically darker still, with the cosmic image almost entirely obscured — a clear, monotonic, unmistakable visual progression, not three visually-identical renders.
+5. **Baseline 68 remains equivalent to the accepted default** — the 68 screenshot in item 4 is visually indistinguishable from the pre-remediation default-baseline screenshot already on file from the original WEB-INC-007 evidence; `computeOverlayLayers(68)` returns exactly `{opacity: 1, boost: 0}`, the same effective CSS state (`::after` at opacity 1, `::before` fully transparent) as before this fix existed.
+
+### Local-only evidence — full command log (this remediation cycle)
+
+| Command | Result |
+|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `a78a33b...` (the Architect's `CHANGES_REQUESTED` review) before any file was touched |
+| `node --test tests/design-overlay.test.mjs` | 7 passed, 0 failed |
+| `npm test` (full suite) | 338 passed, 0 failed |
+| `npm run build` | Succeeded; routes `/`, `/_not-found`, `/admin`, `/journal`, all static |
+| `npx wrangler d1 migrations apply DB --local` (fresh `--persist-to` directory) | All five migrations `✅`, no `--remote` flag used |
+| Seed published `overlay_intensity = 40`, then `68` (reverted to the migration's own bootstrap row), then `85` via `wrangler d1 execute --local` (raw SQL, real CLI) | Each seed applied successfully; `curl GET /api/design` confirmed each value in turn |
+| `npx wrangler dev --local` + Playwright screenshots of `/` at each of the three real seeded overlay values | See "Screenshot comparison" above — monotonic, unmistakable darkening progression |
+| Playwright session with `page.route()` intercepting `/admin/api/design/preview` → `200` draft payload, `/api/design` → published baseline; navigate `/?design-preview=1` | Screenshot shows the draft theme (minimal-orbit/violet/opaque-night) applied |
+| Playwright session with `/admin/api/design/preview` intercepted → `401`; navigate `/?design-preview=1` | Screenshot is pixel-composition-identical to the ordinary default baseline — no draft leakage |
+| Playwright session with a hidden-`projects`-section draft payload, full-page screenshot | Confirms the Projects section is entirely absent from the render (hero flows directly into Process) |
+| Secret/config scan (`grep` for JWT/PEM/private-key markers, `Bearer` tokens, across every changed file) | Zero matches |
+| `git diff --stat` against every "not touched" path (`worker/*`, `migrations/*`, `wrangler.jsonc`, `app/page.js`, `app/layout.js`, `app/admin/page.js`) | Empty for every path |
+| `git diff --stat` (overall, this remediation commit) | 5 files changed (2 new, 3 modified) |
+
+Every D1/Wrangler command above used `--local`/local-simulation-only explicitly; none used `--remote`. No `wrangler deploy` was run this cycle (the prior cycle's `--dry-run` evidence stands unchanged, since no binding/config file changed).
+
+### Why real Cloudflare Access could not be used for the "authenticated" evidence, and why the Playwright route-interception substitute is sound
+
+`wrangler.jsonc`'s `ACCESS_TEAM_DOMAIN`/`ACCESS_AUD` remain their committed placeholder values (deliberately, per WEB-INC-001/AS12-F001) — `worker/auth.mjs`'s `isValidAuthConfig` fails closed before any JWKS lookup whenever they are unchanged, so a real local `wrangler dev` process can never actually authenticate an admin request, by design, in this repository. This is the same constraint every prior cycle's "local Wrangler smoke" evidence already worked within (their admin-route curl evidence was always the *unauthenticated*-rejection path only). The Node test suite already covers the server-side authenticated behavior of `GET /admin/api/design/preview` directly against `handleRequest`/`handleAdminDispatch`/`handleDesignDispatch` with a locally-generated JWKS (`tests/worker-admin-design.test.mjs`, unchanged and still passing) — that evidence is unaffected by this remediation, since the preview handler itself was not touched. What is genuinely new in this remediation is the *client* behavior added to `app/DesignRuntime.js`, which is exactly what the Playwright `page.route()` interception evidence above directly exercises in a real browser: it proves the client correctly calls the protected endpoint, correctly applies a successful (mocked-200) response, and correctly falls back on a failed (mocked-401) response — the full round-trip a real Access session vs. no session would produce, without needing a real Cloudflare Access deployment (which this repository is not authorized to provision).
+
+### Known limitations (remediation-specific)
+
+- The "authenticated" preview scenario is demonstrated via Playwright network-route interception rather than a real Cloudflare Access session, for the structural reason explained above; the underlying protected-endpoint behavior itself (401 without a valid Access assertion, 200 with one) is unchanged and already covered by the existing Node test suite.
+- No visible "you are in preview mode" banner was added to the public pages; the remediation's required evidence did not call for one, and adding new UI surface beyond what AS32-B001 asked for risked exceeding this cycle's bounded scope.
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made.
+
+### Explicit confirmations (remediation-specific)
+
+- **No new public API route was added.** `/api/design` is unchanged; `/admin/api/design/preview` is the same pre-existing protected endpoint, unchanged.
+- **No new arbitrary CSS/JS/HTML/URL/color/token capability was introduced.** The preview mechanism reuses the exact same `applyTheme`/`applySections` fixed-mapping functions as the published path.
+- **No SSR conversion, no D1 import into `app/`, no homepage/project content-source change.** `npm run build` confirms all four routes remain static.
+- **No remote D1/R2, no deployment, no main merge.** `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged.
+- **No schema/table/route/vocabulary/range scope reopened.** Only the two named blockers (AS32-B001, AS32-B002) were remediated; `AS32-F001`–`AS32-F009` required no changes and received none.
+- **The Implementer has not self-certified this remediation as `ARCHITECT VERIFIED`.** All runtime/test/visual/CLI evidence above remains `ACTOR_REPORTED` until independently reviewed.
+
+### Remediation commit
+
+The files above are committed to `governance/maisoglabs-v0.1` as commit `9773d76641bef0b9f57b94d78087438f4d2ffc15` on top of base `a78a33bd7b910bbe17862085abbdaf9611836b0a`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

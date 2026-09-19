@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-007-THEME-DESIGN-CONTROLS
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_007_THEME_DESIGN_CONTROLS_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 17577838d1007210cd1893fdb71ea8063d764fa8
+LAST_IMPLEMENTER_HANDOFF_SHA: 9773d76641bef0b9f57b94d78087438f4d2ffc15
 LAST_ARCHITECT_REVIEWED_SHA: 17577838d1007210cd1893fdb71ea8063d764fa8
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -185,6 +185,18 @@ Builder must remediate only:
 
 No other scope expansion is authorized.
 
+### Remediation Cycle 1 — Builder handoff
+
+Both blockers are remediated and submitted for Architect review. See `coordination/IMPLEMENTER_HANDOFF.md`, section "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)", for the complete evidence set.
+
+- Remediation base: `a78a33bd7b910bbe17862085abbdaf9611836b0a` (the Architect's `CHANGES_REQUESTED` review commit)
+- Remediation commit: `9773d76641bef0b9f57b94d78087438f4d2ffc15` (5 files: 2 new, 3 modified — no server/worker/schema/routing file changed)
+- `AS32-B001`: `app/DesignRuntime.js` recognizes `?design-preview=1` and fetches the existing protected `GET /admin/api/design/preview` (no new public API) through the same fixed-mapping application functions; falls back safely to the published projection on any failure. `app/admin/DesignControls.js` adds "Open Homepage Preview"/"Open Journal Preview" links. Evidence: Playwright route-interception sessions proving both the authenticated-draft-applied case and the unauthenticated-falls-back-to-baseline case, plus a full-page screenshot proving a hidden draft section is genuinely absent from the render.
+- `AS32-B002`: new pure module `lib/design/overlay.mjs` splits the 40..85 range into an unchanged 40..68 opacity mapping and a new, independent 68..85 `--design-overlay-boost` darkening layer (`app/globals.css`'s new `.cinematic-background::before`) that cannot be clamped away — 68 remains byte-identical to the prior baseline. Evidence: 7 new unit tests plus real seeded-published-theme screenshots at 40/68/85 showing a clear, monotonic darkening progression.
+- Tests: 7 new (`tests/design-overlay.test.mjs`); full suite 338/338 passing; `npm run build` still produces four static routes.
+- All runtime/test/visual evidence remains `ACTOR_REPORTED` — no self-certification made.
+- `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` unchanged; no remote D1/R2 touched; no schema/table/route/vocabulary/range scope reopened.
+
 ## Current gate
 
-`WEB-INC-007 REMEDIATION CYCLE 1 — CLAUDE TO FIX AS32-B001 / AS32-B002 ONLY AND RETURN TO ARCHITECT`
+`WEB-INC-007 REMEDIATION CYCLE 1 SUBMITTED — READY_FOR_ARCHITECT REVIEW`
