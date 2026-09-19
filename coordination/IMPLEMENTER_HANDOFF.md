@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — UI-PATCH-001 Soft Geometry Pass (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — WEB-INC-006 Local Journal Subsystem (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**UI-PATCH-001 update:** see the "UI-PATCH-001 — Soft Geometry Pass" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
+**WEB-INC-006 update:** see the "WEB-INC-006 — Local Journal Subsystem" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
 
 ---
 
@@ -597,3 +597,143 @@ No deployment, no remote resource, no `wrangler` D1/R2 command of any kind was r
 ### Implementation commit
 
 The file above is committed to `governance/maisoglabs-v0.1` as commit `61db9abb3c1f246fdf43850843db7967ab291645` on top of base `4fac5ecc79394f9bb073961b24a923fccf04602b`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-INC-006 — Local Journal Subsystem
+
+Cycle ID: `MAISOGLABS-WEB-INC-006-JOURNAL`
+
+Authority chain: `WEB-REQ-009` → `ML-DEVOS-RFC-009` → `ML-DEVOS-AS-028` (`ARCHITECT_APPROVED — WEB-INC-006 LOCAL JOURNAL ARCHITECTURE COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`) → `D-031` (Paulo: authorized twice via `Authorized`, with WEB-INC-006 Journal explicitly identified as the active next cycle).
+
+### Objective
+
+Add a locally-simulated Journal content type bounded to exactly the scope AS28-F001–F016 authorize: three new tables (`journal_entries`, `journal_entry_revisions`, `journal_media`), the protected admin journal lifecycle (create/edit/preview/publish/unpublish), bounded journal status in the authenticated dashboard, the first public/unauthenticated Worker read API (`GET /api/journal`, `GET /api/journal/:slug`), and a statically exported `/journal` shell that consumes it. No journal delete, no slug rename, no Markdown/HTML rendering, no public media-object serving, no remote resource, no deployment, no main merge, no WEB-INC-007, no Sentinel S3+.
+
+### Branch / commit state
+
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `28039221fc2b6fede35cee7ce02ff76be3dbcea0` — matches exactly the SHA the request required.
+- Result SHA (implementation commit): `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e`
+- Read in full before any edit, in the exact required order: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-028`, all 16 findings `AS28-F001`–`F016`), `devos/changes/rfcs/ML-DEVOS-RFC-009.md` (full, 446 lines), `devos/changes/architect-syncs/ML-DEVOS-AS-028.md` (confirmed byte-identical durable archive of the concluding rolling review), `brain/DECISION_LOG.md`'s `D-031` entry, `docs/product/PRD.md`'s `WEB-REQ-009` entry, `docs/product/BUILD_PLAN.md`'s `WEB-INC-006` ownership section, `docs/product/DATA_BACKEND_SPEC.md`'s `journal_entries`/`journal_entry_revisions`/`journal_media` sections, `docs/product/APP_FLOW.md`'s journal flow references. Also re-read `worker/d1/schema.mjs`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `worker/d1/media.mjs`, `worker/d1/audit.mjs`, `worker/d1/validate.mjs`, `worker/auth.mjs`, `worker/index.mjs`, `worker/admin/dashboard.mjs`, `worker/d1/repository.mjs`, `wrangler.jsonc`, `app/page.js`, `app/layout.js`, and `components/Logo.js` in full to plan an implementation that reuses every already-accepted pattern rather than inventing new ones, and confirmed via `git diff` after implementation that the historical migrations/modules stayed byte-identical where required.
+
+### Exact changed-file list — 21 files (8 new, 13 modified)
+
+**New (8):**
+- `migrations/0004_web_inc_006_journal.sql` — `journal_entries`, `journal_entry_revisions` (immutable-by-trigger except the one-time `published_at` transition), `journal_media` (mirrors `project_media`'s immutability/duplicate-association/duplicate-slot triggers exactly)
+- `worker/d1/journal.mjs` — journal mutation D1 helpers (`validateJournalRevisionContent`, `buildCreateDraftBatch`/`buildEditDraftBatch`/`buildPublishBatch`/`buildUnpublishBatch`, the commit-time stale-write guard) mirroring `worker/d1/projects.mjs`
+- `worker/admin/journal.mjs` — the admin HTTP dispatcher for the five authorized routes, mirroring `worker/admin/projects.mjs`'s exact request-hardening/stale-write/revalidation conventions, extended to also revalidate referenced media at publish time
+- `worker/public/journal.mjs` — the public, unauthenticated, GET-only journal read API
+- `app/journal/page.js`, `app/journal/JournalClient.js` — the statically exported `/journal` shell and its client-side fetch/render component
+- `tests/worker-admin-journal.test.mjs` — 44 new tests
+- `tests/worker-public-journal.test.mjs` — 16 new tests
+
+**Modified, substantive (10):**
+- `worker/d1/schema.mjs` — purely additive: `JOURNAL_TABLE_NAMES`, `FULL_PRODUCT_TABLE_NAMES`, `readJournalMigrationSql()`, `applyJournalMigration(db)`, `applyFullSchema(db)`. Every pre-existing export (`AUTHORIZED_TABLE_NAMES`, `CURRENT_PRODUCT_TABLE_NAMES`, `ALL_PRODUCT_TABLE_NAMES`, `applySchema`, `applyAuditMigration`, `applyCurrentSchema`, `applyMediaMigration`, `applyAllMigrations`, `listProductTables`) is byte-unchanged.
+- `worker/d1/validate.mjs` — purely additive: `validateJournalSlug`/`validateJournalId` (mirroring `validateProjectSlug`/`validateProjectId`, plus reserved `journal`/`api` names), `validateJournalTitle`/`validateJournalSummary` (the same trim-and-return-normalized pattern as `validateAltText`), `validateJournalBody` (line-ending normalization, plain-text-only character bounds).
+- `worker/d1/audit.mjs` — purely additive: `buildJournalRevisionAuditStatement`, the journal equivalent of `buildProjectRevisionAuditStatement`.
+- `worker/d1/media.mjs` — purely additive: `readJournalMediaSnapshot`, `buildJournalMediaInsertStatements`, the journal equivalents of the existing project-media helpers already living in this file.
+- `worker/d1/repository.mjs` — purely additive: `readJournalDashboardStatusRows`, a standalone bounded query (not a new `COLLECTIONS` entry, since journal has no order/visibility concept the generic collection abstraction assumes) — `COLLECTIONS`/`readPublishedCollection`/the legacy parity projection are untouched.
+- `worker/auth.mjs` — adds `isPublicJournalApiPath` and one new branch at the very top of `handleRequest`, classified before `isProtectedPath`/any Access verification, dispatching to an optional new `publicDispatch` callback. Every existing branch/behavior is unchanged for every other path.
+- `worker/index.mjs` — wires `publicDispatch` to the new `handlePublicJournalDispatch`, threading `env.DB` only (no `env.MEDIA` needed for public reads).
+- `worker/admin/dashboard.mjs` — routes `/admin/api/journal*` to the new `handleJournalDispatch`, and adds a `journal` key to `buildDashboardPayload`'s output (bounded lifecycle metadata only).
+- `wrangler.jsonc` — widens `assets.run_worker_first` to add exactly `/api/journal` and `/api/journal/*` alongside the existing `/admin`/`/admin/*`.
+- `app/globals.css` — adds a bounded set of new `.journal-*` classes for the new page, reusing the existing V3/soft-geometry color/radius tokens; no existing rule was changed.
+
+**Modified, test-fixture-only (3):** `tests/worker-admin-dashboard.test.mjs`, `tests/d1-audit.test.mjs`, `tests/worker-admin-projects.test.mjs` — see "Test fixture updates" below.
+
+**No other file changed.** In particular: `migrations/0001_web_inc_005_init.sql`/`0002_web_inc_008_audit_log.sql`/`0003_web_inc_004_media.sql`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `app/page.js`, `data/site.js`, `lib/content/*`, and `package.json`/`package-lock.json` are all byte-identical — confirmed by `git diff --stat` against every one of those paths returning empty.
+
+### Schema evidence (AS28-F002)
+
+`migrations/0004_web_inc_006_journal.sql` adds exactly three tables:
+- `journal_entries(id, slug, created_at, published_revision_id, draft_revision_id)` — identity + immutable metadata + pointers only, exactly like `projects`; `slug` `CHECK`-excludes the existing reserved names plus `journal`/`api`; the two composite foreign keys enforce that a pointer can only reference a revision owned by the same entry.
+- `journal_entry_revisions(id, journal_entry_id, revision_number, title, summary, body, published_at, created_at, created_by)` — `title`/`summary` use the exact `= trim(...) AND length(...) BETWEEN ...` backstop pattern as `media.alt_text` (1–160 / 1–800); `body` is bounded 1–20000 characters and rejects any embedded carriage-return byte (`instr(body, char(13)) = 0`), backstopping the application layer's line-ending normalization. `journal_entry_revisions_guard` (a `BEFORE UPDATE` trigger) rejects any change to any column except the one-time `published_at: NULL -> non-null` transition — a genuinely new, stronger-than-`project_revisions` immutability guarantee, per AS28-F007. `journal_entry_revisions_reject_delete` blocks all deletion.
+- `journal_media(id, journal_entry_revision_id, media_id, role, sort_order)` — byte-for-byte the same shape, the same two independent `UNIQUE` constraints (`(revision_id, media_id, role)` and `(revision_id, role, sort_order)`), and the same two immutability/non-delete triggers as `project_media`.
+
+Product-table count: `17 → 20`.
+
+### Empirical DDL/trigger validation (before finalizing the migration)
+
+A disposable scratch script (not committed) applied `applyFullSchema` against a real local D1 instance via `getPlatformProxy` and confirmed, in order: exactly 20 tables; a cross-entity pointer update rejected by the composite foreign key, an own-entity pointer update accepted; both new reserved slugs (`journal`, `api`) rejected by the `CHECK`; a direct `UPDATE` of `title` on an existing revision rejected; the one-time `published_at` transition accepted; a second `published_at` rewrite rejected; a true no-op update (identical values) accepted; a revision `DELETE` rejected; an untrimmed `title` insert rejected; a `body` containing a CR byte rejected; an empty `body` rejected; a duplicate `revision_number` rejected; `journal_media` duplicate-association and duplicate-slot inserts both rejected while a distinct valid slot succeeds; a direct `UPDATE`/`DELETE` against an existing `journal_media` row rejected; and a second `applyFullSchema` run confirmed idempotent. The script was deleted after use.
+
+### Admin lifecycle evidence (AS28-F009)
+
+- **Boundary**: identical to the accepted project lifecycle — verified Access first, bounded non-empty subject (403 if absent on any mutating route, but not on preview), same-origin, JSON-only, a byte-accurate bounded body reader (96 KiB budget — sized for a 20,000-character body at worst-case 4 bytes/char UTF-8 — implemented as its own separate copy, exactly like `worker/admin/media.mjs`'s, to avoid any risk of regressing the already-reviewed project/media byte-budget code), server-side field validation, explicit expected-pointer inputs on edit/publish/unpublish, and the same commit-time stale-write guard technique (`journalStalePointerGuardedSlugAssignment`, poisoning `slug` against the entry's own reserved-word `CHECK`) as `worker/d1/projects.mjs`'s accepted `stalePointerGuardedSlugAssignment`.
+- **Create draft**: one D1 batch — base entry, revision 1, optional `journal_media` snapshot inserts, draft pointer, success audit (`journal_create_draft`).
+- **Edit draft**: a new immutable revision; media omitted inherits the source revision's snapshot (current draft, else current published); media supplied fully replaces the new revision's snapshot; the prior revision and its `journal_media` rows are never touched.
+- **Preview**: authenticated, draft-only, returns the exact current draft's content and bounded media metadata; never falls back to published content.
+- **Publish**: fully re-reads and revalidates the persisted draft's content AND its referenced media's continued active state before promoting; atomic batch sets `published_at` (guarded `WHERE published_at IS NULL`), moves `published_revision_id`, clears `draft_revision_id`, appends success audit (`journal_publish`); the prior published revision is never deleted.
+- **Unpublish**: atomic batch clears `published_revision_id` only; every revision/media row, including the now-set `published_at`, survives untouched; appends success audit (`journal_unpublish`).
+- **Audit**: exactly the four authorized actions (`journal_create_draft`/`journal_edit_draft`/`journal_publish`/`journal_unpublish`), entity type `journal_entry`, success atomic with the business mutation, bounded `result: failure` rows on authenticated failure paths with a safe entity reference.
+
+### Public API evidence (AS28-F003/F004/F010)
+
+- **Routing separation**: `worker/auth.mjs`'s `handleRequest` classifies `isPublicJournalApiPath` as the very first branch — before `isProtectedPath`, before any `getJWKS`/Access-verification call. A dedicated test proves the public route is served even when `getJWKS` and the admin `dispatch` callback are both wired to throw if called at all; a companion test proves `/admin/api/*` still returns `401` with no token, unaffected by the new public branch.
+- **Published-only, never draft**: both `GET /api/journal` and `GET /api/journal/:slug` join only through `journal_entries.published_revision_id`; `draft_revision_id` is never read by either query. A draft-only entry, a published-then-unpublished ("archived") entry, and an entry with both a published and a newer draft revision are all covered by dedicated tests — the last one proves the *published* half is what's returned, with the draft half's distinguishing content never appearing in the response.
+- **Ordering**: `ORDER BY published_at DESC, id DESC` (the revision's own autoincrement id as the deterministic tie-break) — verified against a two-entry fixture.
+- **Positive allowlists**: index entries are exactly `{slug, title, summary, publishedAt, media}`; detail is exactly `{slug, title, summary, body, publishedAt, media}`; media entries are exactly `{id, contentType, altText, role, order}` — `storage_key`, `uploaded_by`, and any draft-revision id are never selected by the underlying SQL in the first place, not merely omitted at serialization time. Dedicated tests grep the raw response text for `storage_key`, the literal stored object path, `uploaded_by`, `cf-access`, and `draftrevisionid`.
+- **Fail-closed**: `POST`/`PUT`/`DELETE` on either route return `405` with zero D1 access; an unrecognized `/api/journal/x/y` sub-path returns `404` with zero D1 access; a missing `DB` binding returns `503` on both routes without crashing.
+
+### Dashboard evidence (AS28-F012)
+
+`buildDashboardPayload` gains a `journal` array using the exact same allowlisted shape (`serializeEntityRow(row, { includeSlug: true })`) every other entity collection already uses — `id`/`slug`/`state`/`publishedRevisionId`/`draftRevisionId`/`displayLabel` only. A dedicated test creates a journal entry with deliberately distinctive `summary`/`body` values and confirms neither appears anywhere in the serialized dashboard payload.
+
+### Static `/journal` shell evidence (AS28-F011)
+
+`npm run build` confirms `/journal` is prerendered as static content (`○ (Static)`), alongside the unchanged `/`, `/_not-found`, and `/admin` routes — no dynamic/SSR route was introduced. `app/journal/page.js` imports only `getPublicContent` (the existing static content module, unrelated to D1) and `components/Logo`; no D1 module is imported by anything under `app/`. `app/journal/JournalClient.js` is a `"use client"` component that fetches the two public API routes at runtime via `fetch()`; journal body content is rendered as a `<p>` element's plain text child — no `dangerouslySetInnerHTML` anywhere in the file (confirmed by `grep`).
+
+### Local-only evidence — full command log
+
+| Command | Result |
+|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `2803922...` before any file was touched |
+| Empirical scratch probe of the new migration's DDL/triggers against a real local D1 instance (not committed) | See "Empirical DDL/trigger validation" above — all assertions passed |
+| `node --test tests/worker-admin-journal.test.mjs` | 44 passed, 0 failed |
+| `node --test tests/worker-public-journal.test.mjs` | 16 passed, 0 failed |
+| `npm test` (full suite) | 269 passed, 0 failed |
+| `npm run build` | Succeeded; routes `/`, `/_not-found`, `/admin`, `/journal`, all static |
+| `npx wrangler d1 migrations apply DB --local` (fresh `--persist-to` directory) | `Resource location: local`; `0001` → 16 commands, `0002` → 5 commands, `0003` → 8 commands, `0004` → 9 commands, all four recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --json --command "SELECT name FROM sqlite_master WHERE type='table' ..."` (same fresh directory) | Returned exactly the 17 existing tables plus `journal_entries`/`journal_entry_revisions`/`journal_media` (20 product tables) alongside Wrangler's own `_cf_METADATA` bookkeeping table |
+| Seed one published journal entry via `wrangler d1 execute --local` (raw SQL, real CLI) | Row inserted successfully |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers/Miniflare runtime) | `GET /` → `200` (public unaffected); `GET /journal` → `200` (static shell); `GET /api/journal` → `200` with the seeded entry; `GET /api/journal/smoke-entry` → `200` with full detail; `GET /api/journal/does-not-exist` → `404`; `POST /api/journal` → `405`; `POST /admin/api/journal` (no token) → `401`; `GET /admin/api/journal/x/preview` (no token) → `401`; `GET /admin/api/dashboard` (no token) → `401`, unaffected; `GET /nope` → `404`, unaffected — every route behaves exactly as required in the real local runtime |
+| Headless-Chromium (Playwright, pre-installed browser) screenshot of `/journal` against the running `wrangler dev` instance | Index card renders the seeded entry; clicking it navigates to the query-param detail view and renders title/summary/body correctly, in the V3/soft-geometry visual language |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.MEDIA`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `remote: true`; "--dry-run: exiting now." |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, `remote:\s*true`, and AWS-style key patterns across every new/changed file — zero matches beyond explanatory "no secret" comments and deliberate `SECRET_*_SHOULD_NOT_LEAK` negative-test fixtures |
+| `git diff --stat` against every "not touched" path (`migrations/0001-0003`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `app/page.js`, `data/site.js`, `lib/content/*`, `package.json`) | Empty for every path |
+| `git diff --stat` (overall) | 21 files changed, all additive except the 3 test-fixture updates and the routing/dispatch wiring described above |
+
+Every D1/Wrangler command above used `--local`/local-simulation-only explicitly or performed no resource mutation at all (`--dry-run`); none used `--remote`.
+
+### Test fixture updates (why three existing files needed a one-line addition)
+
+`buildDashboardPayload` now unconditionally reads `journal_entries`/`journal_entry_revisions` (AS28-F012), so any test database that calls it needs those two tables to exist — a real deployment always applies all migrations together, but three existing test files each open their own database at a narrower, intentionally-frozen historical schema level:
+
+- `tests/worker-admin-dashboard.test.mjs` (`applySchema`, migration 0001 only) — its shared `openTestDb()` now also calls `applyJournalMigration`, since this file has no frozen table-count assertion of its own to protect.
+- `tests/d1-audit.test.mjs` (`applyCurrentSchema`, migrations 0001+0002) — this file's shared fixture is untouched (it protects two `assert.equal(tables.length, 15)` assertions that are `WEB-INC-008`'s own frozen evidence); only the one test that calls `buildDashboardPayload` additionally calls `applyJournalMigration(db)` locally, before that call.
+- `tests/worker-admin-projects.test.mjs` (`applyAllMigrations`, migrations 0001-0003) — same surgical approach: the shared fixture is untouched (it protects an `assert.equal(tables.length, 17)` assertion that is `WEB-INC-004`'s own frozen evidence); only the one dashboard-calling test additionally calls `applyJournalMigration(db)` locally.
+
+In all three files, the dashboard response's key-list assertions were updated to include the new `journal` key — the same kind of legitimate, intentional evolution as the `AS26-F008` remediation's 15→17-table assertion update, not a change to any file's own historical/frozen migration evidence.
+
+### Known limitations
+
+- No automated visual-regression test exists in this repository (pre-existing gap, `TEST-WEB-003: NOT IMPLEMENTED`) — the `/journal` page's visual verification above is this cycle's own screenshot check, not a permanent regression guard.
+- The publish-time media-revalidation guard (rejecting a draft whose referenced media has since become inactive) is exercised by directly setting `media.state = 'archived'` via raw SQL in the test, since no code path in this or any prior increment can reach that transition through an API — the guard exists and is proven to fire, but the scenario it guards against is not reachable through any authorized surface today.
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made.
+
+### Explicit confirmations
+
+- **No real/remote D1 or R2 was touched.** Both bindings remain `remote: false`; every D1/Wrangler command above ran `--local` or performed no mutation (`--dry-run`).
+- **No public media-object serving exists.** The public journal API returns only bounded media metadata (id/contentType/altText/role/order) — never a storage key, and no route serves raw object bytes.
+- **No journal delete, slug rename, or redirect-history capability exists.**
+- **No Markdown/HTML/rich-text execution exists anywhere** — `journal_entry_revisions.body` is plain text only, validated/normalized server-side, and rendered client-side as escaped plain text (no `dangerouslySetInnerHTML`).
+- **No homepage/projects public D1 cutover occurred.** `app/page.js`/`data/site.js`/`lib/content/*` are byte-unchanged; the public site's existing content continues to come from the same source as before this increment.
+- **No deployment occurred.** `npx wrangler deploy` was run only with `--dry-run`.
+- **No protected/`main` merge occurred.** All work is on `governance/maisoglabs-v0.1` (mirrored to `claude/phase-0-governance-scope-w8o3jp`).
+- **No `WEB-INC-007` or later increment's work began.** No theme table, no admin design controls, no free-form CSS/JS input.
+- **No Sentinel S3+/CI-rulesets/Capability-Gateway/Task-Engine/Orchestrator work began.**
+- **`MEDIA_MUTATION_AUTHORIZED` remains `NO`** — this increment adds no media upload/update/archive capability of any kind; it only ever reads already-active media rows. **`MUTATION_AUTHORIZED: YES`/`AUDIT_APPEND_AUTHORIZED: YES`** apply only to this exact bounded journal-lifecycle scope; **`REMOTE_R2_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`.** All runtime/test/visual evidence above remains `ACTOR_REPORTED` until independently reviewed.
+
+### Implementation commit
+
+The files above are committed to `governance/maisoglabs-v0.1` as commit `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e` on top of base `28039221fc2b6fede35cee7ce02ff76be3dbcea0`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

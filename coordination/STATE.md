@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-006-JOURNAL
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_006_LOCAL_JOURNAL_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: 61db9abb3c1f246fdf43850843db7967ab291645
+LAST_IMPLEMENTER_HANDOFF_SHA: cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e
 LAST_ARCHITECT_REVIEWED_SHA: 61db9abb3c1f246fdf43850843db7967ab291645
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -110,6 +110,18 @@ Builder must provide the RFC-009 evidence set, exact base/result SHA, exact chan
 
 Then stop.
 
+## Builder handoff
+
+WEB-INC-006 implementation is complete and submitted for Architect review. See `coordination/IMPLEMENTER_HANDOFF.md`, section "WEB-INC-006 — Local Journal Subsystem", for the complete evidence set.
+
+- Base SHA: `28039221fc2b6fede35cee7ce02ff76be3dbcea0`
+- Implementation commit: `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e` (21 files: 8 new, 13 modified — schema, D1 helpers, admin API, public API, dashboard integration, static `/journal` shell, 3 test-fixture updates)
+- Documentation/bookkeeping commit: this commit (updates `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` only)
+- Tests: 44 new admin-journal tests + 16 new public-journal tests, full suite 269/269 passing; `npm run build` succeeded with `/journal` prerendered static
+- Local Wrangler smoke test performed for both admin and public Journal paths (see handoff for full command log)
+- All runtime/test/visual evidence remains `ACTOR_REPORTED` — no self-certification made
+- `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` unchanged; no remote D1/R2 touched
+
 ## Current gate
 
-`WEB-INC-006 AUTHORIZED — CLAUDE TO IMPLEMENT BOUNDED LOCAL JOURNAL SUBSYSTEM AND HAND OFF FOR ARCHITECT REVIEW`
+`WEB-INC-006 SUBMITTED — READY_FOR_ARCHITECT REVIEW`
