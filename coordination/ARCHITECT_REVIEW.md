@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — WEB-INC-006 JOURNAL ACCEPTED`
+Status: `ARCHITECT_APPROVED — WEB-INC-007 IMPLEMENTATION MAY PROCEED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,22 +8,22 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-029 — WEB-INC-006 Final Implementation Review
+# ML-DEVOS-AS-030 — WEB-INC-007 Theme / Design Controls Architecture Sync
 
-Cycle:
-- `MAISOGLABS-WEB-INC-006-JOURNAL`
+RFC:
+- `ML-DEVOS-RFC-010`
 
-Authority chain:
-- `WEB-REQ-009 → ML-DEVOS-RFC-009 → ML-DEVOS-AS-028 → D-031`
+Product increment:
+- `WEB-INC-007 — Theme / Design Controls`
 
-Implementation base:
-- `28039221fc2b6fede35cee7ce02ff76be3dbcea0`
+Change class:
+- `ARCHITECTURE`
 
-Builder implementation:
-- `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e`
+Repository-grounded RFC base:
+- `d41dc1c3c3203ebab1b009d94bdfac17f490bd22`
 
-Builder handoff/state:
-- `5f4d07efdd5714de8c44225998a4d9c052888069`
+Current reviewed governance HEAD:
+- `22882030db10286af984b1807f832f6ae4fbe9b6`
 
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -31,297 +31,278 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.5.0`
 
-## Independent review
+## Repository-grounded context
 
-The Architect independently:
+The Architect independently confirmed:
 
-1. live-checked branch HEAD, STATE, and IMPLEMENTER_HANDOFF;
-2. separated the single implementation commit from the bookkeeping commit;
-3. inspected migration 0004;
-4. inspected Journal D1 mutation helpers;
-5. inspected protected admin Journal dispatch;
-6. inspected public Journal SQL and route dispatch;
-7. inspected Worker auth/public-routing separation;
-8. inspected Wrangler Worker-first route expansion;
-9. inspected the static `/journal` shell/client;
-10. inspected validation/media/dashboard/schema integration;
-11. inspected focused test source for pointer ownership, immutable revision/media behavior, stale writes, public draft non-disclosure, and publish-time media revalidation.
-
-Builder runtime/test/visual/CLI results remain `ACTOR_REPORTED`.
+- all dependency-ordered WEB increments before WEB-INC-007 are closed;
+- UI-PATCH-001 is closed and defines the accepted soft-geometry baseline;
+- current local schema contains 20 product tables;
+- no `theme_settings` table exists yet;
+- `sections` / `section_revisions` already own section visibility/order state;
+- current Worker-first public API widening is Journal-only;
+- no public `/api/design` path exists;
+- admin dashboard has no design-control UI;
+- `globals.css` already exposes stable presentation tokens and the V3/soft-geometry baseline;
+- static export remains the current site deployment model.
 
 ## Findings
 
-### AS29-F001 — PASS — implementation commit is bounded
+### AS30-F001 — PASS — ARCHITECTURE classification is correct
 
-Implementation commit `cdc8f84...` contains the Journal subsystem and its tests/presentation only.
+RFC-010 is not only an admin capability.
 
-Bookkeeping commit `5f4d07e...` contains coordination handoff/state only.
+It adds:
+- two persistent tables;
+- a public published-only Worker→D1 design read path;
+- a new Worker-first route;
+- a client runtime that applies published design state to static output;
+- mutation behavior against existing section revisions.
 
-No deployment or main merge is present.
+The stronger architecture path is appropriate.
 
-### AS29-F002 — PASS — schema target is exactly the authorized three-table addition
+### AS30-F002 — PASS — table ownership is bounded
 
-Migration 0004 adds exactly:
+WEB-INC-007 owns exactly:
 
-- `journal_entries`;
-- `journal_entry_revisions`;
-- `journal_media`.
+- `theme_settings`;
+- `theme_settings_revisions`.
 
-The schema helper preserves prior frozen exports and adds a separate full-schema path targeting 20 product tables.
+Target table count is exactly:
 
-No prior migration was modified by the implementation compare.
+`20 → 22`
 
-### AS29-F003 — PASS — pointer ownership is database-enforced
+Existing `sections` / `section_revisions` remain the owner of DESIGN-002/003 state.
 
-`journal_entries` uses composite foreign keys so:
+No duplicate section table or generic settings table is authorized.
 
-- `published_revision_id`;
-- `draft_revision_id`
+### AS30-F003 — PASS — DESIGN-001 does not create an unauthorized public media-serving dependency
 
-can reference only revisions belonging to the same journal entry.
+The RFC deliberately constrains hero/background selection to approved static/CSS presets.
 
-This prevents cross-entry pointer corruption.
+It does not accept:
 
-### AS29-F004 — PASS — journal revision content is immutable with a narrow publish transition
+- arbitrary URLs;
+- R2 keys;
+- upload identifiers;
+- data URIs;
+- free-form CSS background values.
 
-The database rejects ordinary UPDATE and DELETE of `journal_entry_revisions`.
+Therefore WEB-INC-007 does not silently authorize public R2 object serving or remote media infrastructure.
 
-The only accepted post-insert transition is:
+### AS30-F004 — PASS — DESIGN-014 is structurally bounded
 
-`published_at: NULL → non-null`
+Theme state is represented by:
 
-while all other revision fields remain unchanged.
+- fixed enums;
+- bounded integers;
+- fixed preset identifiers.
 
-Application publish generates the timestamp server-side.
+No admin-controlled:
 
-A second timestamp rewrite is rejected.
+- CSS text;
+- JS;
+- HTML;
+- selector;
+- custom property name;
+- arbitrary color string;
+- font URL;
+- asset URL
 
-### AS29-F005 — PASS — journal media is a revision-scoped immutable snapshot
+is accepted.
 
-`journal_media`:
+This satisfies the core safety intent of DESIGN-014 and WEB-SEC-010/013-adjacent controls.
 
-- belongs to `journal_entry_revisions.id`;
-- references existing `media.id`;
-- enforces role `cover|gallery`;
-- rejects duplicate association;
-- rejects duplicate role/order slot;
-- rejects UPDATE;
-- rejects DELETE.
+### AS30-F005 — PASS — draft/publish isolation is preserved
 
-Admin create/edit validates referenced media as active before constructing the snapshot.
+Theme changes follow:
 
-### AS29-F006 — PASS — create/edit lifecycle preserves immutable history
+`published_revision_id / draft_revision_id`
 
-Create inserts:
+exactly like the accepted content model.
 
-- base entity;
-- revision 1;
-- optional media snapshot;
-- draft pointer;
-- success audit
+Section design changes continue to use existing section revision pointers.
 
-in one batch.
+Public reads follow only published pointers.
 
-Edit creates a new revision.
+Preview reads draft state only behind authentication.
 
-When media is omitted, the source revision snapshot is inherited.
+No draft can reach the public design API before publish.
 
-When supplied, the supplied media list becomes the complete new snapshot.
+### AS30-F006 — PASS — static-export architecture is preserved
 
-Prior revisions and prior journal_media rows are not rewritten.
+The proposed public integration is:
 
-### AS29-F007 — PASS — stale-write protection is retained
+- static page markup;
+- small client design runtime;
+- published-only `GET /api/design`.
 
-Journal mutation reuses the accepted commit-time stale-pointer guard technique.
+The RFC does not authorize:
 
-Focused interleaving test source reproduces the same class of race already addressed for projects.
+- SSR conversion;
+- Next server components reading D1;
+- build-time D1 dependency;
+- dynamic HTML generation from D1.
 
-No last-write-wins behavior is intentionally introduced.
+The site remains statically exported.
 
-### AS29-F008 — PASS — publish revalidates persisted content and media
+### AS30-F007 — PASS — fail-safe baseline is explicit
 
-Before pointer promotion the handler:
+The existing V3 + UI-PATCH-001 presentation remains the default before design data loads and when the public design API fails.
 
-- re-reads the exact draft revision;
-- re-runs full Journal content validation;
-- reads the exact draft media snapshot;
-- verifies all referenced media still exist and remain active.
+A D1/API failure must not blank or materially break the public site.
 
-Only after those checks does it execute the atomic publish batch.
+This is especially important because design state affects the presentation layer.
 
-### AS29-F009 — PASS — public reads follow the published pointer only
+### AS30-F008 — PASS — public design route is narrow
 
-Public index SQL joins:
+The only new public API is:
 
-`journal_entries.published_revision_id → journal_entry_revisions.id`
+`GET /api/design`
 
-with ownership correlation to the same entry.
+No wildcard `/api/design/*` route is authorized.
 
-Public detail first resolves the entry's current published pointer and then reads exactly that owned revision.
+Unsupported methods must reject before D1 access.
 
-Neither query reads or falls back to `draft_revision_id`.
+The response is published-only and positive-allowlist only.
 
-Draft-only, unpublished, and superseding-draft content therefore have no authorized public read path.
+### AS30-F009 — PASS — admin design API is bounded
 
-### AS29-F010 — PASS — public index ordering is deterministic
+The protected route family is limited to:
 
-Index ordering is:
+- design status;
+- draft preview;
+- theme draft edit;
+- theme publish;
+- fixed-section draft edit;
+- fixed-section publish.
 
-`published_at DESC, revision_id DESC`
+No generic key/value mutation API is introduced.
 
-which provides newest-published-first behavior plus a deterministic tie-break.
+No delete or arbitrary new section creation is authorized.
 
-### AS29-F011 — PASS — public response projection is bounded
+### AS30-F010 — PASS — section scope is fixed
 
-Public index/detail select and return positive allowlists.
+Only:
 
-Journal media projection contains only:
+- `home`
+- `projects`
+- `process`
+- `about`
 
-- id;
-- content type;
-- alt text;
-- role;
-- order.
+may be controlled by DESIGN-002/003.
 
-No storage key, uploaded-by identity, draft pointer, audit data, or binding/resource information is selected for the public projection.
+No arbitrary DOM id, selector, or section name is accepted.
 
-### AS29-F012 — PASS — public/admin routing separation is structural
+The order range is bounded.
 
-`worker/auth.mjs` classifies only:
+### AS30-F011 — PASS — reduced-motion safety is one-way protective
 
-- `/api/journal`;
-- `/api/journal/*`
+Allowed modes are:
 
-into the public dispatch before Access verification.
+- `respect-system`;
+- `always-reduced`.
 
-All `/admin/*` paths continue through the existing Access verification flow.
+There is no setting that disables or overrides a user's reduced-motion preference.
 
-Public Journal dispatch itself recognizes only the root and one-slug detail shape and rejects unsupported methods before D1 access.
+The existing `prefers-reduced-motion` CSS behavior must remain intact.
 
-### AS29-F013 — PASS — Worker-first expansion is exact
+### AS30-F012 — PASS — UI scope is appropriate for the final core increment
 
-`wrangler.jsonc` expands Worker-first paths only to:
+WEB-INC-007 may add a real authenticated design-control UI because that is the explicit purpose of DESIGN-001…014.
 
-- `/api/journal`;
-- `/api/journal/*`.
+The UI remains bounded to:
 
-No other public path was added.
+- selects;
+- toggles;
+- range controls;
+- fixed section controls;
+- save/preview/publish feedback.
 
-D1/R2 bindings remain explicitly `remote: false`.
+It does not authorize a visual-code editor or generic CMS expansion.
 
-### AS29-F014 — PASS — static export contract is preserved
+### AS30-F013 — PASS — audit integration is bounded
 
-`app/journal/page.js` remains a static shell.
+The RFC authorizes only fixed call-site literals:
 
-It reads only existing static site content for branding.
+- `theme_edit_draft`;
+- `theme_publish`;
+- `section_design_edit_draft`;
+- `section_design_publish`.
 
-The client component fetches Journal API data at runtime.
+No caller-supplied audit action is accepted.
 
-No D1 module is imported by the Next.js page.
+### AS30-F014 — PASS — local resource authority remains bounded
 
-No SSR conversion or build-time D1 access was introduced.
+D1 and R2 remain:
 
-### AS29-F015 — PASS — body rendering is plain text
+`remote: false`
 
-Journal body validation normalizes line endings, rejects control/angle-bracket input outside allowed plain-text characters, and bounds length.
-
-The client renders the body as normal React text content.
-
-No `dangerouslySetInnerHTML`, Markdown interpreter, or rich-text executor is introduced.
-
-### AS29-F016 — PASS — dashboard Journal projection is bounded
-
-The dashboard reads Journal lifecycle metadata and labels only.
-
-Summary/body are not selected by the Journal dashboard query and therefore cannot leak through that projection.
-
-### AS29-F017 — PASS — audit integration stays fixed at Journal call sites
-
-The Journal implementation uses exactly these new action literals:
-
-- `journal_create_draft`;
-- `journal_edit_draft`;
-- `journal_publish`;
-- `journal_unpublish`.
-
-Success audits are included in mutation batches; bounded failure paths use the existing append-only failure audit mechanism.
-
-No caller-controlled audit action is exposed.
-
-### AS29-L001 — ACCEPTED LIMITATION — base-row immutable metadata is application-enforced, not independently frozen by a new DB trigger
-
-RFC-009 describes Journal `id`, `slug`, and `created_at` as identity/immutable metadata.
-
-The authorized HTTP surface contains no rename/update path for those fields, and all normal Journal mutations preserve them.
-
-The D1 table does not add a separate trigger preventing a hypothetical direct SQL UPDATE of those base metadata columns.
-
-This is accepted because:
-
-- no direct-SQL Journal mutation capability exists;
-- remote D1 remains unauthorized;
-- the accepted commit-time stale guard deliberately uses a self-assignment of `slug`, so naively adding an `UPDATE OF slug` rejection trigger would break the existing race-protection technique;
-- the same stale-guard coupling is already an accepted limitation pattern from WEB-INC-003.
-
-A future schema/CAS redesign or direct-DB writer must revisit this.
-
-### AS29-L002 — ACCEPTED CLARIFICATION — audit substrate has bounded-name validation, not a global literal action enum
-
-RFC-009 used “audit action allowlist” language.
-
-The previously accepted audit substrate validates action names structurally rather than maintaining a central literal enum.
-
-WEB-INC-006 still satisfies the authority intent because Journal call sites hardcode exactly the four authorized Journal action names and accept no action string from the HTTP request.
-
-No generic Journal audit capability was introduced.
-
-### AS29-L003 — ACCEPTED LIMITATION — direct SQL could supply an arbitrary non-null first published_at value
-
-The application generates `published_at` server-side and the admin request cannot supply it.
-
-The DB trigger enforces the one-time NULL→non-null transition and prevents later rewrites, but it does not independently validate ISO timestamp syntax for a hypothetical direct SQL writer.
-
-This is accepted for the current local-only architecture because no direct DB writer is authorized.
-
-If direct DB mutation or remote operational tooling is later introduced, timestamp-shape enforcement must be revisited.
-
-### AS29-F018 — ACCEPTED ACTOR_REPORTED evidence
-
-Claude reports:
-
-- admin Journal suite: `44/44`;
-- public Journal suite: `16/16`;
-- full suite: `269/269`;
-- `npm run build`: success;
-- static routes include `/journal`;
-- fresh local migrations produce exactly 20 product tables;
-- local Wrangler smoke verifies public/admin route separation;
-- screenshot verification of Journal index/detail;
-- dry-run binding set unchanged;
-- no remote D1/R2;
-- no deployment;
-- no main merge.
-
-These claims remain `ACTOR_REPORTED`.
-
-For this local/repository architecture increment, independent source/diff inspection plus the reported deterministic/local evidence is sufficient under CORE-020.
-
-## Final verdict
-
-`ML-DEVOS-AS-029: ARCHITECT_APPROVED — WEB-INC-006 LOCAL JOURNAL SUBSYSTEM ACCEPTED`
-
-`WEB-REQ-009` is implemented at repository/local level.
-
-No production/remote verification is claimed.
-
-## Post-acceptance requirement
-
-Because WEB-INC-006 is `ARCHITECTURE`, record a durable ADR before final cycle closure.
-
-No authority is created for:
-
-- remote D1/R2;
+No:
+- remote D1;
+- remote R2;
+- production resource provisioning;
+- public bucket/domain;
+- production Access configuration;
 - deployment;
-- protected/main merge;
-- WEB-INC-007;
-- Sentinel S3+.
+- main merge
+
+is authorized.
+
+### AS30-F015 — PASS — CORE-019/020 posture is appropriate
+
+Because the increment is local-only, no real remote-resource authority is created.
+
+Because design state can affect public presentation, the RFC appropriately requires:
+
+- source/diff inspection;
+- validation boundaries;
+- public draft-non-disclosure;
+- visual evidence;
+- full regression/build evidence.
+
+Runtime/CLI/visual claims remain `ACTOR_REPORTED` until review.
+
+### AS30-F016 — PASS — final-core-increment status does not create release authority
+
+Closing WEB-INC-007 would complete the current dependency-ordered core WEB roadmap.
+
+It would **not** automatically authorize:
+
+- deployment;
+- remote resources;
+- production verification;
+- main merge;
+- homepage/project D1 cutover.
+
+Those remain separate release/operations decisions.
+
+## Paulo gate
+
+Paulo explicitly instructed:
+
+`Okay proceed`
+
+after WEB-INC-006 closure and documentation reconciliation, with WEB-INC-007 identified as the sole remaining core increment.
+
+That is sufficient bounded product/risk authorization to proceed with RFC-010 exactly as reviewed.
+
+It is not blanket authority beyond RFC-010.
+
+## Verdict
+
+`ML-DEVOS-AS-030: ARCHITECT_APPROVED — WEB-INC-007 THEME / DESIGN CONTROLS COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION`
+
+Builder implementation may proceed after:
+
+1. RFC-010 status is changed to `ACCEPTED`;
+2. D-032 records Paulo's authorization;
+3. `coordination/STATE.md` opens the exact Builder turn with all remote/release gates closed.
+
+Because this is `ARCHITECTURE`, final acceptance requires:
+
+- independent Architect implementation review;
+- durable concluding Architect Sync archive;
+- post-acceptance ADR.
+
+No deployment, remote-resource, production, main-merge, or Sentinel S3+ authority is created by this approval.
