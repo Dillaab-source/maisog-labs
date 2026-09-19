@@ -1,11 +1,12 @@
 "use client";
 
 // WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032) public design
-// runtime.
+// runtime, remediated per ML-DEVOS-AS-032 Remediation Cycle 1 (AS32-B001,
+// AS32-B002).
 //
-// Mounted once, in app/layout.js, on every page. It fetches only
-// `GET /api/design` (RFC-010 "Public runtime application") and applies the
-// result using exactly:
+// Mounted once, in app/layout.js, on every page. In normal (non-preview)
+// operation it fetches only `GET /api/design` (RFC-010 "Public runtime
+// application") and applies the result using exactly:
 //   - fixed `data-*` enum attributes on `<html>` (never a caller-controlled
 //     attribute name — the attribute names below are hardcoded, and the
 //     enum values it accepts are each independently re-validated against
@@ -25,7 +26,29 @@
 // simply left unset, so the page keeps rendering the static V3 +
 // UI-PATCH-001 baseline (RFC-010 "Fail-safe baseline"); a design API
 // failure must not blank or materially break the public site.
+//
+// AS32-B001 remediation — authenticated visual draft preview: when the
+// current URL carries `?design-preview=1`, this component instead fetches
+// the existing PROTECTED `GET /admin/api/design/preview` endpoint (no new
+// public API is added). That endpoint already enforces Cloudflare Access
+// (worker/auth.mjs/worker/admin/design.mjs, unmodified by this
+// remediation) — an unauthenticated browser's request is rejected (401)
+// exactly as it always was, and this component treats that rejection
+// identically to any other fetch failure: it falls back to the normal
+// published `GET /api/design` fetch below, so an unauthenticated visitor
+// who stumbles onto a `?design-preview=1` URL sees only the ordinary
+// published/baseline presentation, never draft data. An authenticated
+// admin's browser (already signed in to Cloudflare Access from visiting
+// `/admin`) sends its Access session on this same-origin fetch exactly as
+// it would on any other request to that path, so the preview endpoint
+// resolves normally. The returned draft-if-present-else-published payload
+// is applied through the exact same `applyTheme`/`applySections` functions
+// used for the published projection below — no separate/parallel
+// application code path, no new attribute, no new CSS capability.
 import { useEffect } from "react";
+import { computeOverlayLayers } from "../lib/design/overlay.mjs";
+
+const DESIGN_PREVIEW_QUERY_PARAM = "design-preview";
 
 const HERO_BACKGROUND_PRESET_VALUES = ["cinematic-v3", "deep-night", "minimal-orbit"];
 const CARD_STYLE_PRESET_VALUES = ["soft-glass", "quiet-border", "solid-night"];
@@ -56,6 +79,23 @@ function setBoundedNumberProperty(root, property, value, { min, max, transform }
   }
 }
 
+// AS32-B002 remediation: the actual opacity/boost mapping lives in
+// ../lib/design/overlay.mjs (a plain, DOM-free module) so it has its own
+// direct unit test (tests/design-overlay.test.mjs) independent of any
+// browser/Playwright evidence. This just applies the two computed values
+// (or removes both custom properties when the input is out of range) —
+// see that module's header comment for the full rationale.
+function applyOverlayIntensity(root, value) {
+  const layers = computeOverlayLayers(value);
+  if (!layers) {
+    root.style.removeProperty("--design-overlay-opacity");
+    root.style.removeProperty("--design-overlay-boost");
+    return;
+  }
+  root.style.setProperty("--design-overlay-opacity", String(layers.opacity));
+  root.style.setProperty("--design-overlay-boost", String(layers.boost));
+}
+
 function applyTheme(root, theme) {
   if (!theme || typeof theme !== "object") return;
   setEnumAttribute(root, "data-hero-bg", theme.heroBackgroundPreset, HERO_BACKGROUND_PRESET_VALUES);
@@ -70,10 +110,7 @@ function applyTheme(root, theme) {
   setEnumAttribute(root, "data-journal-cards", theme.journalCardMode, JOURNAL_CARD_MODE_VALUES);
   setEnumAttribute(root, "data-accent", theme.accentPreset, ACCENT_PRESET_VALUES);
 
-  // Overlay intensity is expressed relative to the bootstrap default (68),
-  // so the default value maps to opacity 1 — byte-identical to the
-  // pre-WEB-INC-007 baseline (see app/globals.css's `.cinematic-background::after`).
-  setBoundedNumberProperty(root, "--design-overlay-opacity", theme.overlayIntensity, { min: 40, max: 85, transform: v => v / 68 });
+  applyOverlayIntensity(root, theme.overlayIntensity);
   setBoundedNumberProperty(root, "--design-panel-alpha", theme.panelOpacityPct, { min: 55, max: 90, transform: v => v / 100 });
   setBoundedNumberProperty(root, "--design-border-alpha", theme.borderIntensityPct, { min: 10, max: 45, transform: v => v / 100 });
   setBoundedNumberProperty(root, "--design-radius-scale", theme.radiusScalePct, { min: 80, max: 120, transform: v => v / 100 });
@@ -95,25 +132,58 @@ function applySections(sections) {
   }
 }
 
+function fetchJson(url) {
+  return fetch(url).then(response => {
+    if (!response.ok) throw new Error(`design request failed (${response.status})`);
+    return response.json();
+  });
+}
+
+// GET /api/design — the ordinary published-only path, unchanged.
+function applyPublished(root, cancelledRef) {
+  return fetchJson("/api/design").then(data => {
+    if (cancelledRef.cancelled) return;
+    applyTheme(root, data?.theme);
+    applySections(data?.sections);
+  });
+}
+
 export default function DesignRuntime() {
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/design")
-      .then(response => {
-        if (!response.ok) throw new Error("design request failed");
-        return response.json();
-      })
-      .then(data => {
-        if (cancelled) return;
-        applyTheme(document.documentElement, data?.theme);
-        applySections(data?.sections);
-      })
-      .catch(() => {
-        // Fail-safe (RFC-010): leave the static baseline exactly as it was
-        // rendered — never blank the page, never throw past this boundary.
-      });
+    const cancelledRef = { cancelled: false };
+    const root = document.documentElement;
+    const previewRequested = new URLSearchParams(window.location.search).get(DESIGN_PREVIEW_QUERY_PARAM) === "1";
+
+    let request;
+    if (previewRequested) {
+      // AS32-B001: try the existing PROTECTED preview endpoint first. Same
+      // application functions, same fixed mappings — the only difference
+      // from the published path is which same-origin endpoint is fetched.
+      request = fetchJson("/admin/api/design/preview")
+        .then(data => {
+          if (cancelledRef.cancelled) return;
+          applyTheme(root, data?.theme);
+          applySections(data?.sections);
+        })
+        .catch(() => {
+          // Not authenticated for preview (401), or any other failure:
+          // fall back to the ordinary published projection — never show
+          // draft data to an unauthenticated visitor, and never leave the
+          // page in a half-applied state.
+          if (cancelledRef.cancelled) return;
+          return applyPublished(root, cancelledRef);
+        });
+    } else {
+      request = applyPublished(root, cancelledRef);
+    }
+
+    request.catch(() => {
+      // Fail-safe (RFC-010): leave the static baseline exactly as it was
+      // rendered — never blank the page, never throw past this boundary.
+    });
+
     return () => {
-      cancelled = true;
+      cancelledRef.cancelled = true;
     };
   }, []);
 

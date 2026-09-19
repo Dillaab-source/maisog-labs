@@ -20,6 +20,16 @@
 // ML-DEVOS-AS-031/D-033) requires to be deterministic and inspectable, so
 // an Architect-produced Design Reference Plan can be applied repeatably
 // through this same surface.
+//
+// ML-DEVOS-AS-032 Remediation Cycle 1 (AS32-B001): "Open Homepage Preview"/
+// "Open Journal Preview" below are plain links to the real public pages
+// with `?design-preview=1` appended — no new API call happens here. The
+// actual authenticated visual preview is implemented entirely in
+// app/DesignRuntime.js (mounted globally): it recognizes that query
+// parameter and fetches the existing protected `GET /admin/api/design/
+// preview` endpoint instead of the public one, applying the result through
+// the same fixed-mapping functions. These links add no new capability to
+// this page itself.
 import { useCallback, useEffect, useState } from "react";
 
 const FIELD_LABELS = {
@@ -308,8 +318,22 @@ export default function DesignControls() {
       ))}
 
       <h3 style={{ fontSize: "1rem", marginTop: "1.5rem" }}>Preview</h3>
+      <p style={{ fontSize: "0.85rem", color: "#555", maxWidth: "40rem" }}>
+        These open the real public pages with the current draft (or published, where no draft exists) design state
+        applied, so a screenshot-reference draft can be reviewed visually before Publish. Draft state is never
+        visible to a signed-out visitor — the same links fall back to the ordinary published presentation for
+        anyone without an active Access session.
+      </p>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
+        <a href="/?design-preview=1" target="_blank" rel="noreferrer">
+          Open Homepage Preview ↗
+        </a>
+        <a href="/journal?design-preview=1" target="_blank" rel="noreferrer">
+          Open Journal Preview ↗
+        </a>
+      </div>
       <button type="button" onClick={handlePreview}>
-        Refresh preview
+        Refresh raw preview data
       </button>
       <Message tone={previewMessage?.tone}>{previewMessage?.text}</Message>
       {preview && (

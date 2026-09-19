@@ -78,15 +78,35 @@ html[data-hero-bg="minimal-orbit"] .cinematic-background {
 }
 .cinematic-background::after {
   content: ""; position: absolute; inset: 0;
-  /* WEB-INC-007 (DESIGN-008): overlay_intensity/68 — 68 is the bootstrap
-     default, so the default renders at opacity 1 (byte-identical to the
-     pre-WEB-INC-007 baseline); the CSS `opacity` property already clamps
-     any value above 1, so values from 68 up to the allowed max (85) taper
-     off in effect while values below 68 visibly lighten the overlay. */
+  /* WEB-INC-007 (DESIGN-008): overlay_intensity<=68 maps to opacity
+     value/68 (0.588..1) on this layer — 68 is the bootstrap default, so the
+     default renders at opacity 1, byte-identical to the pre-WEB-INC-007
+     baseline. Values above 68 no longer drive this property at all (it
+     stays pinned at 1); see `.cinematic-background::before` below
+     (ML-DEVOS-AS-032 AS32-B002 remediation) for how the 68..85 half of the
+     range produces a further, non-clamped, monotonically increasing
+     darkening effect instead of silently saturating. */
   opacity: var(--design-overlay-opacity, 1);
   background:
     radial-gradient(circle at 50% 31%, transparent 0 8%, rgba(5, 11, 24, 0.12) 30%, rgba(2, 7, 17, 0.68) 95%),
     linear-gradient(90deg, rgba(2, 7, 17, 0.8), rgba(2, 7, 17, 0.16) 44%, rgba(2, 7, 17, 0.2) 72%, rgba(2, 7, 17, 0.68));
+}
+/* WEB-INC-007 (DESIGN-008), ML-DEVOS-AS-032 AS32-B002 remediation: a second,
+   independent darkening layer for the upper half (68..85) of the overlay
+   intensity range. It is invisible (opacity 0) at and below the 68
+   baseline — `--design-overlay-boost` is only ever set above zero by
+   app/DesignRuntime.js's `applyOverlayIntensity` for values > 68 — so the
+   default/baseline rendering is completely unaffected by this rule's mere
+   existence. Because this is a wholly separate CSS property from
+   `.cinematic-background::after`'s own `opacity` (which is already pinned
+   at its own maximum of 1 for this half of the range), this layer's
+   darkening cannot be clamped away by the first layer's saturation: 70, 75,
+   and 85 each produce a visibly, measurably darker composite than 68 and
+   than each other. */
+.cinematic-background::before {
+  content: ""; position: absolute; inset: 0;
+  background: var(--night-deep);
+  opacity: var(--design-overlay-boost, 0);
 }
 .blueprint-grid {
   position: fixed; z-index: -3; inset: 0; pointer-events: none; opacity: 0.12;
