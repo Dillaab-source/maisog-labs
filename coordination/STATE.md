@@ -25,7 +25,7 @@ Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
 
 Active Sentinel governance-capability baseline:
-- `v1.4.0`
+- `v1.5.0`
 
 Closed dependencies:
 - `ML-DEVOS-AS-012` — authentication boundary
