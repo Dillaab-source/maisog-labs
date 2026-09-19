@@ -38,7 +38,12 @@
     "the Architect flagged. all_of lists evidence classes that are ALL independently required;",
     "any_of lists evidence classes where AT LEAST ONE satisfies the requirement. CORE-016 and",
     "CORE-017 now correctly use any_of (their policy text says 'and/or'/'or'); CORE-018 keeps",
-    "all_of: [RUNTIME_OBSERVED] since VERIFIED has no weaker substitute."
+    "all_of: [RUNTIME_OBSERVED] since VERIFIED has no weaker substitute.",
+    "",
+    "V1.5.0 GOVERNANCE-CAPABILITY UPDATE (D-028 / ML-DEVOS-AS-024 / ML-DEVOS-ADR-006, 2026-09-19):",
+    "CORE-019, CORE-020, and CORE-021 add risk-triggered remote-resource scoping, consequence-sensitive",
+    "evidence escalation, and a first protected-main/production technical-protection review trigger.",
+    "They add policy only: S3-S14 runtime/enforcement mechanisms remain NOT_IMPLEMENTED and separately governed."
   ],
   "rules": [
     {
@@ -106,7 +111,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a75; Trust Boundary TB-7",
+      "introduced_by": "ML-DEVOS-ARCH-001 §5; Trust Boundary TB-7",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -144,7 +149,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73 (Builder); TRUST_BOUNDARIES.md TB-2; ROLE_RESPONSIBILITY_MATRIX.md cross-cutting rule 1",
+      "introduced_by": "ML-DEVOS-ARCH-001 §3 (Builder); TRUST_BOUNDARIES.md TB-2; ROLE_RESPONSIBILITY_MATRIX.md cross-cutting rule 1",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -181,7 +186,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73-\u00a74; AS0-002; TRUST_BOUNDARIES.md TB-6",
+      "introduced_by": "ML-DEVOS-ARCH-001 §3-§4; AS0-002; TRUST_BOUNDARIES.md TB-6",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -219,7 +224,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73; AS0-007; TRUST_BOUNDARIES.md TB-5; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 §3; AS0-007; TRUST_BOUNDARIES.md TB-5; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -255,7 +260,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a76, \u00a78; EVIDENCE_PROVENANCE_MODEL.md binding rules; S0-F004 correction; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 §6, §8; EVIDENCE_PROVENANCE_MODEL.md binding rules; S0-F004 correction; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -293,7 +298,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a710; AS0-002 disposition; split into CORE-016/017/018 per S1-F002 correction",
+      "introduced_by": "ML-DEVOS-ARCH-001 §10; AS0-002 disposition; split into CORE-016/017/018 per S1-F002 correction",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -404,7 +409,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a79; D-011 'Source of truth amendment'; BOOTSTRAP_SOURCE_OF_TRUTH.md",
+      "introduced_by": "ML-DEVOS-ARCH-001 §9; D-011 'Source of truth amendment'; BOOTSTRAP_SOURCE_OF_TRUTH.md",
       "decision_id": "D-011",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -479,7 +484,7 @@
         "evidence_gate": true
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73, \u00a79; TRUST_BOUNDARIES.md TB-1; AS0-012; S0-F003 correction (this rule's substance originates in S0, before D-012; D-012's human-gate rule in ML-DEVOS-AS-003 reaffirms rather than introduces it)",
+      "introduced_by": "ML-DEVOS-ARCH-001 §3, §9; TRUST_BOUNDARIES.md TB-1; AS0-012; S0-F003 correction (this rule's substance originates in S0, before D-012; D-012's human-gate rule in ML-DEVOS-AS-003 reaffirms rather than introduces it)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -516,7 +521,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73; S0-F007 correction; TRUST_BOUNDARIES.md TB-3; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 §3; S0-F007 correction; TRUST_BOUNDARIES.md TB-3; risk/authority corrected per S1-F001 (was risk: high, paulo_approval_required: false -- both below the CONSTITUTIONAL class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -553,7 +558,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a73; TRUST_BOUNDARIES.md TB-4; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 §3; TRUST_BOUNDARIES.md TB-4; authority corrected per S1-F001 (was paulo_approval_required: false, below the CORE_POLICY class minimum)",
       "decision_id": "D-010",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -590,7 +595,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "ML-DEVOS-ARCH-001 \u00a72 invariant 6; S0-F006 correction; REPOSITORY_OVERLAY_TOPOLOGY.md; risk/authority corrected per S1-F001 (was risk: medium, paulo_approval_required: false -- both below the ARCHITECTURE class minimum)",
+      "introduced_by": "ML-DEVOS-ARCH-001 §2 invariant 6; S0-F006 correction; REPOSITORY_OVERLAY_TOPOLOGY.md; risk/authority corrected per S1-F001 (was risk: medium, paulo_approval_required: false -- both below the ARCHITECTURE class minimum)",
       "decision_id": "D-011",
       "adr_id": null,
       "effective_version": "1.2.0",
@@ -629,7 +634,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 \u00a710) into stage-specific evidence rules -- genuinely new S1 content Activated by D-013/ML-DEVOS-ADR-001 (S1 closure) at effective_version 1.3.0.",
+      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 §10) into stage-specific evidence rules -- genuinely new S1 content Activated by D-013/ML-DEVOS-ADR-001 (S1 closure) at effective_version 1.3.0.",
       "decision_id": "D-012",
       "adr_id": "ML-DEVOS-ADR-001",
       "effective_version": "1.3.0",
@@ -668,7 +673,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 \u00a710) into stage-specific evidence rules -- genuinely new S1 content Activated by D-013/ML-DEVOS-ADR-001 (S1 closure) at effective_version 1.3.0.",
+      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 §10) into stage-specific evidence rules -- genuinely new S1 content Activated by D-013/ML-DEVOS-ADR-001 (S1 closure) at effective_version 1.3.0.",
       "decision_id": "D-012",
       "adr_id": "ML-DEVOS-ADR-001",
       "effective_version": "1.3.0",
@@ -705,7 +710,7 @@
         "evidence_gate": false
       },
       "exceptions": [],
-      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 \u00a710) into stage-specific evidence rules -- genuinely new S1 content Activated by D-013/ML-DEVOS-ADR-001 (S1 closure) at effective_version 1.3.0.",
+      "introduced_by": "S1-F002 correction, splitting CORE-007 (ML-DEVOS-ARCH-001 §10) into stage-specific evidence rules -- genuinely new S1 content Activated by D-013/ML-DEVOS-ADR-001 (S1 closure) at effective_version 1.3.0.",
       "decision_id": "D-012",
       "adr_id": "ML-DEVOS-ADR-001",
       "effective_version": "1.3.0",
@@ -713,6 +718,127 @@
       "supersedes": null,
       "created_at": "2026-09-18",
       "updated_at": "2026-09-18"
+    },
+    {
+      "rule_id": "CORE-019",
+      "title": "Remote Resource Authority Must Be Explicitly Scoped",
+      "description": "Before any real remote/cloud action is authorized, the authorization record must identify the provider/service, exact bounded resource scope, environment, allowed operations, relevant denied/destructive operations, acting identity or credential class, credential lifetime/revocation rule, public/production/sensitive status, rollback/revocation path, and audit/evidence expectation. Broad provider-level authorization is insufficient. This rule never grants remote authority by itself.",
+      "class": "CORE_POLICY",
+      "scope": "sentinel-wide",
+      "project": null,
+      "risk": "high",
+      "status": "ACTIVE",
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
+      "applies_when": "Any actor or mechanism is proposed to receive authority to perform a real remote/cloud action.",
+      "waivable": true,
+      "requires": {
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
+        "evidence_note": "The authorization scope itself must be independently inspected; evidence for the eventual remote action is additionally governed by CORE-020 and claim-specific rules.",
+        "qa": false,
+        "independent_review": true,
+        "evidence_gate": false
+      },
+      "exceptions": [
+        "Local provider simulation that cannot touch a real remote resource does not activate this rule merely because it emulates the provider API."
+      ],
+      "introduced_by": "ML-DEVOS-RFC-008 / ML-DEVOS-AS-024 / D-028",
+      "decision_id": "D-028",
+      "adr_id": "ML-DEVOS-ADR-006",
+      "effective_version": "1.5.0",
+      "proposed_effective_version": null,
+      "supersedes": null,
+      "created_at": "2026-09-19",
+      "updated_at": "2026-09-19"
+    },
+    {
+      "rule_id": "CORE-020",
+      "title": "Evidence Sufficiency Escalates With Consequence",
+      "description": "Evidence requirements scale with the consequence of the claim/action. Low-risk local work may use lighter evidence, while real remote/production writes, destructive operations, credential/security changes, and public cutovers must not close solely on Builder ACTOR_REPORTED evidence and require an independent/deterministic class appropriate to the claim. Existing MAIN, DEPLOYED, and VERIFIED evidence rules remain authoritative for those exact claims.",
+      "class": "CORE_POLICY",
+      "scope": "sentinel-wide",
+      "project": null,
+      "risk": "high",
+      "status": "ACTIVE",
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
+      "applies_when": "Evidence sufficiency is being determined for a governance-significant status, remote/production action, merge/release decision, or security-sensitive change.",
+      "waivable": true,
+      "requires": {
+        "evidence": {
+          "all_of": [],
+          "any_of": [
+            "INDEPENDENTLY_INSPECTED",
+            "INDEPENDENTLY_REPRODUCED",
+            "CI_ATTESTED",
+            "RUNTIME_OBSERVED"
+          ]
+        },
+        "evidence_note": "This rule is a routing rule, not a universal demand for all listed classes. The appropriate independent/deterministic class is claim-specific; CORE-016/017/018 control MAIN/DEPLOYED/VERIFIED exactly.",
+        "qa": false,
+        "independent_review": false,
+        "evidence_gate": false
+      },
+      "exceptions": [
+        "Low-risk documentation/repository-only work does not gain irrelevant CI/runtime requirements merely because stronger classes exist."
+      ],
+      "introduced_by": "ML-DEVOS-RFC-008 / ML-DEVOS-AS-024 / D-028",
+      "decision_id": "D-028",
+      "adr_id": "ML-DEVOS-ADR-006",
+      "effective_version": "1.5.0",
+      "proposed_effective_version": null,
+      "supersedes": null,
+      "created_at": "2026-09-19",
+      "updated_at": "2026-09-19"
+    },
+    {
+      "rule_id": "CORE-021",
+      "title": "First Protected-Main or Production Operation Triggers Technical-Protection Review",
+      "description": "Before Sentinel authorizes a project's first protected/main merge under agent-assisted development or first real production deployment/production infrastructure mutation, a focused review must determine and configure the minimum appropriate technical protections where supported, including review separation, required checks, bypass controls, branch/ruleset or deployment-environment protections, and rollback/revocation expectations. This is a trigger, not automatic implementation of the full S10 phase.",
+      "class": "CORE_POLICY",
+      "scope": "sentinel-wide",
+      "project": null,
+      "risk": "high",
+      "status": "ACTIVE",
+      "authority": {
+        "owner": "Paulo",
+        "architect_sync_required": true,
+        "paulo_approval_required": true
+      },
+      "applies_when": "A project is about to receive its first protected/main merge authority or real production deployment/infrastructure-mutation authority under Sentinel.",
+      "waivable": true,
+      "requires": {
+        "evidence": {
+          "all_of": [
+            "INDEPENDENTLY_INSPECTED"
+          ],
+          "any_of": []
+        },
+        "evidence_note": "The focused protection review/configuration decision must be independently inspected before the first protected-main/production authorization proceeds.",
+        "qa": false,
+        "independent_review": true,
+        "evidence_gate": false
+      },
+      "exceptions": [],
+      "introduced_by": "ML-DEVOS-RFC-008 / ML-DEVOS-AS-024 / D-028",
+      "decision_id": "D-028",
+      "adr_id": "ML-DEVOS-ADR-006",
+      "effective_version": "1.5.0",
+      "proposed_effective_version": null,
+      "supersedes": null,
+      "created_at": "2026-09-19",
+      "updated_at": "2026-09-19"
     }
   ]
 }
