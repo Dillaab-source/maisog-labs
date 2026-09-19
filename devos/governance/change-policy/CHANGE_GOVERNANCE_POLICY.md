@@ -59,3 +59,70 @@ The constitutional/core rules this policy exists to protect are extracted, unwea
 ## 7. What this policy does not do
 
 Per `D-012`'s explicit S1 scope: this policy does not implement a Policy Engine, does not enforce anything at runtime, does not create CI or GitHub rulesets, and does not itself authorize any change — it only defines how a change *would* be classified and routed once actually proposed. No RFC, ADR, or waiver has been filed under this policy as part of S1; the registry, templates, and specifications exist so that the *next* proposed change — of any class — has a defined path to follow.
+
+
+## 8. Risk escalation rules (v1.5.0)
+
+Activated by `D-028` / `ML-DEVOS-AS-024` / `ML-DEVOS-ADR-006`.
+
+These rules add consequence-sensitive escalation without adding runtime enforcement machinery.
+
+### CORE-019 — Remote Resource Authority Must Be Explicitly Scoped
+
+Before any actor/mechanism receives authority to perform a **real remote/cloud action**, the authorization record must identify:
+
+- provider/service;
+- exact resource or bounded resource scope;
+- environment;
+- allowed operations;
+- explicitly denied/destructive operations where relevant;
+- acting identity / credential class;
+- credential lifetime or end-of-cycle revocation rule;
+- whether the resource/data is public, production, or sensitive;
+- rollback/revocation path;
+- audit/evidence expectation.
+
+A generic statement such as `Cloudflare authorized` is insufficient.
+
+This rule never grants remote authority by itself. Paulo's applicable gate remains required.
+
+Local simulation that cannot touch real remote resources does not activate this rule merely because it emulates the same provider API.
+
+### CORE-020 — Evidence Sufficiency Escalates With Consequence
+
+Evidence sufficiency is claim-specific **and consequence-sensitive**.
+
+- Low-risk/local repository work may use `ACTOR_REPORTED` execution evidence plus `INDEPENDENTLY_INSPECTED` review where appropriate.
+- Material executable/integration claims should use `INDEPENDENTLY_REPRODUCED` and/or `CI_ATTESTED` where feasible before stronger merge/release claims.
+- Remote/production writes, destructive actions, credential/security changes, and public cutovers must not close solely on Builder `ACTOR_REPORTED` evidence; an independent/deterministic evidence class appropriate to the claim is required.
+- `DEPLOYED` remains governed by CORE-017.
+- `VERIFIED` remains governed by CORE-018 and requires `RUNTIME_OBSERVED`.
+
+This rule does not demand irrelevant CI/runtime evidence for low-risk documentation or repository-only work.
+
+### CORE-021 — First Protected-Main / Production Operation Triggers Technical-Protection Review
+
+Before Sentinel authorizes a project's first:
+
+- protected/main merge under agent-assisted development; or
+- real production deployment / production infrastructure mutation;
+
+perform a focused review of minimum technical enforcement.
+
+The review determines the minimum appropriate controls, where supported, such as:
+
+- pull-request requirement;
+- reviewer other than the last pusher / Builder;
+- required executable checks;
+- restricted bypass/dismissal authority;
+- branch/ruleset protections;
+- deployment-environment protections;
+- rollback/revocation expectations.
+
+This is a review trigger, **not** an automatic implementation of S10.
+
+### Explicit non-implementation boundary
+
+CORE-019/020/021 are policy only.
+
+They do not implement or authorize S3–S14, CI, GitHub rulesets, a Task Engine, Capability Gateway, Policy Engine, sandbox, Orchestrator, executable Evidence Gate, credential broker, or telemetry pipeline.
