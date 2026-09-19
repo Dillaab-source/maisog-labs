@@ -37,3 +37,27 @@ This document does not claim, and neither the Phase 1 cycle, `WEB-INC-005`, `WEB
 - Any change to `app/page.js`, `lib/content/local.mjs`, or the public read path — it still reads only `data/site.js`; `data/site.js` was not deleted or retired.
 - Any merge to `main`, or any work on `WEB-INC-004`/`006`/`007` or later increments.
 - Independent (Architect-reproduced) verification of the test/build evidence cited above — those remain implementer-reported until the Architect inspects them (see `TEST_LEDGER.md`).
+
+
+## Core WEB roadmap completion
+
+Status: `COMPLETE — LOCAL/REPOSITORY`
+
+All eight dependency-ordered WEB increments are now Architect-approved.
+
+Final increment:
+- `WEB-INC-007 — Theme / Design Controls`
+- implementation: `17577838d1007210cd1893fdb71ea8063d764fa8`
+- remediation: `9773d76641bef0b9f57b94d78087438f4d2ffc15`
+- final review: `ML-DEVOS-AS-033`
+- ADR: `ML-DEVOS-ADR-009`
+
+Final Builder-reported full suite: `338/338`.
+Final build: success.
+Final local product-table count: `22`.
+
+Screenshot-reference workflow is supported at repository/local level:
+
+`REFERENCE → ARCHITECT ANALYSIS → CONTROL MAPPING → DRAFT → VISUAL PREVIEW → PAULO REVIEW → PUBLISH`
+
+No production/remote verification is claimed.
