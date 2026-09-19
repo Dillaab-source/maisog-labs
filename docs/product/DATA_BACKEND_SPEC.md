@@ -169,7 +169,7 @@ This is not a new mechanism — it is the same content-revision publish/preview/
 
 All entities below are design proposals for a future D1 schema. Field lists are illustrative and derived from the current `data/site.js` shape plus the `ADM-REQ-*`/`DESIGN-*` catalog they must support — a future `TECHNICAL_DESIGN.md`/RFC-equivalent still needs to finalize exact column types, indexes, and migrations before implementation.
 
-**`WEB-INC-005` implementation note (`ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024`):** the `site_settings`, `navigation`, `foundations`, `projects`, `services`, `process_steps`, and `sections` entity/revision pairs below are now `IMPLEMENTED` as local-only D1 tables — see `migrations/0001_web_inc_005_init.sql` and `worker/d1/*` — with the base-entity shape, derived-status model, and cross-entity pointer-ownership rule in this section all enforced exactly as specified (the latter via a composite foreign key `(id, published_revision_id) REFERENCES <entity>_revisions(<entity>_id, id)`, since a plain per-column foreign key cannot express it). `journal_entries`/`journal_entry_revisions`/`journal_media`, `media`/`project_media`, and `theme_settings`/`theme_settings_revisions` remain `PROPOSED TARGET / NOT IMPLEMENTED`, owned by their own later increments per `BUILD_PLAN.md` §C. `audit_log` is now `IMPLEMENTED` as a local-only append-only substrate under `WEB-INC-008` (`ML-DEVOS-RFC-005` → `ML-DEVOS-AS-017` → `D-026`) — see its own entity section below for the exact scope of what that does and does not mean. This local substrate is not yet the public source of truth — see `brain/PROJECT_GOVERNANCE.md` § "Current storage model".
+**Current implementation note:** the original `WEB-INC-005` local D1 substrate is now extended by accepted additive increments. `media`/`project_media` are implemented by `WEB-INC-004` (`ML-DEVOS-AS-027` / `ML-DEVOS-ADR-007`); `journal_entries`/`journal_entry_revisions`/`journal_media` are implemented by `WEB-INC-006` (`ML-DEVOS-AS-029` / `ML-DEVOS-ADR-008`); `audit_log` is implemented by `WEB-INC-008`. The full local schema is 20 product tables. `theme_settings`/`theme_settings_revisions` remain the only not-yet-implemented table pair in this plan. Remote D1/R2 and broader public cutover remain separately gated. This local substrate is not yet the public source of truth — see `brain/PROJECT_GOVERNANCE.md` § "Current storage model".
 
 ### `site_settings` / `site_settings_revisions`
 - `site_settings`: `id` (fixed singleton key), `created_at`, `published_revision_id`, `draft_revision_id`
@@ -203,14 +203,14 @@ Media attachment is via `project_media`, keyed to the **revision**, not the base
 - `process_step_revisions`: `id`, `process_step_id`, `revision_number`, `order`, `icon`, `title`, `text`, `created_at`, `created_by`
 
 ### `journal_entries` / `journal_entry_revisions`
-Entirely new — `NOT IMPLEMENTED`, no equivalent exists in `data/site.js` or `lib/content/schema.mjs` today (`brain/GOVERNANCE_MAP.md` row "Journal": `NOT STARTED`). Ordering is chronological-by-publish rather than manual, so there is no `order` field here (`AS10-R008`'s "journal_entries.order / published_at" is resolved in favor of `published_at`):
+`IMPLEMENTED` locally by `WEB-INC-006` (`migrations/0004_web_inc_006_journal.sql`; `ML-DEVOS-AS-029` / `ML-DEVOS-ADR-008`). Ordering is chronological-by-publish rather than manual, so there is no `order` field here:
 - `journal_entries`: `id`, `slug` (immutable after creation, same disjointness rule as `projects.slug`), `created_at`, `published_revision_id`, `draft_revision_id`
-- `journal_entry_revisions`: `id`, `journal_entry_id`, `revision_number`, `title`, `summary`, `body` (format — markdown/rich text/etc. — undecided, owned by a future design decision, not fixed here), `published_at` (set automatically by the system at the moment this revision becomes the published one — never directly admin-editable — used for "newest first" public ordering), `created_at`, `created_by`
+- `journal_entry_revisions`: `id`, `journal_entry_id`, `revision_number`, `title`, `summary`, `body` (**plain text only** in WEB-INC-006; normalized/bounded, no HTML/Markdown execution), `published_at` (server-controlled one-time NULL→timestamp transition when first published; used for newest-first public ordering), `created_at`, `created_by`
 
 Media attachment is via `journal_media`, keyed to the revision — see below.
 
 ### `media`
-Entirely new — `NOT IMPLEMENTED`. Backing store target: R2 (`NOT IMPLEMENTED`, per `docs/ARCHITECTURE.md` "after the content and authorization boundaries are tested"). Media itself is binary content with a simple lifecycle, not editorial text needing draft/publish revisioning, so it does not use the entity+revisions pattern; its `state` field is bookkeeping (is this blob still referenced by anything) and is never itself consulted by public rendering — public rendering only ever reaches `media` rows through a published revision's `project_media`/`journal_media` rows (see below), so an orphaned-but-`active` media row is simply unreferenced, not publicly exposed. **`storage_key`, `content_type`, `size_bytes`, and `alt_text` are immutable after creation** — see "Media immutability" above; only `state` may change on an existing row.
+`IMPLEMENTED` locally by `WEB-INC-004` with an explicitly local-only R2 binding (`remote: false`); no public R2 object-serving route or remote bucket is accepted. Media itself is binary content with a simple lifecycle, not editorial text needing draft/publish revisioning, so it does not use the entity+revisions pattern; its `state` field is bookkeeping (is this blob still referenced by anything) and is never itself consulted by public rendering — public rendering only ever reaches `media` rows through a published revision's `project_media`/`journal_media` rows (see below), so an orphaned-but-`active` media row is simply unreferenced, not publicly exposed. **`storage_key`, `content_type`, `size_bytes`, and `alt_text` are immutable after creation** — see "Media immutability" above; only `state` may change on an existing row.
 - `id`
 - `storage_key` (R2 object key), `content_type`, `size_bytes`, `alt_text` — immutable once set
 - `uploaded_at`, `uploaded_by`
@@ -224,7 +224,7 @@ Structurally truthful relational target for "a project revision has media." Keye
 - `order` — immutable once set for this row
 
 ### `journal_media` (junction table — `AS10-R004`, revision-scoped per `AS10-R008`, immutable-once-created per `AS10-R011`)
-Same pattern as `project_media`, for journal entries.
+`IMPLEMENTED` by WEB-INC-006. Same immutable revision-snapshot pattern as `project_media`, for journal entries.
 - `journal_entry_revision_id` → `journal_entry_revisions.id`
 - `media_id` → `media.id` — immutable once set for this row
 - `role` — immutable once set for this row
