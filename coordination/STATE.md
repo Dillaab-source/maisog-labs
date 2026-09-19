@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM
-TURN: CLAUDE
-STATUS: REMEDIATION_AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_004_LOCAL_MEDIA_SUBSYSTEM_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: ca6a93b65353968353b9ba3670e162468abdb33a
+LAST_IMPLEMENTER_HANDOFF_SHA: 681fc90dc42239c2bd5866af1c6a0d430212416a
 LAST_ARCHITECT_REVIEWED_SHA: ca6a93b65353968353b9ba3670e162468abdb33a
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -237,17 +237,26 @@ Because WEB-INC-004 is `ARCHITECTURE`, accepted implementation requires:
 - durable Architect Sync archive;
 - post-acceptance ADR before cycle closure.
 
-## Builder handoff (this cycle)
+## Builder handoff (initial implementation)
 
 Implementation commit (base `281d726c348e04003b9226ebb766cab50b86439c`):
 - `ca6a93b65353968353b9ba3670e162468abdb33a`
 
-Full evidence, changed-file list, and explicit non-touch confirmations:
-- `coordination/IMPLEMENTER_HANDOFF.md` § "WEB-INC-004 — Local Media Subsystem"
-
 Full test suite: 195/195 passing (implementer-reported, `ACTOR_REPORTED`).
+
+## Builder handoff (Remediation Cycle 1)
+
+Remediation commit (base `7c7e6d35c43c2e16b18d53a65c8acf06c7c3df41`):
+- `681fc90dc42239c2bd5866af1c6a0d430212416a`
+
+Fixes exactly `AS26-F008` (media state domain, `active|archived`), `AS26-F009` (alt-text DB/normalization invariant), and `AS26-F010` (duplicate `(role, order)` slot protection). `migrations/0003_web_inc_004_media.sql` amended in place (no new migration number); `migrations/0001`/`0002` remain byte-identical; product-table count remains 17.
+
+Full evidence, changed-file list, and explicit non-touch confirmations:
+- `coordination/IMPLEMENTER_HANDOFF.md` § "WEB-INC-004 Remediation Cycle 1"
+
+Full test suite: 209/209 passing (implementer-reported, `ACTOR_REPORTED`).
 
 ## Current gate
 
-`WEB-INC-004 REMEDIATION CYCLE 1 AUTHORIZED — CLAUDE TO FIX AS26-F008/F009/F010 ONLY AND HAND OFF FOR ARCHITECT REVIEW`
+`WEB-INC-004 REMEDIATION CYCLE 1 SUBMITTED — READY_FOR_ARCHITECT REVIEW`
 

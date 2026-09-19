@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — WEB-INC-004 Local Media Subsystem (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — WEB-INC-004 Remediation Cycle 1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**WEB-INC-004 update:** see the "WEB-INC-004 — Local Media Subsystem" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including the "WEB-INC-003 Remediation Cycle 1" section) describes prior, already-closed cycles and remains accurate as historical record.
+**WEB-INC-004 Remediation Cycle 1 update:** see the "WEB-INC-004 Remediation Cycle 1" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including the original "WEB-INC-004 — Local Media Subsystem" and "WEB-INC-003 Remediation Cycle 1" sections) describes prior, already-closed cycles and remains accurate as historical record except where this remediation section says otherwise.
 
 ---
 
@@ -401,3 +401,97 @@ Every D1/Wrangler/R2 command above used `--local`/local-simulation-only explicit
 ### Implementation commit
 
 The files above are committed to `governance/maisoglabs-v0.1` as commit `ca6a93b65353968353b9ba3670e162468abdb33a` on top of base `281d726c348e04003b9226ebb766cab50b86439c`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-INC-004 Remediation Cycle 1
+
+Cycle ID: `MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM` — Remediation Cycle 1
+
+Authority chain: `ML-DEVOS-RFC-007` → `ML-DEVOS-AS-023` → `D-029` → `ML-DEVOS-AS-026` (`CHANGES_REQUESTED — WEB-INC-004 REMEDIATION CYCLE 1 LIMITED TO MEDIA STATE DOMAIN, ALT-TEXT DB/NORMALIZATION INVARIANT, AND DUPLICATE SLOT PROTECTION`).
+
+### Objective
+
+Fix exactly the three blocking findings from `ML-DEVOS-AS-026`'s independent implementation review of WEB-INC-004 — `AS26-F008` (media state domain), `AS26-F009` (alt-text DB/normalization invariant), and `AS26-F010` (duplicate media slot protection) — and nothing else. No redesign, no new route, no new table, no migration `0004`, no remote resource, no public media serving, no journal/theme/later-increment work, no deployment/main merge, no Sentinel S3+.
+
+### Branch / commit state
+
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `7c7e6d35c43c2e16b18d53a65c8acf06c7c3df41` — matches exactly the SHA the request required.
+- Result SHA (remediation implementation commit): `681fc90dc42239c2bd5866af1c6a0d430212416a`
+- Read in full before any edit, in the exact required order: `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-026`, all 10 findings `AS26-F001`–`F010`, 7 PASS + 3 BLOCKING), `devos/changes/architect-syncs/ML-DEVOS-AS-026.md` (confirmed byte-identical durable archive of the concluding rolling review), `devos/changes/rfcs/ML-DEVOS-RFC-007.md` (re-read the `media`/`project_media` schema section to confirm the exact accepted contract: `state exactly active|archived`, `bounded non-empty alt text (target: trimmed 1-300 characters)`, `prevent duplicate slot/association within one revision`), `brain/DECISION_LOG.md`'s `D-029` entry (also noted `D-030`, which queues `UI-PATCH-001` but explicitly requires WEB-INC-004 to be Architect-accepted and closed first — not started this cycle), `docs/SENTINEL_REVIEW_NOTES.md` (unchanged since the initial implementation cycle, confirmed via `git log`/checksum — advisory-only, no new obligation).
+
+### Exact changed-file list — 6 files, all modifications (no new/deleted files)
+
+- `migrations/0003_web_inc_004_media.sql` — amended in place (not a new migration number, per `AS26-F008`'s explicit instruction since 0003 is local-only and pre-acceptance): `media.state` CHECK changed from `IN ('active')` to `IN ('active', 'archived')`; `media.alt_text` CHECK changed from `length(alt_text) <= 300` to `alt_text = trim(alt_text) AND length(alt_text) BETWEEN 1 AND 300`; `project_media` gains a second `UNIQUE (project_revision_id, role, sort_order)` constraint alongside the existing `UNIQUE (project_revision_id, media_id, role)`. Explanatory comments extended in place; no table/trigger added or removed.
+- `worker/d1/validate.mjs` — `validateAltText` rewritten to trim the input first, validate the trimmed value's length (1-300) and character set, and return the trimmed value (previously it checked `value.trim().length > 0` but returned the raw untrimmed value).
+- `worker/admin/media.mjs` — the upload handler now calls `validateAltText` immediately after decoding the `X-Media-Alt-Text` header, so the same normalized (trimmed) string is used for both the D1 write and the JSON response, never two different forms of the same input.
+- `worker/d1/media.mjs` — `validateMediaSnapshotEntries` now tracks two independent duplicate sets: the existing `(mediaId, role)` association check, and a new `(role, order)` slot check, matching the migration's two independent `UNIQUE` constraints.
+- `tests/worker-admin-media.test.mjs` — 11 new tests (33 total): empty/whitespace-only alt-text rejection, exactly-300/over-300 boundary, leading/trailing-whitespace normalization (response and stored value agree), three direct-DB alt-text rejection tests (empty/whitespace-only/untrimmed), and three direct-DB state tests (default `active`, state-only transition to `archived`, invalid state rejected).
+- `tests/worker-admin-projects.test.mjs` — 3 new tests (63 total): duplicate `(role, order)` slot with two different media IDs rejected via the API, three distinct valid slots (including same-order-different-role and same-role-different-order) succeed via the API, and a direct-DB duplicate-slot rejection test.
+
+**No other file changed.** No route added, no table added, no `wrangler.jsonc`/`worker/index.mjs`/`worker/admin/dashboard.mjs`/`worker/d1/schema.mjs`/`worker/d1/projects.mjs`/`worker/admin/projects.mjs` change — confirmed via `git diff --stat 7c7e6d3` (exactly the 6 files above) and by re-running the full previously-passing project/dashboard/auth/migration/audit suites unmodified.
+
+### `AS26-F008` fix and evidence
+
+`media.state`'s `CHECK` now reads `state IN ('active', 'archived')`, default unchanged at `'active'`. No archive HTTP endpoint was added — no code path in this repository can reach a state transition today; the schema simply stops forbidding a value the accepted contract requires. The existing `media_reject_immutable_field_update` trigger's `UPDATE OF id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by` column list was already correct (it excludes `state`), so a direct `UPDATE media SET state = 'archived' WHERE id = ?` was already structurally permitted once the `CHECK` allowed the value — confirmed empirically (see below) and by three new direct-DB tests: default-`active` on insert, a state-only transition to `archived` that leaves every other column byte-identical, and an invalid state value (`'deleted'`) rejected by the `CHECK`.
+
+### `AS26-F009` fix and evidence
+
+`validateAltText` now trims first (`value.trim()`), validates the trimmed string is 1-300 characters and free of control/angle-bracket characters, and returns the trimmed value — the exact string that gets stored and echoed back. `worker/admin/media.mjs` calls this once, immediately after decoding the alt-text header, and reuses that single normalized value for both `buildMediaUploadBatch` and the JSON response, so "stored value and returned value use the same normalized form" is structural, not incidental. The database `CHECK` independently enforces `alt_text = trim(alt_text) AND length(alt_text) BETWEEN 1 AND 300` — a value that isn't already trimmed, or is empty/whitespace-only, fails this constraint regardless of what any future caller does. New tests: empty alt-text header rejected (400), whitespace-only rejected (400), exactly-300-character accepted, over-300 rejected, leading/trailing-whitespace input normalized (response `altText` and the stored `media.alt_text` row both equal the trimmed form), and three direct-DB tests proving empty/whitespace-only/untrimmed values are rejected by the `CHECK` independently of the application layer. The upload API surface itself is unchanged — same header, same one binary-body route.
+
+### `AS26-F010` fix and evidence
+
+`project_media` gains `UNIQUE (project_revision_id, role, sort_order)` alongside its existing `UNIQUE (project_revision_id, media_id, role)` — both constraints are enforced together, neither replaces the other. `validateMediaSnapshotEntries` (`worker/d1/media.mjs`) now tracks two independent `Set`s during the same pass over a caller-supplied or inherited snapshot: `seenAssociations` (the original `mediaId:role` key) and `seenSlots` (a new `role:order` key), throwing a distinct error for either collision before any D1 access. New tests: an API-level request with two different media IDs both claiming `role: 'gallery', order: 0` is rejected `400` with zero project/revision/`project_media` rows committed; a request with three genuinely distinct slots (same order/different role, and same role/different order) succeeds and each row is stored exactly as submitted; a direct-DB test inserts one `project_media` row at a slot and proves a second row (different `media_id`, same `project_revision_id`/`role`/`sort_order`) is rejected by the new `UNIQUE` constraint. No new role was introduced and the media model is otherwise unchanged.
+
+### Empirical validation against a fresh local D1 database
+
+Per `AS26-F008`'s explicit instruction ("Validate against a fresh local database so Wrangler's prior local migration ledger cannot mask the amended migration content"), a disposable scratch script (not committed) ran `applyAllMigrations` against a brand-new `getPlatformProxy` local D1 instance (a fresh temp directory, never previously migrated) and confirmed, in order: exactly 17 tables; an `active`-state insert with default state; a state-only `UPDATE ... SET state = 'archived'` succeeding; an invalid-state `UPDATE` rejected; an empty/whitespace-only/untrimmed `alt_text` insert each rejected by the amended `CHECK`; an exactly-300-character `alt_text` insert accepted; a 301-character insert rejected; a first `project_media` slot insert succeeding; the same `(mediaId, role)` pair rejected as a duplicate association; a different `mediaId` at the same `(role, order)` rejected as a duplicate slot; and two genuinely distinct slots (`gallery@1`, `cover@0`) both succeeding. The script was deleted after use, and `npx wrangler d1 migrations apply DB --local` was separately run against another fresh `--persist-to` directory as CLI-level confirmation (see the command log below).
+
+### Test results
+
+- `node --test tests/worker-admin-media.test.mjs` (isolated): **33 passed, 0 failed** (22 preserved + 11 new).
+- `node --test tests/worker-admin-projects.test.mjs` (isolated): **63 passed, 0 failed** (60 preserved + 3 new).
+- `npm test` (full suite): **209 passed, 0 failed** (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 17 `d1-audit.test.mjs`, all five unchanged and still passing, + 63 `worker-admin-projects.test.mjs` + 33 `worker-admin-media.test.mjs`).
+
+### Local-only evidence — full command log
+
+| Command | Result |
+|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `7c7e6d3...` before any file was touched |
+| Empirical scratch probe of the amended migration against a **fresh** local D1 instance (not committed) | See "Empirical validation" above — every assertion passed |
+| `node --test tests/worker-admin-media.test.mjs` | 33 passed, 0 failed |
+| `node --test tests/worker-admin-projects.test.mjs` | 63 passed, 0 failed |
+| `npm test` (full suite) | 209 passed, 0 failed |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler d1 migrations apply DB --local` (fresh `--persist-to` directory) | `Resource location: local`; `0001` → 16 commands, `0002` → 5 commands, amended `0003_web_inc_004_media.sql` → 8 commands, all three recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --json --command "SELECT name FROM sqlite_master WHERE type='table' ..."` (same fresh directory) | Returned exactly the 15 existing tables plus `media`/`project_media` (17 product tables) alongside Wrangler's own `_cf_METADATA` bookkeeping table |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.MEDIA`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `remote: true`; "--dry-run: exiting now." |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, `remote:\s*true`, and AWS-style key patterns across every changed file — zero matches beyond the pre-existing unrelated `url.password` property-name check |
+| `git diff --stat 7c7e6d3` | Exactly 6 files changed, all modifications: `migrations/0003_web_inc_004_media.sql`, `worker/admin/media.mjs`, `worker/d1/media.mjs`, `worker/d1/validate.mjs`, `tests/worker-admin-media.test.mjs`, `tests/worker-admin-projects.test.mjs` |
+| `git diff --stat 7c7e6d3 -- migrations/0001_web_inc_005_init.sql migrations/0002_web_inc_008_audit_log.sql` | Empty — both byte-identical |
+| `git diff --stat 7c7e6d3 -- wrangler.jsonc worker/index.mjs worker/d1/schema.mjs worker/admin/dashboard.mjs worker/d1/projects.mjs worker/admin/projects.mjs` | Empty — none of these files changed |
+
+Every D1/Wrangler command above used `--local`/local-simulation-only explicitly or performed no resource mutation at all (`--dry-run`); none used `--remote`.
+
+### Known limitations (remediation-specific; see the original handoff section above for the rest)
+
+- The `media.state` domain now structurally allows `archived`, but no admin capability can reach it — this remediation adds no archive endpoint, exactly as `AS26-F008` requires. A future, separately authorized increment would still need its own review before exposing that transition through any API.
+- The DB-level alt-text `CHECK` relies on SQLite's built-in `trim()`, which strips ASCII spaces only (not tabs/newlines/other Unicode whitespace). The application layer's JS `.trim()` is stricter and runs first on every value that reaches the database through the admin API, so this gap is only reachable via a hypothetical future direct-SQL write path, not through any code in this repository.
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made.
+
+### Explicit confirmations
+
+- **No redesign occurred.** Only the three cited findings were fixed; the route surface, revision model, audit allowlist, R2/D1 write ordering, and public-source boundary are all unchanged from the original implementation.
+- **No new migration number.** `migrations/0003_web_inc_004_media.sql` was amended in place, exactly as `AS26-F008` instructed for this local-only, pre-acceptance migration. `migrations/0001_web_inc_005_init.sql` and `migrations/0002_web_inc_008_audit_log.sql` remain byte-identical.
+- **No new route, no new table, no project delete, no other content-domain mutation.**
+- **No real/remote R2 or D1 was touched.** `wrangler.jsonc` was not modified this cycle; both bindings remain `remote: false`.
+- **No deployment occurred.** `npx wrangler deploy` was run only with `--dry-run`.
+- **No protected/`main` merge occurred.** All work is on `governance/maisoglabs-v0.1` (mirrored to `claude/phase-0-governance-scope-w8o3jp`).
+- **No later increment's work began**, including `UI-PATCH-001` (`D-030`), which remains explicitly queued until this cycle is Architect-accepted and closed.
+- **No Sentinel S3+/CI-rulesets/Capability-Gateway/Task-Engine/Orchestrator work began.**
+- **`MEDIA_MUTATION_AUTHORIZED: YES`, `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`** apply only to this exact bounded remediation; **`REMOTE_R2_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`.** Per `CORE-020`, all runtime/test results above remain `ACTOR_REPORTED` until independently reviewed.
+
+### Remediation commit
+
+The files above are committed to `governance/maisoglabs-v0.1` as commit `681fc90dc42239c2bd5866af1c6a0d430212416a` on top of remediation base `7c7e6d35c43c2e16b18d53a65c8acf06c7c3df41`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
