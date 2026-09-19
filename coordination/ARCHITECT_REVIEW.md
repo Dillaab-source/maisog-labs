@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED — WEB-INC-007 REMEDIATION CYCLE 1`
+Status: `ARCHITECT_APPROVED — WEB-INC-007 ACCEPTED / CORE WEB ROADMAP COMPLETE`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,7 +8,7 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-032 — WEB-INC-007 Implementation Review / Remediation 1
+# ML-DEVOS-AS-033 — WEB-INC-007 Final Review
 
 Authority chain:
 - `ML-DEVOS-RFC-010`
@@ -16,315 +16,216 @@ Authority chain:
 - `D-032`
 - `ML-DEVOS-AS-031`
 - `D-033`
+- `ML-DEVOS-AS-032`
 
-Implementation base:
-- `ac2666860195a6e1c151ae363f7d176b61c12cde`
-
-Builder implementation:
+Initial implementation:
 - `17577838d1007210cd1893fdb71ea8063d764fa8`
 
-Builder handoff/state:
-- `07a30cbcaadf793550b30ced208bd2bf34e7e021`
+Remediation implementation:
+- `9773d76641bef0b9f57b94d78087438f4d2ffc15`
 
-## Independent review performed
+Remediation handoff/state:
+- `9623a5ea0316db90dd4e8f06058c9da3e6009468`
+
+## Independent final review
 
 The Architect independently inspected:
 
-- implementation vs bookkeeping commit separation;
-- migration 0005;
-- theme/section D1 mutation helpers;
-- validation vocabulary/ranges;
-- design admin dispatcher;
-- public design API;
-- Access/public route separation;
-- Worker-first routing;
-- DesignRuntime fixed mappings;
-- DesignControls;
-- homepage section wiring;
-- CSS design variants;
-- focused preview/test source;
-- Builder handoff evidence.
+- the remediation diff boundary;
+- `app/DesignRuntime.js`;
+- `app/admin/DesignControls.js`;
+- `app/globals.css`;
+- `lib/design/overlay.mjs`;
+- `tests/design-overlay.test.mjs`;
+- the unchanged published-only design API;
+- the protected preview architecture established in the prior review.
 
-Builder test/build/CLI/screenshot evidence remains `ACTOR_REPORTED`.
+Builder runtime/test/visual/CLI evidence remains `ACTOR_REPORTED`.
 
 ## Findings
 
-### AS32-F001 — PASS — implementation/bookkeeping separation is correct
+### AS33-F001 — PASS — remediation scope is exact
 
-Implementation commit changes exactly 25 runtime/test/config files.
+The remediation implementation changes exactly five files:
 
-The following bookkeeping commit changes only:
+- `app/DesignRuntime.js`;
+- `app/admin/DesignControls.js`;
+- `app/globals.css`;
+- `lib/design/overlay.mjs`;
+- `tests/design-overlay.test.mjs`.
 
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
+The following bookkeeping commit changes only coordination handoff/state.
 
-The apparent 27-file full compare is therefore not an evidence discrepancy.
+No schema, Worker route, migration, auth, D1 mutation module, or public API module was changed.
 
-### AS32-F002 — PASS — schema/table scope is correct
+### AS33-F002 — PASS — AS32-B001 visual draft preview is resolved
 
-Migration 0005 adds exactly:
+The admin now exposes explicit:
 
-- `theme_settings`;
-- `theme_settings_revisions`.
+- `Open Homepage Preview`;
+- `Open Journal Preview`.
 
-The local product-table target is:
+Those links open the real static pages with:
 
-`20 → 22`
+`?design-preview=1`.
 
-Theme revision enums/ranges are constrained at DB level.
+In preview mode, `DesignRuntime` first requests the existing protected:
 
-Theme revision rows reject UPDATE and DELETE.
+`GET /admin/api/design/preview`
 
-Pointer ownership uses the established composite-FK model.
+and applies that draft-if-present state through the same fixed `applyTheme` / `applySections` mappings used by the published design runtime.
 
-### AS32-F003 — PASS — design input is structurally bounded
+No new public draft API was added.
 
-Application validation and DB constraints restrict the theme to fixed enum values and bounded integers.
+### AS33-F003 — PASS — unauthenticated preview fails safely
 
-No arbitrary:
-
-- CSS;
-- JS;
-- HTML;
-- URL;
-- arbitrary color string;
-- selector;
-- class;
-- font URL;
-- R2 key
-
-is accepted through the design mutation surface.
-
-### AS32-F004 — PASS — public design read is narrow and published-only
-
-The new public route is exactly:
+If the protected preview fetch fails, including Access rejection, `DesignRuntime` falls back to:
 
 `GET /api/design`
 
-No wildcard public design API exists.
+which remains the published-only public design projection.
 
-It reads only:
+Therefore possession of a preview URL alone does not expose draft data.
 
-- `theme_settings.published_revision_id`;
-- each managed section's `published_revision_id`.
+### AS33-F004 — PASS — preview remains structurally bounded
 
-It does not read draft pointers for the public projection.
+Preview uses the exact same:
 
-Unsupported methods reject before D1 access.
+- fixed enum vocabularies;
+- bounded numeric mappings;
+- fixed four-section selectors
 
-### AS32-F005 — PASS — admin/public auth separation is preserved
+as published design application.
 
-`/api/design` is classified before Access because it is intentionally public/read-only.
+It does not add:
 
-`/admin/api/design*` remains behind the existing Access boundary.
+- arbitrary CSS;
+- arbitrary HTML;
+- arbitrary JS;
+- dynamic style text;
+- arbitrary selector/URL behavior;
+- new design vocabulary.
 
-No admin mutation path is opened publicly.
+The screenshot-reference workflow can therefore visually compare a real draft without bypassing governance.
 
-### AS32-F006 — PASS — screenshot-reference controls are deterministic
+### AS33-F005 — PASS — public design API remains unchanged/published-only
 
-The admin surface exposes fixed selects, bounded ranges, section visibility/order, Save Draft, Publish, and Preview-state retrieval.
+The remediation does not modify:
 
-There are no free-text CSS/HTML/JS/URL inputs.
+`worker/public/design.mjs`
 
-This is compatible with Architect-generated Design Reference Plans.
+or its routing.
 
-### AS32-F007 — PASS — public runtime uses fixed mappings only
+Public `GET /api/design` remains published-pointer-only.
 
-`app/DesignRuntime.js`:
+Theme and section draft state are still unavailable through the public design API.
 
-- revalidates enum values client-side;
-- bounds numeric values before applying CSS variables;
-- targets only fixed `data-*` attributes;
-- targets exactly four fixed section selectors;
-- does not use `dangerouslySetInnerHTML`;
-- does not construct arbitrary CSS;
-- does not evaluate code;
-- does not load remote design assets.
+### AS33-F006 — PASS — AS32-B002 full overlay range is resolved
 
-### AS32-F008 — PASS — section draft/public isolation is preserved
+The previous saturated mapping has been replaced with a two-layer bounded mapping.
 
-DESIGN-002/003 reuse the existing section revision model.
+For values `40..68`:
 
-Public runtime receives only published section state.
+- base overlay opacity scales from `40/68` to `1`;
+- boost remains `0`.
 
-Draft section mutations do not directly alter public state before publish.
+For values `68..85`:
 
-### AS32-F009 — PASS — local/release authority remains closed
+- base overlay opacity stays exactly `1`;
+- independent darkening boost scales from `0` to `1`.
 
-D1/R2 remain `remote: false`.
+At exactly `68`:
 
-No deployment or main merge was performed.
+`{ opacity: 1, boost: 0 }`
 
-The Builder's local raw-SQL seeding for visual validation is accepted as test/setup activity under local D1 simulation authority; it is not an authorized production/admin workflow and creates no direct-DB operational authority.
+preserves the accepted baseline.
 
----
+The upper range no longer depends on an opacity value above 1 and therefore no longer saturates into a no-op.
 
-## Blockers
+### AS33-F007 — PASS — the mapping is directly testable
 
-### AS32-B001 — BLOCKER — “Preview” is data-only, not a visual draft preview
+`lib/design/overlay.mjs` isolates the overlay mapping as a pure function.
 
-The required screenshot-reference workflow is:
+`tests/design-overlay.test.mjs` directly covers:
 
-`REFERENCE → ANALYSIS → CONTROL MAPPING → DRAFT → PREVIEW → PAULO REVIEW → PUBLISH`
+- minimum 40;
+- baseline 68;
+- maximum 85;
+- monotonic upper-range boost;
+- no boost at/below baseline;
+- invalid/out-of-range handling.
 
-`docs/product/DESIGN_REFERENCE_WORKFLOW.md` specifically requires the Architect to compare the preview against:
+The source-level mapping supports the Builder's visual claim that 40 < 68 < 85 in darkening effect.
 
-- the reference screenshot;
-- Brand V3;
-- soft geometry;
-- responsive behavior;
-- readability/contrast;
-- reduced-motion compatibility.
+### AS33-F008 — PASS — reduced-motion and design security boundaries remain unchanged
 
-The current implementation cannot satisfy that operating workflow.
+The remediation adds no motion capability and does not weaken the existing `prefers-reduced-motion` path.
 
-Current behavior:
+No free-form design input, dynamic code execution, remote design asset, or arbitrary style injection is introduced.
 
-- `GET /admin/api/design/preview` correctly returns draft-if-present design data;
-- `app/admin/DesignControls.js` renders that data only as formatted JSON in a `<pre>`.
+### AS33-F009 — PASS — static architecture remains intact
 
-There is no authenticated visual surface that applies draft theme/section state to the actual public presentation before publish.
+Preview mode is client-side on existing static pages.
 
-Therefore Paulo cannot visually review a screenshot-reference design draft before making it public.
+No SSR conversion, D1 import into `app/`, or server-rendered draft path was introduced.
 
-#### Required remediation outcome
+### AS33-F010 — ACCEPTED ACTOR_REPORTED evidence
 
-Provide an authenticated **visual draft preview** using the existing bounded design vocabulary.
+Claude reports:
 
-A preferred low-complexity solution is:
+- `tests/design-overlay.test.mjs`: 7/7;
+- full suite: `338/338`;
+- `npm run build`: success;
+- all routes remain static;
+- fresh local migrations still produce exactly 22 product tables;
+- visual draft preview of unpublished theme state;
+- visual draft preview of unpublished section visibility;
+- signed-out preview fallback to published/baseline;
+- real local overlay screenshots at 40, 68, and 85;
+- no remote D1/R2;
+- no deployment;
+- no main merge.
 
-- retain `GET /admin/api/design/preview` as the protected draft-state source;
-- allow an explicit preview mode on the real static public surfaces (for example `/?design-preview=1` and `/journal?design-preview=1`);
-- in preview mode, authenticated browsers fetch the protected preview endpoint and apply its returned draft-if-present state through the same fixed-mapping runtime;
-- unauthenticated preview attempts must not receive draft data and must fall back safely to published/baseline presentation;
-- add obvious admin controls such as “Open Homepage Preview” and “Open Journal Preview”.
+These remain `ACTOR_REPORTED`.
 
-An equivalent bounded implementation is acceptable if it provides a real visual preview without new public draft APIs or SSR.
+Independent source/diff inspection is sufficient for final local/repository acceptance under CORE-020.
 
-Must remain true:
+## Final verdict
 
-- `/api/design` stays published-only;
-- no draft state becomes public;
-- no new arbitrary CSS/JS/HTML capability;
-- no source-code-per-reference bypass;
-- no new remote/deploy authority.
+`ML-DEVOS-AS-033: ARCHITECT_APPROVED — WEB-INC-007 THEME / DESIGN CONTROLS ACCEPTED`
 
-#### Required remediation evidence
+Both AS32 blockers are closed.
 
-At minimum:
+The screenshot-reference workflow is now supported at repository/local level:
 
-1. visual preview of an unpublished theme draft;
-2. visual preview of unpublished section order/visibility;
-3. proof public `GET /api/design` remains unchanged/published-only;
-4. proof unauthenticated preview cannot retrieve draft data;
-5. source inspection showing preview still uses fixed design mappings;
-6. screenshot evidence showing draft visual state before publish;
-7. default/public presentation remains unchanged until publish.
+`REFERENCE → ARCHITECT ANALYSIS → CONTROL MAPPING → DRAFT → VISUAL PREVIEW → PAULO REVIEW → PUBLISH`
 
----
+## Core roadmap consequence
 
-### AS32-B002 — BLOCKER — DESIGN-008 range saturates above the baseline
+All eight dependency-ordered core WEB increments are now architecturally accepted at repository/local level:
 
-RFC-010 authorizes:
+1. WEB-INC-001
+2. WEB-INC-005
+3. WEB-INC-002
+4. WEB-INC-008
+5. WEB-INC-003
+6. WEB-INC-004
+7. WEB-INC-006
+8. WEB-INC-007
 
-`overlay_intensity: 40..85`
+This means the current **core WEB build roadmap is complete**.
 
-The current runtime computes:
+It does **not** mean:
 
-`--design-overlay-opacity = overlayIntensity / 68`
+- production deployed;
+- remote D1/R2 provisioned;
+- production Access verified;
+- protected/main merged;
+- homepage/projects cut over to D1;
+- public media object serving enabled.
 
-and CSS applies that value to the standard `opacity` property.
+Those remain separate future decisions.
 
-At the baseline value:
+## Post-acceptance requirement
 
-`68 / 68 = 1`
-
-which correctly preserves the pre-increment baseline.
-
-However CSS opacity clamps values above 1.
-
-Therefore:
-
-- 68 → 1;
-- 70 → >1 → effectively 1;
-- 85 → 1.25 → effectively 1.
-
-The upper portion of the advertised control range is functionally saturated and cannot produce increasing overlay intensity.
-
-The source comment explicitly acknowledges this clamp.
-
-That means DESIGN-008 is validated as 40–85 but is not meaningfully implemented across that full range.
-
-#### Required remediation outcome
-
-Make the complete allowed range `40..85` produce a bounded, monotonic, meaningful visual effect while preserving:
-
-- value 68 as the current V3/UI-PATCH-001 baseline;
-- no arbitrary CSS input;
-- fixed CSS/runtime mapping;
-- fail-safe default behavior.
-
-A valid approach may use separate bounded variables for below-baseline opacity and above-baseline darkening, or another fixed pre-authored mapping.
-
-The Architect does not require a particular formula, but:
-
-- 40, 68, and 85 must produce meaningfully distinct outputs;
-- increasing values must not become no-ops because of CSS property clamping;
-- 68 must remain visually equivalent to the accepted baseline.
-
-#### Required remediation evidence
-
-At minimum:
-
-1. source-level mapping inspection;
-2. boundary tests at 40, 68, 85;
-3. evidence that 40 < 68 < 85 in actual visual effect;
-4. screenshot comparison at the three values or equivalent deterministic visual evidence;
-5. baseline 68 remains equivalent to the accepted default.
-
----
-
-## Non-blocking observations
-
-### AS32-L001 — Preview fallback semantics are acceptable
-
-The protected preview endpoint uses:
-
-`draft if present, otherwise published`
-
-for both theme and sections.
-
-This is a reasonable interpretation for partial screenshot-reference design sessions and is accepted, provided AS32-B001 adds an actual visual preview surface.
-
-### AS32-L002 — Admin control styling is utilitarian
-
-The authenticated control UI is deliberately plain and not V3-styled.
-
-This is not a blocker for WEB-INC-007.
-
-Usability/contrast should still be kept functional, but public visual styling is not required for the internal control panel.
-
-## Remediation verdict
-
-`ML-DEVOS-AS-032: CHANGES_REQUESTED — TWO BOUNDED PRESENTATION BLOCKERS`
-
-Remediation Cycle 1 is limited to:
-
-1. visual authenticated draft preview;
-2. full-range overlay-intensity behavior;
-3. tests/evidence directly needed for those two fixes;
-4. coordination handoff/state bookkeeping.
-
-Do not reopen:
-
-- schema/table architecture;
-- public route scope beyond what the visual preview safely needs;
-- design vocabularies/ranges;
-- media architecture;
-- content CMS scope;
-- remote resources;
-- deployment;
-- main merge;
-- Sentinel S3+.
-
-After remediation, return to Architect for final review.
+Because WEB-INC-007 is `ARCHITECTURE`, record the final ADR and durable Architect Sync archive before cycle closure.
