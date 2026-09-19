@@ -409,3 +409,36 @@ These rules deliberately do **not** implement the future control plane.
 - telemetry pipeline
 
 Keep these on record and revisit them only when real build/autonomy/risk pressure justifies implementation.
+
+
+---
+
+## 2026-09-19 source re-check — keep on record, do not implement yet
+
+A second broad source review after Sentinel v1.5.0 found **no new governance rule that justifies another version bump**.
+
+The strongest useful future observations are:
+
+1. **Graduated autonomy**
+   - Future S5/S8 may consider granting or reducing narrowly scoped permissions based on deterministic reliability evidence.
+   - Do not implement trust scores, autonomous permission promotion, or dynamic autonomy tiers now.
+
+2. **First-class agent identity**
+   - Future S5 should prefer distinct, short-lived agent/workload identities over inherited Paulo/shared credentials when real remote autonomy becomes routine.
+   - This is already directionally covered by CORE-019's identity/credential scoping requirement; no new core rule is needed now.
+
+3. **Commodity agent-code security validation**
+   - When CORE-021 eventually triggers protected-main/production technical enforcement, prefer mature platform-native scanning/checks before inventing a custom scanner stack.
+   - GitHub/CI enforcement remains future work; this note does not authorize S10 or CI.
+
+### Re-check conclusion
+
+Keep Sentinel v1.5.0 unchanged.
+
+Do not create CORE-022 from these findings.
+
+Continue to apply:
+
+`BUILD VALUE FIRST — ADD CONTROL WHEN RISK JUSTIFIES IT`
+
+Revisit the observations above only when their corresponding real trigger appears.
