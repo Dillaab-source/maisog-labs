@@ -36,35 +36,63 @@ Static Next.js export (`next.config.mjs`: `output: "export"`) served by Wrangler
 
 ## Current storage model
 
-Local, Git-backed content remains the sole **public/authoritative** storage model — there is still no database or external persistence layer in the actual public read path. The governed content boundary, preserved as-is by this bootstrap (per Architect finding F-002 and the required Phase 1 item "Preserve current content architecture"):
+MaisogLabs now has a **hybrid public content model**.
+
+### Homepage / existing portfolio content
+
+The homepage and existing public project presentation still use the Git-backed path:
 
 ```
-data/site.js  →  lib/content/local.mjs  →  lib/content/schema.mjs  →  lib/content/public.mjs  →  app/page.js
-   (source)      (build/server-only          (validation,             (published-only            (consumer;
-                  async reader — a             unknown-field            projection, drops           renders only
-                  seam for a future            rejection, link/         internal `state`            the projection)
-                  D1 implementation,           HTML-injection           field)
-                  not a live connection)       guards)
+data/site.js → lib/content/local.mjs → schema.mjs → public.mjs → app/page.js
 ```
 
-Any future Admin/CMS work must either preserve this boundary or deliberately replace it through an approved architecture decision recorded in `DECISION_LOG.md` — it must not be bypassed silently.
+That path remains authoritative for the existing homepage/project presentation.
 
-**As of `WEB-INC-005` (`ML-DEVOS-RFC-003` → `ML-DEVOS-AS-013` → `D-024`):** a **local-only** D1 revision substrate (`migrations/0001_web_inc_005_init.sql`, `worker/d1/*`) now exists in parallel, covering exactly the 14 tables `site_settings`/`navigation`/`foundations`/`projects`/`services`/`process_steps`/`sections` (each with a `_revisions` companion). This substrate is migration/parity/integrity-tested against the boundary above (`tests/d1-migration.test.mjs`), but it is **not** the public/authoritative source: `lib/content/local.mjs`, `app/page.js`, and the diagram above are unmodified, `data/site.js` is not retired, and no HTTP route, dashboard, or client code reads from D1. `D1 EXISTS LOCALLY ≠ D1 IS PUBLIC SOURCE` (`ML-DEVOS-AS-013`). No R2/media storage exists.
+### Local D1/R2 capabilities
 
-Draft/archived content in `data/site.js` is filtered out of the public projection at build time, but this is **not** confidentiality: the Git source remains public. This is documented in `docs/CONTENT.md` and repeated here because it is a governance-relevant security boundary, not just an engineering note.
+Separately accepted local architecture now includes:
+
+- a 20-product-table D1 schema through migration 0004;
+- append-only audit;
+- project mutation lifecycle;
+- local R2 media storage plus project media associations;
+- Journal lifecycle and Journal media;
+- published-only public Journal D1 reads.
+
+D1/R2 remain explicitly local-only (`remote: false`).
+
+The public Journal API is the first accepted public D1 read path, but this does **not** cut the homepage/projects over to D1.
+
+`D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE` remains the governing distinction for non-Journal content.
+
+No production/remote D1 or R2 verification is claimed.
 
 ## Current admin/auth status
 
-`ADMIN STATUS: AUTHENTICATION BOUNDARY ONLY IMPLEMENTED (WEB-INC-001)`
-`AUTHENTICATION STATUS: SERVER-SIDE FAIL-CLOSED VERIFICATION IMPLEMENTED FOR /admin, /admin/* ONLY — NO SESSION/EDITORIAL/MUTATION CAPABILITY`
+`ADMIN STATUS: AUTHENTICATED READ-ONLY UI + BOUNDED DOMAIN APIs IMPLEMENTED LOCALLY`
 
-As of `WEB-INC-001` (`ML-DEVOS-RFC-002` → `ML-DEVOS-AS-011` → `D-023`), a Worker entrypoint (`worker/index.mjs`, `worker/auth.mjs`) fail-closed-verifies a Cloudflare Access JWT assertion for `/admin` and `/admin/*` only, gating a minimal static placeholder (`app/admin/page.js`) — see `docs/ARCHITECTURE.md` § "Runtime flow" and `docs/product/TECHNICAL_DESIGN.md` § "Public/admin boundary — current" for the exact mechanism. This is repository-implemented and locally/deterministically tested (`tests/worker-auth.test.mjs`); no production Cloudflare Access application exists yet, so this is not production-verified (`coordination/IMPLEMENTER_HANDOFF.md` evidence classes apply). No session/cookie mechanism, no editorial/private data read, no content mutation, and no database access exist anywhere in `app/`, `components/`, `data/`, `lib/`, or `worker/` — every capability beyond this authentication check remains `NOT IMPLEMENTED`.
+Cloudflare Access verification is implemented at repository level for `/admin` and `/admin/*`.
+
+After successful authentication, the Worker supports:
+
+- bounded dashboard status reads;
+- project lifecycle mutation API;
+- media upload/list API;
+- Journal lifecycle mutation API.
+
+The admin UI itself is not yet a complete editing interface for those APIs.
+
+There is no application session store beyond per-request Access assertion verification.
+
+No production Cloudflare Access configuration is verified.
+
+The public Journal API is intentionally outside the admin auth boundary and is read-only/published-only.
 
 ## Current restrictions
 
 - **No deployment** is authorized except by explicit, separate Paulo authorization. Current value: `DEPLOY_AUTHORIZED: NO` (`coordination/STATE.md`).
 - **No merge to `main`** is authorized except by explicit, separate Paulo authorization. Current value: `MAIN_MERGE_AUTHORIZED: NO` (`coordination/STATE.md`).
-- No further website implementation is authorized beyond what a specific, currently active governance record permits. As of this cycle that is `WEB-INC-001`'s authentication boundary (`ML-DEVOS-RFC-002`/`ML-DEVOS-AS-011`/`D-023`) plus `WEB-INC-005`'s local-only D1 revision substrate (`ML-DEVOS-RFC-003`/`ML-DEVOS-AS-013`/`D-024`) — see `coordination/STATE.md` for the live gate. Remote/production D1, R2 integration, any later `WEB-INC-*`, and further public-website redesign remain unauthorized until their own separate RFC/Architect-Sync/Paulo-decision chain is completed; this line is updated at each such authorization rather than left pointing at a closed gate.
+- No further website implementation is authorized unless the live `coordination/STATE.md` opens a specific bounded turn. WEB-INC-001/005/002/008/003/004/006 and UI-PATCH-001 are closed; WEB-INC-007 Theme/Design Controls remains unstarted and unauthorized. Remote/production D1/R2, deployment, public media serving, broader D1 cutover, and main merge remain separately gated.
 - No experimental/legacy branch (see inventory below) may be merged into the governance branch without a separate, explicit authorization and review.
 
 ## Legacy / non-governance branch inventory
