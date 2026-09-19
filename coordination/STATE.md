@@ -1,18 +1,20 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-WEB-INC-003-PROJECT-MUTATION
+CYCLE_ID: MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM
 TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NONE_PENDING_NEW_PAULO_DECISION
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: NONE_PENDING_PAULO_WEB_INC_004_IMPLEMENTATION_DECISION
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: YES
 LAST_IMPLEMENTER_HANDOFF_SHA: a1ff241c5c4f912564627ee13824496ecf9b197b
-LAST_ARCHITECT_REVIEWED_SHA: a1ff241c5c4f912564627ee13824496ecf9b197b
-CURRENT_REMEDIATION_CYCLE: 1
+LAST_ARCHITECT_REVIEWED_SHA: 787b632c903eb497ea2b75f42ae30401d74e5b60
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
+MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
+REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
@@ -25,172 +27,165 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.4.0`
 
-Accepted dependencies:
-- `ML-DEVOS-AS-012` — WEB-INC-001 authentication boundary
+Closed dependencies:
+- `ML-DEVOS-AS-012` — authentication boundary
 - `ML-DEVOS-AS-014` / `ML-DEVOS-ADR-003` — local D1 revision substrate
-- `ML-DEVOS-AS-016` / `ML-DEVOS-ADR-004` — protected read-only admin dashboard
 - `ML-DEVOS-AS-019` / `ML-DEVOS-ADR-005` — append-only audit substrate
-- `ML-DEVOS-AS-022` — project mutation capability accepted / remediation closed
+- `ML-DEVOS-AS-022` — project mutation capability accepted
 
-## WEB-INC-003 authority chain
+## WEB-INC-004 proposal
 
 RFC:
-- `ML-DEVOS-RFC-006 — MaisogLabs WEB-INC-003 Project Mutation Capability`
-- class: `CAPABILITY`
-- status: `ACCEPTED`
+- `ML-DEVOS-RFC-007 — MaisogLabs WEB-INC-004 Local Media Subsystem`
+- change class: `ARCHITECTURE`
+- proposal commit: `787b632c903eb497ea2b75f42ae30401d74e5b60`
 
-Pre-build Architect Sync:
-- `ML-DEVOS-AS-020: ARCHITECT_APPROVED — WEB-INC-003 PROJECT MUTATION CAPABILITY COMPATIBLE FOR BOUNDED LOCAL/REPOSITORY IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
+Architect Sync:
+- `ML-DEVOS-AS-023 — WEB-INC-004 Local Media Subsystem Architecture Sync`
+- review commit: `55685940b35527af32ecdb64f2f85746def6188d`
+- verdict:
+  `ARCHITECT_APPROVED — WEB-INC-004 LOCAL MEDIA SUBSYSTEM COMPATIBLE FOR BOUNDED REPOSITORY/LOCAL IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
 
-Paulo decision:
-- `D-027 — Authorize WEB-INC-003 project mutation capability implementation`
+No Builder authority exists yet.
 
-Original implementation:
-- `a016cc2aafea494ad00ecfd79b545ccdcb0c1221`
+## Proposed implementation scope
 
-Initial implementation review:
-- `ML-DEVOS-AS-021: CHANGES_REQUESTED — WEB-INC-003 REMEDIATION CYCLE 1 LIMITED TO COMMIT-TIME STALE-WRITE ENFORCEMENT, BOUNDED MUTATION IDENTITY, TRUE BODY-SIZE BOUNDING, AND ROUTE/DB ORDERING`
+If Paulo explicitly authorizes implementation, Claude may build only:
 
-Remediation:
-- `a1ff241c5c4f912564627ee13824496ecf9b197b`
+- new `media` D1 table;
+- new `project_media` D1 table;
+- local simulated R2 binding;
+- `POST /admin/api/media` validated upload;
+- `GET /admin/api/media` protected metadata list;
+- optional complete media-selection snapshots on new project revisions created through existing project create/edit;
+- exact-draft preview media metadata;
+- required audit integration and local-only tests.
 
-Final Architect review:
-- `ML-DEVOS-AS-022: ARCHITECT_APPROVED — WEB-INC-003 REPOSITORY/LOCAL PROJECT MUTATION CAPABILITY ACCEPTED / REMEDIATION CLOSED`
+## Schema target
 
-Durable archives:
-- `devos/changes/architect-syncs/ML-DEVOS-AS-020.md`
-- `devos/changes/architect-syncs/ML-DEVOS-AS-021.md`
-- `devos/changes/architect-syncs/ML-DEVOS-AS-022.md`
+Current product-table count:
+- 15
 
-## Accepted project mutation capability
+Proposed target:
+- 17
 
-MaisogLabs now has a bounded local/repository project mutation capability with exactly these protected routes:
+New migration only:
+- `migrations/0003_web_inc_004_media.sql`
 
-- `POST /admin/api/projects`
-- `PUT /admin/api/projects/:id/draft`
-- `GET /admin/api/projects/:id/preview`
-- `POST /admin/api/projects/:id/publish`
-- `POST /admin/api/projects/:id/unpublish`
+Existing migrations must remain byte-identical.
 
-No project DELETE route exists.
-No generic mutation API exists.
+No `journal_media`, journal, or theme table is authorized.
 
-## Accepted trust path
+## Media boundary
 
-```
-valid Access configuration
-        ↓
-verified Access JWT
-        ↓
-bounded non-empty mutation subject
-        ↓
-same-origin + JSON + byte-bounded request
-        ↓
-server-side project validation
-        ↓
-expected pointer state
-        ↓
-commit-time stale-state guard
-        ↓
-atomic project transition + success audit
-        ↓
-local D1 only
-```
+Allowed types only:
+- image/jpeg
+- image/png
+- image/webp
 
-## Accepted mutation invariants
+Forbidden:
+- SVG;
+- arbitrary files;
+- archives;
+- remote URL ingestion.
 
-- create/edit use immutable project revision rows;
-- edit never updates revision content in place;
-- slug is immutable after create;
-- existing-project mutation requires expected published/draft pointer state;
-- stale state is enforced again inside the atomic commit boundary;
-- publish revalidates the exact persisted draft;
-- publish/unpublish preserve revision history;
-- business mutation + success audit commit atomically;
-- forced audit/business failure cannot leave a partial successful mutation;
-- bounded authenticated failures may emit `result: failure` audit rows when storage remains available;
-- mutation identity is reduced to a bounded verified Access subject;
-- request body is limited to 32 KiB by actual byte count;
-- unsupported route/method is classified before DB-binding requirement.
+Maximum upload:
+- 5 MiB actual bytes.
 
-## Known accepted limitation
+Server must validate both declared type and file signature.
 
-`AS22-L001`:
+Server generates:
+- media ID;
+- storage key.
 
-The commit-time stale-write guard currently depends on the existing project reserved-slug CHECK by deliberately attempting the forbidden sentinel slug `home` when live pointer preconditions fail.
+Client filename/path must not control storage location.
 
-This is accepted for the current local/repository capability because:
-- the schema currently enforces the CHECK;
-- the dependency is explicit and tested;
-- D1 transactional rollback protects the entire batch;
-- no production deployment is authorized.
+## Immutability
 
-A future project-schema or slug-policy change must account for this dependency.
+Existing media public-affecting metadata is immutable.
 
-If the schema is later evolved, a purpose-built compare-and-swap/version/precondition mechanism should be preferred.
+Changing file or alt text means new media row.
 
-## Schema/public-source boundaries
+Existing project_media associations are immutable.
 
-Current local product schema remains exactly 15 product tables.
+Changing project media means a new project revision with its own association snapshot.
 
-No migration/schema change occurred.
+No media DELETE or UPDATE API.
 
-Public source remains:
+## Local R2 only
 
-`data/site.js → lib/content/schema.mjs → lib/content/public.mjs → lib/content/local.mjs → app/page.js`
+This cycle may use only local Wrangler/R2 simulation.
 
-Critical invariant:
+`REMOTE_R2_AUTHORIZED: NO`
 
-`D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE`
+Do not configure:
+- `remote: true`;
+- real bucket provisioning;
+- public bucket;
+- custom domain;
+- production resource credentials/IDs.
 
-WEB-INC-003 does not perform public D1 cutover or deployment.
+## Cross-store failure behavior
 
-## Evidence disposition
+Successful upload:
+1. validate;
+2. write object to local R2;
+3. D1 batch inserts media metadata + success audit;
+4. return success.
 
-Independently inspected by Architect:
-- original implementation diff;
-- remediation diff;
-- route/auth/mutation/audit code;
-- commit-time stale-state guard;
-- interleaving regression source;
-- bounded subject implementation/tests;
-- UTF-8 byte-budget implementation/tests;
-- route/DB-ordering implementation/tests;
-- unchanged migration/schema/public/package surfaces.
+R2 failure:
+- no D1 success.
 
-Builder `ACTOR_REPORTED` runtime evidence:
-- original full suite: 152/152;
-- remediation project suite: 51/51;
-- remediation full suite: 164/164;
-- successful build;
-- local migrations/table inventory;
-- local guard probe;
-- Wrangler dry-run;
-- secret/config scan.
+D1 failure after object write:
+- attempt compensating delete of new local object;
+- no media metadata/success audit survives;
+- return failure.
 
-No independent runtime reproduction is claimed.
+Compensation failure:
+- still fail request;
+- do not fabricate D1 state.
 
-## Capability-class closure rule
+## Project integration
 
-WEB-INC-003 is `CAPABILITY`, not `ARCHITECTURE`.
+Project create/edit may optionally provide a complete media snapshot for the new revision.
 
-Per active Sentinel policy:
+If omitted on edit:
+- inherit/copy the source revision media snapshot.
 
-`Capability-change proposal → Decision → (future) capability registry entry`
+If supplied:
+- it fully defines the new revision's associations.
 
-No ADR is required.
+All referenced media must exist and be active.
 
-The capability registry/gateway is explicitly not implemented yet and `devos/capabilities/` remains reserved for future S5 work.
+Project revision + association rows + pointer transition + existing project success audit must remain one D1 atomic batch.
 
-No fake registry record is created as part of this closure.
+WEB-INC-003 stale-write protections remain binding.
 
-## Authority reset
+## Public boundary
 
-Implementation authority ends with this cycle.
+`LOCAL R2 OBJECT + D1 MEDIA ROW != PUBLIC WEBSITE MEDIA`
+
+No public R2/D1 path.
+No cutover.
+No deployment.
+
+## Sentinel review-note disposition
+
+The canonical Sentinel review note was consulted.
+
+Because this cycle uses local R2 simulation only and no real remote cloud authority, it does not justify prematurely implementing S3–S7, CI, rulesets, a Capability Gateway, Task Engine, or Orchestrator.
+
+Keep the build simple.
+
+## Absolute gates
+
+`MEDIA_MUTATION_AUTHORIZED: NO`
 
 `MUTATION_AUTHORIZED: NO`
 
 `AUDIT_APPEND_AUTHORIZED: NO`
+
+`REMOTE_R2_AUTHORIZED: NO`
 
 `REMOTE_D1_AUTHORIZED: NO`
 
@@ -198,44 +193,24 @@ Implementation authority ends with this cycle.
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-The implemented project capability remains in code, but no new increment inherits authority to invoke, expand, deploy, or merge it automatically.
+## Explicitly not authorized
 
-## Explicitly still not authorized
-
-- project delete;
-- slug rename;
-- mutation of other content domains;
-- schema change;
-- media/R2;
-- journal;
+- real/remote R2;
+- remote D1;
+- public bucket/custom domain;
+- public media route;
+- D1/R2 public cutover;
+- media delete API;
+- SVG/arbitrary file upload;
+- journal/journal_media;
 - theme/design;
-- persistent session/role database;
-- audit UI/API;
-- remote/production D1;
-- production Cloudflare Access mutation;
-- public D1 cutover;
+- production Access changes;
 - deployment;
 - protected/main merge;
-- later WEB-INC work;
+- later WEB-INC;
 - Sentinel S3+;
-- CI/workflows/rulesets.
-
-## Next dependency-ordered candidate
-
-The Product Build Plan identifies:
-
-`WEB-INC-004 — Media subsystem`
-
-as the next dependency-ordered candidate.
-
-It remains **unauthorized**.
-
-Its own cycle must freshly perform:
-
-`GROUND → CLASSIFY → PROPOSE → ARCHITECT SYNC → PAULO GATE`
-
-including a fresh decision on whether R2/media work is `ARCHITECTURE`, `CAPABILITY`, or a composed stronger path.
+- CI/rulesets/Task Engine/Capability Gateway/Orchestrator.
 
 ## Current gate
 
-`WEB-INC-003 CLOSED — NEW PAULO AUTHORIZATION REQUIRED BEFORE WEB-INC-004 OR ANY REMOTE / DEPLOYMENT / CUTOVER / MERGE OPERATION`
+`WEB-INC-004 ARCHITECT-APPROVED — PAULO IMPLEMENTATION AUTHORIZATION REQUIRED`
