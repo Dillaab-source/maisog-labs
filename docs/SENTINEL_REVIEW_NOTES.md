@@ -370,3 +370,42 @@ Active change policy:
 `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`
 
 This rolling note may be updated in future reviews, but updates remain non-binding unless a separate governed decision promotes an item into policy or architecture.
+
+
+---
+
+## Implemented governance delta — v1.5.0
+
+The following recommendations from the broad external review are now **implemented as Sentinel policy**:
+
+1. **CORE-019 — Remote Resource Gate**
+   - future real remote/cloud authority must be explicitly resource-scoped, identity/credential-scoped, operation-scoped, time/revocation-scoped, and evidence-scoped.
+
+2. **CORE-020 — Risk-Based Evidence Escalation**
+   - stronger consequence requires stronger independent/deterministic evidence;
+   - remote/production/security-sensitive changes cannot close solely on Builder self-reported execution.
+
+3. **CORE-021 — Merge / Production Protection Trigger**
+   - before the first protected-main merge or real production operation, Sentinel must review/configure the minimum appropriate technical protections.
+
+These rules deliberately do **not** implement the future control plane.
+
+### Still explicitly unimplemented
+
+- S3 Typed Task Contracts
+- S4 State Machine Kernel
+- S5 Capability & Permission Gateway
+- S6 Isolated Execution
+- S7 Evidence & QA Plane
+- S8 Orchestrator
+- S9 executable Evidence Gate
+- S10 full GitHub Enforcement
+- S11 Memory & Observability
+- S12–S14
+- CI workflows / GitHub rulesets
+- Task Engine / Policy Engine
+- capability broker
+- automated credential issuance/revocation
+- telemetry pipeline
+
+Keep these on record and revisit them only when real build/autonomy/risk pressure justifies implementation.
