@@ -143,10 +143,13 @@ Future governed work uses Sentinel's five actors — **Paulo, Architect, Builder
 
 ### `WEB-INC-007` — Theme/design controls
 - **Requirements:** `DESIGN-001`…`014`.
-- **Design refs:** `APP_FLOW.md` §2l; `DATA_BACKEND_SPEC.md` § `theme_settings`/`theme_settings_revisions`; `UI_UX_SPEC.md` § "Design controls".
-- **Bounded scope:** validated, range-constrained theme controls only — never free-form CSS/JS input (`DESIGN-014`).
-- **Likely change class:** `CAPABILITY`.
-- **Architecture status:** `ML-DEVOS-RFC-010` accepted; `ML-DEVOS-AS-030` Architect-approved; `D-032` authorizes bounded local/repository implementation. Builder implementation pending. No remote D1/R2, deployment, main merge, public R2 serving, SSR conversion, arbitrary CSS/JS/HTML, or Sentinel S3+ authority.
+- **Design refs:** `APP_FLOW.md` §2l; `DATA_BACKEND_SPEC.md` § `theme_settings`/`theme_settings_revisions`; `UI_UX_SPEC.md` § "Design controls"; `DESIGN_REFERENCE_WORKFLOW.md`.
+- **Change class:** `ARCHITECTURE`.
+- **Bounded scope:** fixed preset/enum and bounded numeric controls only; section visibility/order reuses `sections`/`section_revisions`; theme values use exactly `theme_settings`/`theme_settings_revisions`; no free-form CSS/JS/HTML/URL input.
+- **Implementation status:** `ARCHITECT_APPROVED / CLOSED`. Authority chain: `ML-DEVOS-RFC-010 → ML-DEVOS-AS-030 → D-032 → ML-DEVOS-AS-031 → D-033 → 17577838... → ML-DEVOS-AS-032 → 9773d766... → ML-DEVOS-AS-033 → ML-DEVOS-ADR-009`.
+- **Accepted outcome:** authenticated design controls, screenshot-reference draft workflow, real visual draft preview, published-only `GET /api/design`, fixed-mapping static-page runtime, 22 product tables, full-range overlay intensity with value 68 preserving baseline.
+- **Evidence:** Builder reports 338/338 full tests and successful static build. No remote D1/R2, deployment, main merge, SSR conversion, homepage/projects D1 cutover, or public R2 serving is accepted or claimed.
+
 
 ## B. Dependency-ordered execution sequence (`AS10-R002`)
 
@@ -159,7 +162,7 @@ This is the topologically valid build order — the catalog above is unordered b
 5. **`WEB-INC-003`** — Project mutation lifecycle (behavior only — `projects`/`project_revisions` schema already exists from step 2). Depends on `WEB-INC-001`, `WEB-INC-002` (dashboard framing), `WEB-INC-005` (storage), and `WEB-INC-008` (audit substrate, whose real-mutation integration this step is the one to prove). **This resolves the prior cycle's contradiction**, where `WEB-INC-003` was listed before `WEB-INC-005` while depending on it — `WEB-INC-005` now precedes `WEB-INC-003` in this sequence, even though `WEB-INC-003`'s ID number is lower.
 6. **`WEB-INC-004`** — Media subsystem (`media`/`project_media` only). Depends on `WEB-INC-001`; also depends on `WEB-INC-005` for `project_revisions` to exist, since `project_media` keys off `project_revisions.id`, not the base `projects` row (`AS10-R008`). Does not strictly require `WEB-INC-003`'s mutation behavior to exist first (schema can exist before projects have media attached through the UI).
 7. **`WEB-INC-006`** — Journal — **CLOSED / ARCHITECT_APPROVED** (`ML-DEVOS-AS-029`, `ML-DEVOS-ADR-008`). Depends on `WEB-INC-003`, `WEB-INC-005`, and `WEB-INC-004`; those prerequisites were satisfied before implementation.
-8. **`WEB-INC-007`** — Theme/design controls. Depends on `WEB-INC-001` and `WEB-INC-005` (shares the revision-substrate pattern; creates its own `theme_settings`/`theme_settings_revisions` tables, which `WEB-INC-005` does not own per the narrowed scope in `AS10-R009`).
+8. **`WEB-INC-007`** — Theme/design controls — **CLOSED / ARCHITECT_APPROVED** (`ML-DEVOS-AS-033`, `ML-DEVOS-ADR-009`). Depends on `WEB-INC-001` and `WEB-INC-005`; prerequisites were satisfied before implementation.
 
 This sequence is unchanged in overall order from Cycle 1 (`001 → 005 → 002 → 008 → 003 → 004 → 006 → 007`) — narrowing `WEB-INC-005`'s scope and adding the `WEB-INC-006 → WEB-INC-004` dependency (§C below) did not require reordering, since `WEB-INC-004` already preceded `WEB-INC-006` in this list. This sequence is itself a planning artifact, not an authorization — each step still requires its own pass through the governance-routing lifecycle in the section above before it may be built. A future increment's own `CLARIFY AMBIGUITIES` stage may revise this order if repository constraints discovered at that time suggest a different topologically valid sequence; any such revision must keep the same invariant this correction restores: no increment may be presented as ready to build while an earlier step in this list, or an unlisted prerequisite decision (like `WEB-INC-005`'s `ARCHITECTURE`-class gate), remains unresolved.
 
