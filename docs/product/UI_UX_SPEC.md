@@ -52,6 +52,10 @@ These states are tracked against existing requirement IDs rather than invented f
 
 The `DESIGN-001`…`014` catalog is now concretely designed by `ML-DEVOS-RFC-010` for `WEB-INC-007`. Controls are fixed presets/enums plus bounded numeric ranges only; arbitrary CSS/JS/HTML, arbitrary colors, selectors, font/image URLs, and R2 object keys remain prohibited. Section visibility/order continue to use `sections`/`section_revisions`; theme values use `theme_settings`/`theme_settings_revisions`. Public presentation follows only published theme/section revisions through the bounded public `GET /api/design` projection, with the existing V3 + UI-PATCH-001 presentation as the fail-safe fallback. Brand V3 non-negotiables remain in force. Implementation is still pending until the authorized Builder turn completes and passes Architect review.
 
+### Screenshot-reference workflow
+
+WEB-INC-007 must also support the operating workflow in `docs/product/DESIGN_REFERENCE_WORKFLOW.md`: Paulo may provide a UI screenshot to ChatGPT, the Architect maps visual traits into the approved design-control vocabulary, and Claude applies that plan through the authenticated design controls/APIs. The system must expose deterministic controls and explicit Draft → Preview → Publish steps. Unsupported traits are reported as gaps; they are not silently converted into arbitrary CSS/JS or source-code edits.
+
 ## Context-efficiency note
 
 This spec intentionally does not reproduce Brand V3's color/typography values, the full `DESIGN-*` catalog prose, or CSS implementation detail. See the files listed above.
