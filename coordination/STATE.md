@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-UI-PATCH-001-SOFT-GEOMETRY
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NONE
+CYCLE_ID: MAISOGLABS-WEB-INC-006-JOURNAL
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: WEB_INC_006_LOCAL_JOURNAL_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 61db9abb3c1f246fdf43850843db7967ab291645
 LAST_ARCHITECT_REVIEWED_SHA: 61db9abb3c1f246fdf43850843db7967ab291645
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
-AUDIT_APPEND_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
+AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
@@ -27,53 +27,55 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.5.0`
 
-## Closed product work
+## Authority chain
 
-- `WEB-INC-001` — authentication boundary
-- `WEB-INC-005` — local D1 revision substrate
-- `WEB-INC-002` — authenticated read-only dashboard
-- `WEB-INC-008` — append-only audit substrate
-- `WEB-INC-003` — project mutation lifecycle
-- `WEB-INC-004` — local media subsystem (`ML-DEVOS-AS-027` / `ML-DEVOS-ADR-007`)
-- `UI-PATCH-001` — soft geometry presentation pass
+- `WEB-REQ-009` — public Journal browsing contract
+- `ML-DEVOS-RFC-009` — accepted Journal architecture proposal
+- `ML-DEVOS-AS-028` — Architect-approved
+- `D-031` — Paulo-authorized implementation
 
-## UI-PATCH-001 closure
+## Authorized scope
 
-Paulo authorization:
-- `D-030`
+Claude may implement only WEB-INC-006:
 
-Implementation:
-- `61db9abb3c1f246fdf43850843db7967ab291645`
+- exactly three new tables: `journal_entries`, `journal_entry_revisions`, `journal_media`;
+- exactly one new migration: `migrations/0004_web_inc_006_journal.sql`;
+- target exactly 20 product tables;
+- protected admin Journal create/edit/preview/publish/unpublish lifecycle;
+- bounded dashboard Journal lifecycle metadata;
+- GET-only public `/api/journal` and `/api/journal/:slug`;
+- static public `/journal` shell consuming those APIs;
+- plain-text Journal body;
+- revision-scoped immutable Journal media snapshots;
+- required Journal audit actions;
+- local-only tests/build/Wrangler evidence.
 
-Architect verdict:
-- `UI-PATCH-001: ARCHITECT_APPROVED — SOFT GEOMETRY PASS ACCEPTED`
+## Public Worker boundary
 
-Accepted target:
-- `cinematic + modern + calm + premium + soft-edged`
+The only newly authorized public Worker-first paths are:
 
-Reported validation:
-- `npm test`: 209/209 (`ACTOR_REPORTED`)
-- `npm run build`: success (`ACTOR_REPORTED`)
+- `/api/journal`
+- `/api/journal/*`
 
-Independent Architect inspection confirmed:
-- implementation commit changes only `app/globals.css`;
-- responsive/reduced-motion behavior preserved by source inspection;
-- no route/API/auth/data/Worker/D1/R2/schema/dependency boundary changed.
+Public Journal routing must be classified before admin Access authentication.
 
-## Remaining dependency-ordered WEB increments
+These public paths are read-only.
 
-7. `WEB-INC-006` — Journal
-8. `WEB-INC-007` — Theme/design controls
-
-No authority for either remaining increment exists yet.
+No other public route may become Worker-first.
 
 ## Absolute gates
 
 `MEDIA_MUTATION_AUTHORIZED: NO`
 
-`MUTATION_AUTHORIZED: NO`
+No media upload/update/archive behavior is added by this increment; Journal may only reference already-active media.
 
-`AUDIT_APPEND_AUTHORIZED: NO`
+`MUTATION_AUTHORIZED: YES`
+
+Only for exact Journal lifecycle mutations in RFC-009.
+
+`AUDIT_APPEND_AUTHORIZED: YES`
+
+Only for exact Journal lifecycle audit actions in RFC-009.
 
 `REMOTE_R2_AUTHORIZED: NO`
 
@@ -83,6 +85,31 @@ No authority for either remaining increment exists yet.
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
+## Explicitly not authorized
+
+- Journal delete;
+- slug rename/redirect system;
+- Markdown/HTML/rich-text execution;
+- public media object serving;
+- remote D1/R2;
+- production Cloudflare resources;
+- homepage/projects public D1 cutover;
+- deployment;
+- protected/main merge;
+- WEB-INC-007;
+- Sentinel S3+;
+- CI/rulesets/Capability Gateway/Task Engine/Orchestrator.
+
+## Required handoff
+
+Builder must provide the RFC-009 evidence set, exact base/result SHA, exact changed files, full test/build evidence, local Wrangler route smoke, migration/table inventory, no-remote confirmation, and return:
+
+`TURN: ARCHITECT`
+
+`STATUS: READY_FOR_ARCHITECT`
+
+Then stop.
+
 ## Current gate
 
-`UI-PATCH-001 CLOSED — RETURNED TO PAULO FOR NEXT PRODUCT DECISION`
+`WEB-INC-006 AUTHORIZED — CLAUDE TO IMPLEMENT BOUNDED LOCAL JOURNAL SUBSYSTEM AND HAND OFF FOR ARCHITECT REVIEW`
