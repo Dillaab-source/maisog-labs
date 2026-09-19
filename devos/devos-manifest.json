@@ -10,11 +10,11 @@
     "document": "devos/architecture/ML-DEVOS-ARCH-001.md"
   },
   "sentinel_capability_baseline": {
-    "version": "1.4.0",
+    "version": "1.5.0",
     "status": "ACTIVE",
-    "adr": "ML-DEVOS-ADR-002",
-    "decision": "D-017",
-    "document": "devos/changes/adrs/ML-DEVOS-ADR-002.md"
+    "adr": "ML-DEVOS-ADR-006",
+    "decision": "D-028",
+    "document": "devos/changes/adrs/ML-DEVOS-ADR-006.md"
   },
   "source_of_truth_precedence": [
     "Frozen Architecture (ML-DEVOS-ARCH-001 / v1.2.0)",
@@ -58,7 +58,9 @@
     {
       "path": "devos/evidence/",
       "owning_phase": "S7",
-      "consuming_phases": ["S9"],
+      "consuming_phases": [
+        "S9"
+      ],
       "status": "NOT_IMPLEMENTED",
       "executable_runtime_present": false
     },
@@ -72,7 +74,20 @@
     {
       "path": "devos/schemas/",
       "owning_phase": "S2",
-      "consuming_phases": ["S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13", "S14"],
+      "consuming_phases": [
+        "S3",
+        "S4",
+        "S5",
+        "S6",
+        "S7",
+        "S8",
+        "S9",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14"
+      ],
       "status": "FOUNDATION_ACTIVE",
       "executable_runtime_present": false
     }
@@ -114,8 +129,17 @@
       "decision": "D-017",
       "architect_sync": "ML-DEVOS-AS-007",
       "note": "S2 DevOS Repository Foundation adopted into the active Sentinel baseline; v1.3.0 -> v1.4.0 MINOR transition applied. First entry recorded in this manifest -- S1's earlier closure (v1.2.0 -> v1.3.0) predates this manifest's own existence (the manifest is itself an S2 deliverable) and is recorded instead in brain/DECISION_LOG.md D-013 and devos/changes/adrs/ML-DEVOS-ADR-001.md."
+    },
+    {
+      "phase": "GOV-RISK-ESCALATION",
+      "closed_at": "2026-09-19",
+      "version": "1.5.0",
+      "adr": "ML-DEVOS-ADR-006",
+      "decision": "D-028",
+      "architect_sync": "ML-DEVOS-AS-025",
+      "note": "Activated CORE-019/020/021 risk-escalation policy; v1.4.0 -> v1.5.0 MINOR governance-capability transition. S3-S14 runtime/enforcement mechanisms remain NOT_IMPLEMENTED."
     }
   ],
   "created_at": "2026-09-18",
-  "updated_at": "2026-09-18"
+  "updated_at": "2026-09-19"
 }
