@@ -53,3 +53,21 @@ See `../architecture/ML-DEVOS-ARCH-001.md` §7 for the full diagram and provenan
 ## Current state of this model in practice
 
 **[REPO-VERIFIED — confirmed by direct repository inspection this cycle and the prior cycle]** No mechanism in this repository produces `CI_ATTESTED` evidence — no `.github/workflows` directory exists. All evidence produced in the website pilot to date has been `ACTOR_REPORTED` (Claude's command output) or `INDEPENDENTLY_INSPECTED` (the Architect reading diffs and files); `INDEPENDENTLY_REPRODUCED` evidence has not yet occurred even once in that pilot's history — a fact worth carrying into Sentinel's own early evidence trail rather than assuming resolved.
+
+
+## Consequence-sensitive escalation (CORE-020 / v1.5.0)
+
+Evidence provenance classes remain provider-independent and claim-specific. CORE-020 adds a routing rule based on consequence:
+
+| Claim / action context | Minimum governance expectation |
+|---|---|
+| Low-risk local/repository-only work | `ACTOR_REPORTED` may support execution claims; independent artifact review remains `INDEPENDENTLY_INSPECTED` where review is required. |
+| Material executable/integration behavior | Prefer/require `INDEPENDENTLY_REPRODUCED` and/or `CI_ATTESTED` where feasible before stronger merge/release claims. |
+| Real remote/production write, destructive action, credential/security change, public cutover | Must not close solely on Builder `ACTOR_REPORTED`; require independent/deterministic evidence appropriate to the claim. |
+| `MAIN` claim | CORE-016 applies. |
+| `DEPLOYED` claim | CORE-017 applies. |
+| `VERIFIED` production behavior | CORE-018 applies: `RUNTIME_OBSERVED` required. |
+
+This matrix is intentionally lightweight. It is policy guidance under the current bootstrap model, not the S7 Evidence & QA Plane or S9 executable Evidence Gate.
+
+No evidence class is silently upgraded. The actor/process that produced the evidence and the method used still determine the provenance class.
