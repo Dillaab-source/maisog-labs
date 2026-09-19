@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-009: MaisogLabs WEB-INC-006 Local Journal Subsystem
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Change class: `ARCHITECTURE`
 
