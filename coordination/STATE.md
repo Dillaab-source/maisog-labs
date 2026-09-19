@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-WEB-INC-004-MEDIA-SUBSYSTEM
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: WEB_INC_004_LOCAL_MEDIA_SUBSYSTEM_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS-UI-PATCH-001-SOFT-GEOMETRY
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: UI_PATCH_001_SOFT_GEOMETRY_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 LAST_IMPLEMENTER_HANDOFF_SHA: 681fc90dc42239c2bd5866af1c6a0d430212416a
-LAST_ARCHITECT_REVIEWED_SHA: ca6a93b65353968353b9ba3670e162468abdb33a
-CURRENT_REMEDIATION_CYCLE: 1
+LAST_ARCHITECT_REVIEWED_SHA: 681fc90dc42239c2bd5866af1c6a0d430212416a
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
-MEDIA_MUTATION_AUTHORIZED: YES
-MUTATION_AUTHORIZED: YES
-AUDIT_APPEND_AUTHORIZED: YES
+MEDIA_MUTATION_AUTHORIZED: NO
+MUTATION_AUTHORIZED: NO
+AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
@@ -27,236 +27,104 @@ Frozen Sentinel architecture:
 Active Sentinel governance-capability baseline:
 - `v1.5.0`
 
-Closed dependencies:
-- `ML-DEVOS-AS-012` — authentication boundary
-- `ML-DEVOS-AS-014` / `ML-DEVOS-ADR-003` — local D1 revision substrate
-- `ML-DEVOS-AS-019` / `ML-DEVOS-ADR-005` — append-only audit substrate
-- `ML-DEVOS-AS-022` — project mutation capability accepted
+## Closed dependency
 
-## WEB-INC-004 proposal
+`WEB-INC-004 — Media subsystem`
 
-RFC:
-- `ML-DEVOS-RFC-007 — MaisogLabs WEB-INC-004 Local Media Subsystem`
-- change class: `ARCHITECTURE`
-- proposal commit: `787b632c903eb497ea2b75f42ae30401d74e5b60`
+Final acceptance:
+- `ML-DEVOS-AS-027 — ARCHITECT_APPROVED`
+- `ML-DEVOS-ADR-007 — ACCEPTED`
+- accepted remediation SHA: `681fc90dc42239c2bd5866af1c6a0d430212416a`
+- full suite reported by Builder: `209/209` (`ACTOR_REPORTED`)
 
-Architect Sync:
-- `ML-DEVOS-AS-023 — WEB-INC-004 Local Media Subsystem Architecture Sync`
-- review commit: `55685940b35527af32ecdb64f2f85746def6188d`
-- verdict:
-  `ARCHITECT_APPROVED — WEB-INC-004 LOCAL MEDIA SUBSYSTEM COMPATIBLE FOR BOUNDED REPOSITORY/LOCAL IMPLEMENTATION, PAULO AUTHORIZATION REQUIRED`
+Known accepted limitation:
+- `AS27-L001` — SQLite default `trim()` is narrower than JS `.trim()` for hypothetical direct-SQL whitespace edge cases.
 
+WEB-INC-004 is closed.
+Its local mutation/audit authority does not carry into this new cycle.
 
-## Proposed implementation scope
+## UI-PATCH-001 authorization
 
-If Paulo explicitly authorizes implementation, Claude may build only:
+Paulo authorized:
 
-- new `media` D1 table;
-- new `project_media` D1 table;
-- local simulated R2 binding;
-- `POST /admin/api/media` validated upload;
-- `GET /admin/api/media` protected metadata list;
-- optional complete media-selection snapshots on new project revisions created through existing project create/edit;
-- exact-draft preview media metadata;
-- required audit integration and local-only tests.
+`D-030 — Authorize queued UI-PATCH-001 soft geometry pass`
 
-## Schema target
+Implementation brief:
 
-Current product-table count:
-- 15
+`docs/product/UI_PATCH_001_SOFT_GEOMETRY.md`
 
-Proposed target:
-- 17
+Target feel:
 
-New migration only:
-- `migrations/0003_web_inc_004_media.sql`
+`cinematic + modern + calm + premium + soft-edged`
 
-Existing migrations must remain byte-identical.
+instead of:
 
-No `journal_media`, journal, or theme table is authorized.
+`sharp + rigid + HUD-like + heavily technical`
 
-## Media boundary
+## Authorized Builder scope
 
-Allowed types only:
-- image/jpeg
-- image/png
-- image/webp
+Primary expected implementation surface:
 
-Forbidden:
-- SVG;
-- arbitrary files;
-- archives;
-- remote URL ingestion.
+- `app/globals.css`
 
-Maximum upload:
-- 5 MiB actual bytes.
+Minimal component/class-name changes are permitted only when strictly necessary to apply the approved presentation treatment consistently.
 
-Server must validate both declared type and file signature.
+Builder may:
 
-Server generates:
-- media ID;
-- storage key.
+- soften the corner-radius hierarchy;
+- make CTAs/buttons more softly rounded;
+- reduce harsh panel/card border contrast;
+- soften shadows/glass edges;
+- add modest breathing room/padding;
+- reduce hardness of blueprint frames/dividers/status panels;
+- preserve restrained motion;
+- make minor typography spacing/line-height refinements where needed.
 
-Client filename/path must not control storage location.
+## Preserve
 
-## Immutability
-
-Existing media public-affecting metadata is immutable.
-
-Changing file or alt text means new media row.
-
-Existing project_media associations are immutable.
-
-Changing project media means a new project revision with its own association snapshot.
-
-No media DELETE or UPDATE API.
-
-## Local R2 only
-
-This cycle may use only local Wrangler/R2 simulation.
-
-`REMOTE_R2_AUTHORIZED: NO`
-
-Do not configure:
-- `remote: true`;
-- real bucket provisioning;
-- public bucket;
-- custom domain;
-- production resource credentials/IDs.
-
-## Cross-store failure behavior
-
-Successful upload:
-1. validate;
-2. write object to local R2;
-3. D1 batch inserts media metadata + success audit;
-4. return success.
-
-R2 failure:
-- no D1 success.
-
-D1 failure after object write:
-- attempt compensating delete of new local object;
-- no media metadata/success audit survives;
-- return failure.
-
-Compensation failure:
-- still fail request;
-- do not fabricate D1 state.
-
-## Project integration
-
-Project create/edit may optionally provide a complete media snapshot for the new revision.
-
-If omitted on edit:
-- inherit/copy the source revision media snapshot.
-
-If supplied:
-- it fully defines the new revision's associations.
-
-All referenced media must exist and be active.
-
-Project revision + association rows + pointer transition + existing project success audit must remain one D1 atomic batch.
-
-WEB-INC-003 stale-write protections remain binding.
-
-## Public boundary
-
-`LOCAL R2 OBJECT + D1 MEDIA ROW != PUBLIC WEBSITE MEDIA`
-
-No public R2/D1 path.
-No cutover.
-No deployment.
-
-## Sentinel review-note disposition
-
-The canonical Sentinel review note was consulted.
-
-Because this cycle uses local R2 simulation only and no real remote cloud authority, it does not justify prematurely implementing S3–S7, CI, rulesets, a Capability Gateway, Task Engine, or Orchestrator.
-
-Keep the build simple.
-
-## Absolute remote/release gates
-
-`MEDIA_MUTATION_AUTHORIZED: YES`
-
-`MUTATION_AUTHORIZED: YES`
-
-`AUDIT_APPEND_AUTHORIZED: YES`
-
-only for the exact bounded WEB-INC-004 implementation/remediation cycle.
-
-`REMOTE_R2_AUTHORIZED: NO`
-
-`REMOTE_D1_AUTHORIZED: NO`
-
-`DEPLOY_AUTHORIZED: NO`
-
-`MAIN_MERGE_AUTHORIZED: NO`
+- canonical Maisog Labs orbital identity;
+- approved cinematic background;
+- cool-space / warm-architecture composition;
+- current hero/project/process hierarchy;
+- public content/data source;
+- routes;
+- responsive behavior;
+- accessibility/reduced-motion behavior;
+- current application functionality.
 
 ## Explicitly not authorized
 
-- real/remote R2;
-- remote D1;
-- public bucket/custom domain;
-- public media route;
-- D1/R2 public cutover;
-- media delete API;
-- SVG/arbitrary file upload;
-- journal/journal_media;
-- theme/design;
-- production Access changes;
+- WEB-INC-007 theme system;
+- `theme_settings` / `theme_settings_revisions`;
+- admin design controls;
+- free-form CSS/JS inputs;
+- logo redesign;
+- content rewrite;
+- route/API/auth changes;
+- Worker/D1/R2 changes;
+- schema/migration changes;
+- dependencies;
+- remote resources;
 - deployment;
 - protected/main merge;
-- later WEB-INC;
-- Sentinel S3+;
-- CI/rulesets/Task Engine/Capability Gateway/Orchestrator.
+- later WEB-INC work;
+- Sentinel S3+.
 
+## Required evidence
 
+Builder handoff must include:
 
-## D-029 implementation authorization
-
-Paulo authorized bounded local/repository implementation under:
-
-- `ML-DEVOS-RFC-007`
-- `ML-DEVOS-AS-023`
-- `D-029`
-- active Sentinel governance-capability baseline `v1.5.0`
-
-Claude may implement only the WEB-INC-004 scope described above.
-
-Required handoff:
 - exact base/result SHA;
 - exact changed files;
-- all RFC-007 / AS23-F018 evidence;
-- explicit statement that no real/remote R2 or D1 was touched;
-- explicit statement that no public bucket, deployment, cutover, main merge, later WEB-INC, or Sentinel S3+ work occurred.
+- concise before/after description of softened UI treatment;
+- confirmation that no functional/data/API/runtime boundary changed;
+- responsive/reduced-motion preservation evidence by source inspection;
+- `npm test`;
+- `npm run build`;
+- explicit no deploy/main/remote-resource confirmation.
 
-Because WEB-INC-004 is `ARCHITECTURE`, accepted implementation requires:
-- independent Architect implementation review;
-- durable Architect Sync archive;
-- post-acceptance ADR before cycle closure.
-
-## Builder handoff (initial implementation)
-
-Implementation commit (base `281d726c348e04003b9226ebb766cab50b86439c`):
-- `ca6a93b65353968353b9ba3670e162468abdb33a`
-
-Full test suite: 195/195 passing (implementer-reported, `ACTOR_REPORTED`).
-
-## Builder handoff (Remediation Cycle 1)
-
-Remediation commit (base `7c7e6d35c43c2e16b18d53a65c8acf06c7c3df41`):
-- `681fc90dc42239c2bd5866af1c6a0d430212416a`
-
-Fixes exactly `AS26-F008` (media state domain, `active|archived`), `AS26-F009` (alt-text DB/normalization invariant), and `AS26-F010` (duplicate `(role, order)` slot protection). `migrations/0003_web_inc_004_media.sql` amended in place (no new migration number); `migrations/0001`/`0002` remain byte-identical; product-table count remains 17.
-
-Full evidence, changed-file list, and explicit non-touch confirmations:
-- `coordination/IMPLEMENTER_HANDOFF.md` § "WEB-INC-004 Remediation Cycle 1"
-
-Full test suite: 209/209 passing (implementer-reported, `ACTOR_REPORTED`).
+Runtime/build claims remain `ACTOR_REPORTED` until Architect review.
 
 ## Current gate
 
-`WEB-INC-004 REMEDIATION CYCLE 1 SUBMITTED — READY_FOR_ARCHITECT REVIEW`
-
+`UI-PATCH-001 AUTHORIZED — CLAUDE TO IMPLEMENT SOFT GEOMETRY PASS AND HAND OFF FOR ARCHITECT REVIEW`
