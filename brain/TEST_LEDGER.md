@@ -138,6 +138,39 @@ All 20 tests: implementer-reported PASS.
 
 All 22 tests: implementer-reported PASS.
 
+## `WEB-INC-006` Journal evidence
+
+Final implementation: `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e`  
+Architect acceptance: `ML-DEVOS-AS-029`  
+Architecture record: `ML-DEVOS-ADR-008`
+
+Builder-reported focused evidence:
+
+- `tests/worker-admin-journal.test.mjs`: **44/44** passed.
+- `tests/worker-public-journal.test.mjs`: **16/16** passed.
+- full `npm test`: **269/269** passed.
+- `npm run build`: success; `/journal` remains static.
+- fresh local migrations: exactly **20 product tables** after 0001–0004.
+- local Wrangler smoke:
+  - `GET /journal` → 200;
+  - `GET /api/journal` → 200;
+  - `GET /api/journal/:slug` → 200 for published entry;
+  - unknown detail → 404;
+  - public non-GET → 405;
+  - unauthenticated admin Journal mutations/preview → 401.
+- public Journal SQL follows only `published_revision_id`; draft-only, unpublished, and superseding-draft content are covered by focused non-disclosure tests.
+- publish revalidates the persisted draft content and active media snapshot before pointer promotion.
+- Journal revision rows are immutable except one-time `published_at: NULL → non-null`; `journal_media` rows are immutable/non-deletable with duplicate-association and duplicate-slot constraints.
+- public Journal responses use positive allowlists and do not expose storage keys, upload identity, draft IDs, audit data, or binding/resource identifiers.
+- D1/R2 remained `remote: false`; no deployment or main merge occurred.
+
+Evidence classification:
+
+- source/diff/architecture behavior independently inspected by Architect in `ML-DEVOS-AS-029`;
+- runtime/test/build/CLI/visual claims remain `ACTOR_REPORTED`, not independently reproduced.
+
+Accepted limitations are recorded as `AS29-L001`, `AS29-L002`, and `AS29-L003`.
+
 ## Plan-defined test IDs — current status
 
 | ID | Description | Status | Notes |
@@ -145,20 +178,20 @@ All 22 tests: implementer-reported PASS.
 | TEST-WEB-001 | Production homepage availability | `NOT IMPLEMENTED` | No automated check; no production access from this session |
 | TEST-WEB-002 | Desktop rendering | `NOT IMPLEMENTED` | No automated visual test; `docs/CHANGE_LEDGER.md` records past manual QA only |
 | TEST-WEB-003 | Mobile rendering | `NOT IMPLEMENTED` | Same as above |
-| TEST-WEB-004 | Build succeeds | `PASS` | Implementer-reported: `npm run build` succeeded this cycle (Turbopack, static export to `out/`); re-run for `WEB-INC-001` — now emits `/`, `/_not-found`, and `/admin` (`out/admin.html`) |
+| TEST-WEB-004 | Build succeeds | `PASS` | Latest Builder-reported full build after `WEB-INC-006` succeeded with static routes `/`, `/_not-found`, `/admin`, and `/journal`; no SSR conversion. Runtime/build claim remains ACTOR_REPORTED. |
 | TEST-WEB-005 | Existing projects remain intact | `PASS` (indirect) | Implementer-reported: `data/site.js` unchanged this cycle; `tests/content.test.mjs` project-related assertions pass |
 | TEST-ADM-001 | Unauthorized user cannot access admin | `PASS` | `WEB-INC-001` + Remediation Cycle 1: `tests/worker-auth.test.mjs` covers missing/malformed/expired/wrong-audience tokens against `/admin`, plus missing/blank/placeholder/malformed auth configuration itself (`AS12-F001`); local `wrangler dev` smoke test: `GET /admin` (no token) → `401`, `GET /admin` (garbage token) → `401`, `GET /admin.html` (no token) → `307` redirect to `/admin` with an empty body, followed → `401`, `GET /admin/index.html` (no token) → `401` (`AS12-F003`). Implementer-reported; not yet Architect-reproduced |
 | TEST-ADM-002 | Authorized admin can access admin | `PASS` | `WEB-INC-001`: `tests/worker-auth.test.mjs` "handleRequest allows a correctly signed token to reach the admin asset" using a deterministic test key/JWKS (never a production credential). Implementer-reported; not yet Architect-reproduced |
-| TEST-ADM-003 | Content write persists | `PASS` (projects only, local-only) | `WEB-INC-003`: `tests/worker-admin-projects.test.mjs` "POST /admin/api/projects creates one project + one immutable revision + one success audit row, atomically" and the edit/publish/unpublish equivalents — each asserts the resulting D1 rows directly. Implementer-reported; not yet Architect-reproduced. Other content domains (navigation, foundations, services, etc.) remain `NOT IMPLEMENTED` for writes |
+| TEST-ADM-003 | Content write persists | `PASS` (projects + Journal, local-only) | Project persistence is covered by `WEB-INC-003`; Journal persistence is covered by `tests/worker-admin-journal.test.mjs` create/edit/publish/unpublish cases, including atomic revision/pointer/audit behavior. Other content domains remain outside these bounded mutation APIs. Runtime claims remain ACTOR_REPORTED. |
 | TEST-ADM-004 | Project CRUD/publish works | `PASS` (create/edit/publish/unpublish only — no delete) | `WEB-INC-003`: `tests/worker-admin-projects.test.mjs` covers create-draft, edit-draft (new immutable revision, revision 1 untouched), preview, publish (atomic promote + revalidation), and unpublish (atomic clear + history/draft preserved), including stale-pointer `409` and not-found `404` cases. No delete route exists or is authorized (`AS20-F002`) — `TEST-ADM-004` is satisfied only for the CRUD verbs this increment actually implements. `WEB-INC-004` extends the same tests to cover an optional revision-scoped media snapshot on create/edit (supply/inherit/replace/reject-missing/reject-duplicate), with the media snapshot committing atomically with the same revision+pointer+audit batch |
-| TEST-ADM-005 | Journal CRUD/publish works | `NOT IMPLEMENTED` | No Journal feature exists at all |
-| TEST-ADM-006 | Invalid content is rejected (at the Admin write boundary) | `PASS` (projects only) | `WEB-INC-003`: `tests/worker-admin-projects.test.mjs` "create-draft rejects invalid content with 400, writes no project/revision row, and records a bounded failure audit" — the Admin/write-API validation boundary this test ID describes now exists and is exercised via `worker/d1/validate.mjs`'s `validateProjectRevisionContent`/`validateProjectId`/`validateProjectSlug`, called server-side before any D1 write. The build-time `lib/content/schema.mjs` rejection (still listed under "Existing tests" above) remains a separate, still-real content-layer check |
-| TEST-ADM-007 | Failed write does not report success | `PASS` (projects only) | `WEB-INC-003`: `tests/worker-admin-projects.test.mjs`'s real-D1 atomicity test forces a genuine SQL-level failure on the audit statement inside a create-draft-shaped batch and proves the project/revision insert rolls back with it (zero rows survive); the simulated-storage-failure test proves a failed publish returns a generic `500` and changes nothing. `WEB-INC-008`'s audit substrate continues to independently prove this same property for its own writer in isolation (`tests/d1-audit.test.mjs`) |
+| TEST-ADM-005 | Journal CRUD/publish works | `PASS` (create/edit/preview/publish/unpublish; no delete) | `WEB-INC-006`: `tests/worker-admin-journal.test.mjs` 44/44 Builder-reported PASS covers immutable revision creation, media inherit/replace, preview, publish, unpublish, stale-pointer conflicts, validation, audit, and fail-closed auth. Accepted by `ML-DEVOS-AS-029`. |
+| TEST-ADM-006 | Invalid content is rejected (at the Admin write boundary) | `PASS` (projects + Journal) | Project validation remains covered by `WEB-INC-003`; Journal validation is covered by `WEB-INC-006` for bounded id/slug/title/summary/plain-text body/media input, with invalid requests rejected before successful business mutation. |
+| TEST-ADM-007 | Failed write does not report success | `PASS` (projects + Journal) | Project atomicity/failure semantics remain covered by `WEB-INC-003`; Journal focused tests cover stale conflicts, invalid persisted draft/media revalidation failures, and batch-failure paths without reporting success. Append-only audit failure behavior remains backed by `WEB-INC-008`. |
 | TEST-ADM-008 | Media upload validation works | `PASS` | `WEB-INC-004`: `tests/worker-admin-media.test.mjs` covers accepted JPEG/PNG/WebP uploads, SVG rejection, signature/Content-Type-mismatch rejection, an unsupported-signature-disguised-as-allowed-type rejection, zero-byte and over-5-MiB rejection (both a declared-`Content-Length` early reject and an actual-body-size reject), and a missing-alt-text-header rejection. Implementer-reported; not yet Architect-reproduced |
 | TEST-ADM-009 | Theme settings remain within allowed values | `NOT IMPLEMENTED` | No theme-settings feature exists |
-| TEST-ADM-010 | Public users cannot perform admin mutations | `PASS` (projects only) | `WEB-INC-003`: `tests/worker-admin-projects.test.mjs`'s auth-negative tests prove all 4 mutating project routes reject an unauthenticated request with `401` and zero D1 invocation, and its empty-`sub` tests prove an authenticated-but-not-mutation-eligible (service-token-style) Access assertion is rejected `403` with zero D1 invocation |
+| TEST-ADM-010 | Public users cannot perform admin mutations | `PASS` (projects + Journal) | Project auth-negative tests remain valid; `WEB-INC-006` adds unauthenticated/invalid-sub tests for Journal mutation/preview paths with zero pre-auth D1 access. Public `/api/journal*` routes are intentionally read-only GET paths and do not expose mutation. |
 | TEST-DATA-001 | Existing static content migration preserves data | `PASS` (local-only substrate) | `WEB-INC-005`: `tests/d1-migration.test.mjs` "fresh migration ... achieves deep parity with `projectPublishedContent(siteContent)`" — deep-equal across every domain including `services`. This is a local D1 revision-substrate migration, not yet the public system's cutover migration; the risk this test ID tracks (`RISK-WEB-015`) remains `MITIGATED`, not `VERIFIED`, until Architect-reproduced |
-| TEST-DATA-002 | Draft content remains unpublished | `PASS` | Implementer-reported: covered by "all record collections filter drafts and archives before serialization" and "unpublished root cannot produce a public build" |
+| TEST-DATA-002 | Draft content remains unpublished | `PASS` | Existing static-content filtering remains covered; `WEB-INC-006` additionally proves public Journal index/detail follow only `published_revision_id` and do not disclose draft-only, unpublished, or superseding-draft content. Journal runtime tests are ACTOR_REPORTED; source isolation was independently inspected in `ML-DEVOS-AS-029`. |
 | TEST-DEP-001 | Deployment succeeds | `NOT IMPLEMENTED` | No deployment was performed or authorized this cycle |
 | TEST-DEP-002 | Production verification succeeds after deployment | `NOT IMPLEMENTED` | Same reason |
 
