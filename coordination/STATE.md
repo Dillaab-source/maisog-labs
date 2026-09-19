@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS-WEB-INC-007-THEME-DESIGN-CONTROLS
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: WEB_INC_007_THEME_DESIGN_CONTROLS_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-LAST_IMPLEMENTER_HANDOFF_SHA: cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e
+LAST_IMPLEMENTER_HANDOFF_SHA: 17577838d1007210cd1893fdb71ea8063d764fa8
 LAST_ARCHITECT_REVIEWED_SHA: cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -159,6 +159,20 @@ Then set:
 
 Commit, push, and stop.
 
+## Builder handoff
+
+WEB-INC-007 implementation is complete and submitted for Architect review. See `coordination/IMPLEMENTER_HANDOFF.md`, section "WEB-INC-007 — Theme / Design Controls", for the complete evidence set.
+
+- Base SHA: `ac2666860195a6e1c151ae363f7d176b61c12cde`
+- Implementation commit: `17577838d1007210cd1893fdb71ea8063d764fa8` (25 files: 9 new, 16 modified — migration 0005 + bootstrap, theme/section-design D1 helpers, admin design API, public design API, dashboard integration, DesignRuntime + DesignControls, CSS variant system)
+- Documentation/bookkeeping commit: this commit (updates `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` only)
+- Tests: 49 new admin-design tests + 13 new public-design tests, full suite 331/331 passing; `npm run build` succeeded with `/`, `/journal`, `/admin` all prerendered static
+- Local Wrangler smoke test performed for protected design routes, public `/api/design` (default and non-default theme), and static `/`/`/journal`; visual screenshots confirm default-baseline pixel parity and a genuinely different non-default rendered theme
+- `TEST-ADM-009` now `PASS` (was `NOT IMPLEMENTED`)
+- All runtime/test/visual evidence remains `ACTOR_REPORTED` — no self-certification made
+- `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` unchanged; no remote D1/R2 touched
+- This closes the dependency-ordered core WEB roadmap (RFC-010) but creates no deploy/remote-resource/main-merge authority by itself (AS30-F016)
+
 ## Current gate
 
-`WEB-INC-007 AUTHORIZED — CLAUDE TO IMPLEMENT BOUNDED LOCAL THEME / DESIGN CONTROLS AND HAND OFF FOR ARCHITECT REVIEW`
+`WEB-INC-007 SUBMITTED — READY_FOR_ARCHITECT REVIEW`

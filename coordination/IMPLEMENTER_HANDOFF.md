@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — WEB-INC-006 Local Journal Subsystem (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — WEB-INC-007 Theme / Design Controls (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**WEB-INC-006 update:** see the "WEB-INC-006 — Local Journal Subsystem" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
+**WEB-INC-007 update:** see the "WEB-INC-007 — Theme / Design Controls" section at the end of this document for the current cycle's exact scope, commit, and evidence. Everything above that section (including "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
 
 ---
 
@@ -737,3 +737,161 @@ In all three files, the dashboard response's key-list assertions were updated to
 ### Implementation commit
 
 The files above are committed to `governance/maisoglabs-v0.1` as commit `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e` on top of base `28039221fc2b6fede35cee7ce02ff76be3dbcea0`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-INC-007 — Theme / Design Controls
+
+### Objective
+
+Implement `WEB-INC-007 — Theme / Design Controls` exactly per `ML-DEVOS-RFC-010`, `ML-DEVOS-AS-030` (architecture compatibility), `D-032` (Paulo implementation authorization), the screenshot-reference operating addendum `ML-DEVOS-AS-031`/`D-033`, and `brain/DECISION_LOG.md` D-032/D-033: a bounded, authenticated design-control system (theme presets/ranges + section visibility/order) with draft → preview → publish isolation, a narrow published-only public read API, and a fixed-mapping public runtime — never a free-form CSS/JS/HTML/URL/color/token input, never a visual-code editor, never a homepage/project public D1 cutover.
+
+### Branch / commit state
+
+- Base SHA (fast-forwarded before any file was touched): `ac2666860195a6e1c151ae363f7d176b61c12cde`
+- Implementation SHA: `17577838d1007210cd1893fdb71ea8063d764fa8`
+- Reading order followed before implementation began: `coordination/STATE.md` → `coordination/ARCHITECT_REVIEW.md` → `devos/changes/rfcs/ML-DEVOS-RFC-010.md` → `devos/changes/architect-syncs/ML-DEVOS-AS-030.md` → `devos/changes/architect-syncs/ML-DEVOS-AS-031.md` → `brain/DECISION_LOG.md` (D-032, D-033) → `docs/product/DESIGN_REFERENCE_WORKFLOW.md` → `docs/product/UI_UX_SPEC.md` → `docs/product/BUILD_PLAN.md` → `docs/product/DATA_BACKEND_SPEC.md` → `docs/product/APP_FLOW.md` → `docs/ARCHITECTURE.md`.
+
+### Exact changed files (25: 9 new, 16 modified)
+
+**New (9):**
+- `migrations/0005_web_inc_007_theme.sql` — schema + bootstrap (see below).
+- `worker/d1/theme.mjs` — theme mutation D1 helpers (edit-draft/publish batch builders, FK-poison stale-write guard).
+- `worker/d1/section_design.mjs` — section design mutation D1 helpers (edit-draft/publish batch builders against the pre-existing `sections`/`section_revisions` tables, same FK-poison technique).
+- `worker/admin/design.mjs` — bounded `/admin/api/design*` route dispatcher (status, preview, theme draft/publish, section draft/publish).
+- `worker/public/design.mjs` — bounded public `GET /api/design` dispatcher.
+- `app/DesignRuntime.js` — public design-application client runtime (fixed mappings only).
+- `app/admin/DesignControls.js` — bounded authenticated design-control UI.
+- `tests/worker-admin-design.test.mjs` — 49 tests.
+- `tests/worker-public-design.test.mjs` — 13 tests.
+
+**Modified (16):**
+- `worker/d1/schema.mjs` — additive `THEME_TABLE_NAMES`/`COMPLETE_PRODUCT_TABLE_NAMES`/`readThemeMigrationSql`/`applyThemeMigration`/`applyCompleteSchema`; every prior export byte-unchanged.
+- `worker/d1/validate.mjs` — additive theme enum/range validators (`validateThemeRevisionContent` and its exported vocabulary constants) and section-design validators (`validateManagedSectionId`, `validateSectionDesignContent`, `MANAGED_SECTION_IDS`).
+- `worker/d1/audit.mjs` — additive `buildThemeRevisionAuditStatement`/`buildSectionRevisionAuditStatement` (same same-transaction-subquery pattern as the project/journal equivalents).
+- `worker/d1/repository.mjs` — additive `readThemeDashboardStatusRow` (standalone query, not a `COLLECTIONS` entry).
+- `worker/admin/dashboard.mjs` — imports/routes to `worker/admin/design.mjs`; `buildDashboardPayload` gains a bounded `theme` key.
+- `worker/auth.mjs` — additive `isPublicDesignApiPath` (exact match, no wildcard) and its branch in `handleRequest`, classified before Access verification exactly like the Journal public path.
+- `worker/index.mjs` — imports/wires the new public design dispatch; `publicDispatch` now routes between design and journal by exact path.
+- `wrangler.jsonc` — `run_worker_first` widened by exactly one more entry: `/api/design` (no wildcard).
+- `app/globals.css` — new theme-variant CSS keyed by fixed `data-*` attributes/CSS custom properties; `.v4-shell` becomes a flex column with default `order` on the four managed sections + footer (verified pixel-identical to the pre-increment block layout by screenshot comparison); `--line`/`--panel`/`--radius-*` become custom-property-driven with fallbacks equal to their prior literal values.
+- `app/page.js` — adds exactly four `data-section="..."` attributes (home/projects/process/about); no other markup/content change.
+- `app/layout.js` — mounts `<DesignRuntime />` once.
+- `app/admin/page.js` — mounts `<DesignControls />` below the existing read-only dashboard; updated its own descriptive paragraph.
+- `tests/worker-admin-dashboard.test.mjs` / `tests/d1-audit.test.mjs` / `tests/worker-admin-projects.test.mjs` — dashboard-key-list assertions extended with `theme`; see "Test fixture updates" below.
+- `tests/worker-admin-journal.test.mjs` — one dashboard-calling test gets a local `applyThemeMigration(db)` call; see below.
+
+**No other file changed.** In particular: `migrations/0001-0004`, `worker/d1/projects.mjs`, `worker/d1/journal.mjs`, `worker/admin/projects.mjs`, `worker/admin/journal.mjs`, `worker/public/journal.mjs`, `app/journal/page.js`, `app/journal/JournalClient.js`, `data/site.js`, `lib/content/*`, and `package.json`/`package-lock.json` are all byte-identical — confirmed by `git diff --stat` against every one of those paths returning empty.
+
+### Schema evidence
+
+`migrations/0005_web_inc_007_theme.sql` adds exactly two tables:
+- `theme_settings(id, created_at, published_revision_id, draft_revision_id)` — singleton (`CHECK (id = 'default')`, so no second entity/rename is possible), pointers composite-FK'd to `theme_settings_revisions` exactly like every other base entity table in this schema.
+- `theme_settings_revisions(id, theme_settings_id, revision_number, <15 DESIGN-* fields>, created_at, created_by)` — every enum field is `CHECK IN (...)`, every numeric field is `CHECK BETWEEN ...`, mirroring `worker/d1/validate.mjs`'s application-layer validators exactly. Immutable by DB trigger (`theme_settings_revisions_reject_update` rejects **every** UPDATE unconditionally — unlike `journal_entry_revisions`, there is no permitted transition here) and non-deletable (`theme_settings_revisions_reject_delete`).
+
+Product-table count: `20 → 22`, confirmed by `tests/worker-admin-design.test.mjs`'s table-inventory test and by a direct `wrangler d1 execute --local` table listing during the local Wrangler smoke below.
+
+Bootstrap: the same migration file deterministically inserts `theme_settings.id = 'default'` and one published `theme_settings_revisions` row (revision 1) matching the RFC-010 default values exactly (`cinematic-v3`/`soft-glass`/`comfortable`/`cinematic`/`standard`/`68`/`soft-glass`/`calm`/`respect-system`/`snap`/`stack`/`cobalt`/`74`/`25`/`100`), provenance `migration:web-inc-007`, no draft revision — verified by `tests/worker-admin-design.test.mjs`'s bootstrap-parity test and confirmed idempotent (re-applying the migration does not duplicate the bootstrap row).
+
+### Empirical validation before finalizing the migration (probe-theme.mjs, not committed)
+
+A disposable scratch script applied `applyCompleteSchema` against a real local D1 instance (`getPlatformProxy`) and confirmed, in order: exactly 22 tables matching `COMPLETE_PRODUCT_TABLE_NAMES`; bootstrap row/revision values exact; a cross-entity pointer update rejected by the composite FK; a second theme entity rejected by the `id` CHECK; invalid enum/out-of-range inserts rejected; a no-op update to the bootstrap revision rejected (fully immutable, no permitted transition); a delete rejected; the new **FK-poison stale-write guard technique** (see next section) validated both for `theme_settings` (a new table) and, separately, for the pre-existing `sections` table (migration 0001, unmodified) — confirming the technique needs no schema change to reuse against an already-shipped table. The script was deleted after use.
+
+### The FK-poison commit-time stale-write guard (new technique, extending AS21-F007/AS28's poison-an-existing-constraint pattern)
+
+`theme_settings` and (for DESIGN-002/003) the pre-existing `sections` table have no extra mutable column like `projects.slug`/`journal_entries.slug` to poison via a `CHECK` on guard failure. Instead, `worker/d1/theme.mjs` and `worker/d1/section_design.mjs` poison the very pointer column being written, using each table's own already-existing composite foreign key (`FOREIGN KEY (id, draft_revision_id) REFERENCES <entity>_revisions (<entity>_id, id)`) as the constraint that trips: `-1` can never be a valid `AUTOINCREMENT` revision id, so writing it when the guard's expected-pointer condition is false fails the FK check for the whole `UPDATE` statement, and because `db.batch()` is one transaction, every other statement in the same batch (the new revision INSERT, the success audit) rolls back too. This is a pure query-level technique — it required no schema change to reuse against `sections`, whose migration file (0001) remains byte-identical. Empirically validated (see above) for both the draft-edit case (poisoning `draft_revision_id`) and the publish case (poisoning `published_revision_id`, with `draft_revision_id`'s unconditional clear-to-`NULL` in the same statement rolling back together with it when the guard fails).
+
+### Admin lifecycle evidence
+
+- **Boundary**: identical to the accepted project/journal lifecycle — Access verified first, bounded non-empty `sub` required for every mutating route (403 otherwise, but not for the two read-only routes), same-origin, JSON-only, an 8 KiB bounded body reader (its own separate copy), server-side enum/range/unknown-field validation, explicit expected-pointer inputs on draft/publish, the FK-poison commit-time stale-write guard, atomic mutation + success audit, bounded failure audit, no false-success response.
+- **Theme edit-draft** (`PUT /admin/api/design/theme/draft`): one new immutable revision; moves only `draft_revision_id`; published untouched.
+- **Theme publish** (`POST /admin/api/design/theme/publish`): re-reads and fully revalidates the persisted draft, then atomically sets `published_revision_id := draft_revision_id`, clears `draft_revision_id`, appends success audit; the prior published revision is never deleted.
+- **Section edit-draft/publish** (`PUT`/`POST /admin/api/design/sections/:id/draft|publish`): identical shape, restricted to exactly the four `MANAGED_SECTION_IDS` (`home`/`projects`/`process`/`about`) — any other id returns 404 before any mutation is attempted; no new section id, no delete, no rename.
+- **Status** (`GET /admin/api/design`): bounded published/draft values for theme and all four sections, plus fixed server constants (`allowedValues`/`allowedRanges`) for the admin UI to render selects/ranges from — never derived from a DB read.
+- **Preview** (`GET /admin/api/design/preview`): authenticated only; returns draft-if-present-else-published for both theme and each section (documented rationale: a screenshot-reference session commonly adjusts only a subset of controls in one draft cycle, and preview must remain useful for the half with no pending draft); never reachable without Access verification.
+- **Audit**: exactly the four authorized actions (`theme_edit_draft`/`theme_publish`/`section_design_edit_draft`/`section_design_publish`), entity types `theme_settings`/`section`, success atomic with the business mutation, bounded `result: failure` rows on rejected attempts with a safe entity reference.
+- **No caller-controlled audit action, no delete route, no generic key/value route, no free-form theme/CSS/JS/HTML endpoint, no media upload through this route family** — confirmed by dedicated tests (`no delete route exists for theme or sections`, unrecognized-subpath 404).
+
+### Public API evidence
+
+- **Routing separation**: `worker/auth.mjs` classifies `isPublicDesignApiPath` (exact match, never a wildcard) as part of the same first branch that already classifies public Journal paths — before `isProtectedPath`, before any Access verification. A dedicated test proves `GET /api/design` is served even when `getJWKS` and the admin `dispatch` callback are both wired to throw if called at all; a companion test proves `/admin/api/design` still 401s, unaffected.
+- **Published-only, never draft**: the public projection joins only through `theme_settings.published_revision_id` and each section's own `published_revision_id`; `draft_revision_id` is never read by either query. A dedicated fixture seeds a published theme revision (2), a still-more-recent unpublished draft revision (3), three published sections, and one section with only a draft (never published) — the response contains exactly the published values and `null` for the never-published section; the raw response text is grepped for `draftRevisionId`/`draft_revision_id`/`createdBy`/`created_by` and none are found.
+- **Positive allowlist**: exactly the 15 DESIGN-* theme fields and `{order, visible}` per section — no id, no `created_at`/`created_by`, no audit data, no storage key, no binding/config identifier.
+- **Fail-safe shape**: if no published theme exists, `theme: null` is returned (not a 404/500) so `app/DesignRuntime.js` can safely fall back to the static baseline; an unpublished/nonexistent section resolves to `null` the same way.
+- **Fail-closed**: `POST`/`PUT`/`DELETE` on `/api/design` return `405` with zero D1 access; `/api/design/anything` is not classified as the public path at all (confirmed via `isPublicDesignApiPath` unit test and an end-to-end request) and falls through to ordinary asset/404 handling — no wildcard route was created; a missing `DB` binding returns `503` without crashing.
+
+### Public runtime evidence (`app/DesignRuntime.js`)
+
+Source-inspected: fetches only `GET /api/design`; every enum value is independently re-validated against a hardcoded vocabulary array before being written as a `data-*` attribute (an invalid/unexpected value results in the attribute being removed, not written verbatim); every numeric value is bounds-checked before being written as a CSS custom property; section application touches only `style.order`/`style.display` on exactly the four hardcoded `[data-section="..."]` selectors. No `dangerouslySetInnerHTML`, no `<style>` construction from a server string, no `eval`/`Function`, no remote font/asset load, no arbitrary selector/URL from D1 — grepped and confirmed. A fetch failure/non-OK/malformed response is swallowed silently, leaving every attribute/property unset (fail-safe baseline).
+
+### Admin UI evidence (`app/admin/DesignControls.js`)
+
+Source-inspected: every control is a `<select>` populated from the server's `allowedValues`, an `<input type="range">`/`<input type="number">` bounded by the server's `allowedRanges`, or a checkbox — grepped and confirmed there is no `<input type="text">`/`<textarea>` anywhere in the file, and no raw-HTML-producing API (`dangerouslySetInnerHTML`, `innerHTML`) is used. Explicit Save Draft / Publish buttons per entity (theme + each of the four sections) and a Refresh Preview action; loading/error/success/stale-conflict states are rendered from the mutation response status (409 → conflict message + automatic reload; non-2xx → error message; 2xx → success message).
+
+### CSS / layout evidence
+
+- `.v4-shell` gained `display:flex; flex-direction:column` plus a hardcoded default `order` on `.hero`(1)/`.projects-section`(2)/`.process-section`(3)/`.about-section`(4)/`.site-footer`(999) — every other child of `.v4-shell` (background layers, blueprint frame, site header, skip link) is already `position:fixed`/`absolute` and therefore outside normal flow. Verified pixel-identical to the pre-increment block-layout rendering by before/after Playwright screenshot comparison at 1440×900 (no visual diff at default order).
+- `--line`/`--panel` alpha channels and `--radius-sm/md/lg` are now driven by `var(--design-border-alpha, 0.25)`/`var(--design-panel-alpha, 0.74)`/`calc(var(--radius-*-base) * var(--design-radius-scale, 1))` — every fallback equals the exact prior literal, so an unmodified page (no `DesignRuntime` attribute/property set) renders byte-identically to the pre-WEB-INC-007 baseline.
+- Every other DESIGN-* control (hero background, card style, density, typography, heading scale, panel/glass preset, animation, always-reduced motion, project rail mode, Journal card mode, accent) is implemented as a pre-authored `html[data-*="..."]` attribute-selector variant block — nothing is dynamically generated from a server string. `prefers-reduced-motion: reduce` remains fully independent and unconditionally in effect; `always-reduced` only ever adds the identical reduction via a separate attribute-selector mirror, never overriding or disabling the OS-level preference.
+
+### Local-only evidence — full command log
+
+| Command | Result |
+|---|---|
+| `git fetch origin governance/maisoglabs-v0.1` + `git merge --ff-only` | Fast-forwarded to `ac26668...` before any file was touched |
+| Empirical scratch probe of the new migration's DDL/triggers/FK-poison guard (theme_settings and, separately, the pre-existing sections table) against a real local D1 instance (not committed) | See "Empirical validation" above — all assertions passed |
+| `node --test tests/worker-admin-design.test.mjs` | 49 passed, 0 failed |
+| `node --test tests/worker-public-design.test.mjs` | 13 passed, 0 failed |
+| `npm test` (full suite) | 331 passed, 0 failed |
+| `npm run build` | Succeeded; routes `/`, `/_not-found`, `/admin`, `/journal`, all static |
+| `npx wrangler d1 migrations apply DB --local` (fresh `--persist-to` directory) | `0001`→16, `0002`→5, `0003`→8, `0004`→9, `0005`→9 commands, all five recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --json --command "SELECT name FROM sqlite_master ..."` | Returned exactly the 20 existing tables plus `theme_settings`/`theme_settings_revisions` (22 product tables) |
+| Seed a non-default published theme revision via `wrangler d1 execute --local` (raw SQL, real CLI) | Row inserted successfully; `published_revision_id` moved to it |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers/Miniflare runtime) | `GET /` → `200`; `GET /journal` → `200`; `GET /api/design` → `200` with the seeded non-default theme; `POST /api/design` → `405`; `GET /api/design/anything` → `404` (asset path, not the design dispatcher); `GET /admin/api/design` (no token) → `401`; `PUT /admin/api/design/theme/draft` (no token) → `401`; `GET /admin/api/dashboard` (no token) → `401`, unaffected; `GET /nope` → `404`, unaffected |
+| Headless-Chromium (Playwright) screenshots of `/` against the running `wrangler dev` instance | Default published theme (revision 1) renders pixel-identical to the pre-WEB-INC-007 baseline; the seeded non-default theme (`deep-night`/`solid-night`/`spacious`/`editorial`/`display`/`opaque-night`/`minimal`/`always-reduced`/`free-scroll`/`rail`/`teal`) renders a visibly different hero background, accent color, and button styling on both `/` and `/journal` |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.MEDIA`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `remote: true`; "--dry-run: exiting now." |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, `remote:\s*true`, and AWS-style key patterns across every new/changed file — zero matches beyond the pre-existing explanatory "no database_id" comment |
+| `git diff --stat` against every "not touched" path (migrations 0001-0004, project/journal worker modules, `app/journal/*`, `data/site.js`, `lib/content/*`, `package.json`) | Empty for every path |
+| `git diff --stat` (overall) | 25 files changed (9 new, 16 modified) |
+
+Every D1/Wrangler command above used `--local`/local-simulation-only explicitly or performed no resource mutation at all (`--dry-run`); none used `--remote`.
+
+### Test fixture updates (why four existing files needed a small addition)
+
+`buildDashboardPayload` now unconditionally reads `theme_settings` (RFC-010 "Dashboard integration"), so any test database that calls it needs that table to exist:
+
+- `tests/worker-admin-dashboard.test.mjs` (`applySchema` + `applyJournalMigration`, no frozen table-count assertion) — its shared `openTestDb()` now also calls `applyThemeMigration` directly.
+- `tests/d1-audit.test.mjs` (frozen 15-table `applyCurrentSchema` fixture) — untouched; only the one `buildDashboardPayload`-calling test additionally calls `applyThemeMigration(db)` locally.
+- `tests/worker-admin-projects.test.mjs` (frozen 17-table `applyAllMigrations` fixture) — untouched; same surgical local-call approach, plus the test's title updated from "same 8 keys" to "same 9 keys".
+- `tests/worker-admin-journal.test.mjs` (frozen 20-table `applyFullSchema` fixture) — untouched; its one dashboard-calling test gets a local `applyThemeMigration(db)` call.
+
+In all four files, dashboard-key-list assertions were updated to include the new `theme` key — the same kind of legitimate, intentional evolution as the prior cycle's `journal`-key addition, not a change to any file's own historical/frozen migration evidence.
+
+### `TEST-ADM-009` evidence
+
+`brain/TEST_LEDGER.md`'s `TEST-ADM-009` ("Theme settings remain within allowed values") was previously `NOT IMPLEMENTED` ("No theme-settings feature exists"). `tests/worker-admin-design.test.mjs` now directly covers this: every one of the 11 enum fields is tested against every allowed value (accepted) and one unknown value (rejected, 400); every one of the 4 numeric fields is tested at both boundary values (accepted) and one step outside either boundary (rejected, 400); plus explicit raw CSS/JS/HTML/URL/arbitrary-color/arbitrary-token injection attempts across multiple fields, all rejected. `TEST-ADM-009: PASS` (`ACTOR_REPORTED`, pending Architect review).
+
+### Known limitations
+
+- No automated visual-regression test exists in this repository (pre-existing gap, `TEST-WEB-003: NOT IMPLEMENTED`) — the screenshot comparisons above are this cycle's own manual checks, not a permanent regression guard.
+- `app/admin/DesignControls.js`'s inline styling is minimal/utilitarian (matching the existing `DashboardClient.js`'s own plain-CSS convention) rather than styled to match the public V3 aesthetic — it is an authenticated internal tool, not a public-facing surface, and RFC-010 does not require a particular visual treatment for it.
+- The `handlePreview` draft-if-present-else-published interpretation is a reasonable, documented reading of RFC-010's preview requirement rather than a literally unambiguous single reading; it is called out explicitly here for Architect review.
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made.
+
+### Explicit confirmations
+
+- **No real/remote D1 or R2 was touched.** Both bindings remain `remote: false`; every D1/Wrangler command above ran `--local` or performed no mutation (`--dry-run`).
+- **No public media/hero-object serving exists.** DESIGN-001 is a closed three-value preset enum (`cinematic-v3`/`deep-night`/`minimal-orbit`); no URL, R2 key, upload id, or data URI is ever accepted.
+- **No arbitrary CSS/JS/HTML/color/font-URL/image-URL/selector/class-name/custom-property-name input exists anywhere in the admin design surface** — every field is a fixed enum or a bounded integer, enforced at both the application layer (`worker/d1/validate.mjs`) and the DB layer (migration 0005's `CHECK` constraints).
+- **No visual drag/drop builder, no generic key/value settings, no arbitrary new preset, no new section id capability exists.**
+- **No homepage/projects public D1 cutover occurred.** `app/page.js`'s only change is four `data-section` attributes; its content source remains `data/site.js` via `lib/content/local.mjs`, byte-unchanged.
+- **No SSR conversion occurred.** `npm run build` confirms `/`, `/journal`, and `/admin` remain statically prerendered; no D1 module is imported by any file under `app/`.
+- **No deployment occurred.** `npx wrangler deploy` was run only with `--dry-run`.
+- **No protected/`main` merge occurred.** All work is on `governance/maisoglabs-v0.1` (mirrored to `claude/phase-0-governance-scope-w8o3jp`).
+- **No `WEB-INC-007` scope expansion, no Sentinel S3+, no CI/rulesets/Capability-Gateway/Task-Engine/Orchestrator work began.** This closes the dependency-ordered core WEB roadmap per RFC-010, but creates no deployment/remote-resource/production-verification/main-merge authority by itself (AS30-F016).
+- **`MEDIA_MUTATION_AUTHORIZED` remains `NO`** — this increment adds no media upload/update/archive capability. **`MUTATION_AUTHORIZED: YES`/`AUDIT_APPEND_AUTHORIZED: YES`** apply only to this exact bounded theme/section-design scope; **`REMOTE_R2_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED` remain `NO`** — unchanged by this cycle.
+- **The Implementer has not self-certified this implementation as `ARCHITECT VERIFIED`.** All runtime/test/visual/CLI evidence above remains `ACTOR_REPORTED` until independently reviewed.
+
+### Implementation commit
+
+The files above are committed to `governance/maisoglabs-v0.1` as commit `17577838d1007210cd1893fdb71ea8063d764fa8` on top of base `ac2666860195a6e1c151ae363f7d176b61c12cde`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
