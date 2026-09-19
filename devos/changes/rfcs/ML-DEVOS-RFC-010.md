@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-010: MaisogLabs WEB-INC-007 Theme / Design Controls
 
-Status: `UNDER_ARCHITECT_SYNC`
+Status: `ACCEPTED`
 
 Change class: `ARCHITECTURE`
 
