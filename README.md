@@ -75,6 +75,7 @@ Output directory: out
 - Content conventions and assets: `docs/CONTENT.md`
 - Version history and rollback references: `docs/CHANGE_LEDGER.md`
 - AI-agent instructions: `AGENTS.md`
+- Cross-build Sentinel review notes: `docs/SENTINEL_REVIEW_NOTES.md` (`PULL SENTINEL REVIEW NOTES`)
 
 ## Before the final V4 release
 
