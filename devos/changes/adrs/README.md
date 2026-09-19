@@ -4,6 +4,7 @@ Accepted ADRs live here as `ML-DEVOS-ADR-<NNN>.md`, using `../../templates/ADR_T
 
 ## Current contents
 
+- `ML-DEVOS-ADR-009.md` — adopts WEB-INC-007 Theme / Design Controls, including screenshot-reference visual preview and full-range overlay behavior; marks the eight-increment core WEB roadmap complete at repository/local level.
 - `ML-DEVOS-ADR-008.md` — records adoption of MaisogLabs `WEB-INC-006` local Journal subsystem after `ML-DEVOS-AS-029`; three Journal tables, protected lifecycle APIs, published-only public Journal GET APIs, and static `/journal` shell, with no remote D1/R2, deployment, or main merge.
 - `ML-DEVOS-ADR-007.md` — records adoption of MaisogLabs `WEB-INC-004` local media subsystem after `ML-DEVOS-AS-027` accepted remediation. Product architecture only; 17 product tables, local R2 simulation, immutable revision-scoped media snapshots, no remote R2/D1, public media serving, deployment, or main merge.
 - `ML-DEVOS-ADR-006.md` — adopts CORE-019/020/021 Sentinel risk-escalation policy and the `v1.4.0 → v1.5.0` governance-capability transition. No S3–S14 runtime/enforcement mechanism is implemented; WEB-INC-004 and all remote/deploy/main-merge authority remain separately gated.
