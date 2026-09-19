@@ -20,6 +20,7 @@ import {
   buildPublishBatch,
   buildUnpublishBatch,
 } from "../d1/projects.mjs";
+import { validateMediaSnapshotEntries, readActiveMediaRowsByIds, readProjectMediaSnapshot } from "../d1/media.mjs";
 
 const PROJECTS_ROOT_PATH = "/admin/api/projects";
 const PROJECT_SUBROUTE_PATTERN = /^\/admin\/api\/projects\/([^/]+)\/(draft|preview|publish|unpublish)$/;
@@ -190,6 +191,35 @@ function pointersMatch(row, expected) {
   return currentPublished === expected.expectedPublishedRevisionId && currentDraft === expected.expectedDraftRevisionId;
 }
 
+// WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029) addition
+// (AS23-F012): "referenced media must exist and be active." Validates the
+// shape of a caller-supplied media snapshot, then independently confirms
+// every referenced media id actually resolves to an active row — a
+// mismatched count means at least one id was missing or inactive, which is
+// reported as a plain validation failure rather than left to surface as a
+// raw D1 foreign-key batch failure.
+async function resolveMediaSnapshotEntries(db, rawEntries) {
+  const entries = validateMediaSnapshotEntries(rawEntries);
+  if (entries.length === 0) return entries;
+  const uniqueIds = [...new Set(entries.map(entry => entry.mediaId))];
+  const activeRows = await readActiveMediaRowsByIds(db, uniqueIds);
+  if (activeRows.length !== uniqueIds.length) {
+    throw new Error("media snapshot: one or more referenced media ids are missing or inactive");
+  }
+  return entries;
+}
+
+// AS23-F012: "if edit omits media selection, copy/inherit the source
+// revision's associations so text-only edits don't silently drop media."
+// The source revision is the project's current draft if one exists,
+// otherwise its current published revision — the same revision an edit
+// request is itself built on top of.
+async function inheritedMediaEntries(db, expected) {
+  const sourceRevisionId = expected.expectedDraftRevisionId ?? expected.expectedPublishedRevisionId;
+  if (sourceRevisionId === null || sourceRevisionId === undefined) return [];
+  return readProjectMediaSnapshot(db, sourceRevisionId);
+}
+
 // WEB-INC-003 Remediation Cycle 1 (ML-DEVOS-AS-021 AS21-F007): after a
 // rejected edit/publish/unpublish batch, the commit-time guard in
 // worker/d1/projects.mjs (see stalePointerGuardedSlugAssignment) is the
@@ -245,12 +275,24 @@ async function handleCreateDraft({ request, url, db, sub }) {
     return jsonResponse(400, { error: "Validation failed" });
   }
 
-  const createdAt = new Date().toISOString();
   const actor = auditActor(sub);
+
+  // AS23-F012: create has no prior revision to inherit from, so an omitted
+  // `media` field simply means an empty snapshot — never an implicit copy
+  // of anything.
+  let mediaEntries;
+  try {
+    mediaEntries = "media" in body ? await resolveMediaSnapshotEntries(db, body.media) : [];
+  } catch {
+    await tryAppendFailureAudit(db, { actor, action: "project_create_draft", entityId: auditEntityId });
+    return jsonResponse(400, { error: "Validation failed" });
+  }
+
+  const createdAt = new Date().toISOString();
 
   let statements;
   try {
-    statements = buildCreateDraftBatch(db, { id: validId, slug: validSlug, fields, createdAt, createdBy: actor, actor });
+    statements = buildCreateDraftBatch(db, { id: validId, slug: validSlug, fields, createdAt, createdBy: actor, actor, mediaEntries });
   } catch {
     await tryAppendFailureAudit(db, { actor, action: "project_create_draft", entityId: validId });
     return jsonResponse(400, { error: "Validation failed" });
@@ -314,6 +356,18 @@ async function handleEditDraft({ request, url, db, sub, id }) {
     return jsonResponse(400, { error: "Validation failed" });
   }
 
+  // AS23-F012: an explicit `media` field is the complete replacement
+  // snapshot for the new revision; omitting the field entirely inherits the
+  // source revision's associations so a text-only edit never silently drops
+  // media.
+  let mediaEntries;
+  try {
+    mediaEntries = "media" in body ? await resolveMediaSnapshotEntries(db, body.media) : await inheritedMediaEntries(db, expected);
+  } catch {
+    await tryAppendFailureAudit(db, { actor, action: "project_update_draft", entityId: id });
+    return jsonResponse(400, { error: "Validation failed" });
+  }
+
   const createdAt = new Date().toISOString();
   let statements;
   try {
@@ -325,6 +379,7 @@ async function handleEditDraft({ request, url, db, sub, id }) {
       actor,
       expectedPublishedRevisionId: expected.expectedPublishedRevisionId,
       expectedDraftRevisionId: expected.expectedDraftRevisionId,
+      mediaEntries,
     });
     await db.batch(statements);
   } catch {
@@ -341,7 +396,28 @@ async function handleEditDraft({ request, url, db, sub, id }) {
   return jsonResponse(200, projectStatusResponse(updated, { revisionId: updated.draft_revision_id }));
 }
 
-// GET /admin/api/projects/:id/preview — read-only, draft-only (AS20-F014).
+// AS23-F014: exact-draft media metadata only — never a fallback to the
+// published revision's associations. Joins the draft's project_media
+// snapshot (mediaId/role/order) against the bounded, positive media
+// metadata projection; never exposes raw bucket/object credentials or a
+// storage key.
+async function draftMediaPreview(db, draftRevisionId) {
+  const snapshot = await readProjectMediaSnapshot(db, draftRevisionId);
+  if (snapshot.length === 0) return [];
+  const uniqueIds = [...new Set(snapshot.map(entry => entry.mediaId))];
+  const activeRows = await readActiveMediaRowsByIds(db, uniqueIds);
+  const metadataById = new Map(activeRows.map(row => [row.id, row]));
+  return snapshot
+    .map(entry => {
+      const metadata = metadataById.get(entry.mediaId);
+      if (!metadata) return null;
+      return { ...metadata, role: entry.role, order: entry.order };
+    })
+    .filter(entry => entry !== null);
+}
+
+// GET /admin/api/projects/:id/preview — read-only, draft-only (AS20-F014,
+// AS23-F014).
 async function handlePreview({ db, id }) {
   const row = await readProjectForMutation(db, id);
   if (!row || row.draft_revision_id === null || row.draft_revision_id === undefined) {
@@ -352,12 +428,14 @@ async function handlePreview({ db, id }) {
     return jsonResponse(404, { error: "Not Found" });
   }
   const fields = revisionRowToDomainFields(revisionRow);
+  const media = await draftMediaPreview(db, row.draft_revision_id);
   return jsonResponse(200, {
     id: row.id,
     slug: row.slug,
     state: deriveLifecycleState(row.published_revision_id, row.draft_revision_id),
     draftRevisionId: row.draft_revision_id,
     ...fields,
+    media,
   });
 }
 

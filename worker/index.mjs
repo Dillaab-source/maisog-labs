@@ -8,13 +8,14 @@
 //   ACCESS_TEAM_DOMAIN — e.g. "your-team.cloudflareaccess.com"
 //   ACCESS_AUD         — the Access application audience (AUD) tag
 //   DB                 — the local-only WEB-INC-005 D1 binding (wrangler.jsonc)
+//   MEDIA              — the local-only WEB-INC-004 R2 binding (wrangler.jsonc)
 // No secret, private key, or administrator identity is read or stored here.
 // If either ACCESS_* value is missing/blank/left as its committed
 // placeholder, handleRequest fails closed before this file's getJWKS is ever
-// called (AS12-F001) — see worker/auth.mjs's isValidAuthConfig. `env.DB` is
-// never read by this file before handleRequest has already verified the
-// Access assertion, since it is only passed into the `dispatch` closure
-// invoked after that verification succeeds (AS15-F002).
+// called (AS12-F001) — see worker/auth.mjs's isValidAuthConfig. `env.DB`/
+// `env.MEDIA` are never read by this file before handleRequest has already
+// verified the Access assertion, since they are only passed into the
+// `dispatch` closure invoked after that verification succeeds (AS15-F002).
 import { createRemoteJWKSet } from "jose";
 import { handleRequest } from "./auth.mjs";
 import { handleAdminDispatch } from "./admin/dashboard.mjs";
@@ -37,7 +38,7 @@ export default {
       teamDomain: env.ACCESS_TEAM_DOMAIN,
       audience: env.ACCESS_AUD,
       getJWKS,
-      dispatch: ({ request, url, assets, sub }) => handleAdminDispatch({ request, url, assets, db: env.DB, sub }),
+      dispatch: ({ request, url, assets, sub }) => handleAdminDispatch({ request, url, assets, db: env.DB, media: env.MEDIA, sub }),
     });
   },
 };

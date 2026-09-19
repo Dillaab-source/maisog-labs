@@ -45,5 +45,20 @@
       "migrations_dir": "migrations",
       "remote": false
     }
+  ],
+  // WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029): local-only R2
+  // object-storage simulation for the media subsystem (AS23-F002). `remote:
+  // false` is explicit, exactly like the D1 binding above, so this binding
+  // can never target a real/production R2 bucket under any invocation. No
+  // public bucket, custom domain, or production resource identifier is
+  // configured here or anywhere else in this repository. Every command
+  // exercising this binding is run with `--local` / local-only tooling only
+  // — see coordination/IMPLEMENTER_HANDOFF.md for the exact command log.
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "maisog-labs-web-inc-004-local",
+      "remote": false
+    }
   ]
 }

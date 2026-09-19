@@ -13,6 +13,7 @@ import {
   readSiteSettingsStatusRow,
 } from "../d1/repository.mjs";
 import { isProjectsApiPath, handleProjectsDispatch } from "./projects.mjs";
+import { isMediaApiPath, handleMediaDispatch } from "./media.mjs";
 
 export const DASHBOARD_PATH = "/admin/api/dashboard";
 
@@ -136,7 +137,7 @@ export async function buildDashboardPayload(db) {
 // valid Cloudflare Access assertion has been verified — see `dispatch` in
 // `handleRequest` — so every branch below may assume the caller is
 // authenticated; none of them re-checks identity.
-export async function handleAdminDispatch({ request, url, assets, db, sub }) {
+export async function handleAdminDispatch({ request, url, assets, db, media, sub }) {
   const pathname = url.pathname;
 
   if (pathname === DASHBOARD_PATH) {
@@ -166,6 +167,16 @@ export async function handleAdminDispatch({ request, url, assets, db, sub }) {
   // allowlist gains mutation reach.
   if (isProjectsApiPath(pathname)) {
     return handleProjectsDispatch({ request, url, db, sub });
+  }
+
+  // WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029): the only other
+  // authenticated editorial route this repository exposes. Routed here,
+  // after the dashboard/projects checks above and before the generic
+  // "/admin/api/*" 404 fallback below, so neither of those existing
+  // behaviors changes and no route outside this exact allowlist gains
+  // upload/list reach.
+  if (isMediaApiPath(pathname)) {
+    return handleMediaDispatch({ request, url, db, media, sub });
   }
 
   if (isAdminApiPath(pathname)) {

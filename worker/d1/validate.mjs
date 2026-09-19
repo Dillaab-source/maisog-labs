@@ -276,3 +276,43 @@ export function validateProjectId(id) {
   }
   return id;
 }
+
+// WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029) addition: media
+// alt text. Same bounded, control-character-free `text()` shape used
+// throughout this file, capped at 300 characters to match the
+// `media.alt_text` column's own `CHECK (length(alt_text) <= 300)`
+// (migrations/0003_web_inc_004_media.sql) so an application-level rejection
+// always occurs before any database round trip.
+export const validateAltText = value => {
+  if (!text(300)(value)) {
+    throw new Error("media alt text: invalid value");
+  }
+  return value;
+};
+
+// WEB-INC-004 addition: the closed, bounded role enum a project_media
+// snapshot entry may declare — mirrors the DB-level
+// `CHECK (role IN ('cover', 'gallery'))` on project_media.role.
+export const MEDIA_ROLE_VALUES = ["cover", "gallery"];
+export function validateMediaRole(value) {
+  if (typeof value !== "string" || !MEDIA_ROLE_VALUES.includes(value)) {
+    throw new Error("media role: invalid value");
+  }
+  return value;
+}
+
+// WEB-INC-004 addition: the server-generated media id shape — a
+// lowercase `crypto.randomUUID()` value (AS23-F008). Unlike
+// validateProjectId's lowercase-letter-first pattern, a UUID's first
+// character is frequently a digit (any of 0-9a-f), so this validates the
+// exact standard UUID shape instead. Used both to sanity-check a
+// server-generated id before it is bound into SQL, and to validate a
+// project_media snapshot entry's `mediaId` reference — never used to accept
+// a client-supplied *new* media id.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export function validateMediaId(id) {
+  if (typeof id !== "string" || !UUID_PATTERN.test(id)) {
+    throw new Error("media id: invalid format");
+  }
+  return id;
+}

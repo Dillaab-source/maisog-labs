@@ -24,6 +24,7 @@
 // same atomic batch as the mutation, not only via the handler's pre-read.
 import { validateProjectId, validateProjectSlug, validateProjectRevisionContent } from "./validate.mjs";
 import { buildProjectRevisionAuditStatement, buildAuditAppendStatement } from "./audit.mjs";
+import { buildProjectMediaInsertStatements } from "./media.mjs";
 
 function projectRevisionColumns(fields) {
   return {
@@ -74,11 +75,13 @@ async function nextRevisionNumber(db, projectId) {
 }
 
 // Builds the full create-draft statement set: one new `projects` base row,
-// one new immutable `project_revisions` row (revision_number 1), the
-// pointer update that sets draft_revision_id (published_revision_id stays
-// null), and one success audit row — all four statements meant to run as a
-// single db.batch() call (AS20-F005, AS20-F009).
-export function buildCreateDraftBatch(db, { id, slug, fields, createdAt, createdBy, actor }) {
+// one new immutable `project_revisions` row (revision_number 1), that new
+// revision's `project_media` snapshot inserts (WEB-INC-004, AS23-F013 —
+// empty when `mediaEntries` is empty), the pointer update that sets
+// draft_revision_id (published_revision_id stays null), and one success
+// audit row — all statements meant to run as a single db.batch() call
+// (AS20-F005, AS20-F009, AS23-F013).
+export function buildCreateDraftBatch(db, { id, slug, fields, createdAt, createdBy, actor, mediaEntries = [] }) {
   const validId = validateProjectId(id);
   const validSlug = validateProjectSlug(slug);
   validateProjectRevisionContent(fields);
@@ -94,6 +97,7 @@ export function buildCreateDraftBatch(db, { id, slug, fields, createdAt, created
           `VALUES (?, 1, ${revisionColumnNames.map(() => "?").join(", ")}, ?, ?)`
       )
       .bind(validId, ...revisionValues, createdAt, createdBy),
+    ...buildProjectMediaInsertStatements(db, { projectId: validId, revisionNumber: 1, entries: mediaEntries }),
     db
       .prepare(
         "UPDATE projects SET draft_revision_id = (SELECT id FROM project_revisions WHERE project_id = ? AND revision_number = 1) WHERE id = ?"
@@ -151,13 +155,15 @@ function stalePointerGuardedSlugAssignment() {
 }
 
 // Builds the full edit-draft statement set: one new immutable
-// project_revisions row (the next revision_number for this project), the
-// pointer update that moves only draft_revision_id (guarded per above), and
-// one success audit row. Never touches published_revision_id and never
-// UPDATEs an existing revision row's content (AS20-F005).
+// project_revisions row (the next revision_number for this project), that
+// new revision's project_media snapshot inserts (WEB-INC-004, AS23-F013),
+// the pointer update that moves only draft_revision_id (guarded per above),
+// and one success audit row. Never touches published_revision_id and never
+// UPDATEs an existing revision row's content, or any prior revision's
+// project_media rows (AS20-F005, AS23-F005).
 export async function buildEditDraftBatch(
   db,
-  { id, fields, createdAt, createdBy, actor, expectedPublishedRevisionId, expectedDraftRevisionId }
+  { id, fields, createdAt, createdBy, actor, expectedPublishedRevisionId, expectedDraftRevisionId, mediaEntries = [] }
 ) {
   validateProjectRevisionContent(fields);
   const revisionColumns = projectRevisionColumns(fields);
@@ -172,6 +178,7 @@ export async function buildEditDraftBatch(
           `VALUES (?, ?, ${revisionColumnNames.map(() => "?").join(", ")}, ?, ?)`
       )
       .bind(id, revisionNumber, ...revisionValues, createdAt, createdBy),
+    ...buildProjectMediaInsertStatements(db, { projectId: id, revisionNumber, entries: mediaEntries }),
     db
       .prepare(
         "UPDATE projects SET " +

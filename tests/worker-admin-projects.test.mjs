@@ -12,7 +12,7 @@ import { getPlatformProxy } from "wrangler";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
 import { handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
 import { handleAdminDispatch, buildDashboardPayload, DASHBOARD_PATH } from "../worker/admin/dashboard.mjs";
-import { applyCurrentSchema, CURRENT_PRODUCT_TABLE_NAMES } from "../worker/d1/schema.mjs";
+import { applyAllMigrations, ALL_PRODUCT_TABLE_NAMES } from "../worker/d1/schema.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 const ORIGIN = "https://maisoglabs.example";
@@ -88,7 +88,7 @@ async function openTestDb() {
     persist: { path: statePath },
     remoteBindings: false,
   });
-  await applyCurrentSchema(proxy.env.DB);
+  await applyAllMigrations(proxy.env.DB);
   return {
     db: proxy.env.DB,
     async cleanup() {
@@ -1277,7 +1277,7 @@ test("a generic internal error never leaks D1/SQL detail, subject, or claims", a
 
 // --- regression: schema unchanged, dashboard unchanged ---
 
-test("the current schema remains exactly 15 product tables after project mutation activity", async () => {
+test("the current schema remains exactly 17 product tables after project mutation activity", async () => {
   const { db, cleanup } = await openTestDb();
   try {
     const { privateKey, jwks } = await buildTestIdentity();
@@ -1288,8 +1288,8 @@ test("the current schema remains exactly 15 product tables after project mutatio
     const tables = tableRows.results
       .map(row => row.name)
       .filter(name => !name.startsWith("_cf_") && !name.startsWith("sqlite_") && name !== "d1_migrations");
-    assert.equal(tables.length, 15);
-    assert.deepEqual(tables, [...CURRENT_PRODUCT_TABLE_NAMES].sort());
+    assert.equal(tables.length, 17);
+    assert.deepEqual(tables, [...ALL_PRODUCT_TABLE_NAMES].sort());
   } finally {
     await cleanup();
   }
@@ -1325,6 +1325,361 @@ test("GET /admin/api/dashboard remains unchanged (same 7 keys, no audit/mutation
 
     const { response } = await callAdmin(readRequest(DASHBOARD_PATH, { token }), { db, jwks });
     assert.equal(response.status, 200);
+  } finally {
+    await cleanup();
+  }
+});
+
+// --- WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029): project
+// create/edit media-snapshot integration ---
+
+async function insertActiveMedia(db, overrides = {}) {
+  const id = overrides.id ?? crypto.randomUUID();
+  await db
+    .prepare("INSERT INTO media (id, storage_key, content_type, size_bytes, alt_text, uploaded_at, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(
+      id,
+      overrides.storageKey ?? `media/${id}.jpg`,
+      overrides.contentType ?? "image/jpeg",
+      overrides.sizeBytes ?? 1024,
+      overrides.altText ?? "alt",
+      overrides.uploadedAt ?? new Date().toISOString(),
+      overrides.uploadedBy ?? "cf-access:seed"
+    )
+    .run();
+  return id;
+}
+
+async function projectMediaRows(db, revisionId) {
+  const result = await db
+    .prepare("SELECT media_id, role, sort_order FROM project_media WHERE project_revision_id = ? ORDER BY sort_order")
+    .bind(revisionId)
+    .all();
+  return result.results.map(row => ({ mediaId: row.media_id, role: row.role, order: row.sort_order }));
+}
+
+test("POST /admin/api/projects accepts an optional media snapshot for the new revision (AS23-F012)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const coverId = await insertActiveMedia(db, { contentType: "image/jpeg", altText: "cover shot" });
+    const galleryId = await insertActiveMedia(db, { contentType: "image/png", altText: "gallery shot" });
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: {
+          ...validProjectPayload(),
+          media: [
+            { mediaId: coverId, role: "cover", order: 0 },
+            { mediaId: galleryId, role: "gallery", order: 1 },
+          ],
+        },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 201);
+    const created = await response.json();
+
+    assert.deepEqual(await projectMediaRows(db, created.draftRevisionId), [
+      { mediaId: coverId, role: "cover", order: 0 },
+      { mediaId: galleryId, role: "gallery", order: 1 },
+    ]);
+
+    const { response: previewResponse } = await callAdmin(
+      readRequest("/admin/api/projects/project-atomic-lab/preview", { token }),
+      { db, jwks }
+    );
+    const preview = await previewResponse.json();
+    assert.equal(preview.media.length, 2);
+    assert.equal(preview.media[0].contentType, "image/jpeg");
+    assert.equal(preview.media[0].altText, "cover shot");
+    assert.equal(preview.media[0].role, "cover");
+    assert.equal(preview.media[1].role, "gallery");
+    // Positive projection only — no storage key ever leaves this route.
+    assert.equal(preview.media[0].storageKey, undefined);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/projects omitting media commits an empty snapshot, never an implicit copy", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const created = await createProject(db, jwks, token);
+    assert.deepEqual(await projectMediaRows(db, created.draftRevisionId), []);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/projects rejects a media snapshot referencing a missing media id, and commits no project/revision/project_media row (AS23-F012)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: { ...validProjectPayload(), media: [{ mediaId: "00000000-0000-0000-0000-000000000000", role: "cover", order: 0 }] },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 400);
+    assert.equal(await countRows(db, "projects"), 0);
+    assert.equal(await countRows(db, "project_revisions"), 0);
+    assert.equal(await countRows(db, "project_media"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("POST /admin/api/projects rejects a media snapshot with a duplicate (mediaId, role) entry, and commits nothing (AS23-F012)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const coverId = await insertActiveMedia(db);
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: {
+          ...validProjectPayload(),
+          media: [
+            { mediaId: coverId, role: "cover", order: 0 },
+            { mediaId: coverId, role: "cover", order: 1 },
+          ],
+        },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 400);
+    assert.equal(await countRows(db, "projects"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("PUT .../draft omitting media inherits the source revision's association snapshot; the prior revision's rows are untouched (AS23-F012)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const coverId = await insertActiveMedia(db);
+    const { response: createResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: { ...validProjectPayload(), media: [{ mediaId: coverId, role: "cover", order: 0 }] },
+      }),
+      { db, jwks }
+    );
+    const created = await createResponse.json();
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Text-Only Edit" }),
+          expectedPublishedRevisionId: created.publishedRevisionId,
+          expectedDraftRevisionId: created.draftRevisionId,
+        },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 200);
+    const updated = await response.json();
+    assert.notEqual(updated.draftRevisionId, created.draftRevisionId);
+
+    const inherited = [{ mediaId: coverId, role: "cover", order: 0 }];
+    assert.deepEqual(await projectMediaRows(db, updated.draftRevisionId), inherited, "the new revision inherits the source snapshot");
+    assert.deepEqual(await projectMediaRows(db, created.draftRevisionId), inherited, "the prior revision's own rows are untouched");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("PUT .../draft with an explicit media array fully replaces the new revision's snapshot; the prior revision's rows are unchanged (AS23-F012)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const coverId = await insertActiveMedia(db);
+    const galleryId = await insertActiveMedia(db);
+    const { response: createResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: { ...validProjectPayload(), media: [{ mediaId: coverId, role: "cover", order: 0 }] },
+      }),
+      { db, jwks }
+    );
+    const created = await createResponse.json();
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Replaced Media" }),
+          expectedPublishedRevisionId: created.publishedRevisionId,
+          expectedDraftRevisionId: created.draftRevisionId,
+          media: [{ mediaId: galleryId, role: "gallery", order: 0 }],
+        },
+      }),
+      { db, jwks }
+    );
+    assert.equal(response.status, 200);
+    const updated = await response.json();
+
+    assert.deepEqual(await projectMediaRows(db, updated.draftRevisionId), [{ mediaId: galleryId, role: "gallery", order: 0 }]);
+    assert.deepEqual(
+      await projectMediaRows(db, created.draftRevisionId),
+      [{ mediaId: coverId, role: "cover", order: 0 }],
+      "the prior revision's own project_media rows are immutable and unchanged"
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
+test("GET .../preview returns exact-draft media metadata only, never falling back to the published revision's associations (AS23-F014)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const publishedMediaId = await insertActiveMedia(db, { altText: "published photo" });
+    const draftMediaId = await insertActiveMedia(db, { altText: "draft photo" });
+
+    const { response: createResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: { ...validProjectPayload(), media: [{ mediaId: publishedMediaId, role: "cover", order: 0 }] },
+      }),
+      { db, jwks }
+    );
+    const created = await createResponse.json();
+
+    await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/publish", {
+        method: "POST",
+        token,
+        body: { expectedPublishedRevisionId: null, expectedDraftRevisionId: created.draftRevisionId },
+      }),
+      { db, jwks }
+    );
+
+    const { response: editResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "New Draft" }),
+          expectedPublishedRevisionId: created.draftRevisionId,
+          expectedDraftRevisionId: null,
+          media: [{ mediaId: draftMediaId, role: "cover", order: 0 }],
+        },
+      }),
+      { db, jwks }
+    );
+    const edited = await editResponse.json();
+
+    const { response: previewResponse } = await callAdmin(
+      readRequest("/admin/api/projects/project-atomic-lab/preview", { token }),
+      { db, jwks }
+    );
+    const preview = await previewResponse.json();
+    assert.equal(preview.media.length, 1);
+    assert.equal(preview.media[0].altText, "draft photo", "preview shows the exact draft's media, not the published revision's");
+
+    assert.deepEqual(
+      await projectMediaRows(db, created.draftRevisionId),
+      [{ mediaId: publishedMediaId, role: "cover", order: 0 }],
+      "the published revision's own association snapshot is unchanged by the later draft edit"
+    );
+    assert.notEqual(edited.draftRevisionId, created.draftRevisionId);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a D1 batch failure during create-with-media leaves no project, revision, or project_media row behind (AS23-F013)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const coverId = await insertActiveMedia(db);
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects", {
+        method: "POST",
+        token,
+        body: { ...validProjectPayload(), media: [{ mediaId: coverId, role: "cover", order: 0 }] },
+      }),
+      { db: batchFailingDb(db), jwks }
+    );
+    assert.equal(response.status, 409);
+    assert.equal(await countRows(db, "projects"), 0);
+    assert.equal(await countRows(db, "project_revisions"), 0);
+    assert.equal(await countRows(db, "project_media"), 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+test("a stale edit carrying an explicit media snapshot is still rejected (409) by the existing commit-time guard; no project_media row from the rejected attempt survives (AS23-F013/F016)", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const coverId = await insertActiveMedia(db);
+    const created = await createProject(db, jwks, token);
+
+    const { response: competingResponse } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Competing Edit" }),
+          expectedPublishedRevisionId: created.publishedRevisionId,
+          expectedDraftRevisionId: created.draftRevisionId,
+        },
+      }),
+      { db, jwks }
+    );
+    const competing = await competingResponse.json();
+
+    const staleRow = { id: created.id, slug: created.slug, published_revision_id: null, draft_revision_id: created.draftRevisionId };
+    const staleDb = interleavingDb(db, { staleRow });
+
+    const { response } = await callAdmin(
+      mutationRequest("/admin/api/projects/project-atomic-lab/draft", {
+        method: "PUT",
+        token,
+        body: {
+          ...validProjectPayload({ title: "Stale Edit Must Not Apply" }),
+          expectedPublishedRevisionId: null,
+          expectedDraftRevisionId: created.draftRevisionId,
+          media: [{ mediaId: coverId, role: "cover", order: 0 }],
+        },
+      }),
+      { db: staleDb, jwks }
+    );
+    assert.equal(response.status, 409);
+
+    const revisionRows = (
+      await db.prepare("SELECT id FROM project_revisions WHERE project_id = ? ORDER BY revision_number").bind("project-atomic-lab").all()
+    ).results;
+    assert.equal(revisionRows.length, 2, "no orphan revision row from the stale attempt");
+    assert.equal(await countRows(db, "project_media", "WHERE media_id = ?", coverId), 0, "the stale attempt's media snapshot never committed");
+    assert.deepEqual(await projectMediaRows(db, competing.draftRevisionId), [], "the competing edit's own (empty) snapshot is unaffected");
   } finally {
     await cleanup();
   }

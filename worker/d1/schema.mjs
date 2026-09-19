@@ -24,6 +24,7 @@ import { unstable_splitSqlQuery } from "wrangler";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0001_web_inc_005_init.sql");
 const AUDIT_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0002_web_inc_008_audit_log.sql");
+const MEDIA_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0003_web_inc_004_media.sql");
 
 // Exactly the 14 tables authorized by D-024 / ML-DEVOS-AS-013 (AS13-F002).
 // Order matches the authorized inventory in coordination/STATE.md.
@@ -97,4 +98,39 @@ export async function applyAuditMigration(db) {
 export async function applyCurrentSchema(db) {
   await applySchema(db);
   await applyAuditMigration(db);
+}
+
+// WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029) addition
+// (AS23-F003): exactly two new product tables, media and project_media. Per
+// AS23-F016, this does not touch AUTHORIZED_TABLE_NAMES / AUDIT_TABLE_NAMES
+// / CURRENT_PRODUCT_TABLE_NAMES / applySchema / applyAuditMigration /
+// applyCurrentSchema above — those remain the exact byte-for-byte 15-table
+// evidence that tests/d1-migration.test.mjs and tests/d1-audit.test.mjs
+// already assert against. The current (17-table) schema gets its own,
+// separately named exports instead.
+export const MEDIA_TABLE_NAMES = ["media", "project_media"];
+
+export const ALL_PRODUCT_TABLE_NAMES = [...CURRENT_PRODUCT_TABLE_NAMES, ...MEDIA_TABLE_NAMES];
+
+export function readMediaMigrationSql() {
+  return fs.readFileSync(MEDIA_MIGRATION_SQL_PATH, "utf8");
+}
+
+// Applies only the WEB-INC-004 media migration (0003). Callers that need the
+// full current schema should use applyAllMigrations(db) below, which applies
+// 0001, 0002, then 0003 in order; this narrower export exists so a test can
+// apply the media migration on top of a database that already ran
+// applyCurrentSchema() without re-running 0001/0002.
+export async function applyMediaMigration(db) {
+  const statements = unstable_splitSqlQuery(readMediaMigrationSql()).filter(statement => statement.trim().length > 0);
+  await db.batch(statements.map(statement => db.prepare(statement)));
+}
+
+// Applies the full 17-table schema (0001, 0002, then 0003, in order) to a D1
+// binding. Like applySchema()/applyCurrentSchema(), every statement is
+// CREATE TABLE/TRIGGER IF NOT EXISTS, so this is idempotent/safe to run
+// repeatedly (AS13-F009).
+export async function applyAllMigrations(db) {
+  await applyCurrentSchema(db);
+  await applyMediaMigration(db);
 }
