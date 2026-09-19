@@ -18,8 +18,12 @@ Grounded pre-proposal repository HEAD: `25fd64dfa0e76662cf7d098b3ca7f044c7c77231
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
 
-Active Sentinel governance-capability baseline:
+Active Sentinel governance-capability baseline at AS-023 review time:
 - `v1.4.0`
+
+Current active Sentinel governance-capability baseline after `D-028` / `ML-DEVOS-ADR-006`:
+- `v1.5.0`
+- this later governance update does not change AS-023's WEB-INC-004 verdict or authority gates
 
 Accepted dependencies:
 - `ML-DEVOS-AS-012` — authentication boundary
