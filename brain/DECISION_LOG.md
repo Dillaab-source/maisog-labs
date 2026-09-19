@@ -376,3 +376,19 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Explicitly not authorized:** project delete; slug rename; mutation of any other content domain; schema changes; media/R2; journal; theme/design; persistent session/role database; audit UI/API; remote/production D1; production Cloudflare Access changes; public D1 cutover; deployment; protected/main merge; later WEB-INC work; Sentinel S3+; CI/workflows/rulesets.
 - **Review rule:** after Builder handoff, the Architect must live-check the branch and independently inspect the exact implementation diff against `ML-DEVOS-RFC-006`, `ML-DEVOS-AS-020`, this decision, ADR-003/004/005, and accepted WEB-INC-001/005/002/008 behavior before PASS / CHANGES_REQUESTED.
 - **Evidence of Paulo authority:** Paulo explicitly instructed: `Proceed with WEB-INC-003 implementation authorization. Authorize Claude to implement WEB-INC-003 — Project Mutation Capability exactly within ML-DEVOS-RFC-006 and every binding constraint in ML-DEVOS-AS-020. Authorize only the bounded local/repository project create-draft, edit-draft, protected preview, publish, and unpublish capability. No project delete, schema change, other content-domain mutation, media/R2, journal, theme/design controls, remote D1, public D1 cutover, production deployment, protected/main merge, later WEB-INC work, or Sentinel S3+ is authorized.`
+
+
+### D-028 — Activate Sentinel risk escalation rules and v1.5.0 governance-capability update
+
+- **Decided by:** Paulo (Product / Risk Owner), after the broad 2026 governance review and `ML-DEVOS-RFC-008` / `ML-DEVOS-AS-024`.
+- **Decision:** Save, record, and implement the good governance changes now while keeping the larger unimplemented Sentinel plan explicitly on record.
+- **Authorized rules:** activate exactly:
+  - `CORE-019 — Remote Resource Authority Must Be Explicitly Scoped`
+  - `CORE-020 — Evidence Sufficiency Escalates With Consequence`
+  - `CORE-021 — First Protected-Main / Production Operation Triggers Technical-Protection Review`
+- **Version decision:** apply the backwards-compatible governance-capability transition `v1.4.0 → v1.5.0`.
+- **Frozen architecture:** `ML-DEVOS-ARCH-001 / v1.2.0` remains unchanged.
+- **No constitutional change:** actor authority, source-of-truth precedence, `CAPABILITY != AUTHORITY`, Builder self-certification prohibition, and Paulo's final authority remain unchanged.
+- **Explicitly unimplemented / not authorized:** S3 Typed Task Contracts; S4 State Machine Kernel; S5 Capability & Permission Gateway; S6 isolated execution; S7 Evidence & QA Plane; S8 Orchestrator; S9 executable Evidence Gate; S10 full GitHub Enforcement; S11 Memory & Observability; S12–S14; CI workflows; GitHub rulesets; Policy/Task Engine; capability broker; automated credential issuance/revocation; telemetry pipeline.
+- **WEB-INC-004 separation:** this governance change does not authorize WEB-INC-004 implementation and must not widen any R2/D1/deploy/main-merge gate.
+- **Evidence of Paulo authority:** Paulo instructed: `Save, record and implement good changes to now keep unplemneted plan on the records.`
