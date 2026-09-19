@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED`
+Status: `ARCHITECT_APPROVED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,20 +8,29 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-021 — WEB-INC-003 Implementation Review / Remediation Cycle 1
+# ML-DEVOS-AS-022 — WEB-INC-003 Final Remediation Review
 
 Cycle: `MAISOGLABS-WEB-INC-003-PROJECT-MUTATION`  
-Review mode: `FINAL CAPABILITY / MUTATION / AUTH / AUDIT REVIEW`  
-Authority chain: `ML-DEVOS-RFC-006 → ML-DEVOS-AS-020 → D-027 → ML-DEVOS-AS-021`
+Review mode: `FINAL REMEDIATION / MUTATION / CONCURRENCY / AUTH REVIEW`  
+Authority chain: `ML-DEVOS-RFC-006 → ML-DEVOS-AS-020 → D-027 → ML-DEVOS-AS-021 → ML-DEVOS-AS-022`
 
-Authorized implementation base:
+Original authorized implementation base:
 - `5ba7c496a05d2541324c5ecc565c1937ca023b1e`
 
-Builder implementation commit:
+Original implementation:
 - `a016cc2aafea494ad00ecfd79b545ccdcb0c1221`
 
-Builder bookkeeping HEAD:
+Original bookkeeping handoff:
 - `f3623c8666205336ffa13a023c6f8c32e637d36b`
+
+Remediation authorization base:
+- `5f2991f1c26c79bdda687ff6b4adba4c8e00c50b`
+
+Remediation implementation:
+- `a1ff241c5c4f912564627ee13824496ecf9b197b`
+
+Remediation bookkeeping handoff:
+- `0db78351307b563ee558adeef37f7c4cd21f6cc0`
 
 Frozen Sentinel architecture:
 - `ML-DEVOS-ARCH-001 / v1.2.0`
@@ -31,344 +40,303 @@ Active Sentinel governance-capability baseline:
 
 ## Review discipline performed
 
-Before issuing this verdict, the Architect:
+Before issuing this final verdict, the Architect:
 
 1. live-checked the authoritative governance branch;
-2. read current `coordination/STATE.md` and `coordination/IMPLEMENTER_HANDOFF.md`;
-3. compared exact implementation range `5ba7c496... → a016cc2a...`;
-4. separately compared bookkeeping range `a016cc2a... → f3623c86...`;
-5. independently inspected:
+2. independently compared:
+   - `5f2991f1... → a1ff241c...` remediation implementation;
+   - `a1ff241c... → 0db78351...` remediation bookkeeping;
+3. independently inspected:
    - `worker/auth.mjs`;
-   - `worker/index.mjs`;
-   - `worker/admin/dashboard.mjs`;
    - `worker/admin/projects.mjs`;
    - `worker/d1/projects.mjs`;
-   - `worker/d1/audit.mjs`;
-   - `worker/d1/validate.mjs`;
    - `tests/worker-admin-projects.test.mjs`;
-   - the modified dashboard regression test;
-6. compared implementation behavior against RFC-006, AS-020, D-027, ADR-003/004/005, and the accepted WEB-INC-001/005/002/008 boundaries.
+   - remediation evidence in `brain/TEST_LEDGER.md`;
+4. rechecked the original implementation review AS-021 and the binding RFC-006 / AS-020 / D-027 contract;
+5. verified that no migration/schema/public-source/package/remote-resource file changed in remediation;
+6. cross-checked the commit-time guard mechanism against current Cloudflare D1 batch semantics and SQLite UPDATE/CHECK semantics.
 
-Builder runtime/test evidence remains `ACTOR_REPORTED` unless independently reproduced.
+## Exact remediation provenance — PASS
 
-## Exact provenance — PASS
+Remediation implementation compare:
 
-Implementation compare:
+`5f2991f1c26c79bdda687ff6b4adba4c8e00c50b → a1ff241c5c4f912564627ee13824496ecf9b197b`
 
-`5ba7c496a05d2541324c5ecc565c1937ca023b1e → a016cc2aafea494ad00ecfd79b545ccdcb0c1221`
+contains exactly **1 implementation commit** and exactly **5 changed files**:
 
-contains exactly **1 implementation commit** and exactly **15 changed files**:
-
-New:
-- `worker/admin/projects.mjs`
 - `worker/d1/projects.mjs`
-- `tests/worker-admin-projects.test.mjs`
-
-Substantive modified:
-- `worker/d1/audit.mjs`
-- `worker/d1/validate.mjs`
 - `worker/auth.mjs`
-- `worker/index.mjs`
-- `worker/admin/dashboard.mjs`
-- `tests/worker-admin-dashboard.test.mjs`
-
-Documentation modified:
-- `brain/GOVERNANCE_MAP.md`
-- `brain/IMPLEMENTATION_STATUS.md`
-- `brain/RISK_REGISTER.md`
+- `worker/admin/projects.mjs`
+- `tests/worker-admin-projects.test.mjs`
 - `brain/TEST_LEDGER.md`
-- `docs/product/BUILD_PLAN.md`
-- `docs/product/DATA_BACKEND_SPEC.md`
 
-Bookkeeping compare:
+Remediation bookkeeping compare:
 
-`a016cc2aafea494ad00ecfd79b545ccdcb0c1221 → f3623c8666205336ffa13a023c6f8c32e637d36b`
+`a1ff241c5c4f912564627ee13824496ecf9b197b → 0db78351307b563ee558adeef37f7c4cd21f6cc0`
 
 contains exactly **1 bookkeeping commit** and exactly **2 changed files**:
+
 - `coordination/IMPLEMENTER_HANDOFF.md`
 - `coordination/STATE.md`
 
-No runtime/product code is hidden in the bookkeeping commit.
+No product/runtime code is hidden in the bookkeeping commit.
 
-## Finding dispositions
+## AS-021 remediation findings
 
-### AS21-F001 — PASS — authorized route surface is bounded
+### AS22-F001 — PASS — commit-time stale-write enforcement is now inside the atomic mutation boundary
 
-The committed dispatcher exposes only:
+AS21-F007 is closed.
 
-- `POST /admin/api/projects`
-- `PUT /admin/api/projects/:id/draft`
-- `GET /admin/api/projects/:id/preview`
-- `POST /admin/api/projects/:id/publish`
-- `POST /admin/api/projects/:id/unpublish`
+Every edit/publish/unpublish pointer UPDATE now evaluates the request's expected published/draft pointer state **inside the same SQL UPDATE statement that performs the mutation**.
 
-No DELETE path or generic mutation route exists.
+The guard uses:
 
-### AS21-F002 — PASS — authentication remains before mutation dispatch
-
-The verified Access assertion is still processed before post-auth dispatch.
-
-The implementation passes only a reduced subject value downstream rather than the full JWT payload.
-
-No mutation path is reachable before the existing WEB-INC-001 verification succeeds.
-
-### AS21-F003 — PASS — immutable revision model is structurally respected
-
-Create/edit behavior inserts new `project_revisions` rows.
-
-No project revision content row is updated in place.
-
-Slug is not accepted by edit.
-
-No project/revision delete behavior is introduced.
-
-### AS21-F004 — PASS — success mutation + audit batching is structurally sound
-
-Create/edit/publish/unpublish success paths place business state statements and the success audit INSERT in the same `db.batch()`.
-
-The create/edit revision-ID correlation uses a bounded project+revision_number subquery against the existing UNIQUE constraint rather than `last_insert_rowid()` or ID preallocation.
-
-The committed test suite contains a real local-D1 rollback test that deliberately causes the audit statement to fail and asserts the preceding business statements roll back.
-
-### AS21-F005 — PASS — audit surface remains bounded
-
-The new audit helper remains fixed-SQL and server-only.
-
-The project-specific revision lookup is hardcoded to `project_revisions`.
-
-No arbitrary table/column/SQL surface, audit HTTP route, audit UPDATE, or audit DELETE capability is added.
-
-### AS21-F006 — PASS — public/schema boundaries remain intact
-
-No migration file changed.
-
-No schema helper changed.
-
-No public content-source file changed.
-
-The accepted 15-table schema remains the intended inventory.
-
-`D1 PUBLISHED ≠ PRODUCTION WEBSITE LIVE` remains true.
-
-### AS21-F007 — BLOCKING — stale-write enforcement is pre-read only and has a TOCTOU window
-
-This is the primary blocker.
-
-RFC-006 / AS20-F006 require stale pointer state to prevent mutation rather than silently overwrite a newer edit/publish/unpublish decision.
-
-Current implementation performs:
-
-1. `readProjectForMutation(...)`;
-2. compares expected pointers in JavaScript;
-3. later executes an atomic batch whose project pointer UPDATE is **unconditional with respect to the expected pointer state**.
-
-Examples:
-
-`buildPublishBatch`:
 ```sql
-UPDATE projects
-SET published_revision_id = ?, draft_revision_id = NULL
-WHERE id = ?
+slug = CASE
+  WHEN published_revision_id IS ?
+   AND draft_revision_id IS ?
+  THEN slug
+  ELSE 'home'
+END
 ```
 
-`buildUnpublishBatch`:
-```sql
-UPDATE projects
-SET published_revision_id = NULL
-WHERE id = ?
-```
+The existing `projects.slug` CHECK forbids `home`.
 
-Edit similarly moves the draft pointer without including the expected published/draft state in the commit-time mutation.
+Therefore:
 
-Therefore a concurrent state transition can occur after the pre-read but before this batch executes.
+- if live pointers still match the request's expected values, the slug expression is a no-op and the intended pointer transition proceeds;
+- if live pointers no longer match, the UPDATE attempts the forbidden sentinel slug and the statement fails;
+- because the UPDATE is inside the same D1 `batch()` transaction as the new revision (where applicable) and success audit event, the entire success transaction rolls back.
 
-Example failure mode:
+Current D1 documentation states that batched statements execute sequentially as one transaction and a failing statement aborts/rolls back the whole sequence.
 
-1. Request A reads `published=null, draft=10` and passes its expected-pointer check.
-2. Request B creates/moves the draft pointer to revision 11 and commits.
-3. Request A then executes its previously-built publish batch.
-4. Because the UPDATE checks only `id`, Request A can publish revision 10 and clear draft revision 11, overwriting the newer decision despite the stale-write contract.
+SQLite's documented UPDATE semantics state that right-hand scalar expressions referring to the row are evaluated from the row's values before assignments are made, which makes the live-pointer guard evaluate against the pre-update row state.
 
-The current stale tests prove only requests that are **already stale before the pre-read**.
+The existing CHECK constraint is enforced on UPDATE.
 
-There is no test that introduces a competing pointer change between the pre-read and the batch execution.
+This closes the TOCTOU hole identified in AS21-F007.
 
-#### Required remediation
+### AS22-F002 — PASS — deterministic interleaving regressions prove the guard, not merely pre-read rejection
 
-The expected pointer condition must be enforced **inside the same atomic commit boundary** as the mutation and success audit.
-
-A pre-read may remain for bounded responses/revalidation, but it cannot be the sole concurrency guard.
-
-The implementation must ensure:
-
-- edit/publish/unpublish commit only if both current pointer values still equal the request's expected values at transaction execution time;
-- a commit-time stale condition aborts the success transaction;
-- no success audit row survives;
-- no pointer/content mutation survives;
-- the response is bounded `409 Conflict`, not false success and not an undifferentiated success path.
-
-Builder may use a bounded SQL/D1 precondition/guard compatible with the existing schema.
-
-No schema change is authorized.
-
-If documented D1 behavior cannot satisfy this requirement with the existing schema, STOP and return to Architect.
-
-#### Required tests
-
-Add deterministic interleaving tests that simulate a competing state change **after handler pre-read and before batch execution**, at minimum:
+The new test suite contains explicit stale interleaving simulations for:
 
 - edit vs competing draft change;
 - publish vs competing draft change;
 - unpublish vs competing pointer change.
 
-Each must prove:
-- response `409`;
-- competing/newer state remains intact;
-- no stale request revision/pointer mutation survives;
-- no `success` audit row is written for the stale request;
-- one bounded failure audit may be recorded after rollback where storage remains available.
+Each test intentionally makes the handler's pre-read see an older pointer snapshot while letting the real database retain the newer competing state before the batch executes.
 
-### AS21-F008 — BLOCKING — mutation subject is non-empty but not bounded
+The tests assert:
 
-AS20-F003 requires a **bounded non-empty** verified Access `sub`.
+- stale response is `409`;
+- competing/newer pointer state survives;
+- stale edit creates no orphan revision;
+- no stale success audit survives.
 
-Current `extractMutationSubject(payload)` accepts any non-empty string:
+These tests specifically fail to be satisfied by the former pre-read-only design and therefore directly cover the original race.
 
-```js
-typeof payload?.sub === "string" && payload.sub.trim().length > 0
-```
+### AS22-F003 — PASS — bounded mutation subject is enforced before project D1 access
 
-It does not enforce the bound required by the capability contract.
+AS21-F008 is closed.
 
-The downstream audit actor is:
+Mutation identity reduction now:
+
+- requires `sub` to be a string;
+- trims it;
+- rejects empty/whitespace-only;
+- rejects length > 90;
+- rejects non-printable ASCII.
+
+Because audit actor format is:
 
 `cf-access:<sub>`
 
-and ADR-005's audit validator limits actor length to 100 characters.
+and the prefix is 10 characters, a 90-character subject produces an actor exactly at ADR-005's 100-character upper bound.
 
-As a result, an oversized subject may pass the mutation-identity gate and reach later D1/read/build logic, only to fail indirectly when constructing the audit event.
+Tests cover:
 
-That is not equivalent to a bounded mutation authorization decision.
+- empty subject → 403 / zero D1;
+- whitespace-only subject → 403 / zero D1;
+- 91-character subject → 403 / zero D1;
+- 90-character subject → successful mutation and valid 100-character audit actor.
 
-#### Required remediation
+The full JWT/email/claims object remains unpersisted.
 
-At the auth identity-reduction boundary:
+### AS22-F004 — PASS — request body budget is byte-accurate and bounded while reading
 
-- normalize/trim as appropriate;
-- enforce an explicit maximum compatible with the `cf-access:` audit prefix and ADR-005 actor bound;
-- reject unusable/oversized mutation subject before any project D1 access;
-- mutation route must return bounded `403`;
-- preview may retain the existing authenticated-read semantics.
+AS21-F009 is closed.
 
-Add tests proving:
-- missing/empty subject → 403, zero D1;
-- whitespace-only subject → 403, zero D1;
-- oversized subject → 403, zero D1;
-- maximum accepted bounded subject can complete a normal mutation and produce a valid bounded actor.
+The mutation reader now:
 
-### AS21-F009 — REQUIRED REMEDIATION — request-body limit is character-counted after full buffering
+- checks declared `Content-Length` early when present;
+- reads the request body as a byte stream;
+- accumulates actual byte counts;
+- cancels reading as soon as the running total exceeds 32 KiB;
+- decodes accepted bytes as strict UTF-8;
+- no longer uses JavaScript `String.length` as a byte proxy.
 
-The code names the limit `MAX_MUTATION_BODY_BYTES`, but enforces:
+Tests cover:
 
-```js
-const rawBody = await request.text();
-if (rawBody.length > MAX_MUTATION_BODY_BYTES)
+- over-limit declared Content-Length;
+- a multibyte UTF-8 body whose JavaScript character count remains below the old threshold while its true byte size exceeds 32 KiB.
+
+Both reject with `413` and zero D1 access.
+
+### AS22-F005 — PASS — route/method classification precedes DB binding requirement
+
+AS21-F010 is closed.
+
+The project dispatcher now classifies exact route + method before checking `db`.
+
+Tests prove with `db: undefined`:
+
+- unknown project sub-route → `404`;
+- wrong method → `405`;
+- recognized route/method that requires D1 → `503`.
+
+This restores the same fail-closed routing discipline used by the accepted read-only admin boundary.
+
+## Previously passing findings — remain PASS
+
+AS21-F001 through AS21-F006 remain accepted:
+
+- exact route allowlist;
+- auth-before-mutation dispatch;
+- immutable revision model;
+- mutation + success-audit batching;
+- bounded audit surface;
+- unchanged schema/public-source boundary.
+
+No remediation change invalidates those findings.
+
+## Known limitation — accepted, explicitly recorded
+
+### AS22-L001 — stale-write guard depends on the existing reserved-slug CHECK
+
+The commit-time concurrency guard intentionally reuses the existing:
+
+`CHECK (slug NOT IN ('home', 'projects', 'process', 'about', 'main-content'))`
+
+as an abort mechanism by assigning `home` only when live pointer preconditions fail.
+
+This is technically effective and bounded under the current schema, but it creates a coupling between:
+
+- project slug reserved-word policy; and
+- the WEB-INC-003 stale-write abort mechanism.
+
+Therefore:
+
+- a future change to the reserved-slug constraint must explicitly account for this dependency;
+- the guard must not be silently removed by a slug-policy change;
+- if the project schema is later evolved, a purpose-built compare-and-swap/version/precondition mechanism should be preferred over retaining this coupling indefinitely.
+
+This limitation does **not** block the current local/repository capability because:
+
+- the schema is unchanged and currently enforces the required CHECK;
+- the guard is explicit in code;
+- local D1 tests exercise the actual failure/rollback path;
+- D1 transaction rollback semantics support the design;
+- no remote/production deployment is authorized in this cycle.
+
+## Evidence disposition
+
+`INDEPENDENTLY_INSPECTED`:
+
+- exact original implementation diff;
+- exact remediation implementation diff;
+- exact bookkeeping diff;
+- mutation/auth/audit route code;
+- commit-time guard SQL;
+- interleaving regression source;
+- bounded-subject implementation/tests;
+- byte-budget implementation/tests;
+- route/DB-ordering implementation/tests;
+- unchanged migration/schema/public-source/package surfaces.
+
+`ACTOR_REPORTED`:
+
+- remediation focused project suite: 51/51;
+- remediation full suite: 164/164;
+- successful `npm run build`;
+- local migration application;
+- local 15-table CLI check;
+- local empirical guard scratch probe;
+- Wrangler dry-run;
+- secret/config scan.
+
+No independent runtime reproduction of Claude's local npm/Wrangler environment is claimed.
+
+## Security / capability conclusion
+
+The accepted WEB-INC-003 capability boundary is:
+
+```
+valid Access configuration
+        ↓
+verified Access JWT
+        ↓
+bounded non-empty mutation subject
+        ↓
+same-origin + JSON + byte-bounded mutation request
+        ↓
+server-side project validation
+        ↓
+expected pointer state
+        ↓
+commit-time stale-state guard
+        ↓
+atomic project transition + success audit
+        ↓
+local D1 only
 ```
 
-`String.length` is not UTF-8 byte length, and the full body is buffered before the size decision.
+Critical invariants remain:
 
-The existing test uses ASCII only, so it does not prove the stated byte-bound behavior.
+`CAPABILITY != AUTHORITY`
 
-#### Required remediation
+`D1 PUBLISHED != PRODUCTION WEBSITE LIVE`
 
-Enforce a real bounded request-body budget.
+`PROJECT MUTATION CAPABILITY != OTHER CONTENT-DOMAIN MUTATION AUTHORITY`
 
-At minimum:
-- reject an over-limit declared `Content-Length` before body parsing when available;
-- enforce the actual body budget in bytes, not JavaScript character count;
-- do not permit multibyte content to bypass the 32 KiB budget.
+## Final verdict
 
-A streaming bounded read is preferred where practical so the limit also constrains buffering.
+`ML-DEVOS-AS-022: ARCHITECT_APPROVED — WEB-INC-003 REPOSITORY/LOCAL PROJECT MUTATION CAPABILITY ACCEPTED / REMEDIATION CLOSED`
 
-Add a multibyte regression demonstrating the byte limit cannot be bypassed.
+No further WEB-INC-003 remediation is required.
 
-### AS21-F010 — REQUIRED REMEDIATION — route/method classification should precede DB-binding requirement
+## Change-record consequence
 
-`handleProjectsDispatch` currently begins:
+WEB-INC-003 is classified `CAPABILITY`, not `ARCHITECTURE`.
 
-```js
-if (!db) return jsonResponse(503, ...)
-```
+Under the active Sentinel Change Governance Policy:
 
-before route/method classification.
+`Capability-change proposal → Decision → (future) capability registry entry`
 
-That means an authenticated wrong-method or unknown project API request can return `503` when DB is absent instead of the capability's bounded `404/405` behavior, despite requiring zero D1 access.
+No ADR is required for this change class.
 
-For consistency with the accepted WEB-INC-002 dispatcher and AS20-F002:
+The repository explicitly states that the executable capability registry/gateway is not implemented yet and that `devos/capabilities/` is reserved for future S5 work.
 
-- classify exact project route/method first;
-- return 404/405 for unsupported route/method without requiring DB;
-- only a recognized route that actually needs D1 should require the DB binding and return 503 when absent.
+Therefore this cycle closes through:
 
-Add missing-DB tests for:
-- unknown project sub-route → 404;
-- wrong method → 405;
-- recognized valid project route → 503.
+- RFC-006;
+- AS-020;
+- D-027;
+- implementation;
+- AS-021 remediation;
+- AS-022 final acceptance;
+- durable governance history / closed STATE.
 
-## Evidence provenance
+No fake capability-registry artifact will be created before S5.
 
-Independently inspected:
-- exact implementation/bookkeeping ranges;
-- auth subject handoff;
-- route dispatcher;
-- request hardening implementation;
-- mutation repository statements;
-- audit prepared-statement helpers;
-- stale pointer pre-read implementation;
-- atomic batch shapes;
-- focused test source;
-- unchanged schema/public paths from exact diff.
+## Authority reset on closure
 
-Builder `ACTOR_REPORTED`:
-- `npm test`: 152/152;
-- `npm run build`;
-- local Wrangler/D1 command evidence;
-- dry-run/config/secret scans.
+Implementation authority does not carry forward.
 
-No runtime reproduction is claimed by this review.
+On closure:
 
-## Required remediation — Cycle 1
+`MUTATION_AUTHORIZED: NO`
 
-Remediation is bounded to AS21-F007 through AS21-F010.
-
-Do not redesign WEB-INC-003.
-
-Do not add schema/migrations.
-
-Do not expand routes or product domains.
-
-Builder must:
-
-1. move stale-state enforcement into the atomic mutation boundary;
-2. add interleaving/TOCTOU regression tests;
-3. bound mutation `sub` before any project D1 access and add boundary tests;
-4. enforce the request-body budget in bytes with multibyte coverage;
-5. classify unsupported route/method before requiring DB and add missing-DB regressions;
-6. run focused project tests;
-7. run all prior WEB-INC regression suites;
-8. run full `npm test` and build;
-9. update only necessary implementation/tests/evidence/handoff/state;
-10. return exact remediation SHA/diff to Architect.
-
-If fixing AS21-F007 requires schema evolution or undocumented D1 semantics:
-
-`STOP → RETURN TO ARCHITECT`
-
-## Gates remain
-
-`MUTATION_AUTHORIZED: YES` — only for this bounded WEB-INC-003 remediation.
-
-`AUDIT_APPEND_AUTHORIZED: YES` — only as required by WEB-INC-003.
+`AUDIT_APPEND_AUTHORIZED: NO`
 
 `REMOTE_D1_AUTHORIZED: NO`
 
@@ -376,10 +344,20 @@ If fixing AS21-F007 requires schema evolution or undocumented D1 semantics:
 
 `MAIN_MERGE_AUTHORIZED: NO`
 
-No later WEB-INC work is authorized.
+The project-mutation capability remains implemented in the repository, but future expansion/use under a new increment requires that increment's explicit authority context.
 
-## Verdict
+## Next dependency-ordered candidate
 
-`ML-DEVOS-AS-021: CHANGES_REQUESTED — WEB-INC-003 REMEDIATION CYCLE 1 LIMITED TO COMMIT-TIME STALE-WRITE ENFORCEMENT, BOUNDED MUTATION IDENTITY, TRUE BODY-SIZE BOUNDING, AND ROUTE/DB ORDERING`
+The Product Build Plan identifies:
 
-No final capability acceptance is issued yet.
+`WEB-INC-004 — Media subsystem`
+
+as the next dependency-ordered candidate after WEB-INC-003.
+
+It is not authorized by this verdict.
+
+Its own cycle must freshly determine whether its media/R2 work is `ARCHITECTURE`, `CAPABILITY`, or a stronger composed path.
+
+## Current Architect Sync status
+
+`ML-DEVOS-AS-022: ARCHITECT_APPROVED — WEB-INC-003 REPOSITORY/LOCAL PROJECT MUTATION CAPABILITY ACCEPTED / REMEDIATION CLOSED`
