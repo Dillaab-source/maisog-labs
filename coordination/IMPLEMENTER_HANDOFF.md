@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 1 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 2 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 1 update:** see the "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including the original "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this remediation does not resume it.
+**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 2 update:** see the "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 2 Handoff (ML-DEVOS-AS-045 / AS-046 / AS-047 / AS-048)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)," the original "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this remediation does not resume it.
 
 ---
 
@@ -1733,3 +1733,77 @@ Unchanged from the prior cycle, as expected for a documentation-only remediation
 ### Remediation commit
 
 The 2 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `a8170986612fa756a43fac79543d507c8d6919d0`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 2 Handoff (ML-DEVOS-AS-045 / AS-046 / AS-047 / AS-048)
+
+### Cycle / Change ID
+
+`MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY` — **Remediation Cycle 2, now complete, handed back for Architect review.** `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 3`.
+
+Authority chain: `D-038`/`D-039`/`D-040` → `RFC-014` Remediation Cycle 1 revision → `ML-DEVOS-AS-045` (`CHANGES_REQUESTED`, blocker `AS45-F007`) → `ML-DEVOS-AS-046` (supplemental, blockers `AS46-F001`/`F002`/`F003`) → `D-041` (repository visibility changed to private) → `ML-DEVOS-AS-047` (corrects `AS46-F001`'s premise: repository is now private, not public; revises the disclosure/storage model accordingly) → `ML-DEVOS-AS-048` (canonicalization bookkeeping only, no Builder action). Per `coordination/STATE.md`'s "Active blockers" list, this single remediation addresses `AS45-F007`, `AS47-F001` (superseding `AS46-F001`'s public-repository premise), `AS46-F002`, and `AS46-F003`.
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `5f95e7aea3dca6d33a7bd135df81fef49c1ac832` — the Architect's consolidated sync commit archiving `AS-043`/`AS-045`/`AS-046`/`AS-047`/`AS-048` and updating the Architect Sync index, itself on top of the Remediation Cycle 1 commit (`9b60203ca56a248854d4a8d860f3a0807351a4d7`).
+- Read in full before any edit: `coordination/STATE.md`, the complete live `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-047`'s disclosure/storage correction and its access-control amendment, `ML-DEVOS-AS-048`'s canonicalization note), and the durable archives `devos/changes/architect-syncs/ML-DEVOS-AS-045.md` (full `AS45-F001`–`F007` findings) and `ML-DEVOS-AS-046.md` (full `AS46-F001`–`F004` findings), since the live rolling review had already moved past their content. `brain/DECISION_LOG.md` `D-041`.
+- **Independent verification performed this cycle, not merely re-stated from the Architect's findings:**
+  - **Gemini CLI `.agents/skills/` alias (`AS45-F007`):** a direct `WebFetch` of `https://geminicli.com/docs/cli/skills/` was attempted and blocked by this session's network egress policy (as in the prior cycle), but the *same official documentation* is also published as source Markdown at `https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md`, which **was** successfully fetched directly this cycle. That direct fetch confirms, verbatim: discovery precedence built-in < extension < user (`~/.gemini/skills/` or `~/.agents/skills/` alias) < workspace (`.gemini/skills/` or `.agents/skills/` alias), and "within the same tier, the `.agents/skills/` alias takes precedence over the `.gemini/skills/` directory." This independently confirms the Architect's finding rather than merely trusting it.
+  - **Repository visibility (`AS47-F001`):** a live `mcp__github__search_repositories` query for `repo:Dillaab-source/maisog-labs` was run this cycle and returned `"private": true`, `"visibility": "private"`, repository id `1364674338` — exactly matching the Architect's independently-cited id and finding.
+
+### Exact diff — 2 files modified, 0 added, 0 deleted
+
+Confirmed by `git status --porcelain` / `git diff --stat` immediately before this commit: exactly these 2 paths changed, both inside the review's "Authorized remediation files" list — nothing else.
+
+- `devos/changes/rfcs/ML-DEVOS-RFC-014.md` — corrected in place (not fully rewritten, per the review's explicit "preserve accepted discovery architecture" instruction not to reopen the 4-skill set, Treasury-as-routing direction, consequence-sensitive tiers, progressive disclosure, or the Treasury classification/dedup/provenance model without new evidence). See the per-blocker mapping below for exactly what changed.
+- `devos/changes/rfcs/README.md` — updated the RFC-014 index summary to reflect the corrected evidence, the `.agents/skills/` recommendation, the per-skill contracts, and the corrected private-repository disclosure model.
+
+**Confirmed not touched:** any application/runtime file, any RFC/AS/ADR/Decision file (the Architect's own `AS-045`/`046`/`047`/`048` archives and `D-041` were not modified — this Builder did not fabricate or edit any Architect Sync archive), `devos/devos-manifest.json`, and no skill file, canonical/provider-adapter directory, private-repository/secret-store, or Treasury-implementation artifact was created — confirmed by `git status --porcelain`.
+
+### Per-blocker remediation mapping
+
+- **`AS45-F007` (Gemini CLI evidence was materially false) — corrected.** RFC-014 §3's compatibility table now shows Gemini CLI supporting the `.agents/skills/` alias (with precedence over `.gemini/skills/` within each tier), backed by a direct fetch performed this cycle (see "Independent verification" above), not merely the Architect's assertion. §3 also now explicitly separates "repository/filesystem-native agent clients" (Claude Code, Codex CLI, GitHub Copilot, Gemini CLI) from the non-comparable "product/plugin exposure" (ChatGPT), per the review's required remediation item 3 — the corrected count is **3 of 4** repo-native targets supporting `.agents/skills/` (not the prior "2 of 5," which both undercounted and improperly diluted the denominator). With this corrected evidence, and because one option now materially dominates (only Claude Code needs a bridge, versus every target needing one under the Sentinel-owned-root options), RFC-014 now **recommends** `.agents/skills/` as the canonical payload location with a thin, deterministically-generated Claude Code bridge — rather than the prior revision's "evidence is mixed, `PAULO DECISION REQUIRED`" conclusion. The final choice remains an explicit Paulo gate regardless (`ARCHITECTURE` class always requires one), so this is a stronger recommendation, not a self-authorization. §7's External Evidence Basis table's Gemini row is corrected with the exact new citation and confidence basis.
+- **`AS47-F001` (repository is now private; supersedes `AS46-F001`'s public-repository premise) — corrected.** RFC-014 T10 is substantially rewritten: the disclosure/storage model now reflects the private repository, with `PUBLIC_SAFE`/`INTERNAL`/`RESTRICTED`/`SECRET` each given precise storage conditions (matching the review's own model verbatim), the explicit access-control-acceptance condition from the `AS-047` amendment (private visibility alone is not acceptance), the historical-exposure rule (private now does not retroactively cure prior public-period exposure), and the `RISK-WEB-013` non-claim (visibility change makes it eligible for reassessment, does not resolve it). T12's evaluation cases now include the 6 required disclosure/storage cases plus the 2 additional near-miss cases from the `AS-047` amendment (unaccepted/unknown controls; "not rendered publicly" ≠ private).
+- **`AS46-F002` (four Skills lacked complete discovery contracts) — corrected.** RFC-014 §5 now contains a complete 10–12-field contract for each of the 4 V0.1 skills (purpose/output, activate/do-not-activate, required inputs, authoritative sources, core procedure summary, stop/escalation conditions, governance dependencies, mutation/capability note, positive activation eval, near-miss negative eval), without duplicating any authoritative procedure's full content inline.
+- **`AS46-F003` (SKILL CHECK routing needed an explicit sequence) — corrected.** RFC-014 §4 now contains the exact 10-step provider-neutral routing sequence (read state → check sufficiency → discover metadata → apply conditions → choose smallest sufficient set → verify authorization → load full body → load deeper references → stop on conflict → produce defined output without upgrading evidence) plus the 5 required routing evaluation cases, still explicitly documentary/procedural — no S4/S5 routing engine is proposed.
+
+### Two pre-existing cross-reference errors found and fixed during this remediation (not requested by the review, disclosed rather than silently corrected)
+
+While editing §4, this Builder found that the prior revision's progressive-disclosure bullet list cited "(§9 applies to these...)" for script review and "(§10)" for eval test cases — but §9 is "Evaluation architecture" and §10 is "Traceability integration," while script review is actually covered by §8 ("External skill security and lifecycle model") and eval cases by §9. Similarly, T9 (Provider portability) cited "(T10)" for full-chat-retention/provenance, but that content is actually in T11 ("Provenance model"), not T10 ("Public/private safeguards"). All three are corrected to point at the right section. These were latent defects from the Cycle 1 revision, not introduced by this cycle's edits — caught by re-reading the document's own cross-references while making the required corrections, not by a separate audit pass.
+
+### Full suite result (sanity check — no application code was in scope or touched)
+
+```
+$ npm test
+# tests 352
+# pass 352
+# fail 0
+```
+
+Unchanged from the prior cycle, as expected for a documentation-only remediation.
+
+### Explicit confirmations
+
+- **No skill file, canonical skill directory, or provider-adapter directory was created** — even though this revision now recommends `.agents/skills/`, the recommendation is text in the RFC, not an implemented directory.
+- **No Portable Knowledge Treasury implementation, private-repository creation, secret-store creation, chat-history import, transcript-ingestion pipeline, or `devos/memory`/S11 mechanism was created.**
+- **No credential, secret, private key, or other version-control-prohibited material was persisted anywhere by this remediation.**
+- **`RISK-WEB-013` was not marked resolved** — the visibility change is stated as making it eligible for reassessment, not as resolving it.
+- **No historical RFC/AS/ADR/Decision content was rewritten**, and no Architect Sync archive was fabricated by this Builder — `AS-045` through `AS-048` and `D-041` are entirely the Architect's/Paulo's own bookkeeping.
+- **The four-skill V0.1 candidate set, the Treasury-as-routing/lightweight-procedure direction, the consequence-sensitive external-skill tiers, progressive disclosure, and the Treasury capture-threshold/candidate-boundary/type+disclosure/dedup/provenance/revalidation/anti-bloat model were not reopened** — per the review's explicit "preserve accepted discovery architecture" instruction, since no new evidence emerged against any of them.
+- **No S3/S4+/S5/S7/S9 implementation, CI/ruleset, runtime/application code, Sentinel version bump, remote resource, deployment, or `main` merge occurred.**
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this remediation as `ARCHITECT VERIFIED`.** The Gemini CLI alias claim and the repository-visibility claim were both independently re-verified this cycle by direct fetch/live API query respectively, not merely re-asserted from the Architect's findings — this is disclosed as this session's own verification, not upgraded to a stronger evidence class than that verification method supports.
+
+### Known limitations / carried-forward items
+
+- Canonical skill location is now a clear recommendation (`.agents/skills/` + Claude Code bridge), but remains formally `PAULO DECISION REQUIRED` pending the explicit `ARCHITECTURE`-class gate — this is a return-to-Paulo item, not a Builder gap.
+- The one lightweight Knowledge/Principles canonical file remains proposed, not created.
+- `RISK-WEB-013` remains open and unrepaired, and now additionally requires a separate reassessment against the repository's new private-visibility premise.
+- The ChatGPT product skill-exposure model remains an unresolved, separate integration/distribution question (`AS45-O001`) — not required to resolve the repository-path canonical-location question this cycle answers.
+- Direct `WebFetch` verification of `docs.github.com` (GitHub Copilot) and `geminicli.com` directly remains blocked by this session's network egress policy; the Gemini CLI claim was nonetheless independently confirmed this cycle via the GitHub-hosted source Markdown mirror of the same official documentation, which was directly reachable.
+- `S3 — Typed Task Contracts` remains queued behind this discovery's independent closure.
+
+### Remediation commit
+
+The 2 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `5f95e7aea3dca6d33a7bd135df81fef49c1ac832`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

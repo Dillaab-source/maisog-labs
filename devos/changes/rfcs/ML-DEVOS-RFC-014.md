@@ -50,43 +50,69 @@ A Skill is therefore always a **thin, non-authoritative wrapper around an alread
 
 ### 3. Canonical skill location and provider exposure — evidence-gated, not frozen
 
-`AS42-F003`/`AS44-I` require these two decisions to be resolved together, using an evidence-backed compatibility matrix, and forbid freezing either "from preference." The matrix below reflects only what the "External evidence basis" table (§ below) actually supports.
+`AS42-F003`/`AS44-I` require these two decisions to be resolved together, using an evidence-backed compatibility matrix, and forbid freezing either "from preference." **This section corrects `AS45-F007`'s finding that the prior revision's Gemini CLI claim was materially false**, and separates repository/filesystem-native agent clients from the non-comparable ChatGPT product surface, per that finding's required remediation. The matrix below reflects only what the "External evidence basis" table (§ below) actually supports; the corrected Gemini claim was independently re-verified this cycle via a direct fetch of the official Gemini CLI documentation source (not merely re-asserted from the Architect's finding), and the repository's current private visibility was independently re-confirmed via a live GitHub API query in this same cycle (§ "Public/private safeguards" below).
 
-**What the evidence shows:**
+**Repository/filesystem-native agent clients — what the evidence shows:**
 
 | Target | Native discovery path (per official evidence) | Reads `.agents/skills/` natively? | Reads `devos/skills/` (or any arbitrary repo-owned path) natively? |
 |---|---|---|---|
 | Claude / Claude Code | `.claude/skills/<name>/SKILL.md` (enterprise/personal/project/nested/plugin scope) | No (no such path documented) | No |
 | OpenAI Codex CLI | `.agents/skills/` (repo), `$HOME/.agents/skills` (personal) | **Yes — native/primary** | No |
 | GitHub Copilot | `.github/skills`, `.claude/skills`, **or** `.agents/skills` (project); `~/.copilot/skills` or `~/.agents/skills` (personal) | **Yes — one of three accepted paths** | No |
-| Gemini CLI | `.gemini/skills/` (workspace), `~/.gemini/skills/` (user) | No (not found in official docs) | No |
-| ChatGPT product skill surface | Product/plugin-based skill exposure, not a repository filesystem path | No | No |
+| Gemini CLI | `.gemini/skills/` **or** `.agents/skills/` alias (workspace); `~/.gemini/skills/` **or** `~/.agents/skills/` alias (user). **Corrected this cycle (`AS45-F007`):** within each tier, the `.agents/skills/` alias *takes precedence* over `.gemini/skills/` when both exist. | **Yes — official interoperable alias, precedence over the ecosystem-native path** | No |
 
-**Assessment of the three required options:**
+**Separately — product/plugin exposure (not comparable to the above; `AS45-F007` item 3):**
 
-1. **`.agents/skills/` as canonical payload where supported.** Native for 2 of 5 targets (Codex, Copilot). Still requires an adapter/copy for Claude Code and Gemini CLI, and cannot reach the ChatGPT product surface at all (no option reaches it — that target is not filesystem-based). *Duplication/drift risk:* moderate — still need adapters for 2 targets. *Governance traceability:* weaker — a path named for one ecosystem's convention rather than a Sentinel-owned root is a less natural fit for `devos/`'s existing "one governed subsystem root per concern" pattern. *Portability:* strong for exactly the 2 covered targets. *Maintenance cost:* low if only Codex/Copilot matter; otherwise same as option 2.
-2. **`devos/skills/` as canonical source + generated/thin provider exposure.** Native for 0 of 5 targets — every target needs a bridge. *Duplication/drift risk:* fully mitigated only if the bridge is deterministic/regenerated (analogous to how Traceability V1 solved a structurally similar "generated output must never drift from source" problem) rather than hand-maintained. *Symlink/platform risk:* real on Windows/some CI environments without symlink support if symlinks are chosen as the bridge mechanism; a generated-copy script avoids this at the cost of a regeneration step. *Governance traceability:* strongest — exactly one file is ever the subject of RFC/Architect Sync/Decision review, consistent with the existing `devos/governance/`, `devos/changes/`, `devos/templates/` pattern. *Portability:* requires implementation-time work for every target, but is uniform (no target is privileged over another). *Compatibility with current Sentinel topology:* strongest — `devos/skills/` would be one more reserved subsystem root exactly like the existing reserved-but-unimplemented `devos/contracts/`, `devos/state/`, etc.
-3. **`devos/skills/` as governance canonical source + provider-native linking/registration without duplicated content.** Same governance-traceability strength as option 2, with the specific bridging mechanism (symlink vs. generated copy vs. plugin/marketplace manifest) left open rather than presumed — this is really option 2 with its implementation detail deliberately deferred rather than pre-decided.
+| Target | Exposure model | Reads `.agents/skills/` or any repository filesystem path? |
+|---|---|---|
+| ChatGPT product skill surface | Product/plugin-based skill exposure, not a repository filesystem path | No — no official evidence found of arbitrary-repository filesystem discovery at all; this is a structurally different distribution question, not a fifth "vote" in a repo-path comparison (`AS45-O001`) |
 
-**Conclusion — per `AS44-I`, evidence is genuinely mixed and no option cleanly dominates once all five targets are honestly weighed:**
+**Corrected portability accounting:** `.agents/skills/` is now confirmed natively read by **3 of the 4** repository/filesystem-native targets (Codex CLI, GitHub Copilot, Gemini CLI) — not the prior revision's "2 of 5," which both understated the count and improperly diluted it with the non-comparable ChatGPT product surface. Only Claude Code, among the four repo-native clients, does not read `.agents/skills/`.
 
-`.agents/skills/` has real, evidence-backed, current multi-provider traction (2 of 5 targets natively, both are CLI-based coding agents, arguably the most relevant class for a governance-tooling repository) — `AS44-I`'s instruction to treat it as "a serious canonical-payload candidate" is honored above, not dismissed. But it does not reach Claude Code, Gemini CLI, or the ChatGPT product surface, and a Sentinel-owned `devos/skills/` root better matches this repository's own existing governance-traceability pattern and reaches every target uniformly (at the cost of needing a bridge for all of them, not just three).
+**Assessment of the three required options, recomputed against the corrected evidence:**
 
-**This RFC therefore does not freeze a canonical location. Per `AS44-I`'s explicit fallback: `CANONICAL LOCATION: PAULO DECISION REQUIRED`, with the tradeoffs above as the deciding input.** Whichever option Paulo selects, one constraint is proposed as fixed regardless: **no provider directory may ever hold independently-authored, diverging content** — every provider-facing path must be either the canonical file itself, a symlink to it, or a deterministically regenerated copy of it, never a second hand-maintained original.
+1. **`.agents/skills/` as canonical payload where supported.** Native for 3 of 4 repo-native targets. Requires a bridge for exactly one target: Claude Code. *Duplication/drift risk:* low — a single bridge, not three. *Symlink/platform risk:* applies only to that one Claude Code bridge. *Governance traceability:* still a fair concern in principle (the path is named for one ecosystem's convention rather than a Sentinel-owned root), but the practical cost of that concern is now small, since Sentinel's own review of the canonical content would still occur at the one real file, wherever it lives — the concern is about naming/ownership optics, not about losing single-source review. *Portability:* strong — dominant across CLI-based coding agents, arguably the most relevant client class for a governance-tooling repository. *Maintenance cost:* lowest of the three options, since only one target needs bridging.
+2. **`devos/skills/` as canonical source + generated/thin provider exposure.** Native for 0 of 4 — every target needs a bridge, including the 3 that would otherwise need none under option 1. *Duplication/drift risk:* mitigated only if every one of the 4 bridges is deterministic/regenerated rather than hand-maintained — three more moving parts than option 1 requires. *Governance traceability:* strongest in the abstract (a Sentinel-owned root, consistent with `devos/governance/`, `devos/changes/`, `devos/templates/`), but this is now a smaller practical advantage than in the prior (incorrect) evidence picture, since option 1 already achieves single-source review at whichever file is canonical. *Compatibility with current Sentinel topology:* strongest — would be one more reserved subsystem root exactly like `devos/contracts/`, `devos/state/`, etc.
+3. **`devos/skills/` as governance canonical source + provider-native linking/registration without duplicated content.** Same governance-traceability framing as option 2, with the bridging mechanism left open rather than presumed.
+
+**Recomputed conclusion:** with the corrected evidence, option 1 (`.agents/skills/` as canonical payload) now has a materially stronger case than the prior revision credited it — it reaches 3 of 4 repo-native targets with zero bridging, leaving only Claude Code needing one thin bridge (e.g. a symlink or deterministically generated `.claude/skills/` copy of the same content), rather than needing a bridge for every target as option 2/3 would. `AS44-I` and `AS45-F007` both explicitly invite a clear recommendation where the corrected evidence supports one, rather than defaulting to "mixed evidence" out of caution alone.
+
+**This RFC therefore recommends `.agents/skills/` as the canonical skill payload location, with a single deterministically generated (never hand-maintained) `.claude/skills/` bridge for Claude Code, as the architecture best supported by current evidence** — while still returning this as a decision for Paulo's explicit gate, since `ARCHITECTURE`-class changes always require one regardless of how one-sided the supporting evidence is, and because the ChatGPT product surface remains unreached by any option (a separate, later adapter/distribution question per `AS45-O001`, not a reason to withhold a recommendation on the repository-path question this section actually answers). One constraint is proposed as fixed regardless of which option Paulo ultimately selects: **no provider directory may ever hold independently-authored, diverging content** — every provider-facing path must be either the canonical file itself, a symlink to it, or a deterministically regenerated copy of it, never a second hand-maintained original.
 
 No directory (canonical or provider-adapter) is created by this remediation, per the hard boundary.
 
-### 4. SKILL CHECK discovery/routing behavior and progressive disclosure (`AS44-G`)
+### 4. SKILL CHECK discovery/routing behavior and progressive disclosure (`AS44-G`, `AS46-F003`)
 
-No new technical enforcement mechanism is proposed (no S4/S5 machinery). Each provider's own runtime already performs progressive-disclosure discovery natively (per the evidence basis: name+description loaded at session start, full body loaded only on activation match, capped frontmatter length where documented). "SKILL CHECK" in this proposal is a **documentary convention**, not code: before re-deriving a procedure from scattered files, an agent checks whether the canonical skill location (once decided, § above) already has a matching skill, exactly as `00_HOME.md`'s read-order list is a documentary convention today.
+No new technical enforcement mechanism is proposed (no S4/S5 machinery; no routing engine). Each provider's own runtime already performs progressive-disclosure discovery natively (per the evidence basis: name+description loaded at session start, full body loaded only on activation match, capped frontmatter length where documented). "SKILL CHECK" in this proposal is a **documentary convention**, not code: before re-deriving a procedure from scattered files, an agent checks whether the canonical skill location (once decided, § above) already has a matching skill, exactly as `00_HOME.md`'s read-order list is a documentary convention today.
 
-Per `AS44-G`, every future skill's own internal content must follow the same progressive-disclosure discipline the underlying format already provides for, to avoid instruction bloat:
+**Explicit provider-neutral routing sequence (`AS46-F003`)** — so future provider-specific implementations do not each invent their own order:
+
+1. Read current `coordination/STATE.md` / authoritative task context when working inside a governed MaisogLabs project.
+2. Determine whether the user/task request is already sufficiently scoped without needing any Skill.
+3. Discover candidate Skills from metadata only (name/description) — never load full bodies speculatively.
+4. Apply each candidate's activation and non-activation conditions.
+5. Choose the **smallest sufficient, non-conflicting set** of Skills — never the broadest match when a narrower one suffices (see Overlap analysis, §6, and Evaluation architecture, §9).
+6. Verify current authorization (`AUTHORIZED_SCOPE` in live `STATE.md`) before any mutating or consequence-bearing step a selected Skill's procedure would take.
+7. Load the full `SKILL.md` body only for the selected Skill(s) — never for a Skill that was ruled out in step 4–5.
+8. Load deeper `references/`/`scripts/` only when the procedure actually needs them (progressive disclosure, below).
+9. If a selected Skill's procedure conflicts with current governance/authority, stop and surface the conflict rather than proceeding or silently choosing a different Skill.
+10. After execution, produce exactly the Skill's own defined output/evidence — never upgrade a claim's status beyond the evidence actually obtained (e.g. a Traceability Audit run is not itself proof a reported gap was fixed).
+
+**Required routing evaluation cases (`AS46-F003`):**
+
+- Two Skills both match a request → the narrower/smallest-sufficient set wins, not the broader one.
+- A broad Project Orientation/State Recovery trigger does **not** fire when the agent's current context is already sufficient.
+- Architect Review does **not** bypass the `TURN`/authority rule merely because the request text sounds like a review request.
+- A Skill exists and its underlying tool is available, but live `AUTHORIZED_SCOPE` forbids the action → stop, do not proceed on Skill content alone.
+- A selected Skill's underlying source procedure has since changed/been superseded → the Skill must not silently rely on a stale copied instruction; it must point at (not duplicate) the authoritative source so this cannot happen by construction (see progressive disclosure, below).
+
+**Progressive disclosure / instruction-budget principle (`AS44-G`):** every future skill's own internal content must follow the same progressive-disclosure discipline the underlying format already provides for, to avoid instruction bloat and to keep the routing-step-10 "stale copy" failure mode structurally unlikely:
 
 - `SKILL.md` = activation/routing contract + the core procedure only;
 - `references/` = deeper procedural/domain material, loaded only when actually needed;
-- `scripts/` = executable helpers, only where justified and separately reviewed (§9 applies to these regardless of whether the skill is internally or externally authored);
+- `scripts/` = executable helpers, only where justified and separately reviewed (§8, External skill security and lifecycle model, applies to these regardless of whether the skill is internally or externally authored);
 - `assets/` = non-executable templates/resources;
-- `evals/` = activation/non-activation/behavior test cases (§10).
+- `evals/` = activation/non-activation/behavior test cases (§9, Evaluation architecture).
 
 A future skill that duplicates an entire governance manual inside its own `SKILL.md` body, instead of linking to the authoritative source and keeping the body a thin routing contract, is a design defect under this principle.
 
@@ -100,6 +126,72 @@ Per `AS42-F004`/`AS44-H`, the initial set is **4 skills**, not 5. Knowledge / Re
 2. **Architect Review / Sync** — wraps `brain/protocols/ARCHITECT_SYNC.md`'s review-flow pipeline and four review modes, plus `coordination/README.md`'s turn protocol.
 3. **Implementation Handoff** — wraps `brain/ARCHITECT_HANDOFF.md`'s exact required field list and the worked `devos/handoffs/*` examples.
 4. **Project Orientation / State Recovery** (merged candidate) — wraps `brain/00_HOME.md`'s numbered read-order procedure together with `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`'s "does a claimed authoritative instruction actually have a corresponding commit" check. The survey found these two candidate areas ("Project-State Recovery" and onboarding) are, in practice, the same procedure nowhere else distinguished — merging them avoids inventing an artificial boundary.
+
+**Per-skill discovery contracts (`AS46-F002`)** — a compact, inspectable contract for each of the four V0.1 candidates, per the original discovery brief's required fields. Each points at its authoritative source rather than duplicating it (per the progressive-disclosure principle, §4).
+
+**1. Governance / Traceability Audit**
+
+| Field | Value |
+|---|---|
+| Purpose / output | Run the existing deterministic referential-integrity check and report its ERROR/WARNING findings, unmodified |
+| Activate when | An explicit technical-integrity request ("check traceability," "run the validator," "check governance integrity") |
+| Do not activate when | The request is a general review/judgment call (→ Architect Review), or asks whether a *specific* reported gap has been *fixed* (the tool reports, it does not confirm fixes) |
+| Required inputs/context | Read-only repository access; no live `STATE.md` scope needed beyond confirming the run is not itself a mutating action |
+| Authoritative sources | `devos/governance/traceability/README.md`, `generate-traceability.mjs`, `validate-traceability.mjs` |
+| Core procedure summary | Run `validate-traceability.mjs`; report exit code and every ERROR/WARNING line verbatim |
+| Stop / escalation conditions | Never claim a reported ERROR is resolved without independent evidence beyond a clean run |
+| Governance dependencies | None beyond read access to the repository; the tool itself has no authorization dependency |
+| Mutation / capability note | Read-only; no mutation, no capability grant |
+| Positive activation eval | "Check governance integrity" → runs the validator, reports its output |
+| Near-miss negative eval | "Is `WEB-REQ-009` fixed yet?" → must not answer from the validator's mere non-crash; must check the actual source record |
+
+**2. Architect Review / Sync**
+
+| Field | Value |
+|---|---|
+| Purpose / output | Produce an Architect Sync review verdict (per `ARCHITECT_SYNC.md`'s 4 review modes) against a Builder's diff/handoff |
+| Activate when | `coordination/STATE.md TURN == ARCHITECT` |
+| Do not activate when | `TURN != ARCHITECT`, even if the request text resembles a review ask |
+| Required inputs/context | Live `STATE.md`, the Builder's diff, `coordination/IMPLEMENTER_HANDOFF.md` |
+| Authoritative sources | `brain/protocols/ARCHITECT_SYNC.md`, `coordination/README.md` |
+| Core procedure summary | Follow `ARCHITECT_SYNC.md`'s review-flow pipeline; issue one of its defined verdicts |
+| Stop / escalation conditions | A finding requiring a Paulo gate must be surfaced as such, not silently resolved by the review itself |
+| Governance dependencies | `coordination/STATE.md`'s turn protocol is the sole activation gate |
+| Mutation / capability note | Writes only to `coordination/ARCHITECT_REVIEW.md`/`STATE.md`, per the existing rolling-review convention; no product mutation |
+| Positive activation eval | `TURN: ARCHITECT` and a Builder handoff exists → produces a review |
+| Near-miss negative eval | `TURN: CLAUDE`, request text says "please review this" → must not activate; the turn field, not the wording, gates it |
+
+**3. Implementation Handoff**
+
+| Field | Value |
+|---|---|
+| Purpose / output | Produce a complete handoff in `brain/ARCHITECT_HANDOFF.md`'s exact field set |
+| Activate when | The end of an authorized `TURN: CLAUDE` implementation/discovery cycle |
+| Do not activate when | Mid-cycle, before the authorized work is actually complete |
+| Required inputs/context | The cycle's exact diff, test/validation results, live `STATE.md` scope |
+| Authoritative sources | `brain/ARCHITECT_HANDOFF.md`, worked examples in `devos/handoffs/` |
+| Core procedure summary | Fill every required field; never omit a known limitation or unresolved question |
+| Stop / escalation conditions | A limitation or open question must be stated, never smoothed over to look cleaner |
+| Governance dependencies | `CLAUDE.md`'s "Phase 1 handoff requirement" / whichever live authorized-scope brief governs the current cycle |
+| Mutation / capability note | Writes only to `coordination/IMPLEMENTER_HANDOFF.md`/`STATE.md`; no product mutation beyond what the cycle itself already authorized |
+| Positive activation eval | Authorized cycle work is complete → produces the full field set |
+| Near-miss negative eval | A known limitation exists but is omitted to look cleaner → this is exactly the failure the format's own "non-negotiable rule" forbids |
+
+**4. Project Orientation / State Recovery**
+
+| Field | Value |
+|---|---|
+| Purpose / output | Re-establish current governance context: what cycle is active, whose turn it is, what is authorized |
+| Activate when | "I don't have context," a new session, "what's the current state," or an instruction to check for new input |
+| Do not activate when | The agent already has current, task-relevant context loaded for the active cycle |
+| Required inputs/context | None beyond repository read access |
+| Authoritative sources | `brain/00_HOME.md`'s read-order list, `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md` |
+| Core procedure summary | Follow the numbered read-order; for any claimed-authoritative instruction, confirm it has a corresponding commit before treating it as binding |
+| Stop / escalation conditions | An instruction claiming authority with no corresponding commit is not treated as authoritative |
+| Governance dependencies | None beyond the read-order procedure itself |
+| Mutation / capability note | Read-only; no mutation |
+| Positive activation eval | New session, no context → runs the read-order procedure |
+| Near-miss negative eval | Mid-task with current context already loaded → must not re-run the full procedure merely because it was mentioned |
 
 **Evaluated and explicitly not proposed for V0.1 (all confirmed sound, `AS42-F007`):**
 
@@ -125,7 +217,7 @@ Every provider/standard claim used anywhere in this RFC is backed by exactly one
 | Claude / Claude Code | Anthropic official docs (direct fetch performed this cycle) | `https://code.claude.com/docs/en/skills` | 2026-09-20 | `.claude/skills/<name>/SKILL.md` at enterprise/personal/project/nested/plugin scope, defined priority order; progressive-disclosure model; full frontmatter field table; documented third-party-skill security review guidance | OFFICIAL |
 | Anthropic official skills repository | GitHub (direct fetch performed this cycle) | `https://github.com/anthropics/skills` | 2026-09-20 | Reference `SKILL.md` layout/example; explicit disclaimer that no formal versioning or security-review process is documented for community contributions beyond "test thoroughly" | OFFICIAL |
 | GitHub Copilot | GitHub official docs ("About agent skills"), verified via search-engine-summarized excerpt of the official page — a direct fetch was attempted this cycle and blocked by this session's network egress policy | `https://docs.github.com/en/copilot/concepts/agents/about-agent-skills` | 2026-09-20 | Project skills discovered from `.github/skills`, `.claude/skills`, **or** `.agents/skills`; personal skills from `~/.copilot/skills` or `~/.agents/skills` | OFFICIAL (source is the official page; verification method for this cycle was indirect, not a direct fetch) |
-| Gemini CLI | Google/Gemini CLI official docs, verified via search-engine-summarized excerpt of the official page — a direct fetch was attempted this cycle and blocked by this session's network egress policy | `https://geminicli.com/docs/cli/skills/` | 2026-09-20 | Discovery precedence: built-in < extension skills < user skills (`~/.gemini/skills/`) < workspace skills (`.gemini/skills/`); no `.agents/skills/` alias found in this source | OFFICIAL (source is the official page; verification method for this cycle was indirect, not a direct fetch) |
+| Gemini CLI | Google/Gemini CLI official docs. **Corrected this remediation cycle (`AS45-F007`):** a direct fetch of the docs source file was performed this cycle (`https://geminicli.com/docs/cli/skills/` itself remained blocked by this session's network egress policy, but the same official documentation is also published as source markdown at the GitHub-hosted reference below, which was directly and successfully fetched) | `https://geminicli.com/docs/cli/skills/` (blocked; not directly fetched) and `https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/skills.md` (directly fetched this cycle — same official documentation content) | 2026-09-20 | Discovery precedence, lowest to highest: built-in skills < extension skills < user skills (`~/.gemini/skills/` **or** the `~/.agents/skills/` alias) < workspace skills (`.gemini/skills/` **or** the `.agents/skills/` alias). Within the same tier, `.agents/skills/` **takes precedence** over `.gemini/skills/` when both exist; the official documentation describes the alias as interoperable across different AI agent tools. This directly reverses the prior revision's "no `.agents/skills/` alias found" claim, which was based on an indirect, incomplete excerpt. | OFFICIAL (the GitHub-hosted reference was fetched directly this cycle; the primary `geminicli.com` URL remains cited as the canonical location of the same content but was not itself directly reachable) |
 | OpenAI Codex CLI | OpenAI/`openai/codex` official docs, verified via search-engine-summarized excerpt | `https://developers.openai.com/codex/skills` and `https://github.com/openai/codex/blob/main/docs/skills.md` | 2026-09-20 | Repo skills at `.agents/skills/`; personal skills at `$HOME/.agents/skills`; explicitly distinct from the always-on `AGENTS.md` context file | OFFICIAL |
 | ChatGPT product skill exposure | No official source found this cycle distinguishing ChatGPT's own product surface from Codex CLI's filesystem-based discovery | — | 2026-09-20 | **No evidence found** that ChatGPT's product surface performs arbitrary-repository filesystem skill discovery the way the CLI-based agents above do. Treated as a materially different, non-comparable exposure model — a gap, not an asserted fact. | **UNVERIFIED / GAP — explicitly disclosed, not asserted** |
 | "Cursor supports Agent Skills" | Community/marketplace summaries only (e.g. aggregator/marketplace repositories); no official Cursor documentation was independently fetched or confirmed this cycle | — | 2026-09-20 | Not used to support any architectural decision in this RFC; mentioned nowhere else in this document as an established fact | COMMUNITY — explicitly not relied upon |
@@ -251,7 +343,7 @@ Low-value conversational exhaust remains ephemeral — never persisted.
 Classification requires two independent dimensions — never conflated:
 
 **Type / destination** (which existing canonical home, or the one proposed new lightweight ledger, a candidate maps to):
-`PROCEDURE` (→ Skill candidate) · `GOVERNANCE` (→ RFC/Decision path) · `ARCHITECTURE` (→ RFC/ADR) · `STATE` (→ Brain/STATE) · `PRINCIPLE / ENGINEERING LESSON` (→ proposed new ledger, T3) · `EVIDENCE` (→ Test Ledger / Risk Register) · `PUBLIC REALIZATION` (→ Journal) · `PRIVATE IMPLEMENTATION DETAIL` (→ ordinary private repository documentation, with the `RISK-WEB-013` caveat below).
+`PROCEDURE` (→ Skill candidate) · `GOVERNANCE` (→ RFC/Decision path) · `ARCHITECTURE` (→ RFC/ADR) · `STATE` (→ Brain/STATE) · `PRINCIPLE / ENGINEERING LESSON` (→ proposed new ledger, T3) · `EVIDENCE` (→ Test Ledger / Risk Register) · `PUBLIC REALIZATION` (→ Journal) · `PRIVATE IMPLEMENTATION DETAIL` (→ this repository's own storage, **conditionally** — see the corrected storage model in T10; this is no longer a blanket "ordinary private repository documentation" destination).
 
 **Disclosure** (independent of type — a lesson can be public-safe while its implementation detail is not). No existing repository-wide vocabulary was found for this specific axis, so this RFC adopts `AS44-D`'s proposed default rather than inventing a competing one:
 `PUBLIC_SAFE` · `INTERNAL` · `RESTRICTED` · `SECRET / DO NOT PLACE IN ORDINARY TREASURY CONTENT`.
@@ -276,17 +368,36 @@ No repository evidence found during this discovery supports overriding this defa
 
 ### T9. Provider portability (required output 8)
 
-The durable normalized unit is the **retained insight/record**, never a provider-specific conversation dump. The same classification and destination logic (T6–T7) applies identically regardless of whether the candidate originated from ChatGPT, Claude, Codex, an implementation handoff, an Architect review, research, a test failure, an incident/postmortem, or a project journal entry. No provider transcript/export format is ever treated as canonical; full-chat retention is never required for provenance (T10).
+The durable normalized unit is the **retained insight/record**, never a provider-specific conversation dump. The same classification and destination logic (T6–T7) applies identically regardless of whether the candidate originated from ChatGPT, Claude, Codex, an implementation handoff, an Architect review, research, a test failure, an incident/postmortem, or a project journal entry. No provider transcript/export format is ever treated as canonical; full-chat retention is never required for provenance (T11).
 
-### T10. Public/private safeguards (required output 9)
+### T10. Public/private safeguards and disclosure/storage model (required output 9) — corrected this cycle (`ML-DEVOS-AS-047`, `D-041`)
 
-`PUBLISH THE INSIGHT; PROTECT THE IMPLEMENTATION DETAIL.` The disclosure axis (T6) is the mechanism: a `PUBLIC_SAFE`-classified insight may route to the Journal; the same underlying experience's `RESTRICTED`/`SECRET`-classified implementation detail (credentials, private endpoints, exploit-enabling security material, sensitive infrastructure, personal/private information, confidential implementation detail) stays in private repository documentation and is never merged into the public-facing record merely because the lesson itself is reusable. **This discovery does not resolve `RISK-WEB-013`** (repository-level publicness is architectural and remains open) **and must not be read as claiming a future Treasury or Skill automatically solves it** — this is stated explicitly here, not left implicit, per `D-039`'s own requirement.
+`PUBLISH THE INSIGHT; PROTECT THE IMPLEMENTATION DETAIL.`
+
+**Repository visibility, independently reconfirmed this cycle:** a live GitHub API query performed during this remediation (not merely re-stated from the Architect's prior finding) confirms `Dillaab-source/maisog-labs` — repository id `1364674338` — currently reports `"private": true`, `"visibility": "private"`. This matches `ML-DEVOS-AS-047`'s independent verification and `D-041`'s decision to change repository visibility.
+
+**This changes the storage question but not the disclosure question.** Disclosure class (T6) and storage authorization are two separate axes, and — critically — private visibility does **not** collapse the second one to "anything goes." The corrected model:
+
+- **`PUBLIC_SAFE`** — may be routed to the public-facing Journal only through the normal record-specific publishing approval (`WEB-INC-006`'s existing publish flow); may also simply exist in this private repository where its canonical record type belongs here.
+- **`INTERNAL`** — may be persisted in this private repository only when its canonical record type genuinely belongs here (T3's destination table); being stored in the repository never means it is automatically published. It is **not** assumed safe merely because the repository is currently private — access-control acceptance still applies (see the access-control condition below).
+- **`RESTRICTED`** — may be persisted in this private repository **only when all of the following hold**: the material is appropriate for version-controlled documentation; current repository access controls are an accepted audience boundary for this specific material; it contains no credentials, secret values, private keys, or other material that policy says must never live in Git; and its canonical destination genuinely belongs in this repository. **Where any of those conditions is missing or uncertain: `STOP / DEFER PERSISTENCE`** and route to an explicitly approved private/secret destination when one exists — never "put it in a hidden folder" as a substitute for that approval.
+- **`SECRET` / version-control-prohibited** — must **never** be committed to Git, even in a private repository. Examples: passwords, API tokens, private keys, secret values, credentials, recovery codes, or any other material whose canonical control belongs in a secrets/configuration mechanism rather than documentation.
+
+**Access-control condition (from the `AS-047` amendment):** both `INTERNAL` and `RESTRICTED` persistence are conditional on current access controls being *accepted* for the specific material in question — private visibility alone is not that acceptance. If accepted access controls, classification, Git suitability, or an approved canonical destination is missing or uncertain, the correct outcome is `STOP / DEFER PERSISTENCE`, not a best-effort guess. A path that is not rendered by any public surface (e.g. not served by the website) is never, by itself, treated as a privacy boundary — that was the exact false-confidence failure mode `AS46-F001` originally identified while the repository was still public, and it remains the correct discipline even now that the repository is private, since "not rendered" and "access-controlled" are not the same property.
+
+**Historical exposure rule:** the repository was public before `D-041`'s visibility change. Private visibility is a forward-looking access boundary; it does **not** prove that any previously committed sensitive material was never exposed while the repository was public. If sensitive material from that prior public period is ever discovered, it must be treated as potentially exposed and handled through the appropriate incident/credential-rotation process — never assumed safe merely because visibility later changed. No such incident is asserted by this discovery.
+
+**`RISK-WEB-013`:** the visibility change materially affects that risk's factual premise (it was written against a public-repository assumption), which makes it eligible for a separate reassessment. **This discovery does not mark `RISK-WEB-013` resolved, and does not claim a future Treasury or Skill automatically resolves it** — the risk requires its own separate governed reassessment before its status changes, exactly as `ML-DEVOS-AS-047` requires.
+
+This is a storage-and-disclosure discipline, not a new mechanism: no private-repository creation, no secret store, and no new storage system is authorized or created by this discovery.
 
 ### T11. Provenance model (required output 11, extended by `AS44-K`)
 
 Where useful, a retained record should be able to carry: source type; source/project context; date; why it matters (which T4 durable-value reason applied); confidence/evidence class (reusing the existing 5-class `EVIDENCE_PROVENANCE_MODEL.md` — no sixth class is invented); canonical destination; related requirement/risk/decision/skill IDs where applicable; `supersedes`/`superseded_by` (reusing the same field convention already used by `core-rules.json` rule records and the ADR template — no new mechanism); and, per `AS44-K`, an **expected reuse/application target** where practical (skill improvement, checklist, test/eval, risk control, design guideline, onboarding/orientation, research shortcut/reference, public Journal realization, or another explicit future behavior). A candidate with no plausible reuse/application and no reconstruction value is biased toward *not* being captured at all (`AS44-K`). Full-chat retention is never required merely to satisfy provenance.
 
 ### T12. Minimal treasury evaluation cases (required output 12)
+
+**Original 10 cases (`AS-043`):**
 
 1. **Duplicate insight** — an existing canonical lesson is found; no competing copy is created (`DUPLICATE` outcome).
 2. **New evidence, same insight** — new evidence is attached/referenced rather than the principle being duplicated (`EVIDENCE_ONLY` outcome).
@@ -298,6 +409,17 @@ Where useful, a retained record should be able to carry: source type; source/pro
 8. **Low-value chat noise** — deliberately not captured (fails the T4 threshold).
 9. **Superseded insight** — history/supersession preserved (`SUPERSEDES` outcome) rather than two competing current truths existing at once.
 10. **Missing approval** — a candidate requiring governance/Paulo approval stops before persistence, never proceeding as if silence were acceptance.
+
+**Disclosure/storage cases, corrected this cycle for the now-private repository (`ML-DEVOS-AS-047`, superseding the AS-046 public-repository-specific cases in premise only):**
+
+11. **`INTERNAL` item, controls accepted** — routes to the private repository only at its correct canonical record; is never treated as automatically published merely because it is stored there.
+12. **`RESTRICTED`, Git-appropriate, controls accepted** — routes to an approved private-repository canonical destination.
+13. **`RESTRICTED`, Git-inappropriate (or controls not accepted/unknown)** — `STOP / DEFER PERSISTENCE`, not persisted anywhere, including not "hidden" in an unlisted path.
+14. **`SECRET`/credential item** — never persisted to Git, regardless of the repository's current private visibility.
+15. **Sanitized `PUBLIC_SAFE` lesson from sensitive experience** — captured separately, without carrying the `RESTRICTED`/`SECRET` detail.
+16. **Historical-public-period sensitive finding** — classified as potentially exposed and escalated through the incident/rotation process, rather than assumed safe because the repository is now private.
+17. **Unaccepted/unknown access controls near-miss** (from the `AS-047` amendment) — an otherwise-qualifying `INTERNAL` or `RESTRICTED` candidate whose access-control acceptance status is missing or uncertain still stops before persistence; private visibility alone never substitutes for that acceptance.
+18. **"Not rendered publicly" is not "private"** — a path that the public website does not serve is not, by itself, treated as an access boundary; it still requires the same access-control/classification/destination checks as any other candidate.
 
 ### T13. Anti-bloat metrics (required output — `AS44-L`)
 
@@ -320,7 +442,7 @@ This repository's Sentinel/MaisogLabs governance system: Skills Foundation V0.1 
 
 ## Non-goals
 
-- No skill content, canonical skill directory, or provider-adapter directory is created by this RFC; canonical location is explicitly `PAULO DECISION REQUIRED`, not resolved here.
+- No skill content, canonical skill directory, or provider-adapter directory is created by this RFC. This revision recommends `.agents/skills/` as the canonical payload location (§3, corrected evidence), but the decision itself remains Paulo's explicit `ARCHITECTURE`-class gate, not self-authorized here.
 - No Treasury implementation, chat-history import/archive, transcript-ingestion pipeline, provider-memory synchronization, `devos/memory/`, or S11 machinery.
 - Not S3 Typed Task Contracts (remains `PAUSED / QUEUED — AUTHORITY PRESERVED`; this RFC does not resume it).
 - Not S4+ state machinery, S5 Capability Gateway, S7 Evidence Store/QA, S9 Evidence Gate.
@@ -339,7 +461,7 @@ None added, modified, or superseded. This RFC operates entirely within, and is d
 
 1. **Status quo (do nothing on either Skills or Treasury).** Rejected: rediscovery cost keeps compounding, and durable insight keeps accumulating ungoverned in provider chat histories that are not MaisogLabs' durable treasury.
 2. **Adopt Skills ad hoc, skip governance review.** Rejected: violates `GOVERNANCE > SKILLS`; risks de facto authorization before any boundary exists.
-3. **Freeze `devos/skills/` (or `.agents/skills/`) as canonical now, on the strength of preference/convenience.** Rejected this cycle specifically by `AS42-F003`/`AS44-I`: evidence is genuinely mixed across five inspected targets; freezing prematurely would bind an implementation decision to weaker evidence than a short Paulo decision can resolve.
+3. **Freeze either location purely on preference, without an evidence-backed compatibility matrix.** Rejected by `AS42-F003`/`AS44-I`/`AS45-F007`: the first revision's matrix contained a materially false Gemini CLI claim and improperly diluted the count with a non-comparable product surface; correcting both (§3) is what makes this revision's `.agents/skills/` recommendation defensible, where the prior revision's caution was reasonable given its (incorrect) evidence but did not need to be the final word once the evidence was fixed.
 4. **Build Knowledge Capture as a standalone Skill immediately.** Rejected by `AS42-F004`/`AS44-F`: the underlying procedure does not yet exist in authoritative form; a Skill must wrap a stable procedure, not invent one.
 5. **Treat all external skills identically regardless of content.** Rejected by `AS42-F005`: inconsistent with Sentinel's consequence-sensitive governance model; a reference-only Markdown skill and an executable/hook-bearing skill are not equivalent risks.
 6. **Defer Skills/Treasury entirely until S3 is implemented.** Rejected by `D-038`: interruption cost of pausing S3 now is effectively zero.
@@ -383,7 +505,7 @@ Compatible with the frozen `ML-DEVOS-ARCH-001` architecture: both Skills and the
 
 ## Architect Sync requirement
 
-Yes — `ARCHITECTURE` class always requires one. This is the second returned revision of this discovery, following `ML-DEVOS-AS-042` (Remediation Cycle 1, 4 blockers) and integrating `ML-DEVOS-AS-043`/`ML-DEVOS-AS-044`.
+Yes — `ARCHITECTURE` class always requires one. This is the third returned revision of this discovery: the original (reviewed by `ML-DEVOS-AS-042`), the Remediation Cycle 1 revision (integrating `AS-042`/`AS-043`/`AS-044`, reviewed by `ML-DEVOS-AS-045`/`AS-046`/`AS-047`/`AS-048`), and this Remediation Cycle 2 revision.
 
 ## Paulo decision requirement
 

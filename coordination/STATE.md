@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_2_PROVIDER_SECURITY_ROUTING
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
@@ -108,3 +108,7 @@ After remediation:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 Builder must return the corrected RFC/index/handoff/state and exact diff without self-authorizing Skills/Treasury implementation or S3 resumption.
+
+## Remediation Cycle 2 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 2 Handoff (ML-DEVOS-AS-045 / AS-046 / AS-047 / AS-048)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS45-F007`'s Gemini CLI evidence corrected via an independent direct fetch of the official documentation this cycle (`.agents/skills/` alias confirmed, takes precedence over `.gemini/skills/`); the corrected 3-of-4 repo-native-client portability count now supports a clear `.agents/skills/` recommendation (Claude Code bridge only) rather than "evidence mixed," still subject to Paulo's explicit gate; `AS47-F001`'s disclosure/storage model fully revised for the now-private repository (independently reconfirmed via a live GitHub API query this cycle) with PUBLIC_SAFE/INTERNAL/RESTRICTED/SECRET storage conditions, an access-control-acceptance requirement, a historical-exposure rule, and a RISK-WEB-013 non-claim; `AS46-F002` complete 4-skill discovery contracts added; `AS46-F003` explicit 10-step provider-neutral SKILL CHECK routing sequence plus 5 routing evals added. Two pre-existing cross-reference numbering errors from Cycle 1 found and fixed along the way. Only the RFC and its index entry were touched; four-skill set, Treasury-as-routing direction, and all other previously-accepted architecture preserved unchanged. 352/352 tests unaffected.
