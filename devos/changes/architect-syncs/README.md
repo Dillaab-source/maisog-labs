@@ -6,6 +6,11 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-046.md` — supplemental Skills Foundation/Treasury Remediation Cycle 2 review; adds public-repository disclosure/storage safety, complete per-skill contract requirements, and explicit SKILL CHECK routing/evals while preserving AS-045's provider-matrix blocker.
+- `ML-DEVOS-AS-045.md` — Skills Foundation/Treasury Remediation Cycle 2 review; requires correction of the Gemini/.agents compatibility evidence and canonical-location analysis.
+- `ML-DEVOS-AS-044.md` — research-informed Skills/Treasury discovery amendment covering Treasury-as-routing, reuse threshold, candidate-vs-accepted knowledge, progressive disclosure, external-skill revalidation, and anti-bloat principles.
+- `ML-DEVOS-AS-043.md` — Portable Knowledge Treasury discovery amendment integrating provider-neutral durable-knowledge classification, deduplication, provenance, disclosure safeguards, and evaluation requirements into the Skills discovery cycle.
+- `ML-DEVOS-AS-042.md` — initial Skills Foundation V0.1 discovery review; changes requested for canonical-location/provider coupling, Knowledge Capture boundaries, consequence-sensitive external-skill trust, and durable provider evidence.
 - `ML-DEVOS-AS-041.md` — final Architect acceptance of Sentinel Traceability V1 after two bounded remediation cycles; closes the architecture implementation and permits S3 activation.
 - `ML-DEVOS-AS-040.md` — Remediation Cycle 2 review requiring separation of durable semantic references from rolling/tooling surfaces.
 - `ML-DEVOS-AS-039.md` — Remediation Cycle 1 review requiring narrow handling of intentional noncanonical identifier mentions.
