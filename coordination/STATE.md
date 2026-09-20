@@ -3,7 +3,7 @@
 CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
 TURN: PAULO
 STATUS: MANUAL_ADMIN_ACTION_REQUIRED
-AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_PUBLIC_VISIBILITY_AND_MAIN_PROTECTION_ONLY
+AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_MAIN_PROTECTION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
@@ -21,37 +21,50 @@ MAIN_MERGE_AUTHORIZED: NO
 
 D-052 authorized Gate A CI + main protection.
 ML-DEVOS-AS-069 accepted CI and identified the GitHub plan blocker.
-D-053 now explicitly authorizes changing this repository from private to public to unblock GitHub Free main protection.
+D-053 explicitly authorized changing this repository from private to public to unblock GitHub Free main protection.
 
-## Completed
+## Independently verified current state
 
-- CI workflow exists.
-- live CI run 35538010928: SUCCESS.
-- required check context: test-and-build.
-- main HEAD remains 887849283ee9cd16e8d60b937bac95b1c85bf3d9.
+Repository visibility: PUBLIC.
+Live GitHub repository metadata reports:
+- repository: Dillaab-source/maisog-labs
+- visibility: public
 
-## Manual GitHub admin actions required
+Live repository rulesets endpoint is now accessible and returns:
+- no active rulesets yet
 
-1. Change repository visibility:
-   private -> public.
+Main HEAD remains unchanged:
+- 887849283ee9cd16e8d60b937bac95b1c85bf3d9
 
-2. After public visibility is confirmed, configure one ruleset/protection policy targeting exactly main:
-   - require pull request before merge;
-   - 0 required approving reviews while single-owner;
-   - block force pushes;
-   - block deletion;
-   - require status check: test-and-build;
-   - bypass limited to repository owner/admin as narrowly as GitHub supports.
+CI remains complete:
+- workflow: ci
+- live successful run: 35538010928
+- required status-check context: test-and-build
+
+## Remaining manual GitHub admin action
+
+Create one active branch ruleset targeting exactly main:
+
+- require a pull request before merging;
+- required approving reviews: 0 while repository is single-owner;
+- require status checks to pass;
+- required check: test-and-build;
+- block force pushes / non-fast-forward updates;
+- block branch deletion;
+- bypass limited to repository owner/admin as narrowly as GitHub supports.
+
+Do not open the governance->main PR yet.
 
 ## Return gate
 
-After those admin actions, Paulo says `ur turn`.
+After the main ruleset is saved, Paulo says `ur turn`.
 
 Architect then independently verifies:
-- repository visibility = public;
-- main protection/ruleset exists and targets exactly main;
+- ruleset exists and is active;
+- target is exactly main;
+- PR requirement is active;
 - test-and-build is required;
-- force-push and deletion are blocked;
+- force-push and deletion protection are active;
 - main HEAD is unchanged;
 - no Gate B PR/merge occurred.
 
