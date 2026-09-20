@@ -1,0 +1,116 @@
+name: SENTINEL Claude Handoff
+
+on:
+  push:
+    branches:
+      - governance/maisoglabs-v0.1
+
+concurrency:
+  group: sentinel-claude-handoff-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+  id-token: write
+
+jobs:
+  builder-handoff:
+    name: Builder handoff gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout live governance branch
+        uses: actions/checkout@v6
+        with:
+          ref: governance/maisoglabs-v0.1
+          fetch-depth: 0
+
+      - name: Read authoritative Sentinel turn
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="coordination/STATE.md"
+          test -f "$state"
+
+          turn="$(sed -n 's/^TURN:[[:space:]]*//p' "$state" | head -n1 | tr -d '\r')"
+          implementer="$(sed -n 's/^IMPLEMENTER_ACTION_REQUIRED:[[:space:]]*//p' "$state" | head -n1 | tr -d '\r')"
+          cycle="$(sed -n 's/^CYCLE_ID:[[:space:]]*//p' "$state" | head -n1 | tr -d '\r')"
+          status="$(sed -n 's/^STATUS:[[:space:]]*//p' "$state" | head -n1 | tr -d '\r')"
+          scope="$(sed -n 's/^AUTHORIZED_SCOPE:[[:space:]]*//p' "$state" | head -n1 | tr -d '\r')"
+
+          echo "turn=$turn" >> "$GITHUB_OUTPUT"
+          echo "implementer=$implementer" >> "$GITHUB_OUTPUT"
+          echo "cycle=$cycle" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+
+          if [[ "$turn" == "CLAUDE" && "$implementer" == "YES" ]]; then
+            echo "run_claude=true" >> "$GITHUB_OUTPUT"
+            echo "SENTINEL_GATE=CLAUDE_AUTHORIZED"
+          else
+            echo "run_claude=false" >> "$GITHUB_OUTPUT"
+            echo "SENTINEL_GATE=NO_ACTION"
+          fi
+
+          echo "CYCLE_ID=$cycle"
+          echo "TURN=$turn"
+          echo "STATUS=$status"
+          echo "AUTHORIZED_SCOPE=$scope"
+          echo "IMPLEMENTER_ACTION_REQUIRED=$implementer"
+          echo "INPUT_HEAD=$GITHUB_SHA"
+
+      - name: Run Claude Builder
+        if: steps.gate.outputs.run_claude == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            SENTINEL AUTOMATED BUILDER HANDOFF
+
+            Repository: ${{ github.repository }}
+            Branch: governance/maisoglabs-v0.1
+            Trigger HEAD: ${{ github.sha }}
+
+            The repository is the source of truth.
+
+            Before changing anything:
+            1. Read CLAUDE.md, AGENTS.md, coordination/STATE.md, coordination/ARCHITECT_REVIEW.md, and coordination/IMPLEMENTER_HANDOFF.md.
+            2. Reconfirm live coordination/STATE.md still says TURN: CLAUDE and IMPLEMENTER_ACTION_REQUIRED: YES.
+            3. Treat AUTHORIZED_SCOPE and every prohibition in STATE as hard boundaries.
+            4. If the turn/scope changed, or required authority is ambiguous, make no implementation mutation and stop safely.
+
+            When authorized:
+            - Perform only the smallest work required by the current Architect handoff.
+            - Do not expand scope or infer later-phase authority.
+            - Do not modify secrets, credentials, remote resources, deployment, production, protected/main branches, or PR #10 unless live authority explicitly permits it.
+            - Never merge PR #10.
+            - Run the verification required by the handoff. Clearly distinguish executed evidence from unverified claims.
+            - Update coordination/IMPLEMENTER_HANDOFF.md with a compact BUILDER HANDOFF LOG containing: input HEAD, cycle, starting state/scope, files changed, commands/tests and results, blockers/warnings, resulting commit/HEAD when available, and next expected actor.
+            - Return the turn through coordination/STATE.md exactly according to the existing Architect Sync protocol. A normal successful Builder return should set TURN: ARCHITECT only when the live protocol requires Architect review.
+            - Commit/push only authorized repository changes to governance/maisoglabs-v0.1.
+
+            This automation grants no authority of its own. STATE.md is authoritative.
+          claude_args: |
+            --max-turns 30
+            --allowedTools "Read,Edit,Write,Bash(node:*),Bash(npm test:*),Bash(npm run test:*),Bash(npm run lint:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*)"
+
+      - name: Publish runner summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## SENTINEL Claude Handoff"
+            echo "- Trigger HEAD: `$GITHUB_SHA`"
+            echo "- Cycle: `${{ steps.gate.outputs.cycle }}`"
+            echo "- Gate TURN: `${{ steps.gate.outputs.turn }}`"
+            echo "- Gate STATUS: `${{ steps.gate.outputs.status }}`"
+            echo "- Gate AUTHORIZED_SCOPE: `${{ steps.gate.outputs.scope }}`"
+            echo "- IMPLEMENTER_ACTION_REQUIRED: `${{ steps.gate.outputs.implementer }}`"
+            echo "- Claude invoked: `${{ steps.gate.outputs.run_claude }}`"
+            echo "- Job result: `${{ job.status }}`"
+          } >> "$GITHUB_STEP_SUMMARY"
