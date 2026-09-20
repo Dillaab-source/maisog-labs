@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_RFC_015_IMPLEMENTATION_AUTHORIZATION_GATE
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: RFC_015_IMPLEMENTATION_AUTHORIZATION_DECISION_ONLY
+CYCLE_ID: SENTINEL_RFC_015_IMPLEMENTATION
+TURN: CLAUDE
+STATUS: AUTHORIZED_IMPLEMENTATION
+AUTHORIZED_SCOPE: RFC_015_SCHEMA_VALIDATOR_CLOSURE_PROCEDURE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,62 +17,76 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Accepted design
+## Authority
 
-- `ML-DEVOS-RFC-015 — DESIGN_ACCEPTED`
+- `ML-DEVOS-RFC-015 — DESIGN_ACCEPTED / IMPLEMENTATION AUTHORIZED`
 - `ML-DEVOS-AS-059 — ARCHITECT_APPROVED`
-- `D-044 — Paulo design acceptance`
+- `D-044 — design accepted`
+- `D-045 — bounded implementation authorized`
 
-Accepted architecture:
-- `IMPLEMENTED` reserved-root lifecycle state;
-- S2-only `FOUNDATION_ACTIVE`;
-- ADR-keyed, phase-checked fail-closed `closure_ref`;
-- behavior-based `executable_runtime_present` semantics;
-- D.1 Pre-decision Closure Preflight;
-- D.2 Post-decision Closure Verification;
-- traceability generated-output currency + named-baseline + new-error delta;
-- explicit version disposition;
-- no invented `manifest_version` semantics;
-- no new phase/Skill/agent/database/closure registry.
+## Authorized implementation
 
-## Preserved S3 state
+Claude may implement only:
+- `devos/schemas/devos-manifest.schema.json`;
+- `devos/schemas/validate-devos-manifest.mjs`;
+- focused RFC-015 tests under `tests/*.test.mjs`;
+- `brain/protocols/ARCHITECT_SYNC.md`;
+- narrowly necessary directly-related documentation/bookkeeping;
+- normal handoff/state records.
+
+See `coordination/ARCHITECT_REVIEW.md` for the exact contract.
+
+## Live-manifest boundary
+
+Do **not** close S3 in this cycle.
+
+The live `devos/devos-manifest.json` must not yet be mutated to:
+- set `devos/contracts/` to `IMPLEMENTED`;
+- add an S3 `closure_ref`;
+- append S3 closure history;
+- change the Sentinel capability baseline.
+
+## Strategic direction
+
+D-045 records:
+- this is the last planned pre-S4 governance-hardening detour;
+- after RFC-015 implementation acceptance, prepare a later coordinated closure package;
+- preferred later package: Skills/Treasury explicit no-bump ADR + separate RFC-015 ADR + separate S3 ADR, with RFC-015 + S3 adoption proposed under one explicit `v1.6.0` release boundary;
+- the actual closure/version transition remains separately Paulo-gated;
+- after closure, S4 is the default next roadmap candidate unless concrete evidence justifies another intervention.
+
+## Preserved state
 
 `ML-DEVOS-AS-055 — S3 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-S3 closure remains blocked until RFC-015 is separately implemented, independently accepted/closed, and a later explicit S3 closure decision is recorded.
-
+S3 technical approval remains valid.
+S3 closure remains pending.
 S4 remains unauthorized.
-
-## Current decision required
-
-Paulo may now separately authorize or decline the bounded implementation of RFC-015.
-
-If authorized, the implementation cycle may be limited to:
-- `devos/schemas/devos-manifest.schema.json`;
-- `devos/schemas/validate-devos-manifest.mjs`;
-- focused manifest/schema/validator tests;
-- `brain/protocols/ARCHITECT_SYNC.md`;
-- narrowly necessary documentation/bookkeeping;
-- normal handoff/state records.
-
-Implementation must not itself close S3, create closure ADRs, apply a Sentinel version transition, mutate RFC-013 closure status, or start S4.
 
 ## Hard boundaries
 
 No:
-- RFC-015 implementation without separate Paulo authorization;
+- live manifest S3 closure mutation;
+- closure ADRs;
 - Sentinel version bump;
-- S3 closure;
-- ADR creation;
-- RFC-013 closure mutation;
-- traceability closure regeneration;
+- RFC-013 closure status mutation;
+- Traceability final closure regeneration;
 - S4 proposal/implementation;
 - core-rule mutation;
 - product/runtime mutation;
 - remote resources;
+- credentials;
 - deployment;
-- protected/main merge.
+- production writes;
+- protected/main merge;
+- unrelated governance expansion.
 
-## Next gate
+## Return gate
 
-Paulo Product/Risk Owner RFC-015 implementation authorization decision.
+After implementation:
+- `TURN: ARCHITECT`;
+- `STATUS: READY_FOR_ARCHITECT`;
+- `ARCHITECT_ACTION_REQUIRED: YES`;
+- `IMPLEMENTER_ACTION_REQUIRED: NO`.
+
+Builder must return exact diff/evidence and must not self-accept or start S3 closure/S4.
