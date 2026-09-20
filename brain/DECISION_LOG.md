@@ -628,3 +628,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Current S3 status:** `ML-DEVOS-AS-055` technical approval remains valid. S3 closure/version/manifest mutation remains blocked pending RFC-015 review and a later explicit closure decision.
 - **No implementation authority from this decision:** do not change manifest schema/status, capability baseline, ADR numbering, RFC-013 closure status, traceability outputs, S4 state, runtime/product code, remote resources, deployment, or protected/main.
 - **Return gate:** RFC-015 draft returns to Architect review before Paulo is asked to approve any manifest lifecycle implementation or S3 closure package.
+
+
+### D-044 — Accept RFC-015 reserved-subsystem lifecycle and closure-reconciliation architecture
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Paulo explicitly stated `Ok approved` after `ML-DEVOS-AS-059` returned `ARCHITECT_APPROVED — RFC-015 DESIGN ACCEPTED / PAULO DECISION REQUIRED`.
+- **Decision:** Accept `ML-DEVOS-RFC-015 — Reserved Subsystem Lifecycle and Closure Reconciliation` as the approved architecture/design.
+- **Accepted design:** `IMPLEMENTED` reserved-root lifecycle state; S2-only `FOUNDATION_ACTIVE`; ADR-keyed, phase-checked fail-closed `closure_ref`; behavior-based `executable_runtime_present` semantics; D.1 Pre-decision Closure Preflight; D.2 Post-decision Closure Verification; traceability generated-output currency + named-baseline + new-error delta; explicit version disposition; no invented `manifest_version` semantics; no new phase/Skill/agent/database/closure registry.
+- **Preserved S3 state:** `ML-DEVOS-AS-055` technical approval remains valid. S3 closure remains blocked until RFC-015 is separately implemented, independently accepted/closed, and a later explicit S3 closure decision is made.
+- **Implementation authority:** **NOT GRANTED by this decision.** A separate Paulo implementation authorization is required before mutation of the manifest schema, manifest validator, Architect Sync procedure, or focused tests.
+- **Version authority:** no Sentinel capability-baseline transition is authorized by this decision.
+- **S4:** remains wholly unauthorized.
+- **Still prohibited:** RFC-015 implementation, manifest/schema/validator mutation, Architect Sync procedure mutation, ADR creation, Sentinel version bump, S3 closure, RFC-013 closure mutation, traceability closure regeneration, S4 proposal/implementation, core-rule mutation, product/runtime mutation, remote resources, deployment, and protected/main merge.
