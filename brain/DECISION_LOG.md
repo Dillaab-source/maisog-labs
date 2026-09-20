@@ -491,3 +491,18 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Authorized work:** repository inspection, local/read-only checks, dry-run packaging checks, local migrations/smoke, release diff inventory, current-state doc reconciliation, GitHub protection/CI recommendation, exact future Cloudflare resource-scope recommendation, rollback plan, post-deploy verification plan.
 - **Explicitly not authorized:** ruleset/branch-protection mutation, GitHub Actions activation, main merge/direct push, remote D1/R2, Access production config, credential creation/storage, deploy, DNS/domain change, public R2 serving, production data write, homepage/projects D1 cutover, new product feature, Sentinel S3+.
 - **Evidence of Paulo authority:** Paulo instructed `Proceed` immediately after core WEB roadmap completion.
+
+
+### D-035 — Adopt MaisogLabs V3 Design Governance
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision:** Adopt `brand/V3/DESIGN_GOVERNANCE.md` as the project-level design governance Local Rule for future MaisogLabs public/admin UI work.
+- **Core rule:** a new feature must look like MaisogLabs before it looks like the feature it is adding.
+- **Binding hierarchy:** Brand V3 identity/composition/tokens remain higher authority; DESIGN-GOV-001 governs how new UI extends them.
+- **Required design layers:** foundations → reusable components → patterns → exceptions/gaps.
+- **Screenshot workflow:** reference → analyze → map → draft → visual preview → review → publish. Traits are classified DIRECT MATCH / APPROXIMATION / GAP.
+- **Chronicle direction:** “MaisogLabs Chronicle — Cinematic Engineering Timeline,” consistent with V3 dark/cobalt atmosphere, soft geometry, glass panels, existing typography/motion, and bounded design controls.
+- **Admin direction:** admin should feel like MaisogLabs operating software—same design foundations, but optimized for clarity/density rather than full cinematic presentation.
+- **No-go:** no arbitrary CSS/JS/HTML design input, no unrelated palette/type system, no silent one-off visual language, no copied third-party identity, no reduced-motion override.
+- **Authority:** documentation/design-governance only; no runtime implementation, merge, deploy, remote resource, or production authority is created.
+- **Evidence of Paulo authority:** Paulo explicitly instructed “okay lets do that” after reviewing the proposed design-governance direction.
