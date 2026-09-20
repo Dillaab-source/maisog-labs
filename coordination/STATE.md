@@ -22,6 +22,7 @@ MAIN_MERGE_AUTHORIZED: NO
 - `D-038` — Skills Foundation discovery priority
 - `D-039` — Portable Knowledge Treasury integrated into the same discovery
 - `D-040` — research-informed safeguards
+- `D-041` — repository visibility changed to private; Treasury disclosure/storage assumptions revised
 
 ## S3 status
 
@@ -42,7 +43,7 @@ No S3 implementation is authorized during this remediation.
 ## Active blockers
 
 1. `AS45-F007` — correct Gemini/.agents official evidence and recompute canonical-location/provider portability analysis.
-2. `AS46-F001` — current repository is public; INTERNAL/RESTRICTED/SECRET data must not be routed to ordinary repository documentation as though it were private.
+2. `AS47-F001` — repository is now private; revise Treasury disclosure/storage model so INTERNAL/appropriate RESTRICTED documentation may use the private repo, while SECRET/version-control-prohibited material remains out of Git and prior-public-period exposure is not assumed cured.
 3. `AS46-F002` — add complete per-skill discovery contracts for the 4 V0.1 candidates.
 4. `AS46-F003` — define explicit provider-neutral SKILL CHECK routing order and routing evals.
 
@@ -56,13 +57,14 @@ Claude may modify only:
 
 ## Required disclosure/storage correction
 
-Because `Dillaab-source/maisog-labs` is currently a public GitHub repository:
+GitHub now reports `Dillaab-source/maisog-labs` as a private repository.
 
-- PUBLIC_SAFE may be eligible for normal public-repo/Journal routing after record-specific approval.
-- INTERNAL requires an explicitly authorized destination with known access properties.
-- RESTRICTED/SECRET must not be persisted in this public repository.
-- if no approved private destination exists, STOP / DEFER PERSISTENCE.
-- non-rendered repository paths are not a privacy boundary.
+- PUBLIC_SAFE may be published only through normal record-specific approval.
+- INTERNAL may use the private repository when its canonical record belongs here.
+- RESTRICTED may use the private repository only when it is Git-appropriate and repository access is an acceptable audience boundary.
+- SECRET / credentials / private keys / secret values / version-control-prohibited material must never be committed to Git, even while private.
+- if no approved destination exists for sensitive material, STOP / DEFER PERSISTENCE.
+- prior public visibility is not retroactively cured by changing the repository to private.
 
 ## Preserve accepted discovery architecture
 
@@ -79,7 +81,7 @@ No:
 - actual Skill implementation;
 - Skill/provider-adapter directories;
 - Treasury implementation;
-- private repository or secret-store creation;
+- secret-store creation;
 - chat-history import/archive;
 - provider-memory synchronization;
 - S3 implementation/resumption;
