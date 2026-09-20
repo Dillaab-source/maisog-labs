@@ -51,9 +51,11 @@ If `TURN` belongs to `ARCHITECT` or `PAULO`, stop and wait.
 
 Paulo is Product / Risk Owner. ChatGPT is Architect / independent reviewer. Claude is Implementer. Repository state, tests, diffs, runtime/deployment evidence, and committed handoff artifacts are the source of truth.
 
-## Current authorized scope
+## Historical: Phase 1 governance bootstrap (superseded — see `coordination/STATE.md` for current scope)
 
-**PHASE 1 — GOVERNANCE BOOTSTRAP ONLY.**
+**Live authorized scope, turn, and status are always read from live `coordination/STATE.md` — never from this section or any other historical document.** Everything from here through "Remediation loop rule" below is preserved as the historical Phase 1 bootstrap instruction for provenance (`AS51-F007`); it describes the pilot's first phase, not current authorization. Do not treat any statement below as current merely because it appears in this file — `coordination/STATE.md`'s `AUTHORIZED_SCOPE`, `TURN`, and `STATUS` fields always take precedence over anything historical here or in `brain/00_HOME.md`.
+
+**PHASE 1 — GOVERNANCE BOOTSTRAP ONLY** *(historical — as authorized at the time)*.
 
 Paulo has explicitly approved this phase.
 

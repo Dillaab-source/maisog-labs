@@ -1,12 +1,3 @@
-<!--
-  GENERATED FILE — DO NOT HAND-EDIT.
-  This is a deterministic, non-diverging copy of the canonical Skill payload at:
-    .agents/skills/project-orientation-state-recovery/SKILL.md
-  Regenerate with: node scripts/generate-claude-skills-bridge.mjs
-  Any manual edit here is detected as drift by scripts/validate-claude-skills-bridge.mjs
-  (ML-DEVOS-RFC-014 / ML-DEVOS-AS-050 / D-042).
--->
-
 ---
 name: project-orientation-state-recovery
 description: Re-establish current Sentinel/MaisogLabs governance context (active cycle, whose turn it is, what is authorized) by following brain/00_HOME.md's read order and checking that any claimed-authoritative instruction has a corresponding commit. Use at the start of a new session, when context has been lost, or on "check for new input"/"what's the current state" requests.

@@ -1,12 +1,3 @@
-<!--
-  GENERATED FILE — DO NOT HAND-EDIT.
-  This is a deterministic, non-diverging copy of the canonical Skill payload at:
-    .agents/skills/implementation-handoff/SKILL.md
-  Regenerate with: node scripts/generate-claude-skills-bridge.mjs
-  Any manual edit here is detected as drift by scripts/validate-claude-skills-bridge.mjs
-  (ML-DEVOS-RFC-014 / ML-DEVOS-AS-050 / D-042).
--->
-
 ---
 name: implementation-handoff
 description: Produce a complete Sentinel Implementer Handoff (exact field set from brain/ARCHITECT_HANDOFF.md) at the end of an authorized TURN CLAUDE implementation or discovery cycle. Never omits a known limitation or unresolved question.

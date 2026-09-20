@@ -132,14 +132,31 @@ test("governance-traceability-audit vs architect-review-sync: smallest-sufficien
   assert.doesNotMatch(review, /check governance integrity|run the validator/i);
 });
 
-test("Claude Code bridge: deterministic, non-diverging, matches canonical payload for all 4 skills", () => {
+test("Claude Code bridge: generated content is byte-for-byte identical to canonical payload (no banner) for all 4 skills", () => {
   const files = buildBridgeFiles(REPO_ROOT_LOCAL);
   assert.equal(files.length, 4);
   for (const file of files) {
-    assert.match(file.content, /GENERATED FILE — DO NOT HAND-EDIT/);
-    assert.ok(file.content.includes(fs.readFileSync(path.join(REPO_ROOT_LOCAL, file.canonicalRelPath), "utf8")));
+    const canonicalContent = fs.readFileSync(path.join(REPO_ROOT_LOCAL, file.canonicalRelPath), "utf8");
+    assert.equal(file.content, canonicalContent, `${file.name}: bridge content must equal canonical content exactly, no banner/prefix`);
   }
 });
+
+// AS51-F005: independently parse each *generated Claude bridge file on disk*
+// (not the canonical .agents file) to prove real, provider-format validity —
+// frontmatter must start at byte 0, since a leading banner would still pass
+// a byte-diff drift check while breaking Claude Code's own Skill parsing.
+for (const name of EXPECTED_SKILLS) {
+  test(`${name}: on-disk Claude bridge SKILL.md begins with parsable YAML frontmatter at byte 0`, () => {
+    const bridgeAbsPath = path.join(REPO_ROOT_LOCAL, ".claude", "skills", name, "SKILL.md");
+    const bridgeContent = fs.readFileSync(bridgeAbsPath, "utf8");
+    assert.ok(bridgeContent.startsWith("---\n"), `${name}: bridge SKILL.md must begin with "---" at byte 0`);
+    const bridgeFm = parseFrontmatter(bridgeContent);
+    const canonicalFm = parseFrontmatter(readSkill(name));
+    assert.equal(bridgeFm.name, canonicalFm.name, `${name}: bridge frontmatter name must equal canonical`);
+    assert.equal(bridgeFm.description, canonicalFm.description, `${name}: bridge frontmatter description must equal canonical`);
+    assert.equal(bridgeFm.name, name);
+  });
+}
 
 test("Claude Code bridge: on-disk bridge currently has no drift from canonical payload", () => {
   const { ok, results } = checkBridgeDrift(REPO_ROOT_LOCAL);
@@ -150,4 +167,22 @@ test("Claude Code bridge: two consecutive generations produce byte-identical out
   const runA = buildBridgeFiles(REPO_ROOT_LOCAL);
   const runB = buildBridgeFiles(REPO_ROOT_LOCAL);
   assert.deepEqual(runA, runB);
+});
+
+test("Claude Code bridge: a hand-edit to an on-disk bridge file is detected as drift (injection test, not just designed)", () => {
+  const bridgeAbsPath = path.join(REPO_ROOT_LOCAL, ".claude", "skills", "architect-review-sync", "SKILL.md");
+  const original = fs.readFileSync(bridgeAbsPath, "utf8");
+  try {
+    fs.writeFileSync(bridgeAbsPath, original + "\nmanual edit that must be detected as drift\n");
+    const { ok, results } = checkBridgeDrift(REPO_ROOT_LOCAL);
+    assert.equal(ok, false, "drift must be detected after a hand-edit");
+    const driftedEntry = results.find(r => r.name === "architect-review-sync");
+    assert.ok(driftedEntry.drifted, "the hand-edited file specifically must be flagged as drifted");
+  } finally {
+    // Restore exact original bytes regardless of assertion outcome, so this
+    // test never leaves the working tree dirty for other tests or a commit.
+    fs.writeFileSync(bridgeAbsPath, original);
+  }
+  const { ok: okAfterRestore } = checkBridgeDrift(REPO_ROOT_LOCAL);
+  assert.ok(okAfterRestore, "drift must clear once the exact original content is restored");
 });

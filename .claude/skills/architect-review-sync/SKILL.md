@@ -1,12 +1,3 @@
-<!--
-  GENERATED FILE — DO NOT HAND-EDIT.
-  This is a deterministic, non-diverging copy of the canonical Skill payload at:
-    .agents/skills/architect-review-sync/SKILL.md
-  Regenerate with: node scripts/generate-claude-skills-bridge.mjs
-  Any manual edit here is detected as drift by scripts/validate-claude-skills-bridge.mjs
-  (ML-DEVOS-RFC-014 / ML-DEVOS-AS-050 / D-042).
--->
-
 ---
 name: architect-review-sync
 description: Conduct a Sentinel Architect Sync review of a Builder's diff/handoff against the four defined review modes (Change/Stage Gate/Release/Security Review), producing one of the defined verdicts. Only activates when coordination/STATE.md's TURN field is ARCHITECT — never on request wording alone.

@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_IMPLEMENTATION_REMEDIATION_CYCLE_1
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -102,3 +102,7 @@ After remediation:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`.
 
 Builder must not self-accept.
+
+## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See "MaisogLabs Skills Foundation V0.1 Implementation — Remediation Cycle 1 (ML-DEVOS-AS-051)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS51-F005` — the generator no longer prepends a banner before YAML frontmatter; all 4 regenerated `.claude/skills/*/SKILL.md` bridge files begin at byte 0 with `---` and are byte-for-byte identical to their canonical `.agents/skills/` source (verified live); generated-status notice moved to a new `.claude/skills/README.md`; 5 new focused tests added (4 independent per-skill frontmatter-at-byte-0 checks + 1 live drift-injection-and-recovery test). `AS51-F006` — Treasury `INTERNAL` storage rule now requires the same accepted-access-controls + Git-suitability + correct-destination conditions as `RESTRICTED`, with the same `STOP / DEFER PERSISTENCE` fallback; a matching near-miss eval case added. `AS51-F007` — `CLAUDE.md` and `brain/00_HOME.md` now both lead with an explicit "always read live `coordination/STATE.md`" statement and label the remaining Phase 1 content as historical provenance, without a general governance rewrite. 392/392 full suite (387 prior + 5 new). No S3/runtime/remote/deploy/main work occurred; Builder has not self-accepted.

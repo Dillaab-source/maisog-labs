@@ -1,12 +1,3 @@
-<!--
-  GENERATED FILE — DO NOT HAND-EDIT.
-  This is a deterministic, non-diverging copy of the canonical Skill payload at:
-    .agents/skills/governance-traceability-audit/SKILL.md
-  Regenerate with: node scripts/generate-claude-skills-bridge.mjs
-  Any manual edit here is detected as drift by scripts/validate-claude-skills-bridge.mjs
-  (ML-DEVOS-RFC-014 / ML-DEVOS-AS-050 / D-042).
--->
-
 ---
 name: governance-traceability-audit
 description: Run Sentinel's deterministic referential-integrity check over governance IDs (RFC/AS/ADR/Decision/Risk/Test/requirement references) and report its ERROR/WARNING findings verbatim. Use when asked to check governance integrity, check traceability, run the validator, or verify cross-references are intact.

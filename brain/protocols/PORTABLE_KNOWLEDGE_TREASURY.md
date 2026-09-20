@@ -82,7 +82,7 @@ Never search the whole repository as an undifferentiated pool. After classifying
 This repository is currently private (independently verified: `Dillaab-source/maisog-labs`, `visibility: private`). Private visibility changes the storage question but never the disclosure question, and never retroactively cures any material that may have been exposed during the repository's prior public period.
 
 - **`PUBLIC_SAFE`** — may route to the public Journal only through its normal record-specific publishing approval; may also simply exist in this private repository where its canonical record type belongs here.
-- **`INTERNAL`** — may persist in this repository only when its canonical record type genuinely belongs here; being stored here never means it is automatically published.
+- **`INTERNAL`** — may persist in this repository **only when all of the following hold**, exactly the same bar as `RESTRICTED` below: current repository access controls are accepted for this specific material; the material is suitable for Git/version-controlled documentation; and its canonical destination genuinely belongs in this repository. Private visibility alone is not that acceptance. **If any condition is missing or uncertain: `STOP / DEFER PERSISTENCE`.** Being stored here never means it is automatically published (`ML-DEVOS-AS-048`, `D-042`).
 - **`RESTRICTED`** — may persist in this repository **only when all of the following hold**: the material is appropriate for version-controlled documentation; current repository access controls are an accepted audience boundary for this specific material; it contains no credentials/secret values/private keys; and its canonical destination genuinely belongs in this repository. **If any condition is missing or uncertain: `STOP / DEFER PERSISTENCE`** — route to an explicitly approved non-Git private/secret destination when one exists; never "hide it in a folder" as a substitute for that approval.
 - **`SECRET` / version-control-prohibited** — passwords, API tokens, private keys, secret values, credentials, recovery codes, or equivalent — **never** committed to Git, regardless of visibility.
 - A path not rendered by any public surface (e.g. not served by the website) is **never**, by itself, treated as an access boundary — "not rendered" and "access-controlled" are not the same property.
@@ -154,11 +154,12 @@ This protocol does not authorize, and V0.1 does not implement:
 8. **Low-value chat noise** — not captured (fails §1's threshold).
 9. **Superseded insight** — history preserved (`SUPERSEDES`), never two competing current truths.
 10. **Missing approval** — a candidate requiring governance/Paulo approval stops before persistence.
-11. **`INTERNAL`, controls accepted** — routes to the correct canonical record; never automatically published.
-12. **`RESTRICTED`, Git-appropriate, controls accepted** — routes to an approved destination.
-13. **`RESTRICTED`, Git-inappropriate or controls unaccepted/unknown** — `STOP / DEFER PERSISTENCE`.
-14. **`SECRET`/credential item** — never persisted to Git regardless of visibility.
-15. **Historical-public-period sensitive finding** — classified as potentially exposed and escalated, never assumed safe because the repository is now private.
+11. **`INTERNAL`, controls accepted, Git-suitable, correct destination** — routes to the correct canonical record; never automatically published.
+12. **`INTERNAL`, controls unaccepted/unknown** — `STOP / DEFER PERSISTENCE`, exactly like `RESTRICTED`'s near-miss below; private visibility alone is never treated as acceptance (`AS51-F006`).
+13. **`RESTRICTED`, Git-appropriate, controls accepted** — routes to an approved destination.
+14. **`RESTRICTED`, Git-inappropriate or controls unaccepted/unknown** — `STOP / DEFER PERSISTENCE`.
+15. **`SECRET`/credential item** — never persisted to Git regardless of visibility.
+16. **Historical-public-period sensitive finding** — classified as potentially exposed and escalated, never assumed safe because the repository is now private.
 
 ## Relationship to Skills
 

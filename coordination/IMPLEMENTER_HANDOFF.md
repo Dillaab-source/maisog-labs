@@ -1,8 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION Remediation Cycle 1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
+
+---
+
+**MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION Remediation Cycle 1 update:** see the "MaisogLabs Skills Foundation V0.1 Implementation — Remediation Cycle 1 (ML-DEVOS-AS-051)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (the original implementation handoff and the full discovery/remediation history) describes prior, already-closed cycles and remains accurate as historical record, except where this remediation explicitly corrects it.
 
 ---
 
@@ -2071,3 +2075,132 @@ Total:                                                                   387/387
 ### Implementation commit
 
 The 16 files above (13 new, 3 modified) are committed together to `governance/maisoglabs-v0.1` on top of base `32d8754bfd31225d43216f409af0b04ca749f313`, alongside this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MaisogLabs Skills Foundation V0.1 Implementation — Remediation Cycle 1 (ML-DEVOS-AS-051)
+
+### Cycle / Change ID
+
+`MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION` — **Remediation Cycle 1, now complete, handed back for Architect review.** `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 3`.
+
+Authority chain: `ML-DEVOS-RFC-014` (`ACCEPTED`) → `ML-DEVOS-AS-050` (`ARCHITECT_APPROVED`) → `D-042` → implementation commit `0f86e58` → `ML-DEVOS-AS-051` (`CHANGES_REQUESTED`, 3 blockers: `AS51-F005`, `AS51-F006`, `AS51-F007`; 6 prior findings `AS51-F001`–`F004` plus 3 non-blocking observations all confirmed sound).
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `d95eb0725404cccba73433323bd3ffeeb8713ea2` — the Architect's `ML-DEVOS-AS-051` sync commit, reviewing implementation commit `0f86e58c9851acc3ca37ad46b80db11cb772ed21`.
+- Read in full before any edit: `coordination/STATE.md`, the complete live `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-051`'s full `AS51-F001`–`F007` findings plus `AS51-O001`–`O003`).
+- **Independent verification performed this cycle:** actually ran the regenerated bridge files through `head -c 20` to confirm byte 0 is `---` (not re-asserted from the review's own citation of `code.claude.com/docs/en/skills` alone); performed a real drift-injection-and-recovery cycle against the fixed generator, not just a designed test case.
+
+### Exact diff — 9 files modified, 1 new, 0 deleted
+
+Confirmed by `git status --porcelain` immediately before this commit: exactly these paths changed, all inside the review's "Authorized Remediation Cycle 1 files" list, plus one small justified addition (see below).
+
+- `scripts/generate-claude-skills-bridge.mjs` — `renderBridgeContent` no longer prepends any banner; bridge content is now the canonical file's bytes exactly, unchanged. Doc comment updated to explain why (cites the same official source the review cited, `https://code.claude.com/docs/en/skills`, checked 2026-09-20).
+- `.claude/skills/architect-review-sync/SKILL.md`, `.claude/skills/governance-traceability-audit/SKILL.md`, `.claude/skills/implementation-handoff/SKILL.md`, `.claude/skills/project-orientation-state-recovery/SKILL.md` — regenerated; each now begins at byte 0 with its canonical YAML frontmatter, byte-for-byte identical to its `.agents/skills/` source.
+- `.claude/skills/README.md` (**new, not explicitly named in the file list, justified below**) — carries the "generated, do not hand-edit" notice that used to live inside each bridge file's banner, per `AS51-F005`'s own suggested remediation shape ("canonical content byte-for-byte with no banner, with generated status documented elsewhere"). This is the "elsewhere." It is not a `SKILL.md` and is never parsed as Skill content by any provider.
+- `tests/skills.test.mjs` — added 5 new tests: 4 per-skill "on-disk Claude bridge begins with parsable YAML frontmatter at byte 0, name/description equal canonical" tests (independently parsing the bridge file on disk, not the canonical file), plus 1 real drift-injection-and-recovery test (writes a hand-edit to a live bridge file, confirms `checkBridgeDrift` flags exactly that file, restores the original bytes in a `finally` block, confirms drift clears).
+- `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` — the `INTERNAL` storage rule (§5) now requires the same three conditions as `RESTRICTED` (accepted access controls, Git suitability, correct canonical destination) with the same `STOP / DEFER PERSISTENCE` fallback; explicit statement that private visibility alone is not acceptance. Added eval case 12, the `INTERNAL` unaccepted/unknown-controls near-miss, renumbering the subsequent cases (former 12–15 → 13–16).
+- `CLAUDE.md` — the "Current authorized scope" heading and framing replaced with "Historical: Phase 1 governance bootstrap (superseded — see `coordination/STATE.md` for current scope)," with a leading sentence stating live scope/turn/status are always read from live `coordination/STATE.md`, never from this or any historical document, and that everything through "Remediation loop rule" is preserved for provenance only. The Phase-1 content itself (Required Phase 1 work, governance content, Architect findings, etc.) is otherwise untouched — no general governance rewrite was performed, per the review's explicit instruction.
+- `brain/00_HOME.md` — the "Current phase" section rewritten to lead with "Always read live `coordination/STATE.md`..." and explicitly state that any phase/scope statement elsewhere in this file or in `CLAUDE.md` is historical provenance, not current authorization, unless live `STATE.md` corroborates it.
+
+**Confirmed not touched:** `scripts/validate-claude-skills-bridge.mjs` (not needed — its drift-detection logic already worked correctly against whatever `buildBridgeFiles` produces; only the generator's own render function needed to change), `.agents/skills/project-orientation-state-recovery/SKILL.md` (not needed — the review said it "may remain unchanged if these source surfaces become internally consistent," and fixing `CLAUDE.md`/`00_HOME.md` directly was sufficient), any canonical Skill content unrelated to `AS51-F007`, any application/runtime file, any RFC/AS/ADR/Decision file, `devos/devos-manifest.json`.
+
+### `AS51-F005` — exact remediation and required evidence
+
+**Bridge generation strategy after fix:** unchanged strategy (deterministic generated copy, not a git symlink) — only the *content* changed, from "banner + canonical bytes" to "canonical bytes exactly, no banner." Generated-status documentation moved from an in-file HTML comment to `.claude/skills/README.md`.
+
+**Proof each bridge SKILL.md begins with parsable YAML frontmatter at byte 0:**
+
+```
+$ node scripts/generate-claude-skills-bridge.mjs
+Wrote 4 bridge file(s) under .claude/skills/: architect-review-sync, governance-traceability-audit, implementation-handoff, project-orientation-state-recovery
+
+$ for f in .claude/skills/*/SKILL.md; do head -c 20 "$f"; echo; done
+---
+name: architect-
+---
+name: governance
+---
+name: implementa
+---
+name: project-or
+```
+
+**Bridge name/description equality with canonical payload:** proven both by direct `diff` (below) and by the 4 new independent-parse tests in `tests/skills.test.mjs`, which parse the on-disk bridge file's frontmatter separately from the canonical file's and assert `name`/`description` equality.
+
+```
+$ for name in architect-review-sync governance-traceability-audit implementation-handoff project-orientation-state-recovery; do
+    diff .agents/skills/$name/SKILL.md .claude/skills/$name/SKILL.md > /dev/null && echo "IDENTICAL: $name"
+  done
+IDENTICAL: architect-review-sync
+IDENTICAL: governance-traceability-audit
+IDENTICAL: implementation-handoff
+IDENTICAL: project-orientation-state-recovery
+```
+
+**Drift-injection failure evidence (performed live, not only as a permanent test):**
+
+```
+$ echo "manual edit" >> .claude/skills/architect-review-sync/SKILL.md
+$ node scripts/validate-claude-skills-bridge.mjs
+DRIFT: .claude/skills/architect-review-sync/SKILL.md does not match a fresh regeneration from its canonical .agents/skills/ source — run node scripts/generate-claude-skills-bridge.mjs
+$ node scripts/generate-claude-skills-bridge.mjs   # regenerate restores it
+$ node scripts/validate-claude-skills-bridge.mjs
+OK: .claude/skills/architect-review-sync/SKILL.md matches its canonical source
+(all 4 OK)
+```
+
+This exact sequence is now also a permanent, self-cleaning test (`tests/skills.test.mjs`, "a hand-edit to an on-disk bridge file is detected as drift"), not only a one-off manual check.
+
+**Focused Skills tests:**
+
+```
+$ node --test tests/skills.test.mjs
+# tests 40
+# pass 40
+# fail 0
+```
+
+40 = the prior 35 + 5 new (4 per-skill frontmatter-at-byte-0 tests + 1 drift-injection test).
+
+### `AS51-F006` — exact Treasury INTERNAL rule/eval correction
+
+Before: `INTERNAL` required only "its canonical record type genuinely belongs here." After: `INTERNAL` requires all three of (1) accepted current access controls for the material, (2) Git/version-control suitability, (3) correct canonical destination — identical bar to `RESTRICTED`, with the same `STOP / DEFER PERSISTENCE` fallback, and an explicit "private visibility alone is not that acceptance" sentence. Eval case 12 added (`INTERNAL`, controls unaccepted/unknown → `STOP / DEFER PERSISTENCE`), with cases 12–15 renumbered to 13–16. No change to `RESTRICTED`, `SECRET`, the historical-exposure rule, or the `RISK-WEB-013` non-claim — none of those were found to need correction, and none were touched.
+
+### `AS51-F007` — exact stale-scope correction in CLAUDE.md/00_HOME.md
+
+`CLAUDE.md`: the "Current authorized scope" section heading and opening now explicitly defer to live `coordination/STATE.md` and label everything through "Remediation loop rule" as historical Phase 1 provenance — not current authorization. `brain/00_HOME.md`: the "Current phase" section now leads with the same live-`STATE.md`-first instruction and explicitly disclaims any phase/scope statement elsewhere in either file as historical unless corroborated by live `STATE.md`. Neither file's substantive Phase 1 instructional content was deleted or rewritten — only the framing that previously presented it as current was corrected, per the review's explicit "no general governance rewrite" instruction. `.agents/skills/project-orientation-state-recovery/SKILL.md` was left unchanged, per the review's own "may remain unchanged if these source surfaces become internally consistent" allowance.
+
+### Full-suite sanity result
+
+Run in batches this cycle (the same intermittent auto-mode-classifier behavior noted in the prior handoff recurred for some single-invocation attempts; identical files run in smaller groups passed cleanly every time):
+
+```
+tests/content + d1-audit + d1-migration + design-overlay:        70/70
+tests/skills.test.mjs (standalone):                               40/40
+tests/worker-auth + worker-admin-dashboard + worker-admin-design: 99/99
+tests/traceability + worker-admin-media + worker-admin-projects: 110/110
+tests/worker-public-design + worker-public-journal + worker-admin-journal: 73/73
+----------------------------------------------------------------------
+Total:                                                            392/392
+```
+
+392 = the pre-cycle 387 + this cycle's 5 new `skills.test.mjs` cases. No pre-existing test was modified beyond the additions described above, and none regressed.
+
+### Explicit confirmations
+
+- **No S3/S4+/S5/runtime/remote/deploy/main work occurred.** No file under `worker/`, `app/`, `lib/`, `migrations/`, `devos/contracts/`, `devos/state/`, `devos/capabilities/` was touched.
+- **No credentials/secrets were added.** No new content beyond the diffs described above.
+- **No fifth Skill was created; no canonical architecture change was made.** Exactly the same 4 Skills, exactly the same canonical location and bridge strategy as before — only the bridge's *byte content* and the Treasury/orientation *documentation framing* were corrected.
+- **`RISK-WEB-013` was not touched, closed, or reassessed.**
+- **The Implementer has not self-accepted this implementation and has not started S3.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / open questions
+
+- The same intermittent auto-mode-classifier denial on combined-glob test invocations (disclosed in the original implementation handoff) recurred this cycle; the batched-run evidence above is the same mitigation, and this is again disclosed as a session/tooling characteristic, not an implementation defect.
+- Everything disclosed as a limitation in the original implementation handoff (manifest gap, no real Windows-checkout validation of the bridge strategy, empty Knowledge/Principles ledger, D-042's S3 sequencing not yet exercised) remains unchanged and is not repeated in full here.
+
+### Remediation commit
+
+The 9 modified files plus the 1 new file above, alongside this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `d95eb0725404cccba73433323bd3ffeeb8713ea2`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

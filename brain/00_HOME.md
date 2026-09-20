@@ -38,4 +38,4 @@ Governance is prospective from the recorded baseline SHA (see `PROJECT_GOVERNANC
 
 ## Current phase
 
-See `coordination/STATE.md` for the live value. As of this document's authoring commit, `AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` (this document is part of that bootstrap). No admin implementation, authentication, D1/R2, public redesign, deployment, or merge to `main` is authorized by this phase.
+**Always read live `coordination/STATE.md` for the current `CYCLE_ID`/`TURN`/`STATUS`/`AUTHORIZED_SCOPE`** — never infer current scope from this file or `CLAUDE.md`. Any phase/scope statement elsewhere in this file or in `CLAUDE.md` (including references to `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY`) is historical provenance from an earlier cycle, not current authorization, unless live `STATE.md` corroborates it (`ML-DEVOS-AS-051` `AS51-F007`). The Skills Foundation pilot (`ML-DEVOS-RFC-014`) is one of several cycles that followed Phase 1; consult `coordination/STATE.md` and `brain/DECISION_LOG.md` for the full sequence.

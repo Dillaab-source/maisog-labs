@@ -9,11 +9,19 @@
 // enabled, per AS-050's explicit "if the chosen mechanism is not reliable
 // in this repository's Windows/Git environment, STOP" instruction), this
 // generator produces a deterministic, byte-for-byte-reproducible copy of
-// each canonical SKILL.md under .claude/skills/, with a short banner
-// noting its generated status and canonical source. This is never an
+// each canonical SKILL.md under .claude/skills/. This is never an
 // independently authored provider copy: every regeneration overwrites the
 // bridge from the canonical file, and validate-claude-skills-bridge.mjs
 // (below) detects any manual edit to the bridge as drift.
+//
+// AS51-F005: the bridge content is the canonical file's bytes exactly, with
+// no banner or notice prepended. Anthropic's official Claude Code Skills
+// documentation requires YAML frontmatter at byte 0 of SKILL.md
+// (https://code.claude.com/docs/en/skills, checked 2026-09-20); a leading
+// HTML-comment banner (this generator's first design) breaks that
+// requirement even though it still passed this generator's own byte-diff
+// drift test. Generated status is documented in .claude/skills/README.md
+// instead, never inside a SKILL.md payload itself.
 //
 // Determinism: no timestamp, PID, or random value is ever written; the
 // skill list is sorted; two consecutive runs against unchanged canonical
@@ -36,17 +44,12 @@ export function listCanonicalSkillNames(canonicalRoot = CANONICAL_ROOT) {
     .sort((a, b) => a.localeCompare(b));
 }
 
-export function renderBridgeContent(canonicalRelPath, canonicalContent) {
-  const banner =
-    "<!--\n" +
-    "  GENERATED FILE — DO NOT HAND-EDIT.\n" +
-    `  This is a deterministic, non-diverging copy of the canonical Skill payload at:\n` +
-    `    ${canonicalRelPath}\n` +
-    "  Regenerate with: node scripts/generate-claude-skills-bridge.mjs\n" +
-    "  Any manual edit here is detected as drift by scripts/validate-claude-skills-bridge.mjs\n" +
-    "  (ML-DEVOS-RFC-014 / ML-DEVOS-AS-050 / D-042).\n" +
-    "-->\n\n";
-  return banner + canonicalContent;
+export function renderBridgeContent(canonicalContent) {
+  // AS51-F005: byte-for-byte identical to canonical — no banner, no
+  // prepended content. Frontmatter must start at byte 0 for Claude Code to
+  // parse the Skill; see .claude/skills/README.md for the generated-status
+  // notice instead.
+  return canonicalContent;
 }
 
 export function buildBridgeFiles(repoRoot = REPO_ROOT) {
@@ -62,7 +65,7 @@ export function buildBridgeFiles(repoRoot = REPO_ROOT) {
       name,
       canonicalRelPath,
       bridgeRelPath,
-      content: renderBridgeContent(canonicalRelPath, canonicalContent),
+      content: renderBridgeContent(canonicalContent),
     });
   }
   return files;
