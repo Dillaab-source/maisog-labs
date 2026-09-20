@@ -131,3 +131,16 @@ Paulo's current request makes repository suitability conditional: **both INTERNA
 If accepted access controls, classification, Git suitability, or destination authorization is missing or uncertain, `STOP / DEFER PERSISTENCE`. This condition also applies to the INTERNAL and RESTRICTED positive eval cases: add a near-miss with unaccepted/unknown controls that stops before persistence. Credentials/secrets and all other Git-unsuitable material remain excluded even if controls are accepted. Non-rendered paths are not themselves privacy boundaries; public outputs and exports retain disclosure gates.
 
 This is a narrow clarification of AS47-F001 / the superseded premise of AS46-F001, authorized by Paulo's request to update this discovery review. It grants no sensitive-data persistence, policy waiver, access-control change, private-repository/secret-store creation, or implementation authority. Existing AGENTS.md restrictions and stronger governance remain in force; any later persistence must reconcile applicable rules through existing governance. AS45-F007, AS46-F002/F003, Cycle 2, Claude's turn, all authorization flags, and S3's paused/preserved authority remain unchanged. The immutable AS-047 archive and D-041 are preserved.
+
+
+---
+
+# ML-DEVOS-AS-048 — Canonicalization Note
+
+The access-control clarification introduced in commit `71bbef09035b8e1517b95142a03cd1282c654e20` was substantively valid but was initially stored under the noncanonical filename `ML-DEVOS-AS-047-access-control-amendment.md`, which reused the AS-047 identifier inside the canonical Architect Sync directory.
+
+It is now canonically recorded as `ML-DEVOS-AS-048.md`.
+
+The original temporary file is removed from the active tree to restore the one-file-per-AS-ID invariant. Its exact content remains preserved in Git history and is reproduced inside AS-048.
+
+No active blocker, authority flag, S3 status, or Builder scope changes as a result.
