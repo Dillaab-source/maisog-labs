@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-062.md` — D.2 coordinated v1.6.0 closure verification; closure structure passes, but final acceptance is held for a narrow ADR-012 provenance correction and closure-touched test-comment cleanup before traceability regeneration.
 - ML-DEVOS-AS-061.md — D.1 pre-decision coordinated closure preflight; Skills/Treasury no-bump + separate RFC-015/S3 ADRs under one proposed v1.6.0 release boundary pass preflight and are routed to Paulo without closure mutation authority.
 - `ML-DEVOS-AS-060.md` — RFC-015 implementation review; bounded schema/validator/tests/Architect-Sync changes accepted, live manifest unchanged, and coordinated closure preflight opened without closure authority.
 - `ML-DEVOS-AS-059.md` — final RFC-015 design review; all remediation findings closed, reserved-root lifecycle and two-moment closure reconciliation architecture approved, and design acceptance routed to Paulo without implementation authority.
