@@ -1,7 +1,7 @@
 {
   "contract_schema_version": "1.0.0",
-  "task_id": "TASK-EXAMPLE-INVALID-DEPLOYED-AS-VERIFIED",
-  "title": "Invalid: a DEPLOYED claim unconditionally requires RUNTIME_OBSERVED, silently treating deployment as runtime verification",
+  "task_id": "TASK-EXAMPLE-DEPLOYED-STRONGER-WITH-RUNTIME",
+  "title": "Valid: a DEPLOYED claim guarantees ACTOR_REPORTED and also requires additional RUNTIME_OBSERVED evidence",
   "project": "Dillaab-source/maisog-labs",
   "change_class": "ARCHITECTURE",
   "authorization_references": ["ML-DEVOS-RFC-013"],
@@ -14,14 +14,14 @@
     "destructive_actions_in_scope": false
   },
   "acceptance_criteria": [
-    { "criterion_id": "AC-1", "statement": "N/A -- this fixture exists only to prove CORE-017 fails closed when a DEPLOYED claim is conflated with the separate, stronger VERIFIED claim (CORE-018)." }
+    { "criterion_id": "AC-1", "statement": "N/A -- this fixture exists only to prove AS54-F005: CORE-017 sets a minimum evidence floor, not a maximum. A DEPLOYED claim requiring MORE evidence than the guaranteed ACTOR_REPORTED/CI_ATTESTED floor (here, unconditionally requiring RUNTIME_OBSERVED too) is never rejected merely for being stronger than that floor -- it still satisfies CORE-017 because ACTOR_REPORTED is unconditionally present in all_of." }
   ],
   "claims": [
     {
       "claim_id": "CLAIM-1",
       "claim_kind": "DEPLOYED",
-      "statement": "This change was deployed, incorrectly demanding direct runtime observation just to count as deployed.",
-      "evidence": { "all_of": ["RUNTIME_OBSERVED"], "any_of": [] }
+      "statement": "This change was deployed, evidenced by the Builder's report AND additionally by direct runtime observation -- stronger than CORE-017's floor, not incompatible with it.",
+      "evidence": { "all_of": ["ACTOR_REPORTED", "RUNTIME_OBSERVED"], "any_of": [] }
     }
   ],
   "authority_disclaimer": "This Task Contract describes already-authorized scope. It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). Satisfying this contract's acceptance criteria and evidence requirements does not certify task success or accept the task; that judgment belongs to the Architect/Paulo review that consumes this contract's evidence, not to the contract or its validator."

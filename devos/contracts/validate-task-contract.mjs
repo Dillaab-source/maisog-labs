@@ -13,14 +13,24 @@
 //     (unknown fields, missing required fields, wrong types/enums/patterns are
 //     all hard failures).
 //   - A `MAIN` claim is compatible with CORE-016: its evidence requirement
-//     cannot be satisfied by ACTOR_REPORTED alone, offers a real path to
-//     satisfy it via INDEPENDENTLY_REPRODUCED or CI_ATTESTED, and never makes
-//     RUNTIME_OBSERVED an unconditional (`all_of`) requirement -- RFC-013 is
-//     explicit that RUNTIME_OBSERVED must not be required merely for a MAIN
-//     claim, since it cannot exist before deployment.
-//   - A `DEPLOYED` claim is compatible with CORE-017: it offers a real path to
-//     satisfy it via ACTOR_REPORTED or CI_ATTESTED, and never makes
-//     RUNTIME_OBSERVED an unconditional requirement (that belongs to VERIFIED).
+//     GUARANTEES (on every satisfiable all_of/any_of path, not merely "an
+//     acceptable class appears somewhere") at least one of INDEPENDENTLY_REPRODUCED
+//     or CI_ATTESTED, and never makes RUNTIME_OBSERVED an unconditional
+//     (`all_of`) requirement -- RFC-013 is explicit that RUNTIME_OBSERVED must
+//     not be required merely for a MAIN claim, since it cannot exist before
+//     deployment. (AS54-F003: a prior version only checked whether an
+//     acceptable class appeared anywhere in all_of/any_of, which an
+//     any_of-mixed-branch could bypass -- e.g. any_of: [CI_ATTESTED,
+//     RUNTIME_OBSERVED] does NOT guarantee CI_ATTESTED, since the RUNTIME_OBSERVED
+//     branch alone would also satisfy it.)
+//   - A `DEPLOYED` claim is compatible with CORE-017: its evidence requirement
+//     GUARANTEES at least one of ACTOR_REPORTED or CI_ATTESTED on every
+//     satisfiable path. Additional evidence beyond that guaranteed minimum
+//     (including RUNTIME_OBSERVED) is never rejected merely for being
+//     stronger than CORE-017's floor -- CORE-017 sets a minimum, not a
+//     maximum (AS54-F005: a prior version wrongly rejected any DEPLOYED claim
+//     with RUNTIME_OBSERVED in all_of, inventing a stricter policy CORE-017
+//     does not state).
 //   - A `VERIFIED` claim is compatible with CORE-018: RUNTIME_OBSERVED is an
 //     unconditional (`all_of`) requirement -- no weaker substitute is accepted.
 //   - A consequence-sensitive contract (any of the five scope flags is true)
@@ -114,8 +124,12 @@ function isPlainObject(v) {
 function isNonEmptyString(v) {
   return typeof v === "string" && v.length > 0;
 }
+// AS54-F004: task-contract.schema.json declares `minLength: 1` on every item
+// of these string arrays; the hand-written structural validator must enforce
+// that too, or the declared schema and executable validator would silently
+// disagree about what is structurally valid.
 function isStringArray(v) {
-  return Array.isArray(v) && v.every((x) => typeof x === "string");
+  return Array.isArray(v) && v.every((x) => typeof x === "string" && x.length > 0);
 }
 
 function validateEvidenceArray(arr, label, fieldPath, errors) {
@@ -265,9 +279,9 @@ export function validateContractSchema(contract) {
 
 // True if providing ONLY the evidence classes in `allowedSet` would satisfy
 // this evidence requirement (all_of is a subset of allowedSet, and any_of is
-// either empty or intersects allowedSet). Used to detect "can this claim be
-// closed using nothing but the weak class" -- the fail-closed question both
-// CORE-016 and CORE-020 ask.
+// either empty or intersects allowedSet). Used only by the CORE-020
+// consequence-sensitive check below (MAIN/DEPLOYED/VERIFIED use the stricter
+// `guaranteesOneOf` guarantee check instead, per AS54-F003).
 function canCloseWithOnly(evidence, allowedSet) {
   const allOf = evidence.all_of || [];
   const anyOf = evidence.any_of || [];
@@ -276,19 +290,35 @@ function canCloseWithOnly(evidence, allowedSet) {
   return allOfSubset && anyOfSatisfied;
 }
 
-function includesSomewhere(evidence, cls) {
-  return (evidence.all_of || []).includes(cls) || (evidence.any_of || []).includes(cls);
+// AS54-F003: "an acceptable class appears somewhere in all_of/any_of" is not
+// the same as "the requirement GUARANTEES an acceptable class on every
+// satisfiable path" -- an all_of/any_of requirement is satisfied by picking
+// ALL of all_of PLUS ANY ONE alternative from any_of, so if any_of contains
+// even one alternative outside `requiredSet`, that alternative alone (paired
+// with an all_of that itself lacks a required class) can close the claim
+// without ever providing a class from `requiredSet`.
+//
+// A requirement guarantees at least one class from `requiredSet` iff:
+//   1. `all_of` already contains a member of `requiredSet` (then it's
+//      unconditionally present regardless of which any_of branch is taken); or
+//   2. `any_of` is non-empty and EVERY alternative in it belongs to
+//      `requiredSet` (then whichever branch is taken, it's a required class).
+function guaranteesOneOf(evidence, requiredSet) {
+  const allOf = evidence.all_of || [];
+  const anyOf = evidence.any_of || [];
+  if (allOf.some((e) => requiredSet.has(e))) return true;
+  if (anyOf.length > 0 && anyOf.every((e) => requiredSet.has(e))) return true;
+  return false;
 }
 
 const ACTOR_REPORTED_ONLY = new Set(["ACTOR_REPORTED"]);
+const MAIN_REQUIRED = new Set(["INDEPENDENTLY_REPRODUCED", "CI_ATTESTED"]);
+const DEPLOYED_REQUIRED = new Set(["ACTOR_REPORTED", "CI_ATTESTED"]);
 
 function validateMainClaim(claim, label, errors) {
   const ev = claim.evidence;
-  if (canCloseWithOnly(ev, ACTOR_REPORTED_ONLY)) {
-    errors.push(`${label}: claim '${claim.claim_id}' (MAIN) violates CORE-016 -- its evidence requirement can be closed using ACTOR_REPORTED alone; CORE-016 requires INDEPENDENTLY_REPRODUCED or CI_ATTESTED`);
-  }
-  if (!includesSomewhere(ev, "INDEPENDENTLY_REPRODUCED") && !includesSomewhere(ev, "CI_ATTESTED")) {
-    errors.push(`${label}: claim '${claim.claim_id}' (MAIN) violates CORE-016 -- evidence must offer a path to INDEPENDENTLY_REPRODUCED or CI_ATTESTED`);
+  if (!guaranteesOneOf(ev, MAIN_REQUIRED)) {
+    errors.push(`${label}: claim '${claim.claim_id}' (MAIN) violates CORE-016 -- evidence does not GUARANTEE INDEPENDENTLY_REPRODUCED or CI_ATTESTED on every satisfiable all_of/any_of path`);
   }
   if ((ev.all_of || []).includes("RUNTIME_OBSERVED")) {
     errors.push(`${label}: claim '${claim.claim_id}' (MAIN) violates ML-DEVOS-RFC-013 -- RUNTIME_OBSERVED must not be required (all_of) merely for a MAIN claim; it cannot exist before deployment`);
@@ -297,12 +327,15 @@ function validateMainClaim(claim, label, errors) {
 
 function validateDeployedClaim(claim, label, errors) {
   const ev = claim.evidence;
-  if (!includesSomewhere(ev, "ACTOR_REPORTED") && !includesSomewhere(ev, "CI_ATTESTED")) {
-    errors.push(`${label}: claim '${claim.claim_id}' (DEPLOYED) violates CORE-017 -- evidence must offer a path to ACTOR_REPORTED or CI_ATTESTED`);
+  if (!guaranteesOneOf(ev, DEPLOYED_REQUIRED)) {
+    errors.push(`${label}: claim '${claim.claim_id}' (DEPLOYED) violates CORE-017 -- evidence does not GUARANTEE ACTOR_REPORTED or CI_ATTESTED on every satisfiable all_of/any_of path`);
   }
-  if ((ev.all_of || []).includes("RUNTIME_OBSERVED")) {
-    errors.push(`${label}: claim '${claim.claim_id}' (DEPLOYED) violates CORE-017 -- RUNTIME_OBSERVED belongs to the VERIFIED claim (CORE-018), not DEPLOYED; deployment evidence must not be silently treated as runtime verification`);
-  }
+  // AS54-F005: CORE-017 sets a minimum evidence floor, not a maximum. A
+  // DEPLOYED claim that ALSO unconditionally requires RUNTIME_OBSERVED (in
+  // addition to a guaranteed ACTOR_REPORTED/CI_ATTESTED) is stricter than
+  // CORE-017's floor, not incompatible with it -- it is never rejected merely
+  // for demanding extra evidence. It does not become a VERIFIED claim by
+  // doing so; VERIFIED remains a distinct claim_kind with its own rule below.
 }
 
 function validateVerifiedClaim(claim, label, errors) {

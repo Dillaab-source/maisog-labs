@@ -166,6 +166,56 @@ test("semantic: MAIN claim with any_of including ACTOR_REPORTED alongside the re
   assert.ok(errors.some((e) => e.includes("CORE-016")));
 });
 
+test("semantic: DEPLOYED claim with any_of mixing ACTOR_REPORTED and RUNTIME_OBSERVED fails CORE-017 (mixed-branch bypass, AS54-F003)", () => {
+  const contract = minimalValidContract({
+    scope: {
+      allowed_paths: ["worker/"],
+      remote_resources_involved: true,
+      protected_main_or_deploy_in_scope: true,
+      production_write_in_scope: true,
+      credential_or_security_in_scope: false,
+      destructive_actions_in_scope: false,
+    },
+    claims: [{ claim_id: "CLAIM-1", claim_kind: "DEPLOYED", statement: "s", evidence: { all_of: ["INDEPENDENTLY_INSPECTED"], any_of: ["ACTOR_REPORTED", "RUNTIME_OBSERVED"] } }],
+  });
+  const { ok, errors } = validateContractSemantics(contract);
+  assert.equal(ok, false, "an any_of that mixes ACTOR_REPORTED with RUNTIME_OBSERVED lets the RUNTIME_OBSERVED branch alone satisfy the claim, so ACTOR_REPORTED/CI_ATTESTED is never guaranteed, which CORE-017 forbids");
+  assert.ok(errors.some((e) => e.includes("CORE-017")));
+});
+
+test("semantic: DEPLOYED claim guaranteeing ACTOR_REPORTED in all_of PLUS additional unconditional RUNTIME_OBSERVED passes CORE-017 (AS54-F005: a floor, not a ceiling)", () => {
+  const contract = minimalValidContract({
+    scope: {
+      allowed_paths: ["worker/"],
+      remote_resources_involved: true,
+      protected_main_or_deploy_in_scope: true,
+      production_write_in_scope: true,
+      credential_or_security_in_scope: false,
+      destructive_actions_in_scope: false,
+    },
+    claims: [{ claim_id: "CLAIM-1", claim_kind: "DEPLOYED", statement: "s", evidence: { all_of: ["ACTOR_REPORTED", "RUNTIME_OBSERVED"], any_of: [] } }],
+  });
+  const { ok, errors } = validateContractSemantics(contract);
+  assert.ok(ok, `stronger-than-required evidence must never be rejected merely for being stronger. Errors: ${JSON.stringify(errors)}`);
+});
+
+test("semantic: DEPLOYED claim requiring ONLY RUNTIME_OBSERVED (no guaranteed ACTOR_REPORTED/CI_ATTESTED) still fails CORE-017", () => {
+  const contract = minimalValidContract({
+    scope: {
+      allowed_paths: ["worker/"],
+      remote_resources_involved: true,
+      protected_main_or_deploy_in_scope: true,
+      production_write_in_scope: true,
+      credential_or_security_in_scope: false,
+      destructive_actions_in_scope: false,
+    },
+    claims: [{ claim_id: "CLAIM-1", claim_kind: "DEPLOYED", statement: "s", evidence: { all_of: ["RUNTIME_OBSERVED"], any_of: [] } }],
+  });
+  const { ok, errors } = validateContractSemantics(contract);
+  assert.equal(ok, false, "RUNTIME_OBSERVED alone never guarantees ACTOR_REPORTED or CI_ATTESTED");
+  assert.ok(errors.some((e) => e.includes("CORE-017")));
+});
+
 test("semantic: DEPLOYED claim closing on ACTOR_REPORTED alone is explicitly allowed (CORE-017), even in a consequence-sensitive contract", () => {
   const contract = minimalValidContract({
     scope: {
@@ -240,4 +290,72 @@ test("authority_disclaimer is required and fixed: omitting it fails structural v
   const { ok, errors } = validateContractSchema(contract);
   assert.equal(ok, false);
   assert.ok(errors.some((e) => e.includes("authority_disclaimer")));
+});
+
+// --- AS54-F004: task-contract.schema.json declares minLength: 1 on every ---
+// --- item of these string arrays; the structural validator must match. ----
+
+test("structural: an empty-string authorization_reference is rejected", () => {
+  const contract = minimalValidContract({ authorization_references: ["ML-DEVOS-RFC-013", ""] });
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("authorization_references")));
+});
+
+test("structural: an empty-string scope.allowed_paths entry is rejected", () => {
+  const contract = minimalValidContract();
+  contract.scope.allowed_paths = ["docs/", ""];
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("scope.allowed_paths")));
+});
+
+test("structural: an empty-string optional reference array entry (requirement_references) is rejected", () => {
+  const contract = minimalValidContract({ requirement_references: [""] });
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("requirement_references")));
+});
+
+test("structural: an empty-string optional reference array entry (risk_references) is rejected", () => {
+  const contract = minimalValidContract({ risk_references: [""] });
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("risk_references")));
+});
+
+test("structural: an empty-string optional reference array entry (design_references) is rejected", () => {
+  const contract = minimalValidContract({ design_references: [""] });
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("design_references")));
+});
+
+test("structural: an empty-string scope.prohibited_paths entry is rejected", () => {
+  const contract = minimalValidContract();
+  contract.scope.prohibited_paths = [""];
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("scope.prohibited_paths")));
+});
+
+test("structural: an empty-string scope.prohibited_actions entry is rejected", () => {
+  const contract = minimalValidContract();
+  contract.scope.prohibited_actions = [""];
+  const { ok, errors } = validateContractSchema(contract);
+  assert.equal(ok, false);
+  assert.ok(errors.some((e) => e.includes("scope.prohibited_actions")));
+});
+
+test("structural: non-empty strings in all seven minLength:1 array fields still pass", () => {
+  const contract = minimalValidContract({
+    authorization_references: ["ML-DEVOS-RFC-013"],
+    requirement_references: ["REQ-1"],
+    risk_references: ["RISK-1"],
+    design_references: ["DESIGN-1"],
+  });
+  contract.scope.prohibited_paths = ["app/"];
+  contract.scope.prohibited_actions = ["deploy"];
+  const { ok, errors } = validateContractSchema(contract);
+  assert.ok(ok, JSON.stringify(errors));
 });

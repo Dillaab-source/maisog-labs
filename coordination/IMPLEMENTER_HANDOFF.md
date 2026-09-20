@@ -2422,3 +2422,136 @@ Per the Architect's required return gate, `coordination/STATE.md` is updated to:
 ### Commit
 
 The 6 files above (1 modified, 5 new — `devos/contracts/README.md`, `devos/contracts/TASK_CONTRACT_SPEC.md`, `devos/contracts/task-contract.schema.json`, `devos/contracts/validate-task-contract.mjs`, `devos/contracts/examples/**` (10 fixtures), `tests/task-contract.test.mjs`), alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `b7634f572f2be93ef3a5527a06b924dfa5212594`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## Sentinel S3 Typed Task Contracts — Remediation Cycle 1 (ML-DEVOS-AS-054)
+
+**Cycle ID:** `SENTINEL_S3_TYPED_TASK_CONTRACTS_IMPLEMENTATION`, `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 3`.
+
+**Base commit reviewed by Architect:** `0efcce866f64d821e85887fd8f8504ecff31c40b` (`feat(s3): implement typed Task Contracts`), reviewed against base `b7634f572f2be93ef3a5527a06b924dfa5212594`.
+
+**Review:** `ML-DEVOS-AS-054` — `CHANGES_REQUESTED — S3 TYPED TASK CONTRACTS REMEDIATION CYCLE 1`. Scope discipline (`AS54-F001`) and required-artifact presence (`AS54-F002`) both `PASS`; the `CORE-020`/lifecycle interpretation from the prior cycle was confirmed acceptable (`AS54-O001`, no remediation required). Three blockers required remediation.
+
+### `AS54-F003` — MAIN/DEPLOYED validation checked presence, not guaranteed satisfaction
+
+**Defect:** the prior validator used `includesSomewhere(...)`, asking only whether an acceptable evidence class appeared anywhere in `all_of`/`any_of`. Because `all_of`/`any_of` is an AND/OR grammar (all of `all_of` PLUS any one `any_of` alternative), a mixed `any_of` — e.g. `any_of: ["ACTOR_REPORTED", "CI_ATTESTED"]` for a `MAIN` claim — could be satisfied by picking the `ACTOR_REPORTED` branch alone, never actually providing the required class, while the old check still saw `CI_ATTESTED` "somewhere" and passed it.
+
+**Fix:** replaced the presence check with a `guaranteesOneOf(evidence, requiredSet)` guarantee check (`devos/contracts/validate-task-contract.mjs`): a required set `R` is guaranteed iff `all_of` already contains a member of `R` (unconditional regardless of branch), **or** `any_of` is non-empty and *every* alternative in it belongs to `R` (so whichever branch is taken, it's a required class). Applied to `MAIN` (`R = {INDEPENDENTLY_REPRODUCED, CI_ATTESTED}`) and `DEPLOYED` (`R = {ACTOR_REPORTED, CI_ATTESTED}`); `VERIFIED`'s existing unconditional-`all_of`-`RUNTIME_OBSERVED` check needed no change (it was never a presence check).
+
+**Evidence — the two exact bypass examples from the review, now rejected:**
+
+```json
+// MAIN, all_of=["INDEPENDENTLY_INSPECTED"], any_of=["ACTOR_REPORTED","CI_ATTESTED"] -- REJECTED
+"claim 'CLAIM-1' (MAIN) violates CORE-016 -- evidence does not GUARANTEE INDEPENDENTLY_REPRODUCED or CI_ATTESTED on every satisfiable all_of/any_of path"
+
+// DEPLOYED, all_of=["INDEPENDENTLY_INSPECTED"], any_of=["ACTOR_REPORTED","RUNTIME_OBSERVED"] -- REJECTED
+"claim 'CLAIM-1' (DEPLOYED) violates CORE-017 -- evidence does not GUARANTEE ACTOR_REPORTED or CI_ATTESTED on every satisfiable all_of/any_of path"
+```
+
+New bounded invalid fixtures: `examples/invalid/main-claim-mixed-branch-bypass.contract.json`, `examples/invalid/deployed-claim-mixed-branch-bypass.contract.json`. Direct unit tests: `tests/task-contract.test.mjs`'s existing "MAIN claim with any_of including ACTOR_REPORTED..." test (already covered the MAIN case in the prior cycle) plus a new "DEPLOYED claim with any_of mixing ACTOR_REPORTED and RUNTIME_OBSERVED fails CORE-017" test.
+
+### `AS54-F004` — structural validator did not enforce the schema's `minLength: 1` item rule
+
+**Defect:** `isStringArray(v) = Array.isArray(v) && v.every(x => typeof x === "string")` accepted empty-string array items, while `task-contract.schema.json` declares `minLength: 1` on items of `authorization_references`, `requirement_references`, `risk_references`, `design_references`, `scope.allowed_paths`, `scope.prohibited_paths`, and `scope.prohibited_actions` — a disagreement between the declared schema and the executable validator.
+
+**Fix:** `isStringArray` now requires `typeof x === "string" && x.length > 0`, which is the single shared helper for all seven affected fields, so the fix closes all of them at once rather than field-by-field.
+
+**Evidence — 7 new focused tests**, one per affected field plus a positive control:
+```
+$ node --test tests/task-contract.test.mjs
+"structural: an empty-string authorization_reference is rejected" -- ok
+"structural: an empty-string scope.allowed_paths entry is rejected" -- ok
+"structural: an empty-string optional reference array entry (requirement_references) is rejected" -- ok
+"structural: an empty-string optional reference array entry (risk_references) is rejected" -- ok
+"structural: an empty-string optional reference array entry (design_references) is rejected" -- ok
+"structural: an empty-string scope.prohibited_paths entry is rejected" -- ok
+"structural: an empty-string scope.prohibited_actions entry is rejected" -- ok
+"structural: non-empty strings in all seven minLength:1 array fields still pass" -- ok
+```
+
+### `AS54-F005` — DEPLOYED validation invented a stricter-than-required prohibition
+
+**Defect:** the prior validator rejected any `DEPLOYED` claim with `RUNTIME_OBSERVED` in `all_of`, on the theory that this "belongs to VERIFIED." The review correctly identified this as S3 inventing policy CORE-017 does not state: CORE-017 sets a minimum evidence floor (guaranteed `ACTOR_REPORTED` or `CI_ATTESTED`), not a maximum — a contract asking for *more* evidence than that floor is stricter, not incompatible.
+
+**Fix:** removed the blanket `RUNTIME_OBSERVED`-in-`all_of` rejection for `DEPLOYED` entirely. `validateDeployedClaim` now applies only the corrected `guaranteesOneOf` check from `AS54-F003`. A `DEPLOYED` claim with `all_of: ["ACTOR_REPORTED", "RUNTIME_OBSERVED"]` now passes (guaranteed `ACTOR_REPORTED` is present); a `DEPLOYED` claim with `all_of: ["RUNTIME_OBSERVED"]` alone still correctly fails, now for the accurate reason (no guaranteed `ACTOR_REPORTED`/`CI_ATTESTED`), not the invented one.
+
+**Evidence:**
+- New valid fixture `examples/valid/deployed-claim-stronger-with-runtime-observed.contract.json` (`all_of: ["ACTOR_REPORTED", "RUNTIME_OBSERVED"]`) — passes.
+- The prior invalid fixture `examples/invalid/deployed-claim-silently-treated-as-verified.contract.json` was renamed to `examples/invalid/deployed-claim-runtime-observed-alone-not-guaranteed.contract.json` and its title/statement corrected to describe the actual failure reason (missing guaranteed class), per the review's explicit allowance ("the existing invalid fixture may remain invalid... its failure reason should be the missing guaranteed ACTOR_REPORTED/CI_ATTESTED path, not a newly invented ban"). It remains rejected.
+- Direct unit tests: "DEPLOYED claim guaranteeing ACTOR_REPORTED in all_of PLUS additional unconditional RUNTIME_OBSERVED passes CORE-017" and "DEPLOYED claim requiring ONLY RUNTIME_OBSERVED... still fails CORE-017."
+
+### Spec updated to match (`TASK_CONTRACT_SPEC.md`)
+
+The "Binding semantic validation" section now explains the guarantee-check rationale (why presence-only checking is insufficient, given the AND/OR grammar) before restating rules 1–3, and rule 2 (`DEPLOYED`/`CORE-017`) now states the floor-not-ceiling principle explicitly. The worked-examples table was updated: the renamed fixture, the two new mixed-branch-bypass invalid fixtures, and the new stronger-with-runtime-observed valid fixture were all added with their exact rule citations. Authority line now also cites `ML-DEVOS-AS-054`.
+
+### Exact diff scope
+
+```
+$ git status --porcelain
+ M devos/contracts/TASK_CONTRACT_SPEC.md
+RM devos/contracts/examples/invalid/deployed-claim-silently-treated-as-verified.contract.json -> devos/contracts/examples/invalid/deployed-claim-runtime-observed-alone-not-guaranteed.contract.json
+ M devos/contracts/validate-task-contract.mjs
+ M tests/task-contract.test.mjs
+?? devos/contracts/examples/invalid/deployed-claim-mixed-branch-bypass.contract.json
+?? devos/contracts/examples/invalid/main-claim-mixed-branch-bypass.contract.json
+?? devos/contracts/examples/valid/deployed-claim-stronger-with-runtime-observed.contract.json
+```
+
+Every touched file is on the authorized Cycle 1 remediation list (`devos/contracts/validate-task-contract.mjs`, `devos/contracts/TASK_CONTRACT_SPEC.md`, `devos/contracts/examples/**`, `tests/task-contract.test.mjs`, plus this handoff/`coordination/STATE.md`). `devos/contracts/README.md` needed no change (checked: it references the spec's table generically and cites no fixture/test counts that went stale). No core rule, `ML-DEVOS-RFC-013`, `devos/devos-manifest.json`, or any S4+/product/runtime file was touched.
+
+### Evidence
+
+**Bundled example self-check (all 15 fixtures — 3 valid, 12 invalid):**
+
+```
+$ node devos/contracts/validate-task-contract.mjs
+PASS: 15/15 contract(s) behaved as expected.
+```
+
+**Focused tests:**
+
+```
+$ node --test tests/task-contract.test.mjs
+# tests 44
+# pass 44
+# fail 0
+```
+
+44 = the prior 30 + this cycle's 14 new tests (1 DEPLOYED mixed-branch-bypass test, 1 DEPLOYED-floor-not-ceiling positive test, 1 DEPLOYED-runtime-alone-still-fails test, 7 empty-string structural tests, 1 positive non-empty-string control, plus the fixture-loop tests picking up the 3 new/renamed example files automatically).
+
+**Full-suite sanity result** (3 batches, consistent with established practice):
+
+```
+tests/content + d1-audit + d1-migration + design-overlay + skills + task-contract: 154/154
+tests/traceability + worker-admin-dashboard/design/journal:                        127/127
+tests/worker-admin-media/projects + worker-auth + worker-public-design/journal:    155/155
+------------------------------------------------------------------------------------------
+Total:                                                                             436/436
+```
+
+436 = the pre-cycle 422 + this cycle's 14 new tests. No pre-existing test outside `tests/task-contract.test.mjs` was touched, and none regressed.
+
+All of the above is `ACTOR_REPORTED` — this Implementer ran the commands and is reporting the output; it has not been independently reproduced or CI-attested.
+
+### Explicit confirmations
+
+- **No core rule (`CORE-016`/`017`/`018`/`020` or any other) was modified.** The validator's interpretation of them was corrected; the rules themselves are untouched.
+- **`ML-DEVOS-RFC-013` was not modified.** Its lifecycle/status bookkeeping (`AS54-O002`) remains explicitly deferred to the post-acceptance S3 ADR, not addressed in this remediation, per the review's own "do not broaden this remediation merely to perform lifecycle bookkeeping" instruction.
+- **`devos/devos-manifest.json` was not touched.**
+- **No S4+, product/runtime, remote resource, credential, deployment, or protected-main/production-write work occurred.**
+- **The four canonical Skills, the Claude bridge, and the Portable Knowledge Treasury (accepted in the prior `ML-DEVOS-AS-053` cycle) were not touched.**
+- **The Builder has not self-accepted S3 and has not started S4.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / open questions
+
+- Unchanged from the prior cycle's handoff: `authorization_references`/`requirement_references`/`risk_references`/`design_references` are validated only for shape, not for resolving to real governance records; `task_id`/`claim_id`/`criterion_id` uniqueness is enforced only within a single contract file; Traceability V1 indexing of Task Contract IDs remains a future, unimplemented question.
+- `AS54-O002`'s observation stands unaddressed by design: `ML-DEVOS-RFC-013` still carries its original queued/draft status text. This is explicitly out of this remediation's scope per the review, deferred to the S3 acceptance/ADR step.
+
+### Return gate
+
+`coordination/STATE.md` is updated to `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `ARCHITECT_ACTION_REQUIRED: YES` / `IMPLEMENTER_ACTION_REQUIRED: NO` / `CURRENT_REMEDIATION_CYCLE: 1`. `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged. Builder has not self-accepted S3 or started S4.
+
+### Commit
+
+The 7 files above (1 rename, 2 modified, 3 new example fixtures, plus the renamed fixture's content correction), alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `54e506622b4504ab010bb130d76dba8eb89c8b06`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

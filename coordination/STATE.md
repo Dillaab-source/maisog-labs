@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S3_TYPED_TASK_CONTRACTS_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: S3_TYPED_TASK_CONTRACTS_REMEDIATION_CYCLE_1
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -38,11 +38,11 @@ Preserve:
 - S4+ non-scope;
 - CORE-020 lifecycle interpretation.
 
-## Active blockers
+## Closed blockers
 
-1. `AS54-F003` — MAIN/DEPLOYED validation must guarantee required evidence on every satisfiable AND/OR path, not merely find an acceptable class somewhere.
-2. `AS54-F004` — executable structural validator must enforce the schema's `minLength: 1` item rule for all affected string arrays.
-3. `AS54-F005` — remove the invented blanket rejection of extra `RUNTIME_OBSERVED` evidence on DEPLOYED claims; enforce CORE-017's guaranteed ACTOR_REPORTED/CI_ATTESTED requirement instead.
+1. `AS54-F003` — CLOSED. MAIN/DEPLOYED validation now uses a `guaranteesOneOf` check over the all_of/any_of AND/OR semantics, not a "somewhere" presence check.
+2. `AS54-F004` — CLOSED. The structural validator's `isStringArray` now enforces the schema's `minLength: 1` item rule for all seven affected string-array fields.
+3. `AS54-F005` — CLOSED. The invented blanket rejection of extra `RUNTIME_OBSERVED` evidence on DEPLOYED claims was removed; only the corrected guaranteed-ACTOR_REPORTED/CI_ATTESTED check applies.
 
 ## Authorized remediation files
 
@@ -91,3 +91,7 @@ After remediation:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`.
 
 Builder must not self-accept or start S4.
+
+## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See "Sentinel S3 Typed Task Contracts — Remediation Cycle 1 (ML-DEVOS-AS-054)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS54-F003` -- replaced the `includesSomewhere` presence check with a `guaranteesOneOf` guarantee check (all_of contains a required class, OR any_of is non-empty and every alternative is a required class) for MAIN/DEPLOYED, closing the exact mixed-any_of bypasses the review demonstrated; new bounded invalid fixtures for both. `AS54-F004` -- `isStringArray` now rejects empty-string items, matching the schema's `minLength: 1` on all 7 affected array fields; 7 new focused tests plus 1 positive control. `AS54-F005` -- removed the invented DEPLOYED RUNTIME_OBSERVED-in-all_of ban; CORE-017 is now correctly treated as a floor, not a ceiling; new valid fixture proves a DEPLOYED claim with guaranteed ACTOR_REPORTED plus additional RUNTIME_OBSERVED passes; the old invalid fixture was renamed and its stated failure reason corrected to the actual one (missing guaranteed class, not a ban on stronger evidence). 44/44 focused tests (30 prior + 14 new); 15/15 bundled example fixtures behave as expected; 436/436 full suite (422 prior + 14 new). No core rule, RFC-013, or manifest was touched; no S4+/runtime/remote/deploy/main/version work occurred. Builder has not self-accepted S3.
