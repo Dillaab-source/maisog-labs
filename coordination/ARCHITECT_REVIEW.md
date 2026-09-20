@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED — SKILLS FOUNDATION V0.1 DISCOVERY REMEDIATION CYCLE 2 (VISIBILITY CORRECTION)`
+Status: `CHANGES_REQUESTED — SKILLS FOUNDATION V0.1 DISCOVERY REMEDIATION CYCLE 3 (FINAL CONSISTENCY CLEANUP)`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,111 +8,220 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-047 — Repository Visibility / Treasury Disclosure Correction
+# ML-DEVOS-AS-049 — Skills Foundation / Portable Knowledge Treasury Cycle 2 Review
 
-This sync supplements `ML-DEVOS-AS-045` and `ML-DEVOS-AS-046`. It corrects only the factual premise of `AS46-F001` after Paulo changed repository visibility.
+RFC:
+- `ML-DEVOS-RFC-014`
 
-Authority:
+Builder commit reviewed:
+- `3760199959d8cc603b0afcf1cde459a87ecb8465`
+
+Base:
+- `5f95e7aea3dca6d33a7bd135df81fef49c1ac832`
+
+Class:
+- `ARCHITECTURE`
+
+Authority chain:
+- `D-038`
+- `D-039`
+- `D-040`
 - `D-041`
+- `ML-DEVOS-AS-042` through `ML-DEVOS-AS-048`
 
-## AS47-F001 — VERIFIED — repository is now private
+## Scope inspection
 
-Independent GitHub inspection confirms:
-- repository: `Dillaab-source/maisog-labs`;
-- `private: true`;
-- `visibility: private`.
+### AS49-F001 — PASS — Cycle 2 stayed within authorized scope
 
-Therefore the prior AS46 statement that the current repository is public is no longer current.
+The Builder changed exactly the four authorized documentation files:
 
-`AS46-F001` is **superseded in premise**, not erased.
+1. `devos/changes/rfcs/ML-DEVOS-RFC-014.md`
+2. `devos/changes/rfcs/README.md`
+3. `coordination/IMPLEMENTER_HANDOFF.md`
+4. `coordination/STATE.md`
 
-## Revised disclosure/storage requirement
+No Skill directory, Skill payload, provider adapter, Treasury implementation, S3 code, S4+/S5 machinery, product/runtime code, remote resource, credential, deployment, or main merge was created.
 
-RFC-014 must now distinguish disclosure class from Git suitability:
+The reported `352/352` test run remains Builder/actor-reported. Because this remediation changed documentation only and no application/test source, no independent runtime reproduction is required for this architecture review.
 
-### PUBLIC_SAFE
-- may be routed to public-facing Journal/content only through the normal record-specific publishing approval;
-- may also exist in the private repo where appropriate.
+## Cycle 2 blockers
 
-### INTERNAL
-- may be persisted in this private repository when the canonical record type belongs here;
-- must not be automatically published merely because it is stored in the repository.
+### AS49-F002 — PASS — AS45-F007 provider matrix corrected
 
-### RESTRICTED
-- may be persisted in this private repository only when:
-  - the information is appropriate for version-controlled documentation;
-  - repository access is an acceptable audience boundary;
-  - it contains no credentials/secret values/private keys or other material that policy says must not live in Git;
-  - its canonical destination genuinely belongs in this repository.
-- where those conditions are not met: `STOP / DEFER PERSISTENCE` and route to an explicitly approved private/secret destination when one exists.
+Independent Architect verification against current official documentation confirms:
 
-### SECRET / VERSION-CONTROL-PROHIBITED
-Must never be committed to Git, even in a private repository.
+- OpenAI Codex reads repository Skills from `.agents/skills/`;
+- GitHub Copilot supports project Skills at `.github/skills/`, `.claude/skills/`, or `.agents/skills/`;
+- Gemini CLI supports `.agents/skills/` as an official workspace/user alias and gives it precedence over `.gemini/skills/` at the same tier;
+- Claude Code documents project Skills at `.claude/skills/` and supports symlinked Skill folders.
 
-Examples include:
-- passwords;
-- API tokens;
-- private keys;
-- secret values;
-- credentials;
-- recovery codes;
-- other material whose canonical control belongs in a secrets/configuration mechanism rather than documentation.
+Therefore the RFC's corrected repo-native accounting — `.agents/skills/` natively covers Codex, Copilot, and Gemini, leaving Claude Code as the one bridge target — is materially supported by current official evidence.
 
-## Historical exposure rule
+The recommendation:
+`.agents/skills/` canonical payload + one non-diverging Claude Code bridge
+is architecturally reasonable and remains subject to Paulo's explicit ARCHITECTURE gate.
 
-The repository was public before this change.
+### AS49-F003 — PASS — AS46-F002 per-Skill contracts complete
 
-Therefore:
-- private visibility is a forward-looking access boundary;
-- it does not prove that any previously committed sensitive material was never exposed;
-- if sensitive material from the prior public period is discovered, treat it as potentially exposed and follow the appropriate incident/rotation/remediation process.
+All four V0.1 candidate Skills now define:
+- purpose/output;
+- activation condition;
+- non-activation condition;
+- required context;
+- authoritative sources;
+- core procedure summary;
+- stop/escalation behavior;
+- governance dependencies;
+- mutation/capability note;
+- positive activation eval;
+- near-miss negative eval.
 
-No such sensitive-material incident is asserted by this review.
+The contracts remain thin wrappers over authoritative procedures rather than duplicate governance manuals.
 
-## RISK-WEB-013
+### AS49-F004 — PASS — AS46-F003 SKILL CHECK routing complete
 
-The repository-visibility change materially affects the factual basis of `RISK-WEB-013`.
+The RFC now defines a provider-neutral 10-step documentary routing sequence covering:
+- live state/context;
+- metadata-only discovery;
+- activation/non-activation filtering;
+- smallest sufficient non-conflicting set;
+- authority check before consequence-bearing action;
+- progressive disclosure;
+- stop on governance conflict;
+- bounded output/evidence claims.
 
-However, this Skills/Treasury discovery cycle is not authorized to silently mark that risk resolved.
+The five required routing evals are present.
 
-RFC-014 should say:
-- repository visibility is now private;
-- the prior public-repository premise changed;
-- `RISK-WEB-013` requires separate governed reassessment before its status changes.
+No S4/S5 routing engine is introduced.
 
-Do not continue stating that the repository is currently public.
+### AS49-F005 — PASS — AS47/AS48 private-repository disclosure model substantially integrated
 
-## Required Treasury eval revisions
+T10 and T12 correctly distinguish:
+- PUBLIC_SAFE;
+- INTERNAL;
+- RESTRICTED;
+- SECRET/version-control-prohibited material.
 
-Replace the AS46 public-repository-specific cases with:
+They correctly require accepted access controls, Git suitability, and an authorized canonical destination for INTERNAL/RESTRICTED persistence, keep secrets/credentials out of Git, preserve historical-public-exposure caution, and do not silently close `RISK-WEB-013`.
 
-1. INTERNAL item → may route to the private repository only to the correct canonical record; must not become public automatically.
-2. RESTRICTED but Git-appropriate item → may route to an approved private-repo canonical destination.
-3. RESTRICTED but Git-inappropriate item → STOP / DEFER PERSISTENCE.
-4. SECRET/credential item → never persist to Git, regardless of private visibility.
-5. sanitized PUBLIC_SAFE lesson derived from sensitive experience → may be separately captured without the sensitive detail.
-6. historical-public-period sensitive finding → classify as potentially exposed and escalate rather than assuming current privacy cures prior exposure.
+## Final consistency blockers
 
-## Other active blockers remain unchanged
+### AS49-F006 — BLOCKER — top-level classification table still contains the superseded blanket private-repository destination
 
-Claude must still remediate:
-- `AS45-F007` — provider compatibility/evidence matrix;
-- `AS46-F002` — complete per-skill discovery contracts;
-- `AS46-F003` — explicit provider-neutral SKILL CHECK routing and evals.
+RFC-014 §2 still contains the row:
+
+`Sensitive implementation detail → Private repository documentation (ordinary non-public-surfaced repository locations) → Unchanged`
+
+That wording predates `D-041` / AS-047 / AS-048 and conflicts with T10's now-correct storage model.
+
+A non-public-surfaced path is not, by itself, an accepted storage boundary, and not every sensitive implementation detail is Git-suitable.
+
+#### Required remediation
+
+Replace that row with a compact conditional destination that points to T10/AS-048, equivalent to:
+
+- sensitive implementation detail → private-repository documentation **only if** classification, accepted access controls, Git suitability, and canonical-destination authorization permit it;
+- otherwise `STOP / DEFER PERSISTENCE` or route to an approved non-Git private/secret destination when one exists;
+- SECRET/version-control-prohibited material never goes to Git.
+
+Also remove the stale implication that `RISK-WEB-013` is still based on the unchanged public-repository premise. State instead that it remains open pending separate governed reassessment after the repository visibility change.
+
+Do not otherwise redesign the classification model.
+
+### AS49-F007 — BLOCKER — ChatGPT evidence-basis row is now stale
+
+The External Evidence Basis currently says:
+
+`No official source found this cycle distinguishing ChatGPT's own product surface from Codex CLI's filesystem-based discovery`
+
+Current official OpenAI documentation now explicitly documents Skills across ChatGPT and Codex:
+
+- standalone Skills are available in the ChatGPT desktop app, Codex CLI, and IDE extension;
+- Skills bundled in plugins are available in Chat and Work across ChatGPT web/desktop/mobile;
+- ChatGPT and Codex use progressive disclosure;
+- Codex repo-local filesystem discovery is specifically documented under `.agents/skills/`.
+
+This official documentation still does **not** establish arbitrary-repository filesystem scanning by ChatGPT product surfaces, so the RFC's architectural separation remains valid. But the durable evidence table must not say no official ChatGPT Skills source exists.
+
+#### Required remediation
+
+Update the ChatGPT row to cite the current official OpenAI Skills documentation, e.g.:
+- `https://developers.openai.com/codex/skills` (currently redirects to the current Build Skills documentation);
+- record the supported claim narrowly:
+  - ChatGPT supports standalone/plugin-distributed Skills as documented;
+  - no official evidence in that source establishes arbitrary repository-path discovery equivalent to Codex's `.agents/skills/`;
+  - therefore ChatGPT distribution remains a separate product/plugin integration concern and is not part of the repository-path denominator.
+
+This correction does **not** change the 3-of-4 repository-native portability conclusion.
+
+### AS49-F008 — BLOCKER — two canonical cross-references are stale/misattributed
+
+1. T10 still calls the accepted-access-controls clarification "the `AS-047` amendment."  
+   The canonicalized clarification is `ML-DEVOS-AS-048`; AS-047 is the repository-visibility correction.
+
+2. `devos/changes/rfcs/README.md` currently says `ML-DEVOS-AS-045 / AS-047` corrected the materially false Gemini CLI claim.  
+   AS-047 is unrelated to Gemini. The correction was required by `AS45-F007` and implemented in Builder Cycle 2.
+
+#### Required remediation
+
+Normalize these references without rewriting historical archives:
+- visibility change → `D-041 / ML-DEVOS-AS-047`;
+- accepted-access-control clarification/canonicalization → `ML-DEVOS-AS-048`;
+- Gemini correction → `AS45-F007` / Cycle 2 remediation (not AS-047).
+
+## Preserve accepted architecture
+
+Cycle 3 is cleanup-only. Do **not** reopen without genuinely new evidence:
+
+- the four-skill V0.1 candidate set;
+- `.agents/skills/` as the RFC's recommended canonical payload;
+- one non-diverging Claude Code bridge concept;
+- provider-neutral SKILL CHECK sequence;
+- consequence-sensitive external-skill tiers;
+- progressive disclosure;
+- Treasury-as-routing/lightweight-procedure direction;
+- candidate-vs-accepted knowledge boundary;
+- type + disclosure model;
+- canonical-destination-first dedup;
+- provenance/revalidation;
+- Treasury evals/anti-bloat model;
+- S3 pause/queued authority.
+
+## Authorized Remediation Cycle 3 files
+
+Claude may modify only:
+
+- `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
+- `devos/changes/rfcs/README.md` if needed;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
+
+No other file is required.
+
+## Expected return
+
+Cycle 3 should be a small consistency patch, not a redesign.
+
+After remediation:
+- `TURN: ARCHITECT`;
+- `STATUS: READY_FOR_ARCHITECT`;
+- `ARCHITECT_ACTION_REQUIRED: YES`;
+- `IMPLEMENTER_ACTION_REQUIRED: NO`;
+- `CURRENT_REMEDIATION_CYCLE: 3`.
+
+If AS49-F006/F007/F008 close cleanly, the next Architect review should decide whether RFC-014 is ready for Paulo's explicit architecture decision gate.
 
 ## Hard boundaries
 
 No:
-- actual Skill implementation;
-- provider-adapter directories;
+- Skill implementation;
+- Skill/provider-adapter directories;
 - Treasury implementation;
+- S3 resumption/implementation;
+- S4+ / S5 machinery;
 - secret-store creation;
 - credential persistence;
-- chat-history import/archive;
-- provider-memory synchronization;
-- S3 implementation/resumption;
-- S4+ / S5 capability machinery;
-- product/runtime/public-site changes;
+- product/runtime mutation;
 - remote resources;
 - deployment;
 - main merge;
@@ -120,27 +229,4 @@ No:
 
 ## Verdict
 
-`ML-DEVOS-AS-047: DISCOVERY REMEDIATION CYCLE 2 AMENDED — REPOSITORY PRIVACY VERIFIED`
-
-Return to Architect after AS45-F007, AS46-F002, AS46-F003, and the revised AS47 disclosure/storage requirements are incorporated.
-
-## Explicit access-control condition — AS-047 amendment (2026-09-20)
-
-Paulo's current request makes repository suitability conditional: **both INTERNAL and RESTRICTED documentation may use this private repository only if current access controls are accepted for the material, the material is suitable for Git, and its canonical destination is authorized under existing governance.** Private visibility alone is not acceptance. This review verified GitHub metadata (`visibility: private`, repository ID `1364674338`, 2026-09-20 approximately 04:36 UTC); it did not audit or accept the full access-control configuration.
-
-If accepted access controls, classification, Git suitability, or destination authorization is missing or uncertain, `STOP / DEFER PERSISTENCE`. This condition also applies to the INTERNAL and RESTRICTED positive eval cases: add a near-miss with unaccepted/unknown controls that stops before persistence. Credentials/secrets and all other Git-unsuitable material remain excluded even if controls are accepted. Non-rendered paths are not themselves privacy boundaries; public outputs and exports retain disclosure gates.
-
-This is a narrow clarification of AS47-F001 / the superseded premise of AS46-F001, authorized by Paulo's request to update this discovery review. It grants no sensitive-data persistence, policy waiver, access-control change, private-repository/secret-store creation, or implementation authority. Existing AGENTS.md restrictions and stronger governance remain in force; any later persistence must reconcile applicable rules through existing governance. AS45-F007, AS46-F002/F003, Cycle 2, Claude's turn, all authorization flags, and S3's paused/preserved authority remain unchanged. The immutable AS-047 archive and D-041 are preserved.
-
-
----
-
-# ML-DEVOS-AS-048 — Canonicalization Note
-
-The access-control clarification introduced in commit `71bbef09035b8e1517b95142a03cd1282c654e20` was substantively valid but was initially stored under the noncanonical filename `ML-DEVOS-AS-047-access-control-amendment.md`, which reused the AS-047 identifier inside the canonical Architect Sync directory.
-
-It is now canonically recorded as `ML-DEVOS-AS-048.md`.
-
-The original temporary file is removed from the active tree to restore the one-file-per-AS-ID invariant. Its exact content remains preserved in Git history and is reproduced inside AS-048.
-
-No active blocker, authority flag, S3 status, or Builder scope changes as a result.
+`ML-DEVOS-AS-049: CHANGES_REQUESTED — REMEDIATION CYCLE 3 / FINAL CONSISTENCY CLEANUP`
