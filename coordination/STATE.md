@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S4_STATE_MACHINE_CLOSURE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: S4_CLOSURE_D2_VERIFICATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: S4_CLOSURE_TEST_FIXTURE_REMEDIATION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,53 +19,57 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-ML-DEVOS-AS-067 D.1 preflight: PASS.
-D-051 authorized exactly the S4 closure package; the closure candidate below was executed exactly against it.
+D-051 remains the S4 closure authority.
+ML-DEVOS-AS-067 remains the D.1 preflight.
 ML-DEVOS-AS-066 remains the technical implementation acceptance.
 
-## Closure candidate — result
+Architect D.2 review of closure candidate HEAD `e6c33bd33a75ea7e5a87864afe82c58b5f776089` found one closure-induced test-fixture blocker only.
 
-Executed exactly per coordination/ARCHITECT_REVIEW.md. See coordination/IMPLEMENTER_HANDOFF.md's
-"S4 State Machine Kernel Closure (D-051 / ML-DEVOS-AS-067 D.1 → D.2 candidate)" section for full
-evidence.
+## Required work
 
-Delivered:
-- ML-DEVOS-ADR-014 created
-- devos/state/ -> IMPLEMENTED, closure_ref ML-DEVOS-ADR-014
-- executable_runtime_present false (unchanged)
-- Sentinel v1.7.0 (sentinel_capability_baseline points to ADR-014 / D-051)
-- narrow FAILED / ABANDONED frozen-lifecycle amendment in ML-DEVOS-ARCH-001 §10 only
-- traceability regenerated: 263 files, 2 errors (CORE-022 + WEB-REQ-009 only, unchanged
-  fingerprint), 14 warnings, no drift
-- devos manifest validator: PASS, 0 errors
+Resolve D2-F001 in coordination/ARCHITECT_REVIEW.md.
 
-Disclosed, non-blocking finding for Architect disposition: tests/devos-manifest.test.mjs
-(outside the closure write whitelist, not edited) has 3 pre-existing failures because it
-hardcodes devos/state/ as its one stable NOT_IMPLEMENTED fixture root -- exactly the same
-class of staleness its own in-file comment documents was fixed at S3 closure. Manifest
-validator itself is clean; this is a test-fixture staleness issue only. Full detail in the
-handoff.
+Only:
+- retarget tests/devos-manifest.test.mjs synthetic NOT_IMPLEMENTED fixture from devos/state/ to devos/orchestration/;
+- update live assertions to recognize both S3 and S4 as IMPLEMENTED with ADR-013 / ADR-014;
+- update S4-specific synthetic-root comments/phase assertions to S8;
+- preserve validator semantics;
+- run focused manifest test + manifest validator;
+- regenerate traceability only if needed;
+- return for D.2 verification.
 
-## Hard boundaries respected
+## LEAN / DELTA-ONLY
 
-No S4 implementation-source/test change (byte-identical to input HEAD).
+Read only:
+1. this STATE.md;
+2. coordination/ARCHITECT_REVIEW.md;
+3. tests/devos-manifest.test.mjs;
+4. live devos/devos-manifest.json only as read-only truth.
+
+No full-history reread.
+
+## Hard boundaries
+
+No closure record changes.
+No S4 implementation changes.
+No manifest/schema/validator change.
 No S5+.
 No website/product mutation.
-No Skills V0.2 implementation.
+No Skills V0.2.
 No workflows.
 No credentials/remote resources.
-No deployment/production write.
-No protected/main merge.
-No PR #10 merge.
-brain/DECISION_LOG.md not touched.
+No deployment/production/main merge.
 
-## Return gate (this state)
+## Return gate
 
+After the one test-fixture correction:
 - TURN: ARCHITECT
 - STATUS: READY_FOR_ARCHITECT
 - AUTHORIZED_SCOPE: S4_CLOSURE_D2_VERIFICATION_ONLY
 - ARCHITECT_ACTION_REQUIRED: YES
 - IMPLEMENTER_ACTION_REQUIRED: NO
 - PAULO_DECISION_REQUIRED: NO
+- CURRENT_REMEDIATION_CYCLE: 1
+- MAX_REMEDIATION_CYCLES: 2
 
-Every prohibition flag remains NO.
+Keep every prohibition flag NO.
