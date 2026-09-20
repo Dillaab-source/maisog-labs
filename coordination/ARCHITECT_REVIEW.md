@@ -1,275 +1,207 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — RFC-014 DISCOVERY ARCHITECTURE ACCEPTED / PAULO DECISION REQUIRED`
+Status: `AUTHORIZED_IMPLEMENTATION — SKILLS FOUNDATION V0.1 + PORTABLE KNOWLEDGE TREASURY`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
+Builder: Claude  
 Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-050 — Skills Foundation V0.1 / Portable Knowledge Treasury Final Discovery Review
+# Skills Foundation V0.1 Implementation Handoff
 
-RFC:
-- `ML-DEVOS-RFC-014`
+Authority:
+- `ML-DEVOS-RFC-014 — ACCEPTED`
+- `ML-DEVOS-AS-050 — ARCHITECT_APPROVED`
+- `D-042 — Paulo architecture acceptance + implementation authorization`
 
-Builder commit reviewed:
-- latest Remediation Cycle 3 commit on `governance/maisoglabs-v0.1`
+## Objective
 
-Class:
-- `ARCHITECTURE`
+Implement the smallest faithful V0.1 of the accepted Skills Foundation and Portable Knowledge Treasury architecture without creating new authority, runtime orchestration, remote capability, or provider-specific drift.
 
-Authority chain:
-- `D-038`
-- `D-039`
-- `D-040`
-- `D-041`
-- `ML-DEVOS-AS-042` through `ML-DEVOS-AS-049`
+## Authorized outputs
 
-## Scope
+### A. Four canonical Skills under `.agents/skills/`
 
-### AS50-F001 — PASS — Cycle 3 stayed within the final bounded remediation
-
-Cycle 3 changed only:
-- `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
-- `devos/changes/rfcs/README.md`;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
-
-No Skill payload, Skill/provider directory, Treasury implementation, S3 code, S4+/S5 machinery, product/runtime code, remote resource, credential, deployment, or main merge was created.
-
-## Final cleanup findings
-
-### AS50-F002 — PASS — AS49-F006 closed
-
-The top-level classification table no longer treats a non-public-surfaced repository path as a sufficient privacy boundary.
-
-Sensitive implementation detail now routes conditionally under T10 / `ML-DEVOS-AS-048`:
-- accepted classification;
-- accepted access controls;
-- Git suitability;
-- authorized canonical destination.
-
-Otherwise:
-`STOP / DEFER PERSISTENCE`
-
-`SECRET` / version-control-prohibited material remains excluded from Git.
-
-`RISK-WEB-013` remains open pending separate governed reassessment after `D-041`; this RFC does not silently close it.
-
-### AS50-F003 — PASS — AS49-F007 closed
-
-The External Evidence Basis now records current official OpenAI Skills documentation rather than claiming no official ChatGPT Skills source exists.
-
-The architectural distinction remains correct:
-- ChatGPT supports Skills through product/plugin surfaces;
-- Codex documents repository-local `.agents/skills/` discovery;
-- no cited official evidence establishes arbitrary repository-path scanning by ChatGPT equivalent to Codex.
-
-Therefore ChatGPT remains a separate distribution/integration surface rather than a fifth vote in the repository-path denominator.
-
-### AS50-F004 — PASS — AS49-F008 closed
-
-Cross-references are normalized:
-- repository visibility correction → `D-041 / ML-DEVOS-AS-047`;
-- access-control clarification/canonicalization → `ML-DEVOS-AS-048`;
-- Gemini correction → `AS45-F007` / Cycle 2 remediation.
-
-Historical Architect Sync archives were not rewritten.
-
-## Architecture accepted
-
-### AS50-F005 — PASS — Skill/Governance/Authority boundary
-
-Binding principles remain:
-
-`GOVERNANCE > SKILLS`
-
-`CURRENT AUTHORIZATION > SKILL CAPABILITY`
-
-`CAPABILITY != AUTHORITY`
-
-A Skill is a thin, non-authoritative wrapper around an already-authoritative repeatable procedure.
-
-A Skill never grants:
-- scope;
-- credentials;
-- tool permission;
-- remote-resource authority;
-- deployment;
-- merge;
-- risk acceptance;
-- architecture authority.
-
-### AS50-F006 — PASS — initial V0.1 Skill set is coherent and bounded
-
-Accepted architecture candidate set:
+Implement exactly:
 
 1. Governance / Traceability Audit
 2. Architect Review / Sync
 3. Implementation Handoff
 4. Project Orientation / State Recovery
 
-Each has:
-- purpose/output;
-- activation/non-activation;
-- required context;
-- authoritative sources;
-- core procedure;
-- stop/escalation;
-- governance dependencies;
-- mutation/capability note;
-- positive and near-miss evals.
+Each Skill must:
+- use `SKILL.md`;
+- keep activation/routing + core procedure compact;
+- point to authoritative repository sources instead of copying them wholesale;
+- state activation and non-activation conditions;
+- state inputs/context;
+- state outputs;
+- state stop/escalation conditions;
+- state governance dependencies;
+- state mutation/capability posture;
+- preserve the positive and near-miss negative eval intent from RFC-014;
+- never imply the Skill grants authority.
 
-Knowledge Capture is not included as a fifth Skill.
+No fifth Knowledge Capture Skill is authorized.
 
-### AS50-F007 — PASS — canonical location recommendation is evidence-backed
+### B. Claude Code bridge
 
-RFC-014 recommends:
+Create one `.claude/skills/` exposure bridge for the same four canonical Skills.
 
-`.agents/skills/`
+Requirements:
+- canonical source remains `.agents/skills/`;
+- no independently authored provider copy;
+- use a deterministic generated bridge or equivalently non-diverging mechanism;
+- if a generated copy is used, provide a deterministic sync/check mechanism and a test that detects drift;
+- if the chosen mechanism is not reliable in this repository's Windows/Git environment, STOP and return to Architect instead of introducing fragile synchronization.
 
-as the canonical Skill payload location, with one non-diverging Claude Code exposure bridge.
+### C. Skill evals / validation
 
-Current evidence supports native `.agents/skills/` discovery for:
-- Codex;
-- GitHub Copilot;
-- Gemini CLI.
+Add focused repository-local validation proving at minimum:
+- all four Skills have valid metadata/frontmatter;
+- referenced authoritative source paths exist;
+- activation/non-activation cases are represented;
+- smallest-sufficient routing cases are represented;
+- Architect Review respects `TURN`;
+- Project Orientation does not over-activate when context is already sufficient;
+- a Skill cannot override `AUTHORIZED_SCOPE`;
+- no Skill contains a credential/tool-permission grant or independently grants mutation authority;
+- Claude bridge cannot silently diverge from canonical payload.
 
-Claude Code remains the bridge target.
+Implementation may add a small deterministic validator/test helper if needed.
 
-No provider path may contain independently authored diverging Skill content.
+Do not build an S4/S5 routing engine.
 
-This is an Architect recommendation, not implementation authority. Paulo's explicit ARCHITECTURE decision remains required.
+### D. Portable Knowledge Treasury procedure
 
-### AS50-F008 — PASS — SKILL CHECK routing architecture is bounded
+Create a lightweight manual governed procedure, preferably:
 
-The 10-step provider-neutral routing model is accepted as documentary/procedural design.
+`brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md`
 
-Key invariants:
-- metadata-first discovery;
-- activation and non-activation conditions;
-- smallest sufficient non-conflicting Skill set;
-- live authority check before consequence-bearing actions;
-- progressive disclosure;
-- stop on governance conflict;
-- no evidence/status overclaiming.
+unless Builder grounding identifies a clearly stronger existing canonical procedure location.
 
-No S4/S5 runtime router is created.
+It must implement the accepted workflow:
 
-### AS50-F009 — PASS — external Skill trust model is consequence-sensitive
+`RAW EXPERIENCE → CANDIDATE INSIGHT → REUSE THRESHOLD → CANONICAL-DESTINATION-FIRST SEARCH → DEDUPLICATE → CLASSIFY TYPE + DISCLOSURE → REQUIRED APPROVAL → PERSIST → TRACE → REUSE`
 
-Accepted architecture:
-- reference-only/procedural external Skills → provenance, inspection, overlap check, pinning/review;
-- executable/capability-adjacent Skills → applicable capability/security/Paulo gate.
-
-Lifecycle includes revalidation triggers.
-
-`FOUND ONLINE != TRUSTED`
-
-`PREVIOUSLY REVIEWED != TRUSTED FOREVER`
-
-### AS50-F010 — PASS — Portable Knowledge Treasury architecture is coherent
-
-Accepted discovery architecture:
-
-`AI ACCOUNTS / CHATS = LABORATORIES`
-
-`GOVERNED REPOSITORY = DURABLE TREASURY`
-
-Treasury is a selective routing/classification discipline, not a competing store.
-
-Flow:
-`RAW EXPERIENCE → CANDIDATE INSIGHT → DEDUPLICATE → CLASSIFY → DISCLOSURE FILTER → CANONICAL DESTINATION → REQUIRED APPROVAL → PERSIST → TRACE → REUSE`
-
-It preserves:
-- durable-reuse threshold;
-- candidate insight != accepted durable knowledge;
-- type + disclosure classification;
-- canonical-destination-first dedup;
-- DUPLICATE / UPDATE / EVIDENCE_ONLY / NEW / SUPERSEDES outcomes;
-- provider-neutral provenance;
+It must preserve:
+- `CANDIDATE INSIGHT != ACCEPTED DURABLE KNOWLEDGE`;
+- outcomes `DUPLICATE / UPDATE / EVIDENCE_ONLY / NEW / SUPERSEDES`;
+- provider-neutral source/provenance;
 - public/private safeguards;
-- anti-bloat metrics;
-- reuse/application targets.
+- no full-chat archival requirement;
+- anti-bloat bias;
+- reuse/application target;
+- STOP/DEFER behavior for unresolved sensitive storage.
 
-### AS50-F011 — PASS — Knowledge Capture direction
+No automation that scrapes ChatGPT, Claude, Codex, or account histories is authorized.
 
-Architect accepts the RFC's V0.1 direction:
+### E. Knowledge / Principles canonical record
 
-`TREASURY = LIGHTWEIGHT GOVERNED PROCEDURE`
+Create:
 
-not:
+`brain/KNOWLEDGE_PRINCIPLES.md`
 
-`KNOWLEDGE CAPTURE = STANDALONE SKILL`
+unless grounding finds an already-existing canonical equivalent.
 
-A future Skill may wrap that procedure only after it is authoritative, repeatable, and evaluated.
+Purpose:
+- residual reusable engineering lessons only;
+- not Governance;
+- not current STATE;
+- not ADR/RFC;
+- not evidence/test results;
+- not Journal/public copy;
+- not secret storage.
 
-### AS50-F012 — PASS — S3 relationship remains clean
+Keep the record lightweight.
 
-Skills/Treasury discovery did not identify a mandatory S3 authority-model change.
+Do not invent a new formal ID namespace or extend Traceability V1 merely to support this file in V0.1 unless a pre-existing convention already applies cleanly. If a new namespace appears necessary, STOP and return to Architect.
 
-S3 remains:
-`PAUSED / QUEUED — AUTHORITY PRESERVED`
+Do not bulk-import historical chats.
 
-Preserved:
-- `ML-DEVOS-RFC-013`;
-- `ML-DEVOS-AS-038`;
-- `D-037`.
+### F. Minimal orientation/routing integration
 
-No S3 implementation is resumed by this review.
+Builder may make narrowly necessary updates to:
+- `AGENTS.md`;
+- `CLAUDE.md`;
+- `brain/00_HOME.md`;
+- closely related existing routing/onboarding documentation;
 
-## Open Product / Risk Owner decisions
+only to expose:
+- the `SKILL CHECK` convention;
+- canonical Skill location;
+- Treasury procedure location;
+- authority precedence.
 
-Architecture review is complete, but RFC-014 is still `DRAFT` and implementation is not authorized.
+Do not duplicate full Skill or governance bodies into those files.
 
-Paulo must decide explicitly on the architecture before any Builder implementation cycle opens.
+## Allowed file areas
 
-### Decision A — RFC-014 architecture acceptance
+- `.agents/skills/**`
+- `.claude/skills/**`
+- `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md`
+- `brain/KNOWLEDGE_PRINCIPLES.md`
+- focused Skills/Treasury tests and deterministic local helper(s)
+- `AGENTS.md`
+- `CLAUDE.md`
+- `brain/00_HOME.md`
+- normal implementation handoff/state/bookkeeping
+- `devos/devos-manifest.json` only if an existing manifest field cleanly supports recording the accepted Skill root without schema invention; otherwise leave unchanged and report the gap.
 
-Accept or reject the Skills Foundation V0.1 + Portable Knowledge Treasury architecture as reviewed in AS-050.
+## Explicitly prohibited
 
-### Decision B — canonical Skill payload
+No:
+- fifth Knowledge Capture Skill;
+- independently authored duplicate provider Skills;
+- external Skill installation;
+- executable external Skill adoption;
+- new provider account integration;
+- chat scraping/import;
+- giant chat archive;
+- new database/service;
+- S11 memory system;
+- S3 implementation during this cycle;
+- S4+;
+- S5 Capability Gateway;
+- product/runtime/public-site mutation;
+- remote D1/R2;
+- credentials/secrets in Git;
+- deployment;
+- protected/main merge;
+- `RISK-WEB-013` closure.
 
-Architect recommendation:
-`.agents/skills/` canonical payload
-+ one non-diverging Claude Code bridge.
+## Required evidence
 
-### Decision C — Knowledge Capture/Treasury V0.1 direction
+Builder handoff must provide:
+- exact base/result SHA;
+- exact changed-file list;
+- exact canonical Skill paths;
+- exact Claude bridge strategy;
+- proof bridge cannot diverge silently;
+- per-Skill activation/non-activation mapping;
+- source-reference existence validation;
+- focused validator/eval results;
+- full existing test-suite sanity result if practical;
+- Treasury procedure review against RFC-014 T2–T13;
+- confirmation no chat/provider account was scraped/imported;
+- confirmation no secrets/credentials were added;
+- confirmation no S3/S4+/S5/runtime/remote/deploy/main work occurred;
+- limitations/open questions.
 
-Architect recommendation:
-lightweight governed Treasury procedure first; no standalone Knowledge Capture Skill in V0.1.
+## Return gate
 
-### Decision D — residual Knowledge/Principles canonical record
+After implementation:
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-RFC-014 identifies a residual class of reusable engineering lessons that has no existing canonical record type.
+Builder must not self-accept the implementation.
 
-Decision remains whether/when to authorize a lightweight canonical Knowledge/Principles record and under what governed change.
+## Sequencing after closure
 
-This is not required to approve the rest of RFC-014 if Paulo chooses to defer it.
+S3 remains paused during this cycle.
 
-### Decision E — RISK-WEB-013 reassessment
-
-Repository visibility changed under `D-041`.
-
-A separate governed reassessment is required before changing the risk's status.
-
-This may be scheduled independently and does not need to block architecture acceptance if Paulo keeps automated public/private routing out of scope.
-
-### Decision F — implementation authorization
-
-Even after architecture acceptance, a separate explicit implementation authorization is required before:
-- creating `.agents/skills/`;
-- creating any Claude bridge;
-- writing the four Skill payloads;
-- creating/operationalizing the Treasury procedure;
-- creating a Knowledge/Principles record;
-- resuming S3.
-
-## Verdict
-
-`ML-DEVOS-AS-050: ARCHITECT_APPROVED — RFC-014 SKILLS FOUNDATION V0.1 / PORTABLE KNOWLEDGE TREASURY DISCOVERY ARCHITECTURE ACCEPTED — PAULO DECISION REQUIRED`
-
-This verdict approves architectural compatibility only.
-
-It grants no implementation, S3 resumption, remote-resource, deployment, main-merge, secret-storage, or external-Skill installation authority.
+If this V0.1 implementation is independently accepted by Architect with no new blocker, D-042 pre-authorizes the Architect to reopen S3 under preserved `D-037 / ML-DEVOS-AS-038` authority without another Paulo approval.
