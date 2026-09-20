@@ -719,3 +719,18 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Audit requirement:** exact before/after ERROR fingerprints, full validator output and exit code, generated-index currency, diff whitelist and evidence provenance. Known pre-existing missing-target errors CORE-022 and WEB-REQ-009 remain disclosed, not fabricated away. No unexpected new ERROR is acceptable.
 - **Return gate:** Architect reviews the proposed design and audit before any S4 implementation authorization. A later Paulo decision must authorize implementation of the reviewed design.
 - **Prohibited:** S4 executable implementation or live state storage; S5+; changes to frozen architecture, core rules, manifest, capability baseline, version or ADRs; product/runtime changes; coordination bridge/workflow edits; remote resources or credentials; deployment/production writes; protected/main merge; PR #10 merge or auto-merge. Existing bootstrap coordination remains authoritative.
+
+
+### D-049 — Authorize one S4 stale-lock micro-remediation and lean Builder mode
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Paulo explicitly stated: `approved one micro remediation`.
+- **Decision:** Authorize exactly one additional bounded design-remediation pass for `ML-DEVOS-RFC-016`, solely to close the remaining AS65-F001 stale-lock safety issue identified after remediation HEAD `cead2405e0147967bb89391c4d772d0579d94009`.
+- **Remediation cap:** raise `MAX_REMEDIATION_CYCLES` from `1` to `2` for this S4 proposal cycle only. `CURRENT_REMEDIATION_CYCLE` becomes `2`. This is not a general change to Architect Sync policy and grants no further autonomous cycles.
+- **Exact required delta:** remove automatic age-based stale-lock stealing from the proposed V1 persistence design; ordinary mutation must fail closed when a lock is held or suspected orphaned; define an explicit operator/admin recovery boundary after confirming no active writer remains; update only the directly affected crash/recovery/concurrency test-plan and mapping text.
+- **Preserve closed findings:** AS65-F002, AS65-F003, AS65-F004, and the previously closed clarifications must remain closed and must not be redesigned or expanded.
+- **Builder efficiency rule:** this turn and subsequent bounded Builder turns use **LEAN / DELTA-ONLY** mode. Claude reads `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, and the exact authorized mutation files first; additional files are read only when an active finding specifically requires a cited source. No whole-history reread, narrative restatement, unrelated cleanup, or broad test pass.
+- **Authorized files:** `devos/changes/rfcs/ML-DEVOS-RFC-016.md`; traceability derived outputs only if changed by required regeneration; `coordination/IMPLEMENTER_HANDOFF.md`; `coordination/STATE.md`.
+- **Return gate:** return to Architect review with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `CURRENT_REMEDIATION_CYCLE: 2`, `MAX_REMEDIATION_CYCLES: 2`, and all mutation/remote/deploy/main prohibition flags still `NO`.
+- **Not authorized:** executable S4 implementation or live task-state storage; edits to frozen architecture, CORE rules, S3 schema/validator, manifest, version records, ADRs, workflows, product/runtime code; S5+; credentials or remote resources; deployment/production writes; protected/main merge; PR #10 merge/auto-merge.
+- **Implementation gate unchanged:** successful completion of this micro-remediation still returns only to Architect design review. A separate later Paulo decision is required before any S4 implementation.
