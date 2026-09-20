@@ -687,3 +687,22 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Manifest baseline pointer:** for this coordinated release, the manifest's single `sentinel_capability_baseline.adr` pointer uses the ordered final adoption / release-closing S3 ADR; the separate RFC-015 ADR remains co-effective at `v1.6.0` and is preserved in closure history.
 - **S4:** remains **UNAUTHORIZED**. Successful v1.6.0 closure does not itself authorize S4; S4 State Machine Kernel is only the default next proposal candidate after D.2 verification.
 - **Still prohibited:** core-rule mutation, unrelated governance expansion, product/runtime mutation, remote/cloud resource changes, credentials, deployment, production writes, protected/main merge, or S4+ implementation.
+
+
+### D-047 — Authorize bidirectional Sentinel agent handoff bridge and visible handoff logs
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After Sentinel v1.6.0 D.2 closure, Paulo explicitly approved completing the reverse ChatGPT → Claude event bridge before S4 and requested that handoff logs always be displayed in ChatGPT for inspection.
+- **Decision:** Authorize a bounded automation-infrastructure setup that makes Builder wake-up event-driven while preserving `coordination/STATE.md` as the sole turn/authorization authority.
+- **Authorized design:**
+  1. GitHub push activity on `governance/maisoglabs-v0.1` may wake a Claude Code GitHub Actions runner.
+  2. The runner MUST gate before Claude execution on live `TURN: CLAUDE` AND `IMPLEMENTER_ACTION_REQUIRED: YES`.
+  3. If the gate is false, Claude MUST NOT run and the workflow must make no repository mutation.
+  4. If the gate is true, Claude may perform only the live `AUTHORIZED_SCOPE`, must read the existing repository instructions / Architect handoff, and must obey all live prohibitions.
+  5. Claude must return control through the existing `coordination/STATE.md` protocol; it must not invent authority, merge PR #10, deploy, or expand scope.
+  6. Claude execution evidence must be written to the existing Implementer handoff/evidence surfaces so the ChatGPT PR #10 wake-up task can display a compact handoff log to Paulo.
+  7. ChatGPT qualifying Architect handoffs must always surface a visible compact log in chat; successful handoffs are not silent.
+- **Authentication rule:** Anthropic credentials must never be committed to Git. Authentication must use GitHub Actions secrets or an approved short-lived identity mechanism. Secret values must not be printed in logs.
+- **Least-privilege rule:** workflow permissions and Claude tools must be bounded to the Builder role; no deployment, remote-resource, protected/main merge, secret-management, or later-phase authority is granted.
+- **S4:** remains unauthorized. This bridge is infrastructure setup only and does not itself start S4.
+- **Activation condition:** the reverse bridge is not considered operational until an end-to-end test proves that a real `TURN: CLAUDE` handoff wakes Claude, Claude respects the live scope, returns `TURN: ARCHITECT`, and the existing ChatGPT event task detects the return.
