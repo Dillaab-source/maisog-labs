@@ -3,7 +3,7 @@
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
 TURN: CLAUDE
 STATUS: CHANGES_REQUESTED
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_1
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_1_PLUS_PORTABLE_KNOWLEDGE_TREASURY_DISCOVERY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
@@ -20,6 +20,8 @@ MAIN_MERGE_AUTHORIZED: NO
 ## Product / Risk Owner priority
 
 `D-038 — Skills Foundation discovery remains the immediate priority.`
+
+`D-039 — Portable Knowledge Treasury discovery is integrated into this same discovery cycle; no parallel subsystem is authorized.`
 
 ## S3 status
 
@@ -50,6 +52,9 @@ Remediate only:
 3. `AS42-F005` — make external-skill adoption consequence-sensitive instead of universally CAPABILITY-gated;
 4. `AS42-F006` — add durable source provenance for current provider/ecosystem claims.
 
+Additional bounded discovery requirement:
+5. `ML-DEVOS-AS-043 / D-039` — integrate Portable Knowledge Treasury discovery: classify/deduplicate durable insight, map canonical destinations, determine whether Knowledge Capture is a Skill/composition/lightweight procedure, design provider-portable provenance and public/private safeguards, and report the 14 required treasury outputs.
+
 ## Authorized remediation files
 
 - `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
@@ -63,7 +68,7 @@ No:
 - actual skill implementation;
 - skill directories;
 - provider adapter directories;
-- new knowledge-capture subsystem/procedure unless separately authorized;
+- new knowledge-capture subsystem/procedure implementation (discovery/design only);
 - S3 implementation;
 - S4+ / S5 capability machinery;
 - product/runtime/public-site changes;
@@ -87,4 +92,4 @@ After remediation:
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Builder must return the corrected RFC and exact evidence/diff without self-authorizing Skills implementation or S3 resumption.
+Builder must return the corrected RFC, the Portable Knowledge Treasury discovery outputs, and exact evidence/diff without self-authorizing Skills implementation, treasury implementation, or S3 resumption.
