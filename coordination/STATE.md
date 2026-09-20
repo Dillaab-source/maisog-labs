@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S3_TYPED_TASK_CONTRACTS_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: S3_TYPED_TASK_CONTRACTS_REMEDIATION_CYCLE_1
-ARCHITECT_ACTION_REQUIRED: YES
+CYCLE_ID: SENTINEL_S3_TYPED_TASK_CONTRACTS_CLOSURE_GATE
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: S3_CLOSURE_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,81 +17,56 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Technical stage gate
 
-- `D-037`
-- `ML-DEVOS-RFC-013`
-- `ML-DEVOS-AS-038`
-- `D-042`
-- `ML-DEVOS-AS-053`
-- `ML-DEVOS-AS-054 — CHANGES_REQUESTED`
+`ML-DEVOS-AS-055 — SENTINEL S3 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-## Accepted S3 implementation areas
+S3 Typed Task Contracts implementation is technically accepted and ready for closure.
 
-Preserve:
-- Task Contract architecture;
-- JSON Schema shape;
-- bounded evidence vocabulary;
-- fixed authority disclaimer;
-- valid/invalid fixture model;
-- no-authority boundary;
-- S4+ non-scope;
-- CORE-020 lifecycle interpretation.
+## Evidence disposition
 
-## Closed blockers
+- schema/spec/validator implementation: independently inspected;
+- critical MAIN/DEPLOYED AND/OR logic: independently reproduced by deterministic reasoning;
+- Builder focused/full test counts remain actor-reported;
+- no runtime/production claim is made.
 
-1. `AS54-F003` — CLOSED. MAIN/DEPLOYED validation now uses a `guaranteesOneOf` check over the all_of/any_of AND/OR semantics, not a "somewhere" presence check.
-2. `AS54-F004` — CLOSED. The structural validator's `isStringArray` now enforces the schema's `minLength: 1` item rule for all seven affected string-array fields.
-3. `AS54-F005` — CLOSED. The invented blanket rejection of extra `RUNTIME_OBSERVED` evidence on DEPLOYED claims was removed; only the corrected guaranteed-ACTOR_REPORTED/CI_ATTESTED check applies.
+## Current baseline
 
-## Authorized remediation files
+`Sentinel governance-capability baseline: v1.5.0`
 
-Claude may modify only:
-- `devos/contracts/validate-task-contract.mjs`;
-- `devos/contracts/TASK_CONTRACT_SPEC.md`;
-- `devos/contracts/examples/**` as needed;
-- `devos/contracts/README.md` only if needed;
-- `tests/task-contract.test.mjs`;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+Architect version assessment:
+`MINOR → proposed v1.6.0`
 
-## Required return evidence
+Proposed closure ADR:
+`ML-DEVOS-ADR-011`
 
-Return:
-- exact base/result SHA;
-- changed-file list;
-- MAIN mixed-branch bypass test;
-- DEPLOYED mixed-branch bypass test;
-- stronger-valid DEPLOYED + RUNTIME test;
-- empty-string structural parity tests;
-- focused S3 test result;
-- full-suite result if practical;
-- no S4+/runtime/remote/deploy/main/version work confirmation.
+## Paulo decision required
 
-## Hard boundaries
+Approve/reject:
+1. adopt S3 into active Sentinel baseline;
+2. create ADR-011;
+3. apply v1.5.0 → v1.6.0;
+4. update manifest `devos/contracts/` implementation status;
+5. append S3 closure history;
+6. perform normal RFC/status/version/closure bookkeeping.
+
+## Hard boundary
+
+No S4 proposal or implementation is authorized by AS-055 alone.
 
 No:
-- core-rule mutation;
-- RFC-013 lifecycle/status update in this remediation;
-- ADR/version/manifest closure work;
-- S4+;
-- product/runtime changes;
-- remote resources;
+- product/runtime mutation;
+- remote/cloud resources;
 - credentials;
 - deployment;
 - production writes;
-- protected/main merge.
+- protected/main merge;
+- core-rule mutation
 
-## Return gate
+is authorized.
 
-After remediation:
-- `TURN: ARCHITECT`;
-- `STATUS: READY_FOR_ARCHITECT`;
-- `ARCHITECT_ACTION_REQUIRED: YES`;
-- `IMPLEMENTER_ACTION_REQUIRED: NO`.
+## Next gate
 
-Builder must not self-accept or start S4.
+Paulo Product/Risk Owner S3 closure decision.
 
-## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See "Sentinel S3 Typed Task Contracts — Remediation Cycle 1 (ML-DEVOS-AS-054)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS54-F003` -- replaced the `includesSomewhere` presence check with a `guaranteesOneOf` guarantee check (all_of contains a required class, OR any_of is non-empty and every alternative is a required class) for MAIN/DEPLOYED, closing the exact mixed-any_of bypasses the review demonstrated; new bounded invalid fixtures for both. `AS54-F004` -- `isStringArray` now rejects empty-string items, matching the schema's `minLength: 1` on all 7 affected array fields; 7 new focused tests plus 1 positive control. `AS54-F005` -- removed the invented DEPLOYED RUNTIME_OBSERVED-in-all_of ban; CORE-017 is now correctly treated as a floor, not a ceiling; new valid fixture proves a DEPLOYED claim with guaranteed ACTOR_REPORTED plus additional RUNTIME_OBSERVED passes; the old invalid fixture was renamed and its stated failure reason corrected to the actual one (missing guaranteed class, not a ban on stronger evidence). 44/44 focused tests (30 prior + 14 new); 15/15 bundled example fixtures behave as expected; 436/436 full suite (422 prior + 14 new). No core rule, RFC-013, or manifest was touched; no S4+/runtime/remote/deploy/main/version work occurred. Builder has not self-accepted S3.
+No Builder closure work starts until Paulo explicitly approves it.
