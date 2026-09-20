@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_BIDIRECTIONAL_HANDOFF_BRIDGE_TEST
-TURN: CLAUDE
-STATUS: AUTHORIZED_NOOP_ACTIVATION_TEST
-AUTHORIZED_SCOPE: HANDOFF_BRIDGE_NOOP_TEST_ONLY
+TURN: ARCHITECT
+STATUS: RUNNER_REMEDIATION_IN_PROGRESS
+AUTHORIZED_SCOPE: HANDOFF_BRIDGE_RUNNER_REMEDIATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 1
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -21,37 +21,20 @@ MAIN_MERGE_AUTHORIZED: NO
 
 D-047 — bidirectional Sentinel agent handoff bridge and visible handoff logs.
 
-Paulo has confirmed the required Claude GitHub Actions authentication is configured.
+## Test finding
 
-## Authorized test
+The authenticated no-op bridge run reached Claude successfully, but Claude could not return the handoff because the workflow's explicit tool allowlist permitted only read-only git commands. The action completed with permission denials and made no repository mutation.
 
-Perform only the controlled D-047 no-op activation test defined in coordination/ARCHITECT_REVIEW.md.
+## Authorized remediation
 
-Claude must:
-- read the live STATE and Architect handoff;
-- perform no product, DevOS-phase, governance-policy, version, manifest, deployment, remote-resource, or protected/main mutation;
-- append only the compact Builder handoff evidence required by the test;
-- return TURN to ARCHITECT using the exact test return gate.
+Runner-only:
+- allow the minimum git write commands required for the authorized Builder handoff: git add, git commit, git push, and git rev-parse;
+- preserve existing read-only/test commands;
+- correct PR-event input-HEAD logging to use the actual pull-request head SHA rather than the synthetic pull-request merge SHA;
+- no other scope expansion.
 
 ## Hard boundaries
 
-No:
-- S4 proposal/implementation;
-- new ADR/Decision/version;
-- manifest/RFC/core-rule mutation;
-- product/runtime mutation;
-- remote resources or credentials;
-- deployment/production;
-- protected/main merge;
-- PR #10 merge.
+No S4, product/runtime, manifest/version, remote resources, deployment, production, protected/main merge, or credential-value mutation.
 
-## Success return gate
-
-After successful no-op Builder execution:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: HANDOFF_BRIDGE_TEST_VERIFICATION_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-
+After runner remediation, reopen the same controlled D-047 no-op activation test.
