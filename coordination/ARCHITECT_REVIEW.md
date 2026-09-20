@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — WEB-REL-001 RELEASE READINESS ASSESSMENT MAY PROCEED`
+Status: `ARCHITECT_APPROVED — WEB-REL-001 ASSESSMENT COMPLETE`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,110 +8,148 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-034 — Production Release Readiness Gate
+# ML-DEVOS-AS-035 — WEB-REL-001 Production Release Readiness Final Review
 
-RFC:
+Authority:
 - `ML-DEVOS-RFC-011`
+- `ML-DEVOS-AS-034`
+- `D-034`
 
-Phase:
-- `WEB-REL-001 — Production Release Readiness`
+Builder report:
+- `docs/release/WEB_REL_001_READINESS_REPORT.md`
+- handoff commit: `2dad542f2c80fb462da83285640728a62d8da09d`
 
-Change class:
-- `LOCAL_RULE`
+## Independent checks
 
-## Repository-grounded release facts
+Architect independently re-checked:
 
-The Architect independently confirmed:
+- governed branch vs `main`;
+- repository rulesets;
+- branch protection state;
+- GitHub Actions run state;
+- readiness report blocker/gate logic.
 
-- core WEB roadmap is closed at repository/local level;
-- governance branch HEAD at phase opening: `aeb335f43cfd95d81bd550231a88d48ec47cb8ad`;
-- default branch is `main`;
-- main HEAD: `887849283ee9cd16e8d60b937bac95b1c85bf3d9`;
-- governed branch is 355 commits ahead of main;
-- repository rulesets: none;
-- main protected: false;
-- governance branch protected: false;
-- GitHub Actions workflows: none;
-- workflow runs: none;
-- tracked Access team/AUD values remain placeholders;
-- D1 and R2 remain local-only (`remote: false`);
-- no production deployment/remote verification exists.
+Observed:
+- `main` remains an ancestor of the governed branch;
+- governed branch is now ahead by the readiness documentation commit in addition to the assessed base;
+- repository rulesets remain empty;
+- all listed branches remain `protected: false`;
+- GitHub Actions run count remains zero.
+
+Builder execution evidence for tests/build/migrations/local smoke remains `ACTOR_REPORTED`.
 
 ## Findings
 
-### AS34-F001 — PASS — release-readiness assessment is the correct next phase
+### AS35-F001 — PASS — assessment scope stayed bounded
 
-The product build is locally complete, but the release path is not.
+Only:
+- readiness report;
+- implementer handoff;
+- coordination state
 
-A readiness assessment is required before any merge/deployment authority can be safely evaluated.
+changed in WEB-REL-001.
 
-### AS34-F002 — PASS — CORE-021 is triggered
+No application/runtime/schema/resource/release mutation occurred.
 
-This would be the project's first governed protected-main merge and/or first production deployment under the current architecture.
+### AS35-F002 — PASS — release diff is structurally understood
 
-Therefore minimum technical protection must be reviewed before authorization.
+The report establishes:
+- `main` is a clean ancestor of the governed branch;
+- the governed branch contains the complete WEB/Sentinel build history;
+- no divergent main history currently needs reconciliation.
 
-### AS34-F003 — PASS — current GitHub technical protection is insufficient for release
+### AS35-F003 — PASS — local technical evidence is strong enough for readiness planning
 
-At phase opening:
+Builder reports:
+- `338/338` tests;
+- successful static build;
+- successful Wrangler dry-run;
+- `npm audit` with zero vulnerabilities;
+- fresh migrations 0001–0005;
+- exactly 22 product tables;
+- expected local public/admin route behavior.
 
-- no rulesets exist;
-- main is unprotected;
-- no CI workflow/check exists.
+These are sufficient for a release-readiness packet, but remain insufficient by themselves for a protected-main or production VERIFIED claim under CORE-020.
 
-This does not block the readiness assessment itself, but it blocks any claim that the project is ready for a protected main merge.
+### AS35-F004 — PASS — CORE-021 blocker is correctly identified
 
-### AS34-F004 — PASS — CORE-020 requires stronger evidence before release
+Current release protections remain absent:
+- no rulesets;
+- branches unprotected;
+- no CI workflow/runs.
 
-Builder-reported local test/build evidence is acceptable for repository/local acceptance but insufficient by itself for protected-main/production claims.
+Therefore no protected-main release claim may proceed yet.
 
-The readiness packet must identify how test/build evidence will be independently reproduced and/or CI-attested before release.
+### AS35-F005 — PASS — single-owner reviewer constraint is handled without fabricated identity
 
-### AS34-F005 — PASS — CORE-019 will govern later Cloudflare production authority
+The report correctly does not invent a second reviewer.
 
-Any later real Cloudflare authorization must separately identify exact:
+The recommended future technical protection may require:
+- PR;
+- no direct push;
+- no force push;
+- no main deletion;
+- CI status;
+- narrow owner/admin bypass;
 
-- D1 resource;
-- R2 resource;
-- Access application/config;
-- Worker/deployment target;
-- environment;
-- allowed operations;
-- denied/destructive operations;
-- acting identity/credential class;
-- rollback/revocation/evidence expectations.
+while deferring mandatory second-person approval until a genuine second maintainer exists.
 
-WEB-REL-001 does not grant any of that authority.
+### AS35-F006 — PASS — production blockers are explicit
 
-### AS34-F006 — PASS — main merge and production deployment remain separate gates
+Release blockers are correctly separated:
 
-A future PR/merge decision and a future Cloudflare deployment/resource decision must remain distinct.
+Protected-main blockers:
+- B1 no GitHub technical protection;
+- B2 no CI.
 
-Neither is authorized by a readiness assessment.
+Deployment blockers:
+- B3 Access placeholders;
+- B4 no production D1;
+- B5 no production R2 for media capability;
+- B6 no Worker/domain production target.
+
+### AS35-F007 — PASS — merge/deploy/verified states remain distinct
+
+The report preserves:
+- protection/CI;
+- PR;
+- main merge;
+- production resource authorization;
+- deploy;
+- runtime verification
+
+as separate future gates.
+
+### AS35-F008 — PATCH APPLIED — one inventory heading corrected
+
+Report section 3d previously said `(2 files)` while listing three files:
+- `wrangler.jsonc`;
+- `package.json`;
+- `package-lock.json`.
+
+The correct category count is 3, which matches the Builder handoff arithmetic and total 181-file inventory. This was a documentation-only counting typo and not a release blocker.
 
 ## Verdict
 
-`ML-DEVOS-AS-034: ARCHITECT_APPROVED — WEB-REL-001 ASSESSMENT-ONLY RELEASE READINESS MAY PROCEED`
+`ML-DEVOS-AS-035: ARCHITECT_APPROVED — WEB-REL-001 ASSESSMENT COMPLETE`
 
-Claude may:
+The readiness assessment is accepted.
 
-- inspect;
-- run local/read-only/dry-run checks;
-- prepare the release packet;
-- document the exact main diff;
-- recommend GitHub protection/CI;
-- recommend production resource scopes;
-- prepare rollback/runtime-verification plans.
-
-Claude may not:
-
-- create/modify rulesets or branch protection;
-- activate CI;
-- merge/push main;
-- touch remote D1/R2;
-- configure production Access;
+This verdict does **not** authorize:
+- GitHub ruleset/protection mutation;
+- CI activation;
+- PR merge;
+- main merge;
+- remote D1/R2;
+- production Access configuration;
 - deploy;
-- modify DNS/domain;
-- perform production data writes.
+- DNS/domain mutation;
+- production writes.
 
-The next release authority decision must come after Architect review of the readiness packet.
+The next production-oriented gate remains:
+
+`Gate A — Technical protection + minimal CI`
+
+and requires a separate Paulo authorization.
+
+Local/product work may continue on separately governed feature/design cycles because B1–B6 block release actions, not repository-local development.
