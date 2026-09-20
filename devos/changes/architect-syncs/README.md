@@ -6,6 +6,8 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-065.md` — S4 State Machine Kernel final design stage gate; closes AS65-F001 through AS65-F004 after two bounded remediation cycles and concludes `ARCHITECT_APPROVED — PAULO IMPLEMENTATION DECISION REQUIRED`. Accepted design keeps passive timeout observation in S4, per-project V1 Task Policy, bounded transition provenance in Task Engine State, fail-closed orphan-lock handling, and separately authorized force-clear maintenance.
+
 - `ML-DEVOS-AS-064.md` — D-047 bridge activation verification; verbatim rolling review from `ceebf557ab2eff79b89e080230c46e8b2921ee78`, preserving acceptance and the follow-on Actions observation.
 
 - `ML-DEVOS-AS-063.md` — final D.2 coordinated v1.6.0 closure verification; AS-062 provenance cleanup independently verified and closure accepted, with no S4/deploy/remote/main authority.
