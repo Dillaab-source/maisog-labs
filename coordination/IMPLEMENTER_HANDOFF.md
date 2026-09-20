@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION`, bounded S4 State Machine Kernel implementation and focused tests complete under `D-050`, awaiting independent Architect implementation review (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION`, remediation cycle 1 of 2 complete (S4I-F001..F005 resolved), awaiting independent Architect re-review (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "S4 State Machine Kernel — Bounded Implementation (D-050 / ML-DEVOS-AS-065)" section at the very end of this document for the exact scope and evidence of this implementation cycle. **No S4 closure is claimed** — `devos/devos-manifest.json`'s `devos/state/` entry remains `NOT_IMPLEMENTED`, unchanged.
+**Current cycle:** see the "S4 Implementation Remediation Cycle 1 (S4I-F001..F005)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY remediation. **No S4 closure is claimed** — `devos/devos-manifest.json`'s `devos/state/` entry remains `NOT_IMPLEMENTED`, unchanged.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "S4 State Machine Kernel — Bounded Implementation (D-050 / ML-DEVOS-AS-065)" section further below for the exact scope and evidence of the original implementation cycle. That implementation's Stage Gate Review returned `CHANGES_REQUESTED` with five bounded S4-local correctness findings (`S4I-F001` through `S4I-F005`), all resolved in the current cycle above.
 
 ---
 
@@ -3616,3 +3620,37 @@ No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, versi
 ### Next expected actor
 
 `ARCHITECT` — per the return gate below and the brief's explicit "Builder output remains ACTOR_REPORTED until Architect independently reproduces focused S4 tests."
+
+---
+
+## S4 Implementation Remediation Cycle 1 (S4I-F001..F005)
+
+**Authority:** `D-050` (unchanged). Architect Stage Gate Review of implementation HEAD `5f2377b68b600c62605fae5c94c92d5c28ce1ed8` returned `CHANGES_REQUESTED`, five bounded S4-local findings. `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`. **LEAN / DELTA-ONLY mode** — no full governance history reread, no unrelated cleanup.
+
+**Input HEAD:** `0147e4bc451e70b4ff2d8a3185ca99e2a541d646`.
+
+**Files changed:** `devos/state/kernel.mjs`, `devos/state/lifecycle.mjs`, `devos/state/store.mjs`, `tests/state-lifecycle.test.mjs`, `tests/state-kernel.test.mjs`, `devos/governance/traceability/{traceability-index.json,TRACEABILITY_INDEX.md}` (regenerated, drift-free). No other file touched — `validate-task-state.mjs`, `task-state.schema.json`, `task-policy.mjs`, `README.md`, the concurrency test/fixture were not affected by this delta.
+
+**S4I-F001 (missing transition-table guards) — fixed:** added `decisionRef`-required guards for `REVIEW->APPROVED`, `REVIEW->CHANGES_REQUESTED`, `PAULO_DECISION_REQUIRED->BUILDING`; `evidenceRef`-presence-only (no class judgment) guards for `PLANNING->READY_FOR_BUILD`, `MERGED->RELEASE_READY`; a generic "every `->ABANDONED` requires `decisionRef`" rule layered on top of the existing role gate. `decisionRef` is now bound into `transition()`'s idempotency comparison alongside `evidenceRef`. Negative tests added in `lifecycle.mjs`'s test file proving each listed guard fails closed when absent.
+
+**S4I-F002 (`QA->BUILDING` left QA owning a Builder-stage task) — fixed:** replaced the destination-based handoff check with an edge-based one (`lifecycle.HANDOFF_EDGES`/`isHandoffEdge(from, to)`), since `BUILDING` has three non-handoff source edges (`READY_FOR_BUILD`, `CHANGES_REQUESTED`, `PAULO_DECISION_REQUIRED`) and one genuine handoff edge (`QA->BUILDING`) that a per-destination predicate cannot express. Added a positive test (Builder claims immediately after `QA->BUILDING`) and a negative test (prior QA owner fenced immediately), and a dedicated test proving `CHANGES_REQUESTED->BUILDING`/`PAULO_DECISION_REQUIRED->BUILDING` retain ownership. Removed the test-only manual `release()` workaround from the retry-ceiling test.
+
+**S4I-F003 (no structural validation at the persistence boundary) — fixed:** `store.mjs`'s `readRecordRaw()` now runs `validate-task-state.mjs`'s validator immediately after `JSON.parse`, throwing a task-scoped `CorruptRecordError` (now carrying an `errors` array) on any structural failure — not only on invalid JSON. `writeRecordAtomic()` validates the same way immediately before persistence, as defense-in-depth against a kernel-logic bug producing a malformed record. Added a test writing syntactically valid but schema-invalid JSON, proving the affected task fails scoped while an unrelated task remains fully readable and mutable.
+
+**S4I-F004 (`task_id` reached filesystem paths before validation) — fixed:** added `lifecycle.isValidTaskId()`/`TASK_ID_PATTERN` as the single canonical assertion, enforced inside `store.mjs`'s `taskFilePath()`/`lockFilePath()` — the exact choke point every public kernel operation funnels through — throwing `InvalidTaskIdError` before `path.join` ever runs with the value. `createTask()` also now rejects an empty/non-string `contract_ref` before acquiring the lock. Added negative tests for lowercase, path-traversal, slash/backslash, too-short/empty ids, and empty `contract_ref`, proving no file is created in the store directory by any rejected id.
+
+**S4I-F005 (lock metadata missing `task_id`) — fixed:** `store.mjs`'s `acquireLock()` now writes `task_id` into the lock payload. Added a test reading the lock file's real content from inside the critical section (via `withTaskLock`), confirming the kernel's own payload — not a hand-written fixture — carries `task_id`.
+
+**Commands/checks (all `ACTOR_REPORTED`):**
+- `node --test tests/state-lifecycle.test.mjs` → `18/18 pass` (14 pre-existing + 4 new/updated for the guard/edge/id changes).
+- `node --test tests/state-kernel.test.mjs` → `21/21 pass` (15 pre-existing + 6 new for S4I-F002/F003/F004/F005).
+- `node --test tests/state-concurrency.test.mjs`, repeated 5 times per the review's requirement → `2/2 pass` every run, no flake.
+- `node --test tests/devos-manifest.test.mjs` → `22/22 pass` (spot-checked; `devos/state` is referenced there only as a manifest path string, not imported code — confirmed via `grep -rl "devos/state"` finding no import outside `devos/state/**`/`tests/state-*`/`tests/fixtures/state-claim-worker.mjs`). Full repository suite skipped per LEAN mode's explicit "only if the focused changes plausibly affect shared code" — verified they do not.
+- Traceability: `generate-traceability.mjs` then `validate-traceability.mjs` → no drift, fingerprint unchanged at exactly `CORE-022` + `WEB-REQ-009` (2 errors; warnings dropped 15→14, a `D-*` orphan resolving from the added implementation-note comments referencing existing Decision IDs, not a suppressed finding).
+- `git status --porcelain` / `git diff --stat` against `ML-DEVOS-RFC-016.md`, the manifest, `ML-DEVOS-ARCH-001.md`, core rules, ADRs, S3, workflows, product/runtime: exactly the authorized files changed; all prohibited surfaces byte-identical to input HEAD.
+
+**Blockers:** none.
+
+**Known limitation carried forward, not addressed this cycle (per the review's own instruction):** the non-blocking discrepancy between RFC-016's prose (every mutating request presents the last-observed revision) and `claim()`'s actual signature (no revision presented) remains open for the eventual closure/ADR documentation, not this remediation.
+
+**Next actor:** `ARCHITECT`.

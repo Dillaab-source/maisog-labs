@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
-AUTHORIZED_SCOPE: S4_IMPLEMENTATION_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: S4_IMPLEMENTATION_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
@@ -19,39 +19,33 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-050 remains the implementation authority. Architect review of implementation HEAD `5f2377b68b600c62605fae5c94c92d5c28ce1ed8` returned CHANGES_REQUESTED for five bounded S4-local correctness findings.
+D-050 remains the implementation authority. This cycle resolves the five bounded S4-local correctness findings (S4I-F001 through S4I-F005) the Architect's Stage Gate Review found in implementation HEAD 5f2377b68b600c62605fae5c94c92d5c28ce1ed8.
 
-No new phase or closure authority is granted.
+## What was delivered this cycle (LEAN / DELTA-ONLY)
 
-## Required remediation
+- S4I-F001: enforced the missing transition-table reference guards (decisionRef for REVIEW->APPROVED/CHANGES_REQUESTED/PAULO_DECISION_REQUIRED->BUILDING and every ->ABANDONED edge; evidenceRef-presence-only for PLANNING->READY_FOR_BUILD/MERGED->RELEASE_READY), bound into transition idempotency.
+- S4I-F002: QA->BUILDING is now an atomic cross-role handoff edge (edge-based HANDOFF_EDGES/isHandoffEdge, not destination-based), fixing the ownership gap without making every ->BUILDING edge a handoff. Test-only manual release() workaround removed.
+- S4I-F003: structural/schema validation now runs at both load (readRecordRaw) and pre-persistence (writeRecordAtomic) via the existing validator; CorruptRecordError now carries structural error detail.
+- S4I-F004: one canonical isValidTaskId() assertion enforced inside taskFilePath()/lockFilePath() before any path.join; createTask() also rejects empty/invalid contract_ref before writing.
+- S4I-F005: lock diagnostic payload now includes task_id.
 
-Read `coordination/ARCHITECT_REVIEW.md` and resolve only:
-- S4I-F001 — enforce all accepted transition-table reference guards;
-- S4I-F002 — make QA → BUILDING an atomic cross-role ownership handoff;
-- S4I-F003 — enforce structural task-state validation at load/write persistence boundaries;
-- S4I-F004 — validate task_id before any filesystem-path use and reject invalid contract_ref at creation;
-- S4I-F005 — include task_id in lock diagnostic metadata.
+Full delta description and command evidence: see the "S4 Implementation Remediation Cycle 1 (S4I-F001..F005)" section of coordination/IMPLEMENTER_HANDOFF.md.
 
-Preserve the already-correct concurrency, idempotency, retry, evidence-class, terminal-state and non-authority behavior.
+## Verification (ACTOR_REPORTED)
 
-## Builder mode
+- tests/state-lifecycle.test.mjs: 18/18 pass. tests/state-kernel.test.mjs: 21/21 pass. tests/state-concurrency.test.mjs: 5/5 repeated runs, 2/2 pass each, no flake.
+- Full repository suite skipped per LEAN mode (confirmed no code outside devos/state/** imports it; tests/devos-manifest.test.mjs only references the path as a manifest string).
+- Traceability regenerated: no drift, fingerprint unchanged at exactly CORE-022 + WEB-REQ-009.
+- Diff whitelist verified via git status/diff: exactly kernel.mjs, lifecycle.mjs, store.mjs, both S4 test files, and the two traceability outputs, plus this file and IMPLEMENTER_HANDOFF.md. RFC-016, manifest, ML-DEVOS-ARCH-001.md, core rules, ADRs, S3, workflows, product/runtime all confirmed byte-identical to input HEAD 0147e4bc451e70b4ff2d8a3185ca99e2a541d646.
 
-LEAN / DELTA-ONLY is mandatory. Read only the live state, Architect review, directly affected devos/state files and focused S4 tests. Do not reread full governance history or perform unrelated cleanup.
+## Preserved / unchanged this cycle
 
-## Hard boundaries
+Already-correct concurrency, idempotency, retry, evidence-class, terminal-state, and non-authority behavior preserved without reopening. devos/state/ manifest entry remains status: NOT_IMPLEMENTED. No S4 closure claimed.
 
-No RFC-016 edit, no manifest activation, no version/ADR/closure, no frozen-architecture/CORE/S3 mutation, no workflow/product change, no S5+, no credentials/remote resources, no deployment/production write, no protected/main merge, no PR #10 merge.
+## Hard boundaries held this cycle
 
-## Return gate
+No RFC-016 edit, no manifest activation, no version/ADR/closure, no frozen-architecture/CORE/S3 mutation, no workflow/product change, no S5+, no credentials/remote resources, no deployment/production write, no protected/main merge, no Issue #11/PR touch.
 
-After remediation and focused verification:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: S4_IMPLEMENTATION_REVIEW_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-- CURRENT_REMEDIATION_CYCLE: 1
-- MAX_REMEDIATION_CYCLES: 2
+## Next step
 
-Keep every prohibition flag NO.
+Architect re-reviews the S4I-F001..F005 delta and independently reproduces the focused S4 tests. CURRENT_REMEDIATION_CYCLE is 1 of MAX_REMEDIATION_CYCLES: 2 -- one further cycle remains available under the existing cap if needed. S4 closure remains unauthorized until independent review and a separately authorized closure package following the D.1/D.2 procedure.

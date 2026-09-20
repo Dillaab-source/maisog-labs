@@ -17,6 +17,8 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { isValidTaskId } from "./lifecycle.mjs";
+import { validate as validateTaskState } from "./validate-task-state.mjs";
 
 export class LockHeldError extends Error {
   constructor(taskId, lockInfo) {
@@ -28,19 +30,43 @@ export class LockHeldError extends Error {
 }
 
 export class CorruptRecordError extends Error {
-  constructor(taskId, cause) {
-    super(`CORRUPT_RECORD: task '${taskId}' state file is not valid JSON`);
+  constructor(taskId, cause, errors) {
+    const detail = errors && errors.length ? ` -- structural errors: ${errors.join("; ")}` : "";
+    super(`CORRUPT_RECORD: task '${taskId}' state file is not valid JSON or fails structural validation${detail}`);
     this.code = "CORRUPT_RECORD";
     this.taskId = taskId;
-    this.cause = cause;
+    this.cause = cause || null;
+    this.errors = errors || [];
   }
 }
 
+// S4I-F004: one canonical task-id assertion, applied at the exact point every
+// task-id-derived filesystem path is constructed -- the choke point every
+// public kernel operation eventually funnels through (withTaskLock,
+// readRecordSafe, forceClearLock). A rejected task_id throws before
+// `path.join` ever runs with it, so a malformed/path-like id (lowercase,
+// containing "/" or "..", empty, too short) never influences filesystem path
+// resolution and never creates or deletes anything outside the task-store
+// directory.
+export class InvalidTaskIdError extends Error {
+  constructor(taskId) {
+    super(`INVALID_TASK_ID: ${JSON.stringify(taskId)} does not match the required task_id shape (^[A-Z][A-Z0-9_-]*$, length >= 3)`);
+    this.code = "INVALID_TASK_ID";
+    this.taskId = taskId;
+  }
+}
+
+function assertValidTaskId(taskId) {
+  if (!isValidTaskId(taskId)) throw new InvalidTaskIdError(taskId);
+}
+
 function taskFilePath(dir, taskId) {
+  assertValidTaskId(taskId);
   return path.join(dir, `${taskId}.json`);
 }
 
 function lockFilePath(dir, taskId) {
+  assertValidTaskId(taskId);
   return path.join(dir, `${taskId}.lock`);
 }
 
@@ -50,6 +76,7 @@ async function acquireLock(dir, taskId, holder, operation) {
     holder,
     operation,
     acquired_at: new Date().toISOString(),
+    task_id: taskId,
     pid: process.pid,
   });
   let handle;
@@ -116,11 +143,23 @@ async function readRecordRaw(dir, taskId) {
     if (err.code === "ENOENT") return null;
     throw err;
   }
+  let record;
   try {
-    return JSON.parse(raw);
+    record = JSON.parse(raw);
   } catch (err) {
     throw new CorruptRecordError(taskId, err);
   }
+  // S4I-F003: RFC-016 requires corrupted on-disk state to be detected at load
+  // time by structural/schema validation, not merely by JSON.parse -- a
+  // syntactically valid but structurally invalid record (wrong state enum,
+  // missing field, softened disclaimer, etc.) must fail exactly like a
+  // torn/invalid-JSON file: scoped to this one task_id, never silently
+  // returned to a caller.
+  const errors = [];
+  if (!validateTaskState(record, errors)) {
+    throw new CorruptRecordError(taskId, null, errors);
+  }
+  return record;
 }
 
 /**
@@ -135,6 +174,14 @@ export async function readRecordSafe(dir, taskId) {
 
 async function writeRecordAtomic(dir, taskId, record) {
   const filePath = taskFilePath(dir, taskId);
+  // S4I-F003 defense-in-depth: validate immediately before persistence too,
+  // not only on load -- a kernel-logic bug that assembled a malformed record
+  // must never itself become the source of a future load-time corruption
+  // finding; it fails loudly here, before ever touching disk.
+  const errors = [];
+  if (!validateTaskState(record, errors)) {
+    throw new CorruptRecordError(taskId, null, errors);
+  }
   const tmpPath = path.join(dir, `${taskId}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`);
   await fs.writeFile(tmpPath, JSON.stringify(record, null, 2), "utf8");
   await fs.rename(tmpPath, filePath);

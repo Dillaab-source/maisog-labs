@@ -16,7 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as kernel from "../devos/state/kernel.mjs";
 import { TASK_POLICY } from "../devos/state/task-policy.mjs";
-import { LockHeldError, CorruptRecordError } from "../devos/state/store.mjs";
+import { LockHeldError, CorruptRecordError, withTaskLock } from "../devos/state/store.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,6 +26,10 @@ function freshDir() {
 
 function evidence(evidenceClass) {
   return { ref: "opaque-nonexistent-ref-never-read-by-kernel", evidenceClass };
+}
+
+function decision(ref = "D-050") {
+  return { ref };
 }
 
 test("full happy-path lifecycle through a handoff chain, evidence-guarded", async () => {
@@ -46,7 +50,7 @@ test("full happy-path lifecycle through a handoff chain, evidence-guarded", asyn
   assert.equal(t1.state, "PLANNING");
 
   const t2 = await kernel.transition({
-    dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: t1.revision, toState: "READY_FOR_BUILD", now: () => 1000,
+    dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: t1.revision, toState: "READY_FOR_BUILD", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 1000,
   });
   assert.equal(t2.owner, null, "READY_FOR_BUILD is itself a handoff destination -- ownership clears here too");
 
@@ -139,7 +143,7 @@ test("designated handoff transitions clear ownership immediately and fence the o
 
   const cBuilder = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
   let s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: cBuilder.revision, toState: "PLANNING", now: () => 0 });
-  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
   const cBuilder2 = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
   s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: cBuilder2.revision, toState: "BUILDING", now: () => 0 });
   const builderPreHandoffRevision = s.revision;
@@ -163,7 +167,7 @@ test("designated handoff transitions clear ownership immediately and fence the o
   const cReviewer = await kernel.claim({ dir, taskId, actorId: "reviewer-1", leaseDurationMs: 3_600_000, now: () => 2 });
   s = await kernel.transition({ dir, taskId, actorId: "reviewer-1", requesterRole: "REVIEWER", expectedRevision: cReviewer.revision, toState: "REVIEW", now: () => 2 });
   const reviewerPreHandoffRevision = s.revision;
-  s = await kernel.transition({ dir, taskId, actorId: "reviewer-1", requesterRole: "REVIEWER", expectedRevision: s.revision, toState: "CHANGES_REQUESTED", now: () => 2 });
+  s = await kernel.transition({ dir, taskId, actorId: "reviewer-1", requesterRole: "REVIEWER", expectedRevision: s.revision, toState: "CHANGES_REQUESTED", decisionRef: decision(), now: () => 2 });
   assert.equal(s.owner, null, "REVIEW -> CHANGES_REQUESTED must clear ownership immediately");
 
   // Builder can re-claim immediately.
@@ -175,6 +179,69 @@ test("designated handoff transitions clear ownership immediately and fence the o
     () => kernel.renew({ dir, taskId, actorId: "reviewer-1", expectedRevision: reviewerPreHandoffRevision, newLeaseDurationMs: 1000, now: () => 3 }),
     (err) => err.code === "NOT_CURRENT_OWNER",
   );
+});
+
+test("S4I-F002: QA->BUILDING is an atomic cross-role handoff -- Builder claims immediately, prior QA owner is fenced immediately", async () => {
+  const dir = await freshDir();
+  const taskId = "S4KT-QA-TO-BUILDING-HANDOFF";
+  await kernel.createTask({ dir, taskId, contractRef: "CONTRACT-S4I-F002" });
+
+  let c = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
+  let s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: c.revision, toState: "PLANNING", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
+  c = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: c.revision, toState: "BUILDING", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_QA", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
+
+  const cQA = await kernel.claim({ dir, taskId, actorId: "qa-1", leaseDurationMs: 3_600_000, now: () => 1 });
+  s = await kernel.transition({ dir, taskId, actorId: "qa-1", requesterRole: "QA", expectedRevision: cQA.revision, toState: "QA", now: () => 1 });
+  const qaPreHandoffRevision = s.revision;
+  s = await kernel.transition({ dir, taskId, actorId: "qa-1", requesterRole: "QA", expectedRevision: s.revision, toState: "BUILDING", now: () => 1 });
+
+  // Positive: Builder can claim immediately, with no lease-expiry wait and no
+  // manual release() step.
+  assert.equal(s.owner, null, "QA->BUILDING must clear ownership in the same write");
+  const cBuilder2 = await kernel.claim({ dir, taskId, actorId: "builder-2", leaseDurationMs: 3_600_000, now: () => 1 });
+  assert.equal(cBuilder2.owner, "builder-2");
+
+  // Negative: the prior QA owner is fenced immediately -- its pre-handoff
+  // revision is stale the instant the handoff commits.
+  await assert.rejects(
+    () => kernel.renew({ dir, taskId, actorId: "qa-1", expectedRevision: qaPreHandoffRevision, newLeaseDurationMs: 1000, now: () => 1 }),
+    (err) => err.code === "NOT_CURRENT_OWNER",
+  );
+});
+
+test("CHANGES_REQUESTED->BUILDING and PAULO_DECISION_REQUIRED->BUILDING are NOT handoffs -- the routed actor keeps ownership", async () => {
+  const dir = await freshDir();
+  const taskId = "S4KT-NON-HANDOFF-BUILDING";
+  await kernel.createTask({ dir, taskId, contractRef: "CONTRACT-NON-HANDOFF" });
+
+  // Drive to REVIEW, then send to CHANGES_REQUESTED, then Builder claims and
+  // is re-routed into BUILDING -- that specific re-entry must NOT clear
+  // ownership, since Builder is already the actor the transition routed to.
+  let c = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
+  let s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: c.revision, toState: "PLANNING", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
+  c = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: c.revision, toState: "BUILDING", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_QA", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
+  const cQA = await kernel.claim({ dir, taskId, actorId: "qa-1", leaseDurationMs: 3_600_000, now: () => 1 });
+  s = await kernel.transition({ dir, taskId, actorId: "qa-1", requesterRole: "QA", expectedRevision: cQA.revision, toState: "QA", now: () => 1 });
+  s = await kernel.transition({ dir, taskId, actorId: "qa-1", requesterRole: "QA", expectedRevision: s.revision, toState: "READY_FOR_REVIEW", evidenceRef: evidence("INDEPENDENTLY_REPRODUCED"), now: () => 1 });
+  const cReviewer = await kernel.claim({ dir, taskId, actorId: "reviewer-1", leaseDurationMs: 3_600_000, now: () => 2 });
+  s = await kernel.transition({ dir, taskId, actorId: "reviewer-1", requesterRole: "REVIEWER", expectedRevision: cReviewer.revision, toState: "REVIEW", now: () => 2 });
+  s = await kernel.transition({ dir, taskId, actorId: "reviewer-1", requesterRole: "REVIEWER", expectedRevision: s.revision, toState: "CHANGES_REQUESTED", decisionRef: decision(), now: () => 2 });
+  assert.equal(s.owner, null, "REVIEW->CHANGES_REQUESTED is a handoff");
+
+  const cBuilder2 = await kernel.claim({ dir, taskId, actorId: "builder-2", leaseDurationMs: 3_600_000, now: () => 3 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-2", requesterRole: "BUILDER", expectedRevision: cBuilder2.revision, toState: "BUILDING", now: () => 3 });
+  assert.equal(s.owner, "builder-2", "CHANGES_REQUESTED->BUILDING must NOT clear ownership -- the routed Builder keeps it");
+
+  // Because ownership was retained, the same actor can transition again
+  // without re-claiming.
+  const s2 = await kernel.transition({ dir, taskId, actorId: "builder-2", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_QA", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 3 });
+  assert.equal(s2.state, "READY_FOR_QA");
 });
 
 test("a superseding claim fences a stale-revision caller regardless of that caller's belief it still holds the lease", async () => {
@@ -207,7 +274,7 @@ test("retry ceiling 2/2/2 escalates to FAILED once the QA ceiling is reached, ma
   let owner = "builder-1";
   let c = await kernel.claim({ dir, taskId, actorId: owner, leaseDurationMs: 3_600_000, now: () => 0 });
   let s = await kernel.transition({ dir, taskId, actorId: owner, requesterRole: "BUILDER", expectedRevision: c.revision, toState: "PLANNING", now: () => 0 });
-  s = await kernel.transition({ dir, taskId, actorId: owner, requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: owner, requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
   c = await kernel.claim({ dir, taskId, actorId: owner, leaseDurationMs: 3_600_000, now: () => 0 });
   s = await kernel.transition({ dir, taskId, actorId: owner, requesterRole: "BUILDER", expectedRevision: c.revision, toState: "BUILDING", now: () => 0 });
   s = await kernel.transition({ dir, taskId, actorId: owner, requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_QA", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
@@ -217,9 +284,10 @@ test("retry ceiling 2/2/2 escalates to FAILED once the QA ceiling is reached, ma
     const cQA = await kernel.claim({ dir, taskId, actorId: "qa-1", leaseDurationMs: 3_600_000, now: () => t++ });
     s = await kernel.transition({ dir, taskId, actorId: "qa-1", requesterRole: "QA", expectedRevision: cQA.revision, toState: "QA", now: () => t++ });
     s = await kernel.transition({ dir, taskId, actorId: "qa-1", requesterRole: "QA", expectedRevision: s.revision, toState: "BUILDING", now: () => t++ });
-    // QA->BUILDING is not a designated handoff destination, so QA still
-    // holds the lease afterward; release it so a different actor can claim.
-    await kernel.release({ dir, taskId, actorId: "qa-1", expectedRevision: s.revision });
+    // S4I-F002: QA->BUILDING is now an atomic cross-role handoff edge -- it
+    // clears ownership in the same write, so Builder can claim immediately
+    // with no manual release() step.
+    assert.equal(s.owner, null, "QA->BUILDING must clear ownership atomically");
     const cBuilder = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => t++ });
     s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: cBuilder.revision, toState: "READY_FOR_QA", evidenceRef: evidence("ACTOR_REPORTED"), now: () => t++ });
   }
@@ -319,6 +387,49 @@ test("a corrupted final record surfaces a scoped error for that one task_id, wit
   assert.equal(goodState.state, "CREATED", "an unrelated task's record must remain readable");
 });
 
+test("S4I-F003: syntactically valid but schema-invalid JSON is detected at load time, scoped to that one task", async () => {
+  const dir = await freshDir();
+  const goodTaskId = "S4KT-SCHEMA-GOOD";
+  const badTaskId = "S4KT-SCHEMA-BAD";
+  await kernel.createTask({ dir, taskId: goodTaskId, contractRef: "CONTRACT-SCHEMA-GOOD" });
+  await kernel.createTask({ dir, taskId: badTaskId, contractRef: "CONTRACT-SCHEMA-BAD" });
+
+  // Valid JSON, but structurally invalid: wrong state enum value and a
+  // stray Run-History-shaped field the schema forbids. JSON.parse would
+  // happily accept this -- only structural validation catches it.
+  const schemaInvalid = {
+    task_id: badTaskId,
+    contract_ref: "CONTRACT-SCHEMA-BAD",
+    state: "NOT_A_REAL_STATE",
+    owner: null,
+    revision: 0,
+    lease_expires_at: null,
+    retry_counts: { build: 0, qa: 0, review: 0 },
+    idempotency_ledger: {},
+    history: [],
+    authority_disclaimer: "softened disclaimer text",
+    command_output: "this should never be here",
+  };
+  await fsp.writeFile(path.join(dir, `${badTaskId}.json`), JSON.stringify(schemaInvalid), "utf8");
+
+  await assert.rejects(
+    () => kernel.getState({ dir, taskId: badTaskId }),
+    (err) => err instanceof CorruptRecordError && err.errors.length > 0,
+    "schema-invalid JSON must fail exactly like invalid JSON, carrying the structural errors",
+  );
+
+  // Mutation must also refuse to proceed against a schema-invalid record.
+  await assert.rejects(
+    () => kernel.claim({ dir, taskId: badTaskId, actorId: "builder-1", leaseDurationMs: 1000 }),
+    (err) => err instanceof CorruptRecordError,
+  );
+
+  const goodState = await kernel.getState({ dir, taskId: goodTaskId });
+  assert.equal(goodState.state, "CREATED", "an unrelated task's record must remain readable and mutable");
+  const claimed = await kernel.claim({ dir, taskId: goodTaskId, actorId: "builder-1", leaseDurationMs: 1000 });
+  assert.equal(claimed.owner, "builder-1");
+});
+
 test("an orphaned lock of any age is never auto-stolen; ordinary mutation fails closed with LOCK_HELD", async () => {
   const dir = await freshDir();
   const taskId = "S4KT-ORPHAN-LOCK";
@@ -350,6 +461,27 @@ test("an orphaned lock of any age is never auto-stolen; ordinary mutation fails 
   assert.equal(claimed.owner, "new-writer");
 });
 
+test("S4I-F005: the lock diagnostic payload the kernel itself writes includes task_id, per RFC-016's minimum metadata", async () => {
+  const dir = await freshDir();
+  const taskId = "S4KT-LOCK-METADATA";
+  await kernel.createTask({ dir, taskId, contractRef: "CONTRACT-LOCK-METADATA" });
+
+  // Read the real lock file's content from *inside* the critical section --
+  // this is the exact payload store.mjs's acquireLock() writes, not a
+  // hand-constructed fixture.
+  let observedLockContent = null;
+  await withTaskLock(dir, taskId, "test-holder", "test-operation", async (current) => {
+    observedLockContent = JSON.parse(await fsp.readFile(path.join(dir, `${taskId}.lock`), "utf8"));
+    return { result: undefined, newRecord: null };
+  });
+
+  assert.equal(observedLockContent.task_id, taskId, "the kernel's own lock payload must carry task_id");
+  assert.equal(observedLockContent.holder, "test-holder");
+  assert.equal(observedLockContent.operation, "test-operation");
+  assert.ok(observedLockContent.acquired_at);
+  assert.equal(fs.existsSync(path.join(dir, `${taskId}.lock`)), false, "lock is released after the operation completes");
+});
+
 test("force_clear_lock enforces D-050's operator/provenance conditions", async () => {
   const dir = await freshDir();
   const taskId = "S4KT-FORCE-CLEAR-AUTH";
@@ -377,7 +509,7 @@ test("evidence-class-label guard rejects on label alone, never by inspecting the
   await kernel.createTask({ dir, taskId, contractRef: "CONTRACT-13" });
   let c = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
   let s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: c.revision, toState: "PLANNING", now: () => 0 });
-  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", now: () => 0 });
+  s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: s.revision, toState: "READY_FOR_BUILD", evidenceRef: evidence("ACTOR_REPORTED"), now: () => 0 });
   c = await kernel.claim({ dir, taskId, actorId: "builder-1", leaseDurationMs: 3_600_000, now: () => 0 });
   s = await kernel.transition({ dir, taskId, actorId: "builder-1", requesterRole: "BUILDER", expectedRevision: c.revision, toState: "BUILDING", now: () => 0 });
 
@@ -406,4 +538,59 @@ test("every task-state record carries the exact, unoverridable fixed non-authori
   assert.equal(s.authority_disclaimer, AUTHORITY_DISCLAIMER);
   // createTask's signature carries no field through which a caller could
   // override it -- there is no override path to test against, by construction.
+});
+
+test("S4I-F004: invalid task_id values are rejected before any filesystem path is constructed, and create no file outside the store directory", async () => {
+  const dir = await freshDir();
+  const invalidIds = [
+    "lowercase-id",
+    "../../etc/passwd",
+    "with/slash",
+    "with\\backslash",
+    "AB",
+    "",
+    "1STARTSWITHDIGIT",
+  ];
+
+  for (const badId of invalidIds) {
+    await assert.rejects(
+      () => kernel.createTask({ dir, taskId: badId, contractRef: "CONTRACT-INVALID-ID" }),
+      (err) => err.code === "INVALID_TASK_ID",
+      `task_id ${JSON.stringify(badId)} must be rejected`,
+    );
+    await assert.rejects(
+      () => kernel.claim({ dir, taskId: badId, actorId: "builder-1", leaseDurationMs: 1000 }),
+      (err) => err.code === "INVALID_TASK_ID",
+    );
+    await assert.rejects(
+      () => kernel.getState({ dir, taskId: badId }),
+      (err) => err.code === "INVALID_TASK_ID",
+    );
+  }
+
+  // No file was created in the store directory by any rejected task_id --
+  // the assertValidTaskId() check throws before path.join/fs ever runs with
+  // the malformed value, so a path-traversal id like "../../etc/passwd"
+  // never reaches a filesystem call at all (proven directly: assertValidTaskId
+  // rejects it as a pure string-shape check, with no I/O in between).
+  const entriesInStore = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+  assert.deepEqual(entriesInStore, [], "no file may be created in the store directory by any rejected task_id");
+});
+
+test("S4I-F004: createTask rejects an empty or non-string contract_ref before writing", async () => {
+  const dir = await freshDir();
+  await assert.rejects(
+    () => kernel.createTask({ dir, taskId: "S4KT-EMPTY-CONTRACT", contractRef: "" }),
+    (err) => err.code === "INVALID_CONTRACT_REF",
+  );
+  await assert.rejects(
+    () => kernel.createTask({ dir, taskId: "S4KT-NULL-CONTRACT", contractRef: null }),
+    (err) => err.code === "INVALID_CONTRACT_REF",
+  );
+  assert.equal(fs.existsSync(path.join(dir, "S4KT-EMPTY-CONTRACT.json")), false);
+  assert.equal(fs.existsSync(path.join(dir, "S4KT-NULL-CONTRACT.json")), false);
+
+  // A valid contract_ref still works.
+  const ok = await kernel.createTask({ dir, taskId: "S4KT-VALID-CONTRACT", contractRef: "CONTRACT-VALID" });
+  assert.equal(ok.state, "CREATED");
 });

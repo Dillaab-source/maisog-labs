@@ -450,8 +450,8 @@
               "line": 7
             }
           ],
-          "occurrenceCount": 1,
-          "inboundReferenceCount": 0
+          "occurrenceCount": 2,
+          "inboundReferenceCount": 1
         },
         {
           "id": "D-002",
@@ -989,8 +989,8 @@
               "line": 739
             }
           ],
-          "occurrenceCount": 23,
-          "inboundReferenceCount": 22
+          "occurrenceCount": 25,
+          "inboundReferenceCount": 24
         }
       ]
     },
@@ -2926,7 +2926,7 @@
   ],
   "summary": {
     "errorCount": 2,
-    "warningCount": 15,
+    "warningCount": 14,
     "totalDefinitions": 255
   },
   "errors": [
@@ -3260,18 +3260,6 @@
       ],
       "reason": "docs/SENTINEL_REVIEW_NOTES.md's own 'Re-check conclusion' section explicitly asserts that CORE-022 must NOT be created ('Do not create CORE-022 from these findings ... Revisit the observations above only when their corresponding real trigger appears.'). This is a deliberate negated/hypothetical mention -- an assertion that no such record should exist -- not a semantic cross-reference requiring a canonical target. Discovered and narrowly exempted per ML-DEVOS-AS-039/AS39-F008; scoped to this exact file and line pattern only.",
       "message": "CORE-022 at this site is an intentional non-reference mention, not a missing canonical target (not silently suppressed)."
-    },
-    {
-      "kind": "orphan-no-inbound-reference",
-      "family": "D",
-      "id": "D-001",
-      "sites": [
-        {
-          "file": "brain/DECISION_LOG.md",
-          "line": 7
-        }
-      ],
-      "message": "D-001 is canonically defined but has no inbound reference anywhere else in the durable scanned surface."
     },
     {
       "kind": "orphan-no-inbound-reference",

@@ -7,7 +7,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { checkTransition, retryIncrementsFor, AUTHORITY_DISCLAIMER, STATES, isHandoffDestination, isTerminal } from "../devos/state/lifecycle.mjs";
+import { checkTransition, retryIncrementsFor, AUTHORITY_DISCLAIMER, STATES, isHandoffDestination, isHandoffEdge, isTerminal, isValidTaskId } from "../devos/state/lifecycle.mjs";
 import { validate } from "../devos/state/validate-task-state.mjs";
 
 const CEILINGS = { build: 2, qa: 2, review: 2 };
@@ -17,26 +17,30 @@ function evidence(evidenceClass) {
   return { ref: "opaque-ref-not-inspected", evidenceClass };
 }
 
+function decision(ref = "D-050") {
+  return { ref };
+}
+
 test("all legal lifecycle transitions succeed with a plausible requester role", () => {
   const legal = [
     { from: "CREATED", to: "PLANNING", requesterRole: "BUILDER" },
-    { from: "PLANNING", to: "READY_FOR_BUILD", requesterRole: "BUILDER" },
+    { from: "PLANNING", to: "READY_FOR_BUILD", requesterRole: "BUILDER", evidenceRef: evidence("ACTOR_REPORTED") },
     { from: "READY_FOR_BUILD", to: "BUILDING", requesterRole: "BUILDER" },
     { from: "BUILDING", to: "READY_FOR_QA", requesterRole: "BUILDER", evidenceRef: evidence("ACTOR_REPORTED") },
     { from: "READY_FOR_QA", to: "QA", requesterRole: "QA" },
     { from: "QA", to: "READY_FOR_REVIEW", requesterRole: "QA", evidenceRef: evidence("INDEPENDENTLY_REPRODUCED") },
     { from: "READY_FOR_REVIEW", to: "REVIEW", requesterRole: "REVIEWER" },
-    { from: "REVIEW", to: "APPROVED", requesterRole: "REVIEWER" },
-    { from: "REVIEW", to: "CHANGES_REQUESTED", requesterRole: "REVIEWER" },
+    { from: "REVIEW", to: "APPROVED", requesterRole: "REVIEWER", decisionRef: decision() },
+    { from: "REVIEW", to: "CHANGES_REQUESTED", requesterRole: "REVIEWER", decisionRef: decision() },
     { from: "CHANGES_REQUESTED", to: "BUILDING", requesterRole: "BUILDER" },
-    { from: "PAULO_DECISION_REQUIRED", to: "BUILDING", requesterRole: "BUILDER" },
-    { from: "PAULO_DECISION_REQUIRED", to: "ABANDONED", requesterRole: "PAULO" },
+    { from: "PAULO_DECISION_REQUIRED", to: "BUILDING", requesterRole: "BUILDER", decisionRef: decision() },
+    { from: "PAULO_DECISION_REQUIRED", to: "ABANDONED", requesterRole: "PAULO", decisionRef: decision() },
     { from: "APPROVED", to: "MERGE_READY", requesterRole: "REVIEWER", evidenceRef: evidence("CI_ATTESTED") },
     { from: "MERGE_READY", to: "MERGED", requesterRole: "REVIEWER", evidenceRef: evidence("CI_ATTESTED") },
-    { from: "MERGED", to: "RELEASE_READY", requesterRole: "REVIEWER" },
+    { from: "MERGED", to: "RELEASE_READY", requesterRole: "REVIEWER", evidenceRef: evidence("ACTOR_REPORTED") },
     { from: "RELEASE_READY", to: "DEPLOYED", requesterRole: "REVIEWER", evidenceRef: evidence("CI_ATTESTED") },
     { from: "DEPLOYED", to: "VERIFIED", requesterRole: "REVIEWER", evidenceRef: evidence("RUNTIME_OBSERVED") },
-    { from: "BUILDING", to: "ABANDONED", requesterRole: "ARCHITECT" },
+    { from: "BUILDING", to: "ABANDONED", requesterRole: "ARCHITECT", decisionRef: decision() },
   ];
   for (const t of legal) {
     const result = checkTransition({ ...t, retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
@@ -70,12 +74,34 @@ test("terminal states have no outgoing transition", () => {
 });
 
 test("ABANDONED may only be requested by ARCHITECT or PAULO, never Builder self-abandon", () => {
-  const asBuilder = checkTransition({ from: "BUILDING", to: "ABANDONED", requesterRole: "BUILDER", retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
+  const asBuilder = checkTransition({ from: "BUILDING", to: "ABANDONED", requesterRole: "BUILDER", decisionRef: decision(), retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
   assert.equal(asBuilder.ok, false);
-  const asArchitect = checkTransition({ from: "BUILDING", to: "ABANDONED", requesterRole: "ARCHITECT", retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
+  const asArchitect = checkTransition({ from: "BUILDING", to: "ABANDONED", requesterRole: "ARCHITECT", decisionRef: decision(), retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
   assert.equal(asArchitect.ok, true);
-  const asPaulo = checkTransition({ from: "REVIEW", to: "ABANDONED", requesterRole: "PAULO", retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
+  const asPaulo = checkTransition({ from: "REVIEW", to: "ABANDONED", requesterRole: "PAULO", decisionRef: decision(), retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
   assert.equal(asPaulo.ok, true);
+});
+
+test("S4I-F001: every transition to ABANDONED additionally requires a decisionRef, even with the correct role", () => {
+  const noRef = checkTransition({ from: "BUILDING", to: "ABANDONED", requesterRole: "ARCHITECT", retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
+  assert.equal(noRef.ok, false, "role-correct but reference-less ABANDONED must still be rejected");
+  const withRef = checkTransition({ from: "BUILDING", to: "ABANDONED", requesterRole: "ARCHITECT", decisionRef: decision(), retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
+  assert.equal(withRef.ok, true);
+});
+
+test("S4I-F001: the newly enforced reference guards fail closed when absent, matching the Architect's exact finding list", () => {
+  const cases = [
+    { from: "PLANNING", to: "READY_FOR_BUILD", requesterRole: "BUILDER" },
+    { from: "REVIEW", to: "APPROVED", requesterRole: "REVIEWER" },
+    { from: "REVIEW", to: "CHANGES_REQUESTED", requesterRole: "REVIEWER" },
+    { from: "PAULO_DECISION_REQUIRED", to: "BUILDING", requesterRole: "BUILDER" },
+    { from: "PAULO_DECISION_REQUIRED", to: "ABANDONED", requesterRole: "PAULO" },
+    { from: "MERGED", to: "RELEASE_READY", requesterRole: "REVIEWER" },
+  ];
+  for (const c of cases) {
+    const result = checkTransition({ ...c, retryCounts: ZERO_RETRIES, retryCeilings: CEILINGS });
+    assert.equal(result.ok, false, `${c.from} -> ${c.to} without a reference must be rejected (S4I-F001)`);
+  }
 });
 
 test("the six evidence-guarded transitions require the correctly classed evidence_ref, label-only", () => {
@@ -153,8 +179,9 @@ test("retry ceiling: REVIEW->PAULO_DECISION_REQUIRED requires an ambiguity flag 
   );
   const atCeiling = { build: 0, qa: 0, review: 2 };
   assert.equal(checkTransition({ from: "REVIEW", to: "PAULO_DECISION_REQUIRED", requesterRole: "REVIEWER", retryCounts: atCeiling, retryCeilings: CEILINGS }).ok, true);
-  // The retry loop back into CHANGES_REQUESTED is never ceiling-gated itself.
-  assert.equal(checkTransition({ from: "REVIEW", to: "CHANGES_REQUESTED", requesterRole: "REVIEWER", retryCounts: atCeiling, retryCeilings: CEILINGS }).ok, true);
+  // The retry loop back into CHANGES_REQUESTED is never ceiling-gated itself
+  // (it still requires its own S4I-F001 decisionRef, unrelated to the ceiling).
+  assert.equal(checkTransition({ from: "REVIEW", to: "CHANGES_REQUESTED", requesterRole: "REVIEWER", decisionRef: decision(), retryCounts: atCeiling, retryCeilings: CEILINGS }).ok, true);
 });
 
 test("retry ceiling: BUILDING->FAILED requires an explicit failure report or a reached build ceiling", () => {
@@ -274,4 +301,31 @@ test("validate() rejects an unknown state and a malformed task_id", () => {
     ),
     false,
   );
+});
+
+test("S4I-F002: QA->BUILDING is a handoff edge, but BUILDING's other source edges are not", () => {
+  assert.equal(isHandoffEdge("QA", "BUILDING"), true, "QA->BUILDING must clear ownership atomically");
+  assert.equal(isHandoffEdge("CHANGES_REQUESTED", "BUILDING"), false, "the routed Builder legitimately keeps ownership here");
+  assert.equal(isHandoffEdge("PAULO_DECISION_REQUIRED", "BUILDING"), false, "the decision-named actor legitimately keeps ownership here");
+  assert.equal(isHandoffEdge("READY_FOR_BUILD", "BUILDING"), false, "the Builder's own initial claim is not a cross-role handoff");
+  // The five original destination-based handoffs remain edges too.
+  assert.equal(isHandoffEdge("PLANNING", "READY_FOR_BUILD"), true);
+  assert.equal(isHandoffEdge("BUILDING", "READY_FOR_QA"), true);
+  assert.equal(isHandoffEdge("QA", "READY_FOR_REVIEW"), true);
+  assert.equal(isHandoffEdge("REVIEW", "CHANGES_REQUESTED"), true);
+  assert.equal(isHandoffEdge("REVIEW", "PAULO_DECISION_REQUIRED"), true);
+});
+
+test("S4I-F004: isValidTaskId enforces the exact schema shape", () => {
+  assert.equal(isValidTaskId("S4-VALID-ID-001"), true);
+  assert.equal(isValidTaskId("ABC"), true);
+  assert.equal(isValidTaskId("AB"), false, "too short (< 3 chars)");
+  assert.equal(isValidTaskId("abc-lowercase"), false);
+  assert.equal(isValidTaskId("../../etc/passwd"), false, "path traversal");
+  assert.equal(isValidTaskId("with/slash"), false);
+  assert.equal(isValidTaskId("with\\backslash"), false);
+  assert.equal(isValidTaskId(""), false, "empty");
+  assert.equal(isValidTaskId(null), false);
+  assert.equal(isValidTaskId(undefined), false);
+  assert.equal(isValidTaskId(123), false, "non-string");
 });

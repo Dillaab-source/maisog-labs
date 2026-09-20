@@ -125,6 +125,12 @@ function recordIdempotency(record, operationClass, idempotencyKey, binding, resu
  * tries to re-register the same task_id against a different contract_ref.
  */
 export async function createTask({ dir, taskId, contractRef }) {
+  // S4I-F004: reject an empty/invalid contract_ref before ever acquiring the
+  // lock or touching the filesystem -- task_id's own shape is asserted by
+  // store.mjs's taskFilePath/lockFilePath choke point (InvalidTaskIdError).
+  if (typeof contractRef !== "string" || contractRef.length < 1) {
+    throw taskError("INVALID_CONTRACT_REF", "createTask requires a non-empty string contract_ref");
+  }
   return store.withTaskLock(dir, taskId, "SYSTEM", "create", async (current) => {
     if (current) {
       if (current.contract_ref === contractRef) {
@@ -276,10 +282,17 @@ export async function transition({
     // exact record version the caller intended to act on -- strictly more
     // precise than a bare state name -- so it alone suffices as the
     // "from-state" component of this binding; `from_state` is dropped here.
+    // S4I-F001 remediation: decisionRef is now potentially material to the
+    // transition's own legality (REVIEW->APPROVED, REVIEW->CHANGES_REQUESTED,
+    // PAULO_DECISION_REQUIRED->BUILDING, and every ->ABANDONED edge), so it
+    // must be bound into the idempotency comparison exactly like evidenceRef
+    // already was -- reusing one idempotency key with a different decision
+    // reference must conflict, never silently replay the first decision.
     const binding = {
       toState,
       expectedRevision,
       evidenceRefHash: evidenceRef ? stableStringify(evidenceRef) : null,
+      decisionRefHash: decisionRef ? stableStringify(decisionRef) : null,
     };
     const replay = checkIdempotency(record, "transition", idempotencyKey, binding);
     if (replay.replay) return { result: replay.result, newRecord: null };
@@ -291,6 +304,7 @@ export async function transition({
       to: toState,
       requesterRole,
       evidenceRef,
+      decisionRef,
       retryCounts: record.retry_counts,
       retryCeilings: TASK_POLICY.retryCeilings,
       explicitFailureFlag,
@@ -309,7 +323,12 @@ export async function transition({
     record.state = toState;
     record.revision += 1;
 
-    if (lifecycle.isHandoffDestination(toState)) {
+    // S4I-F002 remediation: the clearing decision is per exact (from, to)
+    // edge, not per destination name -- QA->BUILDING is a genuine cross-role
+    // handoff (QA sending a defect back to a Builder who must claim fresh),
+    // while CHANGES_REQUESTED->BUILDING and PAULO_DECISION_REQUIRED->BUILDING
+    // legitimately retain the actor that transition itself just routed to.
+    if (lifecycle.isHandoffEdge(fromState, toState)) {
       record.owner = null;
       record.lease_expires_at = null;
     }

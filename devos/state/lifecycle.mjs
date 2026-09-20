@@ -14,14 +14,49 @@ export const STATES = Object.freeze([
 
 export const TERMINAL_STATES = new Set(["FAILED", "ABANDONED", "VERIFIED"]);
 
+// Canonical task_id shape, matching task-state.schema.json exactly. This is
+// the single source of truth store.mjs asserts against before any task-id
+// value is used to construct a filesystem path (S4I-F004) -- never
+// duplicated as a second, potentially-drifting pattern anywhere else.
+export const TASK_ID_PATTERN = /^[A-Z][A-Z0-9_-]*$/;
+
+export function isValidTaskId(taskId) {
+  return typeof taskId === "string" && taskId.length >= 3 && TASK_ID_PATTERN.test(taskId);
+}
+
 // Designated handoff destinations (ML-DEVOS-RFC-016 section D): a transition
 // into any of these atomically clears owner/lease as part of the same write
 // that commits the new state, so the next role can claim immediately and the
-// outgoing owner is fenced out via the revision bump alone.
+// outgoing owner is fenced out via the revision bump alone. Each of these
+// five names has exactly one source edge in the adjacency table, so a
+// destination-only view happens to coincide with the edge-only view for them.
 export const HANDOFF_DESTINATIONS = new Set([
   "READY_FOR_BUILD", "READY_FOR_QA", "READY_FOR_REVIEW",
   "CHANGES_REQUESTED", "PAULO_DECISION_REQUIRED",
 ]);
+
+// S4I-F002 remediation: BUILDING is reached from four different source
+// states, and only one of those source edges (QA->BUILDING, a QA-failure
+// send-back) is a genuine cross-role handoff -- CHANGES_REQUESTED->BUILDING
+// and PAULO_DECISION_REQUIRED->BUILDING legitimately retain the freshly
+// claimed actor that is already the routed Builder/decision-named actor, and
+// READY_FOR_BUILD->BUILDING is the Builder's own initial claim. A
+// destination-only predicate cannot express this; the actual clearing
+// decision must be made per exact (from, to) edge. HANDOFF_EDGES is exactly
+// the five HANDOFF_DESTINATIONS edges (expressed as their one real source
+// each) plus this one added edge.
+export const HANDOFF_EDGES = new Set([
+  "PLANNING->READY_FOR_BUILD",
+  "BUILDING->READY_FOR_QA",
+  "QA->READY_FOR_REVIEW",
+  "REVIEW->CHANGES_REQUESTED",
+  "REVIEW->PAULO_DECISION_REQUIRED",
+  "QA->BUILDING",
+]);
+
+export function isHandoffEdge(from, to) {
+  return HANDOFF_EDGES.has(`${from}->${to}`);
+}
 
 export const EVIDENCE_CLASSES = Object.freeze([
   "ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED",
@@ -63,6 +98,33 @@ const EVIDENCE_GUARDS = new Map([
   ["RELEASE_READY->DEPLOYED", new Set(["ACTOR_REPORTED", "CI_ATTESTED"])],
   ["DEPLOYED->VERIFIED", new Set(["RUNTIME_OBSERVED"])],
 ]);
+
+// S4I-F001 remediation: RFC-016's transition table names guards beyond
+// adjacency/retry/evidence-class that the first implementation pass omitted
+// -- a plan/decision/release-criteria reference must be *present* (opaque
+// carrier only; no content/sufficiency judgment, exactly like the evidence
+// guards above). Two distinct reference kinds, per the Architect's explicit
+// routing: `decisionRef` carries a reviewer/Paulo decision reference;
+// `evidenceRef` doubles as the opaque artifact/reference carrier for a
+// plan or release-criteria reference when no evidence-class judgment is
+// required (its `evidenceClass` field is simply ignored for these edges).
+const DECISION_REFERENCE_EDGES = new Set([
+  "REVIEW->APPROVED",
+  "REVIEW->CHANGES_REQUESTED",
+  "PAULO_DECISION_REQUIRED->BUILDING",
+]);
+
+const ARTIFACT_REFERENCE_EDGES = new Set([
+  "PLANNING->READY_FOR_BUILD",
+  "MERGED->RELEASE_READY",
+]);
+
+function hasReference(ref) {
+  if (ref == null) return false;
+  if (typeof ref === "string") return ref.length > 0;
+  if (typeof ref === "object") return typeof ref.ref === "string" && ref.ref.length > 0;
+  return false;
+}
 
 // D-050: only the ABANDONED destination is role-gated in this V1 kernel -- a
 // Builder must never be able to abandon its own task to hide failed work
@@ -126,6 +188,7 @@ export function checkTransition({
   to,
   requesterRole,
   evidenceRef,
+  decisionRef,
   retryCounts,
   retryCeilings,
   explicitFailureFlag = false,
@@ -135,14 +198,30 @@ export function checkTransition({
   if (!isKnownState(to)) return { ok: false, reason: `unknown to-state: ${to}` };
   if (!isAdjacent(from, to)) return { ok: false, reason: `illegal transition ${from} -> ${to}` };
 
-  if (to === "ABANDONED" && !ABANDONED_ALLOWED_ROLES.has(requesterRole)) {
-    return {
-      ok: false,
-      reason: `ABANDONED may only be requested by ARCHITECT or PAULO, not '${requesterRole}'`,
-    };
+  if (to === "ABANDONED") {
+    if (!ABANDONED_ALLOWED_ROLES.has(requesterRole)) {
+      return {
+        ok: false,
+        reason: `ABANDONED may only be requested by ARCHITECT or PAULO, not '${requesterRole}'`,
+      };
+    }
+    // S4I-F001: every transition to ABANDONED requires an explicit
+    // cancellation/decision reference in addition to the role gate above --
+    // a role check alone does not prove a specific decision was made.
+    if (!hasReference(decisionRef)) {
+      return { ok: false, reason: `${from}->ABANDONED requires a decisionRef recording the cancellation/decision reference` };
+    }
   }
 
   const key = `${from}->${to}`;
+
+  if (DECISION_REFERENCE_EDGES.has(key) && !hasReference(decisionRef)) {
+    return { ok: false, reason: `${key} requires a decisionRef recording the reviewer/Paulo decision reference` };
+  }
+
+  if (ARTIFACT_REFERENCE_EDGES.has(key) && !hasReference(evidenceRef)) {
+    return { ok: false, reason: `${key} requires an evidenceRef carrying a plan/release-criteria artifact reference (class label not judged here)` };
+  }
 
   if (key === "BUILDING->FAILED") {
     if (!explicitFailureFlag && !(retryCounts.build >= retryCeilings.build)) {
