@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-053.md` — final Skills Foundation V0.1 + Portable Knowledge Treasury implementation acceptance; closes remediation, records independent repository verification, and reopens S3 Typed Task Contracts under preserved D-037/AS-038/D-042 authority.
 - `ML-DEVOS-AS-052.md` — Skills Foundation V0.1 implementation remediation review; closes all three AS-051 substantive blockers and requests one scope-only cleanup for an out-of-whitelist `.claude/skills/README.md` artifact before final acceptance.
 - `ML-DEVOS-AS-051.md` — first implementation review of Skills Foundation V0.1 + Portable Knowledge Treasury; changes requested for Claude bridge top-of-file frontmatter validity, Treasury INTERNAL access-control/Git-suitability parity, and stale Phase-1 scope text in Orientation source documents.
 - `ML-DEVOS-AS-050.md` — final Skills Foundation V0.1 / Portable Knowledge Treasury discovery review; architecture approved after Cycle 3 cleanup, with implementation and S3 still blocked pending Paulo's explicit decision.
