@@ -18,7 +18,7 @@
   },
   "source_of_truth_precedence": [
     "Frozen Architecture (ML-DEVOS-ARCH-001 / v1.2.0)",
-    "Active Governance Kernel (Sentinel capability baseline, currently v1.4.0)",
+    "Active Governance Kernel (Sentinel capability baseline, currently v1.5.0)",
     "Decisions (brain/DECISION_LOG.md)",
     "ADRs (devos/changes/adrs/)",
     "Durable Architect Syncs (devos/changes/architect-syncs/)",
@@ -98,7 +98,7 @@
     "schema": "devos/schemas/project-registry.schema.json",
     "role": "index only",
     "status": "EMPTY",
-    "note": "Points to project-owned authoritative overlays; does not duplicate project memory/task state/evidence/requirements/risks/local governance. No project has been onboarded as of S2 closure. A future entry requires the active PROJECT_ONBOARDING process and explicit Paulo authorization -- S2 closure does not itself authorize or imply one."
+    "note": "Points to project-owned authoritative overlays; does not duplicate project memory/task state/evidence/requirements/risks/local governance. No project is currently onboarded; the registry remains empty under the standing pre-onboarding invariant. A future entry requires the active PROJECT_ONBOARDING process and explicit Paulo authorization -- S2 closure itself granted no onboarding authority."
   },
   "legacy_bootstrap_surfaces": [
     {

@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — WEB-REL-001 Production Release Readiness assessment (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — SENTINEL-BASELINE-CLEANUP-001 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**WEB-REL-001 update:** see the "WEB-REL-001 — Production Release Readiness" section at the very end of this document for the current cycle's exact scope and evidence summary. The full assessment packet itself is `docs/release/WEB_REL_001_READINESS_REPORT.md` — this handoff section summarizes it rather than duplicating it. Everything above that section (including "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record. WEB-INC-007 is now fully closed — see `ML-DEVOS-AS-033` and `ML-DEVOS-ADR-009` — and the eight-increment core WEB roadmap is complete at repository/local level.
+**SENTINEL-BASELINE-CLEANUP-001 update:** see the "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record. WEB-REL-001 is Architect-approved (`ML-DEVOS-AS-035`) and `DESIGN-GOV-001` (V3 Design Governance) is adopted (`ML-DEVOS-AS-036`); neither created any implementer action, and this cleanup cycle is unrelated to either — it corrects only stale descriptive Sentinel metadata.
 
 ---
 
@@ -1052,3 +1052,61 @@ Every command/test/build/migration/route-smoke result in the report is `ACTOR_RE
 ### Assessment commit
 
 `docs/release/WEB_REL_001_READINESS_REPORT.md` is committed to `governance/maisoglabs-v0.1` alongside this same documentation commit (there is no separate implementation commit for this cycle, since no application/runtime/schema file changed). Base: `b5bf2e053d1385e2b6859da506c2c2de3f7a3767`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup
+
+### Objective
+
+Execute exactly the `PATCH`-classified cleanup order in `coordination/ARCHITECT_REVIEW.md` (cycle `SENTINEL-BASELINE-CLEANUP-001`): correct four stale/contradictory descriptive-metadata findings (`SC001-F001`–`SC001-F004`) without changing any Sentinel rule, actor authority, trust boundary, architecture, capability, phase status, runtime behavior, project-onboarding authority, or release/deployment authority, and without any Sentinel version bump. Paulo additionally instructed `proceed with cleanup order with sentinel`.
+
+### Base SHA / branch state
+
+- Cleanup base (fast-forwarded before any work): `973022fcba712b20440b1e72fa02c7cffc20ce74`
+- No separate implementation commit — this is bookkeeping-class PATCH content per the order's own "Normal Builder coordination records may also be updated" allowance; the substantive cleanup and the handoff/state update are committed together, consistent with a PATCH's lower ceremony (no RFC, no Architect Sync gate, no new Paulo gate).
+
+### Exact changed files (3 substantive; matches the authorized scope exactly)
+
+- `devos/devos-manifest.json`
+- `devos/governance/specifications/VERSIONING_POLICY.md`
+- `projects/README.md`
+
+Plus this same documentation commit's `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md` update, both explicitly permitted by the order. **No other file changed** — confirmed by `git status --short`/`git diff --stat` showing exactly these five paths, none of them among the order's explicit non-scope list (`core-rules.json`, frozen architecture, any historical Architect Sync/Decision/ADR, S0–S2 semantics, `v1.5.0` rule substance, `projects/registry.json`, validators, application/runtime code, S3–S14, CI/workflows, GitHub rulesets, remote resources, deployment, `main` merge).
+
+### Findings addressed
+
+- **`SC001-F001`** (hard contradiction): `devos/devos-manifest.json`'s `source_of_truth_precedence` said the active Sentinel capability baseline is "currently v1.4.0" while the same manifest's own `sentinel_capability_baseline.version` field already said `1.5.0`. Changed only the stale wording to `v1.5.0` — a one-line, single-value edit, nothing else on that line touched.
+- **`SC001-F002`** (hard contradiction): `VERSIONING_POLICY.md`'s S2-closure section stated, in the present tense, that the manifest's `sentinel_capability_baseline` "now records" `1.4.0`/`ADR-002`/`D-017` — true at S2 closure, false today. Rewrote the paragraph to be explicitly historical: the field advanced to `1.4.0` at S2 closure, then advanced again to `1.5.0` under `D-028`/`ML-DEVOS-ADR-006` (cross-referencing the policy's own later "Risk-escalation core-policy update — v1.5.0 applied" section), and that `1.4.0` is not the field's current value. The historical S2 `v1.3.0 → v1.4.0` transition statement itself, and the S1 `v1.2.0 → v1.3.0` cross-reference, are both preserved unedited.
+- **`SC001-F003`** (stale current-state wording): `projects/README.md`'s "Current state — S2" section framed the registry's emptiness as an S2-closure-scoped fact ("must remain empty through S2 closure," "as of S2"). Rewrote it as "Current state" describing the registry's emptiness as the **standing pre-onboarding invariant** that holds independent of any phase's closure — S2 established/reaffirmed it, but S2 closure is not the current-time qualifier for it. The "Adding a project" section's closing line was updated the same way ("no such entry currently exists or is currently authorized," not "as of S2").
+- **`SC001-F004`** (stale current-state wording): the manifest's `project_registry.note` said "No project has been onboarded as of S2 closure." Rewrote it to state the current fact directly — "No project is currently onboarded; the registry remains empty under the standing pre-onboarding invariant" — while preserving the statement that S2 closure itself granted no onboarding authority, and the requirement that a future entry needs the active `PROJECT_ONBOARDING` process plus explicit Paulo authorization.
+
+### Builder validation (per the order's "Builder validation required")
+
+| Check | Result |
+|---|---|
+| `node devos/schemas/validate-devos-manifest.mjs` | `PASS: 0 error(s) across 1 file(s)` — "OK — no structural or semantic issues found." |
+| `node devos/schemas/validate-project-registry.mjs` | `PASS: 0 error(s) across 1 file(s)` — "Registry is empty, as required until a PROJECT_ONBOARDING decision permits population." |
+| `sentinel_capability_baseline.version` | Confirmed exactly `"1.5.0"` (`python3 -c "import json; print(json.load(open('devos/devos-manifest.json'))['sentinel_capability_baseline']['version'])"` → `1.5.0`) |
+| `projects/registry.json` | Confirmed exactly `{"schema_version": "1", "projects": []}` — unchanged, not in this cycle's authorized file scope, and not touched |
+| Grep for any remaining unqualified "current baseline is/currently v1.4.0" claim | Zero matches outside `coordination/ARCHITECT_REVIEW.md`'s own quoted description of the original contradiction (that file is the Architect's document, not part of this cycle's edit scope, and correctly describes the problem in the past/quoted sense) |
+| Grep for the legitimate historical transition statements | Both preserved verbatim: `v1.3.0 -> v1.4.0` / `v1.3.0 → v1.4.0` (manifest `closure_history` note + `VERSIONING_POLICY.md` S2 section) and `v1.4.0 -> v1.5.0` / `v1.4.0 → v1.5.0` (manifest `closure_history` note + `VERSIONING_POLICY.md`'s v1.5.0 section heading) |
+| `npm test` (full suite, sanity check — no application code was in scope or touched) | 338 passed, 0 failed |
+| `git status --short` / `git diff --stat` | Exactly the 3 authorized substantive files plus the 2 permitted coordination files; no other path touched |
+
+### Known limitations
+
+- This evidence remains `ACTOR_REPORTED` until independently reviewed — no self-certification is made. The order itself requires the Architect to "independently inspect the exact diff and validators before closing the PATCH."
+
+### Explicit confirmations
+
+- **No Sentinel version bump occurred.** `sentinel_capability_baseline.version` remains exactly `1.5.0`; this is a non-semantic PATCH correction to descriptive text, not a `v1.5.1` transition.
+- **No rule, actor authority, trust boundary, architecture, capability, phase status, or runtime behavior changed.** `devos/governance/rules/core-rules.json` and the frozen `ML-DEVOS-ARCH-001` architecture were not touched.
+- **No historical record was altered.** Every `closure_history` entry, ADR, Decision, and Architect Sync archive referenced by the two corrected documents is unchanged; only present-tense/current-state wording was corrected.
+- **No project-onboarding state changed.** `projects/registry.json` remains exactly empty and untouched; only the descriptive text explaining that invariant was corrected.
+- **No application/runtime code, CI/workflow, GitHub ruleset/branch-protection, remote D1/R2/Access resource, deployment, or `main` merge was touched.**
+- **The Implementer has not self-certified this cleanup as `ARCHITECT VERIFIED`.** All evidence above remains `ACTOR_REPORTED` until independently reviewed.
+
+### Cleanup commit
+
+The three substantive files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `973022fcba712b20440b1e72fa02c7cffc20ce74`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

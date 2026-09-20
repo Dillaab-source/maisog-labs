@@ -16,12 +16,12 @@ A pointer table: which projects are registered under Sentinel, where their repos
 - **Not** a signal that any project's application source has moved into this monorepo. Per `CORE-015`, a governed project may remain a fully independent repository with its own `.devos/` overlay.
 - **Not** itself an onboarding mechanism. Registering a project here happens only *after* the active `PROJECT_ONBOARDING` process (`devos/governance/specifications/PROJECT_ONBOARDING_SPEC.md`) and explicit Paulo authorization — never by editing this file directly.
 
-## Current state — S2
+## Current state
 
-`projects/registry.json` is **empty** (`"projects": []`) and **must remain empty through S2 closure**, per `ML-DEVOS-RFC-001`'s acceptance criteria. No project — not the existing MaisogLabs website, not PUSAKAL, not ClinicFlow, not any other product — is onboarded, registered, or implied to be registered by S2's existence. Creating this directory and its empty registry is repository-foundation work, not project onboarding or migration.
+`projects/registry.json` is **currently empty** (`"projects": []`). No project — not the existing MaisogLabs website, not PUSAKAL, not ClinicFlow, not any other product — is currently onboarded or registered. This emptiness is the **standing pre-onboarding invariant**: it holds until a separately authorized `PROJECT_ONBOARDING` decision permits population, independent of any phase's closure. S2 (`ML-DEVOS-RFC-001`'s acceptance criteria) established/reaffirmed this invariant at its own closure, but S2 closure is not the current-time qualifier for it — the invariant remains standing today for the same reason it held at S2 closure, not because S2 has not yet closed. Creating this directory and its empty registry was repository-foundation work, not project onboarding or migration.
 
-`devos/schemas/validate-project-registry.mjs` mechanically enforces this emptiness as an S2-scope closure invariant, on top of the schema's own structural checks — see that script's header comment for exactly what it proves and does not prove.
+`devos/schemas/validate-project-registry.mjs` mechanically enforces this emptiness as a standing pre-onboarding invariant, on top of the schema's own structural checks — see that script's header comment for exactly what it proves and does not prove.
 
-## Adding a project (future, not S2)
+## Adding a project (future)
 
-Once `PROJECT_ONBOARDING_SPEC.md`'s process completes and Paulo explicitly authorizes an onboarding decision, a project entry may be added with at minimum: a globally unique `project_id`, a repository locator, a human owner, `status`, an `overlay` (location + mode), and a non-empty `onboarding_decision_id` once `status` is `ACTIVE`. This is future work — no such entry exists or is authorized as of S2.
+Once `PROJECT_ONBOARDING_SPEC.md`'s process completes and Paulo explicitly authorizes an onboarding decision, a project entry may be added with at minimum: a globally unique `project_id`, a repository locator, a human owner, `status`, an `overlay` (location + mode), and a non-empty `onboarding_decision_id` once `status` is `ACTIVE`. This is future work — no such entry currently exists or is currently authorized.
