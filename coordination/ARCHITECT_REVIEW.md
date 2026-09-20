@@ -1,162 +1,117 @@
-# Architect Review — S4 Closure D.2 Post-decision Verification
+# Architect Builder Brief — WEB-REL-001 Gate A
 
-Status: ARCHITECT_APPROVED — S4 CLOSED
-Review mode: STAGE GATE REVIEW — D.2 POST-DECISION CLOSURE VERIFICATION
-Cycle: SENTINEL_S4_STATE_MACHINE_CLOSURE
-Final reviewed HEAD: 184b9b47cd9ef33d2910787c7d85a508ecb5e77c
-Closure authority: D-051
-D.1 preflight: ML-DEVOS-AS-067
-Technical implementation acceptance: ML-DEVOS-AS-066
-Final D.2 archive ID: ML-DEVOS-AS-068
-Remediation cycles used: 2 of 2
+Status: AUTHORIZED IMPLEMENTATION
+Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
+Authority: D-052
+Source readiness packet: docs/release/WEB_REL_001_READINESS_REPORT.md
+Precondition: S4 fully closed by ML-DEVOS-AS-068
 
-## Final verdict
+## Objective
 
-S4 CLOSURE D.2: PASS
-S4 PHASE: CLOSED
-S4 MANIFEST STATUS: IMPLEMENTED
-SENTINEL CAPABILITY BASELINE: v1.7.0
-CLOSURE ADR: ML-DEVOS-ADR-014
-OPEN S4 CLOSURE BLOCKERS: 0
+Implement only the first production-readiness gate already designed by WEB-REL-001:
 
-The S4 State Machine Kernel is now fully closed under the reserved-subsystem lifecycle procedure established by ML-DEVOS-RFC-015.
+1. minimal CI on the governed branch;
+2. observe one real green CI run;
+3. apply minimum GitHub technical protection to main using the observed live check name;
+4. return evidence to Architect.
 
-This verdict closes S4 only. It grants no S5, website/product, Skills V0.2, remote-resource, deployment, production-write, protected/main-merge, or PR #10 merge authority.
+This does NOT merge or deploy the website.
 
-## D.2 checklist — final
+## LEAN / DELTA-ONLY reads
 
-1. RFC status: PASS.
-   - ML-DEVOS-RFC-016 reads IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051.
+Read first:
+1. coordination/STATE.md
+2. this brief
+3. docs/release/WEB_REL_001_READINESS_REPORT.md §§11–13 and §21 Gate A only
+4. package.json / package-lock.json only as needed to confirm commands/runtime
+5. live GitHub branch/workflow/ruleset state
 
-2. Closure ADR: PASS.
-   - ML-DEVOS-ADR-014 exists and records the accepted S4 implementation, D-050 policy, AS-066 evidence classification, D-051 closure, v1.7.0 consequence, and known API/prose discrepancy.
+Do not reread the full Sentinel history.
 
-3. Closure Decision: PASS.
-   - D-051 exists in brain/DECISION_LOG.md.
+## Repository mutation authorized
 
-4. Manifest closure_ref resolution: PASS.
-   - devos/state/ status = IMPLEMENTED.
-   - closure_ref = ML-DEVOS-ADR-014.
-   - exactly one closure_history entry uses ADR-014.
+Create:
+- `.github/workflows/ci.yml`
 
-5. Closure phase/root ownership match: PASS.
-   - closure_history phase = S4.
-   - devos/state/ owning_phase = S4.
+Minimal workflow:
+- name: `ci`
+- pull_request -> main
+- push -> governance/maisoglabs-v0.1
+- one job suitable for becoming the required status check
+- ubuntu-latest
+- actions/checkout
+- actions/setup-node with Node 22
+- npm ci
+- npm test
+- npm run build
 
-6. Active baseline / closure history agreement: PASS.
-   - sentinel_capability_baseline.version = 1.7.0.
-   - adr = ML-DEVOS-ADR-014.
-   - decision = D-051.
-   - S4 closure_history records the same version/ADR/Decision.
-   - source_of_truth_precedence now also correctly says currently v1.7.0.
+No secrets and no deployment steps.
 
-7. Current-phase wording: PASS.
-   - coordination surfaces are current.
-   - brain/00_HOME.md and CLAUDE.md explicitly defer live scope/turn/authorization to coordination/STATE.md, so historical Phase 1 material is non-authoritative provenance rather than stale current scope.
+Update only as required for deterministic derived traceability and the compact coordination handoff/state.
 
-8. Traceability generated outputs: PASS for closure-delta discipline.
-   - Builder reports generation/validation complete and no drift.
-   - Architect inspected the generated index at final HEAD.
-   - final fingerprint remains exactly the D.1 baseline: CORE-022 + WEB-REQ-009.
-   - no closure-induced new ERROR exists.
+## GitHub remote mutation authorized
 
-9. D.1 baseline findings preserved: PASS.
-   - CORE-022 remains disclosed.
-   - WEB-REQ-009 remains disclosed.
-   - neither was suppressed/downgraded to manufacture zero.
+After the workflow has completed successfully at least once on the governed branch:
 
-10. No new traceability ERROR: PASS.
+Configure one active ruleset/protection policy targeting exactly `main`:
+- require PR before merge;
+- zero required approving reviews for the current single-owner repository;
+- block force-push/non-fast-forward;
+- block deletion;
+- require the exact observed successful CI status-check context;
+- bypass limited to repository owner/admin only, as narrowly as supported.
 
-11. No next-phase authority leakage: PASS.
-   - no S5+, website/product, Skills V0.2, workflow, remote-resource, deploy, production, or main-merge authority was introduced.
+Do not guess the status-check context before the successful run exists.
 
-## Remediation disposition
+If GitHub administration permission is unavailable, STOP. Do not substitute a weaker design.
 
-### D2-F001 — stale manifest-test fixture: CLOSED
+## Verification
 
-Final source inspection confirms:
-- synthetic NOT_IMPLEMENTED fixture moved from devos/state/ to devos/orchestration/;
-- S3 and S4 are both explicitly asserted IMPLEMENTED with ADR-013 / ADR-014;
-- all remaining roots retain their correct non-IMPLEMENTED/FOUNDATION_ACTIVE expectations;
-- synthetic phase comments/assertions now track S8.
+Return evidence for:
+- exact input HEAD;
+- exact workflow commit HEAD;
+- workflow run ID/url/commit and final conclusion;
+- job/check name actually reported by GitHub;
+- ruleset/protection ID and effective target;
+- exact active rules relevant to PR/force-push/deletion/status checks/bypass;
+- live confirmation main HEAD did not change during Gate A;
+- traceability fingerprint if repository-derived outputs changed;
+- exact changed files.
 
-Builder-reported focused manifest suite after this correction: 22/22 PASS.
+Evidence from Builder remains ACTOR_REPORTED until independently inspected.
 
-### D2-F002 — contradictory current-baseline metadata: CLOSED
+## Write boundary
 
-Final source inspection confirms:
-- manifest sentinel_capability_baseline.version = 1.7.0;
-- source_of_truth_precedence descriptive current-baseline text = v1.7.0;
-- a dynamic regression test derives the expected string from sentinel_capability_baseline.version rather than hardcoding S4/v1.7.0.
+Allowed repository files:
+- .github/workflows/ci.yml
+- deterministic traceability outputs only if regeneration changes them
+- coordination/IMPLEMENTER_HANDOFF.md
+- coordination/STATE.md
 
-Builder-reported focused manifest suite after this correction: 23/23 PASS.
+brain/DECISION_LOG.md is already updated by Architect: do not edit it.
 
-## Evidence classification
+## Hard prohibitions
 
-INDEPENDENTLY_INSPECTED:
-- exact closure/remediation diffs;
-- live manifest structure and cross-links;
-- RFC/ADR/version/architecture closure records;
-- final manifest current-version consistency;
-- final test source and regression logic;
-- generated traceability index/fingerprint;
-- scope boundaries.
+No PR to main.
+No merge/main push.
+No Cloudflare mutation.
+No D1/R2/Access resources.
+No credentials/secrets.
+No deploy/DNS/production write.
+No website feature/product mutation.
+No S5+.
+No Skills V0.2.
+No PR #10 merge.
 
-ACTOR_REPORTED:
-- 23/23 manifest-test execution;
-- manifest-validator zero-error execution;
-- traceability generator/validator command execution and no-drift command result.
+## Return gate
 
-The Architect environment still cannot clone/run the private repository test suite directly. This limitation remains disclosed and does not get silently upgraded to INDEPENDENTLY_REPRODUCED.
+After Gate A:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_REVIEW_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
+- all Cloudflare/remote/deploy/main-merge flags remain NO
 
-The earlier S4 implementation acceptance remains supported by independent source/diff inspection and targeted executable spot checks of the critical remediation invariants documented in ML-DEVOS-AS-066.
-
-## Adopted S4 state
-
-Sentinel capability baseline:
-- v1.7.0
-- ML-DEVOS-ADR-014
-- D-051
-
-Reserved root:
-- devos/state/
-- status: IMPLEMENTED
-- closure_ref: ML-DEVOS-ADR-014
-- executable_runtime_present: false
-
-The false runtime flag is intentional: the repository-local kernel is implemented architecture/library code, but no active operational Sentinel runtime service/orchestrator invokes it yet.
-
-Frozen architecture:
-- ML-DEVOS-ARCH-001
-- version remains 1.2.0
-- status remains FROZEN
-- §10 now includes the separately governed additive FAILED / ABANDONED terminal-state amendment.
-
-## Known debt carried forward — not S4 closure blockers
-
-- CORE-022 missing canonical target.
-- WEB-REQ-009 missing canonical target.
-- claim() explicit API omits presented revision while RFC-016 contains broader prose that mutating requests present last-observed revision; ADR-014 records this rather than hiding it.
-- complete Builder test suite remains ACTOR_REPORTED rather than fully Architect-reproduced.
-
-These are preserved debt/evidence limitations, not unresolved blockers introduced by or materially required for S4 closure.
-
-## S4 health
-
-Design: 100%
-Implementation: 100%
-Closure: 100%
-Governance / scope discipline: 100%
-S4 overall: 100% CLOSED
-
-## Next sequencing
-
-S4 closure does not automatically start S5.
-
-The previously established product sequencing remains the recommended next gate:
-1. get the MaisogLabs website/admin workflow genuinely operational;
-2. run 3–5 real operating/content/project-update cycles;
-3. use measured friction/context data for Skills V0.2;
-4. resume deeper Sentinel phase expansion afterward unless Paulo reprioritizes.
-
-A separate Paulo authorization is required before website/product mutation begins.
+Then stop.
