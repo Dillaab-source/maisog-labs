@@ -1,148 +1,155 @@
-# Architect Review — WEB-REL-001 Gate A
+# Architect Review — WEB-REL-001 Gate A Final Verification
 
-Status: PARTIAL PASS — TECHNICAL PROTECTION BLOCKED BY GITHUB PLAN / ADMIN SURFACE
+Status: ARCHITECT_APPROVED — GATE A CLOSED
 Review mode: RELEASE REVIEW
 Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
-Reviewed HEAD: f6557b13cb2903e22baf10255fcc0687eea97cbf
-Authority: D-052
-Archive ID: ML-DEVOS-AS-069
+Reviewed governance HEAD: 6602a5228bb196a5248445a00f461ef8dee56660
+Authority: D-052 + D-053
+Prior Gate A review: ML-DEVOS-AS-069
+Final Gate A archive ID: ML-DEVOS-AS-070
 
-## Verdict
+## Final verdict
 
-GATE A / CI: APPROVED
-GATE A / MAIN TECHNICAL PROTECTION: BLOCKED
-GATE A OVERALL: NOT COMPLETE
-NEXT ACTOR: PAULO
+GATE A / CI: PASS
+GATE A / REPOSITORY VISIBILITY: PASS
+GATE A / MAIN TECHNICAL PROTECTION: PASS
+GATE A OVERALL: CLOSED
+OPEN GATE A BLOCKERS: 0
 
-No merge, deployment, Cloudflare-resource, public cutover, S5, or Skills V0.2 authority is granted.
+No merge, deployment, Cloudflare-resource, public-data cutover, S5, or Skills V0.2 authority is granted by this closure.
 
-## Independent evidence
+## Independent verification
+
+### Repository visibility
+
+PASS.
+
+Live GitHub repository metadata reports:
+- repository: Dillaab-source/maisog-labs
+- visibility: public
+
+This visibility change was explicitly authorized by D-053.
 
 ### CI workflow
 
 PASS.
 
-The committed `.github/workflows/ci.yml` exactly implements D-052's minimal design:
-- workflow name `ci`;
-- pull_request targeting `main`;
-- push targeting `governance/maisoglabs-v0.1`;
-- one `test-and-build` job on `ubuntu-latest`;
-- checkout@v4;
-- setup-node@v4 / Node 22;
-- npm ci;
-- npm test;
-- npm run build;
-- no secret, deploy, Wrangler mutation, D1/R2/Access action, or production write.
+The previously accepted minimal workflow remains:
+- .github/workflows/ci.yml
+- workflow name: ci
+- pull_request -> main
+- push -> governance/maisoglabs-v0.1
+- one job: test-and-build
+- Node 22
+- npm ci
+- npm test
+- npm run build
+- no deployment or secret-bearing step
 
-### Live CI run
+Live run 35538010928 remains independently verified:
+- status: completed
+- conclusion: success
+- triggering SHA: 274b319db1aa9e11cd8a7db6910c8b98492c31fe
+- exact required check context: test-and-build
 
-INDEPENDENTLY VERIFIED via GitHub:
-- run ID: 35538010928;
-- workflow: ci;
-- branch: governance/maisoglabs-v0.1;
-- triggering SHA: 274b319db1aa9e11cd8a7db6910c8b98492c31fe;
-- status: completed;
-- conclusion: success;
-- exact live job/check name: `test-and-build`.
+### Main ruleset
 
-Every reported job step completed successfully: checkout, setup-node, npm ci, npm test, npm run build.
+PASS.
 
-### Main immutability during Gate A
+Live ruleset:
+- id: 23740878
+- name: main-protection
+- target: branch
+- enforcement: active
+- included ref: refs/heads/main
+- excluded refs: none
+
+Active rules:
+1. deletion protection
+2. non_fast_forward protection
+3. pull_request requirement
+   - required approving reviews: 0
+   - no code-owner review requirement
+   - no last-push approval requirement
+4. required_status_checks
+   - strict/up-to-date policy: false
+   - do-not-enforce-on-create: false
+   - required context: test-and-build
+   - GitHub Actions integration id: 15368
+
+Bypass:
+- one repository-role bypass actor
+- bypass mode: pull_request
+- current_user_can_bypass: pull_requests_only
+
+This satisfies the bounded Gate A requirement: bypass is not an unconditional direct-push exemption; the current user may bypass only through the pull-request path.
+
+### Main immutability
 
 PASS.
 
 Live main HEAD remains:
-`887849283ee9cd16e8d60b937bac95b1c85bf3d9`
+887849283ee9cd16e8d60b937bac95b1c85bf3d9
 
-Gate A did not push or merge main.
+No direct push or merge to main occurred during Gate A.
 
-### Exact repository delta
+### Gate B not opened prematurely
 
 PASS.
 
-Relative to Gate A input HEAD 44566ecb749447c9c304dc1ab1b7cc2687a4bcb9, the Gate A implementation contains only:
-- .github/workflows/ci.yml;
-- deterministic traceability outputs;
-- coordination handoff/state.
+No open pull request currently targets main.
 
-No product/website code, Cloudflare config, S5+, Skills V0.2, or main content changed.
+PR #10 remains outside this release path and must not be merged.
 
-## GA-F001 — BLOCKER: required main protection is unavailable for this private repository on the current GitHub plan
+## Evidence classification
 
-Architect independently queried the live repository rulesets endpoint.
+INDEPENDENTLY_VERIFIED:
+- repository visibility = public
+- ruleset existence / id / target / enforcement / exact rule payload
+- required check context in the ruleset
+- live successful CI run and job name
+- live main SHA
+- absence of open PRs targeting main
 
-GitHub returned HTTP 403 with the explicit message:
-`Upgrade to GitHub Pro or make this repository public to enable this feature.`
+ACTOR_REPORTED from earlier Builder work:
+- local npm test count
+- local npm run build execution before CI existed
+- traceability generator invocation
 
-Architect also queried the branch-protection endpoint; this connector lacks the required repository Administration permission and GitHub returned `Resource not accessible by integration`.
+The live CI run supersedes the earlier Builder-only test/build evidence for Gate A's minimum required automated check.
 
-Current official GitHub documentation independently confirms:
-- repository rulesets are available for private repositories only on GitHub Pro, Team, and Enterprise Cloud;
-- protected branches are likewise available for private repositories only on GitHub Pro, Team, Enterprise Cloud/Server;
-- GitHub Free supports these controls on public repositories.
+## Gate A health
 
-Therefore the Gate A protection requirement cannot be satisfied for the current private repository under the apparent current GitHub plan, regardless of the now-observed CI check name.
+CI: 100%
+Visibility transition: 100%
+Main protection: 100%
+Gate A overall: 100% CLOSED
 
-This is a real platform/plan blocker, not a code defect.
+## Next gate
 
-## Required owner decision
+The existing WEB-REL-001 release sequence now permits consideration of:
 
-One of the following must be explicitly chosen before Gate A can complete:
+GATE B — DRAFT/REVIEW PR TO MAIN
 
-### Option A — keep repository private and enable a qualifying GitHub plan
+Gate B remains separately owner-gated. Gate A closure does not itself authorize opening or merging that PR.
 
-Use GitHub Pro (personal repository) or another qualifying paid plan.
-
-Then configure:
-- PR required for main;
-- 0 required approving reviews while single-owner;
-- block force pushes;
-- block deletion;
-- required status check: `test-and-build`;
-- owner/admin bypass only as narrowly as GitHub supports.
-
-This preserves repository privacy and satisfies D-052's original Gate A intent.
-
-### Option B — make repository public
-
-GitHub Free supports rulesets/protected branches for public repositories.
-
-This changes repository disclosure materially. It must not be done implicitly because the repository currently contains private project/governance history and becoming public is a separate disclosure decision.
-
-No public-visibility mutation is authorized by D-052.
-
-### Option C — explicitly revise/waive Gate A's technical-protection requirement
-
-This would permit continued release work without platform-enforced main protection.
-
-It weakens the release-safety design and requires a new explicit Paulo risk-acceptance decision; Architect does not infer or recommend this as already authorized.
-
-## Architect disposition
-
-CI is complete and accepted.
-
-Do not ask Claude to retry ruleset configuration: neither repetition nor a code change can solve the plan limitation.
-
-Do not open Gate B / main PR while Gate A remains incomplete under the currently locked release sequence.
-
-## Project health at this gate
-
-S4: 100% CLOSED
-WEB local/repository build: ~95% operationally ready
-Gate A CI: 100%
-Gate A main protection: 0% due external plan blocker
-Gate A overall: ~60%
-Production deployment: 0% authorized
+If Paulo authorizes Gate B, the next bounded action is:
+- open exactly one PR from governance/maisoglabs-v0.1 to main;
+- do not merge it;
+- let test-and-build run on the PR;
+- inspect the full release diff and CI result;
+- return to Architect for release review;
+- preserve a separate later Paulo Gate C for the actual main merge.
 
 ## Hard boundaries
 
-Until Paulo resolves GA-F001:
-- no governance→main PR;
+Until Gate B is explicitly authorized:
+- no governance->main PR;
 - no main merge/push;
 - no remote D1/R2;
 - no Cloudflare Access production mutation;
-- no Worker deployment/DNS/production write;
+- no deploy/DNS/production write;
 - no public-source cutover;
 - no S5+;
-- no Skills V0.2 implementation;
+- no Skills V0.2;
 - no PR #10 merge.
