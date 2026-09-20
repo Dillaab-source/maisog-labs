@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-TRACEABILITY-V1
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REPOSITORY_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REMEDIATION_CYCLE_1
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -22,51 +22,60 @@ MAIN_MERGE_AUTHORIZED: NO
 - `ML-DEVOS-RFC-012 — ACCEPTED`
 - `ML-DEVOS-AS-037 — ARCHITECT_APPROVED`
 - `D-036 — Paulo-authorized bounded implementation`
+- `ML-DEVOS-AS-039 — CHANGES_REQUESTED / Remediation Cycle 1`
 
-## Authorized implementation
+## Remediation scope
 
-Repository-only Sentinel Traceability V1:
-- static canonical-record discovery;
-- stable-ID/reference extraction;
-- referential-integrity validation;
-- duplicate-definition detection;
-- deterministic derived JSON/Markdown traceability indexes;
-- explicit historical/bootstrap exception reporting;
-- focused tests;
-- baseline findings report.
+Fix only `AS39-F008`:
 
-Primary implementation root:
-`devos/governance/traceability/`
+The traceability parser currently misclassifies the explicit statement:
+
+`Do not create CORE-022 from these findings.`
+
+as a genuine missing canonical target.
+
+Implement a narrowly scoped, rationale-bearing intentional-non-reference/reference-exception mechanism that:
+- keeps the occurrence visible as a WARNING;
+- does not globally suppress `CORE-022`;
+- still produces ERROR if the same missing ID is genuinely referenced elsewhere;
+- has focused tests;
+- regenerates the derived indexes.
+
+## Preserve
+
+`WEB-REQ-009` remains a genuine repository-content traceability ERROR and is **not** authorized for repair in this cycle.
 
 ## Hard boundaries
 
-No S3 Task Contracts, S7 Evidence Store/QA Plane, S9 Evidence Gate, automatic merge/deploy/status/authority decision, CI/rulesets, product runtime/application changes, project onboarding, remote D1/R2/Access resources, deployment, main merge, Sentinel version bump, or auto-rewrite of unrelated historical governance records.
+No:
+- creation of `CORE-022`;
+- WEB-REQ-009 source-record repair;
+- unrelated governance rewrites;
+- S3 implementation;
+- S7/S9 implementation;
+- CI/rulesets;
+- product runtime changes;
+- project onboarding;
+- remote resources;
+- deployment;
+- main merge;
+- Sentinel version bump.
 
-Discovered traceability gaps must be reported, not silently fixed.
+## Queued next phase
 
-## Handoff requirement
+`S3 — Typed Task Contracts` remains approved and queued under:
+- `ML-DEVOS-RFC-013`
+- `ML-DEVOS-AS-038`
+- `D-037`
 
-When implementation is complete:
+S3 implementation must not begin until Traceability V1 is independently closed.
+
+## Return gate
+
+After remediation:
 - `TURN: ARCHITECT`
 - `STATUS: READY_FOR_ARCHITECT`
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Handoff must record exact SHA/files/tests/generator/validator output, deterministic repeat-run proof, ERROR/WARNING counts, and exception list.
-
-## Implementation complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See the "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" section at the end of `coordination/IMPLEMENTER_HANDOFF.md` for the complete record. Summary: 7 new files under `devos/governance/traceability/` plus `tests/traceability.test.mjs`; zero existing files modified; generator/validator run, byte-identical across two consecutive runs (SHA-256 verified); baseline findings 2 ERROR (`CORE-022`, `WEB-REQ-009`, both independently spot-checked as genuine repository-content gaps, not generator defects) / 13 WARNING (8 orphan `D-*`, 2 explicit historical exceptions `ML-DEVOS-AS-008`/`009`, 3 orphan `WEB-SEC-*`); `tests/traceability.test.mjs` 7/7 pass; full suite 345/345 pass; no historical governance record rewritten; no version bump.
-
-
-## Queued next phase
-
-`S3 — Typed Task Contracts` is approved and queued under:
-- `ML-DEVOS-RFC-013`
-- `ML-DEVOS-AS-038`
-- `D-037`
-
-S3 implementation MUST NOT begin until `SENTINEL-TRACEABILITY-V1` returns to Architect and is independently closed or explicitly remediated.
-
-Current active Builder turn remains unchanged:
-`SENTINEL-TRACEABILITY-V1`.
+Builder handoff must include exact diff, focused/full test results, regenerated baseline ERROR/WARNING counts, and proof the exception is narrow rather than global.
