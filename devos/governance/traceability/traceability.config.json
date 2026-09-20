@@ -1,0 +1,85 @@
+{
+  "_comment": "Sentinel Traceability V1 (ML-DEVOS-RFC-012 / ML-DEVOS-AS-037 / D-036) bounded configuration. This file names canonical-definition surfaces already owned by existing authoritative records (brain/, devos/, docs/) -- it does not restate their content and does not create a second manually maintained relationship matrix (AS37-F003). Adding a new ID family or historical exception here is a configuration change, not a code change, and does not alter any existing record's authority (AS37-F002).",
+  "scan": {
+    "_comment": "The bounded set of directories/root files this subsystem reads (read-only) to discover canonical definitions and references. Deliberately excludes build output, dependencies, and this subsystem's own generated files (self-reference avoidance).",
+    "includeDirs": ["app", "brain", "coordination", "components", "data", "devos", "docs", "lib", "migrations", "scripts", "tests", "worker"],
+    "includeRootFiles": ["AGENTS.md", "CLAUDE.md", "README.md", "wrangler.jsonc"],
+    "includeExtensions": [".md", ".mjs", ".js", ".json", ".jsonc", ".txt"],
+    "excludePaths": [
+      "devos/governance/traceability/traceability-index.json",
+      "devos/governance/traceability/TRACEABILITY_INDEX.md"
+    ]
+  },
+  "idFamilies": [
+    {
+      "family": "ML-DEVOS-RFC",
+      "pattern": "ML-DEVOS-RFC-\\d{3}",
+      "canonical": { "type": "file", "dir": "devos/changes/rfcs", "extension": ".md" }
+    },
+    {
+      "family": "ML-DEVOS-AS",
+      "pattern": "ML-DEVOS-AS-\\d{3}",
+      "canonical": { "type": "file", "dir": "devos/changes/architect-syncs", "extension": ".md" }
+    },
+    {
+      "family": "ML-DEVOS-ADR",
+      "pattern": "ML-DEVOS-ADR-\\d{3}",
+      "canonical": { "type": "file", "dir": "devos/changes/adrs", "extension": ".md" }
+    },
+    {
+      "family": "D",
+      "pattern": "D-\\d{3}",
+      "canonical": { "type": "heading", "file": "brain/DECISION_LOG.md", "headingPattern": "^### (D-\\d{3})\\b" }
+    },
+    {
+      "family": "CORE",
+      "pattern": "CORE-\\d{3}",
+      "canonical": { "type": "json-array-field", "file": "devos/governance/rules/core-rules.json", "arrayField": "rules", "idField": "rule_id" }
+    },
+    {
+      "family": "WEB-INC",
+      "pattern": "WEB-INC-\\d{3}",
+      "canonical": { "type": "heading", "file": "docs/product/BUILD_PLAN.md", "headingPattern": "^### `(WEB-INC-\\d{3})`" }
+    },
+    {
+      "family": "WEB-REQ",
+      "pattern": "WEB-REQ-\\d{3}",
+      "canonical": { "type": "line-start", "file": "docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt", "linePattern": "^(WEB-REQ-\\d{3})\\s+\\S" }
+    },
+    {
+      "family": "ADM-REQ",
+      "pattern": "ADM-REQ-\\d{3}",
+      "canonical": { "type": "line-start", "file": "docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt", "linePattern": "^(ADM-REQ-\\d{3})\\s+\\S" }
+    },
+    {
+      "family": "WEB-SEC",
+      "pattern": "WEB-SEC-\\d{3}",
+      "canonical": { "type": "line-start", "file": "docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt", "linePattern": "^(WEB-SEC-\\d{3})\\s+\\S" }
+    },
+    {
+      "family": "DESIGN",
+      "pattern": "DESIGN-\\d{3}",
+      "canonical": { "type": "line-start", "file": "docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt", "linePattern": "^(DESIGN-\\d{3})\\s+\\S" }
+    },
+    {
+      "family": "RISK-WEB",
+      "pattern": "RISK-WEB-\\d{3}",
+      "canonical": { "type": "table-row", "file": "brain/RISK_REGISTER.md", "rowPattern": "^\\|\\s*(RISK-WEB-\\d{3})\\s*\\|" }
+    },
+    {
+      "family": "TEST",
+      "pattern": "TEST-[A-Z]+-\\d{3}",
+      "canonical": { "type": "table-row", "file": "brain/TEST_LEDGER.md", "rowPattern": "^\\|\\s*(TEST-[A-Z]+-\\d{3})\\s*\\|" }
+    }
+  ],
+  "historicalExceptions": [
+    {
+      "id": "ML-DEVOS-AS-008",
+      "reason": "Referenced throughout devos/handoffs/ML-DEVOS-S2-HANDOFF.md and brain/DECISION_LOG.md as a real S2-closure-package review, but predates this repository's later discipline of always archiving each Architect Sync as its own durable devos/changes/architect-syncs/ file. No such file was ever created for this review. Discovered by Sentinel Traceability V1 (ML-DEVOS-RFC-012); not fabricated or backfilled per AS37-F011/AS37 explicit non-authorization of historical-record rewrites. Downgraded to WARNING, not silently ignored."
+    },
+    {
+      "id": "ML-DEVOS-AS-009",
+      "reason": "Referenced throughout devos/changes/architect-syncs/ML-DEVOS-AS-001.md, ML-DEVOS-AS-002.md, ML-DEVOS-AS-004.md, README.md, and brain/DECISION_LOG.md as the real legacy-archive verbatim-claim audit (LAA-001..LAA-004) that led to D-018/D-019. Predates this repository's later discipline of always archiving each Architect Sync as its own durable devos/changes/architect-syncs/ file; no such file was ever created for this audit itself. Discovered by Sentinel Traceability V1 (ML-DEVOS-RFC-012); not fabricated or backfilled. Downgraded to WARNING, not silently ignored."
+    }
+  ]
+}

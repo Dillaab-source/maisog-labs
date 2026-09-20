@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — SENTINEL-BASELINE-CLEANUP-001 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — SENTINEL-TRACEABILITY-V1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**SENTINEL-BASELINE-CLEANUP-001 update:** see the "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record. WEB-REL-001 is Architect-approved (`ML-DEVOS-AS-035`) and `DESIGN-GOV-001` (V3 Design Governance) is adopted (`ML-DEVOS-AS-036`); neither created any implementer action, and this cleanup cycle is unrelated to either — it corrects only stale descriptive Sentinel metadata.
+**SENTINEL-TRACEABILITY-V1 update:** see the "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record. SENTINEL-BASELINE-CLEANUP-001 closed with no outstanding action; this new cycle is a separate, larger `ARCHITECTURE`-class governance-tooling change and does not reopen or depend on remediating it.
 
 ---
 
@@ -1110,3 +1110,147 @@ Plus this same documentation commit's `coordination/IMPLEMENTER_HANDOFF.md` and 
 ### Cleanup commit
 
 The three substantive files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `973022fcba712b20440b1e72fa02c7cffc20ce74`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator
+
+### Cycle / Change ID
+
+`SENTINEL-TRACEABILITY-V1` — **AUTHORIZED IMPLEMENTATION, now complete, handed back for Architect review.**
+
+Authority chain: `ML-DEVOS-RFC-012` (`ACCEPTED`) → `ML-DEVOS-AS-037` (`ARCHITECT_APPROVED — TRACEABILITY V1 BOUNDED IMPLEMENTATION AUTHORIZED`, class `ARCHITECTURE`) → `D-036` (Paulo: "okay do that", accepted only for the bounded implementation envelope in `ML-DEVOS-AS-037`).
+
+### Objective
+
+Implement the repository-only Sentinel Traceability V1 subsystem exactly as scoped by `ML-DEVOS-AS-037`'s "Authorized implementation envelope": a deterministic generator, a referential-integrity validator, derived (non-authoritative) JSON + Markdown indexes, focused tests, a human-readable README, and a baseline findings report against this actual repository — implementing the frozen traceability model (`ML-DEVOS-ARCH-001 §8`: `Requirement → Design → Implementation → Test → Evidence → Status`) by deriving definitions from existing canonical surfaces rather than a second manually maintained matrix (AS37-F003).
+
+### Branch / commit state
+
+- Base SHA (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `affd2693f29ebac450e707e7b43140f9b36f09b8` — matches the HEAD in effect when `coordination/STATE.md` set `TURN: CLAUDE` / `STATUS: AUTHORIZED_IMPLEMENTATION` for this cycle.
+- Read in full before any edit: `coordination/STATE.md`, the durable archive `devos/changes/architect-syncs/ML-DEVOS-AS-037.md` (all findings `AS37-F001`–`F012`, the authorized implementation envelope, the explicitly-not-authorized list, and the required Builder evidence list), `devos/changes/rfcs/ML-DEVOS-RFC-012.md`, `brain/DECISION_LOG.md` `D-036`, `ML-DEVOS-ARCH-001 §8`, `brain/GOVERNANCE_MAP.md`, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, `docs/product/BUILD_PLAN.md`, `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`, and `devos/governance/rules/core-rules.json`, to derive the five mechanical canonical-discovery strategies actually in use by this repository rather than inventing a new convention.
+- **Note on the live `coordination/ARCHITECT_REVIEW.md`:** by the time this cycle's implementation work began, the *live* rolling `ARCHITECT_REVIEW.md` had already rolled forward to `ML-DEVOS-AS-038`'s S3 Typed Task Contracts design content (a separately queued, not-yet-active cycle). Authorization for *this* cycle was read from the durable archive `devos/changes/architect-syncs/ML-DEVOS-AS-037.md`, not the live rolling file, and cross-checked against `coordination/STATE.md`'s own `CYCLE_ID: SENTINEL-TRACEABILITY-V1` / `TURN: CLAUDE` / `IMPLEMENTER_ACTION_REQUIRED: YES` state, which remained the active Builder turn.
+- Result: implementation complete on the working tree; not yet committed until this handoff/state update is finalized in the same commit (small governance-tooling cycles in this session, e.g. `SENTINEL-BASELINE-CLEANUP-001`, have combined implementation and bookkeeping into one commit; this cycle follows the same pattern since it is one bounded repository-only change).
+
+### Exact changed-file list — 7 new files, 0 modified, 0 deleted
+
+Confirmed by `git status --porcelain` immediately before this commit: **only** the following paths are new/untracked; nothing pre-existing was modified.
+
+- `devos/governance/traceability/traceability.config.json` (new) — bounded configuration: `scan` (12 include dirs, 4 root files, 6 extensions, 2 self-reference exclude paths), `idFamilies` (12 entries, one per governance-ID family, each naming an already-existing canonical surface and one of five discovery strategies: `file`, `heading`, `table-row`, `line-start`, `json-array-field`), `historicalExceptions` (2 entries: `ML-DEVOS-AS-008`, `ML-DEVOS-AS-009`, each with a detailed rationale).
+- `devos/governance/traceability/generate-traceability.mjs` (new) — the deterministic generator. Pure exported functions (`loadConfig`, `listScannedFiles`, `buildTraceabilityReport`, `serializeReportJson`, `renderMarkdown`) never touch the filesystem for writes; the only two file writes happen in `main()`, gated by a direct-run check, so tests and the validator can exercise identical logic without side effects.
+- `devos/governance/traceability/validate-traceability.mjs` (new) — the referential-integrity validator. Regenerates the report in-memory (via the generator's own exported pure functions — no duplicated logic), compares it against the on-disk generated files to detect drift, prints every ERROR/WARNING, and exits non-zero if any ERROR exists or drift is detected. Never writes or "fixes" anything itself (AS37-F008).
+- `devos/governance/traceability/traceability-index.json` (new, generated) — the derived, non-authoritative machine-readable index. `nonAuthoritative: true` and a full `authorityStatement` are stamped into the schema itself.
+- `devos/governance/traceability/TRACEABILITY_INDEX.md` (new, generated) — the derived, non-authoritative human-readable index, headed "Traceability Index (Derived — Non-Authoritative)" with an explicit "Do not hand-edit; regenerate instead" notice.
+- `devos/governance/traceability/README.md` (new) — the subsystem README: what it is/is not, the five discovery strategies with examples, the finding-kind taxonomy, the determinism guarantee, usage for both scripts, the one disclosed limitation (JSON-array-field "line" is an array index, not a true source line — no dependency-heavy JSON line-mapping parser was added, per AS37-F010's dependency-light requirement), and the test coverage summary.
+- `tests/traceability.test.mjs` (new) — 7 focused tests against small synthetic temp-directory fixtures (never the real repository): missing-reference ERROR, duplicate-canonical-definition ERROR, two-consecutive-runs byte-identical determinism, explicit historical-exception WARNING (not silently suppressed), orphan-no-inbound-reference WARNING, non-authoritative marking, and `scan` config filtering (`includeExtensions`/`excludePaths`).
+
+**Confirmed not touched:** `brain/DECISION_LOG.md`, `docs/product/BUILD_PLAN.md`, `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, `devos/governance/rules/core-rules.json`, every existing RFC/AS/ADR file, every existing application/runtime/worker/schema/migration file — all of these were read-only inputs this cycle, exactly as the authorized envelope requires.
+
+### Generator / validator commands and literal results
+
+```
+$ node devos/governance/traceability/generate-traceability.mjs
+Wrote devos/governance/traceability/traceability-index.json and devos/governance/traceability/TRACEABILITY_INDEX.md
+Scanned 192 files. Errors: 2. Warnings: 13.
+
+$ node devos/governance/traceability/validate-traceability.mjs
+Scanned 192 files across 12 ID families.
+Errors: 2  Warnings: 13  Total canonical definitions: 208
+ERROR [missing-canonical-target] CORE CORE-022: CORE-022 is referenced but has no canonical record in CORE's configured canonical source.
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: WEB-REQ-009 is referenced but has no canonical record in WEB-REQ's configured canonical source.
+WARNING [orphan-no-inbound-reference] D D-001 / D-002 / D-003 / D-004 / D-005 / D-009 / D-022 / D-035 (8 total)
+WARNING [historical-exception-missing-canonical-record] ML-DEVOS-AS-008
+WARNING [historical-exception-missing-canonical-record] ML-DEVOS-AS-009
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-006 / WEB-SEC-007 / WEB-SEC-008 (3 total)
+No drift: on-disk generated index matches a fresh generation run.
+(exit code: 1 — non-zero because 2 ERRORs exist; this is the validator functioning exactly as designed, not a failed run)
+```
+
+### Two-consecutive-run determinism proof (required evidence item)
+
+Ran the generator twice consecutively against the identical, final repository state (after all 7 subsystem files existed, so the subsystem's own README/validator/test file are correctly included in what it scans) and diffed the output:
+
+```
+$ sha256sum devos/governance/traceability/traceability-index.json devos/governance/traceability/TRACEABILITY_INDEX.md
+92b54b3b04925b31acffc2e9c258ced743b4739b2f02d2ed68b101b3fa6e3a42  traceability-index.json
+ae619e6830674f79382e72f2ee10077c191c68a4219487d7eec4c66ea1fbd12d  TRACEABILITY_INDEX.md
+$ node devos/governance/traceability/generate-traceability.mjs   # second run
+$ diff <run-1 copy> traceability-index.json   # no output — byte-identical
+$ diff <run-1 copy> TRACEABILITY_INDEX.md     # no output — byte-identical
+FINAL DETERMINISM CONFIRMED: byte-identical across two runs with the complete file set
+```
+
+An earlier pair of runs (taken before the README/validator/test files existed, when the scanned surface was 189 files) was also byte-identical to itself across two consecutive invocations, confirming determinism held at every stage of adding the remaining subsystem files, not only at the very end.
+
+### Baseline ERROR/WARNING counts (required evidence item — first real findings from this actual repository)
+
+- **Total canonical definitions discovered:** 208, across 12 ID families (`ADM-REQ` 16, `CORE` 21, `D` 37, `DESIGN` 14, `ML-DEVOS-ADR` 9, `ML-DEVOS-AS` 36, `ML-DEVOS-RFC` 13, `RISK-WEB` 15, `TEST` 19, `WEB-INC` 8, `WEB-REQ` 8, `WEB-SEC` 12).
+- **Errors: 2** (both independently spot-checked below, neither is a generator/config bug).
+- **Warnings: 13** (8 orphan `D-*`, 2 explicit historical exceptions, 3 orphan `WEB-SEC-*`).
+
+**ERROR 1 — `CORE-022` missing canonical target.** Referenced once, in `docs/SENTINEL_REVIEW_NOTES.md:438`. Manually inspected the surrounding text: the document's own "Re-check conclusion" section explicitly states *"Do not create CORE-022 from these findings... Revisit the observations above only when their corresponding real trigger appears."* — i.e. `CORE-022` was deliberately discussed and deliberately never created. This is a genuine, correct finding: the ID is referenced in prose but has no (and, per that document, currently should have no) canonical rule entry. Reported here, not fixed — creating a `CORE-022` rule entry is explicitly out of this cycle's scope and would itself be a separate, RFC-gated Sentinel rule change.
+
+**ERROR 2 — `WEB-REQ-009` missing canonical target.** Referenced 31 times across 22 files, including real implementation files (`worker/d1/journal.mjs`, `worker/public/journal.mjs`, `worker/admin/journal.mjs`, `app/journal/*`), tests, `ML-DEVOS-ADR-008`, two Architect Sync archives, and `docs/product/BUILD_PLAN.md`/`PRD.md` — this is the Journal feature's implicit ninth website requirement. Manually confirmed via `grep -n "WEB-REQ-009" docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` (zero matches) and `grep -n "^WEB-REQ-" ...` (confirms the canonical plan document only ever defined `WEB-REQ-001` through `WEB-REQ-008`). This is a genuine, previously-undetected traceability gap: the Journal capability (`WEB-INC-006`) was implemented and referenced against a `WEB-REQ-009` that the foundational governance-admin plan document was never updated to add. Reported here, per `AS37-F011`, rather than fixed — adding a ninth requirement to that plan document is a change to a foundational governance record and requires separate authorization, not a side effect of a traceability-tooling cycle.
+
+Both ERRORs were verified by direct inspection to be genuine repository-content gaps, not generator defects — no unexpected/spurious finding pointed at a pattern or config mistake.
+
+### Explicit list of exceptions and why each exists (required evidence item)
+
+- **`ML-DEVOS-AS-008`** — referenced throughout `devos/handoffs/ML-DEVOS-S2-HANDOFF.md` and `brain/DECISION_LOG.md` as a real S2-closure-package review. No `devos/changes/architect-syncs/ML-DEVOS-AS-008.md` was ever archived (the numbering in that directory jumps `007` → `010`). Predates this repository's later discipline of always archiving every Architect Sync as its own durable file. Not fabricated or backfilled, per `AS37-F011`'s explicit non-authorization of historical-record rewrites; downgraded from ERROR to a visible, rationale-bearing WARNING instead.
+- **`ML-DEVOS-AS-009`** — referenced throughout `ML-DEVOS-AS-001.md`, `-002.md`, `-004.md`, the architect-syncs `README.md`, and `brain/DECISION_LOG.md` as the real legacy-archive verbatim-claim audit (`LAA-001`–`LAA-004`) that led to `D-018`/`D-019`. Same gap, same treatment, same rationale as above.
+
+Both exceptions are genuine historical discoveries made *by this cycle's own tooling*, not pre-known facts restated — this is itself a small piece of positive evidence that the mechanism works as intended (AS37-F005).
+
+### Focused test results
+
+```
+$ node --test tests/traceability.test.mjs
+# tests 7
+# pass 7
+# fail 0
+```
+
+Covers exactly the four categories `ML-DEVOS-AS-037` requires (missing reference, duplicate canonical definition, deterministic output, explicit historical-exception handling) plus three additional cases written to pin down behavior precisely: orphan-no-inbound-reference WARNING, the non-authoritative marking, and `scan` config filtering. All fixtures are synthetic temp directories (`fs.mkdtempSync`, the same pattern already used by `tests/d1-audit.test.mjs` etc.) — none depend on or mutate real repository content.
+
+### Full suite result (sanity check — application code was not in scope and was not touched)
+
+```
+$ npm test
+# tests 345
+# pass 345
+# fail 0
+```
+
+345 = the pre-existing 338 (last confirmed in `SENTINEL-BASELINE-CLEANUP-001`) + this cycle's 7 new `tests/traceability.test.mjs` cases. No pre-existing test was modified, and none regressed.
+
+### Proof generated output is marked non-authoritative (required evidence item)
+
+- `traceability-index.json`'s top-level `"nonAuthoritative": true` field, plus a full-sentence `"authorityStatement"` field naming every record class it can never override (frozen architecture, active governance kernel, `brain/DECISION_LOG.md`, ADRs, durable Architect Syncs, requirement/risk/test source records).
+- `TRACEABILITY_INDEX.md`'s H1 is literally `# Traceability Index (Derived — Non-Authoritative)`, followed immediately by a sentence pointing to this README and the authority chain, and a "Do not hand-edit; regenerate instead" instruction.
+- `README.md`'s "What this is not" section states this explicitly as a design principle, not just a label on the output.
+
+### Confirmation no existing source-of-truth records were auto-rewritten (required evidence item)
+
+`git status --porcelain` immediately before this commit shows only the 7 new untracked paths listed above (`devos/governance/traceability/` in full, plus `tests/traceability.test.mjs`) — zero modified or deleted paths. No RFC, Architect Sync, ADR, Decision Log entry, risk register row, test ledger row, `BUILD_PLAN.md`, the admin-plan `.txt`, or `core-rules.json` was touched, including for the two genuine gaps this cycle discovered (`CORE-022`, `WEB-REQ-009`) and the two historical exceptions — all four were reported, none were backfilled or silently corrected.
+
+### Explicit confirmations
+
+- **No S3 Typed Task Contracts, S7 Evidence Store/QA Plane, or S9 Evidence Gate implementation occurred.** The validator reports structural-integrity findings only; it does not define task lifecycle, store evidence packets, or decide merge/deploy eligibility.
+- **No CI/GitHub Actions wiring, branch protection, or ruleset was created or modified.**
+- **No product runtime, D1/R2/Access resource, deployment, or `main` merge occurred.**
+- **No project onboarding occurred.**
+- **No automatic status/authority mutation occurred** — this handoff and `coordination/STATE.md` are the only status changes, both normal Builder→Architect handoff bookkeeping.
+- **No Sentinel capability-baseline version bump occurred.** `devos/devos-manifest.json`'s `sentinel_capability_baseline.version` remains exactly `1.5.0`, untouched — consistent with `AS37-F012`.
+- **No existing historical RFC/AS/ADR/Decision content was edited to make the validator green.** The two genuine ERRORs (`CORE-022`, `WEB-REQ-009`) and the two historical-exception WARNINGs are reported as-is.
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this cycle as `ARCHITECT VERIFIED`.** Every command result above is `ACTOR_REPORTED` until independently reviewed — including the two baseline findings, which are genuine tool output but not yet Architect-inspected.
+
+### Known limitations
+
+- The `json-array-field` discovery strategy's recorded "line" for `CORE-*` definitions is the 1-based array index within `core-rules.json`'s `rules` array, not a true source-line number — disclosed in the README as a deliberate, dependency-light (AS37-F010) simplification, not silently presented as line-accurate.
+- The two genuine baseline findings (`CORE-022`, `WEB-REQ-009`) are unresolved repository-content gaps as of this handoff. Resolving either (creating a `CORE-022` rule entry, or adding `WEB-REQ-009` to the canonical admin-plan document) is explicitly out of this cycle's scope and would require its own separate authorization.
+- `S3 — Typed Task Contracts` (`ML-DEVOS-RFC-013`/`ML-DEVOS-AS-038`/`D-037`) remains queued behind this cycle's independent Architect closure, per `coordination/STATE.md`'s "Queued next phase" section and `AS38-F010`. This handoff does not begin S3 implementation.
+
+### Implementation commit
+
+All 7 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `affd2693f29ebac450e707e7b43140f9b36f09b8`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
