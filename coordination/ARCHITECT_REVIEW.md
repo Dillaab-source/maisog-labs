@@ -1,117 +1,148 @@
-# Architect Builder Brief — WEB-REL-001 Gate A
+# Architect Review — WEB-REL-001 Gate A
 
-Status: AUTHORIZED IMPLEMENTATION
+Status: PARTIAL PASS — TECHNICAL PROTECTION BLOCKED BY GITHUB PLAN / ADMIN SURFACE
+Review mode: RELEASE REVIEW
 Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
+Reviewed HEAD: f6557b13cb2903e22baf10255fcc0687eea97cbf
 Authority: D-052
-Source readiness packet: docs/release/WEB_REL_001_READINESS_REPORT.md
-Precondition: S4 fully closed by ML-DEVOS-AS-068
+Archive ID: ML-DEVOS-AS-069
 
-## Objective
+## Verdict
 
-Implement only the first production-readiness gate already designed by WEB-REL-001:
+GATE A / CI: APPROVED
+GATE A / MAIN TECHNICAL PROTECTION: BLOCKED
+GATE A OVERALL: NOT COMPLETE
+NEXT ACTOR: PAULO
 
-1. minimal CI on the governed branch;
-2. observe one real green CI run;
-3. apply minimum GitHub technical protection to main using the observed live check name;
-4. return evidence to Architect.
+No merge, deployment, Cloudflare-resource, public cutover, S5, or Skills V0.2 authority is granted.
 
-This does NOT merge or deploy the website.
+## Independent evidence
 
-## LEAN / DELTA-ONLY reads
+### CI workflow
 
-Read first:
-1. coordination/STATE.md
-2. this brief
-3. docs/release/WEB_REL_001_READINESS_REPORT.md §§11–13 and §21 Gate A only
-4. package.json / package-lock.json only as needed to confirm commands/runtime
-5. live GitHub branch/workflow/ruleset state
+PASS.
 
-Do not reread the full Sentinel history.
+The committed `.github/workflows/ci.yml` exactly implements D-052's minimal design:
+- workflow name `ci`;
+- pull_request targeting `main`;
+- push targeting `governance/maisoglabs-v0.1`;
+- one `test-and-build` job on `ubuntu-latest`;
+- checkout@v4;
+- setup-node@v4 / Node 22;
+- npm ci;
+- npm test;
+- npm run build;
+- no secret, deploy, Wrangler mutation, D1/R2/Access action, or production write.
 
-## Repository mutation authorized
+### Live CI run
 
-Create:
-- `.github/workflows/ci.yml`
+INDEPENDENTLY VERIFIED via GitHub:
+- run ID: 35538010928;
+- workflow: ci;
+- branch: governance/maisoglabs-v0.1;
+- triggering SHA: 274b319db1aa9e11cd8a7db6910c8b98492c31fe;
+- status: completed;
+- conclusion: success;
+- exact live job/check name: `test-and-build`.
 
-Minimal workflow:
-- name: `ci`
-- pull_request -> main
-- push -> governance/maisoglabs-v0.1
-- one job suitable for becoming the required status check
-- ubuntu-latest
-- actions/checkout
-- actions/setup-node with Node 22
-- npm ci
-- npm test
-- npm run build
+Every reported job step completed successfully: checkout, setup-node, npm ci, npm test, npm run build.
 
-No secrets and no deployment steps.
+### Main immutability during Gate A
 
-Update only as required for deterministic derived traceability and the compact coordination handoff/state.
+PASS.
 
-## GitHub remote mutation authorized
+Live main HEAD remains:
+`887849283ee9cd16e8d60b937bac95b1c85bf3d9`
 
-After the workflow has completed successfully at least once on the governed branch:
+Gate A did not push or merge main.
 
-Configure one active ruleset/protection policy targeting exactly `main`:
-- require PR before merge;
-- zero required approving reviews for the current single-owner repository;
-- block force-push/non-fast-forward;
+### Exact repository delta
+
+PASS.
+
+Relative to Gate A input HEAD 44566ecb749447c9c304dc1ab1b7cc2687a4bcb9, the Gate A implementation contains only:
+- .github/workflows/ci.yml;
+- deterministic traceability outputs;
+- coordination handoff/state.
+
+No product/website code, Cloudflare config, S5+, Skills V0.2, or main content changed.
+
+## GA-F001 — BLOCKER: required main protection is unavailable for this private repository on the current GitHub plan
+
+Architect independently queried the live repository rulesets endpoint.
+
+GitHub returned HTTP 403 with the explicit message:
+`Upgrade to GitHub Pro or make this repository public to enable this feature.`
+
+Architect also queried the branch-protection endpoint; this connector lacks the required repository Administration permission and GitHub returned `Resource not accessible by integration`.
+
+Current official GitHub documentation independently confirms:
+- repository rulesets are available for private repositories only on GitHub Pro, Team, and Enterprise Cloud;
+- protected branches are likewise available for private repositories only on GitHub Pro, Team, Enterprise Cloud/Server;
+- GitHub Free supports these controls on public repositories.
+
+Therefore the Gate A protection requirement cannot be satisfied for the current private repository under the apparent current GitHub plan, regardless of the now-observed CI check name.
+
+This is a real platform/plan blocker, not a code defect.
+
+## Required owner decision
+
+One of the following must be explicitly chosen before Gate A can complete:
+
+### Option A — keep repository private and enable a qualifying GitHub plan
+
+Use GitHub Pro (personal repository) or another qualifying paid plan.
+
+Then configure:
+- PR required for main;
+- 0 required approving reviews while single-owner;
+- block force pushes;
 - block deletion;
-- require the exact observed successful CI status-check context;
-- bypass limited to repository owner/admin only, as narrowly as supported.
+- required status check: `test-and-build`;
+- owner/admin bypass only as narrowly as GitHub supports.
 
-Do not guess the status-check context before the successful run exists.
+This preserves repository privacy and satisfies D-052's original Gate A intent.
 
-If GitHub administration permission is unavailable, STOP. Do not substitute a weaker design.
+### Option B — make repository public
 
-## Verification
+GitHub Free supports rulesets/protected branches for public repositories.
 
-Return evidence for:
-- exact input HEAD;
-- exact workflow commit HEAD;
-- workflow run ID/url/commit and final conclusion;
-- job/check name actually reported by GitHub;
-- ruleset/protection ID and effective target;
-- exact active rules relevant to PR/force-push/deletion/status checks/bypass;
-- live confirmation main HEAD did not change during Gate A;
-- traceability fingerprint if repository-derived outputs changed;
-- exact changed files.
+This changes repository disclosure materially. It must not be done implicitly because the repository currently contains private project/governance history and becoming public is a separate disclosure decision.
 
-Evidence from Builder remains ACTOR_REPORTED until independently inspected.
+No public-visibility mutation is authorized by D-052.
 
-## Write boundary
+### Option C — explicitly revise/waive Gate A's technical-protection requirement
 
-Allowed repository files:
-- .github/workflows/ci.yml
-- deterministic traceability outputs only if regeneration changes them
-- coordination/IMPLEMENTER_HANDOFF.md
-- coordination/STATE.md
+This would permit continued release work without platform-enforced main protection.
 
-brain/DECISION_LOG.md is already updated by Architect: do not edit it.
+It weakens the release-safety design and requires a new explicit Paulo risk-acceptance decision; Architect does not infer or recommend this as already authorized.
 
-## Hard prohibitions
+## Architect disposition
 
-No PR to main.
-No merge/main push.
-No Cloudflare mutation.
-No D1/R2/Access resources.
-No credentials/secrets.
-No deploy/DNS/production write.
-No website feature/product mutation.
-No S5+.
-No Skills V0.2.
-No PR #10 merge.
+CI is complete and accepted.
 
-## Return gate
+Do not ask Claude to retry ruleset configuration: neither repetition nor a code change can solve the plan limitation.
 
-After Gate A:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_REVIEW_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-- all Cloudflare/remote/deploy/main-merge flags remain NO
+Do not open Gate B / main PR while Gate A remains incomplete under the currently locked release sequence.
 
-Then stop.
+## Project health at this gate
+
+S4: 100% CLOSED
+WEB local/repository build: ~95% operationally ready
+Gate A CI: 100%
+Gate A main protection: 0% due external plan blocker
+Gate A overall: ~60%
+Production deployment: 0% authorized
+
+## Hard boundaries
+
+Until Paulo resolves GA-F001:
+- no governance→main PR;
+- no main merge/push;
+- no remote D1/R2;
+- no Cloudflare Access production mutation;
+- no Worker deployment/DNS/production write;
+- no public-source cutover;
+- no S5+;
+- no Skills V0.2 implementation;
+- no PR #10 merge.
