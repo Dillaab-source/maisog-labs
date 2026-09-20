@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED — SENTINEL-TRACEABILITY-V1 REMEDIATION CYCLE 1`
+Status: `CHANGES_REQUESTED — SENTINEL-TRACEABILITY-V1 REMEDIATION CYCLE 2`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,156 +8,124 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-039 — Sentinel Traceability V1 Implementation Review
+# ML-DEVOS-AS-040 — Sentinel Traceability V1 Remediation Review 2
 
 Authority chain:
 - `ML-DEVOS-RFC-012`
 - `ML-DEVOS-AS-037`
 - `D-036`
+- prior review `ML-DEVOS-AS-039`
 
-Reviewed implementation base:
-`affd2693f29ebac450e707e7b43140f9b36f09b8`
+## Remediation Cycle 1 result
 
-The governance branch is exactly one implementation commit ahead of that base for this Builder handoff.
+The Builder correctly implemented a narrowly scoped `referenceExceptions` mechanism.
 
-## Scope inspection
+Independent inspection confirms the original source occurrence:
 
-PASS.
+`docs/SENTINEL_REVIEW_NOTES.md: Do not create CORE-022 from these findings.`
 
-The implementation changed only:
-- seven new files under `devos/governance/traceability/`;
-- `tests/traceability.test.mjs`;
-- normal Builder handoff/state bookkeeping.
+is now classified as:
 
-No existing governance source record, runtime/application code, rule registry, migration, product schema, CI/ruleset, remote resource, deployment target, or `main` content was modified.
+`WARNING intentional-noncanonical-mention`
 
-## Findings
+rather than a hard missing-target error.
 
-### AS39-F001 — PASS — source-of-truth hierarchy preserved
+The new tests also correctly prove that the exception is site-specific rather than a global suppression.
 
-Generated output is explicitly marked derived/non-authoritative in JSON, Markdown, and README.
+## New finding
 
-The implementation does not override or rewrite canonical governance records.
+### AS40-F001 — BLOCKER — rolling/tooling surfaces are being treated as durable semantic references
 
-### AS39-F002 — PASS — deterministic derived output design
+The current report still produces hard missing-target errors for:
 
-The generator contains no time/random/process-derived output and sorts scanned files/findings/IDs before serialization.
+- `CORE-022` from `coordination/ARCHITECT_REVIEW.md`, `coordination/IMPLEMENTER_HANDOFF.md`, and `coordination/STATE.md`;
+- `ML-DEVOS-AS-039` from the still-open rolling review/handoff/state and from Traceability V1's own implementation documentation.
 
-Builder-reported two-run SHA/diff evidence is consistent with the implementation design.
+These are not equivalent to durable repository references.
 
-### AS39-F003 — PASS — duplicate and missing-target detection are structurally bounded
+`coordination/` is a rolling working/turn surface. Its contents necessarily discuss unresolved IDs, proposed IDs, current findings, and open Architect Sync IDs before those records become durable archives.
 
-Canonical-definition discovery is configured by ID family and existing authoritative surfaces rather than a second manually maintained relationship matrix.
+Likewise, the Traceability V1 subsystem's own README/source/config necessarily discusses the IDs and exception mechanisms it is analyzing.
 
-### AS39-F004 — PASS — historical exceptions remain visible
+Using either surface as a hard referential-integrity source creates a feedback loop:
 
-`ML-DEVOS-AS-008` and `ML-DEVOS-AS-009` are not silently suppressed; they remain explicit warning-class findings with rationale.
+`finding → review text mentions finding → scanner reads review → new finding`
 
-### AS39-F005 — PASS — no S3/S7/S9 boundary breach
-
-The implementation:
-- does not define Task Contracts;
-- does not store evidence packets or run QA;
-- does not decide task acceptance, merge eligibility, deployment, or authority.
-
-### AS39-F006 — PASS — focused tests cover the required core mechanisms
-
-The focused suite covers:
-- missing target;
-- duplicate canonical definition;
-- deterministic generation;
-- historical exception visibility;
-- orphan warning;
-- non-authoritative marking;
-- scan filtering.
-
-Builder reports `7/7` focused tests and `345/345` full tests.
-
-### AS39-F007 — PASS — WEB-REQ-009 is a genuine repository traceability gap
-
-The generated finding for `WEB-REQ-009` is valid.
-
-Independent inspection confirms:
-- the canonical legacy Website Governance/Admin Plan defines `WEB-REQ-001` through `WEB-REQ-008`;
-- `WEB-REQ-009` is nevertheless referenced broadly across the accepted Journal implementation, tests, RFC/AS/ADR, product docs, and runtime source.
-
-This is not a generator defect.
-
-It must remain reported and must **not** be silently fixed inside Traceability V1. A separate governed requirement-reconciliation change may address it after this implementation closes.
-
-### AS39-F008 — BLOCKER — CORE-022 is an intentional non-reference mention, not a missing canonical target
-
-The generator currently reports:
-
-`ERROR [missing-canonical-target] CORE CORE-022`
-
-from:
-`docs/SENTINEL_REVIEW_NOTES.md`
-
-Independent inspection of the exact source context shows:
-
-`Do not create CORE-022 from these findings.`
-
-The source intentionally asserts that no `CORE-022` record should exist.
-
-Therefore this occurrence is **not a semantic cross-reference to a required canonical target**. Treating it as a hard missing-target ERROR is a false positive.
-
-This matters because V1's stated purpose is referential-integrity checking. A negated/hypothetical identifier mention must not be indistinguishable from an actual durable reference.
+That makes the validator partly self-referential and can create false-positive growth even when the underlying durable repository is unchanged.
 
 ## Required remediation
 
-Builder must make one bounded parser/config enhancement that preserves visibility without converting this intentional non-reference mention into a hard missing-target error.
+Separate **durable reference surfaces** from **rolling/tooling surfaces**.
 
-Preferred shape:
+### Required behavior
 
-1. Add a small explicit configuration construct such as `intentionalNonReferences` / `referenceExceptions`.
-2. Each entry must be narrowly scoped by:
-   - ID;
-   - exact file;
-   - bounded line/context pattern;
-   - human-readable reason.
-3. A matched occurrence must remain visible as a WARNING such as:
-   `intentional-noncanonical-mention`.
-4. It must **not** globally suppress the ID. If the same ID appears elsewhere as a genuine unresolved reference, those other occurrences must still produce a missing-target ERROR.
-5. Add focused tests proving:
-   - an exact intentional non-reference occurrence becomes a visible WARNING;
-   - a second genuine reference to the same missing ID still produces ERROR;
-   - unrelated mentions are not suppressed.
-6. Regenerate the real repository indexes.
+1. Hard `missing-canonical-target` ERRORs must be derived only from durable/product/source/test/governance surfaces intended to carry lasting semantic references.
 
-For the current repository, the exact intentional occurrence is:
-- ID: `CORE-022`
-- file: `docs/SENTINEL_REVIEW_NOTES.md`
-- context: the explicit conclusion `Do not create CORE-022 from these findings.`
+2. The following must not contribute hard missing-target references in V1:
+   - `coordination/` rolling working files;
+   - `devos/governance/traceability/` itself, including README/source/config/generated output;
+   - the traceability-focused test file if it contains implementation-discussion IDs.
+
+3. This may be implemented through bounded scan exclusions/prefixes or an equivalent simple mechanism.
+
+4. Do **not** globally suppress any ID.
+
+5. Keep canonical-definition discovery unchanged.
+
+6. Keep the exact site-specific intentional-non-reference mechanism from Remediation Cycle 1.
+
+7. Add focused tests proving:
+   - a missing ID mentioned only on an excluded rolling/tooling surface does not create a hard ERROR;
+   - the same missing ID referenced on a durable included surface still creates ERROR;
+   - canonical definition discovery still works even when the reference scan excludes working/tooling surfaces.
+
+8. Regenerate the real repository index.
 
 ## Expected post-remediation baseline
 
-If no other defects emerge:
-- `CORE-022` should move from ERROR to explicit intentional-non-reference WARNING;
-- `WEB-REQ-009` should remain the one genuine ERROR;
-- existing historical/orphan warnings remain visible unless the corrected parsing naturally changes counts.
+If no additional mechanism defects emerge:
 
-The validator is allowed to exit non-zero because a genuine repository-content traceability ERROR remains. Traceability V1 can still be Architect-accepted if the validator accurately reports that external gap and its own implementation is correct.
+- `CORE-022` should remain only as the one explicit intentional-noncanonical WARNING from `docs/SENTINEL_REVIEW_NOTES.md`;
+- the open `ML-DEVOS-AS-039` / current review bookkeeping should no longer appear as a missing-target ERROR merely because the durable archive does not exist yet;
+- `WEB-REQ-009` should remain the genuine hard ERROR because it is referenced across durable product/runtime/test/RFC/ADR surfaces outside coordination;
+- historical exceptions `ML-DEVOS-AS-008` and `ML-DEVOS-AS-009` remain visible warnings;
+- any real durable orphan warnings discovered by the corrected scan remain visible.
 
-## Non-scope during remediation
+## Architectural rationale
+
+Traceability V1 is a durable-reference integrity checker, not a parser for every string appearing in temporary working conversation mirrors.
+
+The repository already distinguishes:
+- rolling current-turn coordination;
+- durable Architect Sync archive;
+- Decisions;
+- ADRs;
+- requirements;
+- risks;
+- tests;
+- implementation/source artifacts.
+
+The validator should respect that distinction.
+
+## Non-scope
 
 Do not:
+- repair `WEB-REQ-009`;
 - create `CORE-022`;
-- add/fix `WEB-REQ-009`;
-- rewrite historical RFC/AS/ADR/Decision content;
-- begin S3 implementation;
+- fabricate/archive an Architect Sync before its review actually concludes;
+- begin S3;
+- modify product runtime;
 - add CI/rulesets;
-- change runtime/application code;
-- change Sentinel version;
 - touch remote resources;
 - deploy;
-- merge to `main`.
+- merge to main;
+- bump Sentinel version.
 
 ## Verdict
 
-`ML-DEVOS-AS-039: CHANGES_REQUESTED — REMEDIATION CYCLE 1`
+`ML-DEVOS-AS-040: CHANGES_REQUESTED — REMEDIATION CYCLE 2`
 
-Single implementation blocker:
-`AS39-F008`.
+Single blocker:
+`AS40-F001`.
 
-All other inspected Traceability V1 architecture/scope properties pass this review.
+Traceability V1 may close after this boundary correction if the remaining hard errors represent genuine durable repository gaps rather than scanner self-reference.
