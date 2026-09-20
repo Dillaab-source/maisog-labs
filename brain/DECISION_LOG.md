@@ -580,3 +580,14 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Usefulness principle:** retained knowledge should identify where it is expected to improve future behavior when practical (skill/checklist/test/risk control/design guideline/onboarding/journal/etc.). Treasury success should be measured by reuse and avoided duplication/failure, not by number of notes/files/skills captured.
 - **No implementation authority:** this decision does not authorize skill directories, Treasury implementation, transcript ingestion, account-history scraping, S11, S3 resumption, provider adapters, external-skill installation, remote resources, deployment, or main merge.
 - **Return gate:** Claude must incorporate D-038, D-039, AS-042, AS-043, and this decision into the remediated RFC-014/handoff and return to Architect.
+
+
+### D-041 — Change MaisogLabs repository visibility to private and revise Treasury disclosure assumptions
+
+- **Decided / performed by:** Paulo (Product / Risk Owner).
+- **Verified state:** GitHub reports `Dillaab-source/maisog-labs` with `private: true` and `visibility: private`.
+- **Decision impact:** the active Skills Foundation / Portable Knowledge Treasury discovery may treat this repository as a private repository boundary for appropriate INTERNAL and RESTRICTED documentation, subject to record-specific access/sensitivity rules.
+- **Important limit:** repository privacy does **not** make Git a secrets vault. Credentials, tokens, private keys, secret values, and other material that should not live in version control remain prohibited from repository persistence and must use the appropriate secret/configuration mechanism instead.
+- **Historical limit:** changing visibility to private does not retroactively guarantee confidentiality for material that may have existed while the repository was public. Previously committed sensitive material, if any is discovered, must be treated as potentially exposed and handled under the appropriate incident/credential-rotation process rather than assumed safe because visibility changed.
+- **RISK-WEB-013:** the visibility change materially affects its premise and makes it eligible for a separate reassessment; this decision does not silently close or rewrite that existing risk record inside the Skills discovery cycle.
+- **No additional implementation authority:** no Skill implementation, Treasury automation, provider adapter, S3 resumption, deployment, remote-resource mutation, or main merge is authorized by this visibility change.
