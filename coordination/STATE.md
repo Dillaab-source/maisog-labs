@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-TRACEABILITY-V1
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REMEDIATION_CYCLE_2
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
@@ -81,3 +81,7 @@ After remediation:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 Handoff must include exact diff, tests, regenerated baseline findings, and proof that durable references still fail closed while excluded rolling/tooling mentions do not.
+
+## Remediation Cycle 2 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2" section at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: added `listDurableReferenceFiles()` filtering by `scan.workingSurfaceExcludePaths` (`coordination/`, this subsystem's own directory, and the traceability test file); regenerated baseline now matches "Expected post-remediation baseline" exactly — 1 ERROR (the preserved genuine gap) and 17 WARNINGs (2 historical exceptions, 1 intentional-non-reference, 14 orphans including 3 newly-surfaced genuine ones); the reported id from Remediation Cycle 1 no longer appears as an ERROR at all, and the still-open review sync no longer appears as one either, both for the reason the review anticipated; canonical-definition discovery and the Cycle 1 per-site exception mechanism are both unchanged and verified still working; 4 new focused tests (14/14 suite, 352/352 full); two consecutive runs byte-identical. No id globally suppressed, no source record repaired/created, no Sync fabricated, no version bump.

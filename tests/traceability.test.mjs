@@ -8,6 +8,7 @@ import {
   serializeReportJson,
   renderMarkdown,
   listScannedFiles,
+  listDurableReferenceFiles,
 } from "../devos/governance/traceability/generate-traceability.mjs";
 
 // Sentinel Traceability V1 (ML-DEVOS-RFC-012 / ML-DEVOS-AS-037 / D-036) —
@@ -254,4 +255,92 @@ test("scan respects excludePaths and includeExtensions", () => {
   assert.ok(scanned.includes("docs/included.md"));
   assert.ok(!scanned.includes("docs/ignored.log"));
   assert.ok(!scanned.includes("docs/excluded.md"));
+});
+
+// ML-DEVOS-AS-040 / AS40-F001: rolling working/turn surfaces (a live
+// coordination handoff/review/state document) must not feed hard
+// missing-canonical-target detection, to avoid a self-referential feedback
+// loop between this tool's own review process and its own findings.
+
+test("a missing id mentioned only on an excluded rolling/tooling surface does not create a hard ERROR", () => {
+  const root = makeFixtureRepo("traceability-workingsurface-excluded-only-", {
+    "coordination/STATE.md": "Discussing the still-open FIX-999 finding.\n",
+  });
+  const config = baseConfig({
+    scan: {
+      includeDirs: ["docs", "records", "coordination"],
+      includeRootFiles: [],
+      includeExtensions: [".md", ".txt"],
+      excludePaths: [],
+      workingSurfaceExcludePaths: ["coordination/"],
+    },
+  });
+
+  const report = buildTraceabilityReport(root, config);
+
+  assert.equal(report.summary.errorCount, 0, "a mention only on an excluded working surface must not become a hard ERROR");
+  assert.equal(report.errors.find(e => e.id === "FIX-999"), undefined);
+});
+
+test("the same missing id referenced on a durable included surface still creates an ERROR", () => {
+  const root = makeFixtureRepo("traceability-workingsurface-durable-still-errors-", {
+    "coordination/STATE.md": "Discussing the still-open FIX-999 finding.\n",
+    "docs/spec.md": "The real requirement is FIX-999.\n",
+  });
+  const config = baseConfig({
+    scan: {
+      includeDirs: ["docs", "records", "coordination"],
+      includeRootFiles: [],
+      includeExtensions: [".md", ".txt"],
+      excludePaths: [],
+      workingSurfaceExcludePaths: ["coordination/"],
+    },
+  });
+
+  const report = buildTraceabilityReport(root, config);
+
+  const error = report.errors.find(e => e.id === "FIX-999");
+  assert.ok(error, "a genuine reference on a durable (non-excluded) surface must still produce an ERROR");
+  assert.equal(error.kind, "missing-canonical-target");
+  assert.equal(error.sites.length, 1);
+  assert.equal(error.sites[0].file, "docs/spec.md");
+});
+
+test("canonical definition discovery still works even when the reference scan excludes working/tooling surfaces", () => {
+  const root = makeFixtureRepo("traceability-workingsurface-definitions-unaffected-", {
+    "records/FIX-001.md": "# FIX-001\n",
+    "coordination/STATE.md": "FIX-001 is mentioned only here, on an excluded surface.\n",
+  });
+  const config = baseConfig({
+    scan: {
+      includeDirs: ["docs", "records", "coordination"],
+      includeRootFiles: [],
+      includeExtensions: [".md", ".txt"],
+      excludePaths: [],
+      workingSurfaceExcludePaths: ["coordination/"],
+    },
+  });
+
+  const report = buildTraceabilityReport(root, config);
+
+  const family = report.idFamilies.find(f => f.family === "FIX");
+  assert.equal(family.definitionCount, 1, "canonical definition discovery must be unaffected by working-surface exclusion");
+  const entry = family.ids.find(i => i.id === "FIX-001");
+  assert.equal(entry.definitionSites.length, 1);
+  assert.equal(entry.definitionSites[0].file, "records/FIX-001.md");
+  // Its only mention is on the excluded surface, so it correctly has zero
+  // durable inbound references and surfaces as an orphan warning rather
+  // than being hidden or miscounted.
+  assert.equal(entry.inboundReferenceCount, 0);
+  const orphan = report.warnings.find(w => w.id === "FIX-001" && w.kind === "orphan-no-inbound-reference");
+  assert.ok(orphan);
+});
+
+test("listDurableReferenceFiles filters by working-surface path prefix", () => {
+  const scanned = ["coordination/STATE.md", "docs/spec.md", "devos/governance/traceability/README.md", "worker/index.mjs"];
+  const config = { scan: { workingSurfaceExcludePaths: ["coordination/", "devos/governance/traceability/"] } };
+
+  const durable = listDurableReferenceFiles(scanned, config);
+
+  assert.deepEqual(durable, ["docs/spec.md", "worker/index.mjs"]);
 });

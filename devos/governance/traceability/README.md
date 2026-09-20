@@ -91,18 +91,47 @@ and its own configuration file to avoid self-reference), every line is
 matched against every family's `pattern` regex. Every match is one
 occurrence, with file+line.
 
-A known, accepted consequence of this being a plain textual pattern match
-(AS37-F004's deliberately bounded, mechanical design — not a semantic or
-quote-aware parser): a living coordination/governance document that
-*quotes* an ID as an example while discussing a past finding (for instance,
-an Architect Sync review or a Builder handoff describing exactly this
-mechanism) is textually indistinguishable from a genuine reference, and
-will itself be reported as an occurrence needing a canonical target. This
-is intentionally not special-cased — doing so would mean either excluding
-a whole document class that also carries genuine cross-references (losing
-real signal), or building a context-sensitive parser (explicitly against
-`AS37-F010`'s dependency-light, mechanical design). See
-`traceability-index.json`'s own baseline findings for a live example.
+### Durable vs. rolling surfaces (`ML-DEVOS-AS-040` / `AS40-F001`)
+
+A plain textual pattern match (AS37-F004's deliberately bounded, mechanical
+design — not a semantic or quote-aware parser) cannot by itself distinguish
+a genuine durable cross-reference from a living coordination/governance
+document *quoting* an ID as an example while discussing a past or open
+finding (for instance, an Architect Sync review or a Builder handoff
+describing exactly this mechanism). Left unaddressed, that creates a
+self-referential feedback loop: a finding is reported → the review/handoff
+process discusses that finding by name → the scanner reads that discussion
+as a new reference → a new (or persistent) finding results — even though
+the underlying durable repository content never changed.
+
+Traceability V1 resolves this by computing occurrence counts, orphan
+detection, and hard `missing-canonical-target`/`duplicate-canonical-definition`
+findings from a **durable** subset of the scanned files, filtered by
+`scan.workingSurfaceExcludePaths` (a list of path prefixes or exact paths).
+By default this excludes:
+
+- `coordination/` — the rolling working/turn surface (`IMPLEMENTER_HANDOFF.md`,
+  `ARCHITECT_REVIEW.md`, `STATE.md`) that necessarily discusses unresolved,
+  proposed, or not-yet-archived IDs while a cycle is open;
+- `devos/governance/traceability/` — this subsystem's own
+  README/source/config/generated-output, which necessarily discusses the
+  IDs and exception mechanisms it analyzes;
+- `tests/traceability.test.mjs` — included defensively, since a
+  traceability-focused test file will inherently name real IDs in test
+  descriptions/comments over time even though its assertions use synthetic
+  fixtures.
+
+This is a **file-scope** exclusion, not an ID-scope suppression: an
+excluded file's mentions never count toward a hard finding, but a genuine
+reference to the *same* ID on any non-excluded (durable) file still
+produces a `missing-canonical-target` ERROR exactly as before. Canonical
+definition discovery is entirely unaffected, since it always reads its own
+configured file/dir directly (`discoverDefinitionsForFamily`), never
+through the scanned-file list. `traceability-index.json`'s
+`durableReferenceScannedFileCount` and `workingSurfaceExcludePaths` fields
+disclose exactly how many of `scannedFileCount`'s files fed hard-finding
+detection and which prefixes were excluded, so this is independently
+auditable rather than a silent behind-the-scenes filter.
 
 ### Findings
 
@@ -117,7 +146,7 @@ real signal), or building a context-sensitive parser (explicitly against
   this exact site matches a configured `referenceException`; other sites of
   the same ID are unaffected.
 - **WARNING `orphan-no-inbound-reference`** — an ID is canonically defined
-  but never referenced anywhere else in the scanned surface.
+  but never referenced anywhere else in the durable scanned surface.
 
 Per AS37-F004, only the ERROR class is treated as an objective
 structural-integrity defect in V1. Orphans and both exception classes
@@ -171,8 +200,14 @@ rather than silently treated as a real line number.
 
 `tests/traceability.test.mjs` exercises the exported pure functions
 (`buildTraceabilityReport`, `serializeReportJson`, `renderMarkdown`,
-`listScannedFiles`) against small synthetic temp-directory fixtures — never
-the real repository — covering: missing-reference detection, duplicate-
-canonical-definition detection, deterministic output across two runs,
-explicit historical-exception handling, orphan detection, the
-non-authoritative marking, and `scan` config filtering.
+`listScannedFiles`, `listDurableReferenceFiles`) against small synthetic
+temp-directory fixtures — never the real repository — covering:
+missing-reference detection, duplicate-canonical-definition detection,
+deterministic output across two runs, explicit historical-exception
+handling, the per-site `referenceExceptions` mechanism (an exempted site
+becomes a WARNING while a genuine reference to the same ID elsewhere still
+errors, and an unrelated ID is unaffected), orphan detection, the
+non-authoritative marking, `scan` config filtering, and the durable/rolling
+working-surface split (an ID mentioned only on an excluded surface does not
+error, the same ID on a durable surface still errors, and canonical
+definition discovery is unaffected either way).

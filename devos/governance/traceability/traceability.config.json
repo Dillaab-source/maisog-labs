@@ -2,6 +2,7 @@
   "_comment": "Sentinel Traceability V1 (ML-DEVOS-RFC-012 / ML-DEVOS-AS-037 / D-036) bounded configuration. This file names canonical-definition surfaces already owned by existing authoritative records (brain/, devos/, docs/) -- it does not restate their content and does not create a second manually maintained relationship matrix (AS37-F003). Adding a new ID family or historical exception here is a configuration change, not a code change, and does not alter any existing record's authority (AS37-F002).",
   "scan": {
     "_comment": "The bounded set of directories/root files this subsystem reads (read-only) to discover canonical definitions and references. Deliberately excludes build output, dependencies, and this subsystem's own generated files and this config file itself (self-reference avoidance -- this config's own id/reason/_comment fields necessarily restate exempted/historical ids verbatim as configuration data, e.g. CORE-022, ML-DEVOS-AS-008; scanning them back in as if they were repository-content references would defeat the exemption mechanisms they configure, AS39-F008).",
+    "workingSurfaceExcludePaths_comment": "ML-DEVOS-AS-040 / AS40-F001: path prefixes (or exact paths) still counted in scannedFileCount and still eligible to satisfy a referenceException, but excluded from the durable subset used for hard missing-canonical-target/duplicate-definition detection. coordination/ is the rolling working/turn surface (handoff, review, state) that necessarily discusses unresolved/proposed/not-yet-archived ids while a cycle is open; devos/governance/traceability/ is this subsystem's own README/source/config/generated-output directory, which necessarily discusses the ids and exception mechanisms it analyzes. Excluding both prevents the self-referential feedback loop: finding -> review text mentions finding -> scanner reads review -> new finding. tests/traceability.test.mjs is included defensively per the review's third bullet, since a traceability-focused test file will inherently name real ids in its test descriptions/comments over time even though its assertions use synthetic fixtures.",
     "includeDirs": ["app", "brain", "coordination", "components", "data", "devos", "docs", "lib", "migrations", "scripts", "tests", "worker"],
     "includeRootFiles": ["AGENTS.md", "CLAUDE.md", "README.md", "wrangler.jsonc"],
     "includeExtensions": [".md", ".mjs", ".js", ".json", ".jsonc", ".txt"],
@@ -9,7 +10,8 @@
       "devos/governance/traceability/traceability-index.json",
       "devos/governance/traceability/TRACEABILITY_INDEX.md",
       "devos/governance/traceability/traceability.config.json"
-    ]
+    ],
+    "workingSurfaceExcludePaths": ["coordination/", "devos/governance/traceability/", "tests/traceability.test.mjs"]
   },
   "idFamilies": [
     {

@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — SENTINEL-TRACEABILITY-V1 Remediation Cycle 1 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — SENTINEL-TRACEABILITY-V1 Remediation Cycle 2 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**SENTINEL-TRACEABILITY-V1 Remediation Cycle 1 update:** see the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record.
+**SENTINEL-TRACEABILITY-V1 Remediation Cycle 2 update:** see the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record.
 
 ---
 
@@ -1395,3 +1395,127 @@ $ npm test
 ### Remediation commit
 
 The 6 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `4f5c8e190b4edbfac9a4bb2cf707d500e4f9647c`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)
+
+### Cycle / Change ID
+
+`SENTINEL-TRACEABILITY-V1` — **Remediation Cycle 2, now complete, handed back for Architect review.**
+
+Authority chain: `ML-DEVOS-RFC-012` (`ACCEPTED`) → `ML-DEVOS-AS-037` (`ARCHITECT_APPROVED`) → `D-036` → `ML-DEVOS-AS-039` (Remediation Cycle 1 review) → `ML-DEVOS-AS-040` (`CHANGES_REQUESTED — REMEDIATION CYCLE 2`, single blocker `AS40-F001`). `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 3`.
+
+### Objective
+
+Fix exactly `AS40-F001` and nothing else: Remediation Cycle 1's per-site `referenceExceptions` mechanism correctly resolved the original `CORE-022` false positive, but the review's independent inspection found the generator was still producing hard `missing-canonical-target` ERRORs purely because `coordination/` (the rolling handoff/review/state documents) and this subsystem's own directory necessarily *discuss* the very findings under review — a self-referential feedback loop ("finding → review text mentions finding → scanner reads review → new finding"), not a genuine durable repository gap. Required fix: separate durable reference surfaces from rolling/tooling surfaces for hard-finding purposes, without globally suppressing any ID, without touching canonical-definition discovery, and while keeping Cycle 1's site-specific mechanism intact.
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `8ee0ae2d0e6b01cb571318a1670f87912a57a498` — the Architect's `ML-DEVOS-AS-040` sync commit, fast-forwarded cleanly from the prior remediation commit `a0c3d59232dc34e5954e66f25382d09df973321b`.
+- Read in full before any edit: `coordination/STATE.md` (`CYCLE_ID: SENTINEL-TRACEABILITY-V1`, `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 2`) and the full `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-040`, finding `AS40-F001`, "Required remediation" items 1–8, "Expected post-remediation baseline," "Architectural rationale," "Non-scope").
+
+### Design decision
+
+Canonical-definition discovery (`discoverDefinitionsForFamily`) already reads its own configured file/dir directly (e.g. `devos/changes/rfcs/`, `brain/DECISION_LOG.md`) rather than through the scanned-file list — so it was already structurally immune to this class of problem, satisfying "Keep canonical-definition discovery unchanged" (item 5) without any code change there. The fix therefore only had to touch **reference extraction**: a new `listDurableReferenceFiles(scannedFiles, config)` filters the already-computed `scannedFiles` list down to a "durable" subset by excluding any file matching a `scan.workingSurfaceExcludePaths` prefix (`coordination/`, `devos/governance/traceability/`, and — defensively, per the review's third bullet — the exact path `tests/traceability.test.mjs`). `buildTraceabilityReport` now calls `extractReferencesForFamily` with this durable-only file list instead of the full scanned-file list. This is a single, uniform change point: it correctly and consistently affects `occurrenceCount`/`inboundReferenceCount`/orphan-detection/`missing-canonical-target`/`duplicate-canonical-definition` all at once, rather than requiring two parallel reference maps — and it directly implements the review's own general framing ("Traceability V1 is a durable-reference integrity checker... The validator should respect that distinction"), not just the narrower "ERRORs only" reading. This choice is also why the review's final "Expected post-remediation baseline" bullet ("any real durable orphan warnings discovered by the corrected scan remain visible") is satisfied automatically: three new genuine orphans (`D-030`, `D-036`, `D-037`) surfaced, each because their only prior inbound reference was, in fact, coordination bookkeeping.
+
+The exact site-specific `referenceExceptions` mechanism from Remediation Cycle 1 (item 6) is untouched — it still operates on whatever reference-site list it is given, and since `docs/SENTINEL_REVIEW_NOTES.md` is not a working surface, it still correctly matches and produces the `intentional-noncanonical-mention` WARNING.
+
+### Exact diff — 6 files modified, 0 added, 0 deleted
+
+Confirmed by `git status --porcelain` / `git diff --stat` immediately before this commit: exactly these 6 paths changed, all inside the already-authorized `devos/governance/traceability/` root plus its one test file — nothing else.
+
+- `devos/governance/traceability/traceability.config.json` — added `scan.workingSurfaceExcludePaths: ["coordination/", "devos/governance/traceability/", "tests/traceability.test.mjs"]`, with an explanatory comment field. No existing config field removed or renamed; `referenceExceptions`/`historicalExceptions` from prior cycles are unchanged.
+- `devos/governance/traceability/generate-traceability.mjs` — added `isWorkingSurfaceFile()` and `listDurableReferenceFiles()`; `buildTraceabilityReport` now extracts references from `durableReferenceFiles` instead of the full `scannedFiles`. The report now also exposes `durableReferenceScannedFileCount` and `workingSurfaceExcludePaths` fields for independent auditability of exactly what fed hard-finding detection. Two message strings (orphan warning, in two places) reworded from "scanned surface" to "durable scanned surface" for accuracy; no logic change to those two sites beyond the wording.
+- `devos/governance/traceability/traceability-index.json` / `TRACEABILITY_INDEX.md` — regenerated from the real repository (see "Regenerated baseline" below).
+- `devos/governance/traceability/README.md` — replaced the Cycle-1-era "known, accepted consequence" paragraph (which had framed the coordination self-reference problem as an intentional, permanent limitation) with a full description of the durable/rolling split, since AS-040 correctly rejected that framing as insufficient and required an actual fix rather than a documented limitation.
+- `tests/traceability.test.mjs` — 4 new focused tests (see "Focused test results").
+
+**Confirmed not touched:** `WEB-REQ-009`'s source records, `CORE-022`/`core-rules.json`, any RFC/AS/ADR/Decision file (no Architect Sync was fabricated or archived early — `ML-DEVOS-AS-040` and the still-open cycle's own sync remain un-archived exactly as they should, since the review has not concluded), or any application/runtime code.
+
+### Regenerated baseline (required evidence item) — matches "Expected post-remediation baseline" exactly
+
+```
+$ node devos/governance/traceability/generate-traceability.mjs
+Scanned 191 files. Errors: 1. Warnings: 17.
+```
+
+- `durableReferenceScannedFileCount`: 183 of the 191 scanned files fed hard-finding detection; 8 excluded as working/tooling surfaces.
+- **Errors: 1** — exactly `WEB-REQ-009` (31 sites, all on durable product/runtime/test/RFC/ADR/docs surfaces outside `coordination/`), the one genuine, explicitly-preserved gap.
+- **`CORE-022` no longer appears as an ERROR at all.** It appears exactly once, as the Cycle 1 `intentional-noncanonical-mention` WARNING at `docs/SENTINEL_REVIEW_NOTES.md:438` — its only durable-surface site, which the referenceException exactly consumes.
+- **`ML-DEVOS-AS-039` no longer appears anywhere in the report.** Its only reference sites were all in `coordination/`, which is now excluded from hard-finding detection — exactly the review's expectation ("should no longer appear as a missing-target ERROR merely because the durable archive does not exist yet").
+- **Warnings: 17** — the 2 historical exceptions (`ML-DEVOS-AS-008`, `ML-DEVOS-AS-009`, unchanged), the 1 `CORE-022` intentional-non-reference warning, and 14 orphan warnings (`D-001`–`005`, `D-009`, `D-022`, `D-030`, `D-035`–`037`, `WEB-SEC-006`–`008`). `D-030`, `D-036`, and `D-037` are **new** orphan findings versus the pre-Cycle-2 baseline — each is a genuine consequence of the corrected, durable-only scan: their only prior "inbound reference" was coordination bookkeeping discussing them, not a durable cross-reference. This is disclosed, not hidden, and is exactly what the review's final baseline bullet anticipated.
+
+### Two-consecutive-run determinism proof
+
+```
+$ node devos/governance/traceability/generate-traceability.mjs   # run 1
+$ node devos/governance/traceability/generate-traceability.mjs   # run 2
+$ diff <run-1 copy> traceability-index.json   # no output
+$ diff <run-1 copy> TRACEABILITY_INDEX.md     # no output
+$ sha256sum traceability-index.json TRACEABILITY_INDEX.md
+330a0a37b68a85a5a26a3d65de75b7c91e9e82510c3c18ddb40f3470d7029886  traceability-index.json
+e38c1ff954c019d186b59d7c76f041d25cbb511a1b3b1ee99ac938a8689a76b1  TRACEABILITY_INDEX.md
+```
+
+Byte-identical across two consecutive runs. Unlike Remediation Cycle 1, this hash is stable with respect to this very handoff document's own text: `coordination/` is now a working-surface-excluded directory, so nothing this document says about `WEB-REQ-009`, `CORE-022`, or any other ID can feed back into a new finding or shift a count — the self-amplification problem observed and disclosed in Cycle 1's handoff cannot recur for `coordination/` content.
+
+### Validator run
+
+```
+$ node devos/governance/traceability/validate-traceability.mjs
+Scanned 191 files across 12 ID families.
+Errors: 1  Warnings: 17  Total canonical definitions: 208
+[... 1 ERROR line (WEB-REQ-009), 17 WARNING lines matching the baseline above ...]
+No drift: on-disk generated index matches a fresh generation run.
+(exit code: 1 — non-zero because the one genuine durable ERROR remains, exactly as the review's "Traceability V1 can still be Architect-accepted if the validator accurately reports that external gap and its own implementation is correct" anticipates.)
+```
+
+### Focused test results — proof durable references still fail closed while excluded surfaces do not (required evidence item)
+
+4 new tests added to `tests/traceability.test.mjs`, using synthetic fixtures (never the real repository), covering exactly the three cases `AS40`'s "Required remediation" item 7 lists, plus one direct unit test of the new filter function:
+
+```
+$ node --test tests/traceability.test.mjs
+# tests 14
+# pass 14
+# fail 0
+```
+
+- **"a missing id mentioned only on an excluded rolling/tooling surface does not create a hard ERROR"** — a fixture where the only mention of an undefined ID is on a `coordination/`-prefixed file produces 0 errors.
+- **"the same missing id referenced on a durable included surface still creates an ERROR"** — adding a second, genuine mention on a non-excluded file produces exactly one ERROR, sited only at the durable file.
+- **"canonical definition discovery still works even when the reference scan excludes working/tooling surfaces"** — a canonical definition is still discovered and counted correctly regardless of where (or whether) the ID is referenced; its only mention being on an excluded surface correctly yields zero inbound references and an orphan warning, proving the definition/reference layers are properly decoupled.
+- **"listDurableReferenceFiles filters by working-surface path prefix"** — a direct unit test of the new pure function against a plain list of paths.
+
+### Full suite result
+
+```
+$ npm test
+# tests 352
+# pass 352
+# fail 0
+```
+
+352 = the prior 348 + these 4 new cases. No pre-existing test was modified, and none regressed.
+
+### Explicit confirmations
+
+- **`WEB-REQ-009`'s source records were not touched or repaired.**
+- **`CORE-022` was not created.** `devos/governance/rules/core-rules.json` was not touched.
+- **No Architect Sync was fabricated or archived before its review concluded.** `ML-DEVOS-AS-040`'s own durable archive file does not exist yet in this commit, correctly, since this review cycle is still open.
+- **No historical RFC/AS/ADR/Decision content was rewritten** to make the validator green.
+- **The site-specific `referenceExceptions` mechanism from Remediation Cycle 1 is unchanged and still functions correctly** (proven by `CORE-022` still resolving to its Cycle 1 WARNING).
+- **No ID was globally suppressed.** The fix is a file-scope exclusion from hard-finding detection, not an ID-scope suppression — proven by the "durable surface still errors" test.
+- **No S3/S7/S9 implementation, CI/ruleset, runtime/application code, Sentinel version bump, remote resource, deployment, or `main` merge occurred.**
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this remediation as `ARCHITECT VERIFIED`.** Every result above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / carried-forward items
+
+- `WEB-REQ-009` remains open and unrepaired, exactly as instructed — it is the one genuine, durable, cross-referenced repository-content gap this subsystem is designed to surface.
+- `D-030`, `D-036`, `D-037` are new orphan WARNINGs (not ERRORs) — each a genuine, previously-masked observation that these decisions currently have no durable inbound cross-reference outside coordination bookkeeping. No action is proposed or authorized on these; they are reported per the subsystem's design.
+- `S3 — Typed Task Contracts` remains queued behind this cycle's independent Architect closure.
+
+### Remediation commit
+
+The 6 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `8ee0ae2d0e6b01cb571318a1670f87912a57a498`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
