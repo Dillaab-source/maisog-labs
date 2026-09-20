@@ -3,7 +3,7 @@
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
 TURN: CLAUDE
 STATUS: CHANGES_REQUESTED
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_2_PROVIDER_MATRIX_ONLY
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_2_PROVIDER_SECURITY_ROUTING
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
@@ -34,36 +34,44 @@ Preserved authority:
 
 No S3 implementation is authorized during this remediation.
 
-## Current review
+## Current review chain
 
-`ML-DEVOS-AS-045 — CHANGES_REQUESTED / Remediation Cycle 2`
+- `ML-DEVOS-AS-045 — CHANGES_REQUESTED / Remediation Cycle 2`
+- `ML-DEVOS-AS-046 — CHANGES_REQUESTED / Remediation Cycle 2 scope amendment`
 
-Single blocker:
-`AS45-F007 — provider compatibility/evidence matrix contains a materially false current Gemini CLI claim.`
+## Active blockers
 
-## Authorized remediation
+1. `AS45-F007` — correct Gemini/.agents official evidence and recompute canonical-location/provider portability analysis.
+2. `AS46-F001` — current repository is public; INTERNAL/RESTRICTED/SECRET data must not be routed to ordinary repository documentation as though it were private.
+3. `AS46-F002` — add complete per-skill discovery contracts for the 4 V0.1 candidates.
+4. `AS46-F003` — define explicit provider-neutral SKILL CHECK routing order and routing evals.
 
-Modify only:
+## Authorized remediation files
+
+Claude may modify only:
 - `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
 - `devos/changes/rfcs/README.md` if its summary changes;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
 
-Required correction:
-1. record official Gemini CLI support for `.agents/skills/`;
-2. recompute portability counts/tradeoffs;
-3. separate repo/filesystem-native clients from ChatGPT product/plugin exposure;
-4. re-evaluate canonical-location recommendation;
-5. correct any evidence-table wording directly affected.
+## Required disclosure/storage correction
+
+Because `Dillaab-source/maisog-labs` is currently a public GitHub repository:
+
+- PUBLIC_SAFE may be eligible for normal public-repo/Journal routing after record-specific approval.
+- INTERNAL requires an explicitly authorized destination with known access properties.
+- RESTRICTED/SECRET must not be persisted in this public repository.
+- if no approved private destination exists, STOP / DEFER PERSISTENCE.
+- non-rendered repository paths are not a privacy boundary.
 
 ## Preserve accepted discovery architecture
 
-Do not reopen or change without new evidence:
+Do not reopen without new evidence:
 - four-skill V0.1 candidate set;
 - Treasury-as-routing/procedure direction;
 - consequence-sensitive external-skill tiers;
 - progressive disclosure;
-- Treasury capture threshold/candidate boundary/type+disclosure/dedup/provenance/evals/anti-bloat model.
+- Treasury capture threshold/candidate boundary/type+disclosure/dedup/provenance/revalidation/anti-bloat model.
 
 ## Hard boundaries
 
@@ -71,6 +79,7 @@ No:
 - actual Skill implementation;
 - Skill/provider-adapter directories;
 - Treasury implementation;
+- private repository or secret-store creation;
 - chat-history import/archive;
 - provider-memory synchronization;
 - S3 implementation/resumption;
@@ -94,4 +103,4 @@ After remediation:
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Builder must return the corrected matrix/evidence/conclusion and exact diff without self-authorizing Skills/Treasury implementation or S3 resumption.
+Builder must return the corrected RFC/index/handoff/state and exact diff without self-authorizing Skills/Treasury implementation or S3 resumption.
