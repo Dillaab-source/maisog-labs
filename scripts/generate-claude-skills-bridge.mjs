@@ -20,8 +20,9 @@
 // (https://code.claude.com/docs/en/skills, checked 2026-09-20); a leading
 // HTML-comment banner (this generator's first design) breaks that
 // requirement even though it still passed this generator's own byte-diff
-// drift test. Generated status is documented in .claude/skills/README.md
-// instead, never inside a SKILL.md payload itself.
+// drift test. Generated status is documented here and in the canonical
+// `.agents/skills/README.md`, never inside a SKILL.md payload itself
+// (AS52-F003: no separate .claude/skills/README.md artifact).
 //
 // Determinism: no timestamp, PID, or random value is ever written; the
 // skill list is sorted; two consecutive runs against unchanged canonical
@@ -47,8 +48,8 @@ export function listCanonicalSkillNames(canonicalRoot = CANONICAL_ROOT) {
 export function renderBridgeContent(canonicalContent) {
   // AS51-F005: byte-for-byte identical to canonical — no banner, no
   // prepended content. Frontmatter must start at byte 0 for Claude Code to
-  // parse the Skill; see .claude/skills/README.md for the generated-status
-  // notice instead.
+  // parse the Skill; see the module header comment above and
+  // .agents/skills/README.md for the generated-status notice instead.
   return canonicalContent;
 }
 

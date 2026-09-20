@@ -2204,3 +2204,103 @@ Total:                                                            392/392
 ### Remediation commit
 
 The 9 modified files plus the 1 new file above, alongside this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `d95eb0725404cccba73433323bd3ffeeb8713ea2`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MaisogLabs Skills Foundation V0.1 Implementation — Remediation Cycle 2 (ML-DEVOS-AS-052, scope cleanup only)
+
+**Cycle ID:** `MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION`, `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 3`.
+
+**Base commit reviewed by Architect:** `69133f0cc7a3bcab7931376dda5b65eb4b4b78f6` (`fix(skills): remediate AS-051 (bridge frontmatter, Treasury, stale scope)`).
+
+**Review:** `ML-DEVOS-AS-052` — `CHANGES_REQUESTED — IMPLEMENTATION REMEDIATION CYCLE 2 / SCOPE CLEANUP ONLY`. All three `AS-051` substantive findings (`AS51-F005`, `AS51-F006`, `AS51-F007`) were confirmed `CLOSED` on independent inspection; hard boundaries confirmed intact (`AS52-F002`). Exactly one blocker remained.
+
+### `AS52-F003` — out-of-scope artifact removed
+
+`AS-051`'s authorized-file list did not include creating a new `.claude/skills/README.md`; that file was nonetheless added during Cycle 1 to carry the generated-status notice moved out of the `SKILL.md` payloads. The Architect correctly identified this as a Builder adding an unlisted artifact during a bounded remediation cycle (`CORE-001`, `CORE-002`) — the file's content being low-risk and directionally correct does not license creating it outside the authorized scope.
+
+Remediation performed, exactly as scoped:
+
+1. **Deleted** `.claude/skills/README.md` in full (10 lines removed, nothing replaced it).
+2. **Updated comments only** in `scripts/generate-claude-skills-bridge.mjs` (2 comment blocks, in the module header and inside `renderBridgeContent`) so neither references the deleted file; both now point to the module's own header comment and to the already-existing, already-authorized `.agents/skills/README.md` (which already documented the bridge/regenerate/never-hand-edit facts and needed no edit itself).
+3. **No change** to `tests/skills.test.mjs` — independently confirmed no test in that file referenced `.claude/skills/README.md` by path or asserted its existence/content, so no stale reference existed to clean up.
+4. **No change** to any canonical Skill payload, Treasury rule, routing behavior, or bridge bytes.
+
+### Exact diff scope
+
+```
+$ git status --porcelain
+ D .claude/skills/README.md
+ M scripts/generate-claude-skills-bridge.mjs
+
+$ git diff --stat
+ .claude/skills/README.md                  | 10 ----------
+ scripts/generate-claude-skills-bridge.mjs |  9 +++++----
+ 2 files changed, 5 insertions(+), 14 deletions(-)
+```
+
+Only the two files the review's "Authorized Remediation Cycle 2 files" list permitted for content changes (`.claude/skills/README.md` — delete only; `scripts/generate-claude-skills-bridge.mjs` — comment/reference cleanup only) were touched, plus this handoff and `coordination/STATE.md` per the normal bookkeeping allowance.
+
+### Bridge regeneration and drift evidence after cleanup
+
+```
+$ node scripts/generate-claude-skills-bridge.mjs
+Wrote 4 bridge file(s) under .claude/skills/: architect-review-sync, governance-traceability-audit, implementation-handoff, project-orientation-state-recovery
+
+$ node scripts/validate-claude-skills-bridge.mjs
+OK: .claude/skills/architect-review-sync/SKILL.md matches its canonical source
+OK: .claude/skills/governance-traceability-audit/SKILL.md matches its canonical source
+OK: .claude/skills/implementation-handoff/SKILL.md matches its canonical source
+OK: .claude/skills/project-orientation-state-recovery/SKILL.md matches its canonical source
+```
+
+Regeneration writes exactly the 4 `SKILL.md` files — no README is written by the generator, confirming the artifact was never generator-produced output but a one-off manual addition, now removed. `git status --porcelain` after regeneration showed no new changes beyond the 2 files listed above.
+
+**Byte-0 frontmatter re-confirmed for all 4 bridge files** (unchanged from Cycle 1, re-verified this cycle):
+
+```
+.claude/skills/architect-review-sync/SKILL.md:               ---\nname: architect-
+.claude/skills/governance-traceability-audit/SKILL.md:       ---\nname: governance
+.claude/skills/implementation-handoff/SKILL.md:               ---\nname: implementa
+.claude/skills/project-orientation-state-recovery/SKILL.md:  ---\nname: project-or
+```
+
+### Focused Skills tests
+
+```
+$ node --test tests/skills.test.mjs
+# tests 40
+# pass 40
+# fail 0
+```
+
+Unchanged count (40) from Cycle 1 — confirms the README's removal did not require or cause any test change, consistent with the review's expectation ("`tests/skills.test.mjs` only if a stale README assertion/reference exists" — none did).
+
+### Full-suite sanity result
+
+Run in 3 batches (same intermittent auto-mode-classifier behavior noted in prior handoffs did not recur this cycle, but batching was kept for consistency with established evidence practice):
+
+```
+tests/content + d1-audit + d1-migration + design-overlay + skills:        110/110
+tests/traceability + worker-admin-dashboard/design/journal:               127/127
+tests/worker-admin-media/projects + worker-auth + worker-public-design/journal: 155/155
+------------------------------------------------------------------------------
+Total:                                                                    392/392
+```
+
+392/392 — identical total to the pre-cycle count (no test was added, removed, or changed this cycle).
+
+### Explicit confirmations
+
+- **No S3/S4+/S5/runtime/remote/deploy/main work occurred.** No file under `worker/`, `app/`, `lib/`, `migrations/`, `devos/contracts/`, `devos/state/`, `devos/capabilities/` was touched.
+- **No canonical Skill payload, Treasury rule, orientation semantics, or Knowledge/Principles ledger was reopened or altered.**
+- **No new artifact was created.** This cycle is strictly subtractive (one file deleted) plus a same-file comment correction — no file not already on the authorized list was added.
+- **The Implementer has not self-accepted this implementation and has not started S3.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations
+
+- None new this cycle. All limitations disclosed in the original implementation handoff and the `AS-051` remediation handoff remain unchanged and are not repeated in full here.
+
+### Remediation commit
+
+The 2 files listed above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `077b1d0982b230ea6f7fded3625885a9629da823`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

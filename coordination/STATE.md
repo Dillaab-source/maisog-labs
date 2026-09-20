@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_IMPLEMENTATION_REMEDIATION_CYCLE_2_SCOPE_CLEANUP
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
@@ -30,10 +30,11 @@ MAIN_MERGE_AUTHORIZED: NO
 - `AS51-F005` — Claude bridge frontmatter/provider-format issue CLOSED.
 - `AS51-F006` — Treasury INTERNAL access-control/Git-suitability parity CLOSED.
 - `AS51-F007` — stale Phase-1 current-scope wording CLOSED.
+- `AS52-F003` — out-of-scope `.claude/skills/README.md` artifact CLOSED (deleted; generator comments no longer reference it).
 
 ## Active blocker
 
-`AS52-F003` — delete the out-of-scope `.claude/skills/README.md` artifact and remove any generator comment that depends on it.
+None. Cycle 2 remediation complete — see "Remediation Cycle 2 complete" note below and the matching section in `coordination/IMPLEMENTER_HANDOFF.md`.
 
 ## Authorized remediation files
 
@@ -86,3 +87,7 @@ After cleanup:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`.
 
 Builder must not self-accept.
+
+## Remediation Cycle 2 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See "MaisogLabs Skills Foundation V0.1 Implementation — Remediation Cycle 2 (ML-DEVOS-AS-052, scope cleanup only)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS52-F003` — `.claude/skills/README.md` deleted; the two generator comments that referenced it now point to the module's own header comment and the already-authorized `.agents/skills/README.md`; no test change was needed (none referenced the deleted file); bridge regeneration re-confirmed only the 4 `SKILL.md` files are produced (no README), all byte-for-byte identical to canonical and beginning at byte 0 with `---`. Focused Skills suite unchanged at 40/40; full suite unchanged at 392/392. No canonical Skill payload, Treasury rule, orientation semantics, or architecture was reopened. No S3/runtime/remote/deploy/main work occurred; Builder has not self-accepted.
