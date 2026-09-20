@@ -591,3 +591,26 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Historical limit:** changing visibility to private does not retroactively guarantee confidentiality for material that may have existed while the repository was public. Previously committed sensitive material, if any is discovered, must be treated as potentially exposed and handled under the appropriate incident/credential-rotation process rather than assumed safe because visibility changed.
 - **RISK-WEB-013:** the visibility change materially affects its premise and makes it eligible for a separate reassessment; this decision does not silently close or rewrite that existing risk record inside the Skills discovery cycle.
 - **No additional implementation authority:** no Skill implementation, Treasury automation, provider adapter, S3 resumption, deployment, remote-resource mutation, or main merge is authorized by this visibility change.
+
+
+### D-042 — Accept RFC-014 and authorize Skills Foundation V0.1 + Portable Knowledge Treasury implementation
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Paulo explicitly stated `approved proceed` after `ML-DEVOS-AS-050` returned RFC-014 as `ARCHITECT_APPROVED — PAULO DECISION REQUIRED`.
+- **Architecture acceptance:** Accept `ML-DEVOS-RFC-014` as the governing architecture for MaisogLabs Skills Foundation V0.1 and the Portable Knowledge Treasury, exactly as independently accepted by `ML-DEVOS-AS-050`.
+- **Canonical Skill payload:** Accept `.agents/skills/` as the canonical repository Skill location.
+- **Claude Code exposure:** Authorize exactly one non-diverging Claude Code bridge under `.claude/skills/`. It must be derived from the canonical `.agents/skills/` payload by a deterministic mechanism or an equivalently non-diverging link. No provider-facing path may become a separately authored source of truth.
+- **Initial V0.1 Skill set:** Authorize implementation of exactly four Skills:
+  1. Governance / Traceability Audit;
+  2. Architect Review / Sync;
+  3. Implementation Handoff;
+  4. Project Orientation / State Recovery.
+- **Skill authority boundary:** Skills remain non-authoritative procedure wrappers. `GOVERNANCE > SKILLS`, `CURRENT AUTHORIZATION > SKILL CAPABILITY`, and `CAPABILITY != AUTHORITY` remain binding.
+- **Treasury direction:** Accept `TREASURY = LIGHTWEIGHT GOVERNED PROCEDURE` for V0.1. Knowledge Capture is not a standalone V0.1 Skill.
+- **Knowledge / Principles destination:** Authorize one lightweight canonical repository record for residual reusable engineering lessons that do not correctly belong in Governance, ADR/RFC/Architecture, Brain/STATE, Evidence/Test Ledger, Journal, or private implementation documentation. The implementation should use `brain/KNOWLEDGE_PRINCIPLES.md` unless an already-existing canonical path is discovered during Builder grounding; no new database, service, or traceability namespace is authorized.
+- **Public/private handling:** Preserve `D-041`, `ML-DEVOS-AS-047`, and `ML-DEVOS-AS-048`. INTERNAL/RESTRICTED repository persistence requires accepted access controls, Git suitability, and an authorized canonical destination. SECRET/version-control-prohibited material never goes to Git.
+- **RISK-WEB-013:** Do not close or rewrite it in this implementation. Queue a separate governed reassessment after this cycle; automated public/private routing remains out of scope for V0.1.
+- **Implementation authorization:** Authorize Claude to implement the bounded V0.1 repository artifacts, routing/evals, deterministic Claude bridge, manual Treasury procedure, Knowledge/Principles record, focused validation/tests, and the minimum routing/orientation documentation required to make the accepted design usable.
+- **No parallel S3 build:** S3 remains paused during this Builder cycle so only one implementation track is active.
+- **Sequential S3 authorization:** Once this Skills/Treasury V0.1 implementation returns from Claude and is independently accepted by the Architect, the Architect may reopen the already-approved S3 Typed Task Contracts implementation under preserved `D-037` / `ML-DEVOS-AS-038` authority **without another Paulo approval**, provided no new architecture/security blocker is discovered. This is sequential authorization, not concurrent implementation.
+- **Still prohibited:** S4+, S5 Capability Gateway, external-skill installation, provider account scraping/import, chat-history archive/import, S11 memory machinery, secrets/credentials in Git, remote resources, deployment, public cutover, protected/main merge, or unrelated product/runtime changes.
