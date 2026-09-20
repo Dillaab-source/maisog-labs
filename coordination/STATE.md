@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S4_STATE_MACHINE_PROPOSAL
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: S4_IMPLEMENTATION_DECISION_ONLY
+CYCLE_ID: SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION
+TURN: CLAUDE
+STATUS: AUTHORIZED_IMPLEMENTATION
+AUTHORIZED_SCOPE: S4_STATE_MACHINE_IMPLEMENTATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 2
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,36 +19,51 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-048 authorized the S4 proposal/audit cycle. D-049 authorized the final stale-lock micro-remediation. Architect final review of HEAD e084699212d0aeca9ad3ae2827127d51df4bd5b5 closes AS65-F001 through AS65-F004 and accepts ML-DEVOS-RFC-016 as implementation-ready design.
+D-050 authorizes bounded implementation of ML-DEVOS-RFC-016 after final design approval ML-DEVOS-AS-065.
 
-S4 executable implementation is NOT yet authorized.
+D-050 explicitly adopts FAILED and ABANDONED for S4 implementation, sets per-project retry ceilings build=2 / qa=2 / review=2, and authorizes only a separately guarded local force-clear maintenance capability with Paulo as the sole default V1 operator.
 
-## Architect verdict
+## Builder mode
 
-S4 DESIGN STAGE GATE: ARCHITECT_APPROVED
-RFC-016 DESIGN: ACCEPTED FOR BOUNDED IMPLEMENTATION
-NEXT ACTOR: PAULO
+LEAN / DELTA-ONLY is mandatory.
 
-See coordination/ARCHITECT_REVIEW.md for the full final review.
+Read:
+1. this STATE.md
+2. coordination/ARCHITECT_REVIEW.md
+3. ML-DEVOS-RFC-016
+4. exact implementation files
 
-## Paulo decision required before implementation
+Read anything else only when a specific active implementation requirement requires it.
 
-An explicit implementation decision must:
-1. authorize bounded S4 implementation of RFC-016;
-2. explicitly adopt FAILED and ABANDONED as additive lifecycle terminal states;
-3. set the V1 per-project retry ceiling values for build / QA / review;
-4. authorize and bound the operator/admin force-clear-lock maintenance capability, including identity/reason provenance and confirmation that no writer remains;
-5. preserve all remote/deploy/protected-main prohibitions;
-6. require return to Architect for independent implementation review.
+## Authorized work
 
-No Builder action until Paulo decides.
+Implement the S4 State Machine Kernel and focused tests exactly as bounded in coordination/ARCHITECT_REVIEW.md.
 
-## Standing efficiency rule
+Primary mutation:
+- devos/state/**
+- focused S4 tests under tests/**
 
-LEAN / DELTA-ONLY BUILDER MODE remains required for future Claude turns.
-
-Claude reads STATE.md, ARCHITECT_REVIEW.md and exact authorized mutation files first. Additional reads occur only when an active requirement specifically needs them. No whole-history reread, narrative restatement, unrelated cleanup or broad test pass.
+Supporting:
+- deterministic traceability outputs if required
+- coordination/IMPLEMENTER_HANDOFF.md
+- coordination/STATE.md
 
 ## Hard boundaries
 
-No S4 implementation/live state yet; no S5+; no credentials/remote resources; no deployment/production write; no protected/main merge; no PR #10 merge/auto-merge. All authorization flags remain NO.
+No manifest activation, version bump, ADR/closure, frozen-architecture edit, CORE-rule edit, S3 schema/validator edit, workflow/product mutation, S5+, credential/remote resource, deployment/production write, protected/main merge, or PR #10 merge.
+
+S4 may become implemented in repository code during this cycle, but it must NOT be declared closed/active in the manifest until independent Architect review and a later explicitly authorized closure package.
+
+## Return gate
+
+After focused implementation/tests:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: S4_IMPLEMENTATION_REVIEW_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
+- CURRENT_REMEDIATION_CYCLE: 0
+- MAX_REMEDIATION_CYCLES: 2
+
+Keep every prohibition flag NO.
