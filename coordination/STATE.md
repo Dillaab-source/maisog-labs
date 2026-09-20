@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: S4_CLOSURE_DECISION_ONLY
+CYCLE_ID: SENTINEL_S4_STATE_MACHINE_CLOSURE
+TURN: CLAUDE
+STATUS: AUTHORIZED_CLOSURE
+AUTHORIZED_SCOPE: S4_CLOSURE_PACKAGE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 1
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,51 +19,48 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-050 authorized bounded S4 implementation. ML-DEVOS-AS-066 accepts final implementation HEAD `72cd84a8fedb581306c023ee88e1b0f1c4d5293c` after remediation cycle 1.
+ML-DEVOS-AS-067 D.1 preflight: PASS.
+D-051 authorizes exactly the S4 closure package.
+ML-DEVOS-AS-066 remains the technical implementation acceptance.
 
-S4 implementation is technically accepted. S4 is NOT yet closed or active in the manifest.
+## Builder objective
 
-## Architect verdict
+Execute the S4 closure package exactly as specified in coordination/ARCHITECT_REVIEW.md.
 
-S4 IMPLEMENTATION STAGE GATE: ARCHITECT_APPROVED
-IMPLEMENTATION: ACCEPTED
-READY FOR D.1 CLOSURE PREFLIGHT: YES
-S4 MANIFEST STATUS: still NOT_IMPLEMENTED
-NEXT ACTOR: PAULO
+Target closure:
+- ADR-014
+- S4 IMPLEMENTED
+- closure_ref ADR-014
+- executable_runtime_present false
+- Sentinel v1.7.0
+- narrow FAILED / ABANDONED frozen-lifecycle amendment
+- traceability regenerated
+- return for D.2 verification
 
-## Paulo decision required
+## LEAN / DELTA-ONLY
 
-A separate explicit closure authorization is required before any closure mutation.
-
-If approved, the bounded D.1/D.2 closure cycle may prepare and apply only the records needed to close S4, including:
-- closure ADR / closure_ref;
-- manifest devos/state status;
-- executable_runtime_present disposition;
-- version/capability-baseline disposition;
-- closure_history;
-- required frozen-architecture lifecycle amendment record for FAILED / ABANDONED;
-- deterministic traceability outputs;
-- post-decision closure verification.
-
-Closure records must preserve the accepted implementation corrections and evidence limitation documented in ML-DEVOS-AS-066.
-
-No S5 work is authorized by this state.
-
-## Standing efficiency rule
-
-LEAN / DELTA-ONLY mode remains required for any closure Builder turn.
+Read only the live state, closure brief, AS-067/AS-066 as needed, and exact closure files.
 
 ## Hard boundaries
 
-Until Paulo explicitly authorizes closure:
-- no manifest mutation;
-- no version/capability-baseline change;
-- no ADR creation;
-- no frozen architecture amendment;
-- no S5+;
-- no workflow/product mutation;
-- no credentials/remote resources;
-- no deployment/production write;
-- no protected/main merge;
-- no PR #10 merge;
-- no Issue #11 implementation.
+No S4 implementation-source/test change.
+No S5+.
+No website/product mutation.
+No Skills V0.2 implementation.
+No workflows.
+No credentials/remote resources.
+No deployment/production write.
+No protected/main merge.
+No PR #10 merge.
+
+## Return gate
+
+After closure candidate:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: S4_CLOSURE_D2_VERIFICATION_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
+
+Keep every prohibition flag NO.
