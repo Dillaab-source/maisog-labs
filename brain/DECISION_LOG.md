@@ -520,3 +520,15 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **No auto-fix authority:** discovered gaps are reported and routed into separate governed cleanup/remediation cycles; Builder may not rewrite unrelated historical records merely to satisfy the validator.
 - **Version:** no Sentinel version bump is authorized during implementation. Version impact is reconsidered only after implementation review and ADR.
 - **Evidence:** Paulo instructed `okay do that` after explicitly discussing the Master Traceability Index / graph + validator direction and asking to proceed.
+
+
+### D-037 — Authorize S3 Typed Task Contracts after Traceability V1 closure
+
+- **Decided by:** Paulo (Product / Risk Owner), following the frozen Sentinel roadmap and `ML-DEVOS-RFC-013` / `ML-DEVOS-AS-038`.
+- **Decision:** Authorize S3 — Typed Task Contracts as the next Sentinel implementation phase, **queued behind** completion and independent closure of `SENTINEL-TRACEABILITY-V1`.
+- **Authorized S3 scope once activated:** machine-readable Task Contract specification/schema; semantic validation against active evidence policy; bounded valid/invalid examples; focused tests; normal governance/handoff records.
+- **Contract purpose:** describe already-authorized task scope, acceptance criteria, intended claims, and required evidence provenance. A valid Task Contract does not itself grant authority or certify success.
+- **Evidence policy:** reuse the existing five provenance classes and remain compatible with `CORE-016`, `CORE-017`, `CORE-018`, and `CORE-020`.
+- **Explicitly not authorized:** S4 State Machine Kernel; S5 Capability Gateway; S6 isolation; S7 Evidence/QA Plane; S8 Orchestrator; S9 Evidence Gate; S10 rulesets/CI enforcement; S11–S14; product runtime changes; project onboarding; remote/cloud resources; credentials; protected/main merge; deployment; production writes; Sentinel version bump.
+- **Sequencing rule:** while `coordination/STATE.md` remains `TURN: CLAUDE` for `SENTINEL-TRACEABILITY-V1`, S3 implementation must not begin. After Traceability V1 closes, Architect may activate S3 without requiring Paulo to repeat this already-recorded phase authorization.
+- **Evidence of Paulo authority:** Paulo instructed `proceed to the next phase`.
