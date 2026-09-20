@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY update:** see the "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles (Sentinel Traceability V1 is fully closed per `ML-DEVOS-AS-041`) and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this discovery cycle does not resume it.
+**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 1 update:** see the "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including the original "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this remediation does not resume it.
 
 ---
 
@@ -1632,3 +1632,104 @@ Yes. This discovery cycle produced exactly the authorized files (`ML-DEVOS-RFC-0
 ### Discovery commit
 
 The 3 files above are committed together to `governance/maisoglabs-v0.1` on top of base `0c69ba2118b50142a3648bb95cba5fcb359a2b27`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)
+
+### Cycle / Change ID
+
+`MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY` — **Remediation Cycle 1, now complete, handed back for Architect review.** `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 3`.
+
+Authority chain: `D-038` → `RFC-014` v1 → `ML-DEVOS-AS-042` (`CHANGES_REQUESTED`, 4 blockers: `AS42-F003`, `AS42-F004`, `AS42-F005`, `AS42-F006`) → `D-039`/`ML-DEVOS-AS-043` (Portable Knowledge Treasury integrated into the same cycle) → `D-040`/`ML-DEVOS-AS-044` (research-informed refinement of both Skills and Treasury discovery). This single remediation returns one revised RFC integrating all three review documents, per `coordination/STATE.md`'s explicit instruction not to treat them as separate cycles.
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `a8170986612fa756a43fac79543d507c8d6919d0` — the Architect's `ML-DEVOS-AS-044` sync commit, itself fast-forwarded on top of `ML-DEVOS-AS-043`'s commit (`dd78fde7f04b8f58984ca506d3fbc3756f6bdc34`), itself on top of `ML-DEVOS-AS-042`'s original discovery-review commit (`0c69ba2118b50142a3648bb95cba5fcb359a2b27`'s child).
+- Read in full before any edit: `coordination/STATE.md`, the complete `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-042` findings `AS42-F001`–`F009`, `ML-DEVOS-AS-043`'s full Treasury amendment, `ML-DEVOS-AS-044`'s full research-informed refinement A–M), and `brain/DECISION_LOG.md` `D-039`/`D-040`.
+- Additional live research performed this cycle to satisfy `AS42-F006`'s durable-source-provenance requirement: official documentation was independently checked (not re-asserted from earlier-cycle memory) for Claude Code (direct fetch), the Anthropic official skills repository (direct fetch), GitHub Copilot, Gemini CLI, and OpenAI Codex CLI (search-engine-summarized excerpts of the official pages — direct fetches to `docs.github.com` and `geminicli.com` were attempted and blocked by this session's network egress policy; this limitation is disclosed in the RFC's evidence table itself, not silently smoothed over). No claim about ChatGPT's own product skill-exposure model or about Cursor's support was left unhedged — both are explicitly marked `UNVERIFIED`/`COMMUNITY` in the new evidence table rather than asserted.
+
+### Exact diff — 2 files modified, 0 added, 0 deleted
+
+Confirmed by `git status --porcelain` / `git diff --stat` immediately before this commit: exactly these 2 paths changed, both inside the review's own "Authorized remediation files" list — nothing else.
+
+- `devos/changes/rfcs/ML-DEVOS-RFC-014.md` — substantially rewritten (title updated to reflect the integrated Treasury scope). Every AS42/AS43/AS44 requirement is addressed inline; see the per-blocker mapping below.
+- `devos/changes/rfcs/README.md` — updated the RFC-014 index summary to reflect the revised content (4-skill set, evidence-gated canonical location, integrated Treasury).
+
+**Confirmed not touched:** any application/runtime file, `devos/devos-manifest.json`, any existing brain/devos governance record other than the RFC file and its index entry, and no `devos/skills/`, `.claude/skills/`, `.agents/skills/`, `.gemini/skills/`, `.github/skills/`, or Treasury-implementation file/directory was created — confirmed by `git status --porcelain`.
+
+### Per-blocker remediation mapping
+
+- **`AS42-F003` (canonical location/exposure coupling) — remediated by resolving to `PAULO DECISION REQUIRED`, not by picking one from preference.** RFC-014 §3 now contains a 5-target (Claude Code, Codex CLI, GitHub Copilot, Gemini CLI, ChatGPT product) compatibility table built only from the new evidence basis, an assessment of the 3 required options against native discovery/duplication-drift/symlink-platform-risk/governance-traceability/portability/maintenance-cost/Sentinel-topology-compatibility, and an explicit conclusion that evidence is genuinely mixed (`.agents/skills/` reaches 2 of 5 targets natively; `devos/skills/` reaches 0 of 5 natively but uniformly and with the strongest governance-traceability fit) — per `AS44-I`'s own instruction, this is returned as `CANONICAL LOCATION: PAULO DECISION REQUIRED` with the tradeoffs laid out for that decision, rather than frozen. No directory was created.
+- **`AS42-F004` (Knowledge Capture cannot invent its own procedure through a Skill) — remediated via Option A, exactly as the review defaulted to.** Knowledge / Realization Capture is removed entirely from the V0.1 skill candidate list (RFC-014 §5 now lists exactly 4 skills). It is not silently dropped — it is fully re-addressed in the new "Portable Knowledge Treasury" section as a non-Skill, lightweight governed procedure (§T8), per `AS44-F`'s explicit default.
+- **`AS42-F005` (external-skill gate over-broad) — remediated with the required two-tier model.** RFC-014 §8 now distinguishes `REFERENCE-ONLY / PROCEDURAL` (still untrusted-until-reviewed, but not routed through the full capability gate) from `CAPABILITY-ADJACENT / EXECUTABLE` (routed through the `CAPABILITY_CHANGE_SPEC.md`/Paulo gate), matching the review's own minimum-distinction definition verbatim.
+- **`AS42-F006` (durable source provenance) — remediated with a full evidence table.** RFC-014 §7 "External evidence basis" lists, for every provider/standard claim used anywhere in the RFC: official source name, URL, date checked, exact claim supported, and confidence (`OFFICIAL`/`COMMUNITY`/`UNVERIFIED`), with two claims (ChatGPT product exposure, Cursor support) explicitly marked as gaps/unverified rather than asserted. The RFC's own Problem section and every provider claim throughout now points back to this table rather than restating unsourced claims.
+
+### Portable Knowledge Treasury — required outputs delivered (`ML-DEVOS-AS-043`, refined by `ML-DEVOS-AS-044`)
+
+All 14 required outputs are answered in RFC-014's new "Portable Knowledge Treasury" section (`T1`–`T15`):
+
+1. **Existing treasury-like files/functions** (T3) — a full table covering `brain/DECISION_LOG.md`, the RFC/AS/ADR chain, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, `brain/GOVERNANCE_MAP.md`/`IMPLEMENTATION_STATUS.md`, `brain/00_HOME.md`, `devos/handoffs/`, `coordination/` (explicitly rolling, reusing the same durable/rolling distinction Traceability V1 already established), `devos/governance/traceability/`, the release-readiness records, the real, already-shipped public Journal (`WEB-INC-006`), and the informal `-DEBT-NNN` convention.
+2. **Duplication/fragmentation** (T3) — finding: destinations already exist for Decisions/Risks/Tests/Architecture/Journal; the actual gap is a front-door triage discipline plus one missing destination for a reusable engineering lesson tied to no single existing record.
+3. **What remains Project Brain** (T3) — unchanged, stated explicitly.
+4. **What belongs in Skills** (T3) — none of the Treasury's own logic; Knowledge Capture is explicitly not a Skill (T8).
+5. **What belongs in Governance** (T3) — nothing new; Treasury routes governance-shaped candidates through the existing RFC/Decision path.
+6. **What deserves Knowledge/Principles treatment** (T3) — the one confirmed gap; a new lightweight canonical file is proposed (not created) for a future, separately-classified change.
+7. **Proposed canonical knowledge-capture architecture** (T2, T6, T7) — Treasury-as-routing-protocol framing, two-axis (type/disclosure) classification, canonical-destination-first deduplication with 5 outcomes (`DUPLICATE`/`UPDATE`/`EVIDENCE_ONLY`/`NEW`/`SUPERSEDES`).
+8. **ChatGPT/Claude/Codex portability** (T9) — the durable normalized unit is the retained insight/record, never a provider transcript; identical classification regardless of origin.
+9. **Public/private safeguards** (T10) — `PUBLISH THE INSIGHT; PROTECT THE IMPLEMENTATION DETAIL`, tied directly to the disclosure axis; explicit non-claim that this resolves `RISK-WEB-013`.
+10. **Deduplication** (T7) — canonical-destination-first search order, reusing Traceability V1's generated index rather than building a second one.
+11. **Provenance** (T11) — the 8 required fields plus `AS44-K`'s expected-reuse-target field, reusing the existing 5-class evidence model and the existing `supersedes`/`superseded_by` convention.
+12. **Minimal evals** (T12) — the 10 required cases, restated against this repository's actual destinations.
+13. **What NOT to build** (T14) — the full non-scope list reaffirmed verbatim.
+14. **Paulo decisions required** (T15) — 4 specific decision points, not one blanket approval.
+
+### `ML-DEVOS-AS-044` refinements A–M — where each landed
+
+- **A (Treasury is routing, not a store)** → T2, and the explicit "must not become a second canonical home for..." list.
+- **B (durable-reuse capture threshold)** → T4, the 7-reason list.
+- **C (candidate vs. accepted)** → T5.
+- **D (two-axis classification)** → T6 (Type/destination × Disclosure, kept independent).
+- **E (canonical-destination-first dedup)** → T7, the 5 outcomes, with the immutable/append-only-history carve-out for accepted ADRs.
+- **F (Knowledge Capture default direction)** → T8, adopted as the resolved direction (Option C converging with B), with rationale, not merely restated as a menu.
+- **G (progressive disclosure / instruction-budget rule)** → RFC-014 §4, added as an explicit skill-content principle (`SKILL.md`/`references/`/`scripts/`/`assets/`/`evals/` roles).
+- **H (initial V0.1 skill-set default)** → RFC-014 §5, exactly the 4 skills, with an explicit "not re-added merely to reach a larger catalog" note for Knowledge Capture.
+- **I (canonical-location/provider-exposure remains evidence-gated)** → RFC-014 §3, resolved to `PAULO DECISION REQUIRED` with `.agents/skills/` treated as a serious candidate per the evidence, not dismissed.
+- **J (external-skill lifecycle/revalidation)** → RFC-014 §8, `adopted_at`/`last_reviewed`/compatibility/revalidation-trigger fields added, plus `PREVIOUSLY REVIEWED != TRUSTED FOREVER`.
+- **K (Treasury usefulness/reuse target)** → T11's added provenance field, and T3.
+- **L (anti-bloat metrics)** → T13, explicitly "no metrics implementation authorized this cycle."
+- **M (integrate everything, return to Architect)** → this handoff and the revised RFC as a whole.
+
+### Full suite result (sanity check — no application code was in scope or touched)
+
+```
+$ npm test
+# tests 352
+# pass 352
+# fail 0
+```
+
+Unchanged from the prior cycle, as expected for a documentation-only remediation.
+
+### Explicit confirmations
+
+- **No skill file, canonical skill directory, or provider-adapter directory was created.**
+- **No Portable Knowledge Treasury implementation, chat-history import, transcript-ingestion pipeline, or `devos/memory`/S11 mechanism was created.**
+- **`CORE-022` was not created; `WEB-REQ-009`'s source records were not touched or repaired; `RISK-WEB-013` was not marked resolved.**
+- **No fabricated Architect Sync archive was created** — `ML-DEVOS-AS-042`/`043`/`044` were archived by the Architect's own process, not by this Builder.
+- **No historical RFC/AS/ADR/Decision content was rewritten.**
+- **No S3/S4+/S5/S7/S9 implementation, CI/ruleset, runtime/application code, Sentinel version bump, remote resource, deployment, or `main` merge occurred.**
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this remediation as `ARCHITECT VERIFIED`.** Every claim above is `ACTOR_REPORTED`; the external-provider evidence table's own confidence column is the honest record of which claims are `OFFICIAL` vs. `COMMUNITY`/`UNVERIFIED`, not upgraded to a stronger class than the verification method actually performed supports (two official-source claims — GitHub Copilot, Gemini CLI — were verified via search-engine-summarized excerpts of the official page rather than a direct fetch, because a direct `WebFetch` to `docs.github.com`/`geminicli.com` was attempted and blocked by this session's network egress policy; this is disclosed in the evidence table itself).
+
+### Known limitations / carried-forward items
+
+- Canonical skill location remains genuinely unresolved (`PAULO DECISION REQUIRED`) — this is a return-to-Paulo item, not a Builder gap.
+- The one lightweight Knowledge/Principles canonical file remains proposed, not created; its own change class is not yet decided.
+- `RISK-WEB-013` remains open and unrepaired, exactly as instructed across every cycle of this discovery.
+- Direct `WebFetch` verification of the GitHub Copilot and Gemini CLI official docs pages was blocked by network egress policy this cycle; the evidence table discloses this and relies on search-engine-summarized excerpts of those same official pages instead — a future cycle with different network access could upgrade this to a direct-fetch confirmation.
+- `S3 — Typed Task Contracts` remains queued behind this discovery's independent closure.
+
+### Remediation commit
+
+The 2 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `a8170986612fa756a43fac79543d507c8d6919d0`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

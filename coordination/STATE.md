@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_1_PLUS_PORTABLE_KNOWLEDGE_TREASURY_DISCOVERY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -96,3 +96,7 @@ After remediation:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 Builder must return the corrected RFC integrating AS-042, AS-043, AS-044 and D-038/D-039/D-040, plus exact evidence/diff, without self-authorizing Skills implementation, Treasury implementation, or S3 resumption.
+
+## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: all 4 AS42 blockers remediated (canonical location returned as `PAULO DECISION REQUIRED` with a 5-target evidence matrix per AS44-I, not frozen from preference; Knowledge/Realization Capture removed from the V0.1 skill set per Option A, now addressed instead as a non-Skill Treasury procedure; external-skill adoption made two-tier/consequence-sensitive; a full official-source evidence table added, with two claims honestly marked UNVERIFIED/COMMUNITY and two OFFICIAL claims disclosed as verified via summarized excerpt rather than direct fetch due to this session's network egress policy); the Portable Knowledge Treasury's all 14 required outputs delivered; all AS44 refinements A–M individually mapped to where they landed in the revised RFC. Only the RFC and its index entry were touched — no skill file, canonical/provider-adapter directory, or Treasury implementation exists. 352/352 tests unaffected.
