@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-DESIGN-GOV-001
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NONE
+CYCLE_ID: SENTINEL-BASELINE-CLEANUP-001
+TURN: CLAUDE
+STATUS: AUTHORIZED_PATCH_CLEANUP
+AUTHORIZED_SCOPE: SENTINEL_BASELINE_METADATA_PATCH_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,40 +17,29 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Accepted design governance
+## Change classification
 
-- `DESIGN-GOV-001`
-- `brand/V3/DESIGN_GOVERNANCE.md`
-- `ML-DEVOS-AS-036 — ARCHITECT_APPROVED`
-- `D-035 — Paulo-adopted`
+`PATCH` — stale/contradictory descriptive Sentinel metadata only.
 
-Core design rule:
+No RFC, new Architect Sync gate, ADR, version bump, rule change, architecture change, runtime capability, project onboarding, remote resource, deployment, or main merge is authorized.
 
-`A NEW FEATURE MUST LOOK LIKE MAISOGLABS BEFORE IT LOOKS LIKE THE FEATURE IT IS ADDING.`
+Paulo additionally instructed: `proceed with cleanup order with sentinel`.
 
-Future meaningful MaisogLabs UI work must map to:
-- foundations;
-- reusable components;
-- approved/new patterns;
-- explicit gaps/exceptions.
+## Authorized cleanup scope
 
-Screenshot-driven work remains:
-`REFERENCE → ANALYZE → MAP → DRAFT → VISUAL PREVIEW → REVIEW → PUBLISH`
+Substantive files:
+- `devos/devos-manifest.json`
+- `devos/governance/specifications/VERSIONING_POLICY.md`
+- `projects/README.md`
 
-## Release status
+Normal Builder handoff/state bookkeeping is permitted.
 
-WEB-REL-001 is complete / Architect-approved.
+Binding cleanup order and findings are in:
+- `coordination/ARCHITECT_REVIEW.md`
+- cycle `SENTINEL-BASELINE-CLEANUP-001`
 
-Release blockers remain:
-- no GitHub technical protection;
-- no CI;
-- no production Access config;
-- no production D1;
-- no production R2;
-- no production Worker/domain target.
+## Required outcome
 
-No release authority is open.
+Reconcile active/current descriptive text to the already-accepted Sentinel `v1.5.0` baseline and standing pre-onboarding registry invariant without changing historical S2 records or governance meaning.
 
-## Current gate
-
-`DESIGN-GOV-001 CLOSED — RETURNED TO PAULO; CHRONICLE MAY NOW BE PROPOSED/BUILT UNDER A SEPARATE GOVERNED CYCLE`
+After implementation and validation, return control to the Architect for independent inspection.
