@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED — SKILLS FOUNDATION V0.1 DISCOVERY REMEDIATION CYCLE 2`
+Status: `CHANGES_REQUESTED — SKILLS FOUNDATION V0.1 DISCOVERY REMEDIATION CYCLE 2 (SUPPLEMENTAL)`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,221 +8,184 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-045 — Skills Foundation / Portable Knowledge Treasury Remediation Review 2
+# ML-DEVOS-AS-046 — Supplemental Skills Foundation / Treasury Review
 
-RFC:
-- `ML-DEVOS-RFC-014`
+This sync supplements, and does not erase, `ML-DEVOS-AS-045`.
 
-Class:
-- `ARCHITECTURE`
+Active blockers are now:
+- `AS45-F007` — provider compatibility/evidence correction;
+- `AS46-F001` — restricted/secret routing is unsafe in the current public repository;
+- `AS46-F002` — per-skill contracts and routing/evaluation safeguards are incomplete.
 
-Authority:
-- `D-038`
-- `D-039`
-- `D-040`
-- prior reviews/amendments `ML-DEVOS-AS-042`, `ML-DEVOS-AS-043`, `ML-DEVOS-AS-044`
+The branch was verified unchanged since `aa60512f478d1d73f056160451cf8a781bd41581` before this amendment, so widening the remediation scope does not interrupt Builder work already in progress.
 
-## Scope inspection
+## AS46-F001 — BLOCKER — restricted/secret routing cannot target the current repository
 
-### AS45-F001 — PASS — remediation stayed within authorized scope
+Independent GitHub repository inspection confirms:
 
-Compared against Architect amendment base:
-`a8170986612fa756a43fac79543d507c8d6919d0`
+- repository: `Dillaab-source/maisog-labs`;
+- visibility: `public`;
+- `private: false`.
 
-Exactly one Builder commit is present.
+RFC-014 currently describes sensitive implementation detail as belonging in "private repository documentation" / ordinary non-public-surfaced repository locations.
 
-Changed paths:
-1. `devos/changes/rfcs/ML-DEVOS-RFC-014.md`
-2. `devos/changes/rfcs/README.md`
-3. `coordination/IMPLEMENTER_HANDOFF.md`
-4. `coordination/STATE.md`
+That is not a valid privacy boundary for this repository.
 
-No Skill implementation, Treasury implementation, provider-adapter directory, S3 code, S4+, S5 capability machinery, product/runtime change, remote resource, credential, deployment, or main merge occurred.
+A path that is not rendered by the public website can still be publicly readable from a public GitHub repository.
 
-## Prior findings
+This is exactly the kind of false-confidence failure already represented by `RISK-WEB-013`.
 
-### AS45-F002 — PASS — AS42-F004 remediated
+### Required correction
 
-`Knowledge / Realization Capture` has been removed from the V0.1 Skill set.
+The RFC must distinguish disclosure class from storage authorization.
 
-The Portable Knowledge Treasury is now proposed as a lightweight governed routing/classification procedure first, not a Skill.
+At minimum:
 
-This is compatible with the rule that Skills wrap stable authoritative procedures rather than invent them.
+**PUBLIC_SAFE**
+- may be eligible for the public repository / Journal after normal record-specific approval.
 
-### AS45-F003 — PASS — AS42-F005 remediated
+**INTERNAL**
+- must not be assumed safe in this public repository;
+- requires an explicitly authorized destination whose access properties are known.
 
-External Skill adoption is now consequence-sensitive:
+**RESTRICTED / SECRET**
+- must never be written to this public repository;
+- must never be embedded in a public Skill, public RFC, public Journal entry, generated index, or ordinary public-repo documentation;
+- if no approved private canonical destination exists, the correct outcome is `STOP / DEFER PERSISTENCE`, not "put it in a hidden folder";
+- a sanitized PUBLIC_SAFE insight may be persisted separately only if the sensitive implementation detail is removed.
 
-- reference-only/procedural Skills receive instruction/provenance/overlap/security review without automatically becoming a CAPABILITY-class change;
-- executable/capability-adjacent Skills with scripts, hooks, dynamic commands, tool grants, remote access, credentials, or mutation behavior route through the applicable CAPABILITY/security/Paulo gate.
+The discovery may propose future destination requirements, but it must not create a private repository, secret store, or new storage system in this cycle.
 
-The lifecycle also includes revalidation triggers. This is aligned with Sentinel consequence-sensitive governance.
+### Required eval additions
 
-### AS45-F004 — PASS — Portable Knowledge Treasury architecture is bounded correctly
+Add Treasury cases proving:
+1. a `RESTRICTED` candidate is not persisted anywhere in the current public repository;
+2. a `SECRET` candidate stops before persistence when no approved private destination exists;
+3. a sensitive experience can produce a separate sanitized `PUBLIC_SAFE` lesson without carrying the restricted detail;
+4. a "not served by the website" path is not treated as private merely because it is not rendered publicly.
 
-The revised RFC correctly treats Treasury as a routing protocol rather than a competing store.
+## AS46-F002 — BLOCKER — four proposed Skills lack complete discovery contracts
 
-It includes:
-- durable-reuse capture threshold;
-- candidate-insight vs accepted-knowledge boundary;
-- type + disclosure classification;
-- canonical-destination-first dedup outcomes;
-- provider-neutral provenance;
-- public/private safeguards;
+The original Skills directive required every proposed Skill to define:
+- what it does;
+- activation conditions;
+- non-activation conditions;
+- inputs;
+- authoritative sources;
+- procedure;
+- output;
+- stop/escalation conditions;
+- governance dependencies.
+
+The revised RFC names the four Skills and gives partial trigger/evaluation examples, but it does not yet provide a complete, inspectable contract for each.
+
+### Required per-skill contract
+
+For each of the four V0.1 candidates, add a compact table or equivalent containing:
+
+1. Skill name
+2. Purpose / output
+3. Activate when
+4. Do not activate when
+5. Required inputs/context
+6. Authoritative sources
+7. Core procedure summary
+8. Stop / escalation conditions
+9. Governance dependencies
+10. Mutation / capability note
+11. Positive activation eval
+12. Near-miss negative eval
+
+Do not duplicate full authoritative procedures inside RFC-014.
+
+## AS46-F003 — REQUIRED ROUTING SAFEGUARD — make SKILL CHECK sequence explicit
+
+The RFC currently calls SKILL CHECK a documentary convention and states "narrower wins," but the discovery architecture needs an explicit routing order so future provider implementations do not each invent one.
+
+Define a provider-neutral documentary sequence equivalent to:
+
+1. read current `coordination/STATE.md` / authoritative task context when working inside a governed MaisogLabs project;
+2. determine whether the user/task request is already sufficiently scoped;
+3. discover candidate Skills from metadata only;
+4. apply activation and non-activation conditions;
+5. choose the **smallest sufficient non-conflicting set**;
+6. verify current authorization before any mutating or consequence-bearing step;
+7. load full `SKILL.md` only for selected Skills;
+8. load deeper references/scripts only when needed;
+9. if a Skill conflicts with current governance/authority, stop and surface the conflict;
+10. after execution, produce the Skill's defined output/evidence without upgrading status beyond the evidence actually obtained.
+
+This remains documentary/procedural design only—no S4/S5 routing engine is authorized.
+
+### Required routing evals
+
+Include at minimum:
+- two Skills match → narrower/smallest sufficient set wins;
+- broad Project Orientation does not fire when current context is already sufficient;
+- Architect Review does not bypass TURN/authority rules because the request text sounds like a review;
+- a Skill exists and the tool is available, but live scope forbids the action → stop;
+- a selected Skill's source procedure changed/superseded → Skill must not silently rely on stale copied instructions.
+
+## AS46-F004 — PASS — supplemental AS-043 archival gap is Architect bookkeeping, not Builder remediation
+
+`ML-DEVOS-AS-043.md` was missing from the durable Architect Sync archive.
+
+The Architect is correcting that bookkeeping directly from the historical rolling-review snapshot at:
+`eb5194cdbb5bbd6fbdc250e66ec90a972e1e9fd2`.
+
+Claude is not asked to reconstruct or paraphrase this archive.
+
+The Architect Sync index is also being updated to include the recent AS-042 through AS-046 records.
+
+## Preserve prior accepted discovery findings
+
+Do not reopen without new evidence:
+- four-skill candidate set;
+- Treasury as a lightweight governed routing procedure, not a standalone Skill yet;
+- consequence-sensitive external-skill tiers;
+- progressive disclosure;
+- capture threshold;
+- candidate-vs-accepted boundary;
+- canonical-destination-first dedup;
+- provenance/revalidation;
 - anti-bloat metrics;
-- reuse/application targets;
-- explicit no-chat-archive/no-S11/no-parallel-governance boundaries.
+- S3 remains paused/queued with authority preserved.
 
-No implementation is present.
+## Authorized Remediation Cycle 2 files for Claude
 
-### AS45-F005 — PASS — initial V0.1 Skill set is appropriately small
+Claude may modify only:
+- `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
+- `devos/changes/rfcs/README.md` if its summary changes;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
 
-Current candidate set:
-1. Governance / Traceability Audit
-2. Architect Review / Sync
-3. Implementation Handoff
-4. Project Orientation / State Recovery
+Required changes now cover:
+1. AS45-F007 provider matrix/evidence;
+2. AS46-F001 public-repository disclosure/storage boundary;
+3. AS46-F002 complete per-skill contracts;
+4. AS46-F003 explicit SKILL CHECK routing + routing evals.
 
-Each wraps an existing repository procedure.
+## Hard boundaries
 
-No Skill is added merely to increase catalog size.
-
-### AS45-F006 — PASS — progressive-disclosure model is correct
-
-The RFC correctly separates:
-- `SKILL.md` activation/routing + core procedure;
-- `references/`;
-- `scripts/`;
-- `assets/`;
-- `evals/`.
-
-This avoids instruction bloat and preserves authoritative-source references.
-
-## Blocking finding
-
-### AS45-F007 — BLOCKER — provider compatibility matrix contains a materially false current claim
-
-RFC-014 currently states for Gemini CLI:
-
-- workspace discovery: `.gemini/skills/`
-- `.agents/skills/`: `No (not found in official docs)`
-
-That is false as of the current official Gemini CLI documentation.
-
-Independent Architect verification on 2026-09-20 found the official Gemini CLI Agent Skills documentation explicitly states:
-
-- user Skills: `~/.gemini/skills/` **or** `~/.agents/skills/` alias;
-- workspace Skills: `.gemini/skills/` **or** `.agents/skills/` alias;
-- within the same tier, `.agents/skills/` takes precedence;
-- the alias is described as an interoperable path for use across different AI tools.
-
-Official GitHub Copilot documentation independently confirms project Skills may live in:
-- `.github/skills/`
-- `.claude/skills/`
-- `.agents/skills/`
-
-Official OpenAI/Codex documentation confirms repo Skills under:
-- `.agents/skills/`
-
-Therefore `.agents/skills/` is currently natively supported by at least:
-- OpenAI Codex;
-- GitHub Copilot;
-- Gemini CLI.
-
-This is materially different from the RFC's current `2 of 5` portability accounting.
-
-The error directly affects the canonical-location tradeoff and therefore blocks architectural acceptance.
-
-## Required remediation
-
-Correct only the evidence/matrix/derived conclusions affected by this finding.
-
-### 1. Correct Gemini official evidence
-
-Update the provider matrix and External Evidence Basis to record current official Gemini support for the `.agents/skills/` alias.
-
-Use official source evidence.
-
-### 2. Recompute portability analysis
-
-Do not continue using the current `2 of 5` statement.
-
-Recompute based on verified current support.
-
-### 3. Separate comparable filesystem/repository clients from non-comparable product surfaces
-
-The current matrix treats the ChatGPT product Skill/plugin surface as an equal "vote" alongside repo-native coding agents even though it does not use the same repository filesystem discovery model.
-
-Revise the analysis into at least:
-
-**Repository/filesystem-native agent clients**
-- Claude Code
-- Codex
-- Gemini CLI
-- GitHub Copilot
-
-and separately:
-
-**Product/plugin exposure**
-- ChatGPT product Skill/plugin surface
-
-Do not let the lack of arbitrary repository-filesystem discovery in ChatGPT mathematically dilute a repo-path portability decision.
-
-### 4. Re-evaluate the canonical-location conclusion
-
-With the corrected matrix, explicitly compare again:
-
-- `.agents/skills/` canonical payload;
-- Sentinel-owned canonical source + deterministic exposure;
-- Sentinel-owned canonical source + provider-native linking/registration.
-
-The RFC may still return:
-`CANONICAL LOCATION: PAULO DECISION REQUIRED`
-
-but only after the corrected evidence is evaluated.
-
-If one option now clearly dominates for the actual target environment, the RFC should say so and explain why.
-
-### 5. Keep evidence provenance strict
-
-Correct the External Evidence Basis rows so that:
-- official claims cite official sources;
-- current checked date is retained;
-- indirect/search-snippet evidence is not described as stronger than it is;
-- unsupported claims remain `UNVERIFIED / GAP` rather than inferred.
-
-## Non-blocking observations
-
-### AS45-O001 — ChatGPT product exposure should remain a separate integration question
-
-This RFC does not need to solve ChatGPT product/plugin distribution to choose the repository Skill canonical location.
-
-Treat ChatGPT product exposure as a later adapter/distribution concern unless an official repository-discovery mechanism is confirmed.
-
-### AS45-O002 — Treasury Paulo decisions remain legitimately open
-
-The following may remain `PAULO DECISION REQUIRED` after this remediation:
-- Treasury lightweight-procedure direction;
-- whether/when to create a residual Knowledge/Principles canonical record;
-- timing of `RISK-WEB-013` remediation;
-- Journal editorial-review policy;
-- final canonical Skill location if corrected evidence still leaves a genuine tradeoff.
+No:
+- actual Skill implementation;
+- Skill/provider-adapter directories;
+- Treasury implementation;
+- private-repository creation;
+- secret-store creation;
+- chat-history import/archive;
+- provider-memory synchronization;
+- S3 implementation/resumption;
+- S4+ / S5 capability machinery;
+- product/runtime/public-site changes;
+- remote resources;
+- credentials;
+- deployment;
+- main merge;
+- external-skill installation/execution.
 
 ## Verdict
 
-`ML-DEVOS-AS-045: CHANGES_REQUESTED — REMEDIATION CYCLE 2`
+`ML-DEVOS-AS-046: CHANGES_REQUESTED — REMEDIATION CYCLE 2 SCOPE AMENDED`
 
-Single blocker:
-- `AS45-F007` provider compatibility/evidence correction.
-
-All other major Skills Foundation and Portable Knowledge Treasury discovery architecture inspected in this revision passes.
-
-## Return gate
-
-After remediation:
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-
-No Skills implementation, Treasury implementation, provider-adapter creation, or S3 resumption may occur before independent closure.
+Return to Architect after all AS45-F007 and AS46-F001/F002/F003 corrections are complete.
