@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-057.md` — RFC-015 first Architect review; proposal direction accepted, changes requested for unique closure-event linkage, traceability-currentness/delta semantics, coherent version/ADR sequencing, and behavior-based runtime distinction.
 - `ML-DEVOS-AS-056.md` — S3 closure discrepancy review; preserves AS-055 technical approval, identifies manifest-status modeling gap, stale S3 status/provenance, missing Skills/Treasury closure ADR/version disposition, and routes a corrected Paulo closure package using ADR-011 for Skills/Treasury no-bump closure and ADR-012 for S3 v1.6.0 closure.
 - `ML-DEVOS-AS-055.md` — final S3 Typed Task Contracts technical implementation review; all AS-054 validator defects closed, technical stage gate approved, and S3 closure/v1.6.0/ADR-011 decision routed to Paulo.
 - `ML-DEVOS-AS-054.md` — first S3 Typed Task Contracts implementation review; changes requested for lifecycle evidence AND/OR guarantee semantics, executable-schema structural parity, and removal of an invented DEPLOYED runtime-evidence overrestriction.
