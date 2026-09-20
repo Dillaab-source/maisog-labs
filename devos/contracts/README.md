@@ -1,13 +1,26 @@
-# devos/contracts/ — Reserved (S3)
+# devos/contracts/ — S3 Typed Task Contracts
 
-`STATUS: NOT IMPLEMENTED`
+`STATUS: IMPLEMENTED — repository-local schema/spec/validator/examples only (S3 V1)`
 
 Canonical owning phase: **S3 — Typed Task Contracts**
 
-Known consuming phase(s): none declared yet.
+Authority: `ML-DEVOS-RFC-013` (ACCEPTED) / `ML-DEVOS-AS-038` (ARCHITECT_APPROVED design) / `D-042` (Paulo S3 implementation authorization) / `ML-DEVOS-AS-053` (S3 reopening after Skills Foundation V0.1 acceptance).
 
-Reserved by **S2 — DevOS Repository Foundation** (`ML-DEVOS-RFC-001`, `ML-DEVOS-AS-006`, `D-016`) as the canonical future home for typed, machine-readable Task Contract schemas and records. No executable subsystem, schema, or contract instance exists in this directory as of S2 — this README, and the boundary it declares, is the only content S2 places here.
+See `TASK_CONTRACT_SPEC.md` for the full specification: contract shape, the bounded evidence/claim-kind vocabularies, and the `CORE-016`/`017`/`018`/`020` semantic rules `validate-task-contract.mjs` enforces.
 
-This directory's existence does not mean Task Contracts are implemented. It means only that when S3 is separately proposed (its own RFC), reviewed (Architect Sync), and authorized (Paulo decision), this is where its artifacts belong — so that S3 does not need to invent, and no later phase needs to renegotiate, where typed task/change/decision contract schemas and validation live. See `devos/devos-manifest.json`'s `reserved_subsystem_roots` entry for this path (`owning_phase: "S3"`, `status: "NOT_IMPLEMENTED"`, `executable_runtime_present: false`) — the manifest is the authoritative machine-readable record of this boundary; this README is its human-readable mirror.
+## What exists here
 
-Redefining this root's ownership requires a separately governed `ARCHITECTURE`-class change, not an edit to this file.
+- `task-contract.schema.json` — structural JSON Schema (draft-07).
+- `TASK_CONTRACT_SPEC.md` — human-readable specification.
+- `validate-task-contract.mjs` — zero-third-party-dependency structural + semantic validator.
+- `examples/valid/` and `examples/invalid/` — bounded fixtures, each proving a specific pass/fail-closed rule; see the spec's worked-examples table.
+
+Focused tests: `tests/task-contract.test.mjs` (repository root, alongside `tests/skills.test.mjs` and `tests/traceability.test.mjs`).
+
+## What still does not exist (S3 non-goals, unchanged from `ML-DEVOS-RFC-013`)
+
+No task-lifecycle/state ownership, locks/leases/retries/timeouts/idempotency (S4); no capability/tool/credential enforcement (S5); no sandbox/worktree execution (S6); no evidence artifact storage or QA execution (S7); no orchestration/agent dispatch (S8); no Evidence Gate acceptance logic (S9); no CI/rulesets/protected-main enforcement (S10); no telemetry/memory (S11); no project overlays (S12); no release/runtime verification machinery (S13); no end-to-end production pilot (S14). A Task Contract describes already-authorized scope; it never itself grants authority (`CORE-001`, `CORE-002`) — see every instance's fixed `authority_disclaimer` field.
+
+This directory was reserved by **S2 — DevOS Repository Foundation** (`ML-DEVOS-RFC-001`, `ML-DEVOS-AS-006`, `D-016`) before S3 existed; that reservation is now fulfilled by the contents above, not superseded by them. See `devos/devos-manifest.json`'s `reserved_subsystem_roots` entry for this path — updating that manifest entry's `status`/`executable_runtime_present` fields to reflect S3 acceptance, and any accompanying governance-capability version transition, is deferred to the post-acceptance S3 ADR per `ML-DEVOS-RFC-013`'s rollout plan, not done by this implementation cycle.
+
+Redefining this root's ownership (as opposed to filling it, which S3 does) still requires a separately governed `ARCHITECTURE`-class change.

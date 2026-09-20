@@ -2304,3 +2304,121 @@ Total:                                                                    392/39
 ### Remediation commit
 
 The 2 files listed above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `077b1d0982b230ea6f7fded3625885a9629da823`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## Sentinel S3 Typed Task Contracts Implementation (ML-DEVOS-RFC-013 / ML-DEVOS-AS-038 / D-042 / ML-DEVOS-AS-053)
+
+**Cycle ID:** `SENTINEL_S3_TYPED_TASK_CONTRACTS_IMPLEMENTATION`, `CURRENT_REMEDIATION_CYCLE: 0` of `MAX_REMEDIATION_CYCLES: 3` (first implementation pass, not a remediation cycle).
+
+**Base commit:** `b7634f572f2be93ef3a5527a06b924dfa5212594` (`docs(sync): activate S3 typed task contracts` — the Architect's `ML-DEVOS-AS-053` acceptance of Skills Foundation V0.1 and S3 reopening).
+
+**Authority:** `ML-DEVOS-RFC-013` (S3 design, ACCEPTED), `ML-DEVOS-AS-038` (Architect Sync design review, ARCHITECT_APPROVED), `D-042` (Paulo's sequential S3 implementation authorization), `ML-DEVOS-AS-053` (Skills Foundation V0.1 final acceptance + S3 reopening under `D-042` without a second Paulo approval).
+
+### Scope discipline
+
+Authorized envelope per live `coordination/STATE.md`/`ARCHITECT_REVIEW.md`: Builder may modify only `devos/contracts/`, focused S3 tests/fixtures, and normal handoff/governance bookkeeping. Exact diff:
+
+```
+$ git status --porcelain
+ M devos/contracts/README.md
+?? devos/contracts/TASK_CONTRACT_SPEC.md
+?? devos/contracts/examples/
+?? devos/contracts/task-contract.schema.json
+?? devos/contracts/validate-task-contract.mjs
+?? tests/task-contract.test.mjs
+```
+
+No file under `worker/`, `app/`, `lib/`, `migrations/`, `devos/state/`, `devos/capabilities/`, or `devos/devos-manifest.json` was touched. The manifest's `devos/contracts` reserved-root entry is intentionally left unchanged this cycle — `ML-DEVOS-RFC-013`'s rollout plan explicitly defers updating that entry's `status`/`executable_runtime_present` fields (and any governance-capability version transition) to the post-acceptance S3 ADR, not to this implementation.
+
+### Required S3 outputs — all seven delivered
+
+1. **Task Contract specification** — `devos/contracts/TASK_CONTRACT_SPEC.md`: purpose, "what a Task Contract is not," full field-by-field contract shape, the five semantic rules, a worked-examples table mapping every bundled fixture to the rule it proves, and the unchanged S3 non-goals list from `ML-DEVOS-RFC-013`.
+2. **JSON Schema** — `devos/contracts/task-contract.schema.json` (draft-07), `additionalProperties: false` throughout, matching `devos/governance/registry/rule-record.schema.json`'s existing conventions (evidence `all_of`/`any_of` shape reused unchanged, same `change_class` enum). A required `authority_disclaimer` field is fixed by JSON Schema `const` to one exact sentence, so no instance can soften or omit the non-authority boundary (`AS38-F002`).
+3. **Semantic validator** — `devos/contracts/validate-task-contract.mjs`: zero third-party dependencies (Node builtins only), mirroring `devos/governance/registry/validate-rules.mjs`'s hand-rolled structural-check pattern, plus `CORE-016`/`017`/`018`/`020` semantic checks. Exports `validateContractSchema`, `validateContractSemantics`, `validateTaskContract`, `loadContract`, `EVIDENCE_CLASSES`, `AUTHORITY_DISCLAIMER` — no function name implies acceptance/approval/certification (directly tested).
+4. **Bounded valid/invalid examples** — `devos/contracts/examples/valid/` (2 fixtures) and `examples/invalid/` (8 fixtures), each invalid fixture proving exactly one fail-closed rule (see spec's worked-examples table).
+5. **Focused tests** — `tests/task-contract.test.mjs`, 30 tests.
+6. **Low-risk repository-only example** — `examples/valid/low-risk-doc-fix.contract.json`: a documentation-fix task with every consequence flag `false`, whose claims close on `ACTOR_REPORTED`/`INDEPENDENTLY_INSPECTED` alone, per `CORE-020`'s own documented exception for low-risk repository-only work.
+7. **MAIN/DEPLOYED/VERIFIED fail-closed proof** — `examples/invalid/main-claim-actor-reported-only.contract.json`, `main-claim-over-requires-runtime-observed.contract.json`, `deployed-claim-wrong-evidence.contract.json`, `deployed-claim-silently-treated-as-verified.contract.json`, and `verified-claim-missing-runtime-observed.contract.json` — five fixtures independently proving `CORE-016`/`017`/`018` each fail closed when misdeclared, plus a sixth (`consequence-sensitive-actor-reported-only.contract.json`) proving `CORE-020`'s escalation fails closed for a non-lifecycle claim.
+
+### Semantic rule design notes (not literal restatements of the RFC — decisions made while implementing)
+
+- **`CORE-016` (MAIN):** a claim's evidence must (a) not be satisfiable using `ACTOR_REPORTED` alone, (b) offer a real path to `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED`, and (c) never place `RUNTIME_OBSERVED` in `all_of` (RFC-013 is explicit this is impossible before deployment). All three are independently checked and independently tested (`main-claim-actor-reported-only` proves (a)/(b); `main-claim-over-requires-runtime-observed` proves (c)).
+- **`CORE-017` (DEPLOYED):** a claim's evidence must offer a real path to `ACTOR_REPORTED` or `CI_ATTESTED`, and must never place `RUNTIME_OBSERVED` in `all_of` (that belongs to the separate, stronger `VERIFIED` claim).
+- **`CORE-018` (VERIFIED):** `RUNTIME_OBSERVED` must be in `all_of` specifically — merely appearing in `any_of` alongside a weaker alternative (e.g. `CI_ATTESTED`) is rejected, because that would let the weaker class substitute, which `CORE-018` forbids ("no weaker evidence class satisfies a VERIFIED claim"). This distinction is directly unit-tested (`tests/task-contract.test.mjs`'s "RUNTIME_OBSERVED only in any_of" vs. "in all_of" pair).
+- **`CORE-020` (consequence-sensitive escalation) — the one genuine interpretive decision this cycle made:** an early draft applied the "no claim may close on `ACTOR_REPORTED` alone" rule to every claim in a consequence-sensitive contract, including `MAIN`/`DEPLOYED`/`VERIFIED` claims. That is wrong: `CORE-020`'s own rule text states "existing MAIN, DEPLOYED, and VERIFIED evidence rules remain authoritative for those exact claims," and `CORE-017` deliberately permits `ACTOR_REPORTED` for `DEPLOYED`. Applying `CORE-020`'s escalation on top of `CORE-017` for a `DEPLOYED` claim would silently re-restrict a rule `CORE-020` explicitly says it does not touch. The validator therefore excludes `MAIN`/`DEPLOYED`/`VERIFIED` claims from the `CORE-020` "no `ACTOR_REPORTED`-only closure" check (their own `CORE-016`/`017`/`018` checks already govern them fully) and applies it only to the other four claim kinds. This is directly proven by two paired tests: a `DEPLOYED` claim closing on `ACTOR_REPORTED` alone in a fully consequence-sensitive contract *passes* (`CORE-017` governs), while a `SECURITY_OR_TRUST_BOUNDARY` claim doing the same in the same kind of contract *fails* (`CORE-020` governs). The fixture `examples/valid/full-lifecycle-main-deployed-verified.contract.json` is a positive control for exactly this: it is consequence-sensitive (all three of `remote_resources_involved`/`protected_main_or_deploy_in_scope`/`production_write_in_scope` are `true`) yet its `DEPLOYED` claim legitimately closes on `ACTOR_REPORTED`/`CI_ATTESTED`.
+
+### Evidence
+
+**Bundled example self-check:**
+
+```
+$ node devos/contracts/validate-task-contract.mjs
+PASS (expected valid)   .../examples/valid/full-lifecycle-main-deployed-verified.contract.json
+PASS (expected valid)   .../examples/valid/low-risk-doc-fix.contract.json
+PASS (expected invalid) .../examples/invalid/consequence-sensitive-actor-reported-only.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/deployed-claim-silently-treated-as-verified.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/deployed-claim-wrong-evidence.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/empty-evidence-requirement.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/main-claim-actor-reported-only.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/main-claim-over-requires-runtime-observed.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/reworded-authority-disclaimer.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/schema-violation-missing-field.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/unknown-evidence-class.contract.json -- correctly rejected
+PASS (expected invalid) .../examples/invalid/verified-claim-missing-runtime-observed.contract.json -- correctly rejected
+
+PASS: 12/12 contract(s) behaved as expected.
+```
+
+**Focused tests:**
+
+```
+$ node --test tests/task-contract.test.mjs
+# tests 30
+# pass 30
+# fail 0
+```
+
+**Full-suite sanity result** (run in 3 batches, consistent with established batching practice):
+
+```
+tests/content + d1-audit + d1-migration + design-overlay + skills + task-contract: 140/140
+tests/traceability + worker-admin-dashboard/design/journal:                        127/127
+tests/worker-admin-media/projects + worker-auth + worker-public-design/journal:    155/155
+------------------------------------------------------------------------------------------
+Total:                                                                             422/422
+```
+
+422 = the pre-cycle 392 + this cycle's 30 new `task-contract.test.mjs` cases. No pre-existing test was modified, and none regressed.
+
+All of the above test/validator command output is `ACTOR_REPORTED` — this Implementer ran the commands and is reporting the output; it has not been independently reproduced or CI-attested. Per `ML-DEVOS-RFC-013`'s own evidence requirements section, S3 acceptance should rest on `INDEPENDENTLY_INSPECTED` review of the schema/spec/validator plus independent inspection that the semantic rules match `CORE-016/017/018/020` — this handoff does not claim that independent class for itself.
+
+### Explicit confirmations
+
+- **No S4+ (state machinery, locks/leases/retries/timeouts/idempotency), S5 (capability/tool/credential enforcement), S6 (sandbox/worktree execution), S7 (evidence store/QA), S8 (orchestration), S9 (Evidence Gate acceptance), S10 (CI/rulesets), S11–S14 was implemented.** The validator checks contract validity only; it never inspects produced evidence and never decides task acceptance (directly tested: no exported function name implies accept/approve/certify).
+- **No product/runtime mutation.** No file under `worker/`, `app/`, `lib/`, `migrations/` was touched.
+- **No remote/cloud resource, credential, or secret was created or referenced.**
+- **No deployment and no protected-main merge occurred or was proposed.**
+- **No Sentinel version bump was made.** `devos/devos-manifest.json` is unchanged; that update is explicitly deferred to the post-acceptance S3 ADR per `ML-DEVOS-RFC-013`'s rollout plan.
+- **A valid Task Contract cannot itself grant authority** — proven both structurally (the fixed, non-reword-able `authority_disclaimer` field, with a dedicated fixture and test proving a reworded disclaimer is rejected) and by the validator's own exported-API-naming test.
+- **The Implementer has not self-certified S3 acceptance and has not started S4.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / open questions
+
+- `authorization_references`/`requirement_references`/`risk_references`/`design_references` are validated only for shape (non-empty array of strings for the first, arrays of strings for the rest) — the validator does not verify these IDs actually resolve to real governance records. This is the same disclosed limitation `devos/governance/registry/validate-rules.mjs` carries for its own citation fields, not a new gap.
+- Traceability V1's generator was **not** run or modified this cycle to avoid the exact out-of-scope-regeneration incident disclosed in the prior Skills Foundation implementation handoff (running it as an unrelated sanity check previously caused incidental changes to `devos/governance/traceability/traceability-index.json`/`TRACEABILITY_INDEX.md`, which were then reverted). Whether/how Task Contract IDs should be indexed by Traceability V1 is left to a future change, consistent with `ML-DEVOS-RFC-013`'s own "Traceability V1... may later index Task Contract IDs without owning their semantics" statement.
+- `task_id`/`claim_id`/`criterion_id` uniqueness is enforced only *within* a single contract file, not across multiple contract files repository-wide — no second contract instance exists yet to make that a live concern, and S3 does not own any contract-registry/index mechanism (that would begin to resemble S4/S8 lifecycle ownership, which is explicitly out of scope).
+
+### S3 return gate
+
+Per the Architect's required return gate, `coordination/STATE.md` is updated to:
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
+
+`DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged. The Builder has not self-certified S3 acceptance and has not started S4.
+
+### Commit
+
+The 6 files above (1 modified, 5 new — `devos/contracts/README.md`, `devos/contracts/TASK_CONTRACT_SPEC.md`, `devos/contracts/task-contract.schema.json`, `devos/contracts/validate-task-contract.mjs`, `devos/contracts/examples/**` (10 fixtures), `tests/task-contract.test.mjs`), alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `b7634f572f2be93ef3a5527a06b924dfa5212594`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

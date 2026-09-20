@@ -1,0 +1,20 @@
+{
+  "contract_schema_version": "1.0.0",
+  "task_id": "TASK-EXAMPLE-INVALID-MISSING-FIELD",
+  "title": "Invalid: missing the required 'scope' field entirely",
+  "project": "Dillaab-source/maisog-labs",
+  "change_class": "PATCH",
+  "authorization_references": ["ML-DEVOS-RFC-013"],
+  "acceptance_criteria": [
+    { "criterion_id": "AC-1", "statement": "N/A -- this fixture exists only to prove the structural validator fails closed on a missing required top-level field." }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLAIM-1",
+      "claim_kind": "DOCUMENTATION_CORRECTNESS",
+      "statement": "N/A.",
+      "evidence": { "all_of": [], "any_of": ["INDEPENDENTLY_INSPECTED"] }
+    }
+  ],
+  "authority_disclaimer": "This Task Contract describes already-authorized scope. It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). Satisfying this contract's acceptance criteria and evidence requirements does not certify task success or accept the task; that judgment belongs to the Architect/Paulo review that consumes this contract's evidence, not to the contract or its validator."
+}
