@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `SENTINEL S3 TECHNICAL STAGE GATE — ARCHITECT_APPROVED / PAULO CLOSURE DECISION REQUIRED`
+Status: `ARCHITECTURE DISCREPANCY REVIEW — S3 TECHNICAL APPROVAL PRESERVED / CLOSURE PACKAGE CORRECTED / PAULO DECISION REQUIRED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -9,208 +9,262 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-055 — S3 Typed Task Contracts Final Implementation Review
+# ML-DEVOS-AS-056 — S3 Closure Architecture Sync Discrepancy Review
 
-Authority:
-- `ML-DEVOS-RFC-013`
-- `ML-DEVOS-AS-038`
-- `D-037`
-- `D-042`
-- `ML-DEVOS-AS-053`
-- `ML-DEVOS-AS-054`
+Relationship:
+- preserves the technical stage-gate verdict of `ML-DEVOS-AS-055`;
+- supersedes only AS-055's incomplete **closure package**;
+- does not reopen S3 validator implementation findings;
+- does not authorize closure implementation or S4.
 
-Builder remediation commit reviewed:
-- `61803ffc15ce88a61ccead71fa7e41f5a9ff2efd`
+## Summary
 
-## Final remediation review
+S3 remains technically approved.
 
-### AS55-F001 — PASS — AS54-F003 closed
+However, a cross-record comparison found four closure/provenance discrepancies that must be resolved as part of the Paulo closure decision and subsequent bounded closure implementation.
 
-The lifecycle evidence validator now uses a guarantee check over the AND/OR grammar.
+## AS56-F001 — BLOCKER TO CLOSURE PACKAGE — manifest cannot currently encode an implemented S3 root
 
-For a required class set `R`, the implementation accepts only when:
-1. `all_of` already contains a member of `R`; or
-2. `any_of` is non-empty and every alternative belongs to `R`.
+Current `devos/devos-manifest.json` says:
 
-This correctly rejects mixed branches that could otherwise satisfy:
-- MAIN without `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED`;
-- DEPLOYED without `ACTOR_REPORTED` or `CI_ATTESTED`.
+`devos/contracts/ → status: NOT_IMPLEMENTED`
 
-Independent Architect reasoning reproduced the important edge cases:
-- MAIN `any_of:[CI_ATTESTED]` → valid;
-- MAIN `any_of:[ACTOR_REPORTED,CI_ATTESTED]` → invalid;
-- MAIN `all_of:[INDEPENDENTLY_INSPECTED], any_of:[ACTOR_REPORTED,CI_ATTESTED]` → invalid;
-- DEPLOYED `all_of:[ACTOR_REPORTED]` → valid;
-- DEPLOYED mixed ACTOR/RUNTIME branch without an unconditional required class → invalid;
-- DEPLOYED `all_of:[ACTOR_REPORTED,RUNTIME_OBSERVED]` → valid;
-- DEPLOYED runtime-only → invalid.
+AS-055 proposed changing that root to an implemented/static capability status at S3 closure.
 
-The correction implements CORE-016/017 as minimum evidence guarantees rather than mere class-presence checks.
+But the authoritative manifest schema currently permits only:
 
-### AS55-F002 — PASS — AS54-F004 closed
+- `NOT_IMPLEMENTED`
+- `FOUNDATION_ACTIVE`
 
-The executable structural validator now enforces non-empty strings for all string-array fields whose JSON Schema item definition carries `minLength: 1`:
+and explicitly describes `FOUNDATION_ACTIVE` as reserved for the S2-owned `devos/schemas/` foundation.
 
-- `authorization_references`;
-- `requirement_references`;
-- `risk_references`;
-- `design_references`;
-- `scope.allowed_paths`;
-- `scope.prohibited_paths`;
-- `scope.prohibited_actions`.
+The validator likewise treats `FOUNDATION_ACTIVE` as the unique S2 foundation state and currently has no legal post-S2 implemented state for `devos/contracts/`.
 
-The focused test set includes negative cases for every affected field plus a positive control.
+Therefore AS-055's closure instruction cannot be executed as written without first evolving the manifest schema/validator.
 
-No structural schema/validator mismatch remains in the reviewed area.
+### Architect recommendation
 
-### AS55-F003 — PASS — AS54-F005 closed
+As part of the **same Paulo-approved S3 closure package**, authorize a bounded, backwards-compatible manifest vocabulary evolution:
 
-The blanket DEPLOYED rejection of `RUNTIME_OBSERVED` in `all_of` has been removed.
+Add reserved-root status:
 
-The validator now treats CORE-017 correctly as a floor:
-- DEPLOYED must guarantee `ACTOR_REPORTED` or `CI_ATTESTED`;
-- additional stronger evidence is not rejected merely for being stronger;
-- VERIFIED remains a distinct claim and still separately requires unconditional `RUNTIME_OBSERVED`.
+`IMPLEMENTED`
 
-The renamed invalid fixture now fails for the correct reason: it lacks a guaranteed CORE-017 class, rather than because runtime evidence is forbidden.
+Meaning:
+- the owning phase's bounded repository capability is implemented and governance-closed;
+- ownership is unchanged;
+- the status grants no authority;
+- it does not imply runtime deployment;
+- `executable_runtime_present` remains `false` for S3.
 
-### AS55-F004 — PASS — CORE-020 interpretation remains aligned
+For S3 closure:
 
-CORE-020's current text explicitly says existing MAIN/DEPLOYED/VERIFIED rules remain authoritative for those exact claims.
+`devos/contracts/`
+- `owning_phase: S3` unchanged;
+- `status: IMPLEMENTED`;
+- `executable_runtime_present: false`.
 
-The S3 implementation therefore:
-- applies CORE-016 to MAIN;
-- CORE-017 to DEPLOYED;
-- CORE-018 to VERIFIED;
-- applies consequence-sensitive actor-only escalation to the other claim kinds.
+The schema/validator must continue to preserve:
+- `FOUNDATION_ACTIVE` only for the S2 foundation root;
+- `NOT_IMPLEMENTED` for later roots not yet closed;
+- no automatic phase authorization merely from a status edit.
 
-No new policy is invented.
+Do not generalize runtime-phase semantics beyond what is needed to represent S3.
 
-### AS55-F005 — PASS — S3 remains descriptive, not authoritative
+Required closure work would include focused manifest-schema/validator tests for the new status.
 
-The fixed `authority_disclaimer`, spec, validator exports, and examples continue to make clear:
+## AS56-F002 — STALE STATUS — RFC-013 still says DRAFT / QUEUED
 
-A valid Task Contract:
-- describes already-authorized scope;
-- does not grant tools/credentials/remote-resource authority;
-- does not approve merge/deploy/risk acceptance;
-- does not inspect produced evidence;
-- does not accept or certify a task.
+`ML-DEVOS-RFC-013` still begins:
 
-S3 has not become S4, S7, or S9.
+`Status: DRAFT — QUEUED AFTER SENTINEL-TRACEABILITY-V1`
 
-### AS55-F006 — PASS — scope remained clean through remediation
+That was historically correct before Traceability V1 closed and before S3 implementation.
 
-The remediation changed only:
-- S3 validator/spec/fixtures/tests;
-- handoff/state bookkeeping.
+It is no longer current descriptive status after:
+- `D-037`;
+- `AS-038`;
+- `AS-053`;
+- S3 implementation;
+- `AS-055` technical stage-gate approval.
 
-No:
-- core-rule change;
-- RFC lifecycle closure;
-- manifest/version change;
-- ADR closure;
-- S4+ implementation;
-- product/runtime change;
-- remote resource;
-- credential;
-- deployment;
-- production write;
-- protected/main merge
+This is not a technical defect in S3, but it must be normalized during closure.
 
-occurred.
+### Required closure correction
 
-## Evidence disposition
+Preserve the RFC body/history, but update its status banner to record the final accepted/closed outcome after Paulo approves closure.
 
-Builder reports:
-- focused S3 suite: `44/44`;
-- bundled fixture behavior: `15/15`;
-- full repository suite: `436/436`.
+Do not rewrite the proposal into an ADR. ADR-012 will remain the durable "what became architecture and why" record.
 
-These command-run counts remain:
-`ACTOR_REPORTED`
+## AS56-F003 — PROVENANCE DRIFT — S3 README misattributes implementation authority
 
-The Architect independently:
-- inspected schema/spec/validator code;
-- reproduced the corrected AND/OR guarantee semantics over representative edge cases;
-- inspected structural parity corrections;
-- verified authority/non-goal boundaries;
-- inspected exact remediation scope.
+`devos/contracts/README.md` currently says:
 
-Evidence classes:
-- implementation/spec alignment: `INDEPENDENTLY_INSPECTED`;
-- lifecycle evidence-logic edge cases: `INDEPENDENTLY_REPRODUCED` by deterministic reasoning over the committed function semantics;
-- Builder Node test counts: `ACTOR_REPORTED`.
+`D-042 (Paulo S3 implementation authorization)`
 
-No production/runtime evidence is required or claimed for this repository-local S3 capability.
+That is imprecise.
 
-## Technical stage-gate verdict
+Correct authority chain:
+- `D-037` = Paulo's actual S3 implementation authorization, queued behind Traceability V1;
+- `D-042` = later sequential authorization allowing Architect to **reopen** the already-preserved D-037/AS-038 S3 authority after Skills/Treasury V0.1 closed;
+- `AS-053` = Architect reopening S3 under that preserved authority.
 
-`ML-DEVOS-AS-055: SENTINEL S3 TECHNICAL STAGE GATE — ARCHITECT_APPROVED`
+### Required closure correction
 
-S3 Typed Task Contracts is technically ready for governance closure.
+Update the README authority wording so D-037 and D-042 have their actual roles.
 
-This verdict does **not** itself:
-- adopt S3 into the active governance-capability baseline;
-- change the manifest;
-- apply a version bump;
-- create the closure ADR;
-- authorize S4.
+Also normalize any equivalent stale wording found in closure-touched S3 docs.
 
-## Closure/version assessment
+## AS56-F004 — PRIOR ARCHITECTURE CLOSURE DEBT — Skills/Treasury V0.1 lacks explicit post-implementation version disposition and ADR
 
-Current active Sentinel governance-capability baseline:
+`ML-DEVOS-RFC-014` is an `ARCHITECTURE` RFC.
+
+Its Version Impact section explicitly says:
+
+- no version transition was proposed during discovery;
+- **if implementation were later authorized, its version impact would be assessed at that time**.
+
+Implementation was later:
+- authorized by `D-042`;
+- independently accepted by `ML-DEVOS-AS-053`.
+
+But AS-053 recorded neither:
+- a durable closure ADR;
+- nor an explicit post-implementation Sentinel version decision.
+
+This is governance closure debt.
+
+### Architect version assessment for Skills/Treasury V0.1
+
+Recommendation:
+
+`NO SENTINEL CAPABILITY-BASELINE BUMP`
+
+Keep baseline:
 `v1.5.0`
 
-S3 adds a backwards-compatible new governance capability:
-- Task Contract specification;
-- schema;
-- deterministic structural/semantic validator;
-- examples/tests;
-- no breaking constitutional change.
+Reason, matching the Traceability V1 no-bump precedent:
+- no CORE rule meaning changed;
+- no actor authority changed;
+- no trust boundary granted or widened;
+- no remote/deploy/main authority changed;
+- Skills are explicitly non-authoritative procedure wrappers;
+- Treasury is a manual routing/classification discipline over existing canonical records;
+- the implementation operationalizes existing governance practice rather than changing Sentinel's constitutional/governance semantics.
 
-Under `VERSIONING_POLICY.md`, Architect assesses:
+This should be an **explicit no-bump decision**, not an implicit omission.
+
+### Required durable closure
+
+Before or atomically ahead of the S3 closure ADR in the same bounded closure cycle:
+
+Create:
+`ML-DEVOS-ADR-011`
+
+Purpose:
+- adopt Skills Foundation V0.1 + Portable Knowledge Treasury as repository architecture;
+- cite `ML-DEVOS-RFC-014`, `D-042`, `ML-DEVOS-AS-050`, `ML-DEVOS-AS-053`;
+- record effective Sentinel baseline `v1.5.0`;
+- explicitly record **no Sentinel capability-baseline transition**;
+- preserve all authority/non-runtime/security boundaries.
+
+This consumes ADR-011.
+
+Therefore the proposed S3 closure ADR becomes:
+
+`ML-DEVOS-ADR-012`
+
+not ADR-011.
+
+## AS56-F005 — CLOSURE VERSION ASSESSMENT — S3 remains a MINOR candidate after debt correction
+
+After recording the explicit Skills/Treasury no-bump disposition, the active baseline remains:
+
+`v1.5.0`
+
+S3 adds the first implemented Typed Task Contract capability:
+- schema;
+- specification;
+- deterministic validator;
+- evidence-policy semantic validation;
+- examples/tests.
+
+This is a backwards-compatible new Sentinel governance capability.
+
+Architect recommendation remains:
 
 `MINOR: v1.5.0 → v1.6.0`
 
-Proposed closure ADR:
-`ML-DEVOS-ADR-011`
+for S3 closure.
 
-The next ADR number was verified against the live durable ADR directory; `ML-DEVOS-ADR-010.md` already exists.
+Proposed S3 ADR:
+`ML-DEVOS-ADR-012`
 
-## Paulo closure decision required
+No CORE rule changes are needed.
 
-Per the established S1/S2 closure pattern and the binding non-silent version rule, Paulo must explicitly decide whether to authorize:
+## AS56-F006 — ROLLING HANDOFF HEADER IS STALE
 
-1. adoption of S3 Typed Task Contracts into the active Sentinel governance-capability baseline;
+`coordination/IMPLEMENTER_HANDOFF.md` retains an old top-level status from a prior Skills remediation cycle while later S3 handoffs are appended below.
+
+Live `coordination/STATE.md` correctly outranks the handoff, so this has not changed authority.
+
+But the stale top banner is misleading for orientation/recovery and should be normalized during closure bookkeeping.
+
+Do not delete historical handoff content; only make the current header accurately identify the active/closing S3 cycle and preserve the history below.
+
+## Corrected Paulo decision package
+
+Paulo should **not** approve AS-055's original six-item closure package verbatim.
+
+The corrected closure decision is:
+
+### A. Close outstanding Skills/Treasury architecture debt
+
+Authorize:
+1. explicit no-bump disposition for Skills Foundation V0.1 + Portable Knowledge Treasury at Sentinel `v1.5.0`;
 2. creation of `ML-DEVOS-ADR-011`;
-3. the `v1.5.0 → v1.6.0` MINOR transition;
-4. updating `devos/devos-manifest.json` so `devos/contracts/` no longer remains `NOT_IMPLEMENTED`;
-5. appending the S3 closure event to manifest closure history;
-6. normal RFC/status/version/closure bookkeeping required to record S3 as closed.
+3. ordinary RFC/index/closure bookkeeping only.
 
-No core rule activation is required: S3 implements existing CORE-016/017/018/020 semantics and introduces no new CORE-* rule.
+### B. Close S3 Typed Task Contracts
 
-## Recommended manifest disposition if Paulo approves
+Authorize:
+1. adoption of S3 into the active Sentinel governance-capability baseline;
+2. `v1.5.0 → v1.6.0` MINOR transition;
+3. creation of `ML-DEVOS-ADR-012`;
+4. bounded manifest schema/validator evolution adding reserved-root status `IMPLEMENTED`;
+5. set `devos/contracts/` to `status: IMPLEMENTED`, `executable_runtime_present: false`;
+6. update the active `sentinel_capability_baseline` to `v1.6.0` / ADR-012 / the new Paulo closure decision;
+7. append S3 to `closure_history`;
+8. normalize RFC-013 status and S3 README authority provenance;
+9. normalize the rolling handoff header;
+10. update Versioning Policy / ADR/RFC indexes and other narrowly necessary closure metadata.
 
-For `devos/contracts/`:
-- owning phase remains `S3`;
-- status should change from `NOT_IMPLEMENTED` to an implemented/static-capability status consistent with the manifest validator/schema;
-- `executable_runtime_present` should remain `false` because S3 is repository-local validation tooling, not Sentinel runtime orchestration/enforcement.
+### C. Hard boundaries
 
-The exact allowed status vocabulary must be verified against the manifest schema/validator during closure; do not invent a new enum merely for S3.
+No:
+- S4 proposal or implementation;
+- S5+;
+- core-rule mutation;
+- runtime/product changes;
+- remote/cloud resources;
+- credentials;
+- deployment;
+- production writes;
+- protected/main merge;
+- broad manifest redesign;
+- automatic authority from the new `IMPLEMENTED` status.
 
-## S4 boundary
+## S4 gate
 
-S4 remains wholly unauthorized.
+S4 remains unauthorized.
 
 Only after:
-1. Paulo explicitly approves S3 closure/version transition;
-2. Builder performs the bounded closure record/manifest/version work;
-3. Architect independently reviews that closure
+1. Paulo approves this corrected closure package;
+2. Builder performs the bounded closure;
+3. Architect independently verifies both ADR-011/no-bump debt closure and ADR-012/S3 v1.6.0 closure
 
-may an S4 proposal/authorization be considered.
+may S4 be proposed or separately authorized.
 
 ## Verdict
 
-`ARCHITECT_APPROVED — PAULO S3 CLOSURE / v1.6.0 DECISION REQUIRED`
+`ML-DEVOS-AS-056: DISCREPANCIES CONFIRMED — S3 TECHNICAL APPROVAL PRESERVED — CLOSURE GATE CORRECTED — PAULO DECISION REQUIRED`
