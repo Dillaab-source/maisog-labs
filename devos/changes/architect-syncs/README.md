@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-055.md` — final S3 Typed Task Contracts technical implementation review; all AS-054 validator defects closed, technical stage gate approved, and S3 closure/v1.6.0/ADR-011 decision routed to Paulo.
 - `ML-DEVOS-AS-054.md` — first S3 Typed Task Contracts implementation review; changes requested for lifecycle evidence AND/OR guarantee semantics, executable-schema structural parity, and removal of an invented DEPLOYED runtime-evidence overrestriction.
 - `ML-DEVOS-AS-053.md` — final Skills Foundation V0.1 + Portable Knowledge Treasury implementation acceptance; closes remediation, records independent repository verification, and reopens S3 Typed Task Contracts under preserved D-037/AS-038/D-042 authority.
 - `ML-DEVOS-AS-052.md` — Skills Foundation V0.1 implementation remediation review; closes all three AS-051 substantive blockers and requests one scope-only cleanup for an out-of-whitelist `.claude/skills/README.md` artifact before final acceptance.
