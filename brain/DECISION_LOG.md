@@ -641,3 +641,24 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Version authority:** no Sentinel capability-baseline transition is authorized by this decision.
 - **S4:** remains wholly unauthorized.
 - **Still prohibited:** RFC-015 implementation, manifest/schema/validator mutation, Architect Sync procedure mutation, ADR creation, Sentinel version bump, S3 closure, RFC-013 closure mutation, traceability closure regeneration, S4 proposal/implementation, core-rule mutation, product/runtime mutation, remote resources, deployment, and protected/main merge.
+
+
+### D-045 — Authorize RFC-015 implementation and lock return-to-roadmap / coordinated-closure direction
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After the overall Sentinel direction review, Paulo explicitly stated: `Yes authorized put this into record and should come up in the future`.
+- **Implementation authorization:** Authorize the bounded implementation of `ML-DEVOS-RFC-015 — Reserved Subsystem Lifecycle and Closure Reconciliation`, exactly as design-accepted by `ML-DEVOS-AS-059` / `D-044`.
+- **Authorized implementation surfaces:** `devos/schemas/devos-manifest.schema.json`; `devos/schemas/validate-devos-manifest.mjs`; focused repository-local tests under `tests/*.test.mjs`; `brain/protocols/ARCHITECT_SYNC.md`; and only narrowly necessary documentation / coordination bookkeeping.
+- **Implementation requirements:** add the descriptive `IMPLEMENTED` reserved-root status; add optional ADR-keyed `closure_ref`; enforce fail-closed `closure_ref ↔ closure_history` matching + owning-phase consistency; preserve S2-only `FOUNDATION_ACTIVE`; clarify `executable_runtime_present` by operational responsibility rather than invocation mechanism; add D.1 Pre-decision Closure Preflight and D.2 Post-decision Closure Verification to the existing Stage Gate Review; add focused tests for backwards compatibility, invalid/dangling/ambiguous/mismatched closure references, S2 foundation invariants, and no-authority semantics.
+- **No manifest instance mutation yet:** this implementation cycle may evolve the schema/validator/procedure, but must not yet set `devos/contracts/` to `IMPLEMENTED`, append the S3 closure-history entry, close RFC-013, create closure ADRs, or change the active Sentinel capability baseline.
+- **Roadmap bias:** RFC-015 is the last planned governance-hardening detour before returning to the original Sentinel capability roadmap. After RFC-015 implementation and the pending coordinated closure pass, the default next candidate is S4 State Machine Kernel. Further foundation/governance hardening should be triggered by a concrete defect, incident, repeated friction, security finding, or durable reuse need — not by a generic desire to make governance more complete.
+- **Preferred later release boundary:** if RFC-015 implementation is independently accepted and no new blocker appears, prepare one coordinated closure/release package in which:
+  - Skills Foundation V0.1 + Portable Knowledge Treasury receives an explicit no-bump ADR/disposition;
+  - RFC-015 receives its own ADR;
+  - S3 Typed Task Contracts receives its own ADR;
+  - RFC-015 + S3 adoption are proposed together under one explicit Sentinel `v1.6.0` release boundary rather than two automatic consecutive MINOR bumps.
+- **Provenance rule:** one release/version boundary may contain multiple separately reasoned architecture decisions; each retains separate ADR provenance. `one release != one ADR`.
+- **Closure/version authority still withheld:** this decision does **not** itself authorize the eventual `v1.6.0` transition, S3 closure, ADR creation, manifest instance closure edits, RFC-013 closure status mutation, or S4 start. Those remain subject to the RFC-015 post-implementation Architect review and a later explicit Paulo closure decision using the D.1/D.2 closure process.
+- **S3:** `ML-DEVOS-AS-055` technical approval remains preserved.
+- **S4:** remains unauthorized.
+- **Still prohibited:** core-rule mutation, product/runtime mutation, remote/cloud resources, credentials, deployment, production writes, protected/main merge, S4+ implementation, or unrelated governance expansion.
