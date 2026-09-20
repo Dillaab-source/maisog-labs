@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-049.md` — Skills Foundation/Treasury Cycle 2 Architect review; accepts the substantive remediation and requests one final Cycle 3 consistency cleanup for the stale top-level sensitive-data destination, current ChatGPT official evidence, and AS-047/AS-048/Gemini cross-references.
 - `ML-DEVOS-AS-048.md` — canonical access-control clarification supplementing AS-047; preserves the private-repo INTERNAL/RESTRICTED conditions while keeping secrets/credentials out of Git, and replaces the accidental duplicate AS-047 amendment filename.
 - `ML-DEVOS-AS-047.md` — repository-visibility correction for Skills/Treasury discovery; verifies the MaisogLabs repo is now private, permits appropriate INTERNAL/RESTRICTED documentation in the private repo, keeps secrets/credentials out of Git, and preserves historical-exposure caution.
 - `ML-DEVOS-AS-046.md` — supplemental Skills Foundation/Treasury Remediation Cycle 2 review; adds public-repository disclosure/storage safety, complete per-skill contract requirements, and explicit SKILL CHECK routing/evals while preserving AS-045's provider-matrix blocker.
