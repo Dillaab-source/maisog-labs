@@ -62,3 +62,5 @@ After successful no-op Builder execution:
 - ARCHITECT_ACTION_REQUIRED: YES
 - IMPLEMENTER_ACTION_REQUIRED: NO
 - PAULO_DECISION_REQUIRED: NO
+
+<!-- D-047 retest trigger after base-workflow synchronization -->
