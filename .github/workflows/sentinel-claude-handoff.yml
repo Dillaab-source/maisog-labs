@@ -1,9 +1,10 @@
 name: SENTINEL Claude Handoff
 
 on:
-  push:
+  pull_request:
+    types: [synchronize]
     branches:
-      - governance/maisoglabs-v0.1
+      - sentinel-handoff-base
 
 concurrency:
   group: sentinel-claude-handoff-${{ github.ref }}
@@ -19,6 +20,7 @@ permissions:
 jobs:
   builder-handoff:
     name: Builder handoff gate
+    if: github.event.pull_request.number == 10 && github.event.pull_request.head.ref == 'governance/maisoglabs-v0.1'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
