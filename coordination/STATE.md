@@ -37,7 +37,7 @@ No S3 implementation is authorized during this remediation.
 
 ## Current review chain
 
-- AS-047 access-control clarification: `devos/changes/architect-syncs/ML-DEVOS-AS-047-access-control-amendment.md`
+- `ML-DEVOS-AS-048` — canonical access-control clarification supplementing AS-047
 
 - `ML-DEVOS-AS-045 — CHANGES_REQUESTED / Remediation Cycle 2`
 - `ML-DEVOS-AS-046 — CHANGES_REQUESTED / Remediation Cycle 2 scope amendment`
