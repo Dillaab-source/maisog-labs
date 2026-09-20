@@ -706,3 +706,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Least-privilege rule:** workflow permissions and Claude tools must be bounded to the Builder role; no deployment, remote-resource, protected/main merge, secret-management, or later-phase authority is granted.
 - **S4:** remains unauthorized. This bridge is infrastructure setup only and does not itself start S4.
 - **Activation condition:** the reverse bridge is not considered operational until an end-to-end test proves that a real `TURN: CLAUDE` handoff wakes Claude, Claude respects the live scope, returns `TURN: ARCHITECT`, and the existing ChatGPT event task detects the return.
+
+
+### D-048 — Authorize S4 State Machine Kernel proposal with audit
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Paulo stated: `okay proceed with the build remeber audit`, following the recommendation to review the S4 proposal scope before authorizing implementation.
+- **Bounded interpretation:** proceed with the next governed build step: S4 discovery/design proposal and audit. This records proposal authority only; it does not claim approval of an unwritten design or bypass the ARCHITECTURE-class review/implementation gate.
+- **Prerequisites inspected:** coordinated v1.6.0 closure accepted by ML-DEVOS-AS-063; D-047 bridge activation accepted by ML-DEVOS-AS-064 at `ceebf557ab2eff79b89e080230c46e8b2921ee78`; S3 is IMPLEMENTED, S4 remains NOT_IMPLEMENTED in the live manifest.
+- **Authorized Builder work:** file the next sequential RFC for S4 State Machine Kernel; define lifecycle transitions, ownership, locks/leases, retry/timeout/idempotency semantics, S3 integration, local persistence/concurrency/recovery alternatives, test plan, risks and traceability. Update only the RFC index, derived traceability indexes and Builder coordination evidence required for this proposal.
+- **Architect bookkeeping:** preserve ML-DEVOS-AS-064 verbatim in its durable archive and index before replacing the rolling review; record this decision and bounded brief; reproduce the audit and regenerate derived outputs for these changes; activate the Builder turn on the governance branch.
+- **Audit requirement:** exact before/after ERROR fingerprints, full validator output and exit code, generated-index currency, diff whitelist and evidence provenance. Known pre-existing missing-target errors CORE-022 and WEB-REQ-009 remain disclosed, not fabricated away. No unexpected new ERROR is acceptable.
+- **Return gate:** Architect reviews the proposed design and audit before any S4 implementation authorization. A later Paulo decision must authorize implementation of the reviewed design.
+- **Prohibited:** S4 executable implementation or live state storage; S5+; changes to frozen architecture, core rules, manifest, capability baseline, version or ADRs; product/runtime changes; coordination bridge/workflow edits; remote resources or credentials; deployment/production writes; protected/main merge; PR #10 merge or auto-merge. Existing bootstrap coordination remains authoritative.

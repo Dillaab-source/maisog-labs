@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_BIDIRECTIONAL_HANDOFF_BRIDGE_TEST
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: NO_ACTIVE_IMPLEMENTATION
+CYCLE_ID: SENTINEL_S4_STATE_MACHINE_PROPOSAL
+TURN: CLAUDE
+STATUS: AUTHORIZED_PROPOSAL
+AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_AND_AUDIT_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 1
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -17,42 +17,30 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect verdict
+## Authority
 
-`ML-DEVOS-AS-064 — D-047 BRIDGE ACTIVATION: VERIFIED / READY TO COMMIT: YES`
+D-048 records Paulo's instruction to proceed with the next build step and remember the audit, in context of the S4 proposal recommendation. ML-DEVOS-AS-063 and ML-DEVOS-AS-064 remain accepted. Read coordination/ARCHITECT_REVIEW.md for the bounded proposal brief and exact file whitelist.
 
-Reviewed Builder result HEAD:
-- `416ea0a0caed7d0891c117fb5c47f7fe37ec6e30`
+## Authorized scope
 
-## Activation outcome
+S4 design/proposal and traceability audit only: one next-sequential RFC, its index entry, deterministic traceability outputs and Builder coordination evidence. No executable implementation. The NO mutation/audit flags retain their product/content meaning; the explicitly listed repository documentation is authorized by D-048.
 
-The bounded D-047 bidirectional Sentinel handoff bridge is operational for the tested path:
+## Hard boundaries
 
-1. a live `TURN: CLAUDE` / `IMPLEMENTER_ACTION_REQUIRED: YES` state woke the GitHub Actions Builder runner;
-2. Claude executed only `HANDOFF_BRIDGE_NOOP_TEST_ONLY`;
-3. the Builder result changed only `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`;
-4. control returned through the exact Architect gate;
-5. PR #10 commit-update activity woke the ChatGPT Architect task, which independently verified the live result.
+No S4 executable kernel, live task storage, S5+ work, frozen architecture/core-policy change, version/manifest/ADR mutation, product/runtime change, workflow/bridge change, credential access, remote resources, deployment, production write, protected/main merge or PR #10 merge/auto-merge. Existing coordination remains the live authority. Preserve Sentinel v1.6.0 and S4 NOT_IMPLEMENTED.
 
-## Observation
+## Required audit
 
-The bot-authored result commit has a follow-on handoff workflow run recorded as `action_required`. Because the live state had already returned to Architect, no Builder action was authorized and no additional mutation resulted. This is non-blocking operational noise for the completed activation test.
+Read the live execution HEAD; run the traceability validator before/after; preserve the two known missing-target errors CORE-022 and WEB-REQ-009; report all warnings and exit codes; require no post-generation drift or unexpected new ERROR; verify the exact diff whitelist. Do not fabricate canonical records to obtain a green check.
 
-## Authority boundary
+## Return gate
 
-No implementation is currently authorized.
+On complete proposal and evidence, commit/push only authorized files together and set:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
 
-This verification does not authorize:
-- S4 proposal or implementation;
-- new ADR, Decision, version, manifest, RFC, or core-rule mutation;
-- product/runtime mutation;
-- remote resources or credentials;
-- deployment or production writes;
-- protected/main merge;
-- PR #10 merge or auto-merge.
-
-Any next phase requires separate Paulo authorization.
-
-## Turn
-
-Control is returned to Paulo after successful D-047 activation verification. No Paulo decision is required to validate this completed test; any next roadmap authorization is a separate future decision.
+Keep every prohibition flag NO. If blocked, report the blocker and stop. Do not raise MAX_REMEDIATION_CYCLES. Design review and separate Paulo implementation authorization are required before code work.

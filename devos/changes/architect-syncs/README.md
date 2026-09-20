@@ -6,6 +6,8 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-064.md` — D-047 bridge activation verification; verbatim rolling review from `ceebf557ab2eff79b89e080230c46e8b2921ee78`, preserving acceptance and the follow-on Actions observation.
+
 - `ML-DEVOS-AS-063.md` — final D.2 coordinated v1.6.0 closure verification; AS-062 provenance cleanup independently verified and closure accepted, with no S4/deploy/remote/main authority.
 - `ML-DEVOS-AS-062.md` — D.2 coordinated v1.6.0 closure verification; closure structure passes, but final acceptance is held for a narrow ADR-012 provenance correction and closure-touched test-comment cleanup before traceability regeneration.
 - ML-DEVOS-AS-061.md — D.1 pre-decision coordinated closure preflight; Skills/Treasury no-bump + separate RFC-015/S3 ADRs under one proposed v1.6.0 release boundary pass preflight and are routed to Paulo without closure mutation authority.
