@@ -1,12 +1,12 @@
 # ML-DEVOS-RFC-015: Reserved Subsystem Lifecycle and Closure Reconciliation
 
-Status: `DRAFT`
+Status: `DESIGN_ACCEPTED — ML-DEVOS-AS-059 / D-044; IMPLEMENTATION REQUIRES SEPARATE PAULO AUTHORIZATION`
 
 Proposed change class: `ARCHITECTURE`
 
 Sentinel phase: none owned — this is a correction to the S2 DevOS Repository Foundation's manifest schema (`ML-DEVOS-RFC-001`) and to the existing Architect Sync procedure (`ML-DEVOS-AS-003`), not a new numbered phase.
 
-Authority: `D-043` (Paulo — authorize this proposal cycle only; no implementation authority is granted by that decision or by this RFC).
+Authority chain: `D-043` authorized the proposal/review cycle; `ML-DEVOS-AS-059` Architect-approved the final design; `D-044` accepted the architecture/design. No implementation authority is granted by those records.
 
 ## Problem
 
