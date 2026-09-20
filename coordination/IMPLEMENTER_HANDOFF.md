@@ -2631,3 +2631,81 @@ Exactly the one file this cycle's authorized scope permits drafting. `devos/chan
 ### Commit
 
 The 1 new file above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `241257f28ee1b8b3397957adfda31d7d37b237fa`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## ML-DEVOS-RFC-015 — Remediation Cycle 1 (ML-DEVOS-AS-057)
+
+**Cycle ID:** `SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_PROPOSAL`, `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 3`.
+
+**Base commit reviewed by Architect:** `bfb6e5aa87ae52088a7d3891dc8fe9bcfe331eba` (`docs(rfc): draft RFC-015 reserved subsystem lifecycle proposal`).
+
+**Review:** `ML-DEVOS-AS-057` — `CHANGES_REQUESTED — RFC-015 REMEDIATION CYCLE 1`. Scope discipline (`AS57-F001`) passed — the draft touched only normal handoff/state bookkeeping plus the RFC text itself. The overall architecture direction was explicitly preserved (post-bootstrap lifecycle evolution, `IMPLEMENTED` as descriptive-only, S2-only `FOUNDATION_ACTIVE`, Closure Preflight inside Stage Gate Review, anti-bloat direction, S3's preserved technical approval, S4 hard gate). Four blockers required remediation, all addressed by editing `devos/changes/rfcs/ML-DEVOS-RFC-015.md` only — no other file was touched, per the authorized remediation-cycle-1 file list.
+
+### `AS57-F002` — `closure_ref` made event-specific (matches by `adr`, not `phase`)
+
+**Defect:** the draft proposed `closure_ref == closure_history[].phase`. A `phase` value like `"S3"` is a category label, not a unique identifier — a phase could later receive a corrective/superseding closure record while keeping the same `phase` label, making a phase-keyed reference ambiguous the moment more than one `closure_history` entry shares it.
+
+**Fix:** `closure_ref` now matches by `adr` (sequential, never-reused). The validator's required checks (RFC §"Proposed change" B) now explicitly enumerate all five conditions the review specified: (1) non-null, (2) matches exactly one `closure_history` entry by `adr`, (3) that entry's `phase` equals the root's own `owning_phase` (catching a reference that resolves to a real ADR closing the *wrong* phase), (4) that entry has non-empty `decision`/`architect_sync`/`version` (correcting the draft, which only checked `adr`/`decision`/`version` — `architect_sync` is also already required by the existing `closure_history` item schema, verified by direct read of `devos/schemas/devos-manifest.schema.json`), (5) all resolved IDs are structurally valid under existing ID conventions. Backwards compatibility is preserved exactly as before: no existing entry needs `closure_ref: null` added, since absence means the same as explicit `null`.
+
+### `AS57-F003` — Closure Preflight traceability item split into three separate conditions
+
+**Defect:** the draft's single "no new ERROR" check couldn't detect stale *generated* Traceability V1 outputs (`traceability-index.json`/`TRACEABILITY_INDEX.md`) — a candidate closure could pass a semantic ERROR-count comparison while publishing a stale derived index.
+
+**Fix:** RFC §"Proposed change" D's traceability item is now three distinct conditions, exactly as the review specified: (1) **derived-output currency** — regenerate and confirm no drift against a fresh run; (2) **known baseline findings preserved** — record the exact pre-closure `ERROR` finding set (by rule ID + subject ID, not a bare count) from a named base SHA, so pre-existing findings are never silently presented as resolved; (3) **no new closure-induced findings** — the post-closure run must introduce no `ERROR` absent from that base set. None of the three requires an overall zero-findings bar. Explicitly kept manual/repository-local, no new subsystem or CI gate.
+
+### `AS57-F004` — version/ADR sequencing made internally coherent
+
+**Defect:** the draft classified itself `ARCHITECTURE` and recommended `MINOR` for its own implementation, while its Rollout section simultaneously assumed `AS-056`'s original `v1.5.0 → v1.6.0` transition for S3's *separate* closure — two independent MINOR changes cannot both be the same version transition, and the draft left this contradiction unresolved.
+
+**Fix:** the "Version impact" section now takes an explicit position, as required ("silence is not allowed"): RFC-015's own implementation is recommended `MINOR`, justified against `VERSIONING_POLICY.md`'s PATCH/MINOR/MAJOR criteria directly (not merely asserted). The sequencing model now matches the Architect's stated preference exactly: Skills/Treasury V0.1 closure remains independent and order-agnostic; RFC-015's implementation closes first under its own ADR and a version transition *computed from whatever baseline is current at that moment* (not hardcoded); S3's later closure computes its *own* independently-justified MINOR transition from whatever baseline is then current (which would already include RFC-015's bump) — explicitly not assumed to also be `v1.5.0 → v1.6.0`. `AS-056`'s originally proposed ADR numbers (`ADR-011`/`ADR-012`) are now explicitly stated as provisional, not fixed, and this RFC assigns no ADR number of its own for any closure — every ADR is numbered by checking the live `devos/changes/adrs/` directory at the time it is actually written. The Rollout section's step 5 (hardcoded `v1.5.0 → v1.6.0`) was replaced with two steps: RFC-015's own closure first, then S3's closure computed later against the then-current baseline. All prior hardcoded ADR-number/version-transition assumptions in "Non-goals" and "Compatibility" were also corrected to match (verified by `grep` for every remaining `ADR-011`/`ADR-012`/`v1.6.0`/`v1.5.0` occurrence — each remaining mention is now an explicit "provisional, not fixed" disclaimer, not an assumption).
+
+### `AS57-F005` — `executable_runtime_present` redefined by responsibility, not invocation trigger
+
+**Defect:** the draft's clarification partly relied on "not wired to any automatic trigger (no CI, no hook, no scheduler)" as a criterion — a brittle test, since a deterministic validator could later run in CI and still not be a runtime subsystem, and a manually-invoked engine could still be genuine runtime behavior.
+
+**Fix:** RFC §"Proposed change" C now defines the distinction purely by behavior/responsibility, matching the review's proposed rule exactly: `false` means no active subsystem that owns/persists operational state, executes lifecycle/state transitions, dispatches/orchestrates actors, brokers/enforces capabilities, or performs autonomous/consequence-bearing operational actions. The "how or when invoked" criterion (manual vs. automatic, CI or not) was removed entirely and replaced with an explicit statement that invocation mechanism never determines the classification either way. The field's name, type, and every existing value remain unchanged, and the RFC explicitly states it does not propose renaming the field, per the review's "do not rename... unless a separate migration need is demonstrated" instruction.
+
+### Exact diff scope
+
+```
+$ git status --porcelain
+ M devos/changes/rfcs/ML-DEVOS-RFC-015.md
+```
+
+Only the one file the remediation-cycle-1 authorization permitted content changes to. `devos/changes/rfcs/README.md` needed no edit — its existing summary of RFC-015 remains accurate against the remediated content (it describes the proposal at a level of generality none of these four corrections invalidate).
+
+### Traceability evidence
+
+```
+$ node devos/governance/traceability/validate-traceability.mjs
+Errors: 4  Warnings: 15  Total canonical definitions: 236
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] ML-DEVOS-ADR ML-DEVOS-ADR-011: ...
+ERROR [missing-canonical-target] ML-DEVOS-ADR ML-DEVOS-ADR-012: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+```
+
+Identical 4 pre-existing errors as before this remediation (only `Total canonical definitions` grew from 235 to 236, reflecting the RFC file's own larger content, not a new finding). No new `ERROR` was introduced by this remediation's edits — consistent with the three-condition traceability discipline this same remediation just added to the RFC's own proposed Closure Preflight.
+
+### Explicit confirmations
+
+- **No manifest/schema/validator/Architect-Sync-procedure implementation occurred.** `devos/devos-manifest.json`, `devos/schemas/devos-manifest.schema.json`, `devos/schemas/validate-devos-manifest.mjs`, and `brain/protocols/ARCHITECT_SYNC.md` remain byte-identical to base.
+- **No ADR was created; no ADR number was assigned or reserved by this remediation** — the remediation's entire point on this axis was to remove implied fixed numbers, not introduce new ones.
+- **No Sentinel version bump.** `sentinel_capability_baseline` remains `1.5.0`/`ML-DEVOS-ADR-006`/`D-028`, unchanged.
+- **No S3 closure work occurred; `ML-DEVOS-RFC-013`'s status banner is untouched.**
+- **No `CORE-*` rule was touched. No S4 proposal or implementation occurred.**
+- **The Implementer has not self-approved this RFC and has not implemented it.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / open questions
+
+- Unchanged from the original draft's disclosed limitations: the exact `closure_ref` field name and Closure Preflight checklist wording remain this Implementer's design choices within the bounds `D-043` set; the Architect may reasonably request different naming without that being a scope violation.
+- This remediation does not itself resolve `AS56-F002`/`F003`/`F006` (stale RFC-013 status, S3 README authority wording, stale handoff header) — as before, RFC-015 proposes the *mechanism* that would catch them, and their actual correction remains deferred to the later, separately authorized S3 closure implementation cycle.
+
+### Return gate
+
+`coordination/STATE.md` is updated to `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `ARCHITECT_ACTION_REQUIRED: YES` / `IMPLEMENTER_ACTION_REQUIRED: NO` / `CURRENT_REMEDIATION_CYCLE: 1`. Builder has not self-approved or implemented RFC-015.
+
+### Commit
+
+The 1 modified file above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `7ee8408511292c3b2bd0345ad583c21fd61ade35`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

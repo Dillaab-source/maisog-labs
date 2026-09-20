@@ -58,22 +58,35 @@ A status field alone is not evidence — it is exactly as trustworthy as whoever
 "closure_ref": { "type": ["string", "null"] }
 ```
 
-Binding rule, enforced by `devos/schemas/validate-devos-manifest.mjs` (extended, not replaced):
+`closure_ref` identifies **a unique closure event, not a phase category** (`ML-DEVOS-AS-057` `AS57-F002`): a `phase` value like `"S3"` is a label, not an identifier — a phase can legitimately receive a corrective/superseding closure record or a re-closure later while keeping the same `phase` label, so matching on `phase` alone would become ambiguous the moment more than one `closure_history` entry shares it. Every `closure_history` entry already carries `adr`, and ADR IDs are sequential and never reused (`devos/changes/adrs/`'s existing numbering convention), so `closure_ref` matches by `adr`, not by `phase`:
 
-- `closure_ref` **must be `null`** when `status` is `NOT_IMPLEMENTED` or `FOUNDATION_ACTIVE`.
-- `closure_ref` **must be a non-null string, and must exactly match the `phase` field of some entry in the manifest's own `closure_history` array**, when `status` is `IMPLEMENTED`.
-- The validator resolves `closure_ref` against `closure_history` and confirms that matched entry itself has non-empty `adr`, `decision`, and `version` fields (the existing `closure_history` schema already requires this; the new check is that a claimed `IMPLEMENTED` root actually points at one).
-- A `closure_ref` that does not resolve to any `closure_history` entry, or resolves to one missing `adr`/`decision`/`version`, is a **hard validator failure** — the manifest is invalid, not merely "flagged."
+```json
+"closure_ref": "ML-DEVOS-ADR-006"
+```
 
-This means a root cannot become `IMPLEMENTED` by a bare status edit: it requires a corresponding, already-schema-required `closure_history` entry to exist, which itself requires an ADR and a Decision ID to have been filled in. The status and its evidence cannot silently diverge, because the validator checks the link on every run, not merely at the moment of the edit.
+Binding rule, enforced by `devos/schemas/validate-devos-manifest.mjs` (extended, not replaced). For a root with `status: IMPLEMENTED`, the validator must require **all** of:
+
+1. `closure_ref` is non-null;
+2. `closure_ref` matches the `adr` field of **exactly one** entry in `closure_history` (zero matches or more than one is a failure — a dangling or ambiguous reference is never tolerated);
+3. that matched entry's `phase` field equals this root's own `owning_phase` (a `closure_ref` that resolves to a real ADR closing a *different* phase is still wrong — the reference must be event-specific **and** phase-correct);
+4. that matched entry has non-empty `decision`, `architect_sync`, and `version` fields — all three are already required by the existing `closure_history` item schema (`devos/schemas/devos-manifest.schema.json` already lists `architect_sync` in that item's `required` array alongside `phase`/`closed_at`/`version`/`adr`/`decision`/`note`); this RFC's contribution is requiring the `IMPLEMENTED`-status validator to actually check that the *matched* entry satisfies them, not merely that some entry somewhere does;
+5. `closure_ref`, and the `adr`/`decision`/`architect_sync` values it resolves to, are each structurally valid references under the repository's existing ID conventions (`ML-DEVOS-ADR-NNN`, `D-NNN`, `ML-DEVOS-AS-NNN` respectively) — not merely non-empty strings.
+
+For `NOT_IMPLEMENTED` and `FOUNDATION_ACTIVE`: `closure_ref` must be absent or `null`, and must never point at a `closure_history` entry (a root that has not closed cannot cite a closure event). No existing `reserved_subsystem_roots[]` entry needs to be rewritten merely to add `closure_ref: null` — it is optional and its absence means the same as an explicit `null`, so this remains backwards-compatible with every current entry.
+
+This means a root cannot become `IMPLEMENTED` by a bare status edit: it requires one specific, unambiguous, phase-matched `closure_history` entry to exist, carrying a real ADR, Decision, and Architect Sync citation. The status and its evidence cannot silently diverge or point at the wrong phase's closure, because the validator checks the full link on every run, not merely at the moment of the edit.
 
 ### C. `executable_runtime_present` — clarified meaning, not changed value
 
 `AS-056` surfaced a real ambiguity: does S3 having a JSON Schema, a specification, a deterministic Node validator (`devos/contracts/validate-task-contract.mjs`), and examples/tests mean `devos/contracts/` now has "executable runtime present"? No — and this RFC proposes making that explicit in the schema's own field description rather than leaving it to institutional memory:
 
-> `executable_runtime_present` means a live, autonomously operating Sentinel subsystem exists and executes against real state — e.g. a Task Engine performing state transitions (S4), an Orchestrator dispatching agents (S8), a Capability Gateway enforcing tool access at runtime (S5). It is `false` for a phase whose closed deliverable is repository-local, statically invoked tooling: a JSON Schema, a specification document, a deterministic validator/generator script run manually or by a human/agent choosing to run it, and their tests. Such tooling holds no state between invocations, is not wired to any automatic trigger (no CI, no hook, no scheduler), and does not itself decide or execute anything — it only checks or transforms a file already on disk when invoked. A reserved root may therefore legitimately reach `status: IMPLEMENTED` while `executable_runtime_present` remains `false` indefinitely, exactly as S3 does under this proposal, until some later phase's own separately authorized implementation genuinely adds live execution.
+> `executable_runtime_present: false` means the root contains no active Sentinel operational subsystem that: owns or persists operational state; executes lifecycle/state transitions; dispatches or orchestrates actors; brokers or enforces capabilities; or performs autonomous or consequence-bearing operational actions. `executable_runtime_present: true` would mean at least one of those responsibilities is genuinely present — e.g. a Task Engine performing state transitions (S4), an Orchestrator dispatching agents (S8), a Capability Gateway enforcing tool access at runtime (S5).
+>
+> Repository-local schemas, specifications, deterministic validators, generators, and their tests may be executable code, and may be invoked manually or automatically (including from CI), without becoming a Sentinel runtime subsystem by that fact alone. **The distinction is what the code is responsible for, never how or when it happens to be invoked** (`ML-DEVOS-AS-057` `AS57-F005`): a validator that only checks or transforms a file already on disk, holding no operational state and making no consequence-bearing decision, remains non-runtime whether a human runs it once by hand or a future CI pipeline runs it on every commit. Conversely, invoking something manually does not make it non-runtime if what it actually does is own state, execute lifecycle transitions, or dispatch other actors.
 
-This is a documentation/description clarification only — the field's type (`boolean`) and every existing value (`false` everywhere in the current manifest) are unchanged.
+A reserved root may therefore legitimately reach `status: IMPLEMENTED` while `executable_runtime_present` remains `false` indefinitely, exactly as S3 does under this proposal, until some later phase's own separately authorized implementation genuinely adds one of the responsibilities above.
+
+This is a documentation/description clarification only — the field's type (`boolean`), its name, and every existing value (`false` everywhere in the current manifest) are unchanged. This RFC does not propose renaming the field.
 
 ### D. A lightweight Closure Preflight inside the existing Architect Sync procedure
 
@@ -89,7 +102,13 @@ This is a documentation/description clarification only — the field's type (`bo
   4. **Version** — does the proposed version disposition (bump or explicit no-bump) match `VERSIONING_POLICY.md`'s PATCH/MINOR/MAJOR criteria, and is a no-bump decision recorded explicitly rather than left as a silent omission (`AS56-F004`'s exact defect)?
   5. **Rolling handoff header** — does `coordination/IMPLEMENTER_HANDOFF.md`'s top banner accurately name the current/closing cycle, without deleting or rewriting prior history below it?
 
-  Traceability is checked as its own item, but scoped correctly (see Non-goals/§6 below): the Closure Preflight requires that `node devos/governance/traceability/validate-traceability.mjs` introduces **no new** `ERROR`-level finding caused by *this closure's own* edits. It does not require the traceability suite to report zero findings overall — pre-existing, previously disclosed findings remain a separately tracked debt item, not a closure blocker, consistent with `ML-DEVOS-AS-056`'s own explicit non-requirement.
+  Traceability is checked as its own item, but as **three separate conditions**, not one combined "no new ERROR" check (`ML-DEVOS-AS-057` `AS57-F003`) — a single ERROR-count comparison can pass even while Traceability V1's *generated* outputs are stale, since the generated index and the semantic validator are two different things:
+
+  1. **Derived-output currency** — `devos/governance/traceability/generate-traceability.mjs` is (re)run as ordinary, explicitly authorized closure bookkeeping, and `devos/governance/traceability/traceability-index.json`/`TRACEABILITY_INDEX.md` on disk must match what a fresh generation run produces (`validate-traceability.mjs`'s own drift check, already exercised in this repository's routine validation, reports no drift). A closure candidate whose generated outputs are stale relative to the governance IDs it itself introduces (its own RFC/Architect-Sync/Decision/ADR numbers) fails this item, independent of the ERROR count below.
+  2. **Known baseline findings preserved, not silently cleared** — before evaluating the candidate closure, the Closure Preflight records the exact `ERROR`-level finding set (by rule ID + subject ID, not merely a count) produced by `node devos/governance/traceability/validate-traceability.mjs` at a **named base SHA** (the commit immediately prior to the closure's own edits). Every finding in that base set must still be identifiable in the review record after closure — pre-existing, previously disclosed errors are never presented as "resolved" merely because the candidate closure happened not to touch the files they concern.
+  3. **No new closure-induced findings** — the same command run *after* the candidate closure's edits must introduce **no `ERROR`-level finding absent from the base set** recorded in (2). A finding that exists in both the base and post-closure sets is pre-existing debt, not new; only a finding present post-closure but absent from the base set blocks this item.
+
+  None of the three items requires the overall `ERROR` count to reach zero — pre-existing, previously disclosed findings remain a separately tracked debt item, not a closure blocker, consistent with `ML-DEVOS-AS-056`'s own explicit non-requirement. This procedure is manual and repository-local in V0.1: it is a checklist a human/Architect runs by hand at closure time, not a new automated subsystem, scheduled job, or CI gate.
 
 A Stage Gate Review not requesting a phase closure runs exactly as it does today — Closure Preflight adds no overhead to ordinary implementation reviews, only to closure requests.
 
@@ -108,7 +127,7 @@ It is repository-governance/schema-level only. It affects `Dillaab-source/maisog
 This RFC does **not**:
 
 - implement the lifecycle change itself — no edit to `devos/devos-manifest.json`, `devos/schemas/devos-manifest.schema.json`, or `devos/schemas/validate-devos-manifest.mjs` is made by this RFC; it is a proposal only, per its authorizing Decision `D-043`;
-- close S3, set `devos/contracts/`'s status, create `ML-DEVOS-ADR-011` or `ML-DEVOS-ADR-012`, or perform any part of `ML-DEVOS-AS-056`'s corrected closure package — those remain a separate, later Paulo decision and separate bounded implementation cycle, gated on this RFC's own acceptance first;
+- close S3, set `devos/contracts/`'s status, create any closure ADR for Skills/Treasury V0.1 or S3 (this RFC assigns no ADR numbers — see "Version impact"), or perform any part of `ML-DEVOS-AS-056`'s corrected closure package — those remain a separate, later Paulo decision and separate bounded implementation cycle, gated on this RFC's own acceptance first;
 - mutate `ML-DEVOS-RFC-013`'s status banner or any other document's provenance wording — those are closure-implementation actions, not part of this proposal;
 - bump `manifest_version` (currently `1`) or redefine its semantics; this RFC's changes are additive schema evolution, the same category of change `manifest_version` was never intended to gate (nothing in the manifest's own schema ties `manifest_version` to `reserved_subsystem_roots` shape changes, and this RFC does not invent that linkage);
 - change `sentinel_capability_baseline` or bump the Sentinel version — any version transition remains a separate, later, explicitly-decided act per `VERSIONING_POLICY.md`'s binding rule, assessed when (and if) a specific closure is actually authorized;
@@ -183,7 +202,7 @@ Acceptance of this RFC (design-level, not implementation) should require:
 
 - `INDEPENDENTLY_INSPECTED` review confirming the proposed schema/validator/procedure changes are additive and backwards-compatible (no existing manifest entry becomes invalid under the new schema);
 - confirmation that the `closure_ref` ↔ `closure_history` fail-closed relationship is sound (i.e. genuinely cannot be satisfied by a bare status edit);
-- confirmation that Closure Preflight's traceability item correctly distinguishes new-vs-pre-existing findings rather than requiring an unachievable zero-findings bar;
+- confirmation that Closure Preflight's traceability item correctly separates derived-output currency, preserved-baseline findings, and new-closure-induced findings (per `AS57-F003`) rather than collapsing them into a single ERROR-count comparison or requiring an unachievable zero-findings bar;
 - confirmation that no `CORE-*` rule, product code, or S3+ authority is touched.
 
 If/when this RFC is separately accepted and its schema/validator/procedure changes are implemented, that implementation's own acceptance requires ordinary `Builder-reported` + `Architect-independently-reproduced` evidence over the actual schema/validator diff and tests — not covered by this proposal's own evidence bar.
@@ -194,8 +213,9 @@ If/when this RFC is separately accepted and its schema/validator/procedure chang
 2. If findings require remediation, the Builder remediates only this RFC's text, within the remediation-cycle cap, exactly as any other RFC remediation.
 3. Paulo records an explicit design-acceptance decision (accept / reject / request changes) — separate from, and prior to, any decision to actually implement the schema/validator/procedure changes.
 4. Only after that acceptance may a separate, bounded implementation cycle be authorized (its own Decision) to: edit `devos/schemas/devos-manifest.schema.json` and `devos/schemas/validate-devos-manifest.mjs`, add their own focused tests, and update `brain/protocols/ARCHITECT_SYNC.md`.
-5. Only after that implementation is itself independently reviewed and accepted may a *further*, separate Paulo decision authorize the actual S3 closure package (`ML-DEVOS-AS-056`'s corrected closure items: `devos/contracts/` → `IMPLEMENTED`, `ML-DEVOS-ADR-011`/`ML-DEVOS-ADR-012`, RFC-013 status normalization, S3 README authority correction, handoff header normalization, and the `v1.5.0 → v1.6.0` version transition) using the now-implemented lifecycle mechanism.
-6. S4 remains a wholly separate, later proposal, unaffected by and not advanced by any step above.
+5. RFC-015's own implementation closes first, under its own ADR and its own version transition computed at that time (see "Version impact" above) — this closure is independent of, and does not wait for, S3's.
+6. Only after RFC-015's implementation is itself independently reviewed, accepted, and closed may a *further*, separate Paulo decision authorize the actual S3 closure package (`ML-DEVOS-AS-056`'s corrected closure items: `devos/contracts/` → `IMPLEMENTED` with a `closure_ref` resolving to that closure's own ADR, RFC-013 status normalization, S3 README authority correction, handoff header normalization, and S3's own version transition computed from the baseline current at that later moment) using the now-implemented lifecycle mechanism.
+7. S4 remains a wholly separate, later proposal, unaffected by and not advanced by any step above.
 
 ## Rollback
 
@@ -209,13 +229,25 @@ Compatible with:
 - `ML-DEVOS-RFC-001`'s manifest design and `reserved_root_invariant` — extended, not superseded;
 - the active evidence provenance model and `CORE-016`/`017`/`018`/`020` — untouched, and explicitly not the subject of this RFC;
 - `ML-DEVOS-AS-055`'s preserved S3 technical stage-gate approval — this RFC does not reopen or affect that approval;
-- `ML-DEVOS-AS-056`'s discrepancy findings — this RFC is the proposed resolution path for `AS56-F001` (manifest lifecycle gap) and provides the procedural mechanism (Closure Preflight) that would have caught `AS56-F002`/`F003`/`F006` before they required a dedicated discrepancy review; `AS56-F004`'s ADR-011/no-bump debt remains a separate closure-implementation action this RFC does not itself perform.
+- `ML-DEVOS-AS-056`'s discrepancy findings — this RFC is the proposed resolution path for `AS56-F001` (manifest lifecycle gap) and provides the procedural mechanism (Closure Preflight) that would have caught `AS56-F002`/`F003`/`F006` before they required a dedicated discrepancy review; `AS56-F004`'s no-bump/ADR-011 debt for Skills/Treasury V0.1 remains a separate closure-implementation action this RFC does not itself perform; this RFC's own "Version impact" section supersedes `AS56-F005`'s provisional `v1.5.0 → v1.6.0` transition for S3, and both `AS56-F004`'s and `AS56-F005`'s provisional ADR-number assumptions, with a live-computed sequencing model instead.
 
 Incompatible with any interpretation that a reserved root's `IMPLEMENTED` status, once set, grants standing authority beyond what its closing RFC/ADR/Decision chain actually describes.
 
 ## Version impact
 
-This RFC itself proposes no Sentinel version transition. Per the same pattern `ML-DEVOS-RFC-013` and `ML-DEVOS-RFC-014` used at their own discovery stage: version impact of the *implementation* (if later separately authorized) would be assessed at that time, against `VERSIONING_POLICY.md`'s PATCH/MINOR/MAJOR criteria — most likely `MINOR` (a backwards-compatible new governance capability: an additive enum value, an additive optional field, and an additive procedural checklist, none of which changes any existing rule's meaning or any actor's existing authority). No version bump is authorized by this RFC.
+This RFC's own design/proposal stage bumps no version, exactly as `ML-DEVOS-RFC-013` and `ML-DEVOS-RFC-014` bumped none at their own discovery stage. This RFC does, however, take a firm position on its **implementation's** version impact rather than leaving it silent (`ML-DEVOS-AS-057` `AS57-F004`):
+
+**Recommendation: RFC-015's implementation, if separately authorized, is `MINOR`.** Against `VERSIONING_POLICY.md`'s criteria: it is not `PATCH` (it adds real, enforceable new schema behavior — a new enum value with fail-closed validator semantics, not a mere clarification); it is not `MAJOR` (nothing about the actor model, the source-of-truth rule, or what "frozen" means changes); it is a backwards-compatible new governance capability (a third reserved-root lifecycle status, a fail-closed closure-evidence linkage field, and a Closure Preflight checklist) that changes no existing rule's meaning and grants no actor new authority — squarely `MINOR` per the policy's own definition.
+
+**Sequencing relative to other pending closures** — this replaces the AS-056-inherited assumption that S3's closure would apply a `v1.5.0 → v1.6.0` transition and leaves nothing implicit:
+
+- **Skills Foundation V0.1 + Portable Knowledge Treasury closure** (`ML-DEVOS-AS-056`'s recommended explicit no-bump disposition) is independent of this RFC and does not need to land first or in any particular order relative to it.
+- **RFC-015's own implementation closure**, being `MINOR` per the recommendation above, receives its own post-implementation ADR and its own explicit version transition — computed from whatever Sentinel capability baseline is *actually current at the moment that closure is written*, not assumed today. If the baseline is still `v1.5.0` when RFC-015 closes, its transition is `v1.5.0 → v1.6.0`; if some other MINOR change has landed first, it is computed from that later baseline instead.
+- **S3's closure**, if authorized after RFC-015's implementation has already closed, computes its *own* independently-justified `MINOR` transition from *whatever baseline is then current* — which would already reflect RFC-015's bump. It is not, and this RFC does not assume it is, also `v1.5.0 → v1.6.0`; two independent MINOR changes cannot both be the same transition, and this RFC's job is to say so explicitly rather than let both proposals silently claim the same version number.
+- `ML-DEVOS-AS-056`'s originally proposed ADR numbers for the Skills/Treasury and S3 closures are **provisional, not fixed**, and this RFC assigns no ADR number of its own for any closure, including its own — every closure ADR is numbered by checking the live `devos/changes/adrs/` directory at the moment that ADR is actually written, per the repository's existing sequential/never-reused convention. Nothing in this RFC should be read as reserving `ML-DEVOS-ADR-011`, `ML-DEVOS-ADR-012`, or any other specific number for any of these closures in advance.
+- If Paulo instead prefers to bundle RFC-015's implemented capability and S3's adoption into a single release boundary rather than sequencing them as two independent MINOR transitions, that is a legitimate alternative — but it must be a deliberate, explicitly recorded decision at the time, with separate ADR provenance for each accepted architecture change if both still require their own ADR, never inferred from silence.
+
+No version bump is authorized by this RFC itself.
 
 ## Architect Sync requirement
 
