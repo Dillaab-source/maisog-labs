@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-016: S4 State Machine Kernel
 
-Status: `DRAFT`
+Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051`
 
 Proposed change class: `ARCHITECTURE`
 

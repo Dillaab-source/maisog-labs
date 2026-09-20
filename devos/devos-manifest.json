@@ -10,11 +10,11 @@
     "document": "devos/architecture/ML-DEVOS-ARCH-001.md"
   },
   "sentinel_capability_baseline": {
-    "version": "1.6.0",
+    "version": "1.7.0",
     "status": "ACTIVE",
-    "adr": "ML-DEVOS-ADR-013",
-    "decision": "D-046",
-    "document": "devos/changes/adrs/ML-DEVOS-ADR-013.md"
+    "adr": "ML-DEVOS-ADR-014",
+    "decision": "D-051",
+    "document": "devos/changes/adrs/ML-DEVOS-ADR-014.md"
   },
   "source_of_truth_precedence": [
     "Frozen Architecture (ML-DEVOS-ARCH-001 / v1.2.0)",
@@ -39,7 +39,8 @@
       "path": "devos/state/",
       "owning_phase": "S4",
       "consuming_phases": [],
-      "status": "NOT_IMPLEMENTED",
+      "status": "IMPLEMENTED",
+      "closure_ref": "ML-DEVOS-ADR-014",
       "executable_runtime_present": false
     },
     {
@@ -157,6 +158,15 @@
       "decision": "D-046",
       "architect_sync": "ML-DEVOS-AS-055",
       "note": "Adopted Sentinel S3 Typed Task Contracts. devos/contracts/ moves to status: IMPLEMENTED with closure_ref: ML-DEVOS-ADR-013; executable_runtime_present remains false -- no live operational Sentinel runtime subsystem exists here. Release-closing ADR of the coordinated v1.5.0 -> v1.6.0 boundary shared with GOV-RESERVED-LIFECYCLE (ML-DEVOS-ADR-012) above; sentinel_capability_baseline.adr points here."
+    },
+    {
+      "phase": "S4",
+      "closed_at": "2026-09-21",
+      "version": "1.7.0",
+      "adr": "ML-DEVOS-ADR-014",
+      "decision": "D-051",
+      "architect_sync": "ML-DEVOS-AS-066",
+      "note": "Adopted Sentinel S4 State Machine Kernel: repository-local, file-backed task-lifecycle transition function (ownership, leases/fencing via a unified revision token, idempotent claim/renew/release/transition, durable bounded retries, fail-closed orphaned-lock recovery). devos/state/ moves to status: IMPLEMENTED with closure_ref: ML-DEVOS-ADR-014; executable_runtime_present remains false -- no active operational Sentinel runtime service invokes this library. v1.6.0 -> v1.7.0 MINOR transition applied; sentinel_capability_baseline.adr points here."
     }
   ],
   "created_at": "2026-09-18",

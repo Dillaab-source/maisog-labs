@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION`, remediation cycle 1 of 2 complete (S4I-F001..F005 resolved), awaiting independent Architect re-review (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_CLOSURE`, closure package complete, awaiting D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "S4 Implementation Remediation Cycle 1 (S4I-F001..F005)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY remediation. **No S4 closure is claimed** — `devos/devos-manifest.json`'s `devos/state/` entry remains `NOT_IMPLEMENTED`, unchanged.
+**Current cycle:** see the "S4 State Machine Kernel Closure (D-051 / ML-DEVOS-AS-067 D.1 → D.2 candidate)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY closure. `devos/devos-manifest.json`'s `devos/state/` entry is now `IMPLEMENTED`, `closure_ref: ML-DEVOS-ADR-014`, `executable_runtime_present: false`; Sentinel capability baseline is `v1.7.0`. **This closure candidate is not final** — it returns for Architect D.2 Post-decision Closure Verification before S4 is workflow-final or any S5 proposal begins.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "S4 Implementation Remediation Cycle 1 (S4I-F001..F005)" section further below for the exact delta and evidence of that LEAN/DELTA-ONLY remediation, accepted in full by `ML-DEVOS-AS-066` (`ARCHITECT_APPROVED — IMPLEMENTATION ACCEPTED / CLOSURE DECISION REQUIRED`) at implementation head `72cd84a8fedb581306c023ee88e1b0f1c4d5293c`.
 
 ---
 
@@ -3654,3 +3658,41 @@ No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, versi
 **Known limitation carried forward, not addressed this cycle (per the review's own instruction):** the non-blocking discrepancy between RFC-016's prose (every mutating request presents the last-observed revision) and `claim()`'s actual signature (no revision presented) remains open for the eventual closure/ADR documentation, not this remediation.
 
 **Next actor:** `ARCHITECT`.
+
+---
+
+## S4 State Machine Kernel Closure (D-051 / ML-DEVOS-AS-067 D.1 → D.2 candidate)
+
+**Authority:** `D-051` authorizes exactly the S4 closure package preflighted `PASS` by `ML-DEVOS-AS-067` (D.1 Pre-decision Closure Preflight), over the technical acceptance already given by `ML-DEVOS-AS-066`. `CURRENT_REMEDIATION_CYCLE: 0`. **LEAN / DELTA-ONLY mode** — read only live `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `ML-DEVOS-AS-066.md`, `ML-DEVOS-AS-067.md`, and the exact closure files; no full governance-history reread, no unrelated cleanup.
+
+**Input HEAD:** `af7f20658c8babf4b47b129fd14a5fe5ba67e2c0`.
+
+**Pre-execution drift check:** `git log`/`git diff --stat` between `ML-DEVOS-AS-067`'s stated preflight base (`f7df1ddae84b5fc1b698d2061989c4d3dc7d58da`) and input HEAD showed exactly 6 commits touching only `brain/DECISION_LOG.md` (D-051 entry), `coordination/ARCHITECT_REVIEW.md` (closure brief), `coordination/STATE.md` (turn bookkeeping), and `devos/changes/architect-syncs/{ML-DEVOS-AS-067.md,README.md}` (AS-067's own durable archive) — preflight/decision/coordination bookkeeping only, no substantive drift. Proceeded per AS-067 §2.
+
+**Files changed (10):**
+- `devos/changes/adrs/ML-DEVOS-ADR-014.md` (new) — the S4 closure ADR.
+- `devos/changes/adrs/README.md` — added the ADR-014 index entry.
+- `devos/changes/rfcs/ML-DEVOS-RFC-016.md` — status banner `DRAFT` → `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051`; proposal body untouched.
+- `devos/changes/rfcs/README.md` — RFC-016's index description updated to closed/implemented truth.
+- `devos/state/README.md` — `MANIFEST STATUS` banner and the "This is NOT a closure" section updated to closed/implemented truth (`IMPLEMENTED`, `closure_ref: ML-DEVOS-ADR-014`, `executable_runtime_present: false`); boundary/reserved-root ownership section untouched.
+- `devos/devos-manifest.json` — `devos/state/` root: `status: "IMPLEMENTED"`, `closure_ref: "ML-DEVOS-ADR-014"` (added), `executable_runtime_present` unchanged `false`; `sentinel_capability_baseline` → `{version: "1.7.0", status: "ACTIVE", adr: "ML-DEVOS-ADR-014", decision: "D-051", document: ".../ML-DEVOS-ADR-014.md"}`; appended one `closure_history` entry (`phase: "S4"`, `closed_at: "2026-09-21"`, `version: "1.7.0"`, `adr: "ML-DEVOS-ADR-014"`, `decision: "D-051"`, `architect_sync: "ML-DEVOS-AS-066"`); `manifest_version` unchanged `"1"`; `updated_at` unchanged `"2026-09-21"` (same-day event, no change needed).
+- `devos/governance/specifications/VERSIONING_POLICY.md` — current-baseline paragraph updated to `v1.7.0`/`D-051`/`ML-DEVOS-ADR-014`; appended a new "S4 State Machine Kernel closure — v1.7.0 applied" section mirroring the exact style of the prior v1.4.0/v1.5.0/v1.6.0 sections, recording the accepted `expectedRevision` and `NOT_CURRENT_OWNER`/`REVISION_CONFLICT` corrections and the `claim()` revision prose/API discrepancy without rewriting closed RFC/AS text.
+- `devos/architecture/ML-DEVOS-ARCH-001.md` — §10 only: one additive paragraph after the existing `MAIN ≠ DEPLOYED ≠ VERIFIED` line, recording `FAILED`/`ABANDONED` as additive terminal states (no outgoing transition; recovery opens a new task), citing `ML-DEVOS-RFC-016 → ML-DEVOS-AS-065 → D-050 → ML-DEVOS-AS-066 → ML-DEVOS-AS-067 → D-051 → ML-DEVOS-ADR-014`. Document id (`ML-DEVOS-ARCH-001`), version (`1.2.0`), status (`FROZEN`), and every other section byte-identical.
+- `devos/governance/traceability/{traceability-index.json,TRACEABILITY_INDEX.md}` — regenerated, no drift.
+- `coordination/IMPLEMENTER_HANDOFF.md` (this file) / `coordination/STATE.md` — this closure handoff and the return-gate update.
+
+**Not touched:** `brain/DECISION_LOG.md` (explicitly excluded by the write whitelist — D-051 already recorded by the Architect), any S4 implementation source/test file (`devos/state/{kernel,lifecycle,store,task-policy,validate-task-state}.mjs`, `devos/state/task-state.schema.json`, `tests/state-{lifecycle,kernel,concurrency}.test.mjs` — all byte-identical to input HEAD), any product/runtime/website file, any workflow file.
+
+**Commands/checks (all `ACTOR_REPORTED` unless noted):**
+- `node devos/schemas/validate-devos-manifest.mjs` → `PASS: 0 error(s) across 1 file(s)`.
+- `node devos/governance/traceability/generate-traceability.mjs` → `Scanned 263 files. Errors: 2. Warnings: 14.`
+- `node devos/governance/traceability/validate-traceability.mjs` → exit code `1` (expected — errors are a disclosed pre-existing baseline, not a validator crash); fingerprint exactly `CORE-022` + `WEB-REQ-009` (`ML-DEVOS-ADR-014`'s own forward-reference error, present transiently in the pre-closure scan because `ML-DEVOS-AS-067.md` already cited it before the ADR existed, resolved once this closure created the ADR); 14 warnings, unchanged; `No drift: on-disk generated index matches a fresh generation run.`
+- `node --test tests/devos-manifest.test.mjs` → **19/22 pass, 3 fail.** Root cause: this test file (outside the closure write whitelist — not edited) hardcodes `devos/state/` as its one stable "known `NOT_IMPLEMENTED` root" fixture (`TARGET_ROOT_PATH`, used by `findRoot()`/`cloneManifest()` for synthetic negative-status mutations) and separately asserts "every root other than `devos/contracts/` remains `NOT_IMPLEMENTED`/`FOUNDATION_ACTIVE`." Both assumptions are legitimately broken by this authorized S4 closure moving `devos/state/` to `IMPLEMENTED` — the same situation this file's own in-file comment (lines ~90–96) documents happened, and was fixed, at S3 closure ("that assertion is now obsolete by an explicit, separately authorized act, not a regression; this test is updated to match the new correct live state rather than left failing"). Failing tests: `devos/contracts/ is IMPLEMENTED with a resolving closure_ref (S3, post-D-046 closure); every other root remains NOT_IMPLEMENTED/FOUNDATION_ACTIVE with no closure_ref` (line 96 — the "every other root" loop now hits `devos/state/`), `IMPLEMENTED status without closure_ref fails` (line 112 — mutates `findRoot()`'s target, which is now already `IMPLEMENTED` so the negative fixture setup no longer starts from a clean `NOT_IMPLEMENTED` base), and `NOT_IMPLEMENTED root with a non-null closure_ref fails` (line 211 — asserts `root.status === "NOT_IMPLEMENTED"` on the same hardcoded target before mutating it). This test file is not on the closure write whitelist (`coordination/ARCHITECT_REVIEW.md`, `ML-DEVOS-AS-067` §10), so it was deliberately left unedited rather than silently patched; flagging for Architect disposition (most likely: retarget `TARGET_ROOT_PATH`/the "every other root" exemption list to a root still genuinely `NOT_IMPLEMENTED`, e.g. `devos/orchestration/`, mirroring the S3-era fix already documented in the file's own comments).
+- No S4 implementation source changed, so `state-lifecycle`/`state-kernel`/`state-concurrency` tests were not rerun, per the brief's "do not rerun unrelated application tests."
+- `git status --porcelain` / `git diff --stat` against input HEAD: exactly the 10 files listed above changed (9 modified + 1 new); `brain/DECISION_LOG.md` and every S4 implementation/test/product/runtime/workflow file byte-identical to input HEAD.
+
+**Blockers:** none preventing closure-candidate submission. One disclosed, non-blocking finding for Architect disposition: the 3 pre-existing `tests/devos-manifest.test.mjs` failures above (a test-fixture staleness issue outside this closure's write authority, not a manifest/ADR/traceability defect — the manifest validator itself passes clean).
+
+**Known limitations carried forward from AS-066/AS-067, restated in `ML-DEVOS-ADR-014` per the brief's requirement, not silently smoothed over:** Builder's complete focused-suite execution remains `ACTOR_REPORTED`, never independently re-executed in full by the Architect (sandbox has no outbound network access to clone this private repository); the `claim()` revision prose/API discrepancy is documented, not resolved by rewriting RFC-016's already-closed text.
+
+**Next actor:** `ARCHITECT` — D.2 Post-decision Closure Verification.

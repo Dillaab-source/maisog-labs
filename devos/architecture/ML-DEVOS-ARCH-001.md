@@ -171,6 +171,15 @@ REVIEW
 
 `MAIN ≠ DEPLOYED ≠ VERIFIED` — a commit reaching `MAIN` is not thereby `DEPLOYED`, and a `DEPLOYED` system is not thereby `VERIFIED` without `RUNTIME_OBSERVED` evidence (§6). **[REPO-VERIFIED — restated principle already established in this session's prior S0 review and consistent with the traceability model, §8]**
 
+**Additive terminal-state amendment (S4 closure):** the diagram above, as originally frozen, had no terminal exit for a task that fails unrecoverably or is deliberately cancelled. Per `ML-DEVOS-RFC-016 → ML-DEVOS-AS-065 → D-050 → ML-DEVOS-AS-066 → ML-DEVOS-AS-067 → D-051 → ML-DEVOS-ADR-014`, the lifecycle now explicitly includes two additive terminal states, reachable from the states S4's implemented transition table names:
+
+- `FAILED` — an unrecoverable terminal path from the bounded S4 failure states (an unrecoverable build/QA/review failure, or a retry-ceiling breach under the S4 Task Policy);
+- `ABANDONED` — an explicit Architect/Paulo-authorized terminal cancellation path, never self-issued by a task's current Builder owner alone.
+
+`FAILED`, `ABANDONED`, and `VERIFIED` are all terminal: none has an outgoing transition. Recovery from a failed or abandoned task means opening a **new** task whose Task Contract references the closed task's `task_id`, never mutating the closed record — preserving the traceability model (§8) instead of erasing failure history.
+
+This is a narrow, additive amendment to this document's §10 content only. It does not change this document's identity (`ML-DEVOS-ARCH-001`), version (`1.2.0`), status (`FROZEN`), actor model, or source-of-truth rule.
+
 ## 11. Memory boundaries
 
 **[REPO-VERIFIED: D-010 "additional freeze corrections" — "Memory, task state, run history, and Evidence Store remain distinct" — and AS0-002 disposition, which explicitly accepted "the separation of Architectural Memory, Project Memory, Run History, Task Engine State, and Evidence Store" by this exact five-way split.]**

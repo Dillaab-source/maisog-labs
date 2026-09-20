@@ -1,14 +1,14 @@
 # devos/state/ — S4 State Machine Kernel
 
-`MANIFEST STATUS: NOT_IMPLEMENTED` (unchanged — see below)
+`MANIFEST STATUS: IMPLEMENTED` — `closure_ref: ML-DEVOS-ADR-014`, `executable_runtime_present: false` (see below)
 
 Canonical owning phase: **S4 — State Machine Kernel**
 
-Known consuming phase(s): none declared yet.
+Known consuming phase(s): none declared yet. A future S8 Orchestrator is the most plausible future caller; none exists today.
 
-## Implementation truth, as of this cycle
+## Implementation truth
 
-Bounded implementation authorized by `D-050` (following design acceptance `ML-DEVOS-RFC-016` / `ML-DEVOS-AS-065`) now exists in this directory:
+Implementation authorized by `D-050` (following design acceptance `ML-DEVOS-RFC-016` / `ML-DEVOS-AS-065`), accepted by `ML-DEVOS-AS-066`, and closed by `ML-DEVOS-ADR-014` / `D-051` exists in this directory:
 
 - `task-state.schema.json` — structural schema for a Task Engine State record.
 - `lifecycle.mjs` — pure, deterministic transition-table logic (no I/O).
@@ -19,11 +19,11 @@ Bounded implementation authorized by `D-050` (following design acceptance `ML-DE
 
 Focused tests live at `tests/state-lifecycle.test.mjs`, `tests/state-kernel.test.mjs`, and `tests/state-concurrency.test.mjs` (the last using real, separate OS processes to exercise the exclusive-lock primitive, not simulated concurrency).
 
-## This is NOT a closure
+## Closure status
 
-**Repository code existing here does not mean S4 is closed, active, or authoritative.** Per the Architect Builder Brief that authorized this cycle: `devos/devos-manifest.json`'s `reserved_subsystem_roots` entry for this path remains `status: "NOT_IMPLEMENTED"`, `executable_runtime_present: false`, unchanged by this cycle. Manifest activation requires independent Architect review of this implementation and a separately authorized closure package, following the exact D.1 Pre-decision Closure Preflight / D.2 Post-decision Closure Verification procedure `ML-DEVOS-RFC-015` established. No such closure has occurred.
+S4 is closed. `devos/devos-manifest.json`'s `reserved_subsystem_roots` entry for this path is `status: "IMPLEMENTED"`, `closure_ref: "ML-DEVOS-ADR-014"`, `executable_runtime_present: false`, following the exact D.1 Pre-decision Closure Preflight (`ML-DEVOS-AS-067`, `PASS`) / D.2 Post-decision Closure Verification procedure `ML-DEVOS-RFC-015` established.
 
-Nothing in this directory is wired into any live orchestration, dispatch, or CI path. It is a library any future caller would import explicitly; it is not itself running anywhere.
+`executable_runtime_present: false` is a descriptive, behavior-based statement, not a claim that the code is inert or untested: it means no active operational Sentinel runtime service, scheduler, or dispatcher currently invokes this library. Nothing in this directory is wired into any live orchestration, dispatch, or CI path — it is a library any future caller (most plausibly a future S8 Orchestrator) would import explicitly; it is not itself running anywhere. This closure does not itself authorize S5, S8, or any later phase.
 
 ## Boundary, unchanged from before this cycle
 
