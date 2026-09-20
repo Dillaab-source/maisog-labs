@@ -769,3 +769,32 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Traceability:** preflight baseline is exactly CORE-022 + WEB-REQ-009, 2 errors / 14 warnings. Regenerate derived outputs and introduce no new unexpected ERROR; never suppress the baseline to manufacture zero.
 - **D.2 return gate:** Builder returns closure package to Architect for Post-decision Closure Verification before S4 is treated as fully closed in the workflow or any S5 proposal begins.
 - **LEAN / DELTA-ONLY:** closure Builder reads only live STATE, Architect closure brief, AS-067 as needed, accepted S4 closure source records, and files on the closure whitelist. No full-history reread or unrelated cleanup.
+
+
+### D-052 — Authorize WEB-REL-001 Gate A: minimal CI and main technical protection
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After S4 fully closed at ML-DEVOS-AS-068 and the repository's existing WEB-REL-001 readiness packet identified the exact next production-readiness gates, Paulo stated: `Okay next`.
+- **Decision:** Authorize **Gate A only** from `docs/release/WEB_REL_001_READINESS_REPORT.md`: create/activate the minimal GitHub CI workflow and configure the minimum technical protection for `main`. This is a release-safety/protection step, not a merge, Cloudflare resource, production-data, or deployment authorization.
+- **CI scope:** create exactly one workflow under `.github/workflows/ci.yml` implementing the readiness report's minimal design:
+  1. trigger on pull requests targeting `main`;
+  2. trigger on pushes to `governance/maisoglabs-v0.1`;
+  3. use Node.js 22;
+  4. run `npm ci`;
+  5. run `npm test`;
+  6. run `npm run build`;
+  7. no deploy command, Wrangler mutation, Cloudflare credential, D1/R2/Access secret, artifact publication, or production write.
+- **First-run gate:** push the workflow only to the governed branch first and observe at least one completed green run. Record the exact live status-check/check-run context GitHub reports. Do not guess or hardcode the required-status context before it has existed successfully.
+- **Main protection scope:** after the successful observed CI run, configure a GitHub ruleset targeting exactly `main` with the minimum WEB-REL-001 protections:
+  - require pull request before merge;
+  - block direct ordinary merge paths that bypass the PR requirement;
+  - block force pushes/non-fast-forward updates;
+  - block branch deletion;
+  - require the exact observed CI status check before merge;
+  - required approving-review count remains zero while the repository is single-owner; do not fabricate a reviewer;
+  - any bypass capability must be limited to the repository owner/admin as narrowly as GitHub supports.
+- **Fail-closed configuration rule:** if the available GitHub identity/tool cannot inspect or mutate rulesets with sufficient administration permission, do not weaken the design or silently substitute legacy protection. Stop and report the exact blocker for Paulo/Architect disposition.
+- **Verification required:** live GitHub evidence after mutation must show (a) workflow exists on governed branch, (b) at least one completed green run for the workflow, (c) main ruleset/protection is active, (d) required status check name matches the observed live check context, and (e) `main` itself has not been merged/pushed by this gate.
+- **Traceability:** preserve the known traceability debt `CORE-022` + `WEB-REQ-009`; no new unexpected hard ERROR may be introduced by the repository-side CI file/coordination changes.
+- **Still prohibited:** opening/merging the governance→main PR; any direct push to `main`; remote D1/R2 creation or mutation; Cloudflare Access setup; Worker deployment; DNS/domain mutation; production data writes; website public-source cutover; new product features; Sentinel S5+; Skills V0.2 implementation; PR #10 merge.
+- **Return gate:** after Gate A implementation/evidence, return `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` for independent review. Gate B (opening the governance→main PR) remains a separate later Paulo decision.
