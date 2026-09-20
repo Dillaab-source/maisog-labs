@@ -2709,3 +2709,69 @@ Identical 4 pre-existing errors as before this remediation (only `Total canonica
 ### Commit
 
 The 1 modified file above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `7ee8408511292c3b2bd0345ad583c21fd61ade35`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## ML-DEVOS-RFC-015 — Remediation Cycle 2 (ML-DEVOS-AS-058, closure-sequencing only)
+
+**Cycle ID:** `SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_PROPOSAL`, `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 3`.
+
+**Base commit reviewed by Architect:** `8d8f79f48ffa44d11d24af6bec8c6e6092523881` (`docs(rfc): remediate AS-057 ...`).
+
+**Review:** `ML-DEVOS-AS-058` — `CHANGES_REQUESTED — RFC-015 REMEDIATION CYCLE 2 / CLOSURE-SEQUENCING ONLY`. All four Cycle 1 findings (`AS57-F002` through `AS57-F005`) confirmed `PASS`/closed on independent review. One new design blocker (`AS58-F005`) was found and remediated this cycle, by editing `devos/changes/rfcs/ML-DEVOS-RFC-015.md` only.
+
+### `AS58-F005` — Closure Preflight split into explicit pre-decision and post-decision moments
+
+**Defect:** the Cycle-1 remediated RFC described Closure Preflight as a single checklist run "before a closure package reaches Paulo," but several of its items (final ADR ID, final `closure_history` entry, post-closure traceability regeneration) are facts that cannot exist until *after* Paulo authorizes the closure and the bounded closure implementation writes them. A single pre-decision checklist demanding those facts would force either pre-writing authoritative closure records ahead of authorization, or accepting placeholders as final evidence — both recreating the exact authority/status drift RFC-015 exists to prevent.
+
+**Fix:** RFC §"Proposed change" D now states the underlying problem explicitly, then splits Closure Preflight into two textually separate, disjoint-item checklists inside the *same* Stage Gate Review gate — no new phase, Skill, agent, or record type, per the review's explicit anti-bloat instruction:
+
+- **D.1 Pre-decision Closure Preflight** (11 items) — validates the *proposed* package before it reaches Paulo: implementation review status, exact base SHA, current-state inspection (catching `AS56`-class stale-surface drift before implementation, not after), proposed RFC-status/manifest/`closure_history`-shape/ADR-provenance edits, explicit version disposition, a recorded traceability baseline fingerprint, a bounded diff, and confirmation no next phase is silently authorized. None of these 11 items requires a final ADR/Decision ID or a regenerated traceability index.
+- **D.2 Post-decision Closure Verification** (11 items) — verifies the *actual* repository state after Paulo authorizes and the closure implementation lands: final RFC status, final ADR, final Decision, `closure_ref` resolution (per the Cycle-1 `AS57-F002` fix) and phase match, version/`closure_history` agreement, current handoff/orientation wording, regenerated traceability with no drift, baseline findings still visible, no new closure-induced error, and no silently-introduced next-phase authority.
+
+The traceability three-condition model from Cycle 1 (`AS57-F003`) is preserved and correctly distributed across the two moments: the baseline fingerprint is *recorded* pre-decision (D.1 item 9) and *compared against* post-decision (D.2 items 8-10) — the exact split the review asked for, since the fingerprint is a proposal-time fact but the comparison against actual post-closure output is necessarily a post-decision fact.
+
+Every other reference to "Closure Preflight" throughout the RFC (Scope, Affected components, Alternatives, Risks, Evidence requirements, Compatibility, Version impact) was checked and updated to name both checklists where the original text implied a single monolithic one, rather than leaving stale singular references alongside the corrected §D (verified by `grep -n "Closure Preflight\|Closure Verification"` across the full file before finalizing). A new Risk entry was added explicitly guarding against the two moments blurring back together in a future edit.
+
+### Exact diff scope
+
+```
+$ git status --porcelain
+ M devos/changes/rfcs/ML-DEVOS-RFC-015.md
+```
+
+Only the one file this cycle's authorization permitted content changes to.
+
+### Traceability evidence
+
+```
+$ node devos/governance/traceability/validate-traceability.mjs
+Errors: 4  Warnings: 15  Total canonical definitions: 237
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] ML-DEVOS-ADR ML-DEVOS-ADR-011: ...
+ERROR [missing-canonical-target] ML-DEVOS-ADR ML-DEVOS-ADR-012: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+```
+
+Identical 4 pre-existing errors as every prior check this RFC's edits have been measured against (`Total canonical definitions` grew from 236 to 237, reflecting the file's own larger content, not a new finding). Zero new findings introduced.
+
+### Explicit confirmations
+
+- **No manifest/schema/validator/Architect-Sync-procedure implementation occurred.** All four files named in "Affected components" as future implementation targets remain byte-identical to base.
+- **No ADR was created; no ADR number was assigned or reserved.**
+- **No Sentinel version bump; no S3 closure work; `ML-DEVOS-RFC-013`'s status banner untouched.**
+- **No `CORE-*` rule was touched. No S4 proposal or implementation occurred.**
+- **Every Cycle 1 accepted direction is preserved unreopened** (`IMPLEMENTED` state, ADR-keyed `closure_ref`, S2-only `FOUNDATION_ACTIVE`, behavior-based runtime semantics, traceability baseline/delta model, RFC-015's own MINOR recommendation, live-computed later S3 versioning, no `manifest_version` semantics, anti-bloat direction, S3 technical approval, S4 hard gate) — confirmed by direct inspection that none of Cycle 1's remediated text was altered beyond §D's split and the cross-reference updates it required.
+- **The Implementer has not self-approved this RFC and has not implemented it.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / open questions
+
+- Unchanged from prior cycles: the exact checklist item wording remains this Implementer's design choice within the bounds `D-043`/the review's own detailed item list set; `AS56-F002`/`F003`/`F006`'s actual correction remains deferred to the later S3 closure implementation cycle, not this RFC.
+
+### Return gate
+
+`coordination/STATE.md` is updated to `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `ARCHITECT_ACTION_REQUIRED: YES` / `IMPLEMENTER_ACTION_REQUIRED: NO` / `CURRENT_REMEDIATION_CYCLE: 2`. Builder has not self-approved or implemented RFC-015.
+
+### Commit
+
+The 1 modified file above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `0ca661ff9b1d016c13d264ba1f334a176e7a8b6f`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

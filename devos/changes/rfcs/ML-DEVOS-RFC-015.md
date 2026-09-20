@@ -88,29 +88,54 @@ A reserved root may therefore legitimately reach `status: IMPLEMENTED` while `ex
 
 This is a documentation/description clarification only — the field's type (`boolean`), its name, and every existing value (`false` everywhere in the current manifest) are unchanged. This RFC does not propose renaming the field.
 
-### D. A lightweight Closure Preflight inside the existing Architect Sync procedure
+### D. A lightweight Closure Preflight inside the existing Architect Sync procedure — two moments of one gate, not two new records
 
-`brain/protocols/ARCHITECT_SYNC.md` already defines named review modes (Change Review, Stage Gate Review, Release Review, Security Review). This RFC adds one bounded checklist — **Closure Preflight** — as a required sub-step of a **Stage Gate Review specifically when that review is being asked to approve a phase closure package** (i.e. a request to move a reserved root from `NOT_IMPLEMENTED` toward `IMPLEMENTED`, or an equivalent architecture-level closure). It is explicitly:
+`brain/protocols/ARCHITECT_SYNC.md` already defines named review modes (Change Review, Stage Gate Review, Release Review, Security Review). This RFC adds one bounded closure-checklist concept — **Closure Preflight** — to a **Stage Gate Review specifically when that review is asked to approve a phase closure package** (i.e. a request to move a reserved root from `NOT_IMPLEMENTED` toward `IMPLEMENTED`, or an equivalent architecture-level closure). It is explicitly:
 
 - **not** a new Sentinel phase, numbered stage, agent, database, or standalone Skill;
-- **not** a new file location or new record type — its output is simply additional findings inside the same `coordination/ARCHITECT_REVIEW.md` / durable `ML-DEVOS-AS-<NNN>` archive the Stage Gate Review already produces;
-- a fixed, small checklist, run once per closure request, checking exactly these five surfaces for mutual agreement before a closure package reaches Paulo:
+- **not** a new file location or new record type — its output is simply additional findings inside the same `coordination/ARCHITECT_REVIEW.md` / durable `ML-DEVOS-AS-<NNN>` archive the Stage Gate Review already produces.
 
-  1. **RFC status banner** — does the owning RFC's `Status:` line reflect the actual outcome (not a stale `DRAFT`/`QUEUED` left over from before implementation)?
-  2. **Manifest** — if closure proposes `status: IMPLEMENTED`, does the entry (or the proposed edit) carry a `closure_ref` that will resolve, and does a corresponding `closure_history` entry (or its proposed addition) exist with `adr`/`decision`/`version` filled in?
-  3. **ADR** — does a durable ADR exist (or is one proposed in the same closure package) citing the correct RFC, Architect Sync, and Decision IDs — and, per `AS56-F003`'s exact defect, does it name the correct Decision for "authorized implementation" versus any later "authorized reopening," rather than conflating them?
-  4. **Version** — does the proposed version disposition (bump or explicit no-bump) match `VERSIONING_POLICY.md`'s PATCH/MINOR/MAJOR criteria, and is a no-bump decision recorded explicitly rather than left as a silent omission (`AS56-F004`'s exact defect)?
-  5. **Rolling handoff header** — does `coordination/IMPLEMENTER_HANDOFF.md`'s top banner accurately name the current/closing cycle, without deleting or rewriting prior history below it?
+A single checklist that tries to check both "is this a sound closure proposal" and "did the closure actually land correctly" in one pass conflates two different moments (`ML-DEVOS-AS-058` `AS58-F005`): some facts (a final ADR ID, a final `closure_history` entry, a post-closure traceability regeneration) genuinely cannot exist until *after* Paulo has authorized the closure and the bounded closure implementation has written them. A checklist item demanding those facts *before* the Paulo decision would force either pre-writing authoritative closure records ahead of authorization, or accepting placeholders as if they were final evidence — both recreate exactly the authority/status drift this RFC exists to prevent. Closure Preflight is therefore one concept expressed as **two checklist moments inside the existing Stage Gate / Architect Sync lifecycle**, not two new phases, Skills, agents, or record types:
 
-  Traceability is checked as its own item, but as **three separate conditions**, not one combined "no new ERROR" check (`ML-DEVOS-AS-057` `AS57-F003`) — a single ERROR-count comparison can pass even while Traceability V1's *generated* outputs are stale, since the generated index and the semantic validator are two different things:
+#### D.1 Pre-decision Closure Preflight — checks the *proposed* package, before it reaches Paulo
 
-  1. **Derived-output currency** — `devos/governance/traceability/generate-traceability.mjs` is (re)run as ordinary, explicitly authorized closure bookkeeping, and `devos/governance/traceability/traceability-index.json`/`TRACEABILITY_INDEX.md` on disk must match what a fresh generation run produces (`validate-traceability.mjs`'s own drift check, already exercised in this repository's routine validation, reports no drift). A closure candidate whose generated outputs are stale relative to the governance IDs it itself introduces (its own RFC/Architect-Sync/Decision/ADR numbers) fails this item, independent of the ERROR count below.
-  2. **Known baseline findings preserved, not silently cleared** — before evaluating the candidate closure, the Closure Preflight records the exact `ERROR`-level finding set (by rule ID + subject ID, not merely a count) produced by `node devos/governance/traceability/validate-traceability.mjs` at a **named base SHA** (the commit immediately prior to the closure's own edits). Every finding in that base set must still be identifiable in the review record after closure — pre-existing, previously disclosed errors are never presented as "resolved" merely because the candidate closure happened not to touch the files they concern.
-  3. **No new closure-induced findings** — the same command run *after* the candidate closure's edits must introduce **no `ERROR`-level finding absent from the base set** recorded in (2). A finding that exists in both the base and post-closure sets is pre-existing debt, not new; only a finding present post-closure but absent from the base set blocks this item.
+Run once, when a Stage Gate Review is asked to approve a closure package, before that package is presented to Paulo for the closure decision. It validates the proposal, never facts that only Paulo's later decision can create:
 
-  None of the three items requires the overall `ERROR` count to reach zero — pre-existing, previously disclosed findings remain a separately tracked debt item, not a closure blocker, consistent with `ML-DEVOS-AS-056`'s own explicit non-requirement. This procedure is manual and repository-local in V0.1: it is a checklist a human/Architect runs by hand at closure time, not a new automated subsystem, scheduled job, or CI gate.
+1. **Implementation review status** — has the candidate implementation already passed its own independent technical review (e.g. S3's `ML-DEVOS-AS-055` technical stage-gate approval)? Closure Preflight is not a substitute for that review; it presupposes it already happened.
+2. **Base SHA named exactly** — the closure package cites the exact commit the closure diff is proposed against.
+3. **Current-state inspection** — the owning RFC's `Status:` banner, the relevant manifest entry, and the rolling `coordination/IMPLEMENTER_HANDOFF.md` header are read as they stand *today*, and every stale surface found is listed explicitly (this is where `AS56-F002`/`F003`/`F006`-class drift gets caught before, not after, implementation).
+4. **Proposed RFC-status edit is defined** — what the `Status:` banner will read after closure, stated exactly, not left implicit.
+5. **Proposed manifest edit is defined** — the proposed `status: IMPLEMENTED` and `closure_ref` value for the relevant root are stated; `closure_ref` may name the *ADR that closure intends to produce* even though that ADR does not exist yet, since this item checks the proposal's shape, not its final resolution (that is D.2's job).
+6. **Proposed `closure_history` entry shape is complete** — every field the schema requires (`phase`, `closed_at`, `version`, `adr`, `decision`, `architect_sync`, `note`) is accounted for in the proposal; the exact final `adr`/`decision`/`architect_sync` identifiers may remain unresolved pending Paulo's authorization, since ADR/Decision numbers are assigned against the live directory at the moment each is actually written (see "Version impact"), not invented in advance.
+7. **Proposed ADR content/provenance is identified** — which RFC, Architect Sync(s), and Decision(s) the future ADR will cite, and specifically that it names the correct Decision for "authorized implementation" versus any later "authorized reopening" rather than conflating them (`AS56-F003`'s exact defect).
+8. **Version disposition is explicit** — bump or explicit no-bump, with the rationale checked against `VERSIONING_POLICY.md`'s PATCH/MINOR/MAJOR criteria, never left as a silent omission (`AS56-F004`'s exact defect).
+9. **Traceability baseline recorded** — the exact pre-closure `ERROR`-level finding set (by rule ID + subject ID, not a bare count) from `node devos/governance/traceability/validate-traceability.mjs`, run at the named base SHA from item 2, is recorded in the review — this is the fingerprint D.2 will compare against, not itself a pass/fail gate.
+10. **Diff is bounded** — the proposed closure touches only what the closure package claims it touches.
+11. **Next phase remains unauthorized** — the proposal does not, explicitly or by omission, treat this closure as authorizing any later phase.
 
-A Stage Gate Review not requesting a phase closure runs exactly as it does today — Closure Preflight adds no overhead to ordinary implementation reviews, only to closure requests.
+None of these items requires a final ADR/Decision ID, a regenerated traceability index, or any other fact that can only exist after Paulo's decision and the closure implementation itself.
+
+#### D.2 Post-decision Closure Verification — checks the *actual* repository state, after closure lands
+
+Run once, after Paulo has authorized the closure and the bounded closure implementation has been committed. It verifies what actually happened, not what was proposed:
+
+1. **Final RFC status is correct** — the `Status:` banner now reads the actual accepted/closed outcome.
+2. **Final ADR exists** and is durable under `devos/changes/adrs/`.
+3. **Final Decision exists** in `brain/DECISION_LOG.md`.
+4. **Manifest `closure_ref` resolves** to exactly one `closure_history` entry by `adr`, per §"Proposed change" B's fail-closed rule.
+5. **Matched `phase` equals the root's `owning_phase`.**
+6. **Version baseline and `closure_history` agree** — `sentinel_capability_baseline` and the new `closure_history` entry cite the same ADR/Decision/version.
+7. **Rolling handoff/current-state wording is current** — `coordination/IMPLEMENTER_HANDOFF.md`'s header and any "current phase" wording in `brain/00_HOME.md`/`CLAUDE.md` accurately reflect the now-closed state.
+8. **Traceability derived outputs are current** — `traceability-index.json`/`TRACEABILITY_INDEX.md` have been regenerated and show no drift against a fresh run.
+9. **Baseline findings remain visible** — every `ERROR` recorded in D.1's item 9 is still identifiable in the post-closure run, unless it was separately resolved with its own evidence (never silently "cleared" by the closure).
+10. **No new closure-induced `ERROR`** — the post-closure run introduces no `ERROR` absent from D.1's recorded baseline set.
+11. **No next-phase authority was silently introduced** by the closure commit.
+
+None of the eleven items requires the overall traceability `ERROR` count to reach zero — items 9/10 are about the *delta* from the named baseline, exactly as `AS57-F003` established, never a zero-findings bar; pre-existing, previously disclosed findings remain a separately tracked debt item, not a closure blocker (`ML-DEVOS-AS-056`'s own explicit non-requirement).
+
+Both D.1 and D.2 remain Architect review steps inside the existing Stage Gate Review / durable `ML-DEVOS-AS-<NNN>` archive mechanism — pre-decision is an Architect finding/checklist produced before the Paulo gate; post-decision is an Architect verification of the authorized closure mutation. Neither introduces a new phase, Skill, agent, database, or record type. This procedure is manual and repository-local in V0.1: a human/Architect runs each checklist by hand at the appropriate moment, not a new automated subsystem, scheduled job, or CI gate.
+
+A Stage Gate Review not requesting a phase closure runs exactly as it does today — Closure Preflight/Verification adds no overhead to ordinary implementation reviews, only to closure requests, and only at the two moments (before and after the Paulo decision) where each half's checks actually make sense.
 
 ## Scope
 
@@ -118,7 +143,7 @@ This RFC covers only:
 
 - the manifest schema's reserved-root lifecycle vocabulary (`IMPLEMENTED` status, `closure_ref` field) and its validator enforcement;
 - the `executable_runtime_present` field's documented meaning (no value change);
-- the Closure Preflight checklist as an addition to the existing Stage Gate Review mode.
+- the Closure Preflight (pre-decision) and Closure Verification (post-decision) checklists as additions to the existing Stage Gate Review mode.
 
 It is repository-governance/schema-level only. It affects `Dillaab-source/maisog-labs`'s own DevOS layer; it proposes no product/application-repository change.
 
@@ -142,7 +167,7 @@ Primary (if this RFC is accepted and later separately implemented):
 
 - `devos/schemas/devos-manifest.schema.json` — additive enum value, additive `closure_ref` field, clarified `executable_runtime_present` description.
 - `devos/schemas/validate-devos-manifest.mjs` — additive cross-reference check (`closure_ref` ↔ `closure_history`).
-- `brain/protocols/ARCHITECT_SYNC.md` — additive Closure Preflight checklist under Stage Gate Review.
+- `brain/protocols/ARCHITECT_SYNC.md` — additive Closure Preflight (pre-decision) and Closure Verification (post-decision) checklists under Stage Gate Review.
 
 Supporting governance records only, as this and any later closure cycle requires: RFC/Architect Sync/Decision/ADR records under `devos/changes/`.
 
@@ -164,7 +189,7 @@ Rejected. The manifest already owns `reserved_subsystem_roots` and `closure_hist
 
 ### 3. A new "Closure Review" Sentinel phase or dedicated Skill
 
-Rejected, explicitly, per `D-043`'s anti-bloat direction. Closure Preflight is a checklist inside a review mode Sentinel already has (Stage Gate Review), not a new phase, agent, or Skill. This mirrors the same discipline `ML-DEVOS-RFC-014` applied when it rejected a fifth "Knowledge Capture" Skill in favor of a lightweight governed procedure.
+Rejected, explicitly, per `D-043`'s anti-bloat direction. Closure Preflight/Verification is a pair of checklists inside a review mode Sentinel already has (Stage Gate Review) — a pre-decision and a post-decision moment of the *same* gate, not two new phases, agents, or Skills, per `ML-DEVOS-AS-058`'s explicit instruction not to create two new record types for the two moments. This mirrors the same discipline `ML-DEVOS-RFC-014` applied when it rejected a fifth "Knowledge Capture" Skill in favor of a lightweight governed procedure.
 
 ### 4. Require the traceability validator to report zero findings before any closure
 
@@ -176,9 +201,13 @@ Rejected. `ML-DEVOS-AS-056` was explicit that known, previously disclosed tracea
 
 Mitigation: the `closure_ref` fail-closed link means `IMPLEMENTED` cannot be set without a resolvable `closure_history` entry carrying `adr`/`decision`/`version` — a bare status edit alone is invalid, not merely discouraged.
 
-### Closure Preflight becomes governance overhead on every review
+### Closure Preflight/Verification becomes governance overhead on every review
 
-Mitigation: it triggers only when a Stage Gate Review is specifically being asked to approve a *closure* package, not on every implementation review — explicitly stated in the proposed change above.
+Mitigation: both checklists trigger only when a Stage Gate Review is specifically being asked to approve (pre-decision) or has just authorized (post-decision) a *closure* package, not on every implementation review — explicitly stated in the proposed change above.
+
+### Pre-decision and post-decision checks blur back into one pass, recreating `AS58-F005`'s exact defect
+
+Mitigation: D.1 and D.2 are stated as textually separate checklists with disjoint item sets — D.1 never asks for a fact that requires Paulo's decision to exist, and D.2 never substitutes a "proposed" value for a "final" one. Both lists are enumerated explicitly in the proposed change above precisely so a future reader cannot silently re-merge them.
 
 ### Someone infers `IMPLEMENTED` grants standing authority for the phase to act further
 
@@ -202,7 +231,8 @@ Acceptance of this RFC (design-level, not implementation) should require:
 
 - `INDEPENDENTLY_INSPECTED` review confirming the proposed schema/validator/procedure changes are additive and backwards-compatible (no existing manifest entry becomes invalid under the new schema);
 - confirmation that the `closure_ref` ↔ `closure_history` fail-closed relationship is sound (i.e. genuinely cannot be satisfied by a bare status edit);
-- confirmation that Closure Preflight's traceability item correctly separates derived-output currency, preserved-baseline findings, and new-closure-induced findings (per `AS57-F003`) rather than collapsing them into a single ERROR-count comparison or requiring an unachievable zero-findings bar;
+- confirmation that the traceability checks correctly separate derived-output currency, preserved-baseline findings, and new-closure-induced findings (per `AS57-F003`) rather than collapsing them into a single ERROR-count comparison or requiring an unachievable zero-findings bar;
+- confirmation that D.1 (pre-decision) never requires a fact that only Paulo's later decision can create, and that D.2 (post-decision) never substitutes a proposed value for a final one (per `AS58-F005`);
 - confirmation that no `CORE-*` rule, product code, or S3+ authority is touched.
 
 If/when this RFC is separately accepted and its schema/validator/procedure changes are implemented, that implementation's own acceptance requires ordinary `Builder-reported` + `Architect-independently-reproduced` evidence over the actual schema/validator diff and tests — not covered by this proposal's own evidence bar.
@@ -229,7 +259,7 @@ Compatible with:
 - `ML-DEVOS-RFC-001`'s manifest design and `reserved_root_invariant` — extended, not superseded;
 - the active evidence provenance model and `CORE-016`/`017`/`018`/`020` — untouched, and explicitly not the subject of this RFC;
 - `ML-DEVOS-AS-055`'s preserved S3 technical stage-gate approval — this RFC does not reopen or affect that approval;
-- `ML-DEVOS-AS-056`'s discrepancy findings — this RFC is the proposed resolution path for `AS56-F001` (manifest lifecycle gap) and provides the procedural mechanism (Closure Preflight) that would have caught `AS56-F002`/`F003`/`F006` before they required a dedicated discrepancy review; `AS56-F004`'s no-bump/ADR-011 debt for Skills/Treasury V0.1 remains a separate closure-implementation action this RFC does not itself perform; this RFC's own "Version impact" section supersedes `AS56-F005`'s provisional `v1.5.0 → v1.6.0` transition for S3, and both `AS56-F004`'s and `AS56-F005`'s provisional ADR-number assumptions, with a live-computed sequencing model instead.
+- `ML-DEVOS-AS-056`'s discrepancy findings — this RFC is the proposed resolution path for `AS56-F001` (manifest lifecycle gap) and provides the procedural mechanism (Closure Preflight/Verification) that would have caught `AS56-F002`/`F003`/`F006` before they required a dedicated discrepancy review; `AS56-F004`'s no-bump/ADR-011 debt for Skills/Treasury V0.1 remains a separate closure-implementation action this RFC does not itself perform; this RFC's own "Version impact" section supersedes `AS56-F005`'s provisional `v1.5.0 → v1.6.0` transition for S3, and both `AS56-F004`'s and `AS56-F005`'s provisional ADR-number assumptions, with a live-computed sequencing model instead.
 
 Incompatible with any interpretation that a reserved root's `IMPLEMENTED` status, once set, grants standing authority beyond what its closing RFC/ADR/Decision chain actually describes.
 
@@ -237,7 +267,7 @@ Incompatible with any interpretation that a reserved root's `IMPLEMENTED` status
 
 This RFC's own design/proposal stage bumps no version, exactly as `ML-DEVOS-RFC-013` and `ML-DEVOS-RFC-014` bumped none at their own discovery stage. This RFC does, however, take a firm position on its **implementation's** version impact rather than leaving it silent (`ML-DEVOS-AS-057` `AS57-F004`):
 
-**Recommendation: RFC-015's implementation, if separately authorized, is `MINOR`.** Against `VERSIONING_POLICY.md`'s criteria: it is not `PATCH` (it adds real, enforceable new schema behavior — a new enum value with fail-closed validator semantics, not a mere clarification); it is not `MAJOR` (nothing about the actor model, the source-of-truth rule, or what "frozen" means changes); it is a backwards-compatible new governance capability (a third reserved-root lifecycle status, a fail-closed closure-evidence linkage field, and a Closure Preflight checklist) that changes no existing rule's meaning and grants no actor new authority — squarely `MINOR` per the policy's own definition.
+**Recommendation: RFC-015's implementation, if separately authorized, is `MINOR`.** Against `VERSIONING_POLICY.md`'s criteria: it is not `PATCH` (it adds real, enforceable new schema behavior — a new enum value with fail-closed validator semantics, not a mere clarification); it is not `MAJOR` (nothing about the actor model, the source-of-truth rule, or what "frozen" means changes); it is a backwards-compatible new governance capability (a third reserved-root lifecycle status, a fail-closed closure-evidence linkage field, and the Closure Preflight/Verification checklist pair) that changes no existing rule's meaning and grants no actor new authority — squarely `MINOR` per the policy's own definition.
 
 **Sequencing relative to other pending closures** — this replaces the AS-056-inherited assumption that S3's closure would apply a `v1.5.0 → v1.6.0` transition and leaves nothing implicit:
 
