@@ -240,12 +240,12 @@ Scanned files: 263 (255 used for durable reference/error detection; rolling work
 | `D-043` | brain/DECISION_LOG.md:619 | 15 | 14 |
 | `D-044` | brain/DECISION_LOG.md:633 | 17 | 16 |
 | `D-045` | brain/DECISION_LOG.md:646 | 27 | 26 |
-| `D-046` | brain/DECISION_LOG.md:667 | 41 | 40 |
+| `D-046` | brain/DECISION_LOG.md:667 | 40 | 39 |
 | `D-047` | brain/DECISION_LOG.md:692 | 13 | 12 |
 | `D-048` | brain/DECISION_LOG.md:711 | 14 | 13 |
 | `D-049` | brain/DECISION_LOG.md:724 | 9 | 8 |
 | `D-050` | brain/DECISION_LOG.md:739 | 48 | 47 |
-| `D-051` | brain/DECISION_LOG.md:756 | 27 | 26 |
+| `D-051` | brain/DECISION_LOG.md:756 | 29 | 28 |
 
 ### `DESIGN` (14 defined, canonical source: `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`)
 
@@ -283,7 +283,7 @@ Scanned files: 263 (255 used for durable reference/error detection; rolling work
 | `ML-DEVOS-ADR-011` | devos/changes/adrs/ML-DEVOS-ADR-011.md:1 | 14 | 14 |
 | `ML-DEVOS-ADR-012` | devos/changes/adrs/ML-DEVOS-ADR-012.md:1 | 25 | 25 |
 | `ML-DEVOS-ADR-013` | devos/changes/adrs/ML-DEVOS-ADR-013.md:1 | 36 | 36 |
-| `ML-DEVOS-ADR-014` | devos/changes/adrs/ML-DEVOS-ADR-014.md:1 | 32 | 32 |
+| `ML-DEVOS-ADR-014` | devos/changes/adrs/ML-DEVOS-ADR-014.md:1 | 35 | 35 |
 
 ### `ML-DEVOS-AS` (65 defined, canonical source: `devos/changes/architect-syncs`)
 

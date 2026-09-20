@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_CLOSURE`, closure package complete, awaiting D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_CLOSURE`, D2-F001 test-fixture remediation complete, awaiting D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "S4 State Machine Kernel Closure (D-051 / ML-DEVOS-AS-067 D.1 → D.2 candidate)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY closure. `devos/devos-manifest.json`'s `devos/state/` entry is now `IMPLEMENTED`, `closure_ref: ML-DEVOS-ADR-014`, `executable_runtime_present: false`; Sentinel capability baseline is `v1.7.0`. **This closure candidate is not final** — it returns for Architect D.2 Post-decision Closure Verification before S4 is workflow-final or any S5 proposal begins.
+**Current cycle:** see the "S4 Closure D.2-F001 Test-Fixture Remediation (Cycle 1)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY remediation. `tests/devos-manifest.test.mjs` now passes 22/22 — no closure record, manifest, ADR, RFC, VERSIONING_POLICY, ARCH-001, or S4 implementation file was touched.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "S4 State Machine Kernel Closure (D-051 / ML-DEVOS-AS-067 D.1 → D.2 candidate)" section further below for the exact delta and evidence of the closure candidate itself, at HEAD `e6c33bd33a75ea7e5a87864afe82c58b5f776089`. Architect D.2 review of that candidate found the closure records themselves substantively correct, with exactly one blocker (`D2-F001`, the closure-induced `tests/devos-manifest.test.mjs` fixture staleness this cycle resolves) — the disclosed, non-blocking finding already flagged in that section's own text.
 
 ---
 
@@ -3694,5 +3698,29 @@ No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, versi
 **Blockers:** none preventing closure-candidate submission. One disclosed, non-blocking finding for Architect disposition: the 3 pre-existing `tests/devos-manifest.test.mjs` failures above (a test-fixture staleness issue outside this closure's write authority, not a manifest/ADR/traceability defect — the manifest validator itself passes clean).
 
 **Known limitations carried forward from AS-066/AS-067, restated in `ML-DEVOS-ADR-014` per the brief's requirement, not silently smoothed over:** Builder's complete focused-suite execution remains `ACTOR_REPORTED`, never independently re-executed in full by the Architect (sandbox has no outbound network access to clone this private repository); the `claim()` revision prose/API discrepancy is documented, not resolved by rewriting RFC-016's already-closed text.
+
+**Next actor:** `ARCHITECT` — D.2 Post-decision Closure Verification.
+
+---
+
+## S4 Closure D2-F001 Test-Fixture Remediation (Cycle 1)
+
+**Authority:** `D-051` (unchanged). Architect D.2 review of closure candidate HEAD `e6c33bd33a75ea7e5a87864afe82c58b5f776089` returned `CHANGES_REQUESTED` with exactly one blocker, `D2-F001`. `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`. **LEAN / DELTA-ONLY mode** — read only `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `tests/devos-manifest.test.mjs`, and live `devos/devos-manifest.json` as read-only truth.
+
+**Input HEAD:** `e1f623260c0ecf20bae79790a5a88a57144908a2` (the D.2 review commit, fast-forwarded before any edit). Reviewed closure candidate cited by the Architect is `e6c33bd33a75ea7e5a87864afe82c58b5f776089`, unchanged by this remediation.
+
+**D2-F001 (closure-induced `tests/devos-manifest.test.mjs` fixture staleness) — fixed, exactly per the Architect's required micro-remediation:**
+1. Retargeted `TARGET_ROOT_PATH` from `"devos/state/"` to `"devos/orchestration/"` (S8, still genuinely `NOT_IMPLEMENTED`, already present in the live manifest) — updated the preceding comment to state current truth (S3/`devos/contracts/` and S4/`devos/state/` are both `IMPLEMENTED`; `devos/orchestration/` is the new stable synthetic-fixture root).
+2. Updated the live-state assertion test (`devos/contracts/ (S3) and devos/state/ (S4) are IMPLEMENTED with resolving closure_refs; every other root remains NOT_IMPLEMENTED/FOUNDATION_ACTIVE with no closure_ref`) to loop over both `{devos/contracts/: ML-DEVOS-ADR-013}` and `{devos/state/: ML-DEVOS-ADR-014}`, asserting each resolves to exactly one matching `closure_history` entry with the correct `phase`, then asserting every remaining root (excluding those two) is not `IMPLEMENTED` and carries no non-null `closure_ref`.
+3. Updated `addClosureHistoryEntry`'s default placeholder `phase` from `"S4"` to `"S8"` (every call site still overrides it with the actual target root's `owning_phase`, now `S8`) and the "wrong owning phase" negative test's comment/assertion from `S4`/`'S4'` to `S8`/`'S8'`, and the FOUNDATION_ACTIVE-exclusivity test's inline comment from `devos/state/` to `devos/orchestration/`.
+4. Did not change `validate-devos-manifest.mjs` or the schema — validator semantics untouched, only the test fixture's target root.
+
+**Commands/checks (all `ACTOR_REPORTED`):**
+- `node --test tests/devos-manifest.test.mjs` → `22/22 pass` (was 19/22 before this remediation).
+- `node devos/schemas/validate-devos-manifest.mjs` → `PASS: 0 error(s) across 1 file(s)`.
+- `node devos/governance/traceability/generate-traceability.mjs` then `validate-traceability.mjs` → `Scanned 263 files. Errors: 2. Warnings: 14.`, fingerprint unchanged (`CORE-022` + `WEB-REQ-009`), no drift. Inbound-reference counts for `D-046`, `D-051`, and `ML-DEVOS-ADR-014` shifted by a small amount in `TRACEABILITY_INDEX.md` — an expected consequence of consolidating/adding comment text in the edited test file, not a suppressed or fabricated finding.
+- `git status --porcelain` against input HEAD: exactly `tests/devos-manifest.test.mjs` and the two regenerated traceability output files changed. `devos/changes/adrs/ML-DEVOS-ADR-014.md`, `devos/changes/rfcs/ML-DEVOS-RFC-016.md`, `devos/devos-manifest.json`, `devos/governance/specifications/VERSIONING_POLICY.md`, `devos/architecture/ML-DEVOS-ARCH-001.md`, `brain/DECISION_LOG.md`, every S4 implementation/test file under `devos/state/`, `tests/state-*.test.mjs`, and every product/runtime/workflow file: byte-identical to input HEAD.
+
+**Blockers:** none.
 
 **Next actor:** `ARCHITECT` — D.2 Post-decision Closure Verification.

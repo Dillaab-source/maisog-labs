@@ -945,8 +945,8 @@
               "line": 667
             }
           ],
-          "occurrenceCount": 41,
-          "inboundReferenceCount": 40
+          "occurrenceCount": 40,
+          "inboundReferenceCount": 39
         },
         {
           "id": "D-047",
@@ -1000,8 +1000,8 @@
               "line": 756
             }
           ],
-          "occurrenceCount": 27,
-          "inboundReferenceCount": 26
+          "occurrenceCount": 29,
+          "inboundReferenceCount": 28
         }
       ]
     },
@@ -1326,8 +1326,8 @@
               "line": 1
             }
           ],
-          "occurrenceCount": 32,
-          "inboundReferenceCount": 32
+          "occurrenceCount": 35,
+          "inboundReferenceCount": 35
         }
       ]
     },
