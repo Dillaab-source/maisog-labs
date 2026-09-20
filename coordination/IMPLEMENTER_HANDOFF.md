@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — SENTINEL_COORDINATED_V1_6_0_CLOSURE, awaiting D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — SENTINEL_COORDINATED_V1_6_0_CLOSURE, `ML-DEVOS-AS-062` D.2 provenance-cleanup remediation complete, awaiting D.2 Post-decision Closure Verification re-review (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "Coordinated Sentinel v1.6.0 Closure Implementation (D-046 / ML-DEVOS-AS-061)" section at the very end of this document for the exact scope and evidence of the coordinated closure that adopted `ML-DEVOS-ADR-011` (Skills Foundation V0.1 + Portable Knowledge Treasury, explicit no-bump, `v1.5.0`), `ML-DEVOS-ADR-012` (RFC-015 Reserved Subsystem Lifecycle), and `ML-DEVOS-ADR-013` (S3 Typed Task Contracts, release-closing ADR of the `v1.5.0 → v1.6.0` boundary). Everything above that section — including the two banners immediately below, which each presented the Skills Foundation cycle as current at the time they were written — is historical record of already-closed prior cycles and remains accurate as such, not as current status. Live current status always comes from `coordination/STATE.md`, never from any banner in this file.
+**Current cycle:** see the "ML-DEVOS-AS-062 D.2 Provenance Cleanup Remediation (Cycle 1)" section at the very end of this document for the exact scope and evidence of this remediation cycle, which corrects durable provenance errors the Architect found in the coordinated v1.6.0 closure without reopening that closure's substantive content.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "Coordinated Sentinel v1.6.0 Closure Implementation (D-046 / ML-DEVOS-AS-061)" section further below for the exact scope and evidence of the coordinated closure that adopted `ML-DEVOS-ADR-011` (Skills Foundation V0.1 + Portable Knowledge Treasury, explicit no-bump, `v1.5.0`), `ML-DEVOS-ADR-012` (RFC-015 Reserved Subsystem Lifecycle), and `ML-DEVOS-ADR-013` (S3 Typed Task Contracts, release-closing ADR of the `v1.5.0 → v1.6.0` boundary). Everything above that section — including the two banners immediately below, which each presented the Skills Foundation cycle as current at the time they were written — is historical record of already-closed prior cycles and remains accurate as such, not as current status. Live current status always comes from `coordination/STATE.md`, never from any banner in this file.
 
 ---
 
@@ -3091,3 +3095,88 @@ The Builder has not self-accepted this closure and has not started S4 work.
 ### Commit
 
 The 14 files above (11 modified, 3 new), alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `399e6bce3ecec6eb0b3cb64ad6a84672783a3c6c`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## ML-DEVOS-AS-062 D.2 Provenance Cleanup Remediation (Cycle 1)
+
+### Cycle ID
+
+`SENTINEL_COORDINATED_V1_6_0_CLOSURE` — D.2 Post-decision Closure Verification remediation, `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 3`.
+
+Authority: `ML-DEVOS-AS-062` (`CHANGES_REQUESTED — D.2 PROVENANCE CLEANUP ONLY`), read in full from `coordination/ARCHITECT_REVIEW.md` before any edit. `coordination/STATE.md` (`AUTHORIZED_SCOPE: D2_PROVENANCE_CLEANUP_ONLY`) read and confirmed `TURN: CLAUDE` / `IMPLEMENTER_ACTION_REQUIRED: YES` before proceeding.
+
+### Scope
+
+The Architect's D.2 verification found the coordinated v1.6.0 closure **structurally sound and not reopened** (`AS62-F001`–`F006` all `PASS`), but identified two durable-record defects that had to be corrected before final D.2 acceptance:
+
+- `AS62-F007` (**BLOCKER**): `ML-DEVOS-ADR-012.md` misattributed to `ML-DEVOS-AS-057` a set of findings (mixed-`any_of` evidence-guarantee bypass, empty-string structural parity, over-strict `DEPLOYED` handling) that actually belonged to the unrelated, earlier S3 Typed Task Contracts remediation chain (`AS-054`/`AS-055`). The ADR also said "three remediation cycles" where only two (`AS-057`, `AS-058`) occurred.
+- `AS62-F008` (cleanup required, non-blocking): three stale comments in `tests/devos-manifest.test.mjs` still described pre-closure state (a hard-coded, now-outdated `closure_history` ID list; `D-045`'s "no live manifest migration this cycle" framed as still-current rather than historical; a `FOUNDATION_ACTIVE` fixture comment referencing `devos/contracts/` when the synthetic target is `devos/state/`).
+- `AS62-F009`: after making the above text corrections, regenerate Traceability V1 outputs and confirm no drift and an unchanged `CORE-022` + `WEB-REQ-009` error fingerprint.
+
+Authorized files (from `coordination/ARCHITECT_REVIEW.md`'s "Authorized remediation" and `coordination/STATE.md`'s "Authorized files"): `devos/changes/adrs/ML-DEVOS-ADR-012.md`; `tests/devos-manifest.test.mjs` (comments/documentation only); `devos/governance/traceability/traceability-index.json`; `devos/governance/traceability/TRACEABILITY_INDEX.md`; `coordination/IMPLEMENTER_HANDOFF.md`; `coordination/STATE.md`. No new ADR/Decision/version/manifest-lifecycle mutation was authorized; the coordinated closure's adopted decision was explicitly not reopened.
+
+### Branch / commit state
+
+- Base SHA (pulled and confirmed via `git rev-parse HEAD` before any file was touched): `aadd281ae9711d7ac99b33cbda13085c6ea5edc7` (`docs(sync): return closure provenance cleanup to Claude`).
+- Result SHA: recorded in the commit that carries this handoff update (this section is written immediately before that commit).
+
+### Exact changes made
+
+**1. `devos/changes/adrs/ML-DEVOS-ADR-012.md` — corrected AS-057 provenance (`AS62-F007`)**
+
+Two targeted edits, no other section touched:
+
+- The "Architect Syncs" list bullet changed from the false S3-attributed summary to the real four `AS-057` findings: `` `ML-DEVOS-AS-057` — remediation cycle 1 (event-specific ADR-keyed `closure_ref`, traceability generated-output-currency/baseline/new-error separation, coherent version/ADR sequencing, behavior-based runtime distinction) ``.
+- The Context paragraph's remediation-cycle count corrected from "three" to "two", and its description of what `AS-057` corrected replaced with the same real four findings (matching `AS57-F002`–`F005` from that original remediation cycle), with `AS-058` left described as the pre/post-decision closure-sequencing split — unchanged from the review's explicit instruction to "keep AS-058 as the closure-sequencing remediation."
+
+Verified by grep that no instance of the false text (`any_of`, `empty-string`, `DEPLOYED`, `floor-not-ceiling`, "three remediation") remains anywhere in the file. The Decision, Rationale, Consequences, Version consequence, Explicitly-not-implemented, Supersession, and all role/ID sections (`AS-059`/`060`/`061`, `D-043`–`D-046`) are byte-for-byte unchanged — only the two provenance-describing passages were edited, per the review's "Correct ADR-012 only; do not alter its adopted decision."
+
+**2. `tests/devos-manifest.test.mjs` — corrected stale comments (`AS62-F008`)**
+
+Comments/documentation only; no test logic, assertion, or test count changed:
+
+- Rewrote the file's header comment block: the fixture-ID-choice comment no longer hard-codes a specific `closure_history` ID list (which goes stale at every future closure) — it now points readers to check `devos/devos-manifest.json`'s `closure_history` directly for the current set.
+- Made the `D-045` "no live manifest migration this cycle" comment explicitly historical: it now states that boundary applied only to `RFC-015`'s own bounded implementation cycle (what the test file was originally written for), and notes that the later coordinated `v1.6.0` closure (`D-046`/`ML-DEVOS-ADR-013`) did migrate the live manifest instance.
+- Corrected the trailing inline comment on the `FOUNDATION_ACTIVE` second-root-rejection test from `// devos/contracts/ is not devos/schemas/` to `// devos/state/ is not devos/schemas/`, matching the file's actual `TARGET_ROOT_PATH = "devos/state/"` default used by `findRoot(doc)` in that test.
+
+Confirmed by grep that all remaining `devos/contracts/` mentions in the file are legitimate references to the real S3 reserved-root path (used in the S3-closure-specific test and its surrounding comments), not stale references to the synthetic `FOUNDATION_ACTIVE` fixture target.
+
+**3. Traceability V1 regeneration (`AS62-F009`)**
+
+- Pre-check: `node devos/governance/traceability/validate-traceability.mjs` — reported `DRIFT: on-disk generated index does not match a fresh generation run` (expected, since the ADR/test text edits changed reference occurrence counts and positions), with errors/warnings unchanged at 2/15.
+- Regeneration: `node devos/governance/traceability/generate-traceability.mjs` — wrote `devos/governance/traceability/traceability-index.json` and `TRACEABILITY_INDEX.md`; reported "Scanned 246 files. Errors: 2. Warnings: 15."
+- Post-check: `node devos/governance/traceability/validate-traceability.mjs` — reported `No drift: on-disk generated index matches a fresh generation run.` Error fingerprint confirmed unchanged: exactly `CORE-022` (`missing-canonical-target`) and `WEB-REQ-009` (`missing-canonical-target`), 2 errors, 15 warnings, 247 canonical definitions — matching `AS62-F009`'s explicit requirement and the pre-remediation baseline the Architect independently inspected in `AS62-F005`.
+
+### Verification performed
+
+- Focused suite: `node --test tests/devos-manifest.test.mjs` → `22/22 pass`, `0 fail` — unchanged count, confirming no test semantics or test count changed (comments-only edit).
+- Full suite: `node --test tests/*.test.mjs` (the exact invocation `package.json`'s `"test"` script uses) → `458/458 pass`, `0 fail` — unchanged from the coordinated closure's own reported baseline.
+- Diff scope: `git status --porcelain` immediately before this commit shows exactly the four authorized content files modified — `devos/changes/adrs/ML-DEVOS-ADR-012.md`, `devos/governance/traceability/TRACEABILITY_INDEX.md`, `devos/governance/traceability/traceability-index.json`, `tests/devos-manifest.test.mjs` — plus this handoff and `coordination/STATE.md`. No other file in the repository tree was touched.
+
+### Explicit proof: coordinated closure not reopened, no lifecycle mutation
+
+- `devos/devos-manifest.json` was **not modified** in this cycle (confirmed absent from `git status --porcelain` output above) — no manifest lifecycle mutation occurred, per the hard boundary in `coordination/STATE.md`.
+- No new ADR, Decision, or version bump was created — `ML-DEVOS-ADR-012.md`'s `Status`, `Decision`, `Version consequence` (`v1.6.0`), and all ID/role references outside the two corrected provenance passages are unchanged.
+- No S4/core-rule/product/runtime/remote/deploy/main-merge activity occurred (this cycle touched only ADR prose, a test-comment block, and generated traceability output).
+- Evidence class: `INDEPENDENTLY_INSPECTED`-eligible for the Architect on the exact two-passage ADR-012 diff and the exact three-comment test diff (both small, precisely bounded edits); `ACTOR_REPORTED` for the 22/22 and 458/458 test-run results and the traceability validator/generator command output above, until the Architect independently reproduces them.
+
+### Known limitations / open questions
+
+- `CORE-022` and `WEB-REQ-009` remain open, exactly as before this cycle — this remediation does not claim, and must not be read as claiming, that either is resolved.
+- No Paulo-level decision was required or made in this cycle; it is a documentation/provenance correction executed under the Architect's existing `D-046`-derived review authority.
+
+### Return gate
+
+Per `coordination/ARCHITECT_REVIEW.md`'s and `coordination/STATE.md`'s explicit "Return gate", `coordination/STATE.md` is updated to:
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `AUTHORIZED_SCOPE: D2_POST_DECISION_CLOSURE_VERIFICATION_ONLY`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
+
+`CURRENT_REMEDIATION_CYCLE` remains `1` (of `MAX_REMEDIATION_CYCLES: 3`) — this is the first and, per the Builder's own assessment, complete remediation pass against `ML-DEVOS-AS-062`'s findings. S4 remains unauthorized until D.2 final acceptance and a separate S4 proposal/decision.
+
+### Commit
+
+The four content files above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `aadd281ae9711d7ac99b33cbda13085c6ea5edc7`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

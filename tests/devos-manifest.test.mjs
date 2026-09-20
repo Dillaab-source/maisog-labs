@@ -12,15 +12,22 @@ import { validate, loadManifest, MANIFEST_PATH } from "../devos/schemas/validate
 //
 // Every fixture here is a deep-cloned, in-memory copy of the live manifest,
 // mutated per test case -- devos/devos-manifest.json itself is never written
-// by this suite (per D-045's explicit "no live manifest migration this
-// cycle" boundary). validate()/loadManifest() are called directly, never via
+// by this suite. (Historical note: D-045's "no live manifest migration this
+// cycle" boundary applied only to RFC-015's own bounded implementation cycle,
+// which is what this test file was originally written for; the coordinated
+// Sentinel v1.6.0 closure, D-046/ML-DEVOS-ADR-013, later did migrate the live
+// instance -- see the "devos/contracts/ is IMPLEMENTED..." test below, which
+// asserts that closure's actual result. This suite still never writes to the
+// live manifest itself; it only reads it via loadManifest() and mutates
+// in-memory clones.) validate()/loadManifest() are called directly, never via
 // the CLI, so importing this test file never triggers main()'s process.exit().
 //
 // Fixture ID choice: synthetic closure_history entries below deliberately
-// reuse already-canonical, real repository IDs (ML-DEVOS-ADR-001/003-010,
-// D-045, ML-DEVOS-AS-059) that are simply UNUSED in the live manifest's own
-// closure_history (which today cites only ML-DEVOS-ADR-002 and
-// ML-DEVOS-ADR-006) -- never fabricated IDs. A fabricated ID matching a real
+// reuse already-canonical, real repository ADR IDs that are simply UNUSED in
+// the live manifest's own closure_history at the time of writing (not
+// hard-coded here as a specific list, since that list grows at every future
+// closure -- check devos/devos-manifest.json's closure_history directly for
+// the current set) -- never fabricated IDs. A fabricated ID matching a real
 // governance-ID family's shape would be picked up
 // by devos/governance/traceability/validate-traceability.mjs as a new
 // missing-canonical-target ERROR the moment this file exists on disk, since
@@ -223,7 +230,7 @@ test("FOUNDATION_ACTIVE root with a non-null closure_ref fails", () => {
 
 test("only devos/schemas/ may be FOUNDATION_ACTIVE: a second root claiming it fails", () => {
   const doc = cloneManifest();
-  findRoot(doc).status = "FOUNDATION_ACTIVE"; // devos/contracts/ is not devos/schemas/
+  findRoot(doc).status = "FOUNDATION_ACTIVE"; // devos/state/ is not devos/schemas/
   const errors = [];
   validate(doc, errors);
   assert.ok(errors.some((e) => e.includes(`only 'devos/schemas/' may be FOUNDATION_ACTIVE`)), JSON.stringify(errors));
