@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S4_STATE_MACHINE_PROPOSAL
-TURN: CLAUDE
-STATUS: AUTHORIZED_PROPOSAL
-AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_AND_AUDIT_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 1
@@ -19,28 +19,32 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-048 records Paulo's instruction to proceed with the next build step and remember the audit, in context of the S4 proposal recommendation. ML-DEVOS-AS-063 and ML-DEVOS-AS-064 remain accepted. Read coordination/ARCHITECT_REVIEW.md for the bounded proposal brief and exact file whitelist.
+D-048 authorized the S4 State Machine Kernel proposal/audit step only. ML-DEVOS-AS-063 (coordinated v1.6.0 closure) and ML-DEVOS-AS-064 (D-047 bridge activation) remain accepted, unreopened.
 
-## Authorized scope
+## What was delivered this cycle
 
-S4 design/proposal and traceability audit only: one next-sequential RFC, its index entry, deterministic traceability outputs and Builder coordination evidence. No executable implementation. The NO mutation/audit flags retain their product/content meaning; the explicitly listed repository documentation is authorized by D-048.
+`ML-DEVOS-RFC-016.md` filed under `devos/changes/rfcs/` — the S4 State Machine Kernel design proposal (state vocabulary/transition table, ownership/lease/fencing model, idempotency/retry/recovery model, compared/recommended persistence design, Requirement->Design->Implementation->Test->Evidence->Status mapping, alternatives/risks/security/rollout/rollback/compatibility/version-impact, four explicit unresolved questions). No executable implementation, schema file, or live task storage was created. `devos/changes/rfcs/README.md` index entry added. Traceability V1 regenerated: no drift, error fingerprint unchanged at exactly CORE-022 + WEB-REQ-009 (2 errors, 15 warnings — the prior D-048 orphan warning resolved by this RFC's own reference to D-048).
 
-## Hard boundaries
+Full evidence, exact diff, and audit output: see the "SENTINEL_S4_STATE_MACHINE_PROPOSAL — ML-DEVOS-RFC-016 (D-048)" section of `coordination/IMPLEMENTER_HANDOFF.md`.
 
-No S4 executable kernel, live task storage, S5+ work, frozen architecture/core-policy change, version/manifest/ADR mutation, product/runtime change, workflow/bridge change, credential access, remote resources, deployment, production write, protected/main merge or PR #10 merge/auto-merge. Existing coordination remains the live authority. Preserve Sentinel v1.6.0 and S4 NOT_IMPLEMENTED.
+## Required audit — result
 
-## Required audit
+- Diff whitelist verified: exactly the 4 authorized files (1 new RFC, 1 README entry, 2 generated traceability files) plus this file and IMPLEMENTER_HANDOFF.md.
+- `devos/devos-manifest.json`, `devos/governance/rules/core-rules.json`, `.github/workflows/`, `app/`, `worker/`, `lib/`, `migrations/`, `devos/state/` all confirmed byte-identical to input HEAD `63c03cdba44dba3a716970efe84833d83d875d02`.
+- No fabricated PASS evidence: the RFC's own Implementation-mapping table marks all 11 rows NOT STARTED, since no code or test exists yet.
 
-Read the live execution HEAD; run the traceability validator before/after; preserve the two known missing-target errors CORE-022 and WEB-REQ-009; report all warnings and exit codes; require no post-generation drift or unexpected new ERROR; verify the exact diff whitelist. Do not fabricate canonical records to obtain a green check.
+## Preserved state (unchanged, not reopened)
 
-## Return gate
+- Sentinel v1.6.0 active baseline;
+- S3 (devos/contracts/) IMPLEMENTED, closure_ref ADR-013;
+- S4 (devos/state/) NOT_IMPLEMENTED — unchanged by this proposal;
+- D-047 bridge activation (ML-DEVOS-AS-064: VERIFIED);
+- coordinated v1.6.0 closure (ML-DEVOS-AS-063: ACCEPTED).
 
-On complete proposal and evidence, commit/push only authorized files together and set:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
+## Hard boundaries held this cycle
 
-Keep every prohibition flag NO. If blocked, report the blocker and stop. Do not raise MAX_REMEDIATION_CYCLES. Design review and separate Paulo implementation authorization are required before code work.
+No S4 executable kernel, live task storage, S5+ work, frozen architecture/core-policy mutation, version/manifest/ADR mutation, product/runtime change, workflow/bridge edit, credential access, remote resources, deployment, production write, protected/main merge, or PR #10 merge/auto-merge.
+
+## Next step
+
+Architect reviews ML-DEVOS-RFC-016 (ARCHITECTURE-class Stage Gate Review) and issues a design verdict. Independent design review is required before any separate Paulo implementation authorization. S4 implementation remains unauthorized.

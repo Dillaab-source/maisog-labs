@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — SENTINEL_COORDINATED_V1_6_0_CLOSURE, `ML-DEVOS-AS-062` D.2 provenance-cleanup remediation complete, awaiting D.2 Post-decision Closure Verification re-review (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_PROPOSAL`, `ML-DEVOS-RFC-016` filed (design/audit only, no implementation), awaiting Architect Sync (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "ML-DEVOS-AS-062 D.2 Provenance Cleanup Remediation (Cycle 1)" section at the very end of this document for the exact scope and evidence of this remediation cycle, which corrects durable provenance errors the Architect found in the coordinated v1.6.0 closure without reopening that closure's substantive content.
+**Current cycle:** see the "SENTINEL_S4_STATE_MACHINE_PROPOSAL — ML-DEVOS-RFC-016 (D-048)" section at the very end of this document for the exact scope and evidence of this cycle, which files the S4 State Machine Kernel design proposal authorized by `D-048` — proposal/audit only, no executable implementation or live task storage.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "ML-DEVOS-AS-062 D.2 Provenance Cleanup Remediation (Cycle 1)" section further below for the exact scope and evidence of that remediation cycle, which corrected durable provenance errors the Architect found in the coordinated v1.6.0 closure without reopening that closure's substantive content. That closure was subsequently accepted in full by `ML-DEVOS-AS-063` (`D.2 POST-DECISION CLOSURE VERIFICATION — ACCEPTED`), and the `D-047` bidirectional handoff bridge was independently verified operational by `ML-DEVOS-AS-064`.
 
 ---
 
@@ -3216,3 +3220,112 @@ Claude invocation via the GitHub Actions runner succeeded end-to-end for this cy
 ### Next expected actor
 
 `ARCHITECT` — per the return gate below and `coordination/ARCHITECT_REVIEW.md`'s success condition (push wakes the runner, no-op handoff completes, TURN returns to ARCHITECT, PR #10 then wakes the ChatGPT Architect task).
+
+---
+
+## SENTINEL_S4_STATE_MACHINE_PROPOSAL — ML-DEVOS-RFC-016 (D-048)
+
+### Cycle ID and authority
+
+`SENTINEL_S4_STATE_MACHINE_PROPOSAL`. Authority: `D-048` (Paulo: "okay proceed with the build remeber audit"), following `ML-DEVOS-AS-063`'s acceptance of the coordinated v1.6.0 closure and `ML-DEVOS-AS-064`'s acceptance of the D-047 bridge activation. Bounded interpretation per `D-048`: S4 discovery/design proposal and audit only — no executable implementation, no live task storage, no S4 implementation authorization.
+
+### Gate values confirmed before acting
+
+Pulled and fast-forwarded `governance/maisoglabs-v0.1` before any file was touched; read `coordination/STATE.md` and the full `coordination/ARCHITECT_REVIEW.md` "Architect Builder Brief — S4 State Machine Kernel Proposal" in full before proceeding. Confirmed:
+- `TURN: CLAUDE`
+- `IMPLEMENTER_ACTION_REQUIRED: YES`
+- `AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_AND_AUDIT_ONLY`
+- `MUTATION_AUTHORIZED: NO`, `MEDIA_MUTATION_AUTHORIZED: NO`, `AUDIT_APPEND_AUTHORIZED: NO`, `REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` — all unchanged, all `NO`.
+
+### Required reads performed
+
+`CLAUDE.md`, `AGENTS.md` (already loaded this session), live `coordination/STATE.md`, the full Architect brief in `coordination/ARCHITECT_REVIEW.md`, `brain/DECISION_LOG.md` `D-048`, `devos/changes/architect-syncs/ML-DEVOS-AS-064.md` (durable D-047 bridge-activation archive), `devos/architecture/ML-DEVOS-ARCH-001.md` in full (§1–§12, with particular attention to §3–§11 as the brief required), `devos/plans/ML-DEVOS-SIP-001.md` in full, `devos/state/README.md`, `devos/devos-manifest.json`, `devos/contracts/TASK_CONTRACT_SPEC.md`, `devos/contracts/task-contract.schema.json`, `devos/governance/rules/core-rules.json` in full, `devos/governance/EVIDENCE_PROVENANCE_MODEL.md`, `devos/governance/TRUST_BOUNDARIES.md`, `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md`, `devos/governance/specifications/VERSIONING_POLICY.md`, `brain/protocols/ARCHITECT_SYNC.md`, `devos/governance/traceability/README.md`, `devos/templates/RFC_TEMPLATE.md`, `devos/changes/rfcs/README.md`, `devos/changes/rfcs/ML-DEVOS-RFC-013.md` (as a structural/depth reference for an accepted `ARCHITECTURE`-class RFC), `devos/changes/rfcs/ML-DEVOS-RFC-015.md` (header/style reference), `.agents/skills/README.md`.
+
+### Input HEAD and RFC ceiling
+
+Input HEAD, confirmed by `git rev-parse HEAD` before any file was touched: `63c03cdba44dba3a716970efe84833d83d875d02`. Working tree was clean at that point. RFC ceiling inspected via `devos/changes/rfcs/*.md` listing: highest filed RFC was `ML-DEVOS-RFC-015`; next sequential number `016` was unused. Allocated `ML-DEVOS-RFC-016`.
+
+### Exact changed-file list — matches the authorized write whitelist exactly
+
+**New (1):**
+- `devos/changes/rfcs/ML-DEVOS-RFC-016.md` — the S4 State Machine Kernel design proposal.
+
+**Modified (3):**
+- `devos/changes/rfcs/README.md` — added the new proposal's index entry only (no other entry edited).
+- `devos/governance/traceability/traceability-index.json` — deterministic regeneration only.
+- `devos/governance/traceability/TRACEABILITY_INDEX.md` — deterministic regeneration only.
+
+Confirmed via `git status --porcelain` immediately before this write that no other file changed, and via `git diff --stat` against `devos/devos-manifest.json`, `devos/governance/rules/core-rules.json`, `.github/workflows/`, `app/`, `worker/`, `lib/`, `migrations/`, and `devos/state/` that all of them are byte-identical to the input HEAD — no manifest, core-rule, product/runtime, workflow, or reserved-root path was touched.
+
+### What the RFC proposes (summary; full content in the RFC itself)
+
+`ML-DEVOS-RFC-016` proposes, as design only:
+1. A state vocabulary and transition table grounded in `ML-DEVOS-ARCH-001` §10, with two proposed additive terminal states (`FAILED`, `ABANDONED`) flagged explicitly as an amendment to a `FROZEN` document requiring its own Architect sign-off, not assumed in scope.
+2. A precise distinction between Task Engine State (this kernel) and `coordination/STATE.md`'s turn-lock, Architectural Memory, Project Memory, Run History, and Evidence Store (`ML-DEVOS-ARCH-001` §11) — with an explicit statement that no migration of live coordination is proposed or authorized.
+3. A reference-not-duplicate relationship to S3 Typed Task Contracts: the kernel stores a `contract_ref`, never a copy of `scope`/`claims`/`evidence`; evidence-guarded transitions check only reference presence and class label, never sufficiency or content, preserving `MAIN != DEPLOYED != VERIFIED` (`CORE-007`/`016`/`017`/`018`) without re-deriving those rules.
+4. A single-owner claim/lease/fencing-token (`owner_generation`) model specifically designed so lease expiry alone can never let a superseded owner overwrite a newer owner's work — closure via atomic compare-and-swap independent of clock state — plus deterministic, injectable-clock time handling for tests.
+5. An idempotency-key replay/conflict model, durable retry counters reusing the existing live `MAX_REMEDIATION_CYCLES` convention as their ceiling (no new retry authority invented), a deliberately passive (non-daemon) timeout-sweep design, and explicit crash-before/after-persist, corruption, restart, and duplicate-delivery recovery behavior.
+6. A compared and recommended local persistence design (one JSON file per task, write-temp-then-atomic-rename, zero third-party dependencies) against three alternatives (embedded SQLite, event-sourced log, remote database — the last explicitly excluded per `D-048`'s "no live task storage" boundary and every observed `REMOTE_D1_AUTHORIZED: NO`), with explicit scale/dependency bounds disclosed rather than assumed.
+7. A full Requirement → Design → planned Implementation → planned Test → required Evidence → Status mapping table (11 rows, all `NOT STARTED`, no fabricated PASS evidence), naming specific negative/race/restart tests (in particular the stale-owner-fencing race, flagged as the single highest-priority test any future implementation must pass).
+8. Explicit non-goals excluding S5/S6/S7/S8/S9/S10/S11/S12/S13/S14, alternatives considered, risks with mitigations, migration/security impact, evidence requirements, rollout/rollback, compatibility, version-impact assessment (no version impact from the RFC itself; a future implementation would very plausibly be `MINOR`, decided at that future closure, not here), and four explicit unresolved questions left open for Architect/Paulo judgment rather than decided unilaterally.
+
+The RFC states plainly, in its own closing line, that it "grants no authority, freezes no new policy on its own, and authorizes no implementation."
+
+### Audit performed
+
+**Pre-edit traceability baseline** (`node devos/governance/traceability/validate-traceability.mjs`, before any file was touched):
+```
+Scanned 248 files across 12 ID families.
+Errors: 2  Warnings: 16  Total canonical definitions: 251
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+[... 14 further WARNING lines, including WARNING [orphan-no-inbound-reference] D D-048 ...]
+No drift: on-disk generated index matches a fresh generation run.
+```
+Exit code: `1` (the two known errors). This matches exactly the Architect's own independently-reproduced "Post-bookkeeping audit" baseline already recorded in `coordination/ARCHITECT_REVIEW.md`.
+
+**Post-edit regeneration** (`node devos/governance/traceability/generate-traceability.mjs`):
+```
+Wrote devos/governance/traceability/traceability-index.json and devos/governance/traceability/TRACEABILITY_INDEX.md
+Scanned 249 files. Errors: 2. Warnings: 15.
+```
+
+**Post-edit validation** (`node devos/governance/traceability/validate-traceability.mjs`):
+```
+Scanned 249 files across 12 ID families.
+Errors: 2  Warnings: 15  Total canonical definitions: 252
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+[... 13 further WARNING lines — the D-048 orphan warning is gone, since RFC-016 now provides its durable inbound reference to D-048, exactly as ML-DEVOS-AS-064's own precedent anticipated for D-047's analogous orphan warning]
+No drift: on-disk generated index matches a fresh generation run.
+```
+Exit code: `1` (the two known errors, unchanged). **Error fingerprint unchanged**: exactly `CORE-022` + `WEB-REQ-009`, no new ERROR introduced, no drift. Warning count dropped by exactly one (the `D-048` orphan warning resolved, as expected and intended, not a suppressed finding).
+
+### Verification performed
+
+- Diff whitelist confirmed via `git status --porcelain`: exactly the four authorized files (one new RFC, one README entry, two generated traceability files) plus this handoff and `coordination/STATE.md`.
+- `git diff --stat` against `devos/devos-manifest.json`, `devos/governance/rules/core-rules.json`, `.github/workflows/`, `app/`, `worker/`, `lib/`, `migrations/`, `devos/state/`: empty output, confirming byte-identical to input HEAD.
+- No application build was run or is needed for this proposal-only, non-code diff, per the brief's explicit statement.
+- No test count is claimed or reused as new evidence — this cycle introduces no executable code and no test file.
+
+### No implementation mutation performed
+
+No S4 executable kernel, schema file, or live task storage was created. No S5+ work. No frozen-architecture or core-policy text was edited (the RFC *proposes*, in its own body, an amendment to `ML-DEVOS-ARCH-001` §10's diagram — it does not itself edit that document; the proposal explicitly defers that decision to Architect Sync). No version/manifest/ADR mutation. No product/runtime change. No workflow/bridge edit. No credential or remote-resource access. No deployment or production write. No protected/main merge. PR #10 was not touched or merged.
+
+### Evidence classification
+
+`ACTOR_REPORTED` for all Builder execution narrative above (reading order, file creation, command execution, diff inspection) — pending independent Architect inspection. The traceability command outputs quoted above are exact, unedited console output, but remain `ACTOR_REPORTED` until the Architect independently reproduces them, exactly as `ML-DEVOS-AS-064`'s own evidence-classification precedent treats analogous Builder-reported command output.
+
+### Known limitations / open questions
+
+Carried forward verbatim from the RFC itself (see `ML-DEVOS-RFC-016.md`'s "Unresolved questions for Architect / Paulo" section) rather than restated informally here:
+1. Whether the proposed `FAILED`/`ABANDONED` terminal-state addition to `ML-DEVOS-ARCH-001` §10 needs its own explicit sign-off as a frozen-document amendment.
+2. Whether the passive `sweep_expired_leases()` boundary between S4 and S8 is correctly placed.
+3. Whether reusing the live `MAX_REMEDIATION_CYCLES` value as the generalized task-retry ceiling is appropriate, or whether S4 should request its own explicitly Paulo-set ceiling.
+4. Whether the proposed per-task-file-with-internal-history persistence shape is an acceptable Task Engine State boundary against future Run History, or should be split into a separate store now.
+
+No Paulo-level decision beyond `D-048` itself was required or made in this cycle.
+
+### Next expected actor
+
+`ARCHITECT` — per the return gate below and the brief's explicit "Independent design review comes before separate Paulo implementation approval."
