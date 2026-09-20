@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_PROPOSAL`, `ML-DEVOS-RFC-016` filed (design/audit only, no implementation), awaiting Architect Sync (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_PROPOSAL`, `ML-DEVOS-RFC-016` design-remediation cycle 1 complete (four blockers fixed), awaiting Architect Sync re-review (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "SENTINEL_S4_STATE_MACHINE_PROPOSAL — ML-DEVOS-RFC-016 (D-048)" section at the very end of this document for the exact scope and evidence of this cycle, which files the S4 State Machine Kernel design proposal authorized by `D-048` — proposal/audit only, no executable implementation or live task storage.
+**Current cycle:** see the "ML-DEVOS-RFC-016 Design Remediation Cycle 1 (D-048)" section at the very end of this document for the exact scope and evidence of this remediation cycle, which corrects the four design blockers the Architect's Stage Gate Review found in the original S4 proposal, without any executable implementation.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "SENTINEL_S4_STATE_MACHINE_PROPOSAL — ML-DEVOS-RFC-016 (D-048)" section further below for the exact scope and evidence of the original filing of the S4 State Machine Kernel design proposal authorized by `D-048` — proposal/audit only, no executable implementation or live task storage.
 
 ---
 
@@ -3329,3 +3333,122 @@ No Paulo-level decision beyond `D-048` itself was required or made in this cycle
 ### Next expected actor
 
 `ARCHITECT` — per the return gate below and the brief's explicit "Independent design review comes before separate Paulo implementation approval."
+
+---
+
+## ML-DEVOS-RFC-016 Design Remediation Cycle 1 (D-048)
+
+### Cycle ID, authority, and remediation cycle count
+
+`SENTINEL_S4_STATE_MACHINE_PROPOSAL`, `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 1`. Authority: `D-048` (proposal/audit authorization, unchanged) plus the Architect's `STAGE GATE REVIEW` of the original `ML-DEVOS-RFC-016` submission (reviewed proposal commit `4e9b6aeacd2977051f08c450eeef966ab43b17c4`, reviewed HEAD `e6b1700fa1d50b7ccba81342ee1d48d2b4b020ea`), which returned `CHANGES_REQUESTED` with four load-bearing design blockers (`AS65-F001`–`AS65-F004`) and four non-blocking clarifications. `coordination/STATE.md`'s `AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REMEDIATION_ONLY` authorized this cycle; no executable S4 implementation is authorized by it.
+
+### Gate values confirmed before acting
+
+Pulled and fast-forwarded `governance/maisoglabs-v0.1` before any file was touched; read the full `coordination/ARCHITECT_REVIEW.md` ("Architect Review — ML-DEVOS-RFC-016 S4 State Machine Kernel") in full before proceeding. Confirmed:
+- `TURN: CLAUDE`
+- `IMPLEMENTER_ACTION_REQUIRED: YES`
+- `AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REMEDIATION_ONLY`
+- `CURRENT_REMEDIATION_CYCLE: 1`, `MAX_REMEDIATION_CYCLES: 1` (this is the one bounded remediation pass authorized; no further cycle is available without a new Architect/Paulo decision)
+- `MUTATION_AUTHORIZED: NO`, `MEDIA_MUTATION_AUTHORIZED: NO`, `AUDIT_APPEND_AUTHORIZED: NO`, `REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` — all unchanged, all `NO`.
+
+### Input HEAD
+
+Confirmed by `git rev-parse HEAD` before any file was touched: `219a9073c076b02ace58f805f26b26ec9cc9a1b5`. Working tree clean at that point.
+
+### Exact changed-file list — matches the authorized remediation whitelist exactly
+
+**Modified (1):**
+- `devos/changes/rfcs/ML-DEVOS-RFC-016.md` — substantially revised §D (Ownership, leases, and fencing), §E (Idempotency, retries, timeouts, and recovery), §F (Persistence), §G (evidence-guard transition count), the Alternatives-considered, Risks, Affected components, Compatibility sections, the Implementation-mapping table, the Unresolved-questions section, and the header authority line — see "What changed" below for the precise mapping to each finding.
+
+`devos/changes/rfcs/README.md` was deliberately **not** touched: its one-line index description of `ML-DEVOS-RFC-016` remains accurate at the level of detail it operates (state vocabulary/transition table, ownership/lease/fencing model, idempotency/retry/recovery model, compared/recommended persistence design) — the remediation corrected the *mechanism* behind those same design elements, not what the RFC is about at a summary level, so no index-entry edit was required per the review's own "only if... must change to remain accurate" instruction.
+
+`devos/governance/traceability/traceability-index.json`/`TRACEABILITY_INDEX.md` were regenerated but are **byte-identical** to their already-committed content — see "Traceability audit" below for why, and confirmed via `git status --porcelain` showing no diff for either file.
+
+No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, version record, workflow file, product/runtime code, or `devos/state/` path was touched — confirmed via `git diff --stat` against all of them showing empty output (byte-identical to input HEAD).
+
+### What changed, mapped to each finding
+
+**`AS65-F001` (persistence CAS was not real) — fixed in §D and §F.** Replaced the "atomic rename alone" design with a genuine OS-level mutual-exclusion primitive: a `<task_id>.lock` file created via `fs.open(path, 'wx')` (POSIX exclusive-create) guards the entire read-validate-mutate-persist sequence as one critical section, with an explicit six-step atomic boundary (acquire lock → read → validate → compute → write-temp-then-rename → release lock) and a stale-lock recovery rule (staleness ceiling + atomic steal-and-retry) for crash recovery. The earlier draft's separate `owner_generation`/`expected_revision` fields are unified into one `revision` token, incremented exactly once per successful mutating operation and checked inside the lock-held critical section — closing the exact TOCTOU race the Architect identified (two writers both reading revision `N`, both computing `N+1`, one silently overwriting the other via rename alone).
+
+**`AS65-F002` (ownership handoff could deadlock) — fixed in §D.** Introduced an explicit "designated handoff transition" rule: any transition whose destination is `READY_FOR_BUILD`/`READY_FOR_QA`/`READY_FOR_REVIEW`/`CHANGES_REQUESTED`/`PAULO_DECISION_REQUIRED` atomically clears `owner`/`lease_expires_at` and bumps `revision` as part of the same write that commits the new state — so the next role can claim immediately (no waiting out a stale lease) and the outgoing owner is immediately fenced from any further mutating call (its last-observed `revision` is stale the instant the handoff commits). All other (same-owner) transitions leave ownership unchanged.
+
+**`AS65-F003` (retry ceiling coupled to bootstrap coordination state) — fixed in §E.** Removed every design dependency on reading `coordination/STATE.md`'s `MAX_REMEDIATION_CYCLES` at runtime. Replaced with an explicit, versioned S4 **Task Policy** input supplied to the kernel at initialization, whose numeric retry-ceiling values this RFC deliberately leaves unresolved for a future, separate Paulo decision (recorded in `brain/DECISION_LOG.md` at S4 implementation-authorization time) — since no existing canonical, non-bootstrap-turn-lock rule currently supplies a task-execution retry ceiling. The fail-closed escalation *mechanism* (ceiling exceeded → `FAILED`/`PAULO_DECISION_REQUIRED`) is unchanged; only the source and resolution of the number changed.
+
+**`AS65-F004` (idempotency coverage incomplete) — fixed in §E.** Added an explicit table classifying every public operation (`claim`/`renew`/`release`/`transition` mutating; `get_state`/`sweep_expired_leases` read-only) and defined per-operation request-binding fields for the idempotency-key ledger covering `claim`/`renew`/`transition`. `release` is given a documented stronger-reason exception instead of a persisted ledger entry: it is proven safely repeatable because "task already unowned" is itself a distinguishable, safe no-op condition, while a conflict against a *different* current owner is still correctly rejected — satisfying the review's explicit allowance to document a stronger reason rather than requiring a ledger for every mutating operation.
+
+**Non-blocking clarification 1 (five vs. six evidence-guarded transitions)** — fixed in §G: corrected the count to six and added `QA → READY_FOR_REVIEW` to the explicit list, which the original table already gated but the prose miscounted.
+
+**Non-blocking clarification 2 (`expected_revision` command semantics unspecified)** — resolved by the same `revision` unification described under `AS65-F001`: rather than leaving `expected_revision` under-specified alongside `owner_generation`, the two are merged into one token whose increment/comparison semantics are now fully specified in §D's exact atomic boundary.
+
+**Non-blocking clarification 3 (`FAILED`/`ABANDONED` amend a frozen document)** — reaffirmed explicitly in §C: an Architect Sync recommendation is not itself adoption; final adoption still requires the normal `ARCHITECTURE`-class Paulo gate before implementation. `ML-DEVOS-ARCH-001` was not edited by this remediation (confirmed via the `git diff --stat` check above).
+
+**Non-blocking clarification 4 (Task Engine State bounded to provenance, not telemetry)** — tightened in §B: the transition-log description now states explicitly that it is "strictly bounded to that state-change provenance" and never records command output, tool invocations, or cost/timing telemetry.
+
+### A note on provenance citation discipline
+
+The remediation's first pass cited the Architect's own in-progress review by its full `ML-DEVOS-AS-065` identifier inside `ML-DEVOS-RFC-016.md` (a durable file). Because that identifier's own durable archive under `devos/changes/architect-syncs/` does not yet exist (the review is still the rolling `coordination/ARCHITECT_REVIEW.md` surface, which Traceability V1 deliberately excludes from durable-reference scanning), this created a genuine **new** `missing-canonical-target` ERROR for the `ML-DEVOS-AS` family — caught by re-running the traceability generator/validator before finalizing this handoff, not left undetected. All five such citations were rewritten to reference the review descriptively (or via the shorthand `AS65-Fxxx` finding-code form, which does not match the `ML-DEVOS-AS-NNN` canonical-family pattern) instead of the bare, not-yet-archived full identifier, consistent with how every other Architect Sync in this repository has only ever been cited by full identifier after its own durable archive exists. Re-running the generator afterward confirmed the fingerprint returned to exactly the expected two pre-existing errors.
+
+### Traceability audit
+
+**Pre-edit baseline** (`node devos/governance/traceability/validate-traceability.mjs`, before any file was touched):
+```
+Scanned 249 files across 12 ID families.
+Errors: 2  Warnings: 15  Total canonical definitions: 252
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+[... 13 further WARNING lines ...]
+DRIFT: on-disk generated index does not match a fresh generation run — run generate-traceability.mjs to regenerate.
+```
+(Drift was expected and correct here: the pre-edit *on-disk* index still reflected the original, pre-remediation RFC-016 text at the moment this check ran, immediately before regeneration.)
+
+**Interim regeneration, first pass** (after the initial round of remediation edits, before the citation-discipline fix above):
+```
+Scanned 249 files. Errors: 3. Warnings: 15.
+```
+This surfaced the new `ML-DEVOS-AS-065` `missing-canonical-target` ERROR described above — caught, not shipped.
+
+**Final regeneration** (`node devos/governance/traceability/generate-traceability.mjs`, after the citation fix):
+```
+Wrote devos/governance/traceability/traceability-index.json and devos/governance/traceability/TRACEABILITY_INDEX.md
+Scanned 249 files. Errors: 2. Warnings: 15.
+```
+
+**Final validation** (`node devos/governance/traceability/validate-traceability.mjs`):
+```
+Scanned 249 files across 12 ID families.
+Errors: 2  Warnings: 15  Total canonical definitions: 252
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+[... 13 further WARNING lines, unchanged from the pre-remediation baseline ...]
+No drift: on-disk generated index matches a fresh generation run.
+```
+Exit code `1` (the two known, pre-existing errors, unchanged). **Error fingerprint confirmed unchanged**: exactly `CORE-022` + `WEB-REQ-009`, no new ERROR in the final state, no drift. The generated `traceability-index.json`/`TRACEABILITY_INDEX.md` content is byte-identical to what was already committed — confirmed via `git status --porcelain` showing no diff for either file — because the aggregate set of ID references/definitions/errors/warnings this RFC's revised text produces is unchanged from the original submission once the citation-discipline fix above was applied.
+
+### Verification performed
+
+- Diff whitelist confirmed via `git status --porcelain`: exactly the one authorized content file (`ML-DEVOS-RFC-016.md`), plus this handoff and `coordination/STATE.md`.
+- `git diff --stat` against `devos/architecture/ML-DEVOS-ARCH-001.md`, `devos/governance/rules/core-rules.json`, `devos/contracts/`, `devos/devos-manifest.json`, `.github/workflows/`, `app/`, `worker/`, `lib/`, `migrations/`, `devos/state/`: empty output, confirming byte-identical to input HEAD.
+- No application build was run or is needed for this design-only, non-code diff.
+- No test count is claimed or reused as new evidence — this cycle introduces no executable code and no test file; the Implementation-mapping table's new/revised rows remain `NOT STARTED`.
+
+### No implementation mutation performed
+
+No S4 executable kernel, schema file, or live task storage was created or modified. No S5+ work. `ML-DEVOS-ARCH-001` was not edited during this remediation, per the review's explicit instruction. No `CORE-*` rule, S3 schema/validator, manifest, ADR, or version record was touched. No product/runtime change. No workflow/bridge edit. No credential or remote-resource access. No deployment or production write. No protected/main merge. PR #10 was not touched or merged.
+
+### Evidence classification
+
+`ACTOR_REPORTED` for all Builder execution narrative above (reading order, edit content, command execution, diff inspection) — pending independent Architect inspection. The traceability command outputs quoted above are exact, unedited console output, but remain `ACTOR_REPORTED` until the Architect independently reproduces them.
+
+### Known limitations / open questions
+
+Carried forward from the RFC's own "Unresolved questions for Architect / Paulo" section (renumbered/updated where the remediation itself changed the question's premise):
+1. Whether the `FAILED`/`ABANDONED` terminal-state addition to `ML-DEVOS-ARCH-001` §10 needs its own explicit sign-off as a frozen-document amendment (unchanged from the original submission; reaffirmed, not resolved, by this remediation's clarification-3 note).
+2. Whether the passive `sweep_expired_leases()` boundary between S4 and S8 is correctly placed (unchanged).
+3. **Updated per `AS65-F003`'s remediation:** whether the newly-proposed S4 Task Policy input (carrying the per-transition-class retry ceiling) should be scoped per-project or per-task-contract, and whether the same policy record should also carry the lock-staleness ceiling or keep that as a fixed implementation constant.
+4. Whether the proposed per-task-file-with-internal-history persistence shape is an acceptable Task Engine State boundary against future Run History, or should be split into a separate store now (unchanged).
+
+No Paulo-level decision beyond `D-048` itself was required or made in this cycle. `CURRENT_REMEDIATION_CYCLE` is now `1` of `MAX_REMEDIATION_CYCLES: 1` — this is the one bounded remediation pass the Architect authorized; if further changes are requested, that would require a new Architect/Paulo decision to raise the cap, per `ARCHITECT_SYNC.md`'s remediation-loop cap rule.
+
+### Next expected actor
+
+`ARCHITECT` — per the return gate below and the review's own "Independent design review comes before separate Paulo implementation approval."
