@@ -662,3 +662,28 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **S3:** `ML-DEVOS-AS-055` technical approval remains preserved.
 - **S4:** remains unauthorized.
 - **Still prohibited:** core-rule mutation, product/runtime mutation, remote/cloud resources, credentials, deployment, production writes, protected/main merge, S4+ implementation, or unrelated governance expansion.
+
+
+### D-046 — Authorize coordinated Sentinel v1.6.0 closure package
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Paulo explicitly stated `Okay approved` after `ML-DEVOS-AS-061` returned `D.1 PRE-DECISION CLOSURE PREFLIGHT — PASS / PAULO CLOSURE DECISION REQUIRED`.
+- **Decision:** Approve the bounded coordinated closure package exactly as defined by `ML-DEVOS-AS-061`.
+- **Authorized closure components:**
+  1. close Skills Foundation V0.1 + Portable Knowledge Treasury with its own ADR and explicit **NO SENTINEL CAPABILITY-BASELINE BUMP**, effective baseline remaining `v1.5.0`;
+  2. close RFC-015 with its own ADR;
+  3. close S3 Typed Task Contracts with its own ADR;
+  4. adopt RFC-015 + S3 together under one explicit Sentinel `v1.5.0 → v1.6.0` release boundary;
+  5. update the live DevOS manifest so `devos/contracts/` becomes `IMPLEMENTED`, carries an ADR-keyed S3 `closure_ref`, remains `executable_runtime_present: false`, and the active Sentinel capability baseline becomes `v1.6.0`;
+  6. append RFC-015 and S3 closure-history entries without altering prior history;
+  7. normalize RFC-013/RFC-014/RFC-015 closure status/provenance, including the D-037 implementation-authority vs D-042 sequential-reopening distinction;
+  8. update `VERSIONING_POLICY.md` for the coordinated v1.6.0 release;
+  9. regenerate Traceability V1 derived outputs and preserve the preflight baseline/new-error discipline;
+  10. return the completed closure to Architect D.2 Post-decision Closure Verification.
+- **Single release / multiple ADR rule:** this authorization deliberately uses one `v1.6.0` release boundary while preserving separate ADR provenance for Skills/Treasury, RFC-015, and S3. `one release != one ADR`.
+- **ADR allocation:** no ADR number was reserved by the preflight. At the moment of closure execution, Builder must inspect the live ADR directory and allocate the next three sequential never-reused IDs. Preflight observed the ceiling at `ML-DEVOS-ADR-010`; expected IDs are therefore `011`–`013` only if no intervening ADR now exists.
+- **Execution-base rule:** Builder must pull the exact post-D-046 branch HEAD before mutation, record that SHA, compare it with preflight evidence baseline `f9995565860d3f6a33ef96070ac88eb3953303ba`, and confirm that only expected preflight/decision/coordination bookkeeping differs. Any substantive unexpected drift stops the closure and returns to Architect.
+- **Traceability fail-closed rule:** before mutation, rerun the traceability validator at the execution-base SHA. Expected preflight fingerprint is `CORE-022`, forward references to `ML-DEVOS-ADR-011` / `ML-DEVOS-ADR-012`, and `WEB-REQ-009` as Builder-reported at AS-061. Any unexpected difference must stop closure. After closure, regenerate JSON/Markdown derived indexes, preserve unresolved baseline findings unless independently resolved, and introduce no new unexpected ERROR.
+- **Manifest baseline pointer:** for this coordinated release, the manifest's single `sentinel_capability_baseline.adr` pointer uses the ordered final adoption / release-closing S3 ADR; the separate RFC-015 ADR remains co-effective at `v1.6.0` and is preserved in closure history.
+- **S4:** remains **UNAUTHORIZED**. Successful v1.6.0 closure does not itself authorize S4; S4 State Machine Kernel is only the default next proposal candidate after D.2 verification.
+- **Still prohibited:** core-rule mutation, unrelated governance expansion, product/runtime mutation, remote/cloud resource changes, credentials, deployment, production writes, protected/main merge, or S4+ implementation.
