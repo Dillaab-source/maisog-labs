@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
-TURN: CLAUDE
-STATUS: AUTHORIZED_DISCOVERY
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_ARCHITECTURE_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -87,3 +87,7 @@ When discovery is complete:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 Builder must provide the complete discovery/RFC handoff defined in `coordination/ARCHITECT_REVIEW.md` and must not self-authorize implementation or S3 resumption.
+
+## Discovery complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See the "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff" section at the end of `coordination/IMPLEMENTER_HANDOFF.md`, and `devos/changes/rfcs/ML-DEVOS-RFC-014.md` (new, `DRAFT`). Summary: existing-procedure inventory across all required files; a Skill-vs-Governance/Brain/ADR/Capability definition boundary; `devos/skills/` proposed as canonical location (not created); a 5-skill smallest-coherent initial set derived from already-proven repository procedures (Governance/Traceability Audit, Architect Review/Sync, Implementation Handoff, Project Orientation/State Recovery, Knowledge/Realization Capture); Project Health, Research-Before-Architectural-Decisions, and Public/Private Classification explicitly evaluated and rejected for V0.1 with reasons; external-skill security model and evaluation strategy designed; no S3 amendment needed; S3 pause confirmed clean (zero abandoned implementation). Only `ML-DEVOS-RFC-014.md` and the `rfcs/README.md` index were created/modified — no skill file, canonical directory, or provider-adapter directory exists.

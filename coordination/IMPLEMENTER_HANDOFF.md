@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — SENTINEL-TRACEABILITY-V1 Remediation Cycle 2 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**SENTINEL-TRACEABILITY-V1 Remediation Cycle 2 update:** see the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record.
+**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY update:** see the "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles (Sentinel Traceability V1 is fully closed per `ML-DEVOS-AS-041`) and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this discovery cycle does not resume it.
 
 ---
 
@@ -1519,3 +1519,116 @@ $ npm test
 ### Remediation commit
 
 The 6 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `8ee0ae2d0e6b01cb571318a1670f87912a57a498`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MAISOGLABS Skills Foundation V0.1 — Discovery Handoff
+
+### Cycle / Change ID
+
+`MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY` — **Discovery complete, handed back for Architect review.**
+
+Authority: Paulo priority directive, `D-038` (brain/DECISION_LOG.md). Full brief: `coordination/ARCHITECT_REVIEW.md` (live at the time of this handoff — "DISCOVERY AUTHORIZED — MAISOGLABS SKILLS FOUNDATION V0.1").
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `0c69ba2118b50142a3648bb95cba5fcb359a2b27` — the commit that closed Sentinel Traceability V1 (`ML-DEVOS-AS-041`, `ML-DEVOS-ADR-010`) and pivoted the active cycle to this discovery via `D-038`.
+- Read in full before any work: `coordination/STATE.md`, the full `coordination/ARCHITECT_REVIEW.md` discovery brief, `brain/DECISION_LOG.md` `D-038`, and — as required by the brief itself — every file the brief names under "Existing reusable procedures that MUST be inspected": `AGENTS.md`, `CLAUDE.md`, `brain/00_HOME.md`, `brain/protocols/ARCHITECT_SYNC.md`, `brain/ARCHITECT_HANDOFF.md`, `brain/GOVERNANCE_MAP.md`, `brain/IMPLEMENTATION_STATUS.md`, `brain/RISK_REGISTER.md`, `brain/TEST_LEDGER.md`, `brain/PROJECT_GOVERNANCE.md`, `coordination/` (structure), `devos/templates/` (all 7), `devos/handoffs/` (structure + S0 in full), `devos/governance/` (all subdirectories, especially `traceability/README.md`, `rules/`, `specifications/`, `change-policy/CHANGE_GOVERNANCE_POLICY.md`), `devos/changes/` (README indexes), `docs/release/` (both `WEB_REL_001_*` files), and `brand/V3/` (`README.md`, `DESIGN_GOVERNANCE.md`). This survey was delegated to and executed by a subagent under this session's direction; its full structured report is preserved in this session's transcript and its findings are reproduced/synthesized below and in `ML-DEVOS-RFC-014.md` §"Discovery findings" material. External/provider conventions (SKILL.md frontmatter spec, progressive disclosure, provider discovery paths, official security guidance) were independently verified via live documentation fetch (`code.claude.com/docs/en/skills`, `github.com/anthropics/skills`) and web search, not asserted from training-data memory alone.
+
+### EXISTING REUSABLE PROCEDURES FOUND
+
+- **Architect Review / Sync** — `brain/protocols/ARCHITECT_SYNC.md` (explicit review-flow pipeline, 4 review modes with defined verdict vocabulary), `coordination/README.md` (turn-protocol mechanics), 41 worked instances in `devos/changes/architect-syncs/`.
+- **Implementation Handoff** — `brain/ARCHITECT_HANDOFF.md` (exact required field list: `CHANGE ID / OBJECTIVE / FILES CHANGED / REQUIREMENTS AFFECTED / RISKS AFFECTED / IMPLEMENTATION SUMMARY / TESTS EXECUTED / RESULTS / EVIDENCE / KNOWN LIMITATIONS / UNRESOLVED QUESTIONS / REQUESTED REVIEW SCOPE`), `CLAUDE.md`'s own "Phase 1 handoff requirement," 3 worked S0/S1/S2 instances in `devos/handoffs/`.
+- **Governance / Traceability Audit** — `devos/governance/traceability/` (README + deterministic generator/validator, fully implemented, tested, `ML-DEVOS-AS-041`-closed). The single most complete, "skill-ready" procedure in the repository.
+- **Project Orientation** — `brain/00_HOME.md`'s numbered "read order for a new agent or reviewer."
+- **Design Governance contribution checklist** — `brand/V3/DESIGN_GOVERNANCE.md` §11 (Need/Existing system/Consistency/Interaction/Responsive/Evidence checklist) — the clearest standalone checklist in the repository outside Traceability.
+- **Release Readiness assessment** — `docs/release/WEB_REL_001_PRODUCTION_READINESS.md` (brief) + `WEB_REL_001_READINESS_REPORT.md` (21-section worked instance, including a post-deploy verification checklist).
+- **Legacy branch inventory** — described narratively in `CLAUDE.md`/`brain/PROJECT_GOVERNANCE.md`/`D-008`, never abstracted into a standalone checklist; a completed one-off instance exists (8 branches, classified `UNINSPECTED LEGACY/EXPERIMENTAL`).
+- **Change classification / RFC-ADR-Decision-Sync-Implementation lifecycle** — `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` (8 change classes, 5 distinct record types, explicit target lifecycle diagram) and the 7 fill-in `devos/templates/*_TEMPLATE.md` files.
+- **Implicit "knowledge/realization capture" convention** — `SENTINEL-MIGRATION-DEBT-001` (`REPOSITORY_OVERLAY_TOPOLOGY.md`), `TRACE-DEBT-001` (`coordination/STATE.md`), the architect-syncs README's "Legacy verbatim claims — audited and corrected" writeup: a recurring pattern (assign a durable `-DEBT-NNN`/`-GAP-NNN` id, record inline, never silently fix or lose) that is real and repeated but has never been written down as a named procedure.
+- **Authority-recovery check** — `devos/governance/BOOTSTRAP_SOURCE_OF_TRUTH.md`'s one-paragraph rule: before treating an instruction as authoritative, check whether a corresponding commit exists.
+
+### DUPLICATION / OVERLAP ANALYSIS
+
+- "Project-State Recovery" and "Project Orientation" (onboarding) are, in practice, the same procedure nowhere distinguished — `RFC-014` merges them into one candidate rather than inventing an artificial boundary.
+- "Project Health" has no general procedure; the only concrete artifact (`WEB_REL_001_*`) is release-scoped, not general — treated as a separate, narrower, deferred candidate rather than force-fit into "health."
+- "Research Before Architectural Decisions" and "Public/Private Information Classification" have **zero** existing procedure to deduplicate against — see PROCEDURES NOT CONVERTED TO SKILLS.
+- No two of the 5 proposed initial skills (below) share an activation trigger; see `RFC-014` §7 for the full pairwise analysis.
+
+### PROPOSED SKILL ARCHITECTURE
+
+Full definition-boundary table, canonical-location rationale, and design constraints are in `ML-DEVOS-RFC-014.md` §§2–5. Summary: a Skill is a thin, non-authoritative wrapper around an already-authorized procedure (never a rule, a state record, an ADR, a capability grant, or a new authority); `Capability != Authority` (`CORE-002`/`CORE-008`) applies to Skills exactly as it does to tools/credentials.
+
+### PROPOSED CANONICAL LOCATION
+
+`devos/skills/` — consistent with the existing `devos/` subsystem-root pattern (`devos/governance/`, `devos/changes/`, `devos/templates/`, `devos/handoffs/`). Not created in this cycle; would need registration as a new `devos/devos-manifest.json` `reserved_subsystem_roots` entry at implementation time (`RFC-014` §"Migration impact").
+
+### PROPOSED INITIAL SKILLS
+
+5 proposed for a future, separately authorized V0.1 (none built now): **Governance/Traceability Audit**, **Architect Review/Sync**, **Implementation Handoff**, **Project Orientation/State Recovery** (merged candidate), **Knowledge/Realization Capture** (genuinely new — formalizes an existing implicit convention, does not duplicate any existing named procedure). Full rationale per skill: `ML-DEVOS-RFC-014.md` §6.
+
+### PROCEDURES NOT CONVERTED TO SKILLS
+
+- **Project Health** (general concept) — rejected; no general procedure exists to wrap; would require inventing new procedure content inside a skill file, which this RFC's own anti-duplication instruction implies should not happen in reverse either. A narrower future "Release Readiness Review" skill (wrapping the existing `WEB_REL_001_*` pair) is noted as a legitimate later candidate, not included in V0.1.
+- **Research Before Architectural Decisions** — rejected; zero existing procedure found (only post-hoc narrative in Decision Log entries); needs its own design RFC before it could become a skill.
+- **Public/Private Information Classification** — rejected; `RISK-WEB-013` already records this as an unsolved architectural risk (`OPEN despite passing tests`); a skill here risks false confidence over a repository-acknowledged open gap. Flagged as a Paulo decision item, not a Skills Foundation deliverable.
+
+### SKILL CHECK ROUTING MODEL
+
+Documentary convention, not new machinery: each provider's own runtime already performs progressive-disclosure activation (verified live against Claude Code's actual documented behavior — description/`when_to_use` loaded at session start, capped at 1,536 combined characters, full body loaded only on activation match). "SKILL CHECK" means an agent checks `devos/skills/` for a matching procedure before re-deriving one from scattered files — proposed as a one-line future addition to `brain/00_HOME.md`'s existing read-order list, not a new gate or engine. Full detail: `RFC-014` §4.
+
+### PROVIDER ADAPTER STRATEGY
+
+Deliberately left as an **open question** (see below) — external evidence shows no single dominant mechanical answer across providers (`.claude/skills/`, `.agents/skills/`, `.gemini/skills/`, dual-manifest plugin packaging all coexist). The one fixed constraint this RFC does set: `devos/skills/` remains the single canonical source; no provider directory may hold independently-diverging content. No provider-adapter directory is created in this cycle. Full detail: `RFC-014` §5.
+
+### GOVERNANCE INTEGRATION
+
+`GOVERNANCE > SKILLS`, `CURRENT AUTHORIZATION > SKILL CAPABILITY`, and `CAPABILITY != AUTHORITY` are carried from the authorizing brief directly into the RFC's definition boundary (§2) and every proposed skill's design constraints. Every skill's "authoritative sources" field is mandatory. No skill may claim authority to alter `ML-DEVOS-ARCH-001`, override `coordination/STATE.md`'s `AUTHORIZED_SCOPE`, or substitute for a Paulo gate.
+
+### EXTERNAL SKILL SECURITY MODEL
+
+`FOUND ONLINE != TRUSTED` (default). Six-item mandatory pre-adoption review (instruction review; scripts/dependencies/`allowed-tools`/dynamic-shell-injection/hooks/isolation review; overlap check; security/permission assessment; provenance/version/pinning; required authorization — treated as capability-adjacent, gated the same as a comparable tool grant). No automatic install or execution merely because a skill was discovered. Full detail and evidence basis: `RFC-014` §§8–9.
+
+### EVALUATION STRATEGY
+
+12 required case categories designed against the 5 proposed skills (correct activation, missed/incorrect activation, overlapping skills, governance conflict, capability without authority, unauthorized scope, frozen-baseline protection, public/private boundary [deliberately untestable — documented gap, not silently skipped], unrelated open-risk handling, missing Paulo decision, external-skill trust boundary, smallest-sufficient-match). Full table: `RFC-014` §10. No `evals/` content is built in this cycle — this is design only.
+
+### TRACEABILITY UPDATES
+
+None applied. No second traceability system created (per explicit instruction). A future, config-only option is recorded but not adopted: Traceability V1's existing `file`-per-id discovery strategy could cover a future `ML-DEVOS-SKILL-NNN` id family the same way it already covers RFC/AS/ADR — deferred until skills actually exist, since assigning durable IDs to non-existent artifacts would itself be a false record. `devos/governance/traceability/traceability.config.json` was not touched this cycle.
+
+### S3 PAUSE / QUEUE RECORD
+
+Confirmed via live repository inspection before this cycle began: the governance branch had zero implementation commits after S3 activation, and `devos/contracts/` contains only its pre-existing README — pausing creates no abandoned implementation diff. S3 status remains exactly as `D-038`/`coordination/STATE.md` record it: `PAUSED / QUEUED — AUTHORITY PRESERVED`, with `ML-DEVOS-RFC-013`/`ML-DEVOS-AS-038`/`D-037` unchanged. This discovery found no need for any S3 amendment before resumption (`RFC-014` §12) and did not touch `devos/contracts/` or any S3-related record.
+
+### FILES CREATED
+
+- `devos/changes/rfcs/ML-DEVOS-RFC-014.md`
+
+### FILES MODIFIED
+
+- `devos/changes/rfcs/README.md` — added the `ML-DEVOS-RFC-014.md` index entry, in the same one-paragraph-summary style as every other entry.
+- `coordination/IMPLEMENTER_HANDOFF.md` / `coordination/STATE.md` — this handoff and the turn handback.
+
+**Confirmed not touched:** any application/runtime file, any existing brain/devos governance record other than the two listed above, `devos/devos-manifest.json`, `devos/governance/traceability/*`, `devos/contracts/*`, and no `devos/skills/`, `.claude/skills/`, `.codex/skills/`, `.gemini/skills/`, or `.github/skills/` directory was created — confirmed by `git status --porcelain` showing exactly the 2 files above plus this documentation commit.
+
+### OPEN QUESTIONS
+
+1. **Provider adapter mechanism** — symlink, generated copy, or plugin/marketplace manifest for exposing `devos/skills/` content to `.claude/skills/`/`.codex/skills/`/etc.? Not resolved by this RFC (§5); needs an implementation-time decision.
+2. **Durable skill IDs** — should each skill eventually get an `ML-DEVOS-SKILL-NNN` id for Traceability V1 integration, reusing the existing `file`-per-id strategy? Recorded as a viable option, not decided (§11).
+3. **"Release Readiness Review" as a V0.2 skill** — worth a dedicated future evaluation once V0.1 exists and its evaluation methodology is proven.
+4. **Whether/how "Research Before Architectural Decisions" ever gets a first procedure at all** — this discovery found nothing to wrap; a future RFC would need to define the procedure itself before any skill could wrap it.
+
+### PAULO DECISIONS REQUIRED
+
+1. Whether to accept `ML-DEVOS-RFC-014` and authorize a separate V0.1 **implementation** cycle (this discovery does not request or assume that authorization).
+2. Whether/when to open a dedicated governed remediation for `RISK-WEB-013` (public/private Git-repository-level exposure) — flagged here because it blocks any future "Public/Private Information Classification" skill from being anything more than false confidence over an acknowledged open risk.
+3. Whether `devos/skills/` should be registered as a new `reserved_subsystem_roots` entry in `devos/devos-manifest.json` at implementation time (not done now).
+
+### READY FOR ARCHITECT REVIEW
+
+Yes. This discovery cycle produced exactly the authorized files (`ML-DEVOS-RFC-014.md`, `devos/changes/rfcs/README.md` index update, and this handoff/state bookkeeping) and created no skill implementation, no canonical or provider-adapter directory, no S3 resumption, and no product/runtime/remote/deployment change. All findings above are `ACTOR_REPORTED`/the underlying file survey is `INDEPENDENTLY_INSPECTED` by this session against the real repository; external-convention claims are backed by live documentation fetch and web search performed this cycle, cited in `RFC-014` §8, not asserted from training-data memory alone. The Implementer has not self-certified this discovery as `ARCHITECT VERIFIED`.
+
+### Discovery commit
+
+The 3 files above are committed together to `governance/maisoglabs-v0.1` on top of base `0c69ba2118b50142a3648bb95cba5fcb359a2b27`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
