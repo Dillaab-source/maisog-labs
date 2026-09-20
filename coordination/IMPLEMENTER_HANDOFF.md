@@ -2775,3 +2775,137 @@ Identical 4 pre-existing errors as every prior check this RFC's edits have been 
 ### Commit
 
 The 1 modified file above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `0ca661ff9b1d016c13d264ba1f334a176e7a8b6f`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## ML-DEVOS-RFC-015 Bounded Implementation (ML-DEVOS-AS-059 / D-044 / D-045)
+
+**Cycle ID:** `SENTINEL_RFC_015_IMPLEMENTATION`, `CURRENT_REMEDIATION_CYCLE: 0` (first implementation pass).
+
+**Base commit:** `9a8f03dc67eb8d616425bd25ae4a75200b2881d6` (`docs(sync): authorize RFC-015 builder implementation`).
+
+**Authority:** `ML-DEVOS-RFC-015` (DESIGN_ACCEPTED / IMPLEMENTATION AUTHORIZED), `ML-DEVOS-AS-059` (ARCHITECT_APPROVED design review), `D-044` (Paulo design acceptance), `D-045` (Paulo bounded implementation authorization + return-to-roadmap direction).
+
+### Scope discipline
+
+Authorized files per the live Architect Sync/Implementation Handoff (`coordination/ARCHITECT_REVIEW.md`): `devos/schemas/devos-manifest.schema.json`, `devos/schemas/validate-devos-manifest.mjs`, focused tests under `tests/*.test.mjs`, `brain/protocols/ARCHITECT_SYNC.md`, plus normal handoff/state bookkeeping. Exact diff:
+
+```
+$ git status --porcelain
+ M brain/protocols/ARCHITECT_SYNC.md
+ M devos/schemas/devos-manifest.schema.json
+ M devos/schemas/validate-devos-manifest.mjs
+?? tests/devos-manifest.test.mjs
+```
+
+**`devos/devos-manifest.json` (the live manifest instance) was not touched** — confirmed by `git status --porcelain devos/devos-manifest.json` returning no output. No root is `IMPLEMENTED`; no `closure_ref` is set anywhere; `closure_history` is unchanged; `sentinel_capability_baseline` is unchanged. This is directly asserted by two of the new focused tests (`the live devos-manifest.json remains valid...` and `no live manifest root is IMPLEMENTED and no closure_ref is set yet...`).
+
+### Schema changes (`devos/schemas/devos-manifest.schema.json`)
+
+1. `reserved_subsystem_roots[].status` enum extended: `["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE"]` → `["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE", "IMPLEMENTED"]`. Description states `IMPLEMENTED` is descriptive only, grants no authority, does not imply deployment/runtime verification, and does not authorize any later phase.
+2. New optional field `closure_ref: string | null` added to the reserved-root item schema (not added to `required` — backwards compatible with every existing entry, none of which carries it). Description states the exact fail-closed contract: absent/null for `NOT_IMPLEMENTED`/`FOUNDATION_ACTIVE`; for `IMPLEMENTED`, must resolve by `adr` (never by `phase`, per `AS57-F002`) to exactly one `closure_history` entry whose `phase` matches this root's `owning_phase` and whose `decision`/`architect_sync`/`version` are all valid.
+3. `executable_runtime_present` descriptions (both the per-root and top-level fields) rewritten to the behavior-based definition from `AS57-F005`/`AS58-F004`: no ownership of operational state, no lifecycle/state-transition execution, no actor dispatch/orchestration, no capability brokering/enforcement, no autonomous/consequence-bearing action. Explicitly states invocation mechanism (manual vs. automatic/CI) never determines this field's value. **Type, `const: false`, and every existing value are unchanged** — this is a documentation-only clarification, per the authorization's explicit "do not rename the field, do not change the current live values."
+
+### Validator changes (`devos/schemas/validate-devos-manifest.mjs`)
+
+1. **Exports added** so tests can call the validator directly without going through the CLI: `export function validate(doc, errors)` (was previously unexported), `export const MANIFEST_PATH`, `export function loadManifest(manifestPath)`.
+2. **Fixed a latent import-safety defect discovered while wiring tests**: the file previously called `main()` unconditionally at module scope, meaning importing `validate`/`loadManifest` from a test file would have immediately read the live manifest and called `process.exit()` as a side effect of the `import` statement, terminating the whole test run before any assertion executed. Gated behind the same `isDirectRun` (`pathToFileURL` comparison) pattern already established in `devos/contracts/validate-task-contract.mjs` and `scripts/generate-claude-skills-bridge.mjs`. This was never a bug in the original S2 CLI-only design — it only became one the moment this cycle needed the module importable — and is disclosed here rather than silently fixed without mention.
+3. `ROOT_STATUSES` extended to include `IMPLEMENTED`.
+4. New `REQUIRED_ROOT_FIELDS` constant (excludes `closure_ref`) introduced alongside the existing `ROOT_FIELDS` (which now includes `closure_ref` for the `additionalProperties` check) — this separation is what makes `closure_ref` genuinely optional rather than accidentally required.
+5. New `validateClosureRef(root, label, closureHistory, errors)` function implementing the full fail-closed contract: non-null requirement, `ML-DEVOS-ADR-NNN` structural format, unique resolution by `adr` against `closure_history` (zero matches → dangling error; 2+ matches → ambiguous error), phase-match against `owning_phase`, and validation of the matched entry's `decision` (`D-NNN`)/`architect_sync` (`ML-DEVOS-AS-NNN`)/`version` (semver) fields — both presence and structural format.
+6. `FOUNDATION_ACTIVE` restricted explicitly by path (`devos/schemas/` only), not merely by count as before — a root at any other path claiming `FOUNDATION_ACTIVE` now fails immediately, independent of how many other roots also claim it.
+7. Header comments ("WHAT THIS VALIDATOR PROVES"/"DOES NOT PROVE") updated to describe the new checks accurately, including explicit "does not prove this grants authority" and "does not prove invocation mechanism determines runtime-present" disclaimers, mirroring the discipline established in `devos/contracts/validate-task-contract.mjs`.
+
+### `brain/protocols/ARCHITECT_SYNC.md` changes
+
+Added a new "Stage Gate Review — Closure Preflight and Closure Verification" section, placed between "Review modes" and "Verdict rules", carrying RFC-015's D.1 (11-item pre-decision checklist) and D.2 (11-item post-decision checklist) verbatim in substance (condensed to this document's existing terser style). Both are stated explicitly as two moments of the *same* Stage Gate Review gate, not a new phase/Skill/agent/record type, and the traceability items are stated as a delta-from-named-baseline check, never a zero-findings requirement.
+
+### Focused tests (`tests/devos-manifest.test.mjs`, new, 22 tests)
+
+Covers every required case from the authorization's "Validator requirements" list:
+- current live manifest remains valid (2 tests: zero errors, and confirms no root is yet `IMPLEMENTED`/no `closure_ref` set);
+- `IMPLEMENTED` without `closure_ref` fails (2 variants: absent, explicit `null`);
+- dangling `closure_ref` fails;
+- ambiguous (duplicate-ADR-match) `closure_ref` fails;
+- `closure_ref` resolving to the wrong `owning_phase` fails;
+- malformed `closure_ref` format fails;
+- malformed matched `decision`/`architect_sync` IDs each fail (2 tests);
+- missing matched `decision`/`architect_sync`/`version` all fail together (1 test asserting all three);
+- `NOT_IMPLEMENTED` and `FOUNDATION_ACTIVE` roots with a non-null `closure_ref` each fail (2 tests);
+- only `devos/schemas/` may be `FOUNDATION_ACTIVE` (path-restriction test, distinct from the pre-existing count-restriction);
+- a fully valid synthetic `IMPLEMENTED` + matching `closure_history` fixture passes;
+- `IMPLEMENTED` status never forces `executable_runtime_present` to `true` (independence in both directions — 2 tests);
+- schema descriptions explicitly disclaim authority-granting and invocation-based runtime semantics (2 tests);
+- the validator's exported API never implies acceptance/certification (mirrors the identical test pattern already used in `tests/task-contract.test.mjs`);
+- `closure_ref` is schema-optional, and the status enum is exactly the three intended values, no more (2 tests).
+
+**Fixture design note (self-caught, not Architect-flagged):** the first draft of this test file used fabricated-but-well-formed IDs (`ML-DEVOS-ADR-999`, `D-046`, `ML-DEVOS-AS-060`) for synthetic `closure_history` entries. Running `node devos/governance/traceability/validate-traceability.mjs` after adding the file showed 3 new `missing-canonical-target` errors — `tests/` is scanned by that validator (only `tests/traceability.test.mjs` is exempted, per that config file's own comment, which does not cover this new file, and editing `devos/governance/traceability/traceability.config.json` is outside this cycle's authorized scope and would itself be "unrelated governance expansion," explicitly prohibited). Fixed by reusing real, already-canonical repository IDs (`ML-DEVOS-ADR-001`/`003`–`010`, `D-045`, `ML-DEVOS-AS-059`) that are simply unused in the live manifest's own `closure_history` (which cites only `ML-DEVOS-ADR-002`/`006`) — this exercises the exact same "dangling"/"ambiguous" validator conditions without introducing any phantom governance ID, and confirmed by re-running the traceability validator to the identical 4 pre-existing errors, zero new. A stray literal mention of the fabricated example ID inside an explanatory code comment (not a fixture value) caused one of the three errors to persist after the fixture fix; caught and corrected in the same pass.
+
+### Evidence
+
+**Manifest validator CLI, run against the live instance:**
+
+```
+$ node devos/schemas/validate-devos-manifest.mjs
+devos-manifest.json: parsed
+  OK — no structural or semantic issues found.
+
+PASS: 0 error(s) across 1 file(s).
+```
+
+**Focused tests:**
+
+```
+$ node --test tests/devos-manifest.test.mjs
+# tests 22
+# pass 22
+# fail 0
+```
+
+**Full-suite sanity result** (2 batches):
+
+```
+tests/content + d1-audit + d1-migration + design-overlay + skills + task-contract + devos-manifest: 176/176
+tests/traceability + all worker-* files:                                                            282/282
+------------------------------------------------------------------------------------------------------------
+Total:                                                                                               458/458
+```
+
+458 = the pre-cycle 436 + this cycle's 22 new tests. No pre-existing test was modified, and none regressed.
+
+**Traceability, before and after (both runs read-only; `generate-traceability.mjs` was never run this cycle, since regenerating derived output is explicitly a Closure Verification action, not an ordinary implementation action, and this cycle is not a closure):**
+
+```
+$ node devos/governance/traceability/validate-traceability.mjs
+Errors: 4  Warnings: 15  Total canonical definitions: 240
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] ML-DEVOS-ADR ML-DEVOS-ADR-011: ...
+ERROR [missing-canonical-target] ML-DEVOS-ADR ML-DEVOS-ADR-012: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+```
+
+Identical 4 pre-existing errors as every prior check in this RFC's history (`Total canonical definitions` grew from 237 to 240, reflecting the new files' own content, not a new finding). Zero new findings.
+
+All of the above is `ACTOR_REPORTED` — this Implementer ran the commands and is reporting the output; it has not been independently reproduced or CI-attested.
+
+### Explicit confirmations
+
+- **No live manifest closure mutation occurred.** `devos/devos-manifest.json` is byte-identical to base (confirmed via `git status --porcelain` showing no entry for that path).
+- **No `devos/contracts/` → `IMPLEMENTED` transition, no `closure_history` append, no `RFC-013` closure status mutation, no closure ADR creation, no Sentinel version bump.**
+- **No S4 proposal or implementation, no S5+, no core-rule mutation, no product/runtime mutation, no remote resources, no credentials, no deployment, no production writes, no protected/main merge.**
+- **No unrelated governance expansion** — `devos/governance/traceability/traceability.config.json` was read for diagnosis but not modified (see fixture-design note above); this is disclosed as a known, minor, precedented (matching `tests/traceability.test.mjs`'s own existing exemption rationale) limitation the Architect/Paulo may separately choose to address in a future narrowly-scoped traceability-config change, not performed here.
+- **The Implementer has not self-accepted this RFC-015 implementation and has not started S3 closure or S4 work.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / compatibility notes
+
+- `tests/devos-manifest.test.mjs` is not currently listed in `devos/governance/traceability/traceability.config.json`'s `workingSurfaceExcludePaths`, unlike the structurally identical `tests/traceability.test.mjs`. This cycle avoided needing that exemption by choosing fixture IDs carefully (see above) rather than requesting the config change, since the config file is outside this cycle's authorized scope. If a future test in this file needs a genuinely fabricated (not merely unused-but-real) governance ID, that traceability-config addition would become necessary and should be proposed as its own narrowly-scoped change at that time.
+- `package.json`'s `test` script (`node --test tests/*.test.mjs`) already picks up the new file with no change needed, per the authorization's own note.
+- The `validateClosureRef` function's phase-match and matched-field checks partially overlap with the pre-existing generic `closure_history` entry validation loop (which already flags empty `decision`/`architect_sync`/`note` regardless of whether any root references them) — this is intentional duplication for clearer, root-scoped error attribution when diagnosing a specific `closure_ref` problem, not redundant dead code; both loops are independently exercised by the focused tests.
+
+### Return gate
+
+`coordination/STATE.md` is updated to `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `ARCHITECT_ACTION_REQUIRED: YES` / `IMPLEMENTER_ACTION_REQUIRED: NO`. `DEPLOY_AUTHORIZED: NO` and `MAIN_MERGE_AUTHORIZED: NO` remain unchanged. Builder has not self-accepted the RFC-015 implementation and has not started S3 closure or S4 work.
+
+### Commit
+
+The 4 files above (3 modified, 1 new), alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `9a8f03dc67eb8d616425bd25ae4a75200b2881d6`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

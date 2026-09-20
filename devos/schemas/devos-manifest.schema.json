@@ -72,13 +72,17 @@
           },
           "status": {
             "type": "string",
-            "enum": ["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE"],
-            "description": "NOT_IMPLEMENTED for every root reserved for a later phase. FOUNDATION_ACTIVE only for devos/schemas/, which S2 itself owns and populates."
+            "enum": ["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE", "IMPLEMENTED"],
+            "description": "NOT_IMPLEMENTED for every root reserved for a later phase not yet closed. FOUNDATION_ACTIVE only for devos/schemas/, which S2 itself owns and populates. IMPLEMENTED (ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 / D-044 / D-045) means the owning phase's bounded repository capability has been built, independently reviewed, and closed under an explicit Paulo decision -- it is descriptive only and grants no authority, does not imply deployment/runtime verification (CORE-007/016/017/018 are untouched by this field), and does not itself authorize any later phase (reserved_root_invariant remains in force)."
+          },
+          "closure_ref": {
+            "type": ["string", "null"],
+            "description": "ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 / D-044 / D-045: optional fail-closed link to this root's closure event. Absent or null for NOT_IMPLEMENTED/FOUNDATION_ACTIVE (a root that has not closed cannot cite a closure event). For IMPLEMENTED, must be a non-null string matching an ML-DEVOS-ADR-NNN identifier that resolves to exactly one devos-manifest.json closure_history[] entry whose own 'adr' field equals this value, whose 'phase' field equals this root's own 'owning_phase', and whose 'decision'/'architect_sync'/'version' fields are all non-empty and structurally valid -- enforced by validate-devos-manifest.mjs, not by this static schema alone (matches by adr, a unique never-reused identifier, never by phase, a reusable category label -- AS57-F002)."
           },
           "executable_runtime_present": {
             "type": "boolean",
             "const": false,
-            "description": "MUST be false for every root in S2 -- no reserved root may contain executable later-phase subsystem code (S2-F007, RFC non-goals)."
+            "description": "MUST be false for every root while no later phase has genuinely added live execution. Clarified by responsibility, not invocation method (ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 AS57-F005/AS58-F004): false means the root contains no active Sentinel operational subsystem that owns/persists operational state, executes lifecycle/state transitions, dispatches/orchestrates actors, brokers/enforces capabilities, or performs autonomous/consequence-bearing operational actions. Repository-local schemas, specifications, deterministic validators/generators, and their tests may be executable code and may be invoked manually or automatically (including from CI) without becoming a Sentinel runtime subsystem by that fact alone -- invocation mechanism never determines this field's value. A root may legitimately reach status IMPLEMENTED while this remains false indefinitely (S2-F007, RFC non-goals)."
           }
         }
       }
@@ -116,7 +120,7 @@
     "executable_runtime_present": {
       "type": "boolean",
       "const": false,
-      "description": "MUST be false -- S2 is a static repository foundation only; no Task/Policy/Capability/Orchestrator/Evidence runtime, CI, or ruleset exists (RFC acceptance criterion 5/12)."
+      "description": "MUST be false -- no Task/Policy/Capability/Orchestrator/Evidence runtime, CI enforcement, or ruleset exists at the manifest level. Clarified by responsibility, not invocation method (ML-DEVOS-RFC-015 / ML-DEVOS-AS-059): see the matching per-root field's description for the exact behavior-based definition, which applies identically here."
     },
     "prohibition": { "type": "string", "minLength": 1 },
     "closure_history": {

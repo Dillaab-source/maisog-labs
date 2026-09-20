@@ -2,9 +2,12 @@
 // Static structural + semantic validator for devos/devos-manifest.json.
 //
 // Introduced in S2 -- DevOS Repository Foundation (ML-DEVOS-RFC-001,
-// ML-DEVOS-AS-006, D-016). This is a governance-data lint tool only. It
-// performs no runtime policy enforcement, is not wired into any CI/git hook,
-// and is not invoked automatically by anything. Run manually:
+// ML-DEVOS-AS-006, D-016). Extended by ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 /
+// D-044 / D-045 to add the post-bootstrap reserved-root lifecycle state
+// IMPLEMENTED and its fail-closed closure_ref linkage, without changing any
+// S2-era check. This is a governance-data lint tool only. It performs no
+// runtime policy enforcement, is not wired into any CI/git hook, and is not
+// invoked automatically by anything. Run manually:
 //
 //   node devos/schemas/validate-devos-manifest.mjs
 //
@@ -35,12 +38,28 @@
 //     mentioned, and this manifest is mentioned before the project registry
 //     (S2-F002) -- a purely positional, textual check, not a semantic proof.
 //   - Every reserved_subsystem_roots entry has exactly one non-empty string
-//     owning_phase (never an array -- S2-F005), a status of either
-//     NOT_IMPLEMENTED or FOUNDATION_ACTIVE, and executable_runtime_present
-//     === false (S2-F007 / RFC acceptance criteria 4-5).
+//     owning_phase (never an array -- S2-F005), a status of NOT_IMPLEMENTED,
+//     FOUNDATION_ACTIVE, or IMPLEMENTED (ML-DEVOS-RFC-015), and
+//     executable_runtime_present === false (S2-F007 / RFC acceptance
+//     criteria 4-5 -- unaffected by RFC-015's clarified, behavior-based
+//     meaning of that field, since no root has genuinely added live
+//     execution yet).
 //   - No two reserved_subsystem_roots entries declare the same path.
-//   - Exactly one reserved root (devos/schemas/) may be FOUNDATION_ACTIVE;
-//     every other declared root must be NOT_IMPLEMENTED.
+//   - Only devos/schemas/ may be FOUNDATION_ACTIVE, checked both by path and
+//     by count; every other declared root must be NOT_IMPLEMENTED or,
+//     once closed, IMPLEMENTED.
+//   - A root with status IMPLEMENTED has a non-null closure_ref matching the
+//     ML-DEVOS-ADR-NNN convention that resolves to EXACTLY ONE
+//     closure_history entry by that entry's own `adr` field (never by
+//     `phase`, a reusable label -- ML-DEVOS-AS-057 AS57-F002); that matched
+//     entry's `phase` equals the root's own `owning_phase`; and that matched
+//     entry's `decision`/`architect_sync`/`version` are all present and
+//     match the repository's existing ID/semver conventions. A root with
+//     status NOT_IMPLEMENTED or FOUNDATION_ACTIVE has closure_ref absent or
+//     null, never a live reference. This is a fail-closed check: a bare
+//     status edit, a dangling reference, an ambiguous (multiply-matching)
+//     reference, or a reference resolving to the wrong phase's closure are
+//     all hard failures, not warnings.
 //   - project_registry.role is exactly "index only" and project_registry.
 //     status is EMPTY -- this is the standing pre-onboarding invariant
 //     (ML-DEVOS-RFC-001 acceptance criterion 7; reaffirmed at S2 closure,
@@ -79,20 +98,50 @@
 //     validate-project-registry.mjs for that.
 //   - Any runtime behavior. It enforces nothing; it is a manual, one-shot
 //     lint pass over a static file.
+//   - That a root's IMPLEMENTED status or resolvable closure_ref grants that
+//     root's owning phase any authority, deployment/runtime verification, or
+//     standing to authorize a later phase (CORE-001, CORE-002; ML-DEVOS-RFC-015).
+//     A PASS from this file is a structural/semantic validity result about
+//     the manifest's own shape only -- never a task-acceptance, closure-
+//     correctness-in-substance, or authority result. Whether the cited ADR/
+//     Decision/Architect Sync actually say what the manifest claims remains
+//     Architect/human cross-reference review, same limitation already
+//     disclosed above for the S2-era provenance fields.
+//   - That any repository-local schema, validator, or generator being
+//     executable, or being invoked manually vs. automatically (including
+//     from CI), by itself changes executable_runtime_present's correct
+//     value -- that field's meaning is behavior-based (does the root own
+//     operational state, execute lifecycle transitions, dispatch actors,
+//     broker capabilities, or take autonomous/consequence-bearing action),
+//     never invocation-based (ML-DEVOS-AS-057 AS57-F005 / ML-DEVOS-AS-058
+//     AS58-F004); this validator's own existence and manual/CI invocability
+//     is itself a worked example of tooling that stays non-runtime.
 
 import { readFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const MANIFEST_PATH = path.join(HERE, "..", "devos-manifest.json");
+export const MANIFEST_PATH = path.join(HERE, "..", "devos-manifest.json");
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const SEMVER_RE = /^[0-9]+\.[0-9]+\.[0-9]+$/;
-const ROOT_STATUSES = new Set(["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE"]);
+// ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 / D-044 / D-045: IMPLEMENTED added as a
+// third reserved-root lifecycle status alongside the S2-bootstrap-only
+// NOT_IMPLEMENTED/FOUNDATION_ACTIVE vocabulary.
+const ROOT_STATUSES = new Set(["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE", "IMPLEMENTED"]);
 const BASELINE_STATUSES = new Set(["ACTIVE", "SUPERSEDED"]);
 const REGISTRY_STATUSES = new Set(["EMPTY", "POPULATED"]);
 const SURFACE_STATUSES = new Set(["ACTIVE", "RETIRED"]);
+// Structural ID conventions already established elsewhere in this repository
+// (devos/changes/adrs/, brain/DECISION_LOG.md, devos/changes/architect-syncs/):
+// three-digit, zero-padded, sequential, never-reused identifiers.
+const ADR_ID_RE = /^ML-DEVOS-ADR-[0-9]{3}$/;
+const DECISION_ID_RE = /^D-[0-9]{3}$/;
+const ARCHITECT_SYNC_ID_RE = /^ML-DEVOS-AS-[0-9]{3}$/;
+// ML-DEVOS-RFC-015: only devos/schemas/ may ever be FOUNDATION_ACTIVE -- it is
+// the one root S2 itself owns and populates as repository foundation.
+const FOUNDATION_ACTIVE_PATH = "devos/schemas/";
 
 // ML-DEVOS-RFC-001 established, and D-017/ML-DEVOS-ADR-002 reaffirmed at S2
 // closure, that the project registry remains empty until a separately
@@ -124,7 +173,10 @@ const TOP_FIELDS = new Set([
 const CLOSURE_ENTRY_FIELDS = new Set(["phase", "closed_at", "version", "adr", "decision", "architect_sync", "note"]);
 const ARCH_BASELINE_FIELDS = new Set(["id", "version", "status", "document"]);
 const CAP_BASELINE_FIELDS = new Set(["version", "status", "adr", "decision", "document"]);
-const ROOT_FIELDS = new Set(["path", "owning_phase", "consuming_phases", "status", "executable_runtime_present"]);
+const ROOT_FIELDS = new Set(["path", "owning_phase", "consuming_phases", "status", "closure_ref", "executable_runtime_present"]);
+// closure_ref is deliberately excluded: it is optional (ML-DEVOS-RFC-015),
+// and its absence is backwards compatible with every root that predates it.
+const REQUIRED_ROOT_FIELDS = new Set(["path", "owning_phase", "consuming_phases", "status", "executable_runtime_present"]);
 const REGISTRY_FIELDS = new Set(["location", "schema", "role", "status", "note"]);
 const SURFACE_FIELDS = new Set(["path", "status", "note"]);
 const PROVENANCE_FIELDS = new Set(["rfc", "architect_sync", "proposal_decision", "implementation_decision"]);
@@ -135,7 +187,71 @@ function checkAdditionalProps(obj, allowed, label, errors) {
   }
 }
 
-function validate(doc, errors) {
+// ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 / D-044 / D-045 (AS57-F002 corrected
+// design): a reserved root's IMPLEMENTED status is fail-closed only if
+// closure_ref names a UNIQUE closure event -- matched by the closure_history
+// entry's `adr` (sequential, never reused), never by its `phase` (a reusable
+// category label a later corrective/re-closure could share). This function
+// checks that link is sound; it never itself certifies the closure is
+// correct in substance, and it never grants the root's owning phase any
+// authority -- IMPLEMENTED is descriptive data, not a delegation (CORE-001,
+// CORE-002).
+function validateClosureRef(root, label, closureHistory, errors) {
+  const hasClosureRef = Object.hasOwn(root, "closure_ref");
+  const closureRef = root.closure_ref;
+
+  if (root.status !== "IMPLEMENTED") {
+    // NOT_IMPLEMENTED / FOUNDATION_ACTIVE: a root that has not closed cannot
+    // cite a closure event. Absence is fine; an explicit non-null value is not.
+    if (hasClosureRef && closureRef !== null) {
+      errors.push(`${label}: 'closure_ref' must be absent or null when status is '${root.status}' -- a root that has not closed cannot cite a closure event`);
+    }
+    return;
+  }
+
+  if (!hasClosureRef || closureRef === null) {
+    errors.push(`${label}: status IMPLEMENTED requires a non-null 'closure_ref' -- a bare status edit is never sufficient evidence of closure`);
+    return;
+  }
+  if (typeof closureRef !== "string" || !ADR_ID_RE.test(closureRef)) {
+    errors.push(`${label}: 'closure_ref' must be a string matching the ML-DEVOS-ADR-NNN convention (found '${closureRef}')`);
+    return;
+  }
+  if (!Array.isArray(closureHistory)) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) cannot be resolved because manifest.closure_history is missing or invalid`);
+    return;
+  }
+
+  const matches = closureHistory.filter((entry) => isPlainObject(entry) && entry.adr === closureRef);
+  if (matches.length === 0) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) does not resolve to any manifest.closure_history entry -- a dangling closure reference is never valid`);
+    return;
+  }
+  if (matches.length > 1) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to ${matches.length} manifest.closure_history entries -- an ADR reference must be unique; an ambiguous closure linkage is never valid`);
+    return;
+  }
+
+  const matched = matches[0];
+  if (matched.phase !== root.owning_phase) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to a closure_history entry for phase '${matched.phase}', but this root's owning_phase is '${root.owning_phase}' -- closure_ref must close the SAME phase that owns this root`);
+  }
+  if (!isNonEmptyString(matched.decision)) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to a closure_history entry missing a non-empty 'decision'`);
+  } else if (!DECISION_ID_RE.test(matched.decision)) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to a closure_history entry whose 'decision' ('${matched.decision}') does not match the repository's D-NNN convention`);
+  }
+  if (!isNonEmptyString(matched.architect_sync)) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to a closure_history entry missing a non-empty 'architect_sync'`);
+  } else if (!ARCHITECT_SYNC_ID_RE.test(matched.architect_sync)) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to a closure_history entry whose 'architect_sync' ('${matched.architect_sync}') does not match the repository's ML-DEVOS-AS-NNN convention`);
+  }
+  if (typeof matched.version !== "string" || !SEMVER_RE.test(matched.version)) {
+    errors.push(`${label}: 'closure_ref' (${closureRef}) resolves to a closure_history entry with a missing or invalid 'version'`);
+  }
+}
+
+export function validate(doc, errors) {
   if (!isPlainObject(doc)) {
     errors.push("manifest: top-level document must be an object");
     return;
@@ -220,7 +336,10 @@ function validate(doc, errors) {
         continue;
       }
       checkAdditionalProps(root, ROOT_FIELDS, label, errors);
-      for (const field of ROOT_FIELDS) {
+      // closure_ref (ML-DEVOS-RFC-015) is optional -- absence is backwards
+      // compatible with every root that existed before this field, so it is
+      // deliberately excluded from this required-field check.
+      for (const field of REQUIRED_ROOT_FIELDS) {
         if (!Object.hasOwn(root, field)) errors.push(`${label}: missing required field '${field}'`);
       }
       if (!isNonEmptyString(root.path)) errors.push(`${label}: 'path' must be a non-empty string`);
@@ -234,14 +353,27 @@ function validate(doc, errors) {
       if (!Array.isArray(root.consuming_phases) || root.consuming_phases.some((p) => typeof p !== "string")) {
         errors.push(`${label}: 'consuming_phases' must be an array of strings`);
       }
-      if (!ROOT_STATUSES.has(root.status)) errors.push(`${label}: invalid status '${root.status}' (must be NOT_IMPLEMENTED or FOUNDATION_ACTIVE)`);
-      else if (root.status === "FOUNDATION_ACTIVE") foundationActiveCount += 1;
+      if (!ROOT_STATUSES.has(root.status)) {
+        errors.push(`${label}: invalid status '${root.status}' (must be NOT_IMPLEMENTED, FOUNDATION_ACTIVE, or IMPLEMENTED)`);
+      } else {
+        if (root.status === "FOUNDATION_ACTIVE") {
+          foundationActiveCount += 1;
+          // ML-DEVOS-RFC-015: preserve the existing invariant explicitly by
+          // path, not merely by count -- a second root could otherwise claim
+          // FOUNDATION_ACTIVE the moment devos/schemas/ itself became
+          // something else, without ever tripping the ">1" check below.
+          if (root.path !== FOUNDATION_ACTIVE_PATH) {
+            errors.push(`${label}: only '${FOUNDATION_ACTIVE_PATH}' may be FOUNDATION_ACTIVE -- every other reserved root belongs to a later phase and must be NOT_IMPLEMENTED or, once closed, IMPLEMENTED`);
+          }
+        }
+        validateClosureRef(root, label, doc.closure_history, errors);
+      }
       if (root.executable_runtime_present !== false) {
-        errors.push(`${label}: 'executable_runtime_present' must be exactly false in S2 -- no reserved root may contain executable later-phase subsystem code (S2-F007)`);
+        errors.push(`${label}: 'executable_runtime_present' must be exactly false -- no reserved root may contain live executable Sentinel runtime behavior yet (S2-F007; see the schema field's description for the exact behavior-based boundary, ML-DEVOS-RFC-015)`);
       }
     }
     if (foundationActiveCount > 1) {
-      errors.push(`manifest.reserved_subsystem_roots: at most one root may be FOUNDATION_ACTIVE in S2 (found ${foundationActiveCount}) -- only devos/schemas/ is S2-owned foundation; every other reserved root belongs to a later phase and must be NOT_IMPLEMENTED`);
+      errors.push(`manifest.reserved_subsystem_roots: at most one root may be FOUNDATION_ACTIVE (found ${foundationActiveCount}) -- only devos/schemas/ is S2-owned foundation; every other reserved root belongs to a later phase`);
     }
   }
 
@@ -326,15 +458,22 @@ function validate(doc, errors) {
   }
 }
 
+// Exported so tests can validate synthetic fixtures without ever touching
+// the live devos-manifest.json, and so a test can load-and-clone the live
+// manifest to prove it remains valid under the extended schema.
+export function loadManifest(manifestPath = MANIFEST_PATH) {
+  const raw = readFileSync(manifestPath, "utf8");
+  return JSON.parse(raw); // fail-closed: throws on any malformed JSON
+}
+
 function main() {
   if (!existsSync(MANIFEST_PATH)) {
     console.log(`No manifest found at ${MANIFEST_PATH}`);
     process.exit(1);
   }
-  const raw = readFileSync(MANIFEST_PATH, "utf8");
   let doc;
   try {
-    doc = JSON.parse(raw); // fail-closed: throws on any malformed JSON
+    doc = loadManifest();
   } catch (e) {
     console.log(`(parse error) ${MANIFEST_PATH}: ${e.message}`);
     console.log("\nFAIL: 1 error(s) across 1 file(s).");
@@ -352,4 +491,13 @@ function main() {
   process.exit(errors.length === 0 ? 0 : 1);
 }
 
-main();
+// ML-DEVOS-RFC-015 implementation: guard direct-run so this module can be
+// imported by tests (which call validate()/loadManifest() directly) without
+// main() eagerly reading the live manifest and calling process.exit() as a
+// side effect of the import -- the same pattern already established by
+// devos/contracts/validate-task-contract.mjs and
+// scripts/generate-claude-skills-bridge.mjs.
+const isDirectRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  main();
+}
