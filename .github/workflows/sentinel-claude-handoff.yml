@@ -64,7 +64,7 @@ jobs:
           echo "STATUS=$status"
           echo "AUTHORIZED_SCOPE=$scope"
           echo "IMPLEMENTER_ACTION_REQUIRED=$implementer"
-          echo "INPUT_HEAD=$GITHUB_SHA"
+          echo "INPUT_HEAD=${{ github.event.pull_request.head.sha }}"
 
       - name: Run Claude Builder
         if: steps.gate.outputs.run_claude == 'true'
@@ -77,7 +77,7 @@ jobs:
 
             Repository: ${{ github.repository }}
             Branch: governance/maisoglabs-v0.1
-            Trigger HEAD: ${{ github.sha }}
+            Trigger HEAD: ${{ github.event.pull_request.head.sha }}
 
             The repository is the source of truth.
 
@@ -100,7 +100,7 @@ jobs:
             This automation grants no authority of its own. STATE.md is authoritative.
           claude_args: |
             --max-turns 30
-            --allowedTools "Read,Edit,Write,Bash(node:*),Bash(npm test:*),Bash(npm run test:*),Bash(npm run lint:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*)"
+            --allowedTools "Read,Edit,Write,Bash(node:*),Bash(npm test:*),Bash(npm run test:*),Bash(npm run lint:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git rev-parse:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*)"
 
       - name: Publish runner summary
         if: always()
@@ -108,7 +108,7 @@ jobs:
         run: |
           {
             echo "## SENTINEL Claude Handoff"
-            echo "- Trigger HEAD: $GITHUB_SHA"
+            echo "- Trigger HEAD: ${{ github.event.pull_request.head.sha }}"
             echo "- Cycle: ${{ steps.gate.outputs.cycle }}"
             echo "- Gate TURN: ${{ steps.gate.outputs.turn }}"
             echo "- Gate STATUS: ${{ steps.gate.outputs.status }}"
