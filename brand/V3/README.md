@@ -32,6 +32,10 @@ The landing page becomes one immersive cinematic environment combining deep-spac
 - Inter — navigation / UI / body
 - IBM Plex Mono or JetBrains Mono — technical metadata
 
+## Design governance
+
+- `DESIGN_GOVERNANCE.md` — binding project-level rules for extending the MaisogLabs visual language. New features must reuse V3 foundations/components/patterns before introducing new visual primitives.
+
 ## Repository structure
 - `logos/` — canonical SVG masters
 - `design-tokens/` — developer and AI-agent tokens
