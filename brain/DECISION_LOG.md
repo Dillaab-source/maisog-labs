@@ -614,3 +614,17 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **No parallel S3 build:** S3 remains paused during this Builder cycle so only one implementation track is active.
 - **Sequential S3 authorization:** Once this Skills/Treasury V0.1 implementation returns from Claude and is independently accepted by the Architect, the Architect may reopen the already-approved S3 Typed Task Contracts implementation under preserved `D-037` / `ML-DEVOS-AS-038` authority **without another Paulo approval**, provided no new architecture/security blocker is discovered. This is sequential authorization, not concurrent implementation.
 - **Still prohibited:** S4+, S5 Capability Gateway, external-skill installation, provider account scraping/import, chat-history archive/import, S11 memory machinery, secrets/credentials in Git, remote resources, deployment, public cutover, protected/main merge, or unrelated product/runtime changes.
+
+
+### D-043 — Authorize closure-drift hardening proposal and natural improvement surfacing
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Paulo instructed: `Put this into record somewhere please proceed and future suggestions should also come out naturally` after the S3 closure discrepancy analysis and broad external validation.
+- **Decision:** Preserve the S3 technical approval, do **not** close S3 yet, and authorize a narrowly scoped architecture proposal to resolve the missing reserved-subsystem lifecycle semantics before S3 closure.
+- **Proposal authorized:** create `ML-DEVOS-RFC-015 — Reserved Subsystem Lifecycle and Closure Reconciliation`.
+- **RFC-015 must cover only:** reserved-root lifecycle semantics needed to move an owning phase from `NOT_IMPLEMENTED` to a governance-closed implemented state; the special S2 `FOUNDATION_ACTIVE` case; fail-closed closure-evidence requirements; the meaning of `executable_runtime_present` so repository-local validators/tooling are not confused with Sentinel runtime/orchestration/enforcement; closure-preflight integration with Architect Sync; and the minimum traceability/version/ADR/manifest reconciliation required at phase closure.
+- **Anti-bloat direction:** Closure Preflight is part of the existing Architect Review / Sync procedure, not a new Sentinel phase, agent, database, or standalone Skill.
+- **Natural-suggestion rule:** future Architect/Builder reviews may surface non-binding improvement suggestions at natural lifecycle checkpoints (implementation review, closure, incident, repeated friction, or proven reuse opportunity). Suggestions do not become authority merely because an agent proposes them; they must be classified through the Knowledge Treasury / applicable change class and promoted only when durable value and governance requirements justify it.
+- **Current S3 status:** `ML-DEVOS-AS-055` technical approval remains valid. S3 closure/version/manifest mutation remains blocked pending RFC-015 review and a later explicit closure decision.
+- **No implementation authority from this decision:** do not change manifest schema/status, capability baseline, ADR numbering, RFC-013 closure status, traceability outputs, S4 state, runtime/product code, remote resources, deployment, or protected/main.
+- **Return gate:** RFC-015 draft returns to Architect review before Paulo is asked to approve any manifest lifecycle implementation or S3 closure package.
