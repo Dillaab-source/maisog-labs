@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — SENTINEL-BASELINE-CLEANUP-001 CLOSED`
+Status: `ARCHITECT_APPROVED — TRACEABILITY V1 BOUNDED IMPLEMENTATION AUTHORIZED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,91 +8,84 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# SENTINEL-BASELINE-CLEANUP-001 — Independent closure review
+# ML-DEVOS-AS-037 — Static Traceability Graph / Validator Architecture Review
 
-## Review scope
+Change:
+- `ML-DEVOS-RFC-012`
+- Sentinel Traceability V1
 
-PATCH-class cleanup only.
+Class:
+- `ARCHITECTURE`
 
-Reviewed base:
-`973022fcba712b20440b1e72fa02c7cffc20ce74`
+## Repository grounding
 
-The governance branch is exactly one commit ahead of that base for this cleanup cycle.
+The Architect independently confirmed:
 
-## Independent repository inspection
-
-The Architect independently compared the cleanup branch against the authorized base and confirmed exactly five changed paths:
-
-1. `devos/devos-manifest.json`
-2. `devos/governance/specifications/VERSIONING_POLICY.md`
-3. `projects/README.md`
-4. `coordination/IMPLEMENTER_HANDOFF.md`
-5. `coordination/STATE.md`
-
-This matches the authorized three substantive files plus the two permitted coordination records. No application/runtime file, rule registry, frozen architecture, historical Decision/ADR/Architect Sync, project registry data, validator, CI/workflow, remote-resource config, deployment config, or main branch content changed.
+- `ML-DEVOS-ARCH-001 §8` already freezes the universal traceability model:
+  `Requirement → Design → Implementation → Test → Evidence → Status`;
+- `brain/GOVERNANCE_MAP.md` already implements that model manually for the website pilot;
+- `brain/RISK_REGISTER.md` uses `Risk → Control → Test → Evidence → Status`;
+- durable RFC, Architect Sync, Decision, ADR, risk, test, and implementation records already exist;
+- current validators explicitly disclose that cross-reference existence is not yet mechanically proven;
+- `SENTINEL-BASELINE-CLEANUP-001` demonstrated a real stale-descriptive-state failure mode while authoritative state remained correct;
+- S3, S7, and S9 remain unimplemented and must not be pulled forward accidentally.
 
 ## Findings
 
-### SC001-F001 — CLOSED
+### AS37-F001 — PASS — architecture class is appropriate
 
-The active manifest precedence text now says:
+The proposal creates a cross-cutting governance tooling subsystem and derived graph/index. It is more than a PATCH or LOCAL_RULE, but it does not change constitutional/core rule meaning.
 
-`Sentinel capability baseline, currently v1.5.0`
+### AS37-F002 — PASS — source-of-truth hierarchy is preserved
 
-This is consistent with `sentinel_capability_baseline.version = 1.5.0`, `D-028`, and `ML-DEVOS-ADR-006`.
+Underlying records remain authoritative. Generated traceability output must be labeled derived/non-authoritative and may never override frozen architecture, active governance, decisions, ADRs, durable Architect Syncs, requirement/risk/test source records.
 
-### SC001-F002 — CLOSED
+### AS37-F003 — PASS — no second giant manual matrix
 
-The Versioning Policy now correctly distinguishes:
+V1 must derive as much as possible from existing canonical surfaces and use only small bounded configuration/exception metadata. A manually maintained duplicate of all relationships is prohibited.
 
-- historical S2 transition: `v1.3.0 → v1.4.0`;
-- current baseline after risk-escalation governance: `v1.5.0`.
+### AS37-F004 — PASS — bounded validation semantics
 
-The historical S2 event is preserved and is no longer presented as the current field value.
+V1 may fail on objective structural integrity defects: missing canonical target, duplicate canonical definition, malformed generated output, or nondeterministic generation. Potential orphans/ambiguous semantic edges remain warnings unless a separately governed rule later makes them blocking.
 
-### SC001-F003 — CLOSED
+### AS37-F005 — PASS — historical/bootstrap exceptions must be explicit
 
-`projects/README.md` now describes registry emptiness as the standing pre-onboarding invariant, independent of S2 closure.
+Pre-RFC/pre-ADR/bootstrap history is allowed to differ from later record conventions. Exceptions must be visible and explained; the validator must not silently suppress them.
 
-### SC001-F004 — CLOSED
+### AS37-F006 — PASS — no S3 Typed Task Contract implementation
+### AS37-F007 — PASS — no S7 Evidence Store / QA Plane implementation
+### AS37-F008 — PASS — no S9 Evidence Gate implementation
+### AS37-F009 — PASS — no product/runtime boundary change
+### AS37-F010 — PASS — dependency-light implementation preferred
+### AS37-F011 — PASS — baseline findings are evidence, not auto-remediation authority
+### AS37-F012 — PASS — no Sentinel version bump during implementation
 
-The manifest's project-registry note now states the current fact directly: no project is currently onboarded and population still requires a separately authorized `PROJECT_ONBOARDING` decision.
+## Authorized implementation envelope
 
-## Validator inspection
+Claude / Builder may implement Traceability V1 only under `devos/governance/traceability/`, focused tests, and normal governance/handoff records.
 
-The Architect independently inspected:
+Required V1 outputs:
+1. human-readable subsystem README;
+2. bounded canonical-source / ID-family configuration;
+3. deterministic generator;
+4. referential-integrity validator;
+5. derived JSON index;
+6. derived Markdown index;
+7. focused tests for missing reference, duplicate canonical definition, deterministic output, and explicit historical exception handling;
+8. a baseline report of current repository findings.
 
-- `devos/schemas/validate-devos-manifest.mjs`
-- `devos/schemas/validate-project-registry.mjs`
-- `devos/devos-manifest.json`
-- `projects/registry.json`
+## Explicitly not authorized
 
-The current data satisfies the validator invariants relevant to this PATCH:
+No edits to unrelated historical records solely to make the validator green; no S3/S7/S9 implementation; no CI/rulesets; no runtime/application changes; no project onboarding; no remote resources; no deployment; no main merge; no automatic authority/status mutation; no Sentinel version bump.
 
-- frozen architecture remains `ML-DEVOS-ARCH-001 / 1.2.0 / FROZEN`;
-- active capability baseline is valid semver and remains `1.5.0`;
-- source-of-truth precedence keeps architecture/governance/decisions/ADRs/syncs above the manifest, and the manifest above the project registry;
-- all reserved later-phase roots remain non-executable;
-- project registry status remains `EMPTY`;
-- `projects/registry.json` remains exactly empty;
-- no project onboarding was introduced.
+## Paulo authorization
 
-Builder-reported validator execution and `338/338` test results remain `ACTOR_REPORTED`; this closure relies on independent diff/content inspection appropriate to a documentation-only PATCH, not on silently upgrading Builder execution evidence.
+Paulo instructed `okay do that` after reviewing the proposal to make existing traceability self-checking through a graph/index + validator.
 
-## Governance conclusion
+## Required Builder evidence
 
-No rule meaning changed.  
-No Sentinel version bump occurred.  
-No actor authority changed.  
-No trust boundary changed.  
-No S3+ subsystem was implemented.  
-No project was onboarded.  
-No deployment or main merge authority was created.
+Exact base/result SHA, exact file list, generator/validator commands and literal results, focused test results, two consecutive generation runs with identical output/hash, baseline ERROR/WARNING counts, explicit exception list, proof generated output is marked non-authoritative, and confirmation no source-of-truth records were auto-rewritten.
 
 ## Verdict
 
-`SENTINEL-BASELINE-CLEANUP-001: ARCHITECT_APPROVED — CLOSED`
-
-Confirmed governance breach count for this cycle: `0`.
-
-The previously reported governance-health reduction was documentation hygiene only; this PATCH closes those identified inconsistencies.
+`ML-DEVOS-AS-037: ARCHITECT_APPROVED — TRACEABILITY V1 BOUNDED REPOSITORY IMPLEMENTATION AUTHORIZED`
