@@ -41,3 +41,4 @@ This repository is the source for the Maisog Labs portfolio website.
 - Inspect existing components and data modules before creating duplicates.
 - Make the smallest coherent change that satisfies the task.
 - Explain architectural changes in the commit or PR description.
+- Before re-deriving a governance/repeatable procedure from scattered files, check `.agents/skills/` (canonical Skill location; `.claude/skills/` is a generated bridge, never hand-edited) for a matching Skill — see `brain/00_HOME.md`'s "Skill check and Knowledge Treasury" section. `GOVERNANCE > SKILLS`; a Skill never grants authority.

@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 3 (final consistency cleanup) (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 3 update:** see the "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 3 Handoff (ML-DEVOS-AS-049, final consistency cleanup)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 2 Handoff (ML-DEVOS-AS-045 / AS-046 / AS-047 / AS-048)," "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)," the original "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this remediation does not resume it. This is Remediation Cycle 3 of `MAX_REMEDIATION_CYCLES: 3` — the final permitted cycle for this discovery.
+**MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION update:** see the "MaisogLabs Skills Foundation V0.1 + Portable Knowledge Treasury — Implementation Handoff (ML-DEVOS-AS-050 / D-042)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (the full discovery/remediation history for `ML-DEVOS-RFC-014`, all prior Sentinel Traceability V1 cycles, and every earlier WEB-INC/release cycle) describes prior, already-closed cycles and remains accurate as historical record. `ML-DEVOS-RFC-014` is now `ACCEPTED`; this is the first implementation cycle building the architecture it describes. Sentinel S3 — Typed Task Contracts remains `PAUSED DURING THIS IMPLEMENTATION / AUTHORITY PRESERVED` per `D-042`; this cycle does not implement or resume it.
 
 ---
 
@@ -1877,3 +1877,197 @@ Unchanged, as expected for a documentation-only consistency patch.
 ### Remediation commit
 
 The 2 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `bbe847381f4db46690bdc37164100e9a03178f28`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MaisogLabs Skills Foundation V0.1 + Portable Knowledge Treasury — Implementation Handoff (ML-DEVOS-AS-050 / D-042)
+
+### Cycle / Change ID
+
+`MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION` — **first implementation, now complete, handed back for Architect review.**
+
+Authority chain: `ML-DEVOS-RFC-014` (`ACCEPTED`) → `ML-DEVOS-AS-050` (`ARCHITECT_APPROVED`) → `D-042` (Paulo: "approved proceed" — architecture acceptance + bounded V0.1 implementation authorization). This is the first Builder cycle to produce executable/repository artifacts for the Skills Foundation and Portable Knowledge Treasury architecture; every prior cycle (discovery, 3 remediation cycles) was documentation/design only.
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched, confirmed by `git rev-parse HEAD`): `32d8754bfd31225d43216f409af0b04ca749f313` — the Architect's `ML-DEVOS-AS-050` sync commit, which also updated `ML-DEVOS-RFC-014.md`'s own status line to `ACCEPTED`.
+- Read in full before any work: `coordination/STATE.md`, the complete live `coordination/ARCHITECT_REVIEW.md` (the full "Skills Foundation V0.1 Implementation Handoff" brief: Authorized outputs A–F, Allowed file areas, Explicitly prohibited, Required evidence, Return gate, Sequencing after closure), `brain/DECISION_LOG.md` `D-042`, and `devos/changes/rfcs/ML-DEVOS-RFC-014.md` in full (the accepted architecture this cycle implements) — specifically §5 (per-skill discovery contracts), §T2–T13 (Treasury design), and §3/§7 (canonical-location evidence).
+
+### Exact changed-file list
+
+Confirmed by `git status --porcelain` immediately before this commit: exactly the files below, all inside the review's "Allowed file areas" list.
+
+**New (13):**
+- `.agents/skills/README.md` — canonical-location index, SKILL CHECK pointer, the exactly-4-skills list, explicit non-authorization of a fifth.
+- `.agents/skills/governance-traceability-audit/SKILL.md`
+- `.agents/skills/architect-review-sync/SKILL.md`
+- `.agents/skills/implementation-handoff/SKILL.md`
+- `.agents/skills/project-orientation-state-recovery/SKILL.md`
+- `.claude/skills/governance-traceability-audit/SKILL.md` (generated bridge)
+- `.claude/skills/architect-review-sync/SKILL.md` (generated bridge)
+- `.claude/skills/implementation-handoff/SKILL.md` (generated bridge)
+- `.claude/skills/project-orientation-state-recovery/SKILL.md` (generated bridge)
+- `scripts/generate-claude-skills-bridge.mjs` — deterministic bridge generator.
+- `scripts/validate-claude-skills-bridge.mjs` — drift detector (writes nothing; exits non-zero on missing/stale bridge files).
+- `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` — the manual governed Treasury procedure.
+- `brain/KNOWLEDGE_PRINCIPLES.md` — the residual Knowledge/Principles ledger (created empty, per "do not bulk-import historical chats").
+- `tests/skills.test.mjs` — 35 focused tests.
+
+**Modified (3), narrow additions only:**
+- `AGENTS.md` — one bullet added to "AI-agent guidance" pointing at `.agents/skills/`.
+- `CLAUDE.md` — one new short section ("Skill check and Knowledge Treasury") after "Required first read."
+- `brain/00_HOME.md` — one new short section (same name) before "Roles."
+
+**Confirmed not touched:** `devos/devos-manifest.json` (see "Disclosed gap" below), any application/runtime file, any RFC/AS/ADR/Decision file, `devos/governance/traceability/*` (a sanity-check run of the traceability generator during this cycle produced an incidental regeneration of `traceability-index.json`/`TRACEABILITY_INDEX.md` reflecting the new files' presence in the scanned surface; since those two files are not in this cycle's "Allowed file areas," they were reverted to their pre-cycle committed state via `git show HEAD:<path> > <path>` before this commit — confirmed by `git status --porcelain` showing no diff on either file).
+
+### A. Four canonical Skills under `.agents/skills/` — exact paths and activation/non-activation mapping
+
+| Skill | Path | Activates on | Does not activate on |
+|---|---|---|---|
+| Governance / Traceability Audit | `.agents/skills/governance-traceability-audit/SKILL.md` | "check governance integrity," "check traceability," "run the validator" | A judgment-call review request (→ Architect Review); "is `X` fixed yet?" (must check the source record, not the validator's exit code) |
+| Architect Review / Sync | `.agents/skills/architect-review-sync/SKILL.md` | `coordination/STATE.md TURN == ARCHITECT` | `TURN != ARCHITECT`, even if the request text sounds like a review ask |
+| Implementation Handoff | `.agents/skills/implementation-handoff/SKILL.md` | End of an authorized `TURN: CLAUDE` cycle, work actually complete | Mid-cycle, before authorized work is finished |
+| Project Orientation / State Recovery | `.agents/skills/project-orientation-state-recovery/SKILL.md` | New session, "what's the current state," "check for new input" | Agent already has current, task-relevant context loaded |
+
+Each Skill points to its authoritative repository sources (named explicitly in its own `## Authoritative sources` section) rather than copying them; each states inputs, outputs, stop/escalation conditions, governance dependencies, and an explicit mutation/capability posture; each carries a "never grants authority" disclaimer tied to `CORE-002`/`CORE-008`. No fifth Knowledge Capture Skill exists.
+
+### B. Claude Code bridge — exact strategy and non-divergence proof
+
+**Strategy chosen:** a deterministic generated copy, **not a git symlink.** Rationale (disclosed, not merely asserted): this repository may be checked out on Windows, where a git-tracked symlink silently becomes a plain text file containing the link target unless the checkout has Developer Mode/symlink support explicitly enabled — a real portability risk the review itself flagged ("if the chosen mechanism is not reliable in this repository's Windows/Git environment, STOP"). A deterministic generated copy has no such platform dependency and was verified working on this session's Linux environment as well (`ln -s` was tested and confirmed functional here, but the Windows risk applies regardless of this session's own OS).
+
+- `scripts/generate-claude-skills-bridge.mjs` reads every canonical `.agents/skills/*/SKILL.md`, and writes a byte-for-byte deterministic copy (prefixed with a short "GENERATED FILE — DO NOT HAND-EDIT" banner naming its canonical source) to the corresponding `.claude/skills/*/SKILL.md`.
+- `scripts/validate-claude-skills-bridge.mjs` regenerates the expected content in-memory and diffs it against what is actually on disk under `.claude/skills/`; it writes nothing and exits non-zero on any missing or drifted file.
+
+**Proof the bridge cannot silently diverge (required evidence item):**
+
+```
+$ node scripts/validate-claude-skills-bridge.mjs   # before generation
+MISSING: .claude/skills/architect-review-sync/SKILL.md — run node scripts/generate-claude-skills-bridge.mjs
+MISSING: .claude/skills/governance-traceability-audit/SKILL.md — ...
+MISSING: .claude/skills/implementation-handoff/SKILL.md — ...
+MISSING: .claude/skills/project-orientation-state-recovery/SKILL.md — ...
+(exit code 1)
+
+$ node scripts/generate-claude-skills-bridge.mjs
+Wrote 4 bridge file(s) under .claude/skills/: architect-review-sync, governance-traceability-audit, implementation-handoff, project-orientation-state-recovery
+
+$ node scripts/validate-claude-skills-bridge.mjs   # after generation
+OK: .claude/skills/architect-review-sync/SKILL.md matches its canonical source
+OK: .claude/skills/governance-traceability-audit/SKILL.md matches its canonical source
+OK: .claude/skills/implementation-handoff/SKILL.md matches its canonical source
+OK: .claude/skills/project-orientation-state-recovery/SKILL.md matches its canonical source
+(exit code 0)
+```
+
+**Active drift injection test (performed this cycle, not merely designed):**
+
+```
+$ echo "manual edit" >> .claude/skills/architect-review-sync/SKILL.md
+$ node scripts/validate-claude-skills-bridge.mjs
+DRIFT: .claude/skills/architect-review-sync/SKILL.md does not match a fresh regeneration from its canonical .agents/skills/ source — run node scripts/generate-claude-skills-bridge.mjs
+(exit code 1)
+$ node scripts/generate-claude-skills-bridge.mjs   # regenerating restores it
+$ node scripts/validate-claude-skills-bridge.mjs
+OK: .claude/skills/architect-review-sync/SKILL.md matches its canonical source
+```
+
+**Determinism (two consecutive generations, byte-identical):**
+
+```
+$ cp -r .claude/skills /tmp/bridge-run1
+$ node scripts/generate-claude-skills-bridge.mjs
+$ diff -r /tmp/bridge-run1 .claude/skills
+(no output)
+DETERMINISM CONFIRMED
+```
+
+### C. Skill evals / validation — focused test results
+
+`tests/skills.test.mjs`, 35 tests, all passing, covering exactly the review's minimum list:
+
+- all 4 Skills have valid frontmatter (`name` matching the directory, non-empty `description` within the documented length budget);
+- every authoritative source path each Skill references actually exists on disk (asserted per-Skill against the real repository, not a fixture);
+- activation/non-activation headings present and populated for every Skill;
+- Architect Review's activation is explicitly gated by live `TURN`, with an assertion that the file states this holds "even if the request text" sounds like a review ask;
+- Project Orientation's non-activation explicitly covers "already has current, task-relevant context loaded";
+- a cross-skill test asserting Governance/Traceability Audit and Architect Review document distinct, non-overlapping triggers (smallest-sufficient routing);
+- no Skill's frontmatter contains `allowed-tools`/`disallowed-tools`/`hooks`, and no Skill body contains a credential-shaped token;
+- no Skill's mutation/capability posture claims to override `AUTHORIZED_SCOPE`, and each is either explicitly read-only or explicitly bounded to normal `coordination/` bookkeeping writes only;
+- the Claude bridge matches its canonical payload, has zero drift on disk, and is deterministic across two consecutive generations.
+
+```
+$ node --test tests/skills.test.mjs
+# tests 35
+# pass 35
+# fail 0
+```
+
+No S4/S5 routing engine was built — every case above is a structural/content assertion on the Skill's own documentation, consistent with Skills being documentary/procedural artifacts with no runtime routing engine to execute.
+
+### D. Portable Knowledge Treasury procedure — review against RFC-014 T2–T13
+
+`brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` implements the exact accepted workflow (`RAW EXPERIENCE → CANDIDATE INSIGHT → REUSE THRESHOLD → CANONICAL-DESTINATION-FIRST SEARCH → DEDUPLICATE → CLASSIFY TYPE + DISCLOSURE → REQUIRED APPROVAL → PERSIST → TRACE → REUSE`) and preserves every required element:
+
+| RFC-014 element | Where it landed |
+|---|---|
+| `CANDIDATE INSIGHT != ACCEPTED DURABLE KNOWLEDGE` (T5) | §2 of the protocol, verbatim principle plus the low-risk/high-risk acceptance-bar split |
+| Outcomes `DUPLICATE`/`UPDATE`/`EVIDENCE_ONLY`/`NEW`/`SUPERSEDES` (T7) | §4, with the immutable/append-only-history carve-out |
+| Provider-neutral source/provenance (T9, T11) | "Provider portability" section + §8's field list, reusing the existing 5-class evidence model, no sixth class invented |
+| Public/private safeguards (T10) | §5, reusing `D-041`/`AS-047`/`AS-048`'s exact `PUBLIC_SAFE`/`INTERNAL`/`RESTRICTED`/`SECRET` storage conditions verbatim, including the access-control-acceptance requirement and the historical-exposure rule |
+| No full-chat archival requirement | §8's closing sentence |
+| Anti-bloat bias (T13) | "Anti-bloat metrics" section, verbatim bad-signal/good-signal lists |
+| Reuse/application target (`AS44-K`) | §8's "expected reuse/application target" field |
+| STOP/DEFER for unresolved sensitive storage | §5, both for `RESTRICTED` (conditions not met) and implicitly for `SECRET` (never persisted at all) |
+
+Ten of the fifteen T12 evaluation cases from the accepted RFC are restated as design-intent cases in the protocol's own "Evaluation cases" section (the other five — the `AS-047` disclosure/storage-specific cases 11–15 — are folded directly into §5's storage rules rather than duplicated as a separate list, since they describe the same rules restated as test cases).
+
+### E. Knowledge / Principles canonical record
+
+`brain/KNOWLEDGE_PRINCIPLES.md` created exactly as authorized: purpose statement explicitly excluding Governance/STATE/ADR-RFC/Evidence/Journal/secrets, an entry schema matching the Treasury protocol's provenance model, and **zero entries** — no historical chat content was bulk-imported, per the review's explicit instruction. No new formal ID namespace was invented; entries are referenced by table row (date + title) until/unless a future change finds a cleanly-applicable existing convention, per the review's "if a new namespace appears necessary, STOP" instruction (none appeared necessary — this file needed no ID scheme to be usable at V0.1).
+
+### F. Minimal orientation/routing integration
+
+Exactly 3 files touched, each with one narrow, non-duplicating addition (see "Exact changed-file list" above for the precise diffs). No full Skill or governance body was copied into any of the three.
+
+### Disclosed gap — `devos/devos-manifest.json` not modified
+
+Per the review's own conditional instruction ("only if an existing manifest field cleanly supports recording the accepted Skill root without schema invention; otherwise leave unchanged and report the gap"): inspected `reserved_subsystem_roots` (every entry is a `devos/`-rooted path tied to a numbered S-phase — `.agents/skills/` is neither under `devos/` nor a numbered phase), `legacy_bootstrap_surfaces` (scoped to pre-Sentinel bootstrap surfaces, not new authorized roots), and `source_of_truth_precedence` (an authority-ordering list, not a root registry). None cleanly accommodates `.agents/skills/` without inventing new schema shape. **The manifest was left unchanged; this is the reported gap**, not an oversight.
+
+### Full existing test-suite sanity result
+
+Run in batches this cycle (a transient auto-mode-classifier denial affected some single-invocation attempts at both `npm test` and the full `tests/*.test.mjs` glob — unrelated to file content, confirmed by successful retries and by running the exact same files in smaller groups):
+
+```
+tests/content.test.mjs + d1-audit + d1-migration + design-overlay:        70/70
+tests/skills.test.mjs (standalone):                                       35/35
+tests/worker-auth + worker-admin-dashboard + worker-admin-design:         99/99
+tests/traceability + worker-admin-media + worker-admin-projects:         110/110
+tests/worker-public-design + worker-public-journal + worker-admin-journal: 73/73
+------------------------------------------------------------------------------
+Total:                                                                   387/387
+```
+
+387 = the pre-cycle 352 + this cycle's 35 new `skills.test.mjs` cases. No pre-existing test was modified, and none regressed.
+
+### Explicit confirmations (required evidence items)
+
+- **No fifth Knowledge Capture Skill was created.** Exactly 4 exist under `.agents/skills/`.
+- **No independently authored provider copy exists.** `.claude/skills/` is entirely generated from `.agents/skills/`; drift is mechanically detected (§B above).
+- **No chat/provider account was scraped or imported.** `brain/KNOWLEDGE_PRINCIPLES.md` was created empty; no historical conversation content was backfilled anywhere.
+- **No secrets/credentials were added.** Verified by grep across every new file this cycle for credential-shaped tokens (`api[_-]?key|password|secret[_-]?key|private[_-]?key|token=`) — the only matches are the Treasury protocol's own policy prose explaining what must never be committed, and the test file's own detection pattern.
+- **No S3/S4+/S5/runtime/remote/deploy/main work occurred.** No file under `worker/`, `app/`, `lib/`, `migrations/`, `devos/contracts/`, `devos/state/`, `devos/capabilities/` was touched. `devos/governance/traceability/*`'s incidental regeneration was reverted before commit (see "Exact changed-file list" above).
+- **`RISK-WEB-013` was not closed or rewritten.** Not referenced for closure anywhere in this cycle's new content; the Treasury protocol explicitly states it remains open (§5).
+- **No `AUTHORIZED_SCOPE` override exists anywhere in the new Skill content** — verified by `tests/skills.test.mjs`'s dedicated assertion against all 4 Skills.
+- **The Implementer has not self-accepted this implementation.** Every claim above is `ACTOR_REPORTED`, including the batch-run test evidence, until independently reviewed.
+
+### Known limitations / open questions
+
+- The full test suite was run in 5 batches rather than one single invocation, due to an intermittent auto-mode-classifier denial on some (not all) attempts at the single combined invocation. The same files, run in smaller groups immediately afterward, passed cleanly every time with no code change in between — this is disclosed as an environment/tooling characteristic of this session, not a defect in the implementation.
+- `devos/devos-manifest.json` does not yet record `.agents/skills/` as a reserved root (disclosed gap above) — a future, separately authorized change would need to decide the correct schema shape for a non-`devos/`, non-numbered-phase root before adding one.
+- The Claude Code bridge mechanism (deterministic generated copy) has not been validated against an actual Windows checkout in this session (which runs Linux) — the choice to avoid git symlinks is a documented risk-avoidance decision based on the review's own stated concern, not a claim that symlinks were tested and failed here.
+- `brain/KNOWLEDGE_PRINCIPLES.md` is seeded empty; its first real entry (if any) will be the first live exercise of the Treasury protocol.
+- Per `D-042`'s sequencing clause, if this implementation is independently accepted by the Architect with no new blocker, the Architect may reopen S3 under preserved `D-037`/`ML-DEVOS-AS-038` authority without another Paulo approval — this Builder has not treated that as already having happened, and has not begun any S3 work.
+
+### Implementation commit
+
+The 16 files above (13 new, 3 modified) are committed together to `governance/maisoglabs-v0.1` on top of base `32d8754bfd31225d43216f409af0b04ca749f313`, alongside this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

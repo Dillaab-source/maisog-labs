@@ -21,6 +21,14 @@ Governance is prospective from the recorded baseline SHA (see `PROJECT_GOVERNANC
 5. `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` — the full approved plan these documents implement.
 6. `docs/ARCHITECTURE.md`, `AGENTS.md`, `README.md` — current, non-governance-specific engineering documentation. These remain the canonical source for *how the code works*; `brain/` is the canonical source for *what is authorized, what is proven, and who decided it*.
 
+## Skill check and Knowledge Treasury (`ML-DEVOS-RFC-014` / `ML-DEVOS-AS-050` / `D-042`)
+
+**SKILL CHECK:** before re-deriving a repeatable procedure from scattered files, check `.agents/skills/` (the canonical Skill location — see its own `README.md`) for a matching Skill first. Currently: Governance/Traceability Audit, Architect Review/Sync, Implementation Handoff, Project Orientation/State Recovery.
+
+**Knowledge Treasury:** a durable, reusable engineering lesson discovered in a session belongs in the repository, not only in AI-provider memory (`AI ACCOUNTS / CHATS = LABORATORIES`, `GOVERNED REPOSITORY = DURABLE TREASURY`). Route it through `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` before persisting anything.
+
+**Authority precedence, unchanged by either of the above:** `GOVERNANCE > SKILLS`; `CURRENT AUTHORIZATION > SKILL CAPABILITY`; `CAPABILITY != AUTHORITY`. A Skill or a Treasury entry never grants authority, overrides `coordination/STATE.md`'s live `AUTHORIZED_SCOPE`, or substitutes for a required Paulo/Architect gate.
+
 ## Roles (summary — see `PROJECT_GOVERNANCE.md` for authority detail)
 
 - **Paulo** — Product / Risk Owner. Approves phase transitions and accepted risk.

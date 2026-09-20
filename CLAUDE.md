@@ -20,6 +20,10 @@ Also read:
 - `coordination/IMPLEMENTER_HANDOFF.md`
 - `coordination/ARCHITECT_REVIEW.md`
 
+## Skill check and Knowledge Treasury (`ML-DEVOS-RFC-014` / `ML-DEVOS-AS-050` / `D-042`)
+
+Before re-deriving a repeatable governance procedure from scattered files, check `.agents/skills/` (the canonical Skill location — see its `README.md`) for a matching Skill. `.claude/skills/` is a deterministically generated, non-diverging bridge — never hand-edit it; regenerate with `node scripts/generate-claude-skills-bridge.mjs`. A durable, reusable lesson from a session belongs in the repository, not only in provider memory — route it through `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` before persisting anything. `GOVERNANCE > SKILLS`; `CURRENT AUTHORIZATION > SKILL CAPABILITY`; `CAPABILITY != AUTHORITY` — a Skill or Treasury entry never grants authority or overrides live `AUTHORIZED_SCOPE`.
+
 ## Agent communication protocol
 
 GitHub is the asynchronous communication bus between you and the Architect.
