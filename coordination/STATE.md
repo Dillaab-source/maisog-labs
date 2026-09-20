@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_DESIGN_GATE
+CYCLE_ID: SENTINEL_RFC_015_IMPLEMENTATION_AUTHORIZATION_GATE
 TURN: PAULO
 STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: RFC_015_DESIGN_DECISION_ONLY
+AUTHORIZED_SCOPE: RFC_015_IMPLEMENTATION_AUTHORIZATION_DECISION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 2
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -17,15 +17,13 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect verdict
-
-`ML-DEVOS-AS-059 — ARCHITECT_APPROVED / RFC-015 DESIGN ACCEPTED`
-
-RFC:
-- `ML-DEVOS-RFC-015 — Reserved Subsystem Lifecycle and Closure Reconciliation`
-
 ## Accepted design
 
+- `ML-DEVOS-RFC-015 — DESIGN_ACCEPTED`
+- `ML-DEVOS-AS-059 — ARCHITECT_APPROVED`
+- `D-044 — Paulo design acceptance`
+
+Accepted architecture:
 - `IMPLEMENTED` reserved-root lifecycle state;
 - S2-only `FOUNDATION_ACTIVE`;
 - ADR-keyed, phase-checked fail-closed `closure_ref`;
@@ -37,30 +35,32 @@ RFC:
 - no invented `manifest_version` semantics;
 - no new phase/Skill/agent/database/closure registry.
 
-## Preserved state
+## Preserved S3 state
 
 `ML-DEVOS-AS-055 — S3 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-S3 closure remains blocked.
+S3 closure remains blocked until RFC-015 is separately implemented, independently accepted/closed, and a later explicit S3 closure decision is recorded.
 
 S4 remains unauthorized.
 
-## Paulo decision required
+## Current decision required
 
-Accept / reject / request changes to RFC-015 architecture.
+Paulo may now separately authorize or decline the bounded implementation of RFC-015.
 
-Acceptance of the design does **not** itself authorize implementation.
+If authorized, the implementation cycle may be limited to:
+- `devos/schemas/devos-manifest.schema.json`;
+- `devos/schemas/validate-devos-manifest.mjs`;
+- focused manifest/schema/validator tests;
+- `brain/protocols/ARCHITECT_SYNC.md`;
+- narrowly necessary documentation/bookkeeping;
+- normal handoff/state records.
 
-After design acceptance, a separate bounded implementation authorization is required before any mutation to:
-- manifest schema;
-- manifest validator;
-- Architect Sync procedure;
-- related focused tests.
+Implementation must not itself close S3, create closure ADRs, apply a Sentinel version transition, mutate RFC-013 closure status, or start S4.
 
 ## Hard boundaries
 
 No:
-- RFC-015 implementation yet;
+- RFC-015 implementation without separate Paulo authorization;
 - Sentinel version bump;
 - S3 closure;
 - ADR creation;
@@ -75,4 +75,4 @@ No:
 
 ## Next gate
 
-Paulo Product/Risk Owner RFC-015 design decision.
+Paulo Product/Risk Owner RFC-015 implementation authorization decision.
