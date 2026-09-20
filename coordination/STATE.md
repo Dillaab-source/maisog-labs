@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_PROPOSAL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: RFC_015_REMEDIATION_CYCLE_2_CLOSURE_SEQUENCING
-ARCHITECT_ACTION_REQUIRED: YES
+CYCLE_ID: SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_DESIGN_GATE
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: RFC_015_DESIGN_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,47 +17,55 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
+## Architect verdict
+
+`ML-DEVOS-AS-059 — ARCHITECT_APPROVED / RFC-015 DESIGN ACCEPTED`
+
+RFC:
+- `ML-DEVOS-RFC-015 — Reserved Subsystem Lifecycle and Closure Reconciliation`
+
+## Accepted design
+
+- `IMPLEMENTED` reserved-root lifecycle state;
+- S2-only `FOUNDATION_ACTIVE`;
+- ADR-keyed, phase-checked fail-closed `closure_ref`;
+- behavior-based `executable_runtime_present` semantics;
+- D.1 Pre-decision Closure Preflight;
+- D.2 Post-decision Closure Verification;
+- traceability generated-output currency + named-baseline + new-error delta;
+- explicit version disposition;
+- no invented `manifest_version` semantics;
+- no new phase/Skill/agent/database/closure registry.
+
 ## Preserved state
 
 `ML-DEVOS-AS-055 — S3 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-S3 technical approval remains valid.
+S3 closure remains blocked.
 
-No S3 closure or S4 work is authorized.
+S4 remains unauthorized.
 
-## Architect review
+## Paulo decision required
 
-`ML-DEVOS-AS-058 — CHANGES_REQUESTED`
+Accept / reject / request changes to RFC-015 architecture.
 
-## Closed RFC-015 findings
+Acceptance of the design does **not** itself authorize implementation.
 
-- `AS57-F002` unique closure-event linkage — CLOSED.
-- `AS57-F003` traceability currency/baseline/new-error model — CLOSED in substance.
-- `AS57-F004` version/ADR sequencing — CLOSED.
-- `AS57-F005` behavior-based runtime distinction — CLOSED.
-
-## Closed blocker
-
-`AS58-F005` — CLOSED. Closure Preflight is now two explicit, disjoint-item checklists inside the existing Stage Gate Review gate: D.1 Pre-decision Closure Preflight (11 items, checks the proposed package, never a fact only Paulo's decision can create) and D.2 Post-decision Closure Verification (11 items, checks the actual post-closure repository state). No new phase, Skill, agent, or record type was created.
-
-## Authorized remediation files
-
-Claude may modify only:
-- `devos/changes/rfcs/ML-DEVOS-RFC-015.md`;
-- `devos/changes/rfcs/README.md` if needed;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+After design acceptance, a separate bounded implementation authorization is required before any mutation to:
+- manifest schema;
+- manifest validator;
+- Architect Sync procedure;
+- related focused tests.
 
 ## Hard boundaries
 
 No:
-- manifest/schema/validator implementation;
-- Architect Sync procedure implementation;
+- RFC-015 implementation yet;
+- Sentinel version bump;
 - S3 closure;
 - ADR creation;
-- version bump;
-- RFC-013 mutation;
-- traceability regeneration as closure evidence;
+- RFC-013 closure mutation;
+- traceability closure regeneration;
 - S4 proposal/implementation;
 - core-rule mutation;
 - product/runtime mutation;
@@ -65,16 +73,6 @@ No:
 - deployment;
 - protected/main merge.
 
-## Return gate
+## Next gate
 
-After remediation:
-- `TURN: ARCHITECT`;
-- `STATUS: READY_FOR_ARCHITECT`;
-- `ARCHITECT_ACTION_REQUIRED: YES`;
-- `IMPLEMENTER_ACTION_REQUIRED: NO`.
-
-Builder must not self-approve or implement RFC-015.
-
-## Remediation Cycle 2 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See "ML-DEVOS-RFC-015 — Remediation Cycle 2 (ML-DEVOS-AS-058, closure-sequencing only)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS58-F005` closed by editing `devos/changes/rfcs/ML-DEVOS-RFC-015.md` only. Closure Preflight §D now states the underlying pre/post-decision conflation problem explicitly, then splits into D.1 (11 pre-decision items: implementation review status, base SHA, current-state inspection, proposed RFC-status/manifest/closure_history-shape/ADR-provenance edits, explicit version disposition, recorded traceability baseline, bounded diff, no silent next-phase authorization) and D.2 (11 post-decision items: final RFC status/ADR/Decision, closure_ref resolution + phase match, version/closure_history agreement, current handoff wording, regenerated traceability with no drift, baseline findings still visible, no new closure-induced error, no silent next-phase authority). The Cycle-1 traceability baseline/delta model is correctly distributed: fingerprint recorded pre-decision, compared post-decision. Every other "Closure Preflight" reference across the RFC was checked and updated for the two-checklist structure. Traceability validator re-run: identical 4 pre-existing errors, zero new findings. All Cycle 1 accepted directions preserved unreopened. No manifest/schema/validator/ARCHITECT_SYNC.md implementation, S3 closure, ADR creation, version bump, RFC-013 mutation, or S4 work occurred. Builder has not self-approved RFC-015.
+Paulo Product/Risk Owner RFC-015 design decision.
