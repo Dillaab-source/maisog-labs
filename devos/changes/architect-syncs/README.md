@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-047.md` — repository-visibility correction for Skills/Treasury discovery; verifies the MaisogLabs repo is now private, permits appropriate INTERNAL/RESTRICTED documentation in the private repo, keeps secrets/credentials out of Git, and preserves historical-exposure caution.
 - `ML-DEVOS-AS-046.md` — supplemental Skills Foundation/Treasury Remediation Cycle 2 review; adds public-repository disclosure/storage safety, complete per-skill contract requirements, and explicit SKILL CHECK routing/evals while preserving AS-045's provider-matrix blocker.
 - `ML-DEVOS-AS-045.md` — Skills Foundation/Treasury Remediation Cycle 2 review; requires correction of the Gemini/.agents compatibility evidence and canonical-location analysis.
 - `ML-DEVOS-AS-044.md` — research-informed Skills/Treasury discovery amendment covering Treasury-as-routing, reuse threshold, candidate-vs-accepted knowledge, progressive disclosure, external-skill revalidation, and anti-bloat principles.
