@@ -506,3 +506,17 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **No-go:** no arbitrary CSS/JS/HTML design input, no unrelated palette/type system, no silent one-off visual language, no copied third-party identity, no reduced-motion override.
 - **Authority:** documentation/design-governance only; no runtime implementation, merge, deploy, remote resource, or production authority is created.
 - **Evidence of Paulo authority:** Paulo explicitly instructed “okay lets do that” after reviewing the proposed design-governance direction.
+
+
+### D-036 — Authorize Sentinel Traceability V1 implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after the traceability-health review and broad external/practitioner research, with architecture bounded by `ML-DEVOS-RFC-012` and `ML-DEVOS-AS-037`.
+- **Decision:** Authorize Claude / Builder to implement the repository-only Sentinel Traceability V1 graph/index + validator.
+- **Purpose:** make existing governance records self-checking without creating a second manual source of truth.
+- **Authorized scope:** a static traceability subsystem under `devos/governance/traceability/`, focused tests, derived JSON/Markdown indexes, and normal governance/handoff records.
+- **Required behavior:** discover canonical governance IDs from existing source records; extract references; validate missing targets and duplicate canonical definitions; produce deterministic derived indexes; distinguish blocking structural errors from non-blocking warnings/legacy exceptions; report baseline findings without auto-remediation.
+- **Source-of-truth rule:** generated traceability output is derived/non-authoritative and may never override frozen architecture, active governance, Decisions, ADRs, durable Architect Syncs, requirements, risks, tests, or implementation evidence.
+- **Explicit boundaries:** no S3 Typed Task Contracts; no S7 Evidence Store/QA Plane; no S9 Evidence Gate; no Policy/Task Engine, Capability Gateway, Orchestrator, CI/rulesets, product runtime change, project onboarding, remote resource, deployment, protected/main merge, or automatic authority/status mutation.
+- **No auto-fix authority:** discovered gaps are reported and routed into separate governed cleanup/remediation cycles; Builder may not rewrite unrelated historical records merely to satisfy the validator.
+- **Version:** no Sentinel version bump is authorized during implementation. Version impact is reconsidered only after implementation review and ADR.
+- **Evidence:** Paulo instructed `okay do that` after explicitly discussing the Master Traceability Index / graph + validator direction and asking to proceed.
