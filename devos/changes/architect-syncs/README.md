@@ -6,8 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
-- `ML-DEVOS-AS-047-access-control-amendment.md` — explicit separately recorded amendment requiring accepted current access controls for both INTERNAL and RESTRICTED documentation; no archive rewrite or authority expansion.
-
+- `ML-DEVOS-AS-048.md` — canonical access-control clarification supplementing AS-047; preserves the private-repo INTERNAL/RESTRICTED conditions while keeping secrets/credentials out of Git, and replaces the accidental duplicate AS-047 amendment filename.
 - `ML-DEVOS-AS-047.md` — repository-visibility correction for Skills/Treasury discovery; verifies the MaisogLabs repo is now private, permits appropriate INTERNAL/RESTRICTED documentation in the private repo, keeps secrets/credentials out of Git, and preserves historical-exposure caution.
 - `ML-DEVOS-AS-046.md` — supplemental Skills Foundation/Treasury Remediation Cycle 2 review; adds public-repository disclosure/storage safety, complete per-skill contract requirements, and explicit SKILL CHECK routing/evals while preserving AS-045's provider-matrix blocker.
 - `ML-DEVOS-AS-045.md` — Skills Foundation/Treasury Remediation Cycle 2 review; requires correction of the Gemini/.agents compatibility evidence and canonical-location analysis.
