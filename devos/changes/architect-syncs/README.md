@@ -6,6 +6,9 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-041.md` — final Architect acceptance of Sentinel Traceability V1 after two bounded remediation cycles; closes the architecture implementation and permits S3 activation.
+- `ML-DEVOS-AS-040.md` — Remediation Cycle 2 review requiring separation of durable semantic references from rolling/tooling surfaces.
+- `ML-DEVOS-AS-039.md` — Remediation Cycle 1 review requiring narrow handling of intentional noncanonical identifier mentions.
 - `ML-DEVOS-AS-036.md` — DESIGN-GOV-001 adoption review. Concluded `ARCHITECT_APPROVED`; MaisogLabs V3 design governance adopted as a project Local Rule for future public/admin UI work.
 - `ML-DEVOS-AS-035.md` — WEB-REL-001 final readiness review. Concluded `ARCHITECT_APPROVED`; readiness assessment accepted, release still blocked by explicit technical-protection/production-resource gates.
 - `ML-DEVOS-AS-034.md` — Production Release Readiness gate. Concluded `ARCHITECT_APPROVED` for assessment-only work under WEB-REL-001; no ruleset mutation, main merge, remote resource, deployment, or production write authority granted.
