@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECTURE DISCREPANCY REVIEW — S3 TECHNICAL APPROVAL PRESERVED / CLOSURE PACKAGE CORRECTED / PAULO DECISION REQUIRED`
+Status: `CHANGES_REQUESTED — RFC-015 REMEDIATION CYCLE 1`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -9,262 +9,225 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-056 — S3 Closure Architecture Sync Discrepancy Review
+# ML-DEVOS-AS-057 — RFC-015 Reserved Subsystem Lifecycle Design Review
 
-Relationship:
-- preserves the technical stage-gate verdict of `ML-DEVOS-AS-055`;
-- supersedes only AS-055's incomplete **closure package**;
-- does not reopen S3 validator implementation findings;
-- does not authorize closure implementation or S4.
+RFC:
+- `ML-DEVOS-RFC-015`
 
-## Summary
+Authority:
+- `D-043`
 
-S3 remains technically approved.
+Builder draft commit reviewed:
+- `bfb6e5aa87ae52088a7d3891dc8fe9bcfe331eba`
 
-However, a cross-record comparison found four closure/provenance discrepancies that must be resolved as part of the Paulo closure decision and subsequent bounded closure implementation.
+## Scope
 
-## AS56-F001 — BLOCKER TO CLOSURE PACKAGE — manifest cannot currently encode an implemented S3 root
+### AS57-F001 — PASS — proposal stayed inside D-043 scope
 
-Current `devos/devos-manifest.json` says:
+The Builder drafted RFC-015 and updated only normal handoff/state bookkeeping.
 
-`devos/contracts/ → status: NOT_IMPLEMENTED`
+No manifest/schema/validator implementation, S3 closure, ADR creation, Sentinel version change, RFC-013 mutation, S4 proposal/implementation, core-rule mutation, product/runtime work, remote resource, deployment, or protected/main merge occurred.
 
-AS-055 proposed changing that root to an implemented/static capability status at S3 closure.
+## Direction accepted
 
-But the authoritative manifest schema currently permits only:
+The following architecture direction is sound and should be preserved:
 
-- `NOT_IMPLEMENTED`
-- `FOUNDATION_ACTIVE`
+- reserved-root lifecycle must evolve beyond the S2 bootstrap-only vocabulary;
+- `FOUNDATION_ACTIVE` remains S2-specific;
+- `IMPLEMENTED` is descriptive only and must not grant authority;
+- repository-local validators/generators are not automatically equivalent to a live Sentinel runtime;
+- Closure Preflight belongs inside the existing Stage Gate Review rather than becoming a new phase, Skill, agent, or subsystem;
+- version/ADR/RFC/manifest/traceability reconciliation should happen at closure;
+- known traceability debt must not be converted into a false zero-findings gate;
+- S4 remains separately governed.
 
-and explicitly describes `FOUNDATION_ACTIVE` as reserved for the S2-owned `devos/schemas/` foundation.
+## Required remediation
 
-The validator likewise treats `FOUNDATION_ACTIVE` as the unique S2 foundation state and currently has no legal post-S2 implemented state for `devos/contracts/`.
+### AS57-F002 — BLOCKER — `closure_ref` must identify a unique closure event, not merely a phase name
 
-Therefore AS-055's closure instruction cannot be executed as written without first evolving the manifest schema/validator.
+RFC-015 currently proposes:
 
-### Architect recommendation
+`closure_ref == closure_history[].phase`
 
-As part of the **same Paulo-approved S3 closure package**, authorize a bounded, backwards-compatible manifest vocabulary evolution:
+This is not sufficiently durable.
 
-Add reserved-root status:
+A phase name is a category, not a unique closure event. A phase can later receive a corrective/superseding closure record, re-closure, or other history while retaining the same phase label. Multiple `closure_history` entries with `phase: S3` would make the reference ambiguous.
 
-`IMPLEMENTED`
+The repository already has a unique durable identifier on every closure-history entry:
 
-Meaning:
-- the owning phase's bounded repository capability is implemented and governance-closed;
-- ownership is unchanged;
-- the status grants no authority;
-- it does not imply runtime deployment;
-- `executable_runtime_present` remains `false` for S3.
+`adr`
 
-For S3 closure:
+ADR IDs are sequential and never reused.
 
-`devos/contracts/`
-- `owning_phase: S3` unchanged;
-- `status: IMPLEMENTED`;
-- `executable_runtime_present: false`.
+#### Required correction
 
-The schema/validator must continue to preserve:
-- `FOUNDATION_ACTIVE` only for the S2 foundation root;
-- `NOT_IMPLEMENTED` for later roots not yet closed;
-- no automatic phase authorization merely from a status edit.
+Prefer:
 
-Do not generalize runtime-phase semantics beyond what is needed to represent S3.
+`closure_ref == closure_history[].adr`
 
-Required closure work would include focused manifest-schema/validator tests for the new status.
+For an `IMPLEMENTED` root, the validator must require:
 
-## AS56-F002 — STALE STATUS — RFC-013 still says DRAFT / QUEUED
+1. non-null `closure_ref`;
+2. exactly one matching closure-history entry by `adr`;
+3. matched entry's `phase == root.owning_phase`;
+4. matched entry has non-empty `decision`, `architect_sync`, and `version`;
+5. matched ADR/Decision/Architect-Sync identifiers are structurally valid references under existing conventions.
 
-`ML-DEVOS-RFC-013` still begins:
+For `NOT_IMPLEMENTED` and `FOUNDATION_ACTIVE`:
+- `closure_ref` may be absent or null;
+- it must never point at a closure record.
 
-`Status: DRAFT — QUEUED AFTER SENTINEL-TRACEABILITY-V1`
+Do not require rewriting every existing reserved-root entry merely to add `closure_ref: null`; keep the schema evolution backwards-compatible.
 
-That was historically correct before Traceability V1 closed and before S3 implementation.
+This makes the linkage event-specific and fail-closed.
 
-It is no longer current descriptive status after:
-- `D-037`;
-- `AS-038`;
-- `AS-053`;
-- S3 implementation;
-- `AS-055` technical stage-gate approval.
+### AS57-F003 — BLOCKER — Closure Preflight traceability rule must distinguish three separate conditions
 
-This is not a technical defect in S3, but it must be normalized during closure.
+RFC-015 currently says Closure Preflight requires no new traceability ERROR caused by the closure's edits.
 
-### Required closure correction
+That is directionally correct but incomplete because Traceability V1 also maintains generated derived indexes and its validator separately detects drift.
 
-Preserve the RFC body/history, but update its status banner to record the final accepted/closed outcome after Paulo approves closure.
+The current generated indexes are already stale relative to recent governance IDs, so a closure process that only compares semantic ERROR counts can still publish stale derived evidence.
 
-Do not rewrite the proposal into an ADR. ADR-012 will remain the durable "what became architecture and why" record.
+#### Required correction
 
-## AS56-F003 — PROVENANCE DRIFT — S3 README misattributes implementation authority
+Closure Preflight must distinguish:
 
-`devos/contracts/README.md` currently says:
+1. **Derived-output currency**
+   - regenerate `traceability-index.json` and `TRACEABILITY_INDEX.md` as authorized closure bookkeeping;
+   - candidate closure must have no generated-output drift.
 
-`D-042 (Paulo S3 implementation authorization)`
+2. **Known baseline findings**
+   - record the exact pre-closure traceability ERROR fingerprint/set from a named base SHA;
+   - pre-existing known errors remain visible and do not become falsely "resolved."
 
-That is imprecise.
+3. **New closure-induced findings**
+   - candidate closure must introduce no new unexpected ERROR relative to that base set.
 
-Correct authority chain:
-- `D-037` = Paulo's actual S3 implementation authorization, queued behind Traceability V1;
-- `D-042` = later sequential authorization allowing Architect to **reopen** the already-preserved D-037/AS-038 S3 authority after Skills/Treasury V0.1 closed;
-- `AS-053` = Architect reopening S3 under that preserved authority.
+Do not require zero total ERRORs.
 
-### Required closure correction
+The procedure may remain manual/repository-local in V0.1; no new traceability subsystem or CI gate is required.
 
-Update the README authority wording so D-037 and D-042 have their actual roles.
+### AS57-F004 — BLOCKER — version/ADR sequencing is internally inconsistent
 
-Also normalize any equivalent stale wording found in closure-touched S3 docs.
+RFC-015 correctly classifies itself as `ARCHITECTURE`.
 
-## AS56-F004 — PRIOR ARCHITECTURE CLOSURE DEBT — Skills/Treasury V0.1 lacks explicit post-implementation version disposition and ADR
+Its Version Impact section then says the implementation is "most likely MINOR" because it adds:
+- a new lifecycle state;
+- fail-closed manifest semantics;
+- a new closure-preflight governance capability.
 
-`ML-DEVOS-RFC-014` is an `ARCHITECTURE` RFC.
+But rollout step 5 still assumes AS-056's older S3 closure package:
 
-Its Version Impact section explicitly says:
+`S3: v1.5.0 → v1.6.0`
 
-- no version transition was proposed during discovery;
-- **if implementation were later authorized, its version impact would be assessed at that time**.
+Those two positions cannot both remain unresolved.
 
-Implementation was later:
-- authorized by `D-042`;
-- independently accepted by `ML-DEVOS-AS-053`.
+If RFC-015 implementation itself is a MINOR Sentinel governance-capability change, then after its own closure the active baseline would already be `v1.6.0`; a later independently versioned S3 MINOR closure would then be `v1.7.0`.
 
-But AS-053 recorded neither:
-- a durable closure ADR;
-- nor an explicit post-implementation Sentinel version decision.
+Alternatively, Paulo could explicitly approve bundling RFC-015's implemented lifecycle capability and S3's adoption into one `v1.6.0` release boundary — but that must be stated deliberately, with separate ADR provenance for each accepted architecture change if both require ADRs. It cannot be left implicit.
 
-This is governance closure debt.
+#### Required correction
 
-### Architect version assessment for Skills/Treasury V0.1
+RFC-015 must propose one coherent sequencing model and explain it.
 
-Recommendation:
+Architect preference for lowest drift / clearest provenance:
 
-`NO SENTINEL CAPABILITY-BASELINE BUMP`
+- Skills/Treasury closure ADR first: explicit no-bump at `v1.5.0`;
+- RFC-015 implementation receives its own post-implementation ADR and explicit version disposition;
+- S3 closure version is calculated from the then-current baseline, not hard-coded from AS-056;
+- AS-056's proposed ADR/version numbers are treated as provisional and recomputed at the final closure gate.
 
-Keep baseline:
-`v1.5.0`
+Do **not** assign final ADR numbers in RFC-015 unless the live ADR directory is checked at the time the ADR is actually written.
 
-Reason, matching the Traceability V1 no-bump precedent:
-- no CORE rule meaning changed;
-- no actor authority changed;
-- no trust boundary granted or widened;
-- no remote/deploy/main authority changed;
-- Skills are explicitly non-authoritative procedure wrappers;
-- Treasury is a manual routing/classification discipline over existing canonical records;
-- the implementation operationalizes existing governance practice rather than changing Sentinel's constitutional/governance semantics.
+The RFC may recommend whether RFC-015 implementation itself is MINOR or explicit no-bump, but it must support that choice against `VERSIONING_POLICY.md`; silence is not allowed.
 
-This should be an **explicit no-bump decision**, not an implicit omission.
+### AS57-F005 — BLOCKER — runtime distinction should be semantic, not based on whether invocation is automatic
 
-### Required durable closure
+The proposed `executable_runtime_present` clarification says repository tooling remains non-runtime partly because it is "not wired to any automatic trigger."
 
-Before or atomically ahead of the S3 closure ADR in the same bounded closure cycle:
+That criterion is too brittle.
 
-Create:
-`ML-DEVOS-ADR-011`
+A deterministic validator could later run automatically in CI and still be a validation tool rather than a stateful Sentinel Task Engine/Orchestrator/runtime subsystem. Conversely, a manually invoked state-mutating engine could still be runtime behavior.
 
-Purpose:
-- adopt Skills Foundation V0.1 + Portable Knowledge Treasury as repository architecture;
-- cite `ML-DEVOS-RFC-014`, `D-042`, `ML-DEVOS-AS-050`, `ML-DEVOS-AS-053`;
-- record effective Sentinel baseline `v1.5.0`;
-- explicitly record **no Sentinel capability-baseline transition**;
-- preserve all authority/non-runtime/security boundaries.
+#### Required correction
 
-This consumes ADR-011.
+Define the distinction by behavior/responsibility, not trigger mechanism.
 
-Therefore the proposed S3 closure ADR becomes:
+A better rule:
 
-`ML-DEVOS-ADR-012`
+`executable_runtime_present: false`
+means the root contains no active Sentinel operational subsystem that:
+- owns/persists operational state;
+- executes lifecycle/state transitions;
+- dispatches or orchestrates actors;
+- brokers/enforces capabilities;
+- performs autonomous or consequence-bearing operational actions.
 
-not ADR-011.
+Repository-local schemas, validators, generators, and tests may be executable code and may be manually or automatically invoked without, by that fact alone, becoming a Sentinel runtime subsystem.
 
-## AS56-F005 — CLOSURE VERSION ASSESSMENT — S3 remains a MINOR candidate after debt correction
+Keep S3 `false`.
 
-After recording the explicit Skills/Treasury no-bump disposition, the active baseline remains:
+Do not rename the field in this RFC unless a separate migration need is demonstrated.
 
-`v1.5.0`
+## Non-blocking observations
 
-S3 adds the first implemented Typed Task Contract capability:
-- schema;
-- specification;
-- deterministic validator;
-- evidence-policy semantic validation;
-- examples/tests.
+### AS57-O001 — proposal is appropriately small
 
-This is a backwards-compatible new Sentinel governance capability.
+No new closure registry, Skill, phase, agent, or database is proposed.
 
-Architect recommendation remains:
+Preserve that.
 
-`MINOR: v1.5.0 → v1.6.0`
+### AS57-O002 — manifest_version should remain untouched
 
-for S3 closure.
+No current repository rule gives `manifest_version` semantic bump behavior.
 
-Proposed S3 ADR:
-`ML-DEVOS-ADR-012`
+RFC-015 is correct not to invent it.
 
-No CORE rule changes are needed.
+### AS57-O003 — closure preflight should stay objective where possible
 
-## AS56-F006 — ROLLING HANDOFF HEADER IS STALE
+The checklist should test:
+- currentness;
+- presence/consistency;
+- provenance;
+- explicit version disposition;
+- traceability delta.
 
-`coordination/IMPLEMENTER_HANDOFF.md` retains an old top-level status from a prior Skills remediation cycle while later S3 handoffs are appended below.
+Judgment calls remain Architect/Paulo responsibilities.
 
-Live `coordination/STATE.md` correctly outranks the handoff, so this has not changed authority.
+Do not turn Closure Preflight into a scoring framework.
 
-But the stale top banner is misleading for orientation/recovery and should be normalized during closure bookkeeping.
+## Authorized remediation cycle 1
 
-Do not delete historical handoff content; only make the current header accurately identify the active/closing S3 cycle and preserve the history below.
+Claude may modify only:
 
-## Corrected Paulo decision package
+- `devos/changes/rfcs/ML-DEVOS-RFC-015.md`;
+- `devos/changes/rfcs/README.md` only if its summary needs correction;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
 
-Paulo should **not** approve AS-055's original six-item closure package verbatim.
+No implementation files are authorized.
 
-The corrected closure decision is:
+## Preserve
 
-### A. Close outstanding Skills/Treasury architecture debt
+Do not reopen:
+- need for post-bootstrap reserved-root lifecycle;
+- `IMPLEMENTED` as the proposed descriptive state;
+- S2-only `FOUNDATION_ACTIVE`;
+- Closure Preflight inside Stage Gate Review;
+- anti-bloat direction;
+- S3 technical approval from AS-055;
+- S4 hard gate.
 
-Authorize:
-1. explicit no-bump disposition for Skills Foundation V0.1 + Portable Knowledge Treasury at Sentinel `v1.5.0`;
-2. creation of `ML-DEVOS-ADR-011`;
-3. ordinary RFC/index/closure bookkeeping only.
+## Return gate
 
-### B. Close S3 Typed Task Contracts
-
-Authorize:
-1. adoption of S3 into the active Sentinel governance-capability baseline;
-2. `v1.5.0 → v1.6.0` MINOR transition;
-3. creation of `ML-DEVOS-ADR-012`;
-4. bounded manifest schema/validator evolution adding reserved-root status `IMPLEMENTED`;
-5. set `devos/contracts/` to `status: IMPLEMENTED`, `executable_runtime_present: false`;
-6. update the active `sentinel_capability_baseline` to `v1.6.0` / ADR-012 / the new Paulo closure decision;
-7. append S3 to `closure_history`;
-8. normalize RFC-013 status and S3 README authority provenance;
-9. normalize the rolling handoff header;
-10. update Versioning Policy / ADR/RFC indexes and other narrowly necessary closure metadata.
-
-### C. Hard boundaries
-
-No:
-- S4 proposal or implementation;
-- S5+;
-- core-rule mutation;
-- runtime/product changes;
-- remote/cloud resources;
-- credentials;
-- deployment;
-- production writes;
-- protected/main merge;
-- broad manifest redesign;
-- automatic authority from the new `IMPLEMENTED` status.
-
-## S4 gate
-
-S4 remains unauthorized.
-
-Only after:
-1. Paulo approves this corrected closure package;
-2. Builder performs the bounded closure;
-3. Architect independently verifies both ADR-011/no-bump debt closure and ADR-012/S3 v1.6.0 closure
-
-may S4 be proposed or separately authorized.
+After remediation:
+- `TURN: ARCHITECT`;
+- `STATUS: READY_FOR_ARCHITECT`;
+- `ARCHITECT_ACTION_REQUIRED: YES`;
+- `IMPLEMENTER_ACTION_REQUIRED: NO`;
+- `CURRENT_REMEDIATION_CYCLE: 1`.
 
 ## Verdict
 
-`ML-DEVOS-AS-056: DISCREPANCIES CONFIRMED — S3 TECHNICAL APPROVAL PRESERVED — CLOSURE GATE CORRECTED — PAULO DECISION REQUIRED`
+`ML-DEVOS-AS-057: CHANGES_REQUESTED — RFC-015 REMEDIATION CYCLE 1`
