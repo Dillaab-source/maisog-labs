@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED — SKILLS FOUNDATION V0.1 IMPLEMENTATION REMEDIATION CYCLE 1`
+Status: `CHANGES_REQUESTED — SKILLS FOUNDATION V0.1 IMPLEMENTATION REMEDIATION CYCLE 2 (SCOPE CLEANUP ONLY)`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -9,221 +9,120 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-051 — Skills Foundation V0.1 + Portable Knowledge Treasury Implementation Review
+# ML-DEVOS-AS-052 — Skills Foundation V0.1 Implementation Remediation Review 1
 
 Authority:
 - `ML-DEVOS-RFC-014 — ACCEPTED`
 - `ML-DEVOS-AS-050 — ARCHITECT_APPROVED`
 - `D-042 — Paulo implementation authorization`
+- `ML-DEVOS-AS-051 — implementation remediation cycle 1`
 
-Builder implementation commit reviewed:
-- `0f86e58c9851acc3ca37ad46b80db11cb772ed21`
+Builder remediation commit reviewed:
+- `69133f0cc7a3bcab7931376dda5b65eb4b4b78f6`
 
-Base:
-- `32d8754bfd31225d43216f409af0b04ca749f313`
+## Scope / evidence
 
-## Scope inspection
+### AS52-F001 — PASS — all three AS-051 substantive blockers are closed
 
-### AS51-F001 — PASS — implementation stayed inside the authorized envelope
+#### AS51-F005 — CLOSED
 
-The implementation added:
-- exactly four canonical Skills under `.agents/skills/`;
-- exactly four Claude Code bridge Skill files under `.claude/skills/`;
-- deterministic bridge generator + validator;
-- focused Skill tests;
-- manual Portable Knowledge Treasury procedure;
-- empty `brain/KNOWLEDGE_PRINCIPLES.md`;
-- narrow routing pointers in `AGENTS.md`, `CLAUDE.md`, and `brain/00_HOME.md`;
-- normal handoff/state bookkeeping.
+Independent repository inspection confirms all four generated Claude bridge files:
+- begin at byte 0 with `---`;
+- have the same Git blob SHA as their matching canonical `.agents/skills/<name>/SKILL.md`;
+- are therefore byte-for-byte identical to the canonical payload.
 
-No fifth Knowledge Capture Skill exists.
+The generator now emits canonical bytes exactly, with no prefixed banner.
 
-No:
-- S3/S4+/S5 implementation;
-- product/runtime code;
-- D1/R2/remote resource;
-- credential/secret;
-- deployment;
-- main merge;
-- provider account/chat scraping;
-- S11 memory system
+The focused tests also add provider-format assertions for each bridge plus drift-injection coverage.
 
-was introduced.
+#### AS51-F006 — CLOSED
 
-Builder-reported `387/387` test evidence remains `ACTOR_REPORTED` until independently reproduced.
+The Portable Knowledge Treasury now applies the full AS-048/D-042 bar to `INTERNAL` persistence:
+- accepted current access controls;
+- Git/version-control suitability;
+- correct canonical destination.
 
-## Accepted implementation findings
-
-### AS51-F002 — PASS — canonical four-Skill set is structurally faithful
-
-The four canonical `.agents/skills/*/SKILL.md` payloads are compact, point to authoritative repository sources, include activation/non-activation, inputs, outputs, stop/escalation behavior, governance dependencies, and explicit non-authority posture.
-
-The canonical payloads themselves begin with valid YAML frontmatter.
-
-### AS51-F003 — PASS — no shadow authority introduced
-
-The Skill content repeatedly preserves:
-- `GOVERNANCE > SKILLS`;
-- `CURRENT AUTHORIZATION > SKILL CAPABILITY`;
-- `CAPABILITY != AUTHORITY`.
-
-No `allowed-tools`, credential grant, secret value, or independent mutation authority is present in canonical Skill frontmatter.
-
-### AS51-F004 — PASS — deterministic generated-copy bridge strategy is architecturally acceptable in principle
-
-Using a deterministic generated copy instead of repository symlinks is acceptable for the stated Windows/Git portability concern, provided the generated bridge is itself valid for Claude Code discovery and drift is fail-closed.
-
-The current implementation has a blocker in that last condition (AS51-F005), but the strategy itself does not need redesign.
-
-### AS51-F005 — BLOCKER — generated Claude Code Skill files place content before required top-of-file YAML frontmatter
-
-Every generated bridge file currently begins with an HTML comment:
-
-`<!-- GENERATED FILE ... -->`
-
-and only then contains the `---` YAML frontmatter copied from the canonical Skill.
-
-Anthropic's current official Claude Code Skills documentation states that Skill behavior is configured using YAML frontmatter **at the top of `SKILL.md`** and its examples begin the file with the opening `---` marker.
-
-Official source checked 2026-09-20:
-- `https://code.claude.com/docs/en/skills`
-- relevant current documentation: "Skills are configured through YAML frontmatter at the top of SKILL.md"; frontmatter examples start with `---`.
-
-Therefore the bridge can pass its own byte-for-byte drift test while still failing or degrading native Claude Code Skill parsing/discovery.
-
-#### Required remediation
-
-Keep the generated-copy strategy, but ensure every generated Claude bridge file begins at byte 0 with the canonical YAML frontmatter.
-
-Acceptable shapes include:
-- canonical frontmatter first, generated notice immediately after the closing `---`; or
-- canonical content byte-for-byte with no banner, with generated status documented elsewhere.
-
-Update `tests/skills.test.mjs` so it independently parses **each generated Claude bridge** using a start-of-file frontmatter assertion, not only the canonical `.agents` file.
-
-The test should prove:
-- bridge begins with `---`;
-- bridge `name` and `description` equal the canonical values;
-- bridge still matches deterministic generation;
-- drift injection still fails validation.
-
-Regenerate all four `.claude/skills/*/SKILL.md` files after fixing the generator.
-
-Do not switch architectures or introduce hand-maintained provider copies.
-
-### AS51-F006 — BLOCKER — Treasury INTERNAL persistence rule weakens AS-048 / D-042
-
-`brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` currently says:
-
-- `INTERNAL` may persist when its canonical record type genuinely belongs in the repository.
-
-But `D-042` explicitly preserved the stronger AS-048 condition:
-
-Both `INTERNAL` and `RESTRICTED` repository persistence require:
-- accepted current access controls for the material;
-- Git suitability;
-- an authorized/correct canonical destination.
-
-Private visibility alone is not acceptance.
-
-The current protocol correctly applies accepted-access-control/Git-suitability checks to `RESTRICTED`, but omits them from `INTERNAL`.
-
-#### Required remediation
-
-Change the `INTERNAL` storage rule so it requires all three:
-1. current repository access controls are accepted for the material;
-2. the material is suitable for Git/version-controlled documentation;
-3. its canonical destination genuinely belongs in the repository.
-
-If any is missing or uncertain:
+If any condition is missing or uncertain:
 `STOP / DEFER PERSISTENCE`.
 
-Keep `SECRET`/credentials out of Git unconditionally.
+The INTERNAL near-miss eval is now explicit.
 
-Also ensure the protocol's evaluation cases include the INTERNAL unknown/unaccepted-controls near miss explicitly or otherwise unambiguously cover it.
+#### AS51-F007 — CLOSED
 
-Do not broaden automated disclosure routing; `RISK-WEB-013` remains open.
+`CLAUDE.md` now labels Phase-1 bootstrap instructions as historical and states live `coordination/STATE.md` controls current scope/turn/status.
 
-### AS51-F007 — BLOCKER — Project Orientation depends on stale "current scope" statements
+`brain/00_HOME.md` likewise points current-state recovery to live `coordination/STATE.md` and no longer presents `PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY` as the current phase.
 
-The new `project-orientation-state-recovery` Skill makes:
-- `brain/00_HOME.md`;
-- `CLAUDE.md`;
-- live `coordination/STATE.md`
+The Project Orientation Skill can therefore rely on those surfaces without inheriting stale authorization.
 
-part of the recovery path.
+### AS52-F002 — PASS — hard boundaries remain intact
 
-However:
+No S3 implementation, S4+/S5, product/runtime mutation, remote resource, credential, deployment, main merge, external Skill installation, or chat/provider import was introduced.
 
-- `CLAUDE.md` still contains a section titled `Current authorized scope` that declares `PHASE 1 — GOVERNANCE BOOTSTRAP ONLY`;
-- `brain/00_HOME.md` still contains a `Current phase` paragraph stating `AUTHORIZED_SCOPE: PHASE_1_GOVERNANCE_BOOTSTRAP_ONLY`.
+S3 remains paused.
 
-Those statements are historical bootstrap text, not the current live authorization. The current authoritative scope is in `coordination/STATE.md`.
+## Single remaining blocker
 
-Before V0.1 Skills, this was stale-documentation debt. After the new Orientation Skill explicitly uses these surfaces to recover live state, the contradiction materially affects the change under review.
+### AS52-F003 — BLOCKER — one remediation artifact was created outside the AS-051 file whitelist
 
-#### Required remediation
+The remediation added:
 
-Make the minimum documentation correction:
+`.claude/skills/README.md`
 
-**CLAUDE.md**
-- replace the stale "Current authorized scope" framing with an explicit statement that live scope/turn/status are always read from `coordination/STATE.md`;
-- preserve Phase-1 bootstrap material only as clearly historical/legacy instructions if it must remain for provenance;
-- do not present Phase 1 as current.
+AS-051 authorized Claude to modify only:
+- the four generated `.claude/skills/*/SKILL.md` files;
+- the named generator/validator/test/Treasury/orientation documents;
+- normal handoff/state bookkeeping.
 
-**brain/00_HOME.md**
-- replace the stale `Current phase` claim with a direct pointer to live `coordination/STATE.md`;
-- make clear that any phase/scope text elsewhere in this file is historical unless corroborated by live STATE.
+It did **not** authorize creating a new `.claude/skills/README.md`.
 
-The `project-orientation-state-recovery` Skill may remain unchanged if these source surfaces become internally consistent. If its procedure wording needs a small clarification to treat live STATE as authoritative over historical guidance, that is authorized.
+The README is low-risk and its content is directionally correct, but the governance question is not whether the file is useful. The issue is whether a Builder may add an unlisted artifact during an explicitly bounded remediation cycle.
 
-No general governance rewrite is requested.
+Under:
+- `CORE-001 — Human authority cannot be invented by an agent or mechanism`;
+- `CORE-002 — Capability != Authority`;
+- the explicit AS-051 `Claude may modify only...` boundary,
 
-## Non-blocking observations
+the answer is no.
 
-### AS51-O001 — bridge validator tests the generator's own expected bytes, not provider validity
+Accepting this artifact silently would weaken the exact authority discipline the Skills system is intended to preserve.
 
-This is acceptable once AS51-F005 adds an independent provider-format invariant (frontmatter at byte 0). Determinism and semantic validity must both be tested.
+## Required Cycle 2 remediation
 
-### AS51-O002 — manifest gap is correctly disclosed
+Perform only this normalization:
 
-Leaving `devos/devos-manifest.json` unchanged was consistent with D-042 because no existing field cleanly fits the non-`devos/`, non-phase `.agents/skills/` root without schema invention.
+1. delete `.claude/skills/README.md`;
+2. update comments in `scripts/generate-claude-skills-bridge.mjs` only as needed so they no longer cite that README;
+3. keep generated-status documentation in already-authorized/canonical surfaces such as:
+   - `.agents/skills/README.md`;
+   - the generator/validator source comments;
+4. do not change any canonical Skill content, Treasury rule, routing behavior, bridge bytes, or architecture;
+5. rerun the focused bridge/Skill validation and report the result;
+6. return to Architect.
 
-No remediation required in this cycle.
+No new artifact is required to replace the removed README.
 
-### AS51-O003 — empty Knowledge / Principles ledger is correct
+## Authorized Remediation Cycle 2 files
 
-`brain/KNOWLEDGE_PRINCIPLES.md` contains no retroactive chat backfill and invents no new formal ID namespace.
-
-No remediation required.
-
-## Authorized Remediation Cycle 1 files
-
-Claude may modify only what is necessary for AS51-F005/F006/F007:
-
-- `scripts/generate-claude-skills-bridge.mjs`;
-- `scripts/validate-claude-skills-bridge.mjs` only if needed;
-- `tests/skills.test.mjs`;
-- the four generated `.claude/skills/*/SKILL.md` bridge files;
-- `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md`;
-- `CLAUDE.md`;
-- `brain/00_HOME.md`;
-- `.agents/skills/project-orientation-state-recovery/SKILL.md` only if a narrow source-precedence clarification is needed;
+Claude may modify only:
+- `.claude/skills/README.md` — delete only;
+- `scripts/generate-claude-skills-bridge.mjs` — comment/reference cleanup only;
+- `tests/skills.test.mjs` only if a stale README assertion/reference exists;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
 
-Do not modify canonical Skill content unrelated to AS51-F007.
+Do not modify the four canonical Skill payloads or generated bridge Skill bytes unless removal of a stale README reference somehow requires it; none is currently expected.
 
 ## Preserve accepted implementation
 
-Do not reopen without new evidence:
-- exactly four V0.1 Skills;
-- `.agents/skills/` canonical source;
-- deterministic generated-copy Claude bridge strategy;
-- Knowledge Treasury as manual governed procedure;
-- empty-at-start Knowledge/Principles ledger;
-- no fifth Knowledge Capture Skill;
-- no manifest schema invention;
+Do not reopen:
+- the four Skills;
+- `.agents/skills/` canonical architecture;
+- generated-copy bridge strategy;
+- frontmatter-at-byte-0 fix;
+- Treasury access-control fix;
+- stale-scope fix;
+- Knowledge/Principles ledger;
 - D-042 sequential S3 rule.
 
 ## S3
@@ -232,24 +131,19 @@ Do not reopen without new evidence:
 
 Do not start S3.
 
-Per D-042, S3 may reopen only after the Skills/Treasury implementation is independently accepted with no blocker.
+If AS52-F003 closes cleanly, the next review is expected to be the V0.1 acceptance review and, under D-042, may reopen S3.
 
 ## Verdict
 
-`ML-DEVOS-AS-051: CHANGES_REQUESTED — IMPLEMENTATION REMEDIATION CYCLE 1`
-
-Active blockers:
-- `AS51-F005` Claude bridge frontmatter must be top-of-file;
-- `AS51-F006` Treasury INTERNAL rule must restore AS-048/D-042 access-control + Git-suitability conditions;
-- `AS51-F007` Orientation sources must stop presenting Phase 1 as current authorization.
+`ML-DEVOS-AS-052: CHANGES_REQUESTED — IMPLEMENTATION REMEDIATION CYCLE 2 / SCOPE CLEANUP ONLY`
 
 ## Return gate
 
-After remediation:
+After cleanup:
 - `TURN: ARCHITECT`
 - `STATUS: READY_FOR_ARCHITECT`
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `CURRENT_REMEDIATION_CYCLE: 1`
+- `CURRENT_REMEDIATION_CYCLE: 2`
 
-Builder must return exact diff/evidence and must not self-accept the implementation or start S3.
+Builder must not self-accept or start S3.
