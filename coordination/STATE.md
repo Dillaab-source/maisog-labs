@@ -37,6 +37,8 @@ No S3 implementation is authorized during this remediation.
 
 ## Current review chain
 
+- AS-047 access-control clarification: `devos/changes/architect-syncs/ML-DEVOS-AS-047-access-control-amendment.md`
+
 - `ML-DEVOS-AS-045 — CHANGES_REQUESTED / Remediation Cycle 2`
 - `ML-DEVOS-AS-046 — CHANGES_REQUESTED / Remediation Cycle 2 scope amendment`
 
@@ -60,10 +62,10 @@ Claude may modify only:
 GitHub now reports `Dillaab-source/maisog-labs` as a private repository.
 
 - PUBLIC_SAFE may be published only through normal record-specific approval.
-- INTERNAL may use the private repository when its canonical record belongs here.
-- RESTRICTED may use the private repository only when it is Git-appropriate and repository access is an acceptable audience boundary.
+- INTERNAL may use the private repository only when current access controls are accepted for the material, it is Git-suitable, and its canonical destination is authorized.
+- RESTRICTED may use the private repository only when it is Git-appropriate, current access controls are accepted for the material, and its canonical destination is authorized.
 - SECRET / credentials / private keys / secret values / version-control-prohibited material must never be committed to Git, even while private.
-- if no approved destination exists for sensitive material, STOP / DEFER PERSISTENCE.
+- if accepted access controls, classification, Git suitability, or an approved destination is missing or uncertain, STOP / DEFER PERSISTENCE.
 - prior public visibility is not retroactively cured by changing the repository to private.
 
 ## Preserve accepted discovery architecture
