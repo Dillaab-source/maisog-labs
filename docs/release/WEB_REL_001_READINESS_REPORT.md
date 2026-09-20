@@ -45,7 +45,7 @@ Byte-identical to `main` (confirmed by empty `git diff`): `components/BlueprintI
 
 `tests/d1-audit.test.mjs`, `d1-migration.test.mjs`, `design-overlay.test.mjs`, `worker-admin-dashboard.test.mjs`, `worker-admin-design.test.mjs`, `worker-admin-journal.test.mjs`, `worker-admin-media.test.mjs`, `worker-admin-projects.test.mjs`, `worker-auth.test.mjs`, `worker-public-design.test.mjs`, `worker-public-journal.test.mjs`.
 
-### 3d. Cloudflare config (2 files)
+### 3d. Cloudflare config / dependency metadata (3 files)
 
 `wrangler.jsonc` (modified — see §8 for the exact `run_worker_first`/binding diff), `package.json` (modified — adds exactly one runtime dependency, `jose@^6.2.12`, for Access JWT/JWKS verification; `wrangler` devDependency version unchanged). `package-lock.json` modified consistently with that one dependency addition.
 
