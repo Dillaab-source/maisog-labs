@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-TRACEABILITY-V1
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REMEDIATION_CYCLE_1
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REMEDIATION_CYCLE_2
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -22,34 +22,36 @@ MAIN_MERGE_AUTHORIZED: NO
 - `ML-DEVOS-RFC-012 — ACCEPTED`
 - `ML-DEVOS-AS-037 — ARCHITECT_APPROVED`
 - `D-036 — Paulo-authorized bounded implementation`
-- `ML-DEVOS-AS-039 — CHANGES_REQUESTED / Remediation Cycle 1`
+- `ML-DEVOS-AS-039 — Remediation Cycle 1 review`
+- `ML-DEVOS-AS-040 — CHANGES_REQUESTED / Remediation Cycle 2`
 
 ## Remediation scope
 
-Fix only `AS39-F008`:
+Fix only `AS40-F001`:
 
-The traceability parser currently misclassifies the explicit statement:
+Separate durable semantic reference surfaces from rolling/tooling surfaces so the validator does not create hard missing-target errors from its own review/handoff/tooling discussion.
 
-`Do not create CORE-022 from these findings.`
+At minimum, hard reference extraction must exclude:
+- `coordination/`;
+- `devos/governance/traceability/`;
+- traceability-focused test/tooling discussion surfaces where applicable.
 
-as a genuine missing canonical target.
+Preserve canonical-definition discovery.
 
-Implement a narrowly scoped, rationale-bearing intentional-non-reference/reference-exception mechanism that:
-- keeps the occurrence visible as a WARNING;
-- does not globally suppress `CORE-022`;
-- still produces ERROR if the same missing ID is genuinely referenced elsewhere;
-- has focused tests;
-- regenerates the derived indexes.
+Preserve the narrow per-site intentional-non-reference mechanism from Remediation Cycle 1.
 
-## Preserve
+Add tests proving excluded working/tooling mentions do not suppress genuine durable references to the same missing ID.
 
-`WEB-REQ-009` remains a genuine repository-content traceability ERROR and is **not** authorized for repair in this cycle.
+## Preserve genuine gap
+
+`WEB-REQ-009` remains a genuine durable repository-content traceability ERROR and is not authorized for repair in this cycle.
 
 ## Hard boundaries
 
 No:
-- creation of `CORE-022`;
-- WEB-REQ-009 source-record repair;
+- WEB-REQ-009 repair;
+- CORE-022 creation;
+- fabricated Architect Sync archive;
 - unrelated governance rewrites;
 - S3 implementation;
 - S7/S9 implementation;
@@ -78,8 +80,4 @@ After remediation:
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Builder handoff must include exact diff, focused/full test results, regenerated baseline ERROR/WARNING counts, and proof the exception is narrow rather than global.
-
-## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)" section at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: the exact site named in AS39-F008 moved from ERROR to an `intentional-noncanonical-mention` WARNING via a new narrowly scoped, per-site `referenceExceptions` mechanism (not a global suppression — proven by 3 new focused tests); a self-inflicted self-reference defect (the exception's own config text reintroducing the same false positive) was found and fixed during this cycle before commit; 10/10 focused tests and 348/348 full suite pass; two consecutive generation runs are byte-identical; the reported id still shows residual ERROR sites from coordination bookkeeping quoting it as an example (disclosed, not hidden, believed not to be a mechanism defect); `WEB-REQ-009` remains the untouched, preserved genuine gap; no version bump, no CI/ruleset, no runtime change, no `CORE-022` creation.
+Handoff must include exact diff, tests, regenerated baseline findings, and proof that durable references still fail closed while excluded rolling/tooling mentions do not.
