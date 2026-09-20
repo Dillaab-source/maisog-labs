@@ -23,6 +23,8 @@ MAIN_MERGE_AUTHORIZED: NO
 
 `D-039 — Portable Knowledge Treasury discovery is integrated into this same discovery cycle; no parallel subsystem is authorized.`
 
+`D-040 — Research-informed Skills/Treasury safeguards are added to this remediation before RFC-014 acceptance.`
+
 ## S3 status
 
 `S3 — Typed Task Contracts: PAUSED / QUEUED — AUTHORITY PRESERVED`
@@ -54,6 +56,7 @@ Remediate only:
 
 Additional bounded discovery requirement:
 5. `ML-DEVOS-AS-043 / D-039` — integrate Portable Knowledge Treasury discovery: classify/deduplicate durable insight, map canonical destinations, determine whether Knowledge Capture is a Skill/composition/lightweight procedure, design provider-portable provenance and public/private safeguards, and report the 14 required treasury outputs.
+6. `ML-DEVOS-AS-044 / D-040` — strengthen the proposal with Treasury-as-routing, durable-reuse threshold, candidate-vs-accepted boundary, type+disclosure classification, canonical-destination-first dedup outcomes, progressive disclosure, external-skill revalidation, reuse targets, and anti-bloat metrics.
 
 ## Authorized remediation files
 
@@ -92,4 +95,4 @@ After remediation:
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Builder must return the corrected RFC, the Portable Knowledge Treasury discovery outputs, and exact evidence/diff without self-authorizing Skills implementation, treasury implementation, or S3 resumption.
+Builder must return the corrected RFC integrating AS-042, AS-043, AS-044 and D-038/D-039/D-040, plus exact evidence/diff, without self-authorizing Skills implementation, Treasury implementation, or S3 resumption.
