@@ -1,211 +1,209 @@
 # Architect Review — S4 State Machine Kernel Implementation
 
-Status: CHANGES_REQUESTED
+Status: ARCHITECT_APPROVED — IMPLEMENTATION ACCEPTED / CLOSURE DECISION REQUIRED
 Review mode: STAGE GATE REVIEW
 Cycle: SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION
-Reviewed HEAD: 5f2377b68b600c62605fae5c94c92d5c28ce1ed8
+Final reviewed implementation HEAD: 72cd84a8fedb581306c023ee88e1b0f1c4d5293c
 Implementation authority: D-050
 Design authority: ML-DEVOS-RFC-016 / ML-DEVOS-AS-065
-Remediation cycle: 1 of 2
+Implementation review archive ID: ML-DEVOS-AS-066
+Remediation cycle used: 1 of 2
 
-## Scope / evidence inspected
+## Final verdict
+
+S4 IMPLEMENTATION STAGE GATE: ARCHITECT_APPROVED
+IMPLEMENTATION: ACCEPTED
+REMEDIATION: CLOSED
+READY FOR D.1 CLOSURE PREFLIGHT: YES
+S4 CLOSED / MANIFEST ACTIVE: NO
+PAULO CLOSURE DECISION REQUIRED: YES
+
+The repository-local S4 State Machine Kernel is accepted as a technically sound implementation of the Architect-approved RFC-016 design, including D-050's locked Task Policy and orphan-lock recovery policy.
+
+No manifest activation, version bump, ADR creation, architecture-baseline amendment, deployment, remote resource, main merge, or later-phase authority is granted by this review.
+
+## Evidence reviewed
 
 Independently inspected:
 - live coordination/STATE.md and IMPLEMENTER_HANDOFF.md;
-- exact 9146a24a55e7b51173de1289e784762e87629ca4 → 5f2377b68b600c62605fae5c94c92d5c28ce1ed8 changed-file set;
-- devos/state/kernel.mjs;
+- exact remediation delta 0147e4bc451e70b4ff2d8a3185ca99e2a541d646 → 72cd84a8fedb581306c023ee88e1b0f1c4d5293c;
 - devos/state/lifecycle.mjs;
+- devos/state/kernel.mjs;
 - devos/state/store.mjs;
+- devos/state/validate-task-state.mjs;
 - devos/state/task-policy.mjs;
-- task-state schema + validator;
-- focused lifecycle test source;
-- accepted RFC-016 transition/locking/recovery requirements;
+- focused lifecycle/kernel test source;
+- accepted RFC-016 transition, ownership, persistence, recovery and S5/S8/S9 boundary text;
 - D-050 implementation policy.
 
-Builder-reported results remain:
-- focused S4 tests: 31/31 PASS;
-- full repository tests: 489/489 PASS;
-- concurrency suite repeated 5/5 clean;
-- traceability fingerprint: CORE-022 + WEB-REQ-009 only.
+Architect independently executed targeted spot checks against the reviewed remediation logic for:
+- missing transition references fail closed;
+- required decision/artifact references permit intended transitions;
+- QA → BUILDING is classified as a handoff while CHANGES_REQUESTED/PAULO_DECISION_REQUIRED → BUILDING are not;
+- invalid/path-like task IDs fail before task-path use;
+- syntactically valid but structurally invalid records fail as scoped corruption;
+- lock diagnostic metadata includes task_id.
 
-Those command totals are still ACTOR_REPORTED in this review. Architect independently reproduced a narrower executable harness against the committed lifecycle logic for the guard defect below; the full focused suite will be independently reproduced after remediation before technical acceptance.
+Those targeted checks passed.
 
-## What passes
+Environment limitation: the Architect execution sandbox cannot clone the private GitHub repository because outbound DNS/network access is unavailable. Therefore Claude's exact full focused-suite counts remain ACTOR_REPORTED rather than being upgraded to INDEPENDENTLY_REPRODUCED. This review does not conceal that limitation.
 
-- exact diff remains inside the D-050 implementation surfaces;
-- no manifest/version/ADR/frozen-architecture/CORE/S3/workflow/product/remote/deploy/main mutation;
-- local per-task exclusive-create lock design is present;
-- automatic age-based lock stealing is absent;
-- revision fencing exists for owner mutations;
-- idempotency/replay machinery exists for claim/renew/transition;
-- per-project 2/2/2 Task Policy is statically decoupled from coordination/STATE.md;
-- FAILED / ABANDONED are represented as terminal states;
-- evidence-class guards for the six named evidence transitions are implemented;
-- real child-process concurrency tests exist;
-- non-authority disclaimer is structurally represented;
-- Builder correctly disclosed two implementation-discovered deviations instead of hiding them.
+Builder-reported verification at final HEAD:
+- state-lifecycle: 18/18 PASS;
+- state-kernel: 21/21 PASS;
+- state-concurrency: 2/2 PASS across 5 repeated runs;
+- devos-manifest spot check: 22/22 PASS;
+- traceability: 2 known errors, 14 warnings, no generated-index drift.
 
-## S4I-F001 — BLOCKER: accepted transition-table guards are missing
+Implementation acceptance does not rest solely on those Builder claims: the changed source, tests, diff, governance boundaries, and critical remediated invariants were independently inspected, with the highest-risk changed invariants also independently spot-executed.
 
-RFC-016's transition table contains guards beyond adjacency/evidence-class/retry checks. The implementation currently accepts several transitions when their required reference is absent.
+## Findings disposition
 
-Architect independently reproduced the committed lifecycle behavior in a minimal execution harness. With zero retries and no reference inputs, all of these returned `{ ok: true }`:
+### S4I-F001 — missing transition-table guards: CLOSED
 
-- `PLANNING → READY_FOR_BUILD` — RFC requires a design/plan artifact reference;
-- `REVIEW → APPROVED` — RFC requires reviewer decision recorded;
-- `REVIEW → CHANGES_REQUESTED` — RFC requires reviewer decision recorded;
-- `PAULO_DECISION_REQUIRED → BUILDING` — RFC requires a Paulo decision reference;
-- `PAULO_DECISION_REQUIRED → ABANDONED` — RFC requires a Paulo decision reference;
-- `MERGED → RELEASE_READY` — RFC requires a release-criteria reference.
+Confirmed:
+- PLANNING → READY_FOR_BUILD requires an opaque artifact reference;
+- REVIEW → APPROVED requires decisionRef;
+- REVIEW → CHANGES_REQUESTED requires decisionRef;
+- PAULO_DECISION_REQUIRED → BUILDING requires decisionRef;
+- every non-terminal → ABANDONED requires decisionRef plus Architect/Paulo role gate;
+- MERGED → RELEASE_READY requires an opaque release-criteria reference;
+- decisionRef/evidenceRef material to legality are bound into transition idempotency comparison.
 
-The existing "all legal lifecycle transitions" test actually encodes these unguarded calls as success cases, so 31/31 PASS does not prove the accepted transition contract.
+No evidence-content sufficiency logic was introduced.
 
-Required remediation:
-- enforce the missing guards using the existing transition request fields where possible;
-- use `evidenceRef` as the opaque artifact/reference carrier for plan/release-criteria presence when no evidence-class judgment is required;
-- use `decisionRef` for reviewer/Paulo decision-reference presence;
-- any transition to `ABANDONED` must require an explicit cancellation/decision reference in addition to the existing Architect/Paulo role gate;
-- bind any newly material request reference into transition idempotency comparison so reusing one idempotency key with a different decision/artifact reference conflicts rather than silently replaying;
-- add negative tests proving every listed guard fails closed when its reference is absent.
+### S4I-F002 — QA → BUILDING ownership handoff: CLOSED
 
-Do not implement evidence-content sufficiency or S5 actor-permission evaluation; this remains presence/label structure only.
+The implementation now uses exact handoff edges rather than only destination names.
 
-## S4I-F002 — BLOCKER: QA → BUILDING leaves QA owning a Builder-stage task
+QA → BUILDING clears owner/lease atomically with the transition and revision bump. The next Builder can claim immediately and the prior QA actor is fenced.
 
-RFC-016's implementation review originally required cross-role handoffs to become immediately claimable by the next actor. The current implementation clears owner/lease only when the destination is one of five destination names. `BUILDING` is not in that set.
+CHANGES_REQUESTED → BUILDING, PAULO_DECISION_REQUIRED → BUILDING and READY_FOR_BUILD → BUILDING remain non-handoff edges, avoiding over-clearing ownership.
 
-Therefore `QA → BUILDING` increments the QA retry counter but leaves the QA actor as owner of the now-BUILDING task. The current kernel test works around this by explicitly calling `release()` after the transition before Builder claims it. That extra release step is not part of RFC-016's QA-failure transition semantics and recreates a role-handoff seam the earlier AS65-F002 remediation was intended to remove.
+### S4I-F003 — persistence-boundary structural validation: CLOSED
 
-Required remediation:
-- preserve the five existing handoff destinations;
-- additionally treat the specific edge `QA → BUILDING` as an atomic cross-role handoff: state change + revision bump + owner/lease clear in the same persisted write;
-- add a positive test proving Builder can claim immediately after QA → BUILDING;
-- add a negative test proving the prior QA owner is fenced immediately after that transition;
-- remove the test-only manual release workaround.
+Task-state validation now runs:
+- after JSON parse on load;
+- immediately before persistence.
 
-Do not globally make every transition into BUILDING a handoff: `CHANGES_REQUESTED → BUILDING` and `PAULO_DECISION_REQUIRED → BUILDING` may legitimately retain the freshly claimed actor that is already the routed Builder/decision-named actor.
+Syntactically valid but schema-invalid records raise a task-scoped CorruptRecordError with structural errors. Invalid JSON remains task-scoped corruption.
 
-## S4I-F003 — BLOCKER: structural/schema validation is not on the persistence boundary
+### S4I-F004 — task_id path-safety: CLOSED
 
-RFC-016 explicitly requires corrupted on-disk state to be detected at load time by structural/schema validation.
+One task-id shape is enforced before task-derived filesystem path construction:
+- ^[A-Z][A-Z0-9_-]*$
+- minimum length 3.
 
-Current store behavior:
-- `readRecordRaw()` performs only `JSON.parse`;
-- `writeRecordAtomic()` serializes whatever object it receives;
-- the standalone `validate-task-state.mjs` exists, but the kernel/store does not invoke it when loading or persisting records.
+Invalid/path-like values are rejected before path.join receives them. createTask also rejects an empty/non-string contract_ref before persistence.
 
-Consequences:
-- syntactically valid but structurally invalid JSON can enter the kernel without `CORRUPT_RECORD`;
-- a malformed record can be returned by `getState()` or consumed by later mutation logic;
-- direct corruption tests cover invalid JSON only, not schema-invalid valid JSON.
+### S4I-F005 — incomplete lock diagnostic metadata: CLOSED
 
-Required remediation:
-- validate every loaded task record after JSON parse;
-- fail with a task-scoped corruption/invalid-record error carrying the task_id and structural errors;
-- validate a new record immediately before persistence as a defense-in-depth invariant;
-- add a test that replaces a valid task file with syntactically valid but schema-invalid JSON and proves the task fails scoped while an unrelated task remains readable.
+The lock payload now contains:
+- holder;
+- operation;
+- acquired_at;
+- task_id;
+- pid.
 
-No new dependency is required; reuse the existing hand-written validator.
+The required RFC-016 minimum diagnostic metadata is satisfied.
 
-## S4I-F004 — BLOCKER: task_id reaches filesystem paths before its declared constraints are enforced
+## Accepted implementation-discovered corrections
 
-The schema/validator restricts `task_id` to `^[A-Z][A-Z0-9_-]*$` with length >= 3, but the public kernel operations pass caller-supplied `taskId` directly into:
-- `path.join(dir, `${taskId}.json`)`;
-- `path.join(dir, `${taskId}.lock`)`.
+### Transition idempotency binding
 
-`createTask()` does not run the structural validator before acquiring that path or persisting the record. This means malformed/path-like IDs are not merely "invalid schema"; they can influence filesystem path resolution before validation.
+Accepted: implementation omits server-derived from_state from the persisted replay binding and instead uses expectedRevision as the authoritative record-version identity, together with toState and material reference hashes.
 
-Required remediation:
-- create one canonical task-id assertion matching the schema;
-- apply it before every task-id-derived filesystem path operation, including ordinary mutations, reads, lock operations, and force-clear;
-- ensure `createTask()` also rejects an empty/invalid contract_ref before writing;
-- add negative tests for lowercase, slash/backslash/path traversal, empty/too-short IDs, and empty contract_ref;
-- prove no file outside the supplied task-store directory is created/deleted by rejected IDs.
+Rationale: recomputing from_state after a successful transition would make a true replay appear conflicting because persisted state has already advanced. expectedRevision identifies the caller's intended source record version more precisely.
 
-## S4I-F005 — REQUIRED SMALL CORRECTION: lock diagnostic metadata is incomplete
+This correction must be documented in the S4 closure ADR / closure package rather than silently rewriting history.
 
-RFC-016's accepted fail-closed lock design says the lock diagnostic metadata contains at minimum:
-`{ holder, acquired_at, task_id, operation }`.
+### Owner vs revision error diagnostics
 
-The implementation writes holder / operation / acquired_at / pid but omits task_id.
+Accepted: NOT_CURRENT_OWNER and REVISION_CONFLICT remain separate failure codes. This improves diagnostics and does not weaken fencing.
 
-Required remediation:
-- include `task_id` in the lock-file diagnostic payload;
-- add/adjust a focused test to verify it.
+## Boundary review
 
-## Builder-disclosed design corrections — Architect disposition
+### S5
 
-1. Transition idempotency binding dropping server-derived `from_state`: ACCEPTED IN PRINCIPLE. `expectedRevision` is the stronger replay identity. During remediation, also bind any required decision/artifact reference introduced by S4I-F001.
-2. Split `NOT_CURRENT_OWNER` vs `REVISION_CONFLICT`: ACCEPTED. This improves diagnostics without weakening fencing.
+PASS. RFC-016 explicitly states S4 accepts a bare actor_id and performs no general actor permission check. The current implementation does not become a Capability & Permission Gateway. The narrow ABANDONED structural role gate remains part of the accepted S4 transition contract.
 
-These implementation-discovered corrections should be carried into the eventual S4 closure/ADR documentation; do not edit the accepted RFC during this remediation unless separately authorized.
+### S7 / S9
 
-## Non-blocking discrepancy to preserve for closure documentation
+PASS. S4 retains opaque evidence references and class-label/presence guards only. It does not retrieve evidence artifacts or decide evidence sufficiency.
 
-RFC-016's prose says every mutating request presents the last-observed revision, while its own claim signature omits revision. The current implementation follows the explicit claim signature. This does not block this remediation because the lock still provides one-winner claim serialization, but the closure package must reconcile/document the API wording rather than silently pretending the prose is perfectly consistent.
+### S8
 
-## Verdict
+PASS. sweepExpiredLeases remains passive/read-only. No scheduler, dispatcher, timeout daemon or actor invocation exists.
 
-S4 IMPLEMENTATION STAGE GATE: CHANGES_REQUESTED
-READY FOR S4 CLOSURE PREFLIGHT: NO
-CURRENT_REMEDIATION_CYCLE: 1 / 2
+### S13
 
-This is a bounded correctness remediation, not a redesign.
+PASS. DEPLOYED / VERIFIED are descriptive kernel states only. No deployment/runtime mechanism is introduced.
 
-## LEAN / DELTA-ONLY REMEDIATION
+### Authority leakage
 
-Claude reads only:
-1. coordination/STATE.md;
-2. this Architect review;
-3. devos/state/kernel.mjs;
-4. devos/state/lifecycle.mjs;
-5. devos/state/store.mjs;
-6. devos/state/validate-task-state.mjs;
-7. task-state.schema.json only when checking parity;
-8. the three S4-focused test files + worker fixture as needed.
+PASS. Task state carries the fixed non-authority disclaimer. MAIN != DEPLOYED != VERIFIED remains structurally separated. State advancement does not itself grant merge/deploy/production authority.
 
-Do not reread full governance history.
+## Concurrency / persistence review
 
-### Authorized mutation surfaces
+PASS for V1's bounded local model:
+- one task file + one task lock;
+- wx exclusive-create serializes the read/validate/mutate/persist critical section;
+- revision provides fencing/optimistic concurrency;
+- temp-write + atomic rename prevents torn committed records;
+- orphaned locks fail closed and are never stolen by age;
+- force-clear remains a separately guarded Paulo-authorized maintenance path;
+- structural validation protects both load and persist boundaries;
+- corruption blast radius remains task-local under ordinary direct task access.
 
+The previously accepted availability trade-off remains: a genuinely orphaned lock blocks that task until explicit operator recovery.
+
+## Scope / traceability audit
+
+Final remediation changed only:
 - devos/state/kernel.mjs
 - devos/state/lifecycle.mjs
 - devos/state/store.mjs
-- devos/state/validate-task-state.mjs
-- devos/state/task-state.schema.json only if parity actually requires a schema correction
-- tests/state-lifecycle.test.mjs
 - tests/state-kernel.test.mjs
-- tests/state-concurrency.test.mjs only if task-id/locking coverage requires it
-- tests/fixtures/state-claim-worker.mjs only if its call signature changes
-- devos/state/README.md only if a statement becomes inaccurate
-- deterministic traceability outputs if regeneration changes them
-- coordination/IMPLEMENTER_HANDOFF.md
-- coordination/STATE.md
+- tests/state-lifecycle.test.mjs
+- deterministic traceability outputs
+- coordination working surfaces
 
-Do not touch RFC-016, manifest, architecture, CORE rules, S3, ADR/version/closure records, workflows, product/runtime, remote resources, deployment, main/protected branches, or Issue #11.
+No RFC-016, manifest, frozen architecture, CORE rules, S3, ADR/version record, workflow, product/runtime, remote resource, deployment, protected/main branch, Issue #11 or PR #10 mutation occurred.
 
-### Verification required
+Known traceability ERROR fingerprint remains unchanged:
+- CORE-022
+- WEB-REQ-009
 
-Run:
-- focused S4 tests;
-- at least 5 repeated real-process concurrency runs;
-- full repository test suite only if the focused changes plausibly affect shared code (otherwise skip it under LEAN mode);
-- traceability generation/validation if changed references require it;
-- exact diff-whitelist check.
+Warning count changed 15 → 14 because D-001 gained a real inbound reference. No ERROR was suppressed or fabricated away.
 
-Return all test counts as ACTOR_REPORTED.
+## Closure items that must be explicit
 
-## Return gate
+The later S4 closure package must record, not hide:
 
-When remediation is complete:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: S4_IMPLEMENTATION_REVIEW_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-- CURRENT_REMEDIATION_CYCLE: 1
-- MAX_REMEDIATION_CYCLES: 2
-- all remote/deploy/main flags remain NO
+1. D-050's explicit adoption of FAILED and ABANDONED and the corresponding frozen-architecture lifecycle amendment disposition.
+2. The accepted idempotency-binding correction: expectedRevision replaces recomputed from_state in replay identity.
+3. The separate NOT_CURRENT_OWNER / REVISION_CONFLICT diagnostic correction.
+4. RFC-016 prose says every mutating request presents revision while claim()'s explicit API signature does not. This remains a documented wording/API discrepancy and must be reconciled in closure records rather than silently ignored.
+5. Exact evidence classification: Builder's complete focused test execution remains ACTOR_REPORTED; Architect source/diff review is INDEPENDENTLY_INSPECTED and the critical remediation invariants received independent executable spot checks, but the private-repo suite was not fully rerun by Architect.
 
-Then stop.
+## Recommended D.1 closure preflight
+
+A separately authorized closure cycle should prepare, but not self-approve:
+- S4 closure ADR with closure_ref;
+- manifest devos/state/ transition from NOT_IMPLEMENTED to IMPLEMENTED;
+- executable_runtime_present disposition consistent with the reserved-root lifecycle rules;
+- Sentinel capability-baseline/version disposition under VERSIONING_POLICY;
+- closure_history entry;
+- any required ML-DEVOS-ARCH-001 lifecycle amendment record for FAILED / ABANDONED;
+- deterministic traceability regeneration;
+- D.2 post-decision verification plan.
+
+No S5 proposal or implementation should begin until S4 closure is complete.
+
+## Project health at this gate
+
+S4 design: 100%
+S4 implementation: 100% technically accepted
+S4 closure: 0% of closure mutation — intentionally not started
+S4 overall phase readiness: ~92%
+Governance/scope discipline for implementation cycle: 100%
