@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_COORDINATED_CLOSURE_DECISION_GATE
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: COORDINATED_V1_6_0_CLOSURE_DECISION_ONLY
+CYCLE_ID: SENTINEL_COORDINATED_V1_6_0_CLOSURE
+TURN: CLAUDE
+STATUS: AUTHORIZED_CLOSURE_IMPLEMENTATION
+AUTHORIZED_SCOPE: AS061_D046_COORDINATED_CLOSURE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,72 +17,45 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## D.1 preflight
+## Authority
 
-ML-DEVOS-AS-061 — PASS
+- ML-DEVOS-AS-061 — D.1 PRE-DECISION CLOSURE PREFLIGHT: PASS
+- D-046 — Paulo closure authorization
 
-Evidence baseline SHA:
-f9995565860d3f6a33ef96070ac88eb3953303ba
+## Authorized closure
 
-## Proposed coordinated closure
+Claude may execute only the coordinated closure package defined in AS-061 and coordination/ARCHITECT_REVIEW.md:
+- Skills/Treasury explicit no-bump closure ADR;
+- RFC-015 closure ADR;
+- S3 closure ADR;
+- RFC-015 + S3 under one explicit v1.5.0 → v1.6.0 release boundary;
+- live manifest closure reconciliation;
+- RFC/provenance/version normalization;
+- traceability regeneration/currentness;
+- rolling closure handoff/state bookkeeping.
 
-If Paulo approves, authorize one bounded closure implementation containing:
+## Mandatory fail-closed start
 
-1. Skills Foundation V0.1 + Portable Knowledge Treasury:
-   - separate closure ADR;
-   - explicit NO SENTINEL BASELINE BUMP;
-   - effective baseline remains v1.5.0.
+Before mutation:
+- pull latest branch;
+- record exact execution base SHA;
+- compare against AS-061 evidence baseline f9995565860d3f6a33ef96070ac88eb3953303ba;
+- inspect live ADR ceiling;
+- rerun traceability validator;
+- stop on any unexpected drift, numbering conflict, baseline-fingerprint change, or new architecture/security blocker.
 
-2. RFC-015:
-   - separate closure ADR;
-   - adopted as part of coordinated v1.6.0 release.
+## S4 boundary
 
-3. S3 Typed Task Contracts:
-   - separate closure ADR;
-   - devos/contracts/ → IMPLEMENTED;
-   - ADR-keyed closure_ref;
-   - executable_runtime_present remains false;
-   - adopted as part of coordinated v1.6.0 release.
+S4 remains unauthorized.
 
-4. Sentinel release:
-   - explicit v1.5.0 → v1.6.0;
-   - manifest baseline pointer uses S3's ordered final/release-closing ADR;
-   - RFC-015's ADR remains independently co-effective and recorded in closure history.
-
-5. Closure reconciliation:
-   - RFC status normalization;
-   - D-037 / D-042 S3 provenance correction;
-   - VERSIONING_POLICY update;
-   - traceability regeneration/currentness;
-   - D.2 post-decision Architect verification.
-
-## Live-ID rule
-
-No ADR or closure Decision ID is reserved before execution.
-
-Current live ADR ceiling at preflight:
-ML-DEVOS-ADR-010.
-
-Builder must allocate the next live sequential IDs after Paulo approval and after pulling the exact post-decision HEAD.
-
-## Traceability baseline
-
-Latest accepted Builder-reported validator fingerprint:
-- CORE-022 missing canonical target;
-- ML-DEVOS-ADR-011 missing canonical target;
-- ML-DEVOS-ADR-012 missing canonical target;
-- WEB-REQ-009 missing canonical target.
-
-Checked-in generated traceability index is stale and must not be treated as current evidence.
-
-Builder must re-run validator at the exact post-decision base before mutation and stop on any unexpected baseline change.
+No closure success, ADR, version bump, manifest IMPLEMENTED status, or D.2 verification may be interpreted as S4 authority.
 
 ## Hard boundaries
 
 No:
-- closure mutation before Paulo approval;
 - S4 proposal/implementation;
 - core-rule mutation;
+- unrelated governance expansion;
 - product/runtime mutation;
 - remote resources;
 - credentials;
@@ -90,10 +63,14 @@ No:
 - production writes;
 - protected/main merge.
 
-## Paulo decision required
+## Return gate
 
-Approve / reject / request changes to the coordinated v1.6.0 closure package.
+After closure implementation:
+- TURN: ARCHITECT;
+- STATUS: READY_FOR_ARCHITECT;
+- ARCHITECT_ACTION_REQUIRED: YES;
+- IMPLEMENTER_ACTION_REQUIRED: NO;
+- PAULO_DECISION_REQUIRED: NO;
+- AUTHORIZED_SCOPE: D2_POST_DECISION_CLOSURE_VERIFICATION_ONLY.
 
-Approval authorizes only the bounded closure package in AS-061.
-
-S4 remains unauthorized.
+Builder must not self-accept closure.
