@@ -2555,3 +2555,79 @@ All of the above is `ACTOR_REPORTED` — this Implementer ran the commands and i
 ### Commit
 
 The 7 files above (1 rename, 2 modified, 3 new example fixtures, plus the renamed fixture's content correction), alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `54e506622b4504ab010bb130d76dba8eb89c8b06`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## ML-DEVOS-RFC-015 Draft — Reserved Subsystem Lifecycle and Closure Reconciliation (proposal only)
+
+**Cycle ID:** `SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_PROPOSAL`, `CURRENT_REMEDIATION_CYCLE: 0` (first draft, not a remediation cycle).
+
+**Base commit:** `241257f28ee1b8b3397957adfda31d7d37b237fa` (`docs(sync): authorize RFC-015 proposal cycle`).
+
+**Authority:** `D-043` (Paulo — "Put this into record somewhere please proceed and future suggestions should also come out naturally," recorded in `brain/DECISION_LOG.md`). `D-043` authorizes drafting and Architect-reviewing this RFC only; it grants no implementation authority over the manifest, ADRs, version, or S3 closure.
+
+### What this cycle is, and is not
+
+This is a **proposal draft only** — `devos/changes/rfcs/ML-DEVOS-RFC-015.md`, a new file, following `devos/templates/RFC_TEMPLATE.md`'s exact section structure. Per the authorized scope's explicit instruction ("RFC-015 must remain a proposal. It must not implement the lifecycle change."), nothing else was touched: no edit to `devos/devos-manifest.json`, `devos/schemas/devos-manifest.schema.json`, `devos/schemas/validate-devos-manifest.mjs`, `brain/protocols/ARCHITECT_SYNC.md`, `ML-DEVOS-RFC-013.md`, any ADR, or the Sentinel version.
+
+### The 10 required subjects, each addressed
+
+1. **Reserved-root lifecycle** — proposes a third `reserved_subsystem_roots[].status` enum value, `IMPLEMENTED`, alongside the existing `NOT_IMPLEMENTED` and S2-only `FOUNDATION_ACTIVE` (RFC §"Proposed change" A).
+2. **Fail-closed relationship between implemented status and durable closure evidence** — proposes a new optional `closure_ref` field per reserved-root entry: `null` unless `status: IMPLEMENTED`, in which case it must resolve to an existing `closure_history[].phase` entry that itself carries non-empty `adr`/`decision`/`version` — a bare status edit alone would be schema-invalid (RFC §"Proposed change" B).
+3. **`executable_runtime_present` meaning** — proposes clarifying (not changing the value of) this field's schema description: `false` correctly describes repository-local static tooling (schemas, specs, deterministic validators/generators, tests) with no autonomous execution, state, or automatic trigger, distinct from a live runtime subsystem like a Task Engine or Orchestrator (RFC §"Proposed change" C).
+4. **Lightweight Closure Preflight inside existing Architect Sync** — proposes a checklist addition to the already-existing **Stage Gate Review** mode (confirmed by direct inspection of `brain/protocols/ARCHITECT_SYNC.md`'s "Review modes" section — the four modes cited, CHANGE REVIEW/STAGE GATE REVIEW/RELEASE REVIEW/SECURITY REVIEW, are quoted verbatim from that file, not invented), explicitly not a new phase/agent/database/Skill (RFC §"Proposed change" D).
+5. **Version/ADR/RFC/manifest/traceability reconciliation at closure** — the Closure Preflight checklist's 5 items are exactly these 5 surfaces (RFC status banner, manifest + closure_history, ADR correctness including the exact D-037-vs-D-042 citation defect `AS56-F003` found, version disposition explicitness, rolling handoff header currency) (RFC §"Proposed change" D, items 1-5).
+6. **Traceability debt handling without requiring zero findings** — the Closure Preflight's traceability item is scoped to "no *new* ERROR introduced by this closure's own edits," explicitly not an overall zero-findings bar, citing `ML-DEVOS-AS-056`'s own explicit non-requirement (RFC §"Proposed change" D, final paragraph).
+7. **Compatibility/migration plan** — RFC's "Migration impact" section: zero migration for any existing reserved root (`NOT_IMPLEMENTED`/`FOUNDATION_ACTIVE` values and existing `closure_history` shape are unchanged); `closure_ref: null` is correct for every current entry since none is yet `IMPLEMENTED`.
+8. **No invented `manifest_version` semantics** — explicitly listed in "Non-goals": this RFC does not bump or redefine `manifest_version` (currently `1`), and states there is no existing linkage between it and `reserved_subsystem_roots` shape changes for this RFC to invent.
+9. **Clear S3 closure path if accepted** — RFC "Rollout" section lays out the exact sequence: RFC-015 design acceptance → separate implementation authorization/cycle for the schema/validator/procedure changes → separate independent review/acceptance of that implementation → only then a *further* separate Paulo decision to execute `ML-DEVOS-AS-056`'s corrected S3 closure package using the now-implemented mechanism.
+10. **S4 remains separately gated** — stated explicitly in "Non-goals" and again in "Rollout" step 6: no step in this RFC's rollout advances S4 authorization in any way.
+
+### Independent verification performed
+
+- **Review-mode names verified against source, not assumed:** confirmed by direct `grep`/read of `brain/protocols/ARCHITECT_SYNC.md` before citing them (see "What this cycle is, and is not" above) — the exact mode name is `STAGE GATE REVIEW`.
+- **Manifest schema's current enum verified against source, not assumed:** confirmed by direct read of `devos/schemas/devos-manifest.schema.json` line 75 (`"enum": ["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE"]`) and `devos/devos-manifest.json`'s actual `reserved_subsystem_roots`/`closure_history`/`manifest_version` values before drafting the proposed extension, so the RFC's "current state" description is evidence-grounded, not asserted from memory.
+- **Traceability impact checked both ways:**
+  ```
+  $ node devos/governance/traceability/validate-traceability.mjs   # with RFC-015 present
+  Errors: 4  Warnings: 15  Total canonical definitions: 235
+
+  $ mv devos/changes/rfcs/ML-DEVOS-RFC-015.md /tmp/ && node devos/governance/traceability/validate-traceability.mjs   # without it
+  Errors: 5  Warnings: 15  Total canonical definitions: 234
+  ERROR ... ML-DEVOS-RFC ML-DEVOS-RFC-015: ML-DEVOS-RFC-015 is referenced but has no canonical record ...
+  ```
+  Drafting this RFC **removes** one pre-existing dangling-reference error (`devos/changes/rfcs/README.md` already referenced `ML-DEVOS-RFC-015` before this file existed, added by the same commit that authorized this cycle) and introduces **zero** new findings. The remaining 4 errors (`CORE-022`, `ML-DEVOS-ADR-011`, `ML-DEVOS-ADR-012`, `WEB-REQ-009`) are pre-existing and unrelated to this draft — `ADR-011`/`ADR-012` are forward references from `ML-DEVOS-AS-056`'s own already-committed text to ADRs this RFC explicitly does not create.
+- **Traceability generator was not run.** Per the disclosed lesson from the Skills Foundation implementation cycle (running the generator as an unrelated sanity check previously caused incidental out-of-scope regeneration of `traceability-index.json`/`TRACEABILITY_INDEX.md`), only the read-only `validate-traceability.mjs` was run this cycle; `git status --porcelain` after both runs confirmed no file outside `devos/changes/rfcs/ML-DEVOS-RFC-015.md` changed.
+
+### Exact diff scope
+
+```
+$ git status --porcelain
+?? devos/changes/rfcs/ML-DEVOS-RFC-015.md
+```
+
+Exactly the one file this cycle's authorized scope permits drafting. `devos/changes/rfcs/README.md` needed no edit — it already carries an accurate summary of `ML-DEVOS-RFC-015.md` (added by the same commit that authorized this cycle), and this handoff confirmed that summary is accurate against the drafted content rather than assuming it.
+
+### Explicit confirmations
+
+- **No implementation of the proposed lifecycle change occurred.** `devos/devos-manifest.json`, `devos/schemas/devos-manifest.schema.json`, `devos/schemas/validate-devos-manifest.mjs`, and `brain/protocols/ARCHITECT_SYNC.md` are all byte-identical to base.
+- **No S3 closure work occurred.** `devos/contracts/`, `ML-DEVOS-RFC-013.md`'s status banner, and `devos/contracts/README.md`'s authority wording are unchanged.
+- **No ADR was created.** No `ML-DEVOS-ADR-011`/`ML-DEVOS-ADR-012` file exists.
+- **No Sentinel version bump.** `sentinel_capability_baseline` remains `1.5.0` / `ML-DEVOS-ADR-006` / `D-028`, unchanged.
+- **No `CORE-*` rule was touched.**
+- **No S4 proposal or implementation occurred.**
+- **The Implementer has not self-approved this RFC design and has not started any implementation authorized only by a later, separate Paulo decision.** Every claim above is `ACTOR_REPORTED` until independently reviewed.
+
+### Known limitations / open questions
+
+- This RFC's own "Compatibility" section explicitly names `ML-DEVOS-ADR-011`/`ML-DEVOS-ADR-012` as future, not-yet-created records (consistent with the pre-existing traceability warnings for those exact IDs) — this is intentional forward-reference language describing a later, separately authorized closure step, not a claim that those ADRs exist.
+- The RFC's proposed `closure_ref` field name and the exact Closure Preflight checklist wording are this Implementer's design choices within the bounds `D-043`/`STATE.md` set (D-043 specified *subjects* the RFC must cover, not exact field/mechanism names) — the Architect may reasonably request a different field name or checklist phrasing without that being a scope violation.
+- As instructed, this draft does not attempt to resolve `ML-DEVOS-AS-056`'s `AS56-F002`/`F003`/`F006` findings (stale RFC-013 status, S3 README authority wording, stale handoff header) directly — it proposes the *mechanism* (Closure Preflight) that would have caught them, and explicitly defers their actual correction to the later, separately authorized S3 closure implementation cycle.
+
+### Return gate
+
+`coordination/STATE.md` is updated to `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `ARCHITECT_ACTION_REQUIRED: YES` / `IMPLEMENTER_ACTION_REQUIRED: NO`. The Builder has not self-approved this RFC and has not implemented it.
+
+### Commit
+
+The 1 new file above, alongside this documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `241257f28ee1b8b3397957adfda31d7d37b237fa`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

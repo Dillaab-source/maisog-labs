@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_RFC_015_RESERVED_ROOT_LIFECYCLE_PROPOSAL
-TURN: CLAUDE
-STATUS: AUTHORIZED_PROPOSAL
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: RFC_015_PROPOSAL_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
@@ -80,3 +80,7 @@ After RFC-015 draft:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`.
 
 Builder must not self-approve the RFC or implement it.
+
+## RFC-015 draft complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See "ML-DEVOS-RFC-015 Draft — Reserved Subsystem Lifecycle and Closure Reconciliation (proposal only)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `devos/changes/rfcs/ML-DEVOS-RFC-015.md` drafted, covering all 10 required subjects -- a third reserved-root `status: IMPLEMENTED` value; a fail-closed `closure_ref` field requiring a resolvable `closure_history` entry with `adr`/`decision`/`version` before a root may claim `IMPLEMENTED` (a bare status edit is insufficient); a clarified (not changed) `executable_runtime_present` description distinguishing repository-local static tooling from live runtime execution; a Closure Preflight checklist added to the existing Stage Gate Review mode (verified against `brain/protocols/ARCHITECT_SYNC.md`'s actual review-mode names, not assumed) covering RFC status/manifest/ADR/version/handoff-header agreement plus a traceability check scoped to "no new error," never a zero-findings bar. No implementation occurred: manifest, schema, validator, ARCHITECT_SYNC.md, RFC-013, and any ADR are all unchanged. Traceability validator run both with and without the new file present: drafting it removes one pre-existing dangling-reference error (README.md already pointed at it) and introduces zero new findings; the 4 remaining errors are pre-existing and unrelated. No manifest/schema/validator implementation, S3 closure, ADR creation, version bump, RFC-013 mutation, or S4 work occurred. Builder has not self-approved the RFC.
