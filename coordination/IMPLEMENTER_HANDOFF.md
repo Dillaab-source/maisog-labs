@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_CLOSURE`, D2-F002 final metadata remediation complete (remediation cycle 2 of 2, no cycles remain), awaiting final D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A`, CI workflow created and observed green; main-protection step BLOCKED on missing GitHub ruleset-administration tool capability (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "S4 Closure D2-F002 Final Metadata Remediation (Cycle 2)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY remediation. `devos/devos-manifest.json`'s `source_of_truth_precedence` descriptive baseline string now reads `v1.7.0`, matching `sentinel_capability_baseline.version`; `tests/devos-manifest.test.mjs` now passes 23/23 with a new dynamic regression assertion guarding this consistency for future closures. This is `MAX_REMEDIATION_CYCLES`'s final cycle — no further autonomous remediation is available.
+**Current cycle:** see the "WEB-REL-001 Gate A — CI Workflow + Blocked Main Protection (D-052)" section at the very end of this document for the exact delta and evidence. Steps 1–2 of Gate A (minimal CI workflow, one observed green run) are complete with live GitHub evidence. Step 3 (main technical protection) could not be attempted: no tool in this session's GitHub MCP toolset can inspect or mutate repository rulesets or branch protection. Per D-052's fail-closed rule, this was **not** worked around with a weaker/legacy substitute — it is reported as a blocker for Paulo/Architect disposition.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "S4 Closure D2-F002 Final Metadata Remediation (Cycle 2)" section further below — the S4 closure line that this Gate A cycle follows. S4 is now fully closed (`ML-DEVOS-AS-068`, Sentinel `v1.7.0`).
 
 ---
 
@@ -3751,3 +3755,35 @@ No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, versi
 **Blockers:** none. No further autonomous remediation cycle remains available under `MAX_REMEDIATION_CYCLES: 2` — the next Architect verdict is final for this closure package (either `APPROVED` or a Paulo-level escalation, per the review's own note).
 
 **Next actor:** `ARCHITECT` — final D.2 Post-decision Closure Verification.
+
+---
+
+## WEB-REL-001 Gate A — CI Workflow + Blocked Main Protection (D-052)
+
+**Authority:** `D-052` (Paulo, after S4 closed at `ML-DEVOS-AS-068`). Precondition confirmed: S4 fully closed, Sentinel `v1.7.0`, `ML-DEVOS-ADR-014`, `D-051`. **LEAN / DELTA-ONLY mode** — read `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `docs/release/WEB_REL_001_READINESS_REPORT.md` §§11–13/§21 only, `package.json` scripts, and live GitHub state.
+
+**Input HEAD:** `44566ecb749447c9c304dc1ab1b7cc2687a4bcb9`.
+
+**Step 1 — minimal CI workflow: DONE.** Created `.github/workflows/ci.yml` exactly per the brief and the readiness report's §12 design: `name: ci`; `pull_request` → `main`; `push` → `governance/maisoglabs-v0.1`; one `ubuntu-latest` job (`actions/checkout@v4`, `actions/setup-node@v4` with `node-version: 22`, `npm ci`, `npm test`, `npm run build`); no secrets, no deploy step. Verified locally before pushing: `npm test` → `500/500 pass`; `npm run build` → succeeds, 4 static routes. Committed at `274b319db1aa9e11cd8a7db6910c8b98492c31fe` and pushed to `governance/maisoglabs-v0.1` only (matching the workflow's own push trigger).
+
+**Step 2 — observed green run: DONE, live GitHub evidence.**
+- Workflow run ID `35538010928`, url `https://github.com/Dillaab-source/maisog-labs/actions/runs/35538010928`.
+- Triggering commit: `274b319db1aa9e11cd8a7db6910c8b98492c31fe` (push event on `governance/maisoglabs-v0.1`).
+- Final status: `completed`, conclusion: `success`.
+- Job name (the exact live check-run name/context GitHub reports): **`test-and-build`** — independently confirmed via both `actions_list.list_workflow_jobs` and `get_check_run` (check run id `106150422062`, `conclusion: success`).
+- Step timings: checkout ~1s, setup-node ~0s, `npm ci` ~14s, `npm test` ~2m21s, `npm run build` ~9s. Total run ~2m50s.
+
+**Step 3 — minimum main technical protection: BLOCKED, not attempted with a weaker substitute.**
+- Exhaustively searched this session's GitHub MCP toolset (`ToolSearch` across "ruleset branch protection repository admin", "repository settings admin", "github api generic request rest call", "rules ruleset branch protect merge policy admin config") — no tool exists anywhere in this session's GitHub MCP server to read or write repository rulesets or legacy branch-protection settings (no `create_ruleset`/`update_branch_protection`/generic REST-passthrough tool of any kind). The available toolset covers files, branches, PRs, Actions, issues, and reviews only.
+- Per `D-052`'s explicit fail-closed rule ("if the available GitHub identity/tool cannot inspect or mutate rulesets with sufficient administration permission, do not weaken the design or silently substitute legacy protection. Stop and report the exact blocker") and the brief's own instruction, this step was **not** attempted via any weaker mechanism. No ruleset was created; `main` remains completely unprotected, exactly as before this cycle.
+- **Exact blocker for Paulo/Architect disposition:** this session's GitHub MCP server toolset has no ruleset/branch-protection administration capability. Resolving this requires either (a) a GitHub MCP server/tool version that exposes repository ruleset or branch-protection endpoints, or (b) the protection being configured out-of-band (e.g. directly in the GitHub UI or via `gh api`/`gh ruleset create` outside this session) using the exact observed check context `test-and-build` and the other minimum-protection parameters already specified in `D-052` and the readiness report §11, then confirmed back to the Architect.
+
+**Live confirmation main HEAD did not change:** `main` HEAD before and after this cycle: `887849283ee9cd16e8d60b937bac95b1c85bf3d9` (independently confirmed via `get_commit(sha="main")`), unchanged and untouched by this cycle.
+
+**Traceability:** `generate-traceability.mjs` → `Scanned 264 files. Errors: 2. Warnings: 15.` Fingerprint unchanged (`CORE-022` + `WEB-REQ-009`, still exactly 2 errors, none suppressed). Warning count moved 14→15: the new one is an `orphan-no-inbound-reference` notice for `D-052` itself (recorded in a prior fast-forward before this cycle began, not caused by the `ci.yml` addition — `D-052` simply has no inbound citation yet outside the excluded `coordination/` rolling surface). No new unexpected ERROR.
+
+**Exact changed files:** `.github/workflows/ci.yml` (new), `devos/governance/traceability/{TRACEABILITY_INDEX.md,traceability-index.json}` (regenerated). `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md` (this handoff/return gate, committed separately below). No Cloudflare/D1/R2/Access file, no product/website file, no S5+/Skills V0.2 file, no PR opened or merged to `main`.
+
+**Blockers:** one — the Step 3 GitHub ruleset-administration tool-capability gap above. Steps 1–2 are fully complete with independently-checkable live evidence (run/job/check-run IDs and URLs given above); nothing about this blocker required weakening or faking Step 3.
+
+**Next actor:** `ARCHITECT` — review Gate A evidence and disposition the Step 3 blocker (delegate out-of-band configuration, or authorize/provide an alternate mechanism).
