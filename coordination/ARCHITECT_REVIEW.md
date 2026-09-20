@@ -1,209 +1,189 @@
-# Architect Review — S4 State Machine Kernel Implementation
+# Architect Review — S4 Closure D.1 Pre-decision Preflight
 
-Status: ARCHITECT_APPROVED — IMPLEMENTATION ACCEPTED / CLOSURE DECISION REQUIRED
-Review mode: STAGE GATE REVIEW
-Cycle: SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION
-Final reviewed implementation HEAD: 72cd84a8fedb581306c023ee88e1b0f1c4d5293c
+Status: PASS — S4 CLOSURE PACKAGE READY FOR PAULO DECISION
+Review mode: STAGE GATE REVIEW — D.1 CLOSURE PREFLIGHT
+Cycle: SENTINEL_S4_STATE_MACHINE_CLOSURE
+Preflight base SHA: f7df1ddae84b5fc1b698d2061989c4d3dc7d58da
+Technical acceptance: ML-DEVOS-AS-066
 Implementation authority: D-050
-Design authority: ML-DEVOS-RFC-016 / ML-DEVOS-AS-065
-Implementation review archive ID: ML-DEVOS-AS-066
-Remediation cycle used: 1 of 2
+Candidate closure ADR: ML-DEVOS-ADR-014
+Candidate release: v1.6.0 → v1.7.0 MINOR
 
-## Final verdict
+## D.1 verdict
 
-S4 IMPLEMENTATION STAGE GATE: ARCHITECT_APPROVED
-IMPLEMENTATION: ACCEPTED
-REMEDIATION: CLOSED
-READY FOR D.1 CLOSURE PREFLIGHT: YES
-S4 CLOSED / MANIFEST ACTIVE: NO
-PAULO CLOSURE DECISION REQUIRED: YES
+PASS.
 
-The repository-local S4 State Machine Kernel is accepted as a technically sound implementation of the Architect-approved RFC-016 design, including D-050's locked Task Policy and orphan-lock recovery policy.
+The candidate S4 implementation has already passed independent technical review. The proposed closure package is internally consistent, bounded, and compatible with the implemented reserved-root lifecycle mechanism from ML-DEVOS-RFC-015.
 
-No manifest activation, version bump, ADR creation, architecture-baseline amendment, deployment, remote resource, main merge, or later-phase authority is granted by this review.
+No S5 or website/product work is part of this closure.
 
-## Evidence reviewed
+## 1. Candidate implementation acceptance
 
-Independently inspected:
-- live coordination/STATE.md and IMPLEMENTER_HANDOFF.md;
-- exact remediation delta 0147e4bc451e70b4ff2d8a3185ca99e2a541d646 → 72cd84a8fedb581306c023ee88e1b0f1c4d5293c;
-- devos/state/lifecycle.mjs;
-- devos/state/kernel.mjs;
-- devos/state/store.mjs;
-- devos/state/validate-task-state.mjs;
-- devos/state/task-policy.mjs;
-- focused lifecycle/kernel test source;
-- accepted RFC-016 transition, ownership, persistence, recovery and S5/S8/S9 boundary text;
-- D-050 implementation policy.
+PASS.
 
-Architect independently executed targeted spot checks against the reviewed remediation logic for:
-- missing transition references fail closed;
-- required decision/artifact references permit intended transitions;
-- QA → BUILDING is classified as a handoff while CHANGES_REQUESTED/PAULO_DECISION_REQUIRED → BUILDING are not;
-- invalid/path-like task IDs fail before task-path use;
-- syntactically valid but structurally invalid records fail as scoped corruption;
-- lock diagnostic metadata includes task_id.
+ML-DEVOS-AS-066 accepted final implementation HEAD:
+`72cd84a8fedb581306c023ee88e1b0f1c4d5293c`.
 
-Those targeted checks passed.
+Remediation S4I-F001 through S4I-F005 is closed.
 
-Environment limitation: the Architect execution sandbox cannot clone the private GitHub repository because outbound DNS/network access is unavailable. Therefore Claude's exact full focused-suite counts remain ACTOR_REPORTED rather than being upgraded to INDEPENDENTLY_REPRODUCED. This review does not conceal that limitation.
+## 2. Exact closure base
 
-Builder-reported verification at final HEAD:
-- state-lifecycle: 18/18 PASS;
-- state-kernel: 21/21 PASS;
-- state-concurrency: 2/2 PASS across 5 repeated runs;
-- devos-manifest spot check: 22/22 PASS;
-- traceability: 2 known errors, 14 warnings, no generated-index drift.
+Closure proposal is based on:
+`f7df1ddae84b5fc1b698d2061989c4d3dc7d58da`
 
-Implementation acceptance does not rest solely on those Builder claims: the changed source, tests, diff, governance boundaries, and critical remediated invariants were independently inspected, with the highest-risk changed invariants also independently spot-executed.
+Any substantive drift beyond this preflight/decision/coordination bookkeeping must stop Builder closure execution and return to Architect.
 
-## Findings disposition
+## 3. Stale surfaces that closure must reconcile
 
-### S4I-F001 — missing transition-table guards: CLOSED
+Current repository truth is intentionally split because implementation is accepted but closure has not yet happened:
 
-Confirmed:
-- PLANNING → READY_FOR_BUILD requires an opaque artifact reference;
-- REVIEW → APPROVED requires decisionRef;
-- REVIEW → CHANGES_REQUESTED requires decisionRef;
-- PAULO_DECISION_REQUIRED → BUILDING requires decisionRef;
-- every non-terminal → ABANDONED requires decisionRef plus Architect/Paulo role gate;
-- MERGED → RELEASE_READY requires an opaque release-criteria reference;
-- decisionRef/evidenceRef material to legality are bound into transition idempotency comparison.
+- `ML-DEVOS-RFC-016.md` still presents S4 as a proposal rather than IMPLEMENTED/CLOSED.
+- `devos/changes/rfcs/README.md` still describes RFC-016 as proposal/audit-only.
+- `devos/state/README.md` still says `MANIFEST STATUS: NOT_IMPLEMENTED` and `This is NOT a closure`.
+- `devos/devos-manifest.json` still marks `devos/state/` as `NOT_IMPLEMENTED`.
+- manifest active capability baseline remains `v1.6.0` / `ML-DEVOS-ADR-013` / `D-046`.
+- `VERSIONING_POLICY.md` still names v1.6.0 as current.
+- `ML-DEVOS-ARCH-001` §10 does not yet record the D-050-adopted terminal states FAILED / ABANDONED.
+- no S4 closure ADR exists; ADR ceiling is live-verified at `ML-DEVOS-ADR-013`.
+- `devos/changes/adrs/README.md` has no S4 adoption entry.
 
-No evidence-content sufficiency logic was introduced.
+These are closure bookkeeping debts, not implementation defects.
 
-### S4I-F002 — QA → BUILDING ownership handoff: CLOSED
+## 4. Exact proposed RFC status
 
-The implementation now uses exact handoff edges rather than only destination names.
+Set RFC-016 banner to:
+`IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051`
 
-QA → BUILDING clears owner/lease atomically with the transition and revision bump. The next Builder can claim immediately and the prior QA actor is fenced.
+Preserve proposal history; do not rewrite the RFC body into an ADR.
 
-CHANGES_REQUESTED → BUILDING, PAULO_DECISION_REQUIRED → BUILDING and READY_FOR_BUILD → BUILDING remain non-handoff edges, avoiding over-clearing ownership.
+Update only its index description as required to stop describing S4 as unimplemented/proposal-only.
 
-### S4I-F003 — persistence-boundary structural validation: CLOSED
+## 5. Exact proposed manifest edit
 
-Task-state validation now runs:
-- after JSON parse on load;
-- immediately before persistence.
+For `devos/state/`:
+- `status: "IMPLEMENTED"`
+- `closure_ref: "ML-DEVOS-ADR-014"`
+- `executable_runtime_present: false`
 
-Syntactically valid but schema-invalid records raise a task-scoped CorruptRecordError with structural errors. Invalid JSON remains task-scoped corruption.
+The false runtime flag is intentional and schema-compatible: S4 is an implemented repository-local library, but no active Sentinel runtime service/orchestrator currently invokes it as a live operational subsystem.
 
-### S4I-F004 — task_id path-safety: CLOSED
+Top-level `executable_runtime_present` remains false.
 
-One task-id shape is enforced before task-derived filesystem path construction:
-- ^[A-Z][A-Z0-9_-]*$
-- minimum length 3.
+Update `sentinel_capability_baseline` to:
+- version: `1.7.0`
+- status: `ACTIVE`
+- adr: `ML-DEVOS-ADR-014`
+- decision: `D-051`
+- document: `devos/changes/adrs/ML-DEVOS-ADR-014.md`
 
-Invalid/path-like values are rejected before path.join receives them. createTask also rejects an empty/non-string contract_ref before persistence.
+Append one S4 closure_history entry:
+- phase: `S4`
+- closed_at: `2026-09-21`
+- version: `1.7.0`
+- adr: `ML-DEVOS-ADR-014`
+- decision: `D-051`
+- architect_sync: `ML-DEVOS-AS-066`
+- note: concise S4 adoption summary, including repository-local kernel / runtime flag false.
 
-### S4I-F005 — incomplete lock diagnostic metadata: CLOSED
+Manifest version remains exactly `"1"`.
 
-The lock payload now contains:
-- holder;
-- operation;
-- acquired_at;
-- task_id;
-- pid.
+## 6. Proposed ADR
 
-The required RFC-016 minimum diagnostic metadata is satisfied.
+Allocate `ML-DEVOS-ADR-014` — live ADR directory currently ends at 013.
 
-## Accepted implementation-discovered corrections
+ADR-014 must record:
+- RFC-016 design;
+- AS-065 design acceptance;
+- D-050 implementation authorization;
+- AS-066 implementation acceptance;
+- D-051 closure authorization;
+- final accepted implementation HEAD;
+- D-050 Task Policy values 2/2/2;
+- fail-closed lock recovery / Paulo force-clear boundary;
+- accepted idempotency-binding correction;
+- separate NOT_CURRENT_OWNER / REVISION_CONFLICT diagnostics;
+- evidence limitation: Builder full suites remain ACTOR_REPORTED; Architect source/diff independently inspected and critical remediation invariants independently spot-executed;
+- S5/S7/S8/S9/S13 remain unimplemented;
+- closure_ref / manifest consequences;
+- v1.7.0 MINOR consequence;
+- architecture amendment provenance.
 
-### Transition idempotency binding
+## 7. Frozen architecture lifecycle amendment
 
-Accepted: implementation omits server-derived from_state from the persisted replay binding and instead uses expectedRevision as the authoritative record-version identity, together with toState and material reference hashes.
+D-050 already explicitly adopted FAILED and ABANDONED as additive S4 terminal states for implementation. Closure must durably reconcile the frozen target architecture without changing the frozen architecture identity/version.
 
-Rationale: recomputing from_state after a successful transition would make a true replay appear conflicting because persisted state has already advanced. expectedRevision identifies the caller's intended source record version more precisely.
+Amend ML-DEVOS-ARCH-001 §10 so the lifecycle explicitly includes:
+- `FAILED` as an unrecoverable terminal path from the bounded failure states defined by S4;
+- `ABANDONED` as an explicit Architect/Paulo-authorized terminal cancellation path;
+- terminal states have no outgoing transition; recovery opens a new task rather than mutating the terminal record.
 
-This correction must be documented in the S4 closure ADR / closure package rather than silently rewriting history.
+Cite RFC-016 / AS-065 / D-050 / AS-066 / D-051 / ADR-014.
 
-### Owner vs revision error diagnostics
+Do not change:
+- architecture id `ML-DEVOS-ARCH-001`;
+- architecture version `1.2.0`;
+- status `FROZEN`;
+- actor model or source-of-truth rule.
 
-Accepted: NOT_CURRENT_OWNER and REVISION_CONFLICT remain separate failure codes. This improves diagnostics and does not weaken fencing.
+This is an explicitly governed amendment to frozen content, not a silent rewrite.
 
-## Boundary review
+## 8. Version disposition
 
-### S5
+`v1.6.0 → v1.7.0` — MINOR.
 
-PASS. RFC-016 explicitly states S4 accepts a bare actor_id and performs no general actor permission check. The current implementation does not become a Capability & Permission Gateway. The narrow ABANDONED structural role gate remains part of the accepted S4 transition contract.
+Reason: S4 adds a backwards-compatible new Sentinel subsystem/capability (typed persistent task-state kernel, lifecycle/ownership/concurrency semantics) without changing the actor model, source-of-truth rule, or meaning of existing CORE rules.
 
-### S7 / S9
+Update VERSIONING_POLICY.md to make v1.7.0 the current Sentinel capability baseline and record the S4 release chain.
 
-PASS. S4 retains opaque evidence references and class-label/presence guards only. It does not retrieve evidence artifacts or decide evidence sufficiency.
+## 9. Pre-closure traceability baseline
 
-### S8
+At preflight base:
+- scanned files: 260
+- hard errors: 2
+- warnings: 14
+- canonical definitions: 255
+- ERROR fingerprint:
+  - missing-canonical-target CORE-022
+  - missing-canonical-target WEB-REQ-009
 
-PASS. sweepExpiredLeases remains passive/read-only. No scheduler, dispatcher, timeout daemon or actor invocation exists.
+These two known findings must remain visible unless independently and legitimately resolved. Closure may not suppress, downgrade, or fabricate them away.
 
-### S13
+Any new unexpected ERROR introduced by closure blocks D.2 verification.
 
-PASS. DEPLOYED / VERIFIED are descriptive kernel states only. No deployment/runtime mechanism is introduced.
+## 10. Proposed closure diff boundary
 
-### Authority leakage
+Authorized closure mutation surfaces, subject to D-051:
+- brain/DECISION_LOG.md (D-051 only; Architect writes this decision before Builder turn)
+- devos/changes/adrs/ML-DEVOS-ADR-014.md
+- devos/changes/adrs/README.md
+- devos/changes/rfcs/ML-DEVOS-RFC-016.md (status/provenance closure reconciliation only)
+- devos/changes/rfcs/README.md
+- devos/state/README.md
+- devos/devos-manifest.json
+- devos/governance/specifications/VERSIONING_POLICY.md
+- devos/architecture/ML-DEVOS-ARCH-001.md (§10 additive closure amendment only)
+- deterministic traceability generated outputs
+- coordination/IMPLEMENTER_HANDOFF.md
+- coordination/STATE.md
 
-PASS. Task state carries the fixed non-authority disclaimer. MAIN != DEPLOYED != VERIFIED remains structurally separated. State advancement does not itself grant merge/deploy/production authority.
+No S4 implementation source/test mutation is required or authorized by closure unless D.2 discovers a closure-induced factual inconsistency; implementation code is already accepted.
 
-## Concurrency / persistence review
+## 11. Non-authority / later-phase check
 
-PASS for V1's bounded local model:
-- one task file + one task lock;
-- wx exclusive-create serializes the read/validate/mutate/persist critical section;
-- revision provides fencing/optimistic concurrency;
-- temp-write + atomic rename prevents torn committed records;
-- orphaned locks fail closed and are never stolen by age;
-- force-clear remains a separately guarded Paulo-authorized maintenance path;
-- structural validation protects both load and persist boundaries;
-- corruption blast radius remains task-local under ordinary direct task access.
+PASS.
 
-The previously accepted availability trade-off remains: a genuinely orphaned lock blocks that task until explicit operator recovery.
+S4 closure is descriptive adoption only. It does not authorize:
+- S5 Capability Gateway;
+- S6+;
+- website/product mutation;
+- Skills V0.2;
+- remote/cloud resources;
+- deployment/production;
+- protected/main merge;
+- PR #10 merge.
 
-## Scope / traceability audit
+## D.1 conclusion
 
-Final remediation changed only:
-- devos/state/kernel.mjs
-- devos/state/lifecycle.mjs
-- devos/state/store.mjs
-- tests/state-kernel.test.mjs
-- tests/state-lifecycle.test.mjs
-- deterministic traceability outputs
-- coordination working surfaces
+S4 closure package: PASS FOR PAULO DECISION.
 
-No RFC-016, manifest, frozen architecture, CORE rules, S3, ADR/version record, workflow, product/runtime, remote resource, deployment, protected/main branch, Issue #11 or PR #10 mutation occurred.
-
-Known traceability ERROR fingerprint remains unchanged:
-- CORE-022
-- WEB-REQ-009
-
-Warning count changed 15 → 14 because D-001 gained a real inbound reference. No ERROR was suppressed or fabricated away.
-
-## Closure items that must be explicit
-
-The later S4 closure package must record, not hide:
-
-1. D-050's explicit adoption of FAILED and ABANDONED and the corresponding frozen-architecture lifecycle amendment disposition.
-2. The accepted idempotency-binding correction: expectedRevision replaces recomputed from_state in replay identity.
-3. The separate NOT_CURRENT_OWNER / REVISION_CONFLICT diagnostic correction.
-4. RFC-016 prose says every mutating request presents revision while claim()'s explicit API signature does not. This remains a documented wording/API discrepancy and must be reconciled in closure records rather than silently ignored.
-5. Exact evidence classification: Builder's complete focused test execution remains ACTOR_REPORTED; Architect source/diff review is INDEPENDENTLY_INSPECTED and the critical remediation invariants received independent executable spot checks, but the private-repo suite was not fully rerun by Architect.
-
-## Recommended D.1 closure preflight
-
-A separately authorized closure cycle should prepare, but not self-approve:
-- S4 closure ADR with closure_ref;
-- manifest devos/state/ transition from NOT_IMPLEMENTED to IMPLEMENTED;
-- executable_runtime_present disposition consistent with the reserved-root lifecycle rules;
-- Sentinel capability-baseline/version disposition under VERSIONING_POLICY;
-- closure_history entry;
-- any required ML-DEVOS-ARCH-001 lifecycle amendment record for FAILED / ABANDONED;
-- deterministic traceability regeneration;
-- D.2 post-decision verification plan.
-
-No S5 proposal or implementation should begin until S4 closure is complete.
-
-## Project health at this gate
-
-S4 design: 100%
-S4 implementation: 100% technically accepted
-S4 closure: 0% of closure mutation — intentionally not started
-S4 overall phase readiness: ~92%
-Governance/scope discipline for implementation cycle: 100%
+If Paulo authorizes, Builder may execute exactly the package above in LEAN / DELTA-ONLY mode and return for D.2 post-decision closure verification.
