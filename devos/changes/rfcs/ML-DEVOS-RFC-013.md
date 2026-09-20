@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-013: S3 Typed Task Contracts
 
-Status: `DRAFT — QUEUED AFTER SENTINEL-TRACEABILITY-V1`
+Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-013 / D-046`
 
 Proposed change class: `ARCHITECTURE`
 

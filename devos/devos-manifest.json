@@ -10,15 +10,15 @@
     "document": "devos/architecture/ML-DEVOS-ARCH-001.md"
   },
   "sentinel_capability_baseline": {
-    "version": "1.5.0",
+    "version": "1.6.0",
     "status": "ACTIVE",
-    "adr": "ML-DEVOS-ADR-006",
-    "decision": "D-028",
-    "document": "devos/changes/adrs/ML-DEVOS-ADR-006.md"
+    "adr": "ML-DEVOS-ADR-013",
+    "decision": "D-046",
+    "document": "devos/changes/adrs/ML-DEVOS-ADR-013.md"
   },
   "source_of_truth_precedence": [
     "Frozen Architecture (ML-DEVOS-ARCH-001 / v1.2.0)",
-    "Active Governance Kernel (Sentinel capability baseline, currently v1.5.0)",
+    "Active Governance Kernel (Sentinel capability baseline, currently v1.6.0)",
     "Decisions (brain/DECISION_LOG.md)",
     "ADRs (devos/changes/adrs/)",
     "Durable Architect Syncs (devos/changes/architect-syncs/)",
@@ -31,7 +31,8 @@
       "path": "devos/contracts/",
       "owning_phase": "S3",
       "consuming_phases": [],
-      "status": "NOT_IMPLEMENTED",
+      "status": "IMPLEMENTED",
+      "closure_ref": "ML-DEVOS-ADR-013",
       "executable_runtime_present": false
     },
     {
@@ -138,8 +139,26 @@
       "decision": "D-028",
       "architect_sync": "ML-DEVOS-AS-025",
       "note": "Activated CORE-019/020/021 risk-escalation policy; v1.4.0 -> v1.5.0 MINOR governance-capability transition. S3-S14 runtime/enforcement mechanisms remain NOT_IMPLEMENTED."
+    },
+    {
+      "phase": "GOV-RESERVED-LIFECYCLE",
+      "closed_at": "2026-09-21",
+      "version": "1.6.0",
+      "adr": "ML-DEVOS-ADR-012",
+      "decision": "D-046",
+      "architect_sync": "ML-DEVOS-AS-060",
+      "note": "Adopted ML-DEVOS-RFC-015's reserved-subsystem lifecycle: the IMPLEMENTED status, ADR-keyed fail-closed closure_ref, S2-only FOUNDATION_ACTIVE, behavior-based executable_runtime_present, and D.1/D.2 Closure Preflight/Verification. Co-released with S3 (see the next entry) under one coordinated v1.5.0 -> v1.6.0 boundary, per D-046's single-release/multiple-ADR rule -- this ADR remains separately, durably recorded here even though sentinel_capability_baseline.adr names the release-closing S3 ADR instead."
+    },
+    {
+      "phase": "S3",
+      "closed_at": "2026-09-21",
+      "version": "1.6.0",
+      "adr": "ML-DEVOS-ADR-013",
+      "decision": "D-046",
+      "architect_sync": "ML-DEVOS-AS-055",
+      "note": "Adopted Sentinel S3 Typed Task Contracts. devos/contracts/ moves to status: IMPLEMENTED with closure_ref: ML-DEVOS-ADR-013; executable_runtime_present remains false -- no live operational Sentinel runtime subsystem exists here. Release-closing ADR of the coordinated v1.5.0 -> v1.6.0 boundary shared with GOV-RESERVED-LIFECYCLE (ML-DEVOS-ADR-012) above; sentinel_capability_baseline.adr points here."
     }
   ],
   "created_at": "2026-09-18",
-  "updated_at": "2026-09-19"
+  "updated_at": "2026-09-21"
 }

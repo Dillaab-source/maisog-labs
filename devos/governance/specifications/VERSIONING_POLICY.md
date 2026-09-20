@@ -16,7 +16,7 @@ Every material change should retain, at minimum: the RFC (if any), the Architect
 
 ## Current Sentinel version
 
-**Sentinel's active governance-capability baseline is `v1.5.0`, as of `2026-09-19` (`D-028`, `ML-DEVOS-ADR-006`).** This is the version of the *DevOS Repository Foundation layer* S2 added on top of the Governance Kernel S1 closed at `v1.3.0` (`D-013`, `ML-DEVOS-ADR-001`) — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before.
+**Sentinel's active governance-capability baseline is `v1.6.0`, as of `2026-09-21` (`D-046`, `ML-DEVOS-ADR-013`).** This is the version of the *DevOS Repository Foundation layer* S2 added on top of the Governance Kernel S1 closed at `v1.3.0` (`D-013`, `ML-DEVOS-ADR-001`) — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before. See "Coordinated v1.6.0 release — RFC-015 + S3 Typed Task Contracts applied" below for the full record of this latest transition, including the immediately preceding Skills Foundation V0.1 + Portable Knowledge Treasury closure, which remained effective at `v1.5.0` with an explicit no-bump disposition.
 
 `devos/governance/rules/core-rules.json` now records two provenance groups, both fully effective (per `RULE_RECORD_SCHEMA.md`'s "Status/version consistency" section):
 
@@ -81,6 +81,44 @@ Semantic impact: **MINOR**.
 `v1.4.0 → v1.5.0`
 
 This update adds governance policy only. It does not implement S3–S14, CI, rulesets, a Task/Policy Engine, Capability Gateway, sandbox, Orchestrator, executable Evidence Gate, credential broker, or telemetry pipeline.
+
+The frozen S0 architecture identity remains:
+
+`ML-DEVOS-ARCH-001 / v1.2.0`
+
+## Skills Foundation V0.1 + Portable Knowledge Treasury closure — explicit no-bump, `v1.5.0` remains effective
+
+MaisogLabs Skills Foundation V0.1 and the Portable Knowledge Treasury (`ML-DEVOS-RFC-014`) were independently accepted as implemented (`ML-DEVOS-AS-053`, `IMPLEMENTED / REPOSITORY-VERIFIED`) without, at that time, an explicit post-implementation version disposition or closure ADR — a governance-closure gap `ML-DEVOS-AS-056` (`AS56-F004`) identified. That gap is now closed by `ML-DEVOS-ADR-011`, `D-046`:
+
+Semantic impact: **explicit NO SENTINEL CAPABILITY-BASELINE BUMP.**
+
+Effective baseline immediately before, and unaffected by, this closure: `v1.5.0`.
+
+Rationale: no `CORE-*` rule's meaning changed, no actor's authority changed, no trust boundary was granted or widened, and no remote/deploy/main authority changed. The four Skills are non-authoritative procedure wrappers and the Treasury is a manual routing/classification discipline over already-canonical records — the implementation operationalizes existing governance practice rather than changing Sentinel's constitutional/governance semantics, the same reasoning `SENTINEL-TRACEABILITY-V1`'s own no-bump closure used. `RISK-WEB-013` remains open and untouched.
+
+This is an **explicit** no-bump decision, recorded here and in `ML-DEVOS-ADR-011`, not a silent omission.
+
+## Coordinated `v1.6.0` release — RFC-015 + S3 Typed Task Contracts applied
+
+`ML-DEVOS-RFC-015` (Reserved Subsystem Lifecycle and Closure Reconciliation) and `ML-DEVOS-RFC-013` (S3 Typed Task Contracts) are adopted together under **one coordinated Sentinel release boundary**, per `D-046`'s explicit single-release/multiple-ADR rule: **`one release != one ADR`.**
+
+The change followed:
+
+`ML-DEVOS-RFC-015 → ML-DEVOS-AS-057/058/059 → D-044 → D-045 → implementation → ML-DEVOS-AS-060 → ML-DEVOS-ADR-012`
+
+and, co-released:
+
+`ML-DEVOS-RFC-013 → ML-DEVOS-AS-038 → D-037 → implementation → ML-DEVOS-AS-053/054/055/056 → ML-DEVOS-ADR-013`
+
+with the coordinated closure itself gated by `ML-DEVOS-AS-061`'s D.1 Pre-decision Closure Preflight (`PASS`) and authorized by `D-046`.
+
+Semantic impact: **MINOR** for each capability independently (a new reserved-root lifecycle status/fail-closed linkage mechanism, and the first implemented Typed Task Contract mechanism, respectively — neither changes any existing rule's meaning or any actor's existing authority).
+
+`v1.5.0 → v1.6.0`
+
+**Separate ADR provenance, one release boundary:** `ML-DEVOS-ADR-012` (RFC-015) and `ML-DEVOS-ADR-013` (S3) are both independently effective at `v1.6.0` and both durably recorded in `devos/devos-manifest.json`'s `closure_history`. The manifest's single `sentinel_capability_baseline.adr` pointer names `ML-DEVOS-ADR-013` as the ordered, release-closing ADR of this boundary — this is a pointer-field convention, not a claim that `ML-DEVOS-ADR-012` is any less adopted or any less effective at `v1.6.0`.
+
+This update adds governance policy/capability only. It does not implement S4–S14, CI, rulesets, a Task/Policy Engine, Capability Gateway, sandbox, Orchestrator, executable Evidence Gate, credential broker, or telemetry pipeline. `devos/contracts/`'s `executable_runtime_present` remains `false`. `manifest_version` remains exactly `"1"`, untouched by this transition.
 
 The frozen S0 architecture identity remains:
 
