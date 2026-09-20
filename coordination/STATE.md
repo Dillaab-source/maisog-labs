@@ -53,3 +53,16 @@ When implementation is complete:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 Handoff must record exact SHA/files/tests/generator/validator output, deterministic repeat-run proof, ERROR/WARNING counts, and exception list.
+
+
+## Queued next phase
+
+`S3 — Typed Task Contracts` is approved and queued under:
+- `ML-DEVOS-RFC-013`
+- `ML-DEVOS-AS-038`
+- `D-037`
+
+S3 implementation MUST NOT begin until `SENTINEL-TRACEABILITY-V1` returns to Architect and is independently closed or explicitly remediated.
+
+Current active Builder turn remains unchanged:
+`SENTINEL-TRACEABILITY-V1`.
