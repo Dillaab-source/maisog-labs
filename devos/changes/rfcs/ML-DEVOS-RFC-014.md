@@ -1,10 +1,10 @@
 # RFC-014: MaisogLabs Skills Foundation V0.1 Discovery (incorporating Portable Knowledge Treasury)
 
-Status: `DRAFT`
+Status: `ACCEPTED — ML-DEVOS-AS-050 / D-042; BOUNDED V0.1 IMPLEMENTATION AUTHORIZED`
 
 Proposed change class (see `../governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` §1): `ARCHITECTURE`
 
-Authority for this discovery cycle: Paulo priority directive `D-038` (Skills Foundation), `D-039` (Portable Knowledge Treasury integrated into the same cycle), `D-040` (research-informed safeguards). Architect review chain: `ML-DEVOS-AS-042` (`CHANGES_REQUESTED`, 4 blockers), `ML-DEVOS-AS-043` (Treasury discovery amendment), `ML-DEVOS-AS-044` (research-informed refinement amendment). This revision remediates all `AS42` blockers and integrates all `AS43`/`AS44` requirements into a single returned proposal, per `coordination/STATE.md`'s Remediation Cycle 1.
+Authority chain: Paulo directives `D-038` (Skills Foundation), `D-039` (Portable Knowledge Treasury), `D-040` (research-informed safeguards), `D-041` (private-repository disclosure boundary), and `D-042` (architecture acceptance + bounded V0.1 implementation authorization). Architect review chain: `ML-DEVOS-AS-042` (`CHANGES_REQUESTED`, 4 blockers), `ML-DEVOS-AS-043` (Treasury discovery amendment), `ML-DEVOS-AS-044` (research-informed refinement amendment). This revision remediates all `AS42` blockers and integrates all `AS43`/`AS44` requirements into a single returned proposal, per `coordination/STATE.md`'s Remediation Cycle 1.
 
 ## Problem
 
