@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `CHANGES_REQUESTED — S3 TYPED TASK CONTRACTS REMEDIATION CYCLE 1`
+Status: `SENTINEL S3 TECHNICAL STAGE GATE — ARCHITECT_APPROVED / PAULO CLOSURE DECISION REQUIRED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -9,138 +9,48 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-054 — S3 Typed Task Contracts Implementation Review
+# ML-DEVOS-AS-055 — S3 Typed Task Contracts Final Implementation Review
 
 Authority:
 - `ML-DEVOS-RFC-013`
-- `ML-DEVOS-AS-038 — ARCHITECT_APPROVED / S3 IMPLEMENTATION QUEUED`
-- `D-037 — Paulo S3 implementation authorization`
-- `D-042 — sequential S3 reopening authority`
-- `ML-DEVOS-AS-053 — S3 reopened`
+- `ML-DEVOS-AS-038`
+- `D-037`
+- `D-042`
+- `ML-DEVOS-AS-053`
+- `ML-DEVOS-AS-054`
 
-Builder implementation commit reviewed:
-- `0efcce866f64d821e85887fd8f8504ecff31c40b`
+Builder remediation commit reviewed:
+- `61803ffc15ce88a61ccead71fa7e41f5a9ff2efd`
 
-Base:
-- `b7634f572f2be93ef3a5527a06b924dfa5212594`
+## Final remediation review
 
-## Scope review
+### AS55-F001 — PASS — AS54-F003 closed
 
-### AS54-F001 — PASS — S3 stayed within its implementation envelope
+The lifecycle evidence validator now uses a guarantee check over the AND/OR grammar.
 
-The implementation changed only:
-- `devos/contracts/`;
-- `tests/task-contract.test.mjs`;
-- normal `coordination/IMPLEMENTER_HANDOFF.md` / `coordination/STATE.md` bookkeeping.
+For a required class set `R`, the implementation accepts only when:
+1. `all_of` already contains a member of `R`; or
+2. `any_of` is non-empty and every alternative belongs to `R`.
 
-No S4+, product/runtime, remote resource, credential, deployment, protected/main merge, production-write, project-onboarding, CI/ruleset, Evidence Gate, or version-bump work was introduced.
+This correctly rejects mixed branches that could otherwise satisfy:
+- MAIN without `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED`;
+- DEPLOYED without `ACTOR_REPORTED` or `CI_ATTESTED`.
 
-### AS54-F002 — PASS — required S3 artifacts exist
+Independent Architect reasoning reproduced the important edge cases:
+- MAIN `any_of:[CI_ATTESTED]` → valid;
+- MAIN `any_of:[ACTOR_REPORTED,CI_ATTESTED]` → invalid;
+- MAIN `all_of:[INDEPENDENTLY_INSPECTED], any_of:[ACTOR_REPORTED,CI_ATTESTED]` → invalid;
+- DEPLOYED `all_of:[ACTOR_REPORTED]` → valid;
+- DEPLOYED mixed ACTOR/RUNTIME branch without an unconditional required class → invalid;
+- DEPLOYED `all_of:[ACTOR_REPORTED,RUNTIME_OBSERVED]` → valid;
+- DEPLOYED runtime-only → invalid.
 
-Present:
-- Task Contract specification;
-- JSON Schema;
-- zero-third-party semantic validator;
-- bounded valid/invalid fixtures;
-- focused tests;
-- low-risk repository-only example;
-- lifecycle MAIN/DEPLOYED/VERIFIED examples;
-- fixed non-authority disclaimer.
+The correction implements CORE-016/017 as minimum evidence guarantees rather than mere class-presence checks.
 
-The contract remains descriptive of already-authorized scope and does not itself grant authority.
+### AS55-F002 — PASS — AS54-F004 closed
 
-Builder-reported test counts:
-- focused S3 suite: `30/30`;
-- full repository suite: `422/422`.
+The executable structural validator now enforces non-empty strings for all string-array fields whose JSON Schema item definition carries `minLength: 1`:
 
-These command-run counts remain `ACTOR_REPORTED` until independently reproduced.
-
-## Blocking findings
-
-### AS54-F003 — BLOCKER — MAIN/DEPLOYED evidence validation checks presence, not guaranteed satisfaction
-
-The active rules require:
-
-- `CORE-016 MAIN`: a valid MAIN claim must require at least one of
-  `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED`;
-- `CORE-017 DEPLOYED`: a valid DEPLOYED claim must require at least one of
-  `ACTOR_REPORTED` or `CI_ATTESTED`.
-
-The current validator uses `includesSomewhere(...)`, which only asks whether one acceptable class appears anywhere in `all_of` or `any_of`.
-
-That is insufficient for an AND/OR evidence grammar.
-
-Example accepted incorrectly by the current MAIN validator:
-
-```json
-{
-  "all_of": ["INDEPENDENTLY_INSPECTED"],
-  "any_of": ["ACTOR_REPORTED", "CI_ATTESTED"]
-}
-```
-
-This can be satisfied by:
-- `INDEPENDENTLY_INSPECTED`
-- plus `ACTOR_REPORTED`
-
-with **no** `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED`, violating CORE-016.
-
-Another current bypass:
-
-```json
-{
-  "all_of": [],
-  "any_of": ["CI_ATTESTED", "RUNTIME_OBSERVED"]
-}
-```
-
-The validator sees `CI_ATTESTED` "somewhere" and accepts the MAIN evidence rule, even though the OR branch could be satisfied solely by `RUNTIME_OBSERVED`.
-
-The same defect exists for DEPLOYED. For example:
-
-```json
-{
-  "all_of": ["INDEPENDENTLY_INSPECTED"],
-  "any_of": ["ACTOR_REPORTED", "RUNTIME_OBSERVED"]
-}
-```
-
-can close via `INDEPENDENTLY_INSPECTED + RUNTIME_OBSERVED`, with neither evidence class CORE-017 requires.
-
-#### Required remediation
-
-Replace "acceptable class appears somewhere" logic with a guarantee check over the `all_of` / `any_of` semantics.
-
-Equivalent rule:
-
-A requirement guarantees at least one class from required set `R` iff:
-
-1. `all_of` contains at least one member of `R`; **or**
-2. `any_of` is non-empty and **every** alternative in `any_of` belongs to `R`.
-
-For MAIN:
-`R = { INDEPENDENTLY_REPRODUCED, CI_ATTESTED }`
-
-For DEPLOYED:
-`R = { ACTOR_REPORTED, CI_ATTESTED }`
-
-Add direct unit tests and bounded invalid fixtures for mixed-branch bypasses.
-
-Keep the existing CORE-018 VERIFIED rule: `RUNTIME_OBSERVED` must remain unconditional in `all_of`.
-
-### AS54-F004 — BLOCKER — structural validator does not fully mirror task-contract.schema.json
-
-The validator claims:
-
-> "The instance matches task-contract.schema.json's declared shape exactly"
-
-but its helper:
-
-`isStringArray(v) = Array.isArray(v) && v.every(x => typeof x === "string")`
-
-accepts empty-string items.
-
-The JSON Schema explicitly specifies `minLength: 1` for items in:
 - `authorization_references`;
 - `requirement_references`;
 - `risk_references`;
@@ -149,157 +59,158 @@ The JSON Schema explicitly specifies `minLength: 1` for items in:
 - `scope.prohibited_paths`;
 - `scope.prohibited_actions`.
 
-Therefore, for example:
+The focused test set includes negative cases for every affected field plus a positive control.
 
-```json
-"authorization_references": [""]
-```
+No structural schema/validator mismatch remains in the reviewed area.
 
-or:
+### AS55-F003 — PASS — AS54-F005 closed
 
-```json
-"allowed_paths": [""]
-```
+The blanket DEPLOYED rejection of `RUNTIME_OBSERVED` in `all_of` has been removed.
 
-is rejected by the declared schema but accepted by the current JavaScript structural validator.
+The validator now treats CORE-017 correctly as a floor:
+- DEPLOYED must guarantee `ACTOR_REPORTED` or `CI_ATTESTED`;
+- additional stronger evidence is not rejected merely for being stronger;
+- VERIFIED remains a distinct claim and still separately requires unconditional `RUNTIME_OBSERVED`.
 
-That breaks S3's core machine-validation invariant: the executable validator and declared schema cannot disagree about structural validity.
+The renamed invalid fixture now fails for the correct reason: it lacks a guaranteed CORE-017 class, rather than because runtime evidence is forbidden.
 
-#### Required remediation
+### AS55-F004 — PASS — CORE-020 interpretation remains aligned
 
-Make the hand-written structural validator enforce the schema's item-level non-empty-string rule for every affected array.
+CORE-020's current text explicitly says existing MAIN/DEPLOYED/VERIFIED rules remain authoritative for those exact claims.
 
-Add focused tests covering at minimum:
-- empty authorization reference;
-- empty allowed path;
-- empty optional reference;
-- empty prohibited path/action.
+The S3 implementation therefore:
+- applies CORE-016 to MAIN;
+- CORE-017 to DEPLOYED;
+- CORE-018 to VERIFIED;
+- applies consequence-sensitive actor-only escalation to the other claim kinds.
 
-No new dependency or JSON Schema runtime library is required.
+No new policy is invented.
 
-### AS54-F005 — BLOCKER — DEPLOYED validation currently invents a stronger prohibition than CORE-017 requires
+### AS55-F005 — PASS — S3 remains descriptive, not authoritative
 
-The current validator rejects any DEPLOYED claim with `RUNTIME_OBSERVED` in `all_of`.
+The fixed `authority_disclaimer`, spec, validator exports, and examples continue to make clear:
 
-The active CORE-017 rule says:
-- DEPLOYED requires evidence the deployment action executed;
-- at least one of `ACTOR_REPORTED` or `CI_ATTESTED`;
-- RUNTIME_OBSERVED is **not required** for the DEPLOYED claim and belongs to the separate VERIFIED concept.
+A valid Task Contract:
+- describes already-authorized scope;
+- does not grant tools/credentials/remote-resource authority;
+- does not approve merge/deploy/risk acceptance;
+- does not inspect produced evidence;
+- does not accept or certify a task.
 
-CORE-017 does not state that a contract is invalid merely because it asks for additional runtime evidence **in addition to** a guaranteed valid DEPLOYED evidence class.
+S3 has not become S4, S7, or S9.
 
-S3 is authorized to enforce existing policy, not invent a stricter maximum-evidence policy.
+### AS55-F006 — PASS — scope remained clean through remediation
 
-Therefore:
+The remediation changed only:
+- S3 validator/spec/fixtures/tests;
+- handoff/state bookkeeping.
 
-```json
-{
-  "all_of": ["ACTOR_REPORTED", "RUNTIME_OBSERVED"],
-  "any_of": []
-}
-```
+No:
+- core-rule change;
+- RFC lifecycle closure;
+- manifest/version change;
+- ADR closure;
+- S4+ implementation;
+- product/runtime change;
+- remote resource;
+- credential;
+- deployment;
+- production write;
+- protected/main merge
 
-is stricter than CORE-017's minimum, but still guarantees the deployment-action evidence CORE-017 requires. The validator should not reject it solely because extra runtime evidence is also required.
+occurred.
 
-By contrast:
+## Evidence disposition
 
-```json
-{
-  "all_of": ["RUNTIME_OBSERVED"],
-  "any_of": []
-}
-```
+Builder reports:
+- focused S3 suite: `44/44`;
+- bundled fixture behavior: `15/15`;
+- full repository suite: `436/436`.
 
-must still fail because it does not guarantee `ACTOR_REPORTED` or `CI_ATTESTED`.
+These command-run counts remain:
+`ACTOR_REPORTED`
 
-#### Required remediation
+The Architect independently:
+- inspected schema/spec/validator code;
+- reproduced the corrected AND/OR guarantee semantics over representative edge cases;
+- inspected structural parity corrections;
+- verified authority/non-goal boundaries;
+- inspected exact remediation scope.
 
-Remove the blanket DEPLOYED `RUNTIME_OBSERVED in all_of` rejection unless a current active rule explicitly forbids extra runtime evidence.
+Evidence classes:
+- implementation/spec alignment: `INDEPENDENTLY_INSPECTED`;
+- lifecycle evidence-logic edge cases: `INDEPENDENTLY_REPRODUCED` by deterministic reasoning over the committed function semantics;
+- Builder Node test counts: `ACTOR_REPORTED`.
 
-Use the corrected guaranteed-satisfaction test from AS54-F003 as the governing rule.
+No production/runtime evidence is required or claimed for this repository-local S3 capability.
 
-Preserve conceptual separation:
-- a DEPLOYED claim does not become VERIFIED merely because it has extra runtime evidence;
-- a VERIFIED claim still separately requires `RUNTIME_OBSERVED` and remains a distinct claim/status.
+## Technical stage-gate verdict
 
-Update the spec and tests accordingly.
+`ML-DEVOS-AS-055: SENTINEL S3 TECHNICAL STAGE GATE — ARCHITECT_APPROVED`
 
-The existing invalid `deployed-claim-silently-treated-as-verified` fixture may remain invalid if it lacks any guaranteed CORE-017 class; its failure reason should be the missing guaranteed ACTOR_REPORTED/CI_ATTESTED path, not a newly invented ban on stronger evidence.
+S3 Typed Task Contracts is technically ready for governance closure.
 
-## Non-blocking observations
+This verdict does **not** itself:
+- adopt S3 into the active governance-capability baseline;
+- change the manifest;
+- apply a version bump;
+- create the closure ADR;
+- authorize S4.
 
-### AS54-O001 — CORE-020 lifecycle interpretation is acceptable
+## Closure/version assessment
 
-The Builder's decision to let CORE-016/017/018 govern MAIN/DEPLOYED/VERIFIED exactly, while CORE-020's actor-only escalation applies to consequence-sensitive non-lifecycle claims, is consistent with CORE-020's current text:
+Current active Sentinel governance-capability baseline:
+`v1.5.0`
 
-> "Existing MAIN, DEPLOYED, and VERIFIED evidence rules remain authoritative for those exact claims."
+S3 adds a backwards-compatible new governance capability:
+- Task Contract specification;
+- schema;
+- deterministic structural/semantic validator;
+- examples/tests;
+- no breaking constitutional change.
 
-No remediation required for that interpretation.
+Under `VERSIONING_POLICY.md`, Architect assesses:
 
-### AS54-O002 — S3 closure bookkeeping remains pending by design
+`MINOR: v1.5.0 → v1.6.0`
 
-`ML-DEVOS-RFC-013` still carries its older queued/draft status text, while some new S3 documentation refers to it as accepted authority.
+Proposed closure ADR:
+`ML-DEVOS-ADR-011`
 
-Do not broaden this remediation merely to perform lifecycle bookkeeping.
+The next ADR number was verified against the live durable ADR directory; `ML-DEVOS-ADR-010.md` already exists.
 
-If the validator closes cleanly, the S3 acceptance/ADR step should normalize:
-- RFC-013 status;
-- S3 ADR;
-- `devos/devos-manifest.json` reserved-root status;
-- governance-capability version decision
+## Paulo closure decision required
 
-exactly as RFC-013's rollout sequence already requires.
+Per the established S1/S2 closure pattern and the binding non-silent version rule, Paulo must explicitly decide whether to authorize:
 
-## Authorized remediation cycle 1
+1. adoption of S3 Typed Task Contracts into the active Sentinel governance-capability baseline;
+2. creation of `ML-DEVOS-ADR-011`;
+3. the `v1.5.0 → v1.6.0` MINOR transition;
+4. updating `devos/devos-manifest.json` so `devos/contracts/` no longer remains `NOT_IMPLEMENTED`;
+5. appending the S3 closure event to manifest closure history;
+6. normal RFC/status/version/closure bookkeeping required to record S3 as closed.
 
-Claude may modify only:
+No core rule activation is required: S3 implements existing CORE-016/017/018/020 semantics and introduces no new CORE-* rule.
 
-- `devos/contracts/validate-task-contract.mjs`;
-- `devos/contracts/TASK_CONTRACT_SPEC.md`;
-- `devos/contracts/examples/**` as needed for bounded new/updated fixtures;
-- `devos/contracts/README.md` only if fixture/test counts or semantic summary need correction;
-- `tests/task-contract.test.mjs`;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
+## Recommended manifest disposition if Paulo approves
 
-Do not modify:
-- core rules;
-- RFC-013;
-- manifest/version;
-- S4+;
-- product/runtime;
-- remote/deploy/main resources.
+For `devos/contracts/`:
+- owning phase remains `S3`;
+- status should change from `NOT_IMPLEMENTED` to an implemented/static-capability status consistent with the manifest validator/schema;
+- `executable_runtime_present` should remain `false` because S3 is repository-local validation tooling, not Sentinel runtime orchestration/enforcement.
 
-## Required evidence on return
+The exact allowed status vocabulary must be verified against the manifest schema/validator during closure; do not invent a new enum merely for S3.
 
-Builder must provide:
-- exact base/result SHA;
-- exact changed files;
-- direct tests for MAIN mixed-`any_of` bypass;
-- direct tests for DEPLOYED mixed-`any_of` bypass;
-- positive test proving a DEPLOYED rule with guaranteed ACTOR_REPORTED/CI_ATTESTED plus additional RUNTIME_OBSERVED is not rejected merely for being stronger;
-- structural parity tests for empty-string array elements;
-- focused S3 test result;
-- full-suite sanity result if practical;
-- confirmation no S4+/runtime/remote/deploy/main/version work occurred.
+## S4 boundary
 
-## S3 status
+S4 remains wholly unauthorized.
 
-`S3 — IMPLEMENTED, NOT YET ARCHITECT-ACCEPTED`
+Only after:
+1. Paulo explicitly approves S3 closure/version transition;
+2. Builder performs the bounded closure record/manifest/version work;
+3. Architect independently reviews that closure
 
-No S4 proposal or implementation is authorized.
+may an S4 proposal/authorization be considered.
 
 ## Verdict
 
-`ML-DEVOS-AS-054: CHANGES_REQUESTED — S3 TYPED TASK CONTRACTS REMEDIATION CYCLE 1`
-
-## Return gate
-
-After remediation:
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `CURRENT_REMEDIATION_CYCLE: 1`
-
-Builder must not self-accept S3 or start S4.
+`ARCHITECT_APPROVED — PAULO S3 CLOSURE / v1.6.0 DECISION REQUIRED`
