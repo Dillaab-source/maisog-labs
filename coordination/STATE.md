@@ -1,9 +1,9 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S3_TYPED_TASK_CONTRACTS_CLOSURE_GATE
+CYCLE_ID: SENTINEL_S3_CLOSURE_DISCREPANCY_GATE
 TURN: PAULO
 STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: S3_CLOSURE_DECISION_ONLY
+AUTHORIZED_SCOPE: SKILLS_TREASURY_DEBT_AND_S3_CLOSURE_DECISION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: YES
@@ -17,56 +17,59 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Technical stage gate
+## Technical state
 
-`ML-DEVOS-AS-055 — SENTINEL S3 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
+`ML-DEVOS-AS-055 — S3 TECHNICAL STAGE GATE: ARCHITECT_APPROVED`
 
-S3 Typed Task Contracts implementation is technically accepted and ready for closure.
+S3 technical approval remains valid.
 
-## Evidence disposition
+`ML-DEVOS-AS-056` found closure/provenance discrepancies; AS-055's original closure package is superseded by the corrected package below.
 
-- schema/spec/validator implementation: independently inspected;
-- critical MAIN/DEPLOYED AND/OR logic: independently reproduced by deterministic reasoning;
-- Builder focused/full test counts remain actor-reported;
-- no runtime/production claim is made.
+## Confirmed discrepancies
 
-## Current baseline
+1. Manifest schema cannot represent an implemented S3 root: only `NOT_IMPLEMENTED` / S2-only `FOUNDATION_ACTIVE` exist.
+2. RFC-013 still says `DRAFT — QUEUED`.
+3. S3 README mislabels D-042 as the S3 implementation authorization; D-037 is the actual implementation authorization and D-042 is sequential reopening authority.
+4. Skills/Treasury V0.1 implementation lacks explicit post-implementation version disposition + closure ADR.
+5. Rolling IMPLEMENTER_HANDOFF header is stale.
 
-`Sentinel governance-capability baseline: v1.5.0`
+## Architect recommendations
 
-Architect version assessment:
-`MINOR → proposed v1.6.0`
+### Skills/Treasury V0.1
+- close with explicit `NO SENTINEL BASELINE BUMP`;
+- effective baseline remains `v1.5.0`;
+- create `ML-DEVOS-ADR-011`.
 
-Proposed closure ADR:
-`ML-DEVOS-ADR-011`
+### S3
+- close as backwards-compatible MINOR capability;
+- `v1.5.0 → v1.6.0`;
+- create `ML-DEVOS-ADR-012`;
+- extend manifest reserved-root status enum with `IMPLEMENTED`;
+- set `devos/contracts/` to `IMPLEMENTED`;
+- keep `executable_runtime_present: false`;
+- append closure history;
+- normalize RFC-013/status/provenance/handoff/version metadata.
 
 ## Paulo decision required
 
-Approve/reject:
-1. adopt S3 into active Sentinel baseline;
-2. create ADR-011;
-3. apply v1.5.0 → v1.6.0;
-4. update manifest `devos/contracts/` implementation status;
-5. append S3 closure history;
-6. perform normal RFC/status/version/closure bookkeeping.
+Approve/reject the corrected package in AS-056.
 
-## Hard boundary
+No Builder closure work starts until Paulo explicitly approves.
 
-No S4 proposal or implementation is authorized by AS-055 alone.
+## Hard boundaries
 
 No:
-- product/runtime mutation;
-- remote/cloud resources;
+- S4 proposal or implementation;
+- S5+;
+- core-rule changes;
+- broad manifest redesign;
+- product/runtime changes;
+- remote resources;
 - credentials;
 - deployment;
 - production writes;
-- protected/main merge;
-- core-rule mutation
-
-is authorized.
+- protected/main merge.
 
 ## Next gate
 
-Paulo Product/Risk Owner S3 closure decision.
-
-No Builder closure work starts until Paulo explicitly approves it.
+Paulo Product/Risk Owner corrected closure decision.
