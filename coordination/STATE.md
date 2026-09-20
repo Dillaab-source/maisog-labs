@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_3_CONSISTENCY_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_ARCHITECTURE_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,12 +17,36 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Product / Risk Owner authority
+## Architect verdict
 
-- `D-038` — Skills Foundation discovery priority
-- `D-039` — Portable Knowledge Treasury integrated into the same discovery
-- `D-040` — research-informed safeguards
-- `D-041` — repository visibility changed to private; Treasury disclosure/storage assumptions revised
+`ML-DEVOS-AS-050 — ARCHITECT_APPROVED / PAULO DECISION REQUIRED`
+
+RFC:
+- `ML-DEVOS-RFC-014`
+
+## Accepted architecture findings
+
+Architect review accepts:
+- four-skill V0.1 candidate set;
+- `.agents/skills/` as the recommended canonical payload with one non-diverging Claude Code bridge;
+- provider-neutral SKILL CHECK routing;
+- consequence-sensitive external-skill trust/revalidation;
+- progressive disclosure;
+- Portable Knowledge Treasury as a lightweight governed routing/classification procedure, not a standalone V0.1 Skill;
+- candidate-vs-accepted knowledge boundary;
+- type + disclosure model;
+- conditional private-repository storage under AS-048;
+- canonical-destination-first dedup;
+- provenance/evals/anti-bloat model.
+
+## Paulo decisions required
+
+1. accept/reject RFC-014 architecture;
+2. accept/change the `.agents/skills/` canonical-payload recommendation;
+3. accept/change the Treasury lightweight-procedure-first direction;
+4. decide whether/when to create a residual Knowledge/Principles canonical record;
+5. decide whether/when to separately reassess `RISK-WEB-013`;
+6. only after architecture acceptance, separately authorize any Skills/Treasury implementation and/or S3 resumption.
 
 ## S3 status
 
@@ -33,52 +57,15 @@ Preserved authority:
 - `ML-DEVOS-AS-038`
 - `D-037`
 
-No S3 implementation is authorized during this remediation.
-
-## Current review
-
-`ML-DEVOS-AS-049 — CHANGES_REQUESTED / Remediation Cycle 3 final consistency cleanup`
-
-## Cycle 2 findings accepted
-
-The following are now treated as closed unless new evidence appears:
-- `AS45-F007` provider compatibility matrix;
-- `AS46-F002` four complete Skill contracts;
-- `AS46-F003` explicit SKILL CHECK routing/evals;
-- `AS47/AS48` private-repository disclosure model in T10/T12.
-
-## Active Cycle 3 blockers
-
-1. `AS49-F006` — replace the stale top-level "private repository documentation / non-public-surfaced path" destination with the conditional AS-048/T10 storage rule.
-2. `AS49-F007` — update the stale ChatGPT evidence row using current official OpenAI Skills documentation while preserving ChatGPT as a separate non-repo-path distribution concern.
-3. `AS49-F008` — normalize stale/misattributed AS-047/AS-048/Gemini cross-references.
-
-## Authorized remediation files
-
-Claude may modify only:
-- `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
-- `devos/changes/rfcs/README.md` if needed;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
-
-## Preserve accepted architecture
-
-Do not reopen without new evidence:
-- four-skill V0.1 candidate set;
-- `.agents/skills/` recommendation;
-- one non-diverging Claude Code bridge concept;
-- SKILL CHECK routing model;
-- external-skill consequence tiers;
-- progressive disclosure;
-- Treasury-as-routing/procedure direction;
-- Treasury classification/dedup/provenance/eval/anti-bloat architecture.
+S3 does not resume automatically from AS-050.
 
 ## Hard boundaries
 
 No:
 - actual Skill implementation;
-- Skill/provider-adapter directory creation;
+- `.agents/skills/` or provider-bridge creation;
 - Treasury implementation;
+- Knowledge/Principles record creation;
 - S3 implementation/resumption;
 - S4+ / S5 capability machinery;
 - secret-store creation;
@@ -89,16 +76,8 @@ No:
 - main merge;
 - external-skill installation/execution.
 
-## Return gate
+## Next gate
 
-After the three cleanup findings are corrected:
-- `TURN: ARCHITECT`;
-- `STATUS: READY_FOR_ARCHITECT`;
-- `ARCHITECT_ACTION_REQUIRED: YES`;
-- `IMPLEMENTER_ACTION_REQUIRED: NO`.
+Paulo Product/Risk Owner decision.
 
-Builder must return the exact diff/evidence without self-authorizing RFC acceptance, Skills/Treasury implementation, S3 resumption, or any Paulo decision.
-
-## Remediation Cycle 3 (final consistency cleanup) complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 3 Handoff (ML-DEVOS-AS-049, final consistency cleanup)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS49-F006` — §2's stale blanket "private repository documentation" row replaced with the conditional T10/AS-048 storage rule, and the RISK-WEB-013 premise statement corrected; `AS49-F007` — the ChatGPT evidence-basis row updated with current official OpenAI documentation (verified via search-engine-summarized excerpt, direct fetch blocked by network egress policy), without changing the 3-of-4 repository-native portability conclusion; `AS49-F008` — two misattributed cross-references corrected (the access-control clarification is `AS-048`, not `AS-047`; the Gemini CLI correction is `AS45-F007`/Cycle 2, not `AS-047`), plus one additional stale revision-count reference found and fixed along the way. No previously accepted architecture reopened. Only the RFC and its index entry were touched. 352/352 tests unaffected. This is Remediation Cycle 3 of `MAX_REMEDIATION_CYCLES: 3` — the final permitted cycle for this discovery.
+No Builder or Architect implementation action is authorized until that decision is recorded.
