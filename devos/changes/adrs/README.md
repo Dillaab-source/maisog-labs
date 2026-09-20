@@ -4,6 +4,9 @@ Accepted ADRs live here as `ML-DEVOS-ADR-<NNN>.md`, using `../../templates/ADR_T
 
 ## Current contents
 
+- `ML-DEVOS-ADR-013.md` — adopts Sentinel S3 Typed Task Contracts (`ML-DEVOS-RFC-013`); `devos/contracts/` reserved root moves to `status: IMPLEMENTED` with an ADR-keyed `closure_ref`, `executable_runtime_present` remains `false`. Release-closing ADR of the coordinated `v1.5.0 → v1.6.0` boundary shared with `ML-DEVOS-ADR-012`; `sentinel_capability_baseline.adr` points here.
+- `ML-DEVOS-ADR-012.md` — adopts `ML-DEVOS-RFC-015`'s reserved-subsystem lifecycle (`IMPLEMENTED` status, ADR-keyed fail-closed `closure_ref`, behavior-based `executable_runtime_present`, D.1/D.2 Closure Preflight/Verification). Co-effective at `v1.6.0` with `ML-DEVOS-ADR-013` under one coordinated release boundary — `one release != one ADR`.
+- `ML-DEVOS-ADR-011.md` — adopts MaisogLabs Skills Foundation V0.1 + Portable Knowledge Treasury (`ML-DEVOS-RFC-014`); explicit **no** Sentinel capability-baseline bump, effective baseline remains `v1.5.0`.
 - `ML-DEVOS-ADR-010.md` — adopts Sentinel Traceability V1 as a deterministic, repository-local, non-authoritative durable-reference integrity subsystem; records no Sentinel version bump and carries `WEB-REQ-009` as separate open traceability debt.
 - `ML-DEVOS-ADR-009.md` — adopts WEB-INC-007 Theme / Design Controls, including screenshot-reference visual preview and full-range overlay behavior; marks the eight-increment core WEB roadmap complete at repository/local level.
 - `ML-DEVOS-ADR-008.md` — records adoption of MaisogLabs `WEB-INC-006` local Journal subsystem after `ML-DEVOS-AS-029`; three Journal tables, protected lifecycle APIs, published-only public Journal GET APIs, and static `/journal` shell, with no remote D1/R2, deployment, or main merge.

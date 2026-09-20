@@ -1,275 +1,120 @@
-# Architect Review
+# Architect Builder Brief — S4 State Machine Kernel Proposal
 
-Status: D.1 PRE-DECISION CLOSURE PREFLIGHT — PASS / PAULO CLOSURE DECISION REQUIRED
-
-Architect: ChatGPT
-Product / Risk Owner: Paulo
-Builder: Claude
-Working branch: governance/maisoglabs-v0.1
-
----
-
-# ML-DEVOS-AS-061 — Coordinated Closure Preflight
-
-Authority:
-- D-045
-- ML-DEVOS-AS-053 — Skills/Treasury implementation accepted
-- ML-DEVOS-AS-055 — S3 technical implementation accepted
-- ML-DEVOS-AS-060 — RFC-015 implementation accepted
-- brain/protocols/ARCHITECT_SYNC.md D.1
-
-## Proposed closure scope
-
-One coordinated closure package, with independent ADR provenance, covering:
-
-1. Skills Foundation V0.1 + Portable Knowledge Treasury — explicit no-bump closure;
-2. RFC-015 Reserved Subsystem Lifecycle + Closure Reconciliation — architecture closure;
-3. S3 Typed Task Contracts — phase closure;
-4. RFC-015 + S3 adoption under one explicit Sentinel v1.6.0 release boundary;
-5. traceability regeneration/reconciliation;
-6. no S4 authorization.
-
-This preflight does not itself authorize or perform any closure mutation.
-
-## D.1 checklist
-
-### AS61-F001 — PASS — implementation review status
-
-All three implemented architecture changes have already passed independent technical review:
-
-- Skills/Treasury: ML-DEVOS-AS-053;
-- S3: ML-DEVOS-AS-055;
-- RFC-015: ML-DEVOS-AS-060.
-
-No technical implementation finding is reopened by this closure package.
-
-### AS61-F002 — PASS — evidence baseline SHA pinned
-
-Preflight evidence baseline:
-
-f9995565860d3f6a33ef96070ac88eb3953303ba
-
-This is the repository HEAD after RFC-015 technical acceptance was durably archived and the coordinated preflight cycle was opened.
-
-Because the eventual Paulo closure Decision must itself be committed before Builder closure mutation begins, the execution base SHA will necessarily be later than this preflight evidence SHA.
-
-Required execution rule:
-- Builder must pull the post-decision HEAD immediately before closure mutation;
-- record that exact SHA as the closure execution base;
-- compare it against this evidence baseline;
-- only expected preflight/Decision/coordination bookkeeping may differ;
-- any substantive implementation/governance drift outside the approved package returns to Architect before mutation.
-
-This avoids pretending an unknowable post-decision SHA already exists.
-
-### AS61-F003 — PASS — current-state/stale-surface inspection
-
-Current stale/closure-pending surfaces identified:
-
-1. ML-DEVOS-RFC-013 still says DRAFT — QUEUED AFTER SENTINEL-TRACEABILITY-V1.
-2. devos/contracts/README.md mislabels D-042 as S3 implementation authorization; actual implementation authorization is D-037; D-042 authorized sequential reopening after Skills/Treasury closure; AS-053 performed the reopening.
-3. ML-DEVOS-RFC-014 records design acceptance + implementation authorization but not the final post-implementation no-bump closure ADR.
-4. ML-DEVOS-RFC-015 records implementation authorization but not its final adopted/closed outcome.
-5. coordination/IMPLEMENTER_HANDOFF.md top banner is stale from the Skills Foundation implementation cycle.
-6. devos/devos-manifest.json still correctly reports baseline v1.5.0; devos/contracts/ = NOT_IMPLEMENTED; no S3 closure_ref; no RFC-015/S3 closure-history entries.
-7. VERSIONING_POLICY.md still correctly reports current baseline v1.5.0 and therefore will need coordinated closure update.
-8. generated Traceability V1 outputs are stale: checked-in TRACEABILITY_INDEX.md still reports an older snapshot (1 ERROR / 17 warnings / 208 definitions) and does not represent the current governance graph.
-
-Not stale / no edit required:
-- brain/00_HOME.md correctly says live STATE.md is authoritative;
-- CLAUDE.md correctly marks old phase instructions historical and defers current authority to STATE.md;
-- other located S3/v1.5 references are historical context, not live-current banners.
-
-### AS61-F004 — PASS — proposed RFC status edits defined
-
-Closure package will preserve RFC bodies/history and update only current status/provenance banners as needed.
-
-Proposed final statuses:
-
-- RFC-014: IMPLEMENTED AND CLOSED — implementation accepted by AS-053; closure ADR records explicit no-bump at effective baseline v1.5.0.
-- RFC-015: IMPLEMENTED AND CLOSED — implementation accepted by AS-060; closure ADR records adoption as part of coordinated v1.6.0 release.
-- RFC-013: IMPLEMENTED AND CLOSED — technical implementation accepted by AS-055; S3 closure ADR records adoption at coordinated v1.6.0 release.
-
-RFC proposal bodies remain historical proposal text; ADRs remain the durable records of what became architecture and why.
-
-### AS61-F005 — PASS — proposed manifest edits defined
-
-The closure package will mutate the live manifest only after Paulo approval.
-
-Proposed final changes:
-
-#### Sentinel capability baseline
-- version: 1.6.0;
-- status: ACTIVE;
-- decision: final coordinated closure Decision;
-- adr: the S3 closure ADR, as the ordered final adoption / release-closing anchor of the coordinated v1.6.0 package;
-- document: path to that S3 ADR.
-
-The RFC-015 ADR remains independently durable and co-effective at v1.6.0; using the S3 ADR as the manifest's single baseline pointer does not rank or erase the RFC-015 ADR.
-
-#### S3 root
-devos/contracts/:
-- owning_phase remains S3;
-- status → IMPLEMENTED;
-- closure_ref → final S3 closure ADR;
-- executable_runtime_present remains false.
-
-#### Closure history
-Append, without editing prior entries:
-
-1. RFC-015 governance-capability closure:
-   - phase label: GOV-RESERVED-LIFECYCLE;
-   - effective version: 1.6.0;
-   - ADR: final RFC-015 ADR;
-   - Decision: final closure Decision;
-   - Architect Sync: ML-DEVOS-AS-060;
-   - closed_at: actual closure date.
-
-2. S3 closure:
-   - phase: S3;
-   - effective version: 1.6.0;
-   - ADR: final S3 ADR;
-   - Decision: final closure Decision;
-   - Architect Sync: ML-DEVOS-AS-055;
-   - closed_at: actual closure date.
-
-Also:
-- update descriptive baseline text from v1.5.0 → v1.6.0;
-- update updated_at to actual closure date;
-- leave manifest_version: 1 unchanged;
-- leave all later roots NOT_IMPLEMENTED;
-- leave top-level and S3 executable_runtime_present: false.
-
-Skills/Treasury receives no reserved-root entry and no manifest closure-history entry in V0.1; its architecture closure is recorded by its own explicit no-bump ADR.
-
-### AS61-F006 — PASS — proposed ADR package/provenance defined
-
-Current live ADR ceiling: ML-DEVOS-ADR-010.
-
-No ADR number is reserved before closure execution.
-
-If no intervening ADR is created, expected sequential order would be:
-1. Skills/Treasury;
-2. RFC-015;
-3. S3.
-
-At execution time Builder must inspect the live ADR directory and allocate the next three sequential never-reused IDs.
-
-Skills/Treasury ADR must cite at minimum RFC-014, AS-050, D-042, AS-053 and record:
-- .agents/skills/ canonical Skills location;
-- deterministic .claude/skills/ bridge;
-- manual Portable Knowledge Treasury;
-- brain/KNOWLEDGE_PRINCIPLES.md;
-- no manifest reserved root for Skills V0.1;
-- no CORE/actor-authority/trust-boundary/remote/deploy/main change;
-- effective baseline remains v1.5.0;
-- explicit NO SENTINEL CAPABILITY-BASELINE BUMP;
-- RISK-WEB-013 remains separately open.
-
-RFC-015 ADR must cite at minimum RFC-015, D-043 / D-044 / D-045, AS-057 / AS-058 / AS-059 / AS-060, and the final coordinated closure Decision. It must record IMPLEMENTED reserved-root lifecycle, ADR-keyed fail-closed closure_ref, behavior-based runtime distinction, D.1/D.2 closure reconciliation, no manifest_version semantic change, and that the MINOR-class contribution is intentionally co-released with S3 under one v1.6.0 release boundary.
-
-S3 ADR must cite at minimum RFC-013, AS-038, D-037 as actual implementation authorization, D-042 as sequential reopening authority, AS-053 reopening, AS-054 remediation, AS-055 final technical approval, AS-056 discrepancy review, RFC-015 / AS-060 as the closure-lifecycle mechanism enabling legal manifest closure, and the final coordinated closure Decision. It must record Typed Task Contracts adopted, descriptive/non-authoritative boundary, devos/contracts/ = IMPLEMENTED / runtime false, and effective version v1.6.0.
-
-### AS61-F007 — PASS — version disposition explicit and policy-compatible
-
-Skills/Treasury:
-- explicit no-bump;
-- effective baseline remains v1.5.0.
-
-RFC-015 + S3:
-- each is a separately reasoned backwards-compatible architecture/capability addition;
-- both are intentionally included in one coordinated MINOR release boundary;
-- proposed transition: v1.5.0 → v1.6.0;
-- separate ADR provenance is preserved.
-
-This is compatible with VERSIONING_POLICY.md:
-- the bump is explicit, not silent;
-- both material changes retain RFC/Architect-Sync/Decision/ADR provenance;
-- one release boundary is not treated as one architecture decision.
-
-VERSIONING_POLICY.md will be updated during closure to record the coordinated v1.6.0 release and new active baseline.
-
-### AS61-F008 — PASS — traceability baseline recorded with evidence limitations disclosed
-
-Latest Builder-executed validator evidence associated with the accepted RFC-015 implementation reports this current ERROR fingerprint:
-
-- CORE-022 — missing canonical target;
-- ML-DEVOS-ADR-011 — missing canonical target;
-- ML-DEVOS-ADR-012 — missing canonical target;
-- WEB-REQ-009 — missing canonical target.
-
-Evidence class for that command output: ACTOR_REPORTED.
-
-The checked-in generated index is independently inspected and demonstrably stale; it still shows the older 1 ERROR (WEB-REQ-009), 17 warnings, 208 definitions.
-
-Therefore the generated index is not used as the baseline truth.
-
-Required fail-closed execution rule:
-- before any closure mutation, Builder reruns the traceability validator at the exact post-decision execution-base SHA and records the exact ERROR set;
-- if that set contains an unexpected difference from the four-item preflight fingerprint above, Builder stops and returns to Architect before mutation.
-
-Expected closure effects:
-- forward-reference errors for ADR IDs represented by newly created closure ADRs should resolve with direct evidence: the canonical ADRs now exist;
-- WEB-REQ-009 remains open unless separately resolved, which is not in this package;
-- CORE-022 remains visible unless separately resolved with evidence, and is not silently cleared;
-- closure must introduce no new unexpected ERROR.
-
-After final closure records exist:
-- run the traceability generator;
-- generated JSON/Markdown must match a fresh run;
-- D.2 verifies no generated-output drift.
-
-Zero total errors is not required.
-
-### AS61-F009 — PASS — bounded closure diff defined
-
-Authorized closure implementation, if Paulo approves, is bounded to the minimum necessary surfaces:
-
-- append final coordinated closure Decision to brain/DECISION_LOG.md;
-- create 3 closure ADRs + update ADR index;
-- update status banners/provenance as necessary in RFC-014 / RFC-015 / RFC-013;
-- correct devos/contracts/README.md D-037/D-042 provenance and closure wording;
-- update devos/devos-manifest.json;
-- update VERSIONING_POLICY.md;
-- update rolling coordination/IMPLEMENTER_HANDOFF.md and coordination/STATE.md;
-- regenerate traceability-index.json and TRACEABILITY_INDEX.md;
-- only minimal directly-required RFC/ADR index bookkeeping if new records require it.
-
-No change is proposed to core rules, Task Contract implementation, Skills implementation, product/application code, remote/cloud resources, credentials, deploy configuration, main/protected branch, or S4 implementation.
-
-### AS61-F010 — PASS — next phase remains unauthorized
-
-This closure does not authorize S4.
-
-After successful D.2 verification, the default next roadmap candidate is S4 State Machine Kernel per D-045, but S4 still requires its own proposal/review/Paulo authorization.
-
-### AS61-F011 — PASS — release-boundary single-pointer ambiguity resolved
-
-The manifest has one sentinel_capability_baseline.adr pointer while this release contains two co-effective architecture ADRs (RFC-015 + S3).
-
-Proposed deterministic convention for this coordinated release only:
-- the baseline pointer cites the ordered final adoption / release-closing ADR, which is S3;
-- RFC-015's separate ADR remains co-effective at v1.6.0 and is preserved in closure_history;
-- both ADRs cite the same explicit release Decision/version boundary.
-
-This avoids a schema redesign solely to represent a multi-ADR release.
-
-It does not establish a universal future rule beyond this closure; a future need for first-class multi-ADR release metadata would require concrete evidence before new schema work.
-
-## Preflight verdict
-
-ML-DEVOS-AS-061: D.1 PRE-DECISION CLOSURE PREFLIGHT — PASS
-
-Recommended closure decision:
-
-Authorize the bounded coordinated closure package above:
-- Skills/Treasury explicit no-bump closure ADR;
-- RFC-015 separate ADR;
-- S3 separate ADR;
-- RFC-015 + S3 under one explicit v1.5.0 → v1.6.0 release transition;
-- manifest/RFC/provenance/version normalization;
-- traceability regeneration;
-- post-decision D.2 Architect Closure Verification;
-- no S4 authority.
-
-No closure mutation begins until Paulo explicitly approves this package.
+Status: AUTHORIZED PROPOSAL / AUDIT ONLY
+Authority: D-048 (Paulo). Branch: governance/maisoglabs-v0.1.
+Input HEAD: ceebf557ab2eff79b89e080230c46e8b2921ee78.
+CYCLE_ID: SENTINEL_S4_STATE_MACHINE_PROPOSAL
+
+## Prerequisites and scope audit
+
+ML-DEVOS-AS-063 accepted coordinated v1.6.0 closure; ML-DEVOS-AS-064 accepted D-047 bridge activation. The latter rolling review is archived verbatim in devos/changes/architect-syncs/ML-DEVOS-AS-064.md as part of this handoff. The manifest records S3 IMPLEMENTED and S4 NOT_IMPLEMENTED; no S4 code exists in its reserved root. D-045 identifies S4 as the next roadmap candidate. D-048 now authorizes the proposal step only.
+
+This is an authorization/handoff brief, not self-approval of an S4 design. Architect Review/Sync will run on the Builder's returned proposal. The frozen S0 roadmap is historical sequencing, not current phase status; use decisions, closure records and manifest for current status.
+
+## Objective
+
+Produce one small, implementation-ready ARCHITECTURE-class RFC for S4 State Machine Kernel, using devos/templates/RFC_TEMPLATE.md. Inspect the live RFC ceiling before allocation; at input HEAD it is 015, so the next is 016 only if still unused. Do not write executable implementation.
+
+## Required reads
+
+CLAUDE.md and its required instructions; AGENTS.md; live STATE.md; this brief; D-048; ML-DEVOS-ARCH-001 sections 3–11; ML-DEVOS-SIP-001 S4; devos/state/README.md; devos/devos-manifest.json; devos/contracts/TASK_CONTRACT_SPEC.md, task-contract.schema.json and validate-task-contract.mjs; devos/governance/rules/core-rules.json; EVIDENCE_PROVENANCE_MODEL.md; TRUST_BOUNDARIES.md; change-policy/CHANGE_GOVERNANCE_POLICY.md; specifications/VERSIONING_POLICY.md; brain/protocols/ARCHITECT_SYNC.md; traceability/README.md and the applicable canonical .agents/skills/.
+
+## Proposal acceptance criteria
+
+1. Define the smallest authoritative task-state kernel, with a precise transition table grounded in frozen lifecycle section 10. Name command inputs, state fields, guards, ownership and rejected transitions. Distinguish task state from the existing coordination turn file, memory, run history and evidence store. No migration of live coordination is authorized.
+2. Reference validated S3 contracts without duplicating their schema or treating a contract/state field as an authority grant. Preserve claim-specific evidence classes and MAIN != DEPLOYED != VERIFIED. Define the boundary for externally attested later-phase states without implementing S5 permission enforcement, S7 evidence storage, S8 orchestration, S9 acceptance or S13 deployment.
+3. Specify single-owner claims, lease expiry/renewal, stale-owner fencing, expected-revision checks, atomic update boundaries and concurrent claimant conflicts. Expiry alone must not let an old owner overwrite a new owner. Define clock assumptions and deterministic time injection for tests.
+4. Specify idempotency scope/key/request binding, replay vs conflicting reuse, durable retry counters/ceilings, timeout handling, failure/recovery transitions and human escalation. Reuse existing policy; do not invent new retry authority. Discuss crash-before/after-persist, partial writes, corruption, restart, duplicate delivery and safe recovery.
+5. Compare minimal local persistence choices and recommend one justified by atomicity, portability and recovery. Bound future files/dependencies and operational limits; no remote database or live store now. Clearly distinguish a pure transition function from the future operational state subsystem and propose honest manifest/version/closure consequences for later approval.
+6. Provide Requirement -> Design -> planned Implementation -> planned Test -> required Evidence -> Status mappings inside the RFC, with exact repository source references and meaningful negative/race/restart tests. Mark all future code/tests NOT_IMPLEMENTED or PLANNED; no invented PASS evidence.
+7. Include alternatives, risks, security/trust boundaries, rollout/rollback, compatibility, proposed version disposition and unresolved Paulo decisions. Freeze no new policy and grant no authority via the proposal. Avoid unrelated governance hardening.
+
+## Exact Builder write whitelist
+
+- One next-sequential RFC under devos/changes/rfcs/.
+- devos/changes/rfcs/README.md: only add the new proposal entry.
+- devos/governance/traceability/traceability-index.json and TRACEABILITY_INDEX.md: deterministic regeneration only.
+- coordination/IMPLEMENTER_HANDOFF.md: append this cycle's evidence and compact BUILDER HANDOFF LOG.
+- coordination/STATE.md: exact return gate below, or BLOCKED with the reason if work cannot complete safely.
+
+Read-only inspection elsewhere is allowed. Do not edit this Architect brief, decisions, archives, tests, schemas, validators, frozen roadmap/architecture, devos/state/, manifest, ADRs, version, core rules, product, workflow, credentials or remote resources. Never merge PR #10, main or protected branches; no deployment/production activity.
+
+## Audit and verification required
+
+- Record exact execution HEAD and clean/dirty working-tree state. Read live gate before action; stop for unexpected concurrent scope changes.
+- Before edits run node devos/governance/traceability/validate-traceability.mjs. Expected ERROR fingerprint: missing-canonical-target CORE CORE-022 and WEB-REQ WEB-REQ-009. These are existing debt, not S4 blockers by themselves. Report full literal output/exit code and every warning; investigate unexpected differences without altering policy or fabricating records.
+- After proposal and handoff edits, run node devos/governance/traceability/generate-traceability.mjs, then the validator. Require no drift and no new ERROR; exit 1 remains expected for the two disclosed baseline errors and is not an all-green audit.
+- Verify exact diff whitelist, resolving links/IDs and honest status/evidence labels. Compare manifests/core/runtime/workflow paths to execution base: unchanged. No application build is needed for a proposal-only diff.
+- Do not reuse prior test counts as new execution evidence. Label Builder execution ACTOR_REPORTED until independently checked.
+
+## Return gate and handoff
+
+Append scope, input/result commit provenance, changed files, mappings, commands/results, full audit findings, risks, unresolved questions and compact BUILDER HANDOFF LOG. Include next actor ARCHITECT. Commit proposal, indexes and coordination together to governance/maisoglabs-v0.1; no force push. Reconfirm live HEAD before pushing; stop/reassess concurrent work.
+
+Return STATE to:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
+
+Retain all prohibition flags NO and remediation limits. Then stop. Independent design review comes before separate Paulo implementation approval.
+
+## Architect audit baseline — independently reproduced
+
+250 relevant text blobs were materialized and Git-blob-hash verified against input HEAD, covering the configured traceability scan. Read-only validator output (exit 1):
+
+```text
+Scanned 247 files across 12 ID families.
+Errors: 2  Warnings: 16  Total canonical definitions: 249
+ERROR [missing-canonical-target] CORE CORE-022: CORE-022 is referenced but has no canonical record in CORE's configured canonical source.
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: WEB-REQ-009 is referenced but has no canonical record in WEB-REQ's configured canonical source.
+WARNING [intentional-noncanonical-mention] CORE CORE-022: CORE-022 at this site is an intentional non-reference mention, not a missing canonical target (not silently suppressed).
+WARNING [orphan-no-inbound-reference] D D-001: D-001 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-002: D-002 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-003: D-003 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-004: D-004 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-005: D-005 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-009: D-009 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-022: D-022 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-030: D-030 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-035: D-035 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-047: D-047 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [historical-exception-missing-canonical-record] ML-DEVOS-AS ML-DEVOS-AS-008: ML-DEVOS-AS-008 is referenced but has no canonical record; explicit historical exception (not silently suppressed).
+WARNING [historical-exception-missing-canonical-record] ML-DEVOS-AS ML-DEVOS-AS-009: ML-DEVOS-AS-009 is referenced but has no canonical record; explicit historical exception (not silently suppressed).
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-006: WEB-SEC-006 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-007: WEB-SEC-007 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-008: WEB-SEC-008 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+DRIFT: on-disk generated index does not match a fresh generation run — run generate-traceability.mjs to regenerate.
+```
+
+The initial drift is disclosed. Archiving the concluded bridge review supplies durable provenance for D-047; derived-index regeneration is explicitly bounded bookkeeping under D-048, not a rewrite of either existing error's source. Full post-bookkeeping audit output is appended below before publication.
+
+## Post-bookkeeping audit — independently reproduced
+
+Validator exit: 1 (the two known errors remain). No drift and no new ERROR. D-047 orphan warning is replaced by the new D-048 proposal-authorization orphan warning; the pending RFC will provide its durable inbound reference.
+
+```text
+Scanned 248 files across 12 ID families.
+Errors: 2  Warnings: 16  Total canonical definitions: 251
+ERROR [missing-canonical-target] CORE CORE-022: CORE-022 is referenced but has no canonical record in CORE's configured canonical source.
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: WEB-REQ-009 is referenced but has no canonical record in WEB-REQ's configured canonical source.
+WARNING [intentional-noncanonical-mention] CORE CORE-022: CORE-022 at this site is an intentional non-reference mention, not a missing canonical target (not silently suppressed).
+WARNING [orphan-no-inbound-reference] D D-001: D-001 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-002: D-002 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-003: D-003 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-004: D-004 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-005: D-005 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-009: D-009 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-022: D-022 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-030: D-030 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-035: D-035 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] D D-048: D-048 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [historical-exception-missing-canonical-record] ML-DEVOS-AS ML-DEVOS-AS-008: ML-DEVOS-AS-008 is referenced but has no canonical record; explicit historical exception (not silently suppressed).
+WARNING [historical-exception-missing-canonical-record] ML-DEVOS-AS ML-DEVOS-AS-009: ML-DEVOS-AS-009 is referenced but has no canonical record; explicit historical exception (not silently suppressed).
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-006: WEB-SEC-006 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-007: WEB-SEC-007 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+WARNING [orphan-no-inbound-reference] WEB-SEC WEB-SEC-008: WEB-SEC-008 is canonically defined but has no inbound reference anywhere else in the durable scanned surface.
+No drift: on-disk generated index matches a fresh generation run.
+```

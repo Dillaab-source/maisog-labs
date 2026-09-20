@@ -12,15 +12,22 @@ import { validate, loadManifest, MANIFEST_PATH } from "../devos/schemas/validate
 //
 // Every fixture here is a deep-cloned, in-memory copy of the live manifest,
 // mutated per test case -- devos/devos-manifest.json itself is never written
-// by this suite (per D-045's explicit "no live manifest migration this
-// cycle" boundary). validate()/loadManifest() are called directly, never via
+// by this suite. (Historical note: D-045's "no live manifest migration this
+// cycle" boundary applied only to RFC-015's own bounded implementation cycle,
+// which is what this test file was originally written for; the coordinated
+// Sentinel v1.6.0 closure, D-046/ML-DEVOS-ADR-013, later did migrate the live
+// instance -- see the "devos/contracts/ is IMPLEMENTED..." test below, which
+// asserts that closure's actual result. This suite still never writes to the
+// live manifest itself; it only reads it via loadManifest() and mutates
+// in-memory clones.) validate()/loadManifest() are called directly, never via
 // the CLI, so importing this test file never triggers main()'s process.exit().
 //
 // Fixture ID choice: synthetic closure_history entries below deliberately
-// reuse already-canonical, real repository IDs (ML-DEVOS-ADR-001/003-010,
-// D-045, ML-DEVOS-AS-059) that are simply UNUSED in the live manifest's own
-// closure_history (which today cites only ML-DEVOS-ADR-002 and
-// ML-DEVOS-ADR-006) -- never fabricated IDs. A fabricated ID matching a real
+// reuse already-canonical, real repository ADR IDs that are simply UNUSED in
+// the live manifest's own closure_history at the time of writing (not
+// hard-coded here as a specific list, since that list grows at every future
+// closure -- check devos/devos-manifest.json's closure_history directly for
+// the current set) -- never fabricated IDs. A fabricated ID matching a real
 // governance-ID family's shape would be picked up
 // by devos/governance/traceability/validate-traceability.mjs as a new
 // missing-canonical-target ERROR the moment this file exists on disk, since
@@ -41,10 +48,12 @@ function cloneManifest() {
   return JSON.parse(JSON.stringify(loadManifest()));
 }
 
-// devos/contracts/ (S3) is NOT_IMPLEMENTED in the live manifest at the time
-// of writing, with no closure_ref -- a stable NOT_IMPLEMENTED root to mutate
-// into synthetic IMPLEMENTED-status fixtures.
-const TARGET_ROOT_PATH = "devos/contracts/";
+// devos/state/ (S4) remains NOT_IMPLEMENTED in the live manifest -- a stable
+// NOT_IMPLEMENTED root to mutate into synthetic IMPLEMENTED-status fixtures.
+// devos/contracts/ (S3) itself moved to IMPLEMENTED by the coordinated
+// Sentinel v1.6.0 closure (D-046 / ML-DEVOS-ADR-013) and is no longer a
+// stable NOT_IMPLEMENTED starting point for these synthetic mutations.
+const TARGET_ROOT_PATH = "devos/state/";
 
 function findRoot(doc, rootPath = TARGET_ROOT_PATH) {
   const root = doc.reserved_subsystem_roots.find((r) => r.path === rootPath);
@@ -56,7 +65,7 @@ function findRoot(doc, rootPath = TARGET_ROOT_PATH) {
 // already present in the live closure_history (see file-header note above).
 function addClosureHistoryEntry(doc, adr, overrides = {}) {
   const entry = {
-    phase: "S3",
+    phase: "S4", // every call site overrides this with the actual target root's owning_phase
     closed_at: "2026-09-20",
     version: "1.6.0",
     adr,
@@ -76,11 +85,27 @@ test("the live devos-manifest.json remains valid under the extended schema/valid
   assert.deepEqual(errors, [], `live manifest must validate cleanly with zero errors; got: ${JSON.stringify(errors)}`);
 });
 
-test("no live manifest root is IMPLEMENTED and no closure_ref is set yet (this cycle does not migrate the live instance)", () => {
+// Updated by the coordinated Sentinel v1.6.0 closure (D-046 / ML-DEVOS-ADR-013):
+// devos/contracts/ is now the first reserved root to reach IMPLEMENTED via the
+// RFC-015 mechanism this same test file validates -- the original version of
+// this test (written during RFC-015's own bounded implementation, before any
+// closure was authorized) asserted the opposite ("no root is IMPLEMENTED yet")
+// by design at that time. That assertion is now obsolete by an explicit,
+// separately authorized act, not a regression; this test is updated to match
+// the new correct live state rather than left failing.
+test("devos/contracts/ is IMPLEMENTED with a resolving closure_ref (S3, post-D-046 closure); every other root remains NOT_IMPLEMENTED/FOUNDATION_ACTIVE with no closure_ref", () => {
   const doc = loadManifest();
+  const s3Root = doc.reserved_subsystem_roots.find((r) => r.path === "devos/contracts/");
+  assert.equal(s3Root.status, "IMPLEMENTED");
+  assert.equal(s3Root.closure_ref, "ML-DEVOS-ADR-013");
+  const matched = doc.closure_history.filter((e) => e.adr === s3Root.closure_ref);
+  assert.equal(matched.length, 1, "closure_ref must resolve to exactly one closure_history entry");
+  assert.equal(matched[0].phase, s3Root.owning_phase);
+
   for (const root of doc.reserved_subsystem_roots) {
-    assert.notEqual(root.status, "IMPLEMENTED", `${root.path} must not be IMPLEMENTED yet -- RFC-015 implementation does not close S3 or any other phase`);
-    assert.ok(!Object.hasOwn(root, "closure_ref") || root.closure_ref === null, `${root.path} must not carry a non-null closure_ref yet`);
+    if (root.path === "devos/contracts/") continue;
+    assert.notEqual(root.status, "IMPLEMENTED", `${root.path} must not be IMPLEMENTED -- only S3 closed in this coordinated release`);
+    assert.ok(!Object.hasOwn(root, "closure_ref") || root.closure_ref === null, `${root.path} must not carry a non-null closure_ref`);
   }
 });
 
@@ -117,8 +142,8 @@ test("a closure_ref matching more than one closure_history entry (ambiguous) fai
   const root = findRoot(doc);
   root.status = "IMPLEMENTED";
   root.closure_ref = "ML-DEVOS-ADR-005";
-  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-005", { phase: "S3" });
-  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-005", { phase: "S3", note: "A second, duplicate-ADR entry." });
+  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-005", { phase: root.owning_phase });
+  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-005", { phase: root.owning_phase, note: "A second, duplicate-ADR entry." });
   const errors = [];
   validate(doc, errors);
   assert.ok(errors.some((e) => e.includes("resolves to 2 manifest.closure_history entries")), JSON.stringify(errors));
@@ -126,13 +151,13 @@ test("a closure_ref matching more than one closure_history entry (ambiguous) fai
 
 test("a closure_ref resolving to the WRONG owning phase fails", () => {
   const doc = cloneManifest();
-  const root = findRoot(doc); // owning_phase: S3
+  const root = findRoot(doc); // owning_phase: S4
   root.status = "IMPLEMENTED";
   root.closure_ref = "ML-DEVOS-ADR-007";
-  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-007", { phase: "S4" }); // wrong phase
+  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-007", { phase: "S5" }); // wrong phase
   const errors = [];
   validate(doc, errors);
-  assert.ok(errors.some((e) => e.includes("owning_phase is 'S3'") || e.includes("closure_ref must close the SAME phase")), JSON.stringify(errors));
+  assert.ok(errors.some((e) => e.includes("owning_phase is 'S4'") || e.includes("closure_ref must close the SAME phase")), JSON.stringify(errors));
 });
 
 test("a malformed closure_ref (not matching ML-DEVOS-ADR-NNN) fails", () => {
@@ -150,7 +175,7 @@ test("a matched closure_history entry with a malformed decision ID fails", () =>
   const root = findRoot(doc);
   root.status = "IMPLEMENTED";
   root.closure_ref = "ML-DEVOS-ADR-008";
-  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-008", { phase: "S3", decision: "decision-46" });
+  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-008", { phase: root.owning_phase, decision: "decision-46" });
   const errors = [];
   validate(doc, errors);
   assert.ok(errors.some((e) => e.includes("does not match the repository's D-NNN convention")), JSON.stringify(errors));
@@ -161,7 +186,7 @@ test("a matched closure_history entry with a malformed architect_sync ID fails",
   const root = findRoot(doc);
   root.status = "IMPLEMENTED";
   root.closure_ref = "ML-DEVOS-ADR-009";
-  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-009", { phase: "S3", architect_sync: "AS-60" });
+  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-009", { phase: root.owning_phase, architect_sync: "AS-60" });
   const errors = [];
   validate(doc, errors);
   assert.ok(errors.some((e) => e.includes("does not match the repository's ML-DEVOS-AS-NNN convention")), JSON.stringify(errors));
@@ -175,7 +200,7 @@ test("a matched closure_history entry missing decision/architect_sync/version fa
   // additionalProperties: false forbids omitting required closure_history
   // fields structurally, so exercise the semantic check with empty strings
   // (still "missing" in the non-empty-string sense this check enforces).
-  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-010", { phase: "S3", decision: "", architect_sync: "", version: "" });
+  addClosureHistoryEntry(doc, "ML-DEVOS-ADR-010", { phase: root.owning_phase, decision: "", architect_sync: "", version: "" });
   const errors = [];
   validate(doc, errors);
   assert.ok(errors.some((e) => e.includes("missing a non-empty 'decision'")), JSON.stringify(errors));
@@ -205,7 +230,7 @@ test("FOUNDATION_ACTIVE root with a non-null closure_ref fails", () => {
 
 test("only devos/schemas/ may be FOUNDATION_ACTIVE: a second root claiming it fails", () => {
   const doc = cloneManifest();
-  findRoot(doc).status = "FOUNDATION_ACTIVE"; // devos/contracts/ is not devos/schemas/
+  findRoot(doc).status = "FOUNDATION_ACTIVE"; // devos/state/ is not devos/schemas/
   const errors = [];
   validate(doc, errors);
   assert.ok(errors.some((e) => e.includes(`only 'devos/schemas/' may be FOUNDATION_ACTIVE`)), JSON.stringify(errors));
