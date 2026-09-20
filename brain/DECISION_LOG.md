@@ -751,3 +751,21 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Manifest/closure rule:** `devos/devos-manifest.json`, Sentinel capability baseline, version records, ADRs, and S4 closure status remain unchanged during this implementation cycle. Successful implementation returns to Architect review first; closure/version/manifest changes require a later D.1/D.2 closure package and explicit Paulo decision.
 - **LEAN / DELTA-ONLY rule:** Builder reads live `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `ML-DEVOS-RFC-016.md`, and the exact implementation surfaces needed. Broader history is read only when a specific implementation requirement requires it. No unrelated cleanup or broad application test pass.
 - **Return gate:** after implementation and focused tests, return `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, with implementation evidence, exact changed files, test output, traceability result, and all remote/deploy/main prohibitions preserved.
+
+
+### D-051 — Authorize S4 State Machine Kernel closure and v1.7.0 adoption
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After ML-DEVOS-AS-066 accepted the final S4 implementation and ML-DEVOS-AS-067 D.1 preflight passed, Paulo stated: `Ok move forward and onwards`.
+- **Decision:** Authorize the bounded S4 closure package exactly as preflighted by ML-DEVOS-AS-067. This closes/adopts S4 only; it does not authorize S5, Skills V0.2, website product mutation, remote/cloud resources, deployment, production writes, or protected/main merge.
+- **Closure ADR:** allocate the live-next sequential ADR, `ML-DEVOS-ADR-014`, and use it as S4's manifest `closure_ref`.
+- **Manifest:** `devos/state/` moves from `NOT_IMPLEMENTED` to `IMPLEMENTED`; `closure_ref: ML-DEVOS-ADR-014`; `executable_runtime_present: false`. Top-level runtime flag remains false.
+- **Release:** adopt Sentinel capability baseline `v1.7.0`, a MINOR transition from `v1.6.0`, with `ML-DEVOS-ADR-014` as the active baseline ADR and this Decision as its decision reference.
+- **Frozen lifecycle amendment:** explicitly authorize the narrow ML-DEVOS-ARCH-001 §10 additive reconciliation already substantively adopted in D-050: record `FAILED` and `ABANDONED` as S4 terminal lifecycle states, with no outgoing transitions and new-task recovery semantics. The frozen architecture identity remains `ML-DEVOS-ARCH-001 / v1.2.0 / FROZEN`; no actor/source-of-truth/CORE rule meaning changes.
+- **RFC / README reconciliation:** mark RFC-016 `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051`, update its index description, and update devos/state/README.md to mirror the manifest closure truth.
+- **Closure history:** append S4 closure at 2026-09-21 / v1.7.0 / ADR-014 / D-051 / ML-DEVOS-AS-066.
+- **Evidence honesty:** preserve AS-066's evidence classification. Builder's complete focused-suite execution remains ACTOR_REPORTED; Architect's source/diff review is INDEPENDENTLY_INSPECTED and critical remediation invariants were independently spot-executed. Do not claim a full Architect rerun that did not occur.
+- **Implementation corrections to record:** expectedRevision replaces recomputed from_state in transition replay identity; NOT_CURRENT_OWNER and REVISION_CONFLICT remain distinct diagnostics; claim's explicit API omits presented revision despite RFC-016's broader prose and this discrepancy must be recorded rather than hidden.
+- **Traceability:** preflight baseline is exactly CORE-022 + WEB-REQ-009, 2 errors / 14 warnings. Regenerate derived outputs and introduce no new unexpected ERROR; never suppress the baseline to manufacture zero.
+- **D.2 return gate:** Builder returns closure package to Architect for Post-decision Closure Verification before S4 is treated as fully closed in the workflow or any S5 proposal begins.
+- **LEAN / DELTA-ONLY:** closure Builder reads only live STATE, Architect closure brief, AS-067 as needed, accepted S4 closure source records, and files on the closure whitelist. No full-history reread or unrelated cleanup.
