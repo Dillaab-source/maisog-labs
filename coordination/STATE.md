@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_ARCHITECTURE_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION
+TURN: CLAUDE
+STATUS: AUTHORIZED_IMPLEMENTATION
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_PLUS_MANUAL_TREASURY_PROCEDURE
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 3
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -17,67 +17,81 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect verdict
+## Authority
 
-`ML-DEVOS-AS-050 — ARCHITECT_APPROVED / PAULO DECISION REQUIRED`
+- `ML-DEVOS-RFC-014 — ACCEPTED`
+- `ML-DEVOS-AS-050 — ARCHITECT_APPROVED`
+- `D-042 — Paulo approval + bounded implementation authorization`
 
-RFC:
-- `ML-DEVOS-RFC-014`
+## Authorized implementation
 
-## Accepted architecture findings
+Claude may implement:
+- exactly 4 canonical Skills under `.agents/skills/`;
+- one non-diverging Claude Code bridge under `.claude/skills/`;
+- focused Skill metadata/routing/bridge validation and evals;
+- manual `PORTABLE_KNOWLEDGE_TREASURY` procedure;
+- lightweight `brain/KNOWLEDGE_PRINCIPLES.md` residual canonical record;
+- minimal AGENTS/CLAUDE/00_HOME routing integration;
+- normal implementation handoff/state bookkeeping.
 
-Architect review accepts:
-- four-skill V0.1 candidate set;
-- `.agents/skills/` as the recommended canonical payload with one non-diverging Claude Code bridge;
-- provider-neutral SKILL CHECK routing;
-- consequence-sensitive external-skill trust/revalidation;
-- progressive disclosure;
-- Portable Knowledge Treasury as a lightweight governed routing/classification procedure, not a standalone V0.1 Skill;
-- candidate-vs-accepted knowledge boundary;
-- type + disclosure model;
-- conditional private-repository storage under AS-048;
-- canonical-destination-first dedup;
-- provenance/evals/anti-bloat model.
+See `coordination/ARCHITECT_REVIEW.md` for exact constraints.
 
-## Paulo decisions required
+## Binding principles
 
-1. accept/reject RFC-014 architecture;
-2. accept/change the `.agents/skills/` canonical-payload recommendation;
-3. accept/change the Treasury lightweight-procedure-first direction;
-4. decide whether/when to create a residual Knowledge/Principles canonical record;
-5. decide whether/when to separately reassess `RISK-WEB-013`;
-6. only after architecture acceptance, separately authorize any Skills/Treasury implementation and/or S3 resumption.
+`GOVERNANCE > SKILLS`
 
-## S3 status
+`CURRENT AUTHORIZATION > SKILL CAPABILITY`
 
-`S3 — Typed Task Contracts: PAUSED / QUEUED — AUTHORITY PRESERVED`
+`CAPABILITY != AUTHORITY`
 
-Preserved authority:
+`AI ACCOUNTS / CHATS = LABORATORIES`
+
+`GOVERNED REPOSITORY = DURABLE TREASURY`
+
+## S3 sequencing
+
+`S3 — Typed Task Contracts: PAUSED DURING THIS IMPLEMENTATION / AUTHORITY PRESERVED`
+
+Preserved:
 - `ML-DEVOS-RFC-013`
 - `ML-DEVOS-AS-038`
 - `D-037`
 
-S3 does not resume automatically from AS-050.
+Per `D-042`, if this Skills/Treasury V0.1 implementation is independently accepted by Architect and no new blocker appears, Architect may reopen S3 without another Paulo approval.
+
+No concurrent S3 build is authorized.
+
+## RISK-WEB-013
+
+Remains open.
+No closure or status rewrite is authorized in this cycle.
+Separate reassessment is queued after this implementation.
 
 ## Hard boundaries
 
 No:
-- actual Skill implementation;
-- `.agents/skills/` or provider-bridge creation;
-- Treasury implementation;
-- Knowledge/Principles record creation;
-- S3 implementation/resumption;
+- fifth Knowledge Capture Skill;
+- independently authored provider copies;
+- external Skill installation/execution;
+- provider account scraping/import;
+- bulk chat-history archive/import;
+- new database/service;
+- S11 memory machinery;
+- S3 implementation during this cycle;
 - S4+ / S5 capability machinery;
 - secret-store creation;
-- credentials;
+- credentials/secrets in Git;
 - product/runtime/public-site changes;
 - remote resources;
 - deployment;
-- main merge;
-- external-skill installation/execution.
+- main merge.
 
-## Next gate
+## Return gate
 
-Paulo Product/Risk Owner decision.
+After implementation:
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-No Builder or Architect implementation action is authorized until that decision is recorded.
+Builder must return exact diff/evidence and must not self-authorize acceptance.
