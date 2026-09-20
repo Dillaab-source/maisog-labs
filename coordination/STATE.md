@@ -2,11 +2,11 @@
 
 CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
 TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_PLAN_OR_RISK_DECISION_ONLY
+STATUS: MANUAL_ADMIN_ACTION_REQUIRED
+AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_PUBLIC_VISIBILITY_AND_MAIN_PROTECTION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,41 +17,51 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Gate A review
+## Authority
 
-ML-DEVOS-AS-069:
-- CI workflow: ACCEPTED.
-- live run 35538010928: SUCCESS.
-- required status-check context: test-and-build.
-- main HEAD unchanged: 887849283ee9cd16e8d60b937bac95b1c85bf3d9.
-- main technical protection: BLOCKED.
+D-052 authorized Gate A CI + main protection.
+ML-DEVOS-AS-069 accepted CI and identified the GitHub plan blocker.
+D-053 now explicitly authorizes changing this repository from private to public to unblock GitHub Free main protection.
 
-## Blocker
+## Completed
 
-Live GitHub rulesets endpoint returns 403:
-`Upgrade to GitHub Pro or make this repository public to enable this feature.`
+- CI workflow exists.
+- live CI run 35538010928: SUCCESS.
+- required check context: test-and-build.
+- main HEAD remains 887849283ee9cd16e8d60b937bac95b1c85bf3d9.
 
-Protected-branch endpoint additionally requires repository Administration permission unavailable to this connector.
+## Manual GitHub admin actions required
 
-Gate A cannot complete under the current private-repository/free-plan condition.
+1. Change repository visibility:
+   private -> public.
 
-## Paulo decision required
+2. After public visibility is confirmed, configure one ruleset/protection policy targeting exactly main:
+   - require pull request before merge;
+   - 0 required approving reviews while single-owner;
+   - block force pushes;
+   - block deletion;
+   - require status check: test-and-build;
+   - bypass limited to repository owner/admin as narrowly as GitHub supports.
 
-Choose exactly one path:
+## Return gate
 
-A. Keep repository private and move to GitHub Pro/another qualifying plan, then complete the original Gate A protection design.
+After those admin actions, Paulo says `ur turn`.
 
-B. Explicitly authorize changing repository visibility to public, then complete protection under GitHub Free. This is a material disclosure decision and is not implied.
+Architect then independently verifies:
+- repository visibility = public;
+- main protection/ruleset exists and targets exactly main;
+- test-and-build is required;
+- force-push and deletion are blocked;
+- main HEAD is unchanged;
+- no Gate B PR/merge occurred.
 
-C. Explicitly accept/revise the release risk and waive platform-enforced main protection for this release path. This changes the release-safety requirement and must be recorded as risk acceptance.
-
-Until one is chosen, Gate B does not open.
+If all pass, Gate A closes and Gate B may be separately authorized.
 
 ## Hard boundaries
 
-No PR to main.
-No main merge/push.
-No repository visibility change.
+No direct push to main.
+No governance->main PR yet.
+No main merge.
 No remote D1/R2.
 No Cloudflare Access production mutation.
 No deploy/DNS/production write.
