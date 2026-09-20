@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_1_PLUS_PORTABLE_KNOWLEDGE_TREASURY_DISCOVERY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_DISCOVERY_REMEDIATION_CYCLE_2_PROVIDER_MATRIX_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -17,13 +17,11 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Product / Risk Owner priority
+## Product / Risk Owner authority
 
-`D-038 — Skills Foundation discovery remains the immediate priority.`
-
-`D-039 — Portable Knowledge Treasury discovery is integrated into this same discovery cycle; no parallel subsystem is authorized.`
-
-`D-040 — Research-informed Skills/Treasury safeguards are added to this remediation before RFC-014 acceptance.`
+- `D-038` — Skills Foundation discovery priority
+- `D-039` — Portable Knowledge Treasury integrated into the same discovery
+- `D-040` — research-informed safeguards
 
 ## S3 status
 
@@ -36,51 +34,52 @@ Preserved authority:
 
 No S3 implementation is authorized during this remediation.
 
-## Governing principles
-
-`GOVERNANCE > SKILLS`
-
-`CURRENT AUTHORIZATION > SKILL CAPABILITY`
-
-`CAPABILITY != AUTHORITY`
-
 ## Current review
 
-`ML-DEVOS-AS-042 — CHANGES_REQUESTED`
+`ML-DEVOS-AS-045 — CHANGES_REQUESTED / Remediation Cycle 2`
 
-Remediate only:
-1. `AS42-F003` — resolve or explicitly gate canonical location together with provider exposure using an evidence-backed compatibility matrix;
-2. `AS42-F004` — remove Knowledge / Realization Capture from V0.1 unless its underlying procedure is independently governed first;
-3. `AS42-F005` — make external-skill adoption consequence-sensitive instead of universally CAPABILITY-gated;
-4. `AS42-F006` — add durable source provenance for current provider/ecosystem claims.
+Single blocker:
+`AS45-F007 — provider compatibility/evidence matrix contains a materially false current Gemini CLI claim.`
 
-Additional bounded discovery requirement:
-5. `ML-DEVOS-AS-043 / D-039` — integrate Portable Knowledge Treasury discovery: classify/deduplicate durable insight, map canonical destinations, determine whether Knowledge Capture is a Skill/composition/lightweight procedure, design provider-portable provenance and public/private safeguards, and report the 14 required treasury outputs.
-6. `ML-DEVOS-AS-044 / D-040` — strengthen the proposal with Treasury-as-routing, durable-reuse threshold, candidate-vs-accepted boundary, type+disclosure classification, canonical-destination-first dedup outcomes, progressive disclosure, external-skill revalidation, reuse targets, and anti-bloat metrics.
+## Authorized remediation
 
-## Authorized remediation files
-
+Modify only:
 - `devos/changes/rfcs/ML-DEVOS-RFC-014.md`;
-- `devos/changes/rfcs/README.md` if needed;
+- `devos/changes/rfcs/README.md` if its summary changes;
 - `coordination/IMPLEMENTER_HANDOFF.md`;
 - `coordination/STATE.md`.
+
+Required correction:
+1. record official Gemini CLI support for `.agents/skills/`;
+2. recompute portability counts/tradeoffs;
+3. separate repo/filesystem-native clients from ChatGPT product/plugin exposure;
+4. re-evaluate canonical-location recommendation;
+5. correct any evidence-table wording directly affected.
+
+## Preserve accepted discovery architecture
+
+Do not reopen or change without new evidence:
+- four-skill V0.1 candidate set;
+- Treasury-as-routing/procedure direction;
+- consequence-sensitive external-skill tiers;
+- progressive disclosure;
+- Treasury capture threshold/candidate boundary/type+disclosure/dedup/provenance/evals/anti-bloat model.
 
 ## Hard boundaries
 
 No:
-- actual skill implementation;
-- skill directories;
-- provider adapter directories;
-- new knowledge-capture subsystem/procedure implementation (discovery/design only);
-- S3 implementation;
+- actual Skill implementation;
+- Skill/provider-adapter directories;
+- Treasury implementation;
+- chat-history import/archive;
+- provider-memory synchronization;
+- S3 implementation/resumption;
 - S4+ / S5 capability machinery;
 - product/runtime/public-site changes;
 - remote resources;
 - credentials;
-- production writes;
 - deployment;
 - main merge;
-- governance weakening;
 - external-skill installation/execution.
 
 ## Separate open debt
@@ -95,8 +94,4 @@ After remediation:
 - `ARCHITECT_ACTION_REQUIRED: YES`
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
-Builder must return the corrected RFC integrating AS-042, AS-043, AS-044 and D-038/D-039/D-040, plus exact evidence/diff, without self-authorizing Skills implementation, Treasury implementation, or S3 resumption.
-
-## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: all 4 AS42 blockers remediated (canonical location returned as `PAULO DECISION REQUIRED` with a 5-target evidence matrix per AS44-I, not frozen from preference; Knowledge/Realization Capture removed from the V0.1 skill set per Option A, now addressed instead as a non-Skill Treasury procedure; external-skill adoption made two-tier/consequence-sensitive; a full official-source evidence table added, with two claims honestly marked UNVERIFIED/COMMUNITY and two OFFICIAL claims disclosed as verified via summarized excerpt rather than direct fetch due to this session's network egress policy); the Portable Knowledge Treasury's all 14 required outputs delivered; all AS44 refinements A–M individually mapped to where they landed in the revised RFC. Only the RFC and its index entry were touched — no skill file, canonical/provider-adapter directory, or Treasury implementation exists. 352/352 tests unaffected.
+Builder must return the corrected matrix/evidence/conclusion and exact diff without self-authorizing Skills/Treasury implementation or S3 resumption.
