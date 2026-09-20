@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S4_STATE_MACHINE_PROPOSAL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: S4_IMPLEMENTATION_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -19,28 +19,36 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-049 (one additional S4 micro-remediation pass, MAX_REMEDIATION_CYCLES raised to 2 for this pass only). D-048 remains the underlying proposal/audit authority.
+D-048 authorized the S4 proposal/audit cycle. D-049 authorized the final stale-lock micro-remediation. Architect final review of HEAD e084699212d0aeca9ad3ae2827127d51df4bd5b5 closes AS65-F001 through AS65-F004 and accepts ML-DEVOS-RFC-016 as implementation-ready design.
 
-## What was delivered this cycle
+S4 executable implementation is NOT yet authorized.
 
-ML-DEVOS-RFC-016.md §D revised to close the remaining AS65-F001 blocker: removed automatic age-based stale-lock stealing entirely; ordinary mutation on EEXIST now returns a deterministic LOCK_HELD/LOCK_RECOVERY_REQUIRED result with no age inspection; recovery of a genuinely orphaned lock is an explicit out-of-band operator/admin action, never automatic. Documented as a deliberate fail-closed availability trade-off. Updated the directly affected restart-recovery text, persistence comparison table, Implementation-mapping row 8 test, Risks, and Unresolved Questions accordingly; no other already-closed AS65 finding reopened.
+## Architect verdict
 
-Traceability regenerated: no drift, fingerprint unchanged at exactly CORE-022 + WEB-REQ-009.
+S4 DESIGN STAGE GATE: ARCHITECT_APPROVED
+RFC-016 DESIGN: ACCEPTED FOR BOUNDED IMPLEMENTATION
+NEXT ACTOR: PAULO
 
-Full delta description and command evidence: see the "ML-DEVOS-RFC-016 Micro-Remediation Cycle 2 — AS65-F001 stale-lock fix (D-049, LEAN MODE)" section of coordination/IMPLEMENTER_HANDOFF.md.
+See coordination/ARCHITECT_REVIEW.md for the full final review.
 
-## Required audit — result
+## Paulo decision required before implementation
 
-Diff whitelist verified via git status --porcelain: exactly ML-DEVOS-RFC-016.md, the two regenerated traceability outputs, this file, and IMPLEMENTER_HANDOFF.md. No README/index edit. No S4 code, no architecture/core/S3/manifest/version/ADR/workflow/product mutation.
+An explicit implementation decision must:
+1. authorize bounded S4 implementation of RFC-016;
+2. explicitly adopt FAILED and ABANDONED as additive lifecycle terminal states;
+3. set the V1 per-project retry ceiling values for build / QA / review;
+4. authorize and bound the operator/admin force-clear-lock maintenance capability, including identity/reason provenance and confirmation that no writer remains;
+5. preserve all remote/deploy/protected-main prohibitions;
+6. require return to Architect for independent implementation review.
 
-## Preserved state (unchanged, not reopened)
+No Builder action until Paulo decides.
 
-AS65-F002, AS65-F003, AS65-F004, and all non-blocking clarifications remain closed from cycle 1, not reopened by this micro-remediation.
+## Standing efficiency rule
 
-## Hard boundaries held this cycle
+LEAN / DELTA-ONLY BUILDER MODE remains required for future Claude turns.
 
-No S4 implementation/live task storage; no S5+; no ML-DEVOS-ARCH-001/core-rule/S3 schema-validator/manifest/version/ADR/workflow/product mutation; no credentials or remote resources; no deployment/production write; no protected/main merge; no PR #10 merge/auto-merge.
+Claude reads STATE.md, ARCHITECT_REVIEW.md and exact authorized mutation files first. Additional reads occur only when an active requirement specifically needs them. No whole-history reread, narrative restatement, unrelated cleanup or broad test pass.
 
-## Next step
+## Hard boundaries
 
-Architect re-reviews the AS65-F001 delta only. CURRENT_REMEDIATION_CYCLE is 2 of MAX_REMEDIATION_CYCLES: 2 — this authorized pass is now used; any further cycle requires a new Paulo decision to raise the cap again. S4 implementation remains unauthorized.
+No S4 implementation/live state yet; no S5+; no credentials/remote resources; no deployment/production write; no protected/main merge; no PR #10 merge/auto-merge. All authorization flags remain NO.
