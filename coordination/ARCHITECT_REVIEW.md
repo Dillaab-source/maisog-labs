@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — S3 DESIGN ACCEPTED / IMPLEMENTATION QUEUED`
+Status: `CHANGES_REQUESTED — SENTINEL-TRACEABILITY-V1 REMEDIATION CYCLE 1`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,115 +8,156 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-038 — S3 Typed Task Contracts Architecture Review
+# ML-DEVOS-AS-039 — Sentinel Traceability V1 Implementation Review
 
-RFC:
-- `ML-DEVOS-RFC-013`
+Authority chain:
+- `ML-DEVOS-RFC-012`
+- `ML-DEVOS-AS-037`
+- `D-036`
 
-Phase:
-- `S3 — Typed Task Contracts`
+Reviewed implementation base:
+`affd2693f29ebac450e707e7b43140f9b36f09b8`
 
-Class:
-- `ARCHITECTURE`
+The governance branch is exactly one implementation commit ahead of that base for this Builder handoff.
 
-## Repository grounding
+## Scope inspection
 
-The Architect confirmed:
+PASS.
 
-- the frozen roadmap defines S3 as machine-readable Task Contracts;
-- `ML-DEVOS-ARCH-001 §6` states the Task Contract decides which evidence class a claim requires;
-- no Task Contract mechanism currently exists;
-- `CORE-016`, `CORE-017`, `CORE-018`, and `CORE-020` already define active evidence constraints that S3 must respect rather than duplicate or weaken;
-- S4–S14 remain separately gated;
-- `SENTINEL-TRACEABILITY-V1` is still the active Builder cycle and must close before S3 implementation begins.
+The implementation changed only:
+- seven new files under `devos/governance/traceability/`;
+- `tests/traceability.test.mjs`;
+- normal Builder handoff/state bookkeeping.
+
+No existing governance source record, runtime/application code, rule registry, migration, product schema, CI/ruleset, remote resource, deployment target, or `main` content was modified.
 
 ## Findings
 
-### AS38-F001 — PASS — S3 scope matches the frozen roadmap
+### AS39-F001 — PASS — source-of-truth hierarchy preserved
 
-The proposed implementation is limited to machine-readable task-contract schema/specification/validation and examples under the existing S3-owned `devos/contracts/` reserved root.
+Generated output is explicitly marked derived/non-authoritative in JSON, Markdown, and README.
 
-### AS38-F002 — PASS — Task Contract does not become authority
+The implementation does not override or rewrite canonical governance records.
 
-A valid Task Contract describes scope already authorized elsewhere.
+### AS39-F002 — PASS — deterministic derived output design
 
-It may never:
-- grant tool access;
-- grant credentials;
-- authorize remote resources;
-- approve merge;
-- approve deployment;
-- accept risk;
-- waive policy.
+The generator contains no time/random/process-derived output and sorts scanned files/findings/IDs before serialization.
 
-### AS38-F003 — PASS — evidence provenance is reused, not reinvented
+Builder-reported two-run SHA/diff evidence is consistent with the implementation design.
 
-The contract uses the existing five evidence classes exactly:
-`ACTOR_REPORTED`, `INDEPENDENTLY_INSPECTED`, `INDEPENDENTLY_REPRODUCED`, `CI_ATTESTED`, `RUNTIME_OBSERVED`.
+### AS39-F003 — PASS — duplicate and missing-target detection are structurally bounded
 
-### AS38-F004 — PASS — MAIN/DEPLOYED/VERIFIED semantics remain aligned
+Canonical-definition discovery is configured by ID family and existing authoritative surfaces rather than a second manually maintained relationship matrix.
 
-S3 semantic validation must remain compatible with:
-- `CORE-016` for MAIN;
-- `CORE-017` for DEPLOYED;
-- `CORE-018` for VERIFIED;
-- `CORE-020` for consequence-sensitive evidence.
+### AS39-F004 — PASS — historical exceptions remain visible
 
-### AS38-F005 — PASS — S3 does not become S4 state machinery
+`ML-DEVOS-AS-008` and `ML-DEVOS-AS-009` are not silently suppressed; they remain explicit warning-class findings with rationale.
 
-No task ownership, state transitions, locks, leases, retries, timeouts, or idempotency engine is authorized.
+### AS39-F005 — PASS — no S3/S7/S9 boundary breach
 
-### AS38-F006 — PASS — S3 does not become S7 evidence storage/QA
+The implementation:
+- does not define Task Contracts;
+- does not store evidence packets or run QA;
+- does not decide task acceptance, merge eligibility, deployment, or authority.
 
-No evidence packet persistence, QA execution, evidence store, or artifact-retention subsystem is authorized.
+### AS39-F006 — PASS — focused tests cover the required core mechanisms
 
-### AS38-F007 — PASS — S3 does not become S9 Evidence Gate
+The focused suite covers:
+- missing target;
+- duplicate canonical definition;
+- deterministic generation;
+- historical exception visibility;
+- orphan warning;
+- non-authoritative marking;
+- scan filtering.
 
-The validator checks Task Contract validity only. It does not inspect produced evidence to decide whether a task passes.
+Builder reports `7/7` focused tests and `345/345` full tests.
 
-### AS38-F008 — PASS — compact contract design
+### AS39-F007 — PASS — WEB-REQ-009 is a genuine repository traceability gap
 
-Required fields are limited to identity/provenance, bounded scope, acceptance criteria, intended claims, and evidence requirements.
+The generated finding for `WEB-REQ-009` is valid.
 
-Long-form design/RFC content remains referenced rather than duplicated.
+Independent inspection confirms:
+- the canonical legacy Website Governance/Admin Plan defines `WEB-REQ-001` through `WEB-REQ-008`;
+- `WEB-REQ-009` is nevertheless referenced broadly across the accepted Journal implementation, tests, RFC/AS/ADR, product docs, and runtime source.
 
-### AS38-F009 — PASS — no historical backfill requirement
+This is not a generator defect.
 
-Prior tasks are not retroactively rewritten into fabricated contracts.
+It must remain reported and must **not** be silently fixed inside Traceability V1. A separate governed requirement-reconciliation change may address it after this implementation closes.
 
-### AS38-F010 — PASS — implementation sequencing is safe
+### AS39-F008 — BLOCKER — CORE-022 is an intentional non-reference mention, not a missing canonical target
 
-S3 implementation is queued behind `SENTINEL-TRACEABILITY-V1`. No second concurrent Builder implementation is opened.
+The generator currently reports:
 
-## Required implementation envelope
+`ERROR [missing-canonical-target] CORE CORE-022`
 
-When activated, Builder may modify only:
-- `devos/contracts/`;
-- focused S3 tests/fixtures;
-- normal handoff/governance bookkeeping.
+from:
+`docs/SENTINEL_REVIEW_NOTES.md`
 
-Expected outputs:
-1. Task Contract specification;
-2. JSON Schema;
-3. semantic validator;
-4. valid/invalid examples;
-5. focused tests;
-6. one example contract proving a low-risk repository-only task;
-7. one example contract proving MAIN/DEPLOYED/VERIFIED evidence constraints fail closed when misdeclared.
+Independent inspection of the exact source context shows:
 
-## Explicitly not authorized
+`Do not create CORE-022 from these findings.`
 
-No S4+, product runtime, CI/rulesets, remote resources, project onboarding, main merge, deployment, credential work, or Sentinel version bump.
+The source intentionally asserts that no `CORE-022` record should exist.
 
-## Sequencing gate
+Therefore this occurrence is **not a semantic cross-reference to a required canonical target**. Treating it as a hard missing-target ERROR is a false positive.
 
-`SENTINEL-TRACEABILITY-V1` must first:
-1. return from Builder;
-2. pass independent Architect review;
-3. close or reach a separately recorded remediation state.
+This matters because V1's stated purpose is referential-integrity checking. A negated/hypothetical identifier mention must not be indistinguishable from an actual durable reference.
 
-Only then may live `coordination/STATE.md` switch to S3 Builder implementation.
+## Required remediation
+
+Builder must make one bounded parser/config enhancement that preserves visibility without converting this intentional non-reference mention into a hard missing-target error.
+
+Preferred shape:
+
+1. Add a small explicit configuration construct such as `intentionalNonReferences` / `referenceExceptions`.
+2. Each entry must be narrowly scoped by:
+   - ID;
+   - exact file;
+   - bounded line/context pattern;
+   - human-readable reason.
+3. A matched occurrence must remain visible as a WARNING such as:
+   `intentional-noncanonical-mention`.
+4. It must **not** globally suppress the ID. If the same ID appears elsewhere as a genuine unresolved reference, those other occurrences must still produce a missing-target ERROR.
+5. Add focused tests proving:
+   - an exact intentional non-reference occurrence becomes a visible WARNING;
+   - a second genuine reference to the same missing ID still produces ERROR;
+   - unrelated mentions are not suppressed.
+6. Regenerate the real repository indexes.
+
+For the current repository, the exact intentional occurrence is:
+- ID: `CORE-022`
+- file: `docs/SENTINEL_REVIEW_NOTES.md`
+- context: the explicit conclusion `Do not create CORE-022 from these findings.`
+
+## Expected post-remediation baseline
+
+If no other defects emerge:
+- `CORE-022` should move from ERROR to explicit intentional-non-reference WARNING;
+- `WEB-REQ-009` should remain the one genuine ERROR;
+- existing historical/orphan warnings remain visible unless the corrected parsing naturally changes counts.
+
+The validator is allowed to exit non-zero because a genuine repository-content traceability ERROR remains. Traceability V1 can still be Architect-accepted if the validator accurately reports that external gap and its own implementation is correct.
+
+## Non-scope during remediation
+
+Do not:
+- create `CORE-022`;
+- add/fix `WEB-REQ-009`;
+- rewrite historical RFC/AS/ADR/Decision content;
+- begin S3 implementation;
+- add CI/rulesets;
+- change runtime/application code;
+- change Sentinel version;
+- touch remote resources;
+- deploy;
+- merge to `main`.
 
 ## Verdict
 
-`ML-DEVOS-AS-038: ARCHITECT_APPROVED — S3 TYPED TASK CONTRACTS DESIGN ACCEPTED / IMPLEMENTATION QUEUED`
+`ML-DEVOS-AS-039: CHANGES_REQUESTED — REMEDIATION CYCLE 1`
+
+Single implementation blocker:
+`AS39-F008`.
+
+All other inspected Traceability V1 architecture/scope properties pass this review.
