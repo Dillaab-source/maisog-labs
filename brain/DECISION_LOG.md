@@ -532,3 +532,15 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Explicitly not authorized:** S4 State Machine Kernel; S5 Capability Gateway; S6 isolation; S7 Evidence/QA Plane; S8 Orchestrator; S9 Evidence Gate; S10 rulesets/CI enforcement; S11–S14; product runtime changes; project onboarding; remote/cloud resources; credentials; protected/main merge; deployment; production writes; Sentinel version bump.
 - **Sequencing rule:** while `coordination/STATE.md` remains `TURN: CLAUDE` for `SENTINEL-TRACEABILITY-V1`, S3 implementation must not begin. After Traceability V1 closes, Architect may activate S3 without requiring Paulo to repeat this already-recorded phase authorization.
 - **Evidence of Paulo authority:** Paulo instructed `proceed to the next phase`.
+
+
+### D-038 — Reprioritize S3 behind MaisogLabs Skills Foundation V0.1 discovery
+
+- **Decided by:** Paulo (Product / Risk Owner), after broad external research across current Agent Skills implementations, open/community conventions, security guidance, and practitioner discussion, and after confirming the live S3 implementation branch has no implementation commits beyond activation.
+- **Decision:** Pause S3 — Typed Task Contracts as `PAUSED / QUEUED — AUTHORITY PRESERVED`, and make `MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY` the immediate active Sentinel initiative.
+- **Reasoning:** interruption cost is effectively zero because no S3 implementation has landed; Agent Skills has matured into a cross-provider ecosystem; provider discovery paths and adapter behavior are not uniform; external/community skills expand the agent trust surface; Skills Foundation may introduce non-authoritative procedure/skill references that should be understood before S3's task-contract schema is frozen.
+- **S3 authority preserved:** `ML-DEVOS-RFC-013`, `ML-DEVOS-AS-038`, and `D-037` remain valid and are neither deleted, superseded, nor weakened. No S3 implementation work is authorized while the discovery cycle is active.
+- **Active discovery scope:** inspect existing reusable procedures and current provider skill conventions; create a bounded Skills Foundation discovery RFC; propose the smallest coherent initial skill set; analyze overlap; propose canonical location/provider-adapter strategy; design lightweight SKILL CHECK routing; design external-skill security and evaluation architecture; integrate with existing Sentinel traceability; report decisions requiring Paulo/Architect review.
+- **Governance rule:** `GOVERNANCE > SKILLS`; current authorization outranks skill capability; `Capability != Authority`; a skill, task contract, prompt, plugin, or connected tool never grants authority on its own.
+- **No implementation authority:** this decision does not authorize executable skill adapters, scripts that mutate project/runtime state, S5 Capability Gateway, product/runtime changes, remote resources, credentials, deployment, main merge, or any weakening of Sentinel governance.
+- **Return gate:** discovery returns to Architect for independent review before any Skills Foundation implementation or S3 resume decision is activated.
