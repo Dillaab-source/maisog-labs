@@ -107,6 +107,91 @@ test("two consecutive generation runs against unchanged fixture state produce by
   assert.equal(renderMarkdown(reportA), renderMarkdown(reportB));
 });
 
+test("an exact intentional non-reference occurrence becomes a visible WARNING, not a hard missing-target ERROR (AS39-F008)", () => {
+  const root = makeFixtureRepo("traceability-refexception-", {
+    "docs/notes.md": "Do not create FIX-042 from this discussion.\n",
+  });
+  const config = baseConfig({
+    referenceExceptions: [
+      {
+        family: "FIX",
+        id: "FIX-042",
+        file: "docs/notes.md",
+        linePattern: "Do not create FIX-042 from this discussion\\.",
+        reason: "Test fixture: an explicit negated/hypothetical mention.",
+      },
+    ],
+  });
+
+  const report = buildTraceabilityReport(root, config);
+
+  assert.equal(report.summary.errorCount, 0);
+  const warning = report.warnings.find(w => w.id === "FIX-042");
+  assert.ok(warning, "FIX-042 must appear as a warning, not be silently dropped");
+  assert.equal(warning.kind, "intentional-noncanonical-mention");
+  assert.equal(warning.sites.length, 1);
+  assert.equal(warning.sites[0].file, "docs/notes.md");
+});
+
+test("a second genuine reference to the same missing id still produces an ERROR alongside the exempted WARNING", () => {
+  const root = makeFixtureRepo("traceability-refexception-partial-", {
+    "docs/notes.md": "Do not create FIX-042 from this discussion.\n",
+    "docs/elsewhere.md": "See FIX-042 for the real requirement.\n",
+  });
+  const config = baseConfig({
+    referenceExceptions: [
+      {
+        family: "FIX",
+        id: "FIX-042",
+        file: "docs/notes.md",
+        linePattern: "Do not create FIX-042 from this discussion\\.",
+        reason: "Test fixture: an explicit negated/hypothetical mention.",
+      },
+    ],
+  });
+
+  const report = buildTraceabilityReport(root, config);
+
+  assert.equal(report.summary.errorCount, 1);
+  const error = report.errors.find(e => e.id === "FIX-042");
+  assert.ok(error, "the genuine unresolved reference in docs/elsewhere.md must still be an ERROR");
+  assert.equal(error.kind, "missing-canonical-target");
+  assert.equal(error.sites.length, 1);
+  assert.equal(error.sites[0].file, "docs/elsewhere.md");
+
+  const warning = report.warnings.find(w => w.id === "FIX-042");
+  assert.ok(warning, "the exempted site must still appear as a visible WARNING");
+  assert.equal(warning.sites.length, 1);
+  assert.equal(warning.sites[0].file, "docs/notes.md");
+});
+
+test("a referenceException scoped to one id does not suppress an unrelated id's genuine missing-target ERROR", () => {
+  const root = makeFixtureRepo("traceability-refexception-unrelated-", {
+    "docs/notes.md": "Do not create FIX-042 from this discussion.\n",
+    "docs/other.md": "FIX-043 is referenced here with no exception configured.\n",
+  });
+  const config = baseConfig({
+    referenceExceptions: [
+      {
+        family: "FIX",
+        id: "FIX-042",
+        file: "docs/notes.md",
+        linePattern: "Do not create FIX-042 from this discussion\\.",
+        reason: "Test fixture: an explicit negated/hypothetical mention.",
+      },
+    ],
+  });
+
+  const report = buildTraceabilityReport(root, config);
+
+  const fix043Error = report.errors.find(e => e.id === "FIX-043");
+  assert.ok(fix043Error, "FIX-043 must be reported as a normal missing-canonical-target ERROR, unaffected by FIX-042's exception");
+  assert.equal(fix043Error.kind, "missing-canonical-target");
+
+  const fix043Warning = report.warnings.find(w => w.id === "FIX-043");
+  assert.equal(fix043Warning, undefined, "FIX-043 must not receive any exception-derived warning");
+});
+
 test("an explicit historical exception downgrades a missing target to a visible WARNING, not a silently suppressed one", () => {
   const root = makeFixtureRepo("traceability-exception-", {
     "records/FIX-001.md": "# FIX-001\n",

@@ -7,8 +7,15 @@
 // governance ID across a bounded set of repository files, and computes
 // structural-integrity findings: ERROR for a missing canonical target or a
 // duplicate canonical definition, WARNING for a canonical record with no
-// inbound reference elsewhere or an explicitly configured historical
-// exception (AS37-F004/F005).
+// inbound reference elsewhere, an explicitly configured historical
+// exception (AS37-F004/F005), or a narrowly scoped intentional
+// non-reference mention at an exact id+file+line-pattern — e.g. a document
+// that explicitly states an id must NOT be created (AS39-F008). This is
+// scoped per-site, so a genuine reference to the same id elsewhere still
+// produces an ERROR. (This comment deliberately never spells out the
+// specific id from that example: this generator's own source is part of
+// the scanned surface, and a literal id embedded in a code comment would
+// itself become an indistinguishable, self-inflicted reference.)
 //
 // Every exported function here is pure and read-only over the filesystem —
 // it never writes, mutates, or grants authority over anything (AS37-F008,
@@ -192,11 +199,30 @@ function locationsEqual(a, b) {
   return a.file === b.file && a.line === b.line;
 }
 
+function readSingleLine(repoRoot, relPath, lineNumber) {
+  return readLines(repoRoot, relPath)[lineNumber - 1] ?? "";
+}
+
+// A referenceException is a narrowly scoped, rationale-bearing exemption
+// (ML-DEVOS-AS-039 / AS39-F008) for one exact ID at one exact file whose
+// exact source line matches a bounded regex — never a blanket suppression
+// of the ID. It never silences a genuine reference to the same missing ID
+// elsewhere (a different file, or a different line in the same file that
+// doesn't match the pattern): those sites still produce a
+// missing-canonical-target ERROR.
+function loadReferenceExceptions(config) {
+  return (config.referenceExceptions ?? []).map(entry => ({
+    ...entry,
+    regex: new RegExp(entry.linePattern),
+  }));
+}
+
 // --- Report assembly ---
 
 export function buildTraceabilityReport(repoRoot = REPO_ROOT, config = loadConfig()) {
   const scannedFiles = listScannedFiles(repoRoot, config);
   const historicalExceptionMap = new Map(config.historicalExceptions.map(entry => [entry.id, entry.reason]));
+  const referenceExceptions = loadReferenceExceptions(config);
 
   const families = [];
   const errors = [];
@@ -222,7 +248,11 @@ export function buildTraceabilityReport(repoRoot = REPO_ROOT, config = loadConfi
     }
 
     // Missing canonical target for a reference — ERROR, unless the id is an
-    // explicitly configured historical exception (then WARNING, AS37-F005).
+    // explicitly configured historical exception (then WARNING, AS37-F005),
+    // or unless specific sites match a narrowly scoped referenceException
+    // (AS39-F008: an intentional negated/hypothetical mention — a document
+    // explicitly asserting an id must not be created — visible as a WARNING
+    // at exactly those sites, never a blanket suppression of the id).
     const referencedIds = [...references.keys()].sort();
     for (const id of referencedIds) {
       if (definitions.has(id)) continue;
@@ -236,15 +266,59 @@ export function buildTraceabilityReport(repoRoot = REPO_ROOT, config = loadConfi
           reason: historicalExceptionMap.get(id),
           message: `${id} is referenced but has no canonical record; explicit historical exception (not silently suppressed).`,
         });
-      } else {
-        errors.push({
-          kind: "missing-canonical-target",
-          family: family.family,
-          id,
-          sites,
-          message: `${id} is referenced but has no canonical record in ${family.family}'s configured canonical source.`,
-        });
+        continue;
       }
+
+      const applicableExceptions = referenceExceptions.filter(
+        exception => exception.family === family.family && exception.id === id
+      );
+      if (applicableExceptions.length > 0) {
+        const remainingSites = [];
+        for (const exception of applicableExceptions) {
+          const exemptedSites = sites.filter(
+            site => site.file === exception.file && exception.regex.test(readSingleLine(repoRoot, site.file, site.line))
+          );
+          if (exemptedSites.length > 0) {
+            warnings.push({
+              kind: "intentional-noncanonical-mention",
+              family: family.family,
+              id,
+              sites: exemptedSites,
+              reason: exception.reason,
+              message: `${id} at this site is an intentional non-reference mention, not a missing canonical target (not silently suppressed).`,
+            });
+          }
+        }
+        const exemptedKey = site => `${site.file}:${site.line}`;
+        const exemptedSet = new Set(
+          applicableExceptions.flatMap(exception =>
+            sites
+              .filter(site => site.file === exception.file && exception.regex.test(readSingleLine(repoRoot, site.file, site.line)))
+              .map(exemptedKey)
+          )
+        );
+        for (const site of sites) {
+          if (!exemptedSet.has(exemptedKey(site))) remainingSites.push(site);
+        }
+        if (remainingSites.length > 0) {
+          errors.push({
+            kind: "missing-canonical-target",
+            family: family.family,
+            id,
+            sites: remainingSites,
+            message: `${id} is referenced but has no canonical record in ${family.family}'s configured canonical source.`,
+          });
+        }
+        continue;
+      }
+
+      errors.push({
+        kind: "missing-canonical-target",
+        family: family.family,
+        id,
+        sites,
+        message: `${id} is referenced but has no canonical record in ${family.family}'s configured canonical source.`,
+      });
     }
 
     // Orphan — a canonical definition with no reference anywhere else —

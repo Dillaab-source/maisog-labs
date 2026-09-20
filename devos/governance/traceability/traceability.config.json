@@ -1,13 +1,14 @@
 {
   "_comment": "Sentinel Traceability V1 (ML-DEVOS-RFC-012 / ML-DEVOS-AS-037 / D-036) bounded configuration. This file names canonical-definition surfaces already owned by existing authoritative records (brain/, devos/, docs/) -- it does not restate their content and does not create a second manually maintained relationship matrix (AS37-F003). Adding a new ID family or historical exception here is a configuration change, not a code change, and does not alter any existing record's authority (AS37-F002).",
   "scan": {
-    "_comment": "The bounded set of directories/root files this subsystem reads (read-only) to discover canonical definitions and references. Deliberately excludes build output, dependencies, and this subsystem's own generated files (self-reference avoidance).",
+    "_comment": "The bounded set of directories/root files this subsystem reads (read-only) to discover canonical definitions and references. Deliberately excludes build output, dependencies, and this subsystem's own generated files and this config file itself (self-reference avoidance -- this config's own id/reason/_comment fields necessarily restate exempted/historical ids verbatim as configuration data, e.g. CORE-022, ML-DEVOS-AS-008; scanning them back in as if they were repository-content references would defeat the exemption mechanisms they configure, AS39-F008).",
     "includeDirs": ["app", "brain", "coordination", "components", "data", "devos", "docs", "lib", "migrations", "scripts", "tests", "worker"],
     "includeRootFiles": ["AGENTS.md", "CLAUDE.md", "README.md", "wrangler.jsonc"],
     "includeExtensions": [".md", ".mjs", ".js", ".json", ".jsonc", ".txt"],
     "excludePaths": [
       "devos/governance/traceability/traceability-index.json",
-      "devos/governance/traceability/TRACEABILITY_INDEX.md"
+      "devos/governance/traceability/TRACEABILITY_INDEX.md",
+      "devos/governance/traceability/traceability.config.json"
     ]
   },
   "idFamilies": [
@@ -70,6 +71,16 @@
       "family": "TEST",
       "pattern": "TEST-[A-Z]+-\\d{3}",
       "canonical": { "type": "table-row", "file": "brain/TEST_LEDGER.md", "rowPattern": "^\\|\\s*(TEST-[A-Z]+-\\d{3})\\s*\\|" }
+    }
+  ],
+  "referenceExceptions": [
+    {
+      "_comment": "ML-DEVOS-AS-039 / AS39-F008: a narrowly scoped, rationale-bearing exemption for one exact id at one exact file whose exact source line matches this pattern. It never suppresses the id elsewhere -- a genuine reference to CORE-022 in any other file, or on any other line of this same file that does not match this pattern, still produces a missing-canonical-target ERROR.",
+      "family": "CORE",
+      "id": "CORE-022",
+      "file": "docs/SENTINEL_REVIEW_NOTES.md",
+      "linePattern": "Do not create CORE-022 from these findings\\.",
+      "reason": "docs/SENTINEL_REVIEW_NOTES.md's own 'Re-check conclusion' section explicitly asserts that CORE-022 must NOT be created ('Do not create CORE-022 from these findings ... Revisit the observations above only when their corresponding real trigger appears.'). This is a deliberate negated/hypothetical mention -- an assertion that no such record should exist -- not a semantic cross-reference requiring a canonical target. Discovered and narrowly exempted per ML-DEVOS-AS-039/AS39-F008; scoped to this exact file and line pattern only."
     }
   ],
   "historicalExceptions": [

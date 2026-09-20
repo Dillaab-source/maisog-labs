@@ -56,15 +56,53 @@ events but predate this repository's later discipline of archiving every
 Architect Sync as its own durable file. Each entry carries a `reason`. A
 referenced ID in this list is downgraded from a `missing-canonical-target`
 ERROR to a visible `historical-exception-missing-canonical-record` WARNING
-— never silently dropped (AS37-F005).
+— never silently dropped (AS37-F005). This applies to *every* site of that
+ID, everywhere.
+
+`referenceExceptions` (added `ML-DEVOS-AS-039` / `AS39-F008`) is narrower:
+each entry names one exact `family` + `id` + `file` + `linePattern` (a
+regex matched against that exact source line's text) + `reason`. It exists
+for an *intentional non-reference mention* — a document that explicitly
+states an ID must **not** be created (e.g. "Do not create X from these
+findings.") — which is not a semantic claim that a canonical record is
+required, and must not be treated as one. Unlike `historicalExceptions`,
+this is scoped **per site, not per ID**: only occurrences whose file and
+exact line text match the entry are downgraded to a WARNING. Any other
+occurrence of the same ID — a different file, or a different line in the
+same file that doesn't match the pattern — is unaffected and still
+produces a `missing-canonical-target` ERROR if no canonical definition
+exists. This is the mechanism's core guarantee: a `referenceException`
+never globally suppresses an ID.
+
+Because a `referenceException` entry's own `id`/`reason`/`_comment` fields
+necessarily restate the exempted ID as literal configuration text,
+`traceability.config.json` itself is in `scan.excludePaths` — otherwise the
+config file describing the exemption would immediately reintroduce the
+exact false positive it exists to fix. For the same reason, this
+generator's own source code never spells out a specific exempted ID in a
+comment (its own source is part of the scanned surface too).
 
 ### Reference extraction
 
 For every scanned file (bounded by `scan.includeDirs` /
 `scan.includeRootFiles` / `scan.includeExtensions`, minus
-`scan.excludePaths`, which excludes only this subsystem's own generated
-output to avoid self-reference), every line is matched against every
-family's `pattern` regex. Every match is one occurrence, with file+line.
+`scan.excludePaths`, which excludes this subsystem's own generated output
+and its own configuration file to avoid self-reference), every line is
+matched against every family's `pattern` regex. Every match is one
+occurrence, with file+line.
+
+A known, accepted consequence of this being a plain textual pattern match
+(AS37-F004's deliberately bounded, mechanical design — not a semantic or
+quote-aware parser): a living coordination/governance document that
+*quotes* an ID as an example while discussing a past finding (for instance,
+an Architect Sync review or a Builder handoff describing exactly this
+mechanism) is textually indistinguishable from a genuine reference, and
+will itself be reported as an occurrence needing a canonical target. This
+is intentionally not special-cased — doing so would mean either excluding
+a whole document class that also carries genuine cross-references (losing
+real signal), or building a context-sensitive parser (explicitly against
+`AS37-F010`'s dependency-light, mechanical design). See
+`traceability-index.json`'s own baseline findings for a live example.
 
 ### Findings
 
@@ -72,14 +110,17 @@ family's `pattern` regex. Every match is one occurrence, with file+line.
   canonical definition site.
 - **ERROR `missing-canonical-target`** — an ID is referenced somewhere but
   has no canonical definition, and is not a configured historical
-  exception.
+  exception or a matched reference exception at that site.
 - **WARNING `historical-exception-missing-canonical-record`** — as above,
-  but explicitly allowlisted with a stated reason.
+  but explicitly allowlisted with a stated reason, for every site of the ID.
+- **WARNING `intentional-noncanonical-mention`** — the id+file+line-text at
+  this exact site matches a configured `referenceException`; other sites of
+  the same ID are unaffected.
 - **WARNING `orphan-no-inbound-reference`** — an ID is canonically defined
   but never referenced anywhere else in the scanned surface.
 
-Per AS37-F004, only the two ERROR classes are treated as objective
-structural-integrity defects in V1. Orphans and historical exceptions
+Per AS37-F004, only the ERROR class is treated as an objective
+structural-integrity defect in V1. Orphans and both exception classes
 remain warnings; nothing here decides merge/deploy eligibility or promotes
 a warning to blocking on its own.
 

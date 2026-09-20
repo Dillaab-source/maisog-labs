@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — SENTINEL-TRACEABILITY-V1 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — SENTINEL-TRACEABILITY-V1 Remediation Cycle 1 (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**SENTINEL-TRACEABILITY-V1 update:** see the "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record. SENTINEL-BASELINE-CLEANUP-001 closed with no outstanding action; this new cycle is a separate, larger `ARCHITECTURE`-class governance-tooling change and does not reopen or depend on remediating it.
+**SENTINEL-TRACEABILITY-V1 Remediation Cycle 1 update:** see the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record.
 
 ---
 
@@ -1254,3 +1254,144 @@ $ npm test
 ### Implementation commit
 
 All 7 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `affd2693f29ebac450e707e7b43140f9b36f09b8`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)
+
+### Cycle / Change ID
+
+`SENTINEL-TRACEABILITY-V1` — **Remediation Cycle 1, now complete, handed back for Architect review.**
+
+Authority chain: `ML-DEVOS-RFC-012` (`ACCEPTED`) → `ML-DEVOS-AS-037` (`ARCHITECT_APPROVED`) → `D-036` (Paulo: "okay do that") → `ML-DEVOS-AS-039` (`CHANGES_REQUESTED — REMEDIATION CYCLE 1`, single blocker `AS39-F008`). `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 3`.
+
+### Objective
+
+Fix exactly `AS39-F008` and nothing else: the generator was reporting `CORE-022` as a hard `missing-canonical-target` ERROR from `docs/SENTINEL_REVIEW_NOTES.md:438`, whose exact text is `"Do not create CORE-022 from these findings."` — an intentional assertion that no such record should exist, not a semantic cross-reference. Per the review's "Required remediation," add a narrowly scoped, rationale-bearing intentional-non-reference/reference-exception mechanism that (1) keeps the occurrence visible as a WARNING, (2) does not globally suppress the ID, (3) still produces an ERROR if the same ID is genuinely referenced elsewhere, (4) has focused tests, (5) regenerates the derived indexes. `WEB-REQ-009` remains explicitly out of scope and unrepaired, per the review's "Preserve" instruction.
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `4f5c8e190b4edbfac9a4bb2cf707d500e4f9647c` — the Architect's `ML-DEVOS-AS-039` sync commit, fast-forwarded cleanly from the prior implementation commit `8106fa53925096e502235178dc691b74c288faf0`.
+- Read in full before any edit: `coordination/STATE.md` (`CYCLE_ID: SENTINEL-TRACEABILITY-V1`, `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REMEDIATION_CYCLE_1`, `CURRENT_REMEDIATION_CYCLE: 1`) and the full `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-039`, findings `AS39-F001`–`AS39-F008`, the "Required remediation" preferred shape, "Expected post-remediation baseline," and "Non-scope during remediation").
+
+### Exact diff — 6 files modified, 0 added, 0 deleted
+
+Confirmed by `git status --porcelain` / `git diff --stat` immediately before this commit: exactly these 6 paths changed, all inside the already-authorized `devos/governance/traceability/` root plus its one test file — nothing else.
+
+- `devos/governance/traceability/traceability.config.json` — added a new top-level `referenceExceptions` array (one entry: `family: "CORE"`, `id: "CORE-022"`, `file: "docs/SENTINEL_REVIEW_NOTES.md"`, `linePattern` matching the exact sentence, and a `reason`). Also added `devos/governance/traceability/traceability.config.json` itself to `scan.excludePaths` (see "Self-reference finding" below — required for the new mechanism to work correctly, not an unrelated change).
+- `devos/governance/traceability/generate-traceability.mjs` — added `readSingleLine()` and `loadReferenceExceptions()`; the missing-canonical-target loop now partitions an unresolved ID's reference sites into those matching a configured `referenceException` (→ `intentional-noncanonical-mention` WARNING, listing only the matched sites) and the rest (→ `missing-canonical-target` ERROR, listing only the unmatched sites; omitted entirely if empty). Historical-exception handling (whole-ID, AS37-F005) is unchanged and unaffected. Also reworded two doc comments to avoid embedding a literal exempted ID (see "Self-reference finding" below).
+- `devos/governance/traceability/traceability-index.json` / `TRACEABILITY_INDEX.md` — regenerated from the real repository (see "Regenerated baseline" below).
+- `devos/governance/traceability/README.md` — documents `referenceExceptions`, its per-site (not per-ID) scoping guarantee, the new `intentional-noncanonical-mention` finding kind, and the self-reference finding below.
+- `tests/traceability.test.mjs` — 3 new focused tests (see "Focused test results").
+
+**Confirmed not touched:** `docs/SENTINEL_REVIEW_NOTES.md`, `devos/governance/rules/core-rules.json`, or any other repository-content file — `CORE-022` was not created, per the review's explicit non-scope. `WEB-REQ-009`'s source records were not touched either.
+
+### Self-reference finding, discovered and fixed during this remediation (not requested by the review, but necessary for it to work)
+
+The first implementation attempt added the `referenceExceptions` entry to `traceability.config.json` and regenerated — and the ERROR **did not fully clear**. Investigation showed the entry's own `id`/`reason`/`_comment` JSON string values necessarily restate `"CORE-022"` as literal text, and `traceability.config.json` was itself part of the scanned surface (same as every other `.json` file under `devos/`). The config file describing the exemption was therefore immediately reintroducing new, unexempted occurrences of the exact ID it exists to fix. Two fixes, both narrowly scoped to this subsystem:
+
+1. Added `devos/governance/traceability/traceability.config.json` to `scan.excludePaths`, alongside the two already-excluded generated output files — the same "self-reference avoidance" rationale already documented for those two files applies identically here.
+2. Reworded two doc comments in `generate-traceability.mjs` that had (for illustration) spelled out `"CORE-022"` literally, since this generator's own source file is also part of the scanned surface. The comments now describe the mechanism generically ("a document that explicitly states an id must not be created") without naming a specific ID.
+
+This is disclosed here as part of "exact diff," not hidden — it is a real defect I introduced and caught myself during this remediation, before the Architect saw it, by actually running the generator and inspecting non-zero-but-unexpected output rather than assuming the config change alone was sufficient.
+
+### Regenerated baseline (required evidence item)
+
+```
+$ node devos/governance/traceability/generate-traceability.mjs
+Scanned 191 files. Errors: 3. Warnings: 3.
+```
+
+Full findings:
+
+| Kind | Family | ID | Sites | 
+|---|---|---|---|
+| ERROR `missing-canonical-target` | `CORE` | `CORE-022` | 37 (see "New emergent findings" below) |
+| ERROR `missing-canonical-target` | `ML-DEVOS-AS` | `ML-DEVOS-AS-039` | 15 (new — see below) |
+| ERROR `missing-canonical-target` | `WEB-REQ` | `WEB-REQ-009` | 57 (the pre-existing, explicitly-preserved genuine gap) |
+| WARNING `intentional-noncanonical-mention` | `CORE` | `CORE-022` | 1 — exactly `docs/SENTINEL_REVIEW_NOTES.md:438` |
+| WARNING `historical-exception-missing-canonical-record` | `ML-DEVOS-AS` | `ML-DEVOS-AS-008` | 10 (unchanged mechanism) |
+| WARNING `historical-exception-missing-canonical-record` | `ML-DEVOS-AS` | `ML-DEVOS-AS-009` | 16 (unchanged mechanism) |
+
+(Site counts above are from the final regeneration performed immediately before commit, i.e. after this handoff section itself was written — which, per the "New emergent findings" discussion immediately below, itself further increases `CORE-022`/`ML-DEVOS-AS-039`/`WEB-REQ-009`'s site counts simply by discussing them. This is the expected, self-describing consequence of a textual pattern matcher scanning `coordination/`, not a new defect discovered after the fact.)
+
+**The core fix works exactly as required:** `docs/SENTINEL_REVIEW_NOTES.md:438` — the exact site named in `AS39-F008` — moved from the ERROR list to a `intentional-noncanonical-mention` WARNING, with the review's own quoted reason.
+
+**But `CORE-022` did not fully disappear from the ERROR list, and this needs to be reported plainly rather than glossed over.** Independent inspection of the remaining 21 `CORE-022` error sites shows every one of them is in `coordination/ARCHITECT_REVIEW.md`, `coordination/IMPLEMENTER_HANDOFF.md`, or `coordination/STATE.md` — i.e. the Architect's own `AS-039` review text and this Builder's own prior handoff/state bookkeeping, both of which necessarily quote the literal string `"CORE-022"` while discussing this exact finding. These are not semantic claims that a `CORE-022` rule should exist; they are meta-discussion of the finding itself, landed in the repository by the normal governance-sync process between the previous handoff and this remediation. The mechanism is doing exactly what `AS39-F008`'s "Required remediation" item 4 demands — "must not globally suppress the ID; if the same ID appears elsewhere as a genuine unresolved reference, those other occurrences must still produce a missing-target ERROR" — it is simply that the review/remediation paper trail itself is now part of "elsewhere." I did not add a broader exception to silence this, because doing so would require either excluding all of `coordination/` from scanning (which would also hide `WEB-REQ-009`'s genuine, Architect-confirmed evidence in that same directory, per `AS39-F007`) or building a quote-aware/context-sensitive parser (explicitly against `AS37-F010`'s dependency-light, purely mechanical design intent). This is reported as a known, accepted, and now-documented (in `README.md`) consequence of a textual pattern matcher applied to living coordination documents — not a defect in the fix itself.
+
+**`ML-DEVOS-AS-039` is a new finding, also not a defect.** It is genuinely referenced (by `coordination/ARCHITECT_REVIEW.md`, `coordination/STATE.md`, and this handoff) but — correctly — has no durable archive file yet at `devos/changes/architect-syncs/ML-DEVOS-AS-039.md`, because that file is created (per this repository's established pattern, e.g. `ML-DEVOS-AS-037.md`) only once a sync concludes, and this sync is still open (`CHANGES_REQUESTED`, remediation in progress). This is a transient, structurally identical instance of the same "reference before the canonical record exists" class `WEB-REQ-009` and `CORE-022` already demonstrate — expected to resolve on its own once this cycle concludes and `ML-DEVOS-AS-039` is archived through the normal process, not something this remediation is authorized or asked to fix.
+
+**`WEB-REQ-009` remains the pre-existing, explicitly-preserved genuine ERROR** (per the review's "Preserve" instruction) — its site count grew from 31 (prior cycle's baseline) to 57 for the same reason as `CORE-022` above (coordination bookkeeping, including this remediation's own review/handoff text, now discusses it too), not because the underlying gap changed.
+
+### Two-consecutive-run determinism proof
+
+```
+$ node devos/governance/traceability/generate-traceability.mjs   # run 1
+$ node devos/governance/traceability/generate-traceability.mjs   # run 2
+$ diff <run-1 copy of traceability-index.json> traceability-index.json   # no output
+$ diff <run-1 copy of TRACEABILITY_INDEX.md> TRACEABILITY_INDEX.md       # no output
+$ sha256sum traceability-index.json TRACEABILITY_INDEX.md
+441a68f84bd577b44ad3ce150d7dc7e46edc14388b7618fee7f11ec09ebd20a6  traceability-index.json
+89826d4ad5de044d1f18def97bb7e2abd4f2e275dd6ffaf5d1c2472c3e1b7538  TRACEABILITY_INDEX.md
+```
+
+(These are the hashes of the final regeneration performed immediately before commit, i.e. after this handoff document reached its final text — matching the exact `traceability-index.json`/`TRACEABILITY_INDEX.md` committed alongside it. An intermediate regeneration performed while drafting this handoff, before its text was final, produced different site counts and a different hash — expected, per the self-describing dynamic explained above — and is superseded by this one.)
+
+Byte-identical across two consecutive runs.
+
+### Validator run
+
+```
+$ node devos/governance/traceability/validate-traceability.mjs
+Scanned 191 files across 12 ID families.
+Errors: 3  Warnings: 3  Total canonical definitions: 208
+[... 3 ERROR lines, 3 WARNING lines, matching the table above ...]
+No drift: on-disk generated index matches a fresh generation run.
+(exit code: 1 — non-zero because genuine ERRORs remain, exactly as `AS39`'s "Expected post-remediation baseline" anticipates: "The validator is allowed to exit non-zero because a genuine repository-content traceability ERROR remains.")
+```
+
+### Focused test results — proof the exception is narrow, not global (required evidence item)
+
+3 new tests added to `tests/traceability.test.mjs`, using synthetic fixtures (never the real repository), covering exactly the three cases `AS39`'s "Required remediation" item 5 lists:
+
+```
+$ node --test tests/traceability.test.mjs
+# tests 10
+# pass 10
+# fail 0
+```
+
+- **"an exact intentional non-reference occurrence becomes a visible WARNING, not a hard missing-target ERROR (AS39-F008)"** — a fixture with only the matching line produces 0 errors and 1 `intentional-noncanonical-mention` warning.
+- **"a second genuine reference to the same missing id still produces an ERROR alongside the exempted WARNING"** — adding a second file with a genuine, non-matching reference to the same ID produces both the WARNING (for the exempted site only) and an ERROR (for the genuine site only) — proving the exception is per-site, not per-ID.
+- **"a referenceException scoped to one id does not suppress an unrelated id's genuine missing-target ERROR"** — a second, unrelated ID with no configured exception is unaffected and still produces a normal ERROR.
+
+### Full suite result
+
+```
+$ npm test
+# tests 348
+# pass 348
+# fail 0
+```
+
+348 = the prior 345 + these 3 new cases. No pre-existing test was modified, and none regressed.
+
+### Explicit confirmations
+
+- **`CORE-022` was not created.** `devos/governance/rules/core-rules.json` was not touched.
+- **`WEB-REQ-009`'s source records were not touched or repaired** — it remains reported, exactly as the review's "Preserve" instruction requires.
+- **No historical RFC/AS/ADR/Decision content was rewritten** to make the validator green.
+- **No S3/S7/S9 implementation, CI/ruleset, runtime/application code, Sentinel version bump, remote resource, deployment, or `main` merge occurred.**
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this remediation as `ARCHITECT VERIFIED`.** Every result above is `ACTOR_REPORTED`, including the self-diagnosed self-reference defect and its fix, until independently reviewed.
+
+### Known limitations / carried-forward items
+
+- `CORE-022` still appears as an ERROR from coordination-bookkeeping sites, for the reasons explained above — this is disclosed, not hidden, and is not believed to be a mechanism defect. If the Architect judges this unacceptable, the next remediation would need to choose explicitly between reduced coordination-directory coverage and a more semantic parser, either of which is a larger design decision than this cycle's narrow mandate.
+- `ML-DEVOS-AS-039` now appears as a transient ERROR pending its own eventual durable archival — expected to self-resolve through the normal process once this cycle concludes, not something this remediation touches.
+- `WEB-REQ-009` remains open and unrepaired, exactly as instructed.
+- `S3 — Typed Task Contracts` remains queued behind this cycle's independent Architect closure.
+
+### Remediation commit
+
+The 6 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `4f5c8e190b4edbfac9a4bb2cf707d500e4f9647c`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.

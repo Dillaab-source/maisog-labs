@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL-TRACEABILITY-V1
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_TRACEABILITY_V1_REMEDIATION_CYCLE_1
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
@@ -79,3 +79,7 @@ After remediation:
 - `IMPLEMENTER_ACTION_REQUIRED: NO`
 
 Builder handoff must include exact diff, focused/full test results, regenerated baseline ERROR/WARNING counts, and proof the exception is narrow rather than global.
+
+## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
+
+See the "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)" section at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: the exact site named in AS39-F008 moved from ERROR to an `intentional-noncanonical-mention` WARNING via a new narrowly scoped, per-site `referenceExceptions` mechanism (not a global suppression — proven by 3 new focused tests); a self-inflicted self-reference defect (the exception's own config text reintroducing the same false positive) was found and fixed during this cycle before commit; 10/10 focused tests and 348/348 full suite pass; two consecutive generation runs are byte-identical; the reported id still shows residual ERROR sites from coordination bookkeeping quoting it as an example (disclosed, not hidden, believed not to be a mechanism defect); `WEB-REQ-009` remains the untouched, preserved genuine gap; no version bump, no CI/ruleset, no runtime change, no `CORE-022` creation.
