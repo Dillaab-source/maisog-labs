@@ -1,6 +1,6 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS-WEB-REL-001-PRODUCTION-READINESS
+CYCLE_ID: MAISOGLABS-DESIGN-GOV-001
 TURN: PAULO
 STATUS: CLOSED
 AUTHORIZED_SCOPE: NONE
@@ -17,43 +17,40 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Baselines
+## Accepted design governance
 
-Core WEB roadmap:
-- `100% COMPLETE — LOCAL/REPOSITORY`
+- `DESIGN-GOV-001`
+- `brand/V3/DESIGN_GOVERNANCE.md`
+- `ML-DEVOS-AS-036 — ARCHITECT_APPROVED`
+- `D-035 — Paulo-adopted`
 
-Production Release Readiness:
-- `WEB-REL-001 — COMPLETE / ARCHITECT_APPROVED`
-- final review: `ML-DEVOS-AS-035`
+Core design rule:
 
-## Release blockers
+`A NEW FEATURE MUST LOOK LIKE MAISOGLABS BEFORE IT LOOKS LIKE THE FEATURE IT IS ADDING.`
 
-Protected-main:
-- B1 — no GitHub technical protection/ruleset
-- B2 — no CI workflow/status check
+Future meaningful MaisogLabs UI work must map to:
+- foundations;
+- reusable components;
+- approved/new patterns;
+- explicit gaps/exceptions.
 
-Production deployment:
-- B3 — Cloudflare Access values are placeholders
-- B4 — no production D1 database
-- B5 — no production R2 bucket for media capability
-- B6 — no production Worker/domain target
+Screenshot-driven work remains:
+`REFERENCE → ANALYZE → MAP → DRAFT → VISUAL PREVIEW → REVIEW → PUBLISH`
 
-## Next production gate
+## Release status
 
-`Gate A — Technical protection + minimal CI`
+WEB-REL-001 is complete / Architect-approved.
 
-Requires separate Paulo authorization before any GitHub protection or workflow mutation.
+Release blockers remain:
+- no GitHub technical protection;
+- no CI;
+- no production Access config;
+- no production D1;
+- no production R2;
+- no production Worker/domain target.
 
-## Absolute gates
-
-`REMOTE_R2_AUTHORIZED: NO`
-
-`REMOTE_D1_AUTHORIZED: NO`
-
-`DEPLOY_AUTHORIZED: NO`
-
-`MAIN_MERGE_AUTHORIZED: NO`
+No release authority is open.
 
 ## Current gate
 
-`WEB-REL-001 CLOSED — RETURNED TO PAULO; LOCAL FEATURE/DESIGN WORK MAY CONTINUE UNDER A NEW SEPARATE CYCLE`
+`DESIGN-GOV-001 CLOSED — RETURNED TO PAULO; CHRONICLE MAY NOW BE PROPOSED/BUILT UNDER A SEPARATE GOVERNED CYCLE`
