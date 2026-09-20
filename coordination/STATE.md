@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_PLUS_MANUAL_TREASURY_PROCEDURE
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_IMPLEMENTATION_REMEDIATION_CYCLE_1
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -21,81 +21,84 @@ MAIN_MERGE_AUTHORIZED: NO
 
 - `ML-DEVOS-RFC-014 — ACCEPTED`
 - `ML-DEVOS-AS-050 — ARCHITECT_APPROVED`
-- `D-042 — Paulo approval + bounded implementation authorization`
+- `D-042 — Paulo implementation authorization`
+- `ML-DEVOS-AS-051 — CHANGES_REQUESTED / implementation remediation cycle 1`
 
-## Authorized implementation
+## Accepted implementation
 
-Claude may implement:
-- exactly 4 canonical Skills under `.agents/skills/`;
-- one non-diverging Claude Code bridge under `.claude/skills/`;
-- focused Skill metadata/routing/bridge validation and evals;
-- manual `PORTABLE_KNOWLEDGE_TREASURY` procedure;
-- lightweight `brain/KNOWLEDGE_PRINCIPLES.md` residual canonical record;
-- minimal AGENTS/CLAUDE/00_HOME routing integration;
-- normal implementation handoff/state bookkeeping.
+Preserve:
+- exactly four canonical Skills under `.agents/skills/`;
+- `.agents/skills/` as canonical source;
+- deterministic generated-copy Claude bridge strategy;
+- manual Treasury procedure;
+- empty-at-start `brain/KNOWLEDGE_PRINCIPLES.md`;
+- minimal routing integration;
+- no manifest schema invention.
 
-See `coordination/ARCHITECT_REVIEW.md` for exact constraints.
+## Active blockers
 
-## Binding principles
+1. `AS51-F005` — generated `.claude/skills/*/SKILL.md` files put a banner before YAML frontmatter; Claude Code requires frontmatter at the top of `SKILL.md`.
+2. `AS51-F006` — Treasury `INTERNAL` persistence rule must require accepted access controls + Git suitability + correct canonical destination, matching AS-048/D-042.
+3. `AS51-F007` — `CLAUDE.md` and `brain/00_HOME.md` still present Phase-1 bootstrap scope as current; live authorization must defer to `coordination/STATE.md`.
 
-`GOVERNANCE > SKILLS`
+## Authorized remediation files
 
-`CURRENT AUTHORIZATION > SKILL CAPABILITY`
+Claude may modify only:
+- `scripts/generate-claude-skills-bridge.mjs`;
+- `scripts/validate-claude-skills-bridge.mjs` if needed;
+- `tests/skills.test.mjs`;
+- `.claude/skills/*/SKILL.md`;
+- `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md`;
+- `CLAUDE.md`;
+- `brain/00_HOME.md`;
+- `.agents/skills/project-orientation-state-recovery/SKILL.md` only if needed for live-STATE precedence;
+- normal handoff/state bookkeeping.
 
-`CAPABILITY != AUTHORITY`
+## Required evidence
 
-`AI ACCOUNTS / CHATS = LABORATORIES`
+Return:
+- exact base/result SHA;
+- exact changed files;
+- bridge generation strategy after fix;
+- proof each bridge SKILL.md begins with parsable YAML frontmatter at byte 0;
+- bridge name/description equality with canonical payload;
+- drift-injection failure evidence;
+- focused Skills tests;
+- exact Treasury INTERNAL rule/eval correction;
+- exact stale-scope correction in CLAUDE.md/00_HOME;
+- full-suite sanity result if practical;
+- confirmation no S3/runtime/remote/deploy/main work occurred.
 
-`GOVERNED REPOSITORY = DURABLE TREASURY`
+## S3
 
-## S3 sequencing
+`S3 — PAUSED DURING REMEDIATION / AUTHORITY PRESERVED`
 
-`S3 — Typed Task Contracts: PAUSED DURING THIS IMPLEMENTATION / AUTHORITY PRESERVED`
+Do not start S3.
 
-Preserved:
-- `ML-DEVOS-RFC-013`
-- `ML-DEVOS-AS-038`
-- `D-037`
-
-Per `D-042`, if this Skills/Treasury V0.1 implementation is independently accepted by Architect and no new blocker appears, Architect may reopen S3 without another Paulo approval.
-
-No concurrent S3 build is authorized.
-
-## RISK-WEB-013
-
-Remains open.
-No closure or status rewrite is authorized in this cycle.
-Separate reassessment is queued after this implementation.
+D-042's sequential S3 authorization becomes actionable only after this implementation is independently accepted.
 
 ## Hard boundaries
 
 No:
-- fifth Knowledge Capture Skill;
-- independently authored provider copies;
-- external Skill installation/execution;
-- provider account scraping/import;
-- bulk chat-history archive/import;
-- new database/service;
-- S11 memory machinery;
-- S3 implementation during this cycle;
-- S4+ / S5 capability machinery;
-- secret-store creation;
-- credentials/secrets in Git;
-- product/runtime/public-site changes;
+- fifth Skill;
+- canonical architecture change;
+- external Skill install;
+- provider account/chat scraping;
+- S11;
+- S3 implementation;
+- S4+/S5;
+- product/runtime mutation;
 - remote resources;
+- credentials/secrets in Git;
 - deployment;
 - main merge.
 
 ## Return gate
 
-After implementation:
+After remediation:
 - `TURN: ARCHITECT`
 - `STATUS: READY_FOR_ARCHITECT`
 - `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`.
 
-Builder must return exact diff/evidence and must not self-authorize acceptance.
-
-## Implementation complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See "MaisogLabs Skills Foundation V0.1 + Portable Knowledge Treasury — Implementation Handoff (ML-DEVOS-AS-050 / D-042)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: exactly 4 canonical Skills under `.agents/skills/` (no fifth), a deterministic non-diverging `.claude/skills/` bridge (generated-copy strategy, not a git symlink, per the review's own Windows/Git portability concern) with an active drift-injection test proving detection works; 35 new focused Skill/bridge tests, 387/387 full suite; `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` implementing RFC-014 T2–T13 in full; `brain/KNOWLEDGE_PRINCIPLES.md` created empty (no chat backfill); narrow routing pointers added to `AGENTS.md`/`CLAUDE.md`/`brain/00_HOME.md`; `devos/devos-manifest.json` left unchanged with the gap explicitly reported (no existing field cleanly fits a non-`devos/`, non-numbered-phase root). No S3/S4+/S5/runtime/remote/deploy/main work occurred; `RISK-WEB-013` untouched. The Implementer has not self-accepted this implementation.
+Builder must not self-accept.
