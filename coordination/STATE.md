@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S4_STATE_MACHINE_CLOSURE
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: NEXT_PRIORITY_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
+TURN: CLAUDE
+STATUS: AUTHORIZED_IMPLEMENTATION
+AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_TECHNICAL_PROTECTION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 2
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -17,48 +17,46 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## S4 final state
+## Authority
 
-ML-DEVOS-AS-068 D.2 Post-decision Closure Verification: PASS.
-S4 State Machine Kernel: CLOSED.
-Sentinel capability baseline: v1.7.0.
-Closure ADR: ML-DEVOS-ADR-014.
-Closure Decision: D-051.
-devos/state/: IMPLEMENTED.
-closure_ref: ML-DEVOS-ADR-014.
-executable_runtime_present: false.
+D-052 authorizes WEB-REL-001 Gate A only.
 
-No S4 closure blocker remains.
+S4 remains CLOSED at Sentinel v1.7.0 / ML-DEVOS-ADR-014 / D-051 / ML-DEVOS-AS-068.
 
-## Preserved debt
+## Objective
 
-Known traceability fingerprint remains:
-- CORE-022
-- WEB-REQ-009
+Implement:
+1. minimal GitHub CI workflow on the governed branch;
+2. one observed green run;
+3. minimum technical protection/ruleset on main using the live observed CI check context.
 
-Evidence limitation remains disclosed:
-- Builder complete command/test execution is ACTOR_REPORTED where not independently rerun;
-- Architect independently inspected the relevant source/diffs and performed the targeted S4 implementation spot checks recorded in ML-DEVOS-AS-066.
+Return to Architect for review.
 
-## Next gate
+## LEAN / DELTA-ONLY
 
-No later phase or product mutation is automatically authorized by S4 closure.
-
-Recommended sequence remains:
-1. MaisogLabs website/admin operational baseline;
-2. 3–5 real operating cycles;
-3. Skills V0.2 measured efficiency work;
-4. deeper Sentinel phases afterward unless Paulo reprioritizes.
-
-Paulo authorization is required before opening the website/product mutation cycle.
+Read coordination/ARCHITECT_REVIEW.md and only the Gate A portions of the existing readiness packet plus directly affected files/live GitHub state.
 
 ## Hard boundaries
 
+No PR to main.
+No main merge/push.
+No remote D1/R2.
+No Cloudflare Access mutation.
+No deploy/DNS/production write.
+No website/product feature mutation.
 No S5+.
-No website/product mutation yet.
-No Skills V0.2 implementation yet.
-No workflow mutation.
-No remote resource/credential mutation.
-No deployment/production write.
-No protected/main merge.
+No Skills V0.2.
 No PR #10 merge.
+
+If ruleset administration permission is unavailable, stop and report; do not weaken the gate.
+
+## Return gate
+
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: WEB_REL_001_GATE_A_REVIEW_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
+
+Keep all Cloudflare/remote/deploy/main-merge flags NO.
