@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SKILLS_FOUNDATION_V0_1_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_IMPLEMENTATION_REMEDIATION_CYCLE_1
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: SKILLS_FOUNDATION_V0_1_IMPLEMENTATION_REMEDIATION_CYCLE_2_SCOPE_CLEANUP
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 3
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -22,52 +22,37 @@ MAIN_MERGE_AUTHORIZED: NO
 - `ML-DEVOS-RFC-014 — ACCEPTED`
 - `ML-DEVOS-AS-050 — ARCHITECT_APPROVED`
 - `D-042 — Paulo implementation authorization`
-- `ML-DEVOS-AS-051 — CHANGES_REQUESTED / implementation remediation cycle 1`
+- `ML-DEVOS-AS-051 — substantive remediation findings`
+- `ML-DEVOS-AS-052 — scope cleanup only`
 
-## Accepted implementation
+## Closed findings
 
-Preserve:
-- exactly four canonical Skills under `.agents/skills/`;
-- `.agents/skills/` as canonical source;
-- deterministic generated-copy Claude bridge strategy;
-- manual Treasury procedure;
-- empty-at-start `brain/KNOWLEDGE_PRINCIPLES.md`;
-- minimal routing integration;
-- no manifest schema invention.
+- `AS51-F005` — Claude bridge frontmatter/provider-format issue CLOSED.
+- `AS51-F006` — Treasury INTERNAL access-control/Git-suitability parity CLOSED.
+- `AS51-F007` — stale Phase-1 current-scope wording CLOSED.
 
-## Active blockers
+## Active blocker
 
-1. `AS51-F005` — generated `.claude/skills/*/SKILL.md` files put a banner before YAML frontmatter; Claude Code requires frontmatter at the top of `SKILL.md`.
-2. `AS51-F006` — Treasury `INTERNAL` persistence rule must require accepted access controls + Git suitability + correct canonical destination, matching AS-048/D-042.
-3. `AS51-F007` — `CLAUDE.md` and `brain/00_HOME.md` still present Phase-1 bootstrap scope as current; live authorization must defer to `coordination/STATE.md`.
+`AS52-F003` — delete the out-of-scope `.claude/skills/README.md` artifact and remove any generator comment that depends on it.
 
 ## Authorized remediation files
 
 Claude may modify only:
-- `scripts/generate-claude-skills-bridge.mjs`;
-- `scripts/validate-claude-skills-bridge.mjs` if needed;
-- `tests/skills.test.mjs`;
-- `.claude/skills/*/SKILL.md`;
-- `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md`;
-- `CLAUDE.md`;
-- `brain/00_HOME.md`;
-- `.agents/skills/project-orientation-state-recovery/SKILL.md` only if needed for live-STATE precedence;
-- normal handoff/state bookkeeping.
+- `.claude/skills/README.md` — delete only;
+- `scripts/generate-claude-skills-bridge.mjs` — comment/reference cleanup only;
+- `tests/skills.test.mjs` only if a stale README reference/assertion exists;
+- `coordination/IMPLEMENTER_HANDOFF.md`;
+- `coordination/STATE.md`.
 
-## Required evidence
+## Preserve implementation
 
-Return:
-- exact base/result SHA;
-- exact changed files;
-- bridge generation strategy after fix;
-- proof each bridge SKILL.md begins with parsable YAML frontmatter at byte 0;
-- bridge name/description equality with canonical payload;
-- drift-injection failure evidence;
-- focused Skills tests;
-- exact Treasury INTERNAL rule/eval correction;
-- exact stale-scope correction in CLAUDE.md/00_HOME;
-- full-suite sanity result if practical;
-- confirmation no S3/runtime/remote/deploy/main work occurred.
+Do not alter:
+- four canonical Skill payloads;
+- generated bridge Skill bytes;
+- Treasury rules;
+- Orientation/state-recovery semantics;
+- Knowledge/Principles ledger;
+- accepted architecture.
 
 ## S3
 
@@ -75,34 +60,29 @@ Return:
 
 Do not start S3.
 
-D-042's sequential S3 authorization becomes actionable only after this implementation is independently accepted.
+Under D-042, S3 may reopen after independent acceptance of this Skills/Treasury implementation.
 
 ## Hard boundaries
 
 No:
+- new artifacts beyond required handoff/state bookkeeping;
 - fifth Skill;
-- canonical architecture change;
 - external Skill install;
-- provider account/chat scraping;
-- S11;
+- provider/chat import;
 - S3 implementation;
 - S4+/S5;
-- product/runtime mutation;
+- runtime/product mutation;
 - remote resources;
-- credentials/secrets in Git;
+- secrets/credentials;
 - deployment;
 - main merge.
 
 ## Return gate
 
-After remediation:
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `ARCHITECT_ACTION_REQUIRED: YES`
+After cleanup:
+- `TURN: ARCHITECT`;
+- `STATUS: READY_FOR_ARCHITECT`;
+- `ARCHITECT_ACTION_REQUIRED: YES`;
 - `IMPLEMENTER_ACTION_REQUIRED: NO`.
 
 Builder must not self-accept.
-
-## Remediation Cycle 1 complete — full evidence in coordination/IMPLEMENTER_HANDOFF.md
-
-See "MaisogLabs Skills Foundation V0.1 Implementation — Remediation Cycle 1 (ML-DEVOS-AS-051)" at the end of `coordination/IMPLEMENTER_HANDOFF.md`. Summary: `AS51-F005` — the generator no longer prepends a banner before YAML frontmatter; all 4 regenerated `.claude/skills/*/SKILL.md` bridge files begin at byte 0 with `---` and are byte-for-byte identical to their canonical `.agents/skills/` source (verified live); generated-status notice moved to a new `.claude/skills/README.md`; 5 new focused tests added (4 independent per-skill frontmatter-at-byte-0 checks + 1 live drift-injection-and-recovery test). `AS51-F006` — Treasury `INTERNAL` storage rule now requires the same accepted-access-controls + Git-suitability + correct-destination conditions as `RESTRICTED`, with the same `STOP / DEFER PERSISTENCE` fallback; a matching near-miss eval case added. `AS51-F007` — `CLAUDE.md` and `brain/00_HOME.md` now both lead with an explicit "always read live `coordination/STATE.md`" statement and label the remaining Phase 1 content as historical provenance, without a general governance rewrite. 392/392 full suite (387 prior + 5 new). No S3/runtime/remote/deploy/main work occurred; Builder has not self-accepted.
