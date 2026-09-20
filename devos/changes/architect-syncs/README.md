@@ -6,6 +6,7 @@ Once an Architect Sync concludes, its content is copied here, verbatim, as `ML-D
 
 ## Current contents
 
+- `ML-DEVOS-AS-059.md` — final RFC-015 design review; all remediation findings closed, reserved-root lifecycle and two-moment closure reconciliation architecture approved, and design acceptance routed to Paulo without implementation authority.
 - `ML-DEVOS-AS-058.md` — RFC-015 Remediation Cycle 1 review; closes all AS-057 blockers and requests one final sequencing correction separating pre-decision closure-package validation from post-decision closure verification without adding a new phase or subsystem.
 - `ML-DEVOS-AS-057.md` — RFC-015 first Architect review; proposal direction accepted, changes requested for unique closure-event linkage, traceability-currentness/delta semantics, coherent version/ADR sequencing, and behavior-based runtime distinction.
 - `ML-DEVOS-AS-056.md` — S3 closure discrepancy review; preserves AS-055 technical approval, identifies manifest-status modeling gap, stale S3 status/provenance, missing Skills/Treasury closure ADR/version disposition, and routes a corrected Paulo closure package using ADR-011 for Skills/Treasury no-bump closure and ADR-012 for S3 v1.6.0 closure.
