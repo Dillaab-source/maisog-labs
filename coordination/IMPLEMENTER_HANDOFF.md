@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — WEB-INC-007 Theme / Design Controls, Remediation Cycle 1 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — WEB-REL-001 Production Release Readiness assessment (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**WEB-INC-007 Remediation Cycle 1 update:** see the "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)" section at the very end of this document for the current cycle's exact scope, commit, and evidence. The "WEB-INC-007 — Theme / Design Controls" section just above it describes the original (pre-remediation) implementation and remains accurate as historical record for everything the remediation did not change. Everything above that (including "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record.
+**WEB-REL-001 update:** see the "WEB-REL-001 — Production Release Readiness" section at the very end of this document for the current cycle's exact scope and evidence summary. The full assessment packet itself is `docs/release/WEB_REL_001_READINESS_REPORT.md` — this handoff section summarizes it rather than duplicating it. Everything above that section (including "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed cycles and remains accurate as historical record. WEB-INC-007 is now fully closed — see `ML-DEVOS-AS-033` and `ML-DEVOS-ADR-009` — and the eight-increment core WEB roadmap is complete at repository/local level.
 
 ---
 
@@ -996,3 +996,59 @@ Every D1/Wrangler command above used `--local`/local-simulation-only explicitly;
 ### Remediation commit
 
 The files above are committed to `governance/maisoglabs-v0.1` as commit `9773d76641bef0b9f57b94d78087438f4d2ffc15` on top of base `a78a33bd7b910bbe17862085abbdaf9611836b0a`. A second, immediately following documentation-only commit records this exact SHA into both `coordination/IMPLEMENTER_HANDOFF.md` and `coordination/STATE.md`. Both commits will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## WEB-REL-001 — Production Release Readiness
+
+### Objective
+
+Perform the assessment-only release-readiness work authorized by `docs/release/WEB_REL_001_PRODUCTION_READINESS.md`, `ML-DEVOS-RFC-011` (ACCEPTED), `ML-DEVOS-AS-034` (ARCHITECT_APPROVED), and `D-034` (Paulo: "Proceed"), following the eight-increment core WEB roadmap's closure (`ML-DEVOS-AS-033`, `ML-DEVOS-ADR-009`). This phase produces a release-readiness packet — it takes **no release action of any kind**.
+
+### Base SHA / branch state
+
+- Assessment base (fast-forwarded before any work): `b5bf2e053d1385e2b6859da506c2c2de3f7a3767`
+- No implementation commit exists for this cycle — **zero application/runtime/schema files were changed**. The only artifacts produced are the readiness report and this handoff/state update.
+
+### Deliverable
+
+`docs/release/WEB_REL_001_READINESS_REPORT.md` — the complete packet required by the authorizing document, covering (with full detail in that file):
+
+1. exact governed HEAD (`b5bf2e0...`) and `main` HEAD (`8878492...`);
+2. main↔governance compare: 363 commits ahead, `main` is a clean ancestor (no divergence), 181 files changed;
+3. a categorized diff inventory (runtime/application 30, schema/migrations 6, tests 11, Cloudflare config 3, governance/docs 131 — sums to exactly 181);
+4. a full command/evidence log (`npm test` 338/338, `npm run build` 4 static routes, `npx wrangler deploy --dry-run` success with unchanged placeholder bindings, `npm audit` 0 vulnerabilities, fresh local migrations 0001–0005 all `✅`, plus three live GitHub API calls made during this assessment — `list_workflows` → 0, `.github` directory → does not exist, `list_branches`/`list_repository_collaborators` → every branch unprotected, exactly one collaborator);
+5. the static route inventory (`/`, `/_not-found`, `/admin`, `/journal`, all static — unchanged since WEB-INC-001);
+6. confirmation of the exact 22-product-table inventory from a fresh migration run;
+7. the complete Worker-first route inventory (protected and public);
+8. production configuration gaps (Access placeholders, no production D1/R2, no Worker deployment target);
+9. a GitHub technical-protection gap assessment, including the single-collaborator finding that makes a required-approving-review rule impractical today;
+10. a minimum GitHub protection recommendation (ruleset-based, owner-bypass-only, no fabricated reviewer) — **not applied**;
+11. a proposed minimal two-step CI workflow (`npm test` + `npm run build`) — **not created or activated**;
+12. a proposed protected-main PR/merge process;
+13. production D1/R2/Access/Worker deployment plans, each explicitly deferred to a separate future Paulo authorization;
+14. a rollback plan covering bad-deploy, bad-migration, bad-Access-config, and public-API-regression scenarios;
+15. a post-deploy runtime-verification checklist;
+16. a blocker table (B1–B6, all either "no GitHub technical protection" or "no production resource exists yet" — none block continued local development);
+17. the exact next Paulo gates in dependency order (A: technical protection → B: draft PR → C: main merge → D: production resource authorization → E: deploy gate → F: verified-or-rollback), with merge (B/C) and deploy (D/E) kept explicitly distinct per `AS34-F006`.
+
+### Evidence discipline this cycle
+
+Every command/test/build/migration/route-smoke result in the report is `ACTOR_REPORTED`. Three GitHub API calls were made live against the real repository during this assessment (`list_workflows`, `get_file_contents(".github")`, `list_branches`, `list_repository_collaborators`) and are flagged in the report as independently executed this cycle rather than merely re-stated from `ML-DEVOS-AS-034`'s prior findings — but they remain Builder-session evidence, not Architect-independent evidence, and the report says so explicitly rather than upgrading their evidence class. No ruleset-read capability was available through this session's tools (no `gh` CLI, no dedicated ruleset-inspection MCP tool), so the "no rulesets exist" fact is carried forward from the Architect's own phase-opening finding, with that limitation stated plainly in the report rather than silently re-asserted as freshly verified.
+
+### Explicit confirmations
+
+- **No ruleset or branch protection was created or modified.**
+- **No GitHub Actions workflow was created or activated.**
+- **No push or merge to `main` occurred** — `main` remains at `887849283ee9cd16e8d60b937bac95b1c85bf3d9`, untouched.
+- **No remote D1 or R2 resource was touched.** Every D1/Wrangler command in this cycle ran `--local` or was a `--dry-run`.
+- **No Cloudflare Access production configuration, credential, or DNS/domain change was made.**
+- **No deployment occurred.**
+- **No production data write occurred** (no production exists).
+- **No homepage/projects D1 cutover, new product feature, or Sentinel S3+ work occurred** — this cycle changed zero application/runtime files.
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this assessment as `ARCHITECT VERIFIED`.** All evidence above remains `ACTOR_REPORTED` until independently reviewed.
+
+### Assessment commit
+
+`docs/release/WEB_REL_001_READINESS_REPORT.md` is committed to `governance/maisoglabs-v0.1` alongside this same documentation commit (there is no separate implementation commit for this cycle, since no application/runtime/schema file changed). Base: `b5bf2e053d1385e2b6859da506c2c2de3f7a3767`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
