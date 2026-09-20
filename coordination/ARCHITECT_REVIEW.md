@@ -1,6 +1,6 @@
 # Architect Review
 
-Status: `ARCHITECT_APPROVED — WEB-REL-001 ASSESSMENT COMPLETE`
+Status: `ARCHITECT_APPROVED — DESIGN-GOV-001 ADOPTED`
 
 Architect: ChatGPT  
 Product / Risk Owner: Paulo  
@@ -8,148 +8,120 @@ Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# ML-DEVOS-AS-035 — WEB-REL-001 Production Release Readiness Final Review
+# ML-DEVOS-AS-036 — MaisogLabs V3 Design Governance Adoption
 
-Authority:
-- `ML-DEVOS-RFC-011`
-- `ML-DEVOS-AS-034`
-- `D-034`
+Change:
+- `DESIGN-GOV-001`
+- `brand/V3/DESIGN_GOVERNANCE.md`
 
-Builder report:
-- `docs/release/WEB_REL_001_READINESS_REPORT.md`
-- handoff commit: `2dad542f2c80fb462da83285640728a62d8da09d`
+Class:
+- `LOCAL_RULE`
 
-## Independent checks
+## Repository grounding
 
-Architect independently re-checked:
+The Architect confirmed the project already contains:
 
-- governed branch vs `main`;
-- repository rulesets;
-- branch protection state;
-- GitHub Actions run state;
-- readiness report blocker/gate logic.
+- Brand V3 identity/source-of-truth documents;
+- machine-readable V3 design tokens;
+- V3 composition/non-negotiables;
+- UI-PATCH-001 soft geometry;
+- WEB-INC-007 bounded runtime theme controls;
+- screenshot-reference workflow;
+- existing CSS custom properties for current runtime design decisions.
 
-Observed:
-- `main` remains an ancestor of the governed branch;
-- governed branch is now ahead by the readiness documentation commit in addition to the assessed base;
-- repository rulesets remain empty;
-- all listed branches remain `protected: false`;
-- GitHub Actions run count remains zero.
+Therefore the correct governance move is to **standardize and extend the existing system**, not introduce a second design framework.
 
-Builder execution evidence for tests/build/migrations/local smoke remains `ACTOR_REPORTED`.
+## External design-system grounding
+
+The adopted Local Rule follows established design-system practice:
+
+- design foundations/tokens are shared decisions rather than feature-specific values;
+- new components/patterns should prove usefulness and avoid duplication;
+- new patterns should reuse existing styles/components where relevant;
+- consistency, usability, and versatility matter before a pattern becomes reusable;
+- structured design-token formats may improve interoperability, but standards compliance alone is not a reason to migrate a working token system.
 
 ## Findings
 
-### AS35-F001 — PASS — assessment scope stayed bounded
+### AS36-F001 — PASS — project-level Local Rule is the correct scope
 
-Only:
-- readiness report;
-- implementer handoff;
-- coordination state
+DESIGN-GOV-001 affects MaisogLabs UI contribution/review practice only.
 
-changed in WEB-REL-001.
+It does not change Sentinel constitutional/core rules.
 
-No application/runtime/schema/resource/release mutation occurred.
+### AS36-F002 — PASS — existing source-of-truth hierarchy is preserved
 
-### AS35-F002 — PASS — release diff is structurally understood
+Brand V3 identity, composition, and tokens remain authoritative.
 
-The report establishes:
-- `main` is a clean ancestor of the governed branch;
-- the governed branch contains the complete WEB/Sentinel build history;
-- no divergent main history currently needs reconciliation.
+DESIGN-GOV-001 is explicitly subordinate to them.
 
-### AS35-F003 — PASS — local technical evidence is strong enough for readiness planning
+### AS36-F003 — PASS — no duplicate token system is created
 
-Builder reports:
-- `338/338` tests;
-- successful static build;
-- successful Wrangler dry-run;
-- `npm audit` with zero vulnerabilities;
-- fresh migrations 0001–0005;
-- exactly 22 product tables;
-- expected local public/admin route behavior.
+The rule reuses:
 
-These are sufficient for a release-readiness packet, but remain insufficient by themselves for a protected-main or production VERIFIED claim under CORE-020.
+- `brand/V3/design-tokens/*`;
+- semantic/runtime CSS variables;
+- WEB-INC-007 validated runtime design vocabulary.
 
-### AS35-F004 — PASS — CORE-021 blocker is correctly identified
+DTCG 2025.10 is treated only as a future interoperability reference.
 
-Current release protections remain absent:
-- no rulesets;
-- branches unprotected;
-- no CI workflow/runs.
+### AS36-F004 — PASS — innovation remains possible
 
-Therefore no protected-main release claim may proceed yet.
+The rule does not require every page to look identical.
 
-### AS35-F005 — PASS — single-owner reviewer constraint is handled without fabricated identity
+It allows:
 
-The report correctly does not invent a second reviewer.
+- DESIGN-PATCH;
+- COMPONENT-EXTENSION;
+- PATTERN-ADDITION;
+- explicit BRAND/COMPOSITION changes.
 
-The recommended future technical protection may require:
-- PR;
-- no direct push;
-- no force push;
-- no main deletion;
-- CI status;
-- narrow owner/admin bypass;
+The governance blocks visual drift, not useful new patterns.
 
-while deferring mandatory second-person approval until a genuine second maintainer exists.
+### AS36-F005 — PASS — Chronicle is correctly treated as a pattern addition
 
-### AS35-F006 — PASS — production blockers are explicit
+Chronicle may add:
 
-Release blockers are correctly separated:
+- timeline spine;
+- timeline nodes;
+- event cards;
+- filter rail;
+- milestone emphasis;
 
-Protected-main blockers:
-- B1 no GitHub technical protection;
-- B2 no CI.
+while keeping the underlying Brand V3 foundations.
 
-Deployment blockers:
-- B3 Access placeholders;
-- B4 no production D1;
-- B5 no production R2 for media capability;
-- B6 no Worker/domain production target.
+### AS36-F006 — PASS — admin/public relationship is appropriate
 
-### AS35-F007 — PASS — merge/deploy/verified states remain distinct
+The admin shares MaisogLabs foundations/components but prioritizes:
 
-The report preserves:
-- protection/CI;
-- PR;
-- main merge;
-- production resource authorization;
-- deploy;
-- runtime verification
+- clarity;
+- density;
+- explicit state;
+- safe Draft/Preview/Publish actions.
 
-as separate future gates.
+It does not need to duplicate the cinematic public composition.
 
-### AS35-F008 — PATCH APPLIED — one inventory heading corrected
+### AS36-F007 — PASS — screenshot/reference workflow remains governed
 
-Report section 3d previously said `(2 files)` while listing three files:
-- `wrangler.jsonc`;
-- `package.json`;
-- `package-lock.json`.
+DIRECT MATCH / APPROXIMATION / GAP remains binding.
 
-The correct category count is 3, which matches the Builder handoff arithmetic and total 181-file inventory. This was a documentation-only counting typo and not a release blocker.
+A GAP cannot silently become arbitrary CSS or a one-off source-code bypass.
+
+### AS36-F008 — PASS — no runtime/release authority is created
+
+This adoption changes documentation/design governance only.
+
+It creates no:
+- product runtime capability;
+- DB/API route;
+- merge authority;
+- deploy authority;
+- remote resource authority.
 
 ## Verdict
 
-`ML-DEVOS-AS-035: ARCHITECT_APPROVED — WEB-REL-001 ASSESSMENT COMPLETE`
+`ML-DEVOS-AS-036: ARCHITECT_APPROVED — DESIGN-GOV-001 ADOPTED`
 
-The readiness assessment is accepted.
+Future meaningful MaisogLabs UI work should cite DESIGN-GOV-001.
 
-This verdict does **not** authorize:
-- GitHub ruleset/protection mutation;
-- CI activation;
-- PR merge;
-- main merge;
-- remote D1/R2;
-- production Access configuration;
-- deploy;
-- DNS/domain mutation;
-- production writes.
-
-The next production-oriented gate remains:
-
-`Gate A — Technical protection + minimal CI`
-
-and requires a separate Paulo authorization.
-
-Local/product work may continue on separately governed feature/design cycles because B1–B6 block release actions, not repository-local development.
+Chronicle/admin implementation should use it as the binding visual baseline.
