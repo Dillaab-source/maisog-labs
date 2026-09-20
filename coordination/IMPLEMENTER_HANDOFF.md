@@ -1,12 +1,12 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 2 (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 3 (final consistency cleanup) (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 2 update:** see the "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 2 Handoff (ML-DEVOS-AS-045 / AS-046 / AS-047 / AS-048)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)," the original "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this remediation does not resume it.
+**MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY Remediation Cycle 3 update:** see the "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 3 Handoff (ML-DEVOS-AS-049, final consistency cleanup)" section at the very end of this document for the current cycle's exact scope and evidence. Everything above that section (including "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 2 Handoff (ML-DEVOS-AS-045 / AS-046 / AS-047 / AS-048)," "MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 1 Handoff (ML-DEVOS-AS-042 / AS-043 / AS-044)," the original "MAISOGLABS Skills Foundation V0.1 — Discovery Handoff," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 2 (ML-DEVOS-AS-040 / AS40-F001)," "SENTINEL-TRACEABILITY-V1 — Remediation Cycle 1 (ML-DEVOS-AS-039 / AS39-F008)," the original "SENTINEL-TRACEABILITY-V1 — Static Traceability Graph / Validator" implementation, "SENTINEL-BASELINE-CLEANUP-001 — Active-baseline metadata cleanup," "WEB-REL-001 — Production Release Readiness," "WEB-INC-007 — Remediation Cycle 1 (ML-DEVOS-AS-032)," "WEB-INC-007 — Theme / Design Controls," "WEB-INC-006 — Local Journal Subsystem," "UI-PATCH-001 — Soft Geometry Pass," "WEB-INC-004 Remediation Cycle 1," the original "WEB-INC-004 — Local Media Subsystem," and "WEB-INC-003 Remediation Cycle 1") describes prior, already-closed or now-superseded-by-this-remediation content and remains accurate as historical record. Sentinel S3 — Typed Task Contracts is `PAUSED / QUEUED — AUTHORITY PRESERVED` per `D-038`; this remediation does not resume it. This is Remediation Cycle 3 of `MAX_REMEDIATION_CYCLES: 3` — the final permitted cycle for this discovery.
 
 ---
 
@@ -1807,3 +1807,73 @@ Unchanged from the prior cycle, as expected for a documentation-only remediation
 ### Remediation commit
 
 The 2 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `5f95e7aea3dca6d33a7bd135df81fef49c1ac832`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
+
+---
+
+## MAISOGLABS Skills Foundation V0.1 — Remediation Cycle 3 Handoff (ML-DEVOS-AS-049, final consistency cleanup)
+
+### Cycle / Change ID
+
+`MAISOGLABS_SKILLS_FOUNDATION_V0_1_DISCOVERY` — **Remediation Cycle 3, now complete, handed back for Architect review.** `CURRENT_REMEDIATION_CYCLE: 3` of `MAX_REMEDIATION_CYCLES: 3` — the final permitted cycle for this discovery per the standing remediation-cycle cap.
+
+Authority chain: `D-038`/`D-039`/`D-040`/`D-041` → `RFC-014` through Remediation Cycle 2 → `ML-DEVOS-AS-049` (`CHANGES_REQUESTED — REMEDIATION CYCLE 3 / FINAL CONSISTENCY CLEANUP`, 3 blockers: `AS49-F006`, `AS49-F007`, `AS49-F008`; 6 prior findings `AS49-F001`–`F005` all `PASS`). The review explicitly confirmed this cycle is "cleanup-only" and must not reopen any previously accepted architecture.
+
+### Base / result state
+
+- Base (pulled and fast-forwarded before any file was touched): `bbe847381f4db46690bdc37164100e9a03178f28` — the Architect's `ML-DEVOS-AS-049` sync commit, on top of the Remediation Cycle 2 commit (`3760199959d8cc603b0afcf1cde459a87ecb8465`) it reviewed.
+- Read in full before any edit: `coordination/STATE.md`, the complete live `coordination/ARCHITECT_REVIEW.md` (`ML-DEVOS-AS-049`'s full `AS49-F001`–`F008` findings).
+- **Independent verification performed this cycle for `AS49-F007`:** a direct `WebFetch` of `https://developers.openai.com/codex/skills` and `https://learn.chatgpt.com/docs/build-skills.md` was attempted and blocked by this session's network egress policy (the same limitation already disclosed for GitHub Copilot and the primary Gemini CLI URL in earlier cycles). A search-engine-summarized excerpt of the official OpenAI "Build skills" documentation was used instead, confirming: standalone Skills are available in the ChatGPT desktop app, Codex CLI, and IDE extension; plugin-distributed Skills are additionally available in Chat and Work across ChatGPT web/desktop/mobile; both use progressive disclosure. This matches the Architect's `AS49-F007` finding and does not establish any arbitrary-repository-path filesystem discovery mechanism for the ChatGPT product surface — the 3-of-4 repository-native portability conclusion from Cycle 2 is therefore unaffected, exactly as the review anticipated.
+
+### Exact diff — 2 files modified, 0 added, 0 deleted
+
+Confirmed by `git status --porcelain` / `git diff --stat` immediately before this commit: exactly these 2 paths changed, both inside the review's "Authorized Remediation Cycle 3 files" list — nothing else. This was a small consistency patch, not a redesign, exactly as the review's "Expected return" section required.
+
+- `devos/changes/rfcs/ML-DEVOS-RFC-014.md` — 3 targeted corrections (see per-blocker mapping below); no other content reopened.
+- `devos/changes/rfcs/README.md` — corrected one misattributed cross-reference in the RFC-014 index summary (`AS49-F008`).
+
+**Confirmed not touched:** any application/runtime file, any RFC/AS/ADR/Decision file (the Architect's own `AS-049` archive was not modified — this Builder did not fabricate or edit any Architect Sync archive), `devos/devos-manifest.json`, and no skill file, canonical/provider-adapter directory, private-repository/secret-store, or Treasury-implementation artifact was created.
+
+### Per-blocker remediation mapping
+
+- **`AS49-F006` (§2's top-level classification table still had the superseded blanket "private repository documentation" destination) — corrected.** The "Sensitive implementation detail" row in RFC-014 §2's Definition boundary table now reads "this repository's own storage, conditionally," pointing to T10/`ML-DEVOS-AS-048`'s corrected storage model (classification + accepted access controls + Git suitability + canonical-destination authorization must all permit it; otherwise `STOP / DEFER PERSISTENCE`; `SECRET` material never goes to Git regardless), and explicitly states `RISK-WEB-013` remains open pending its own separate reassessment rather than implying it is still based on the old public-repository premise. No other part of the classification model (the two axes, the other 5 rows) was touched.
+- **`AS49-F007` (External Evidence Basis's ChatGPT row was stale — said "no official source found") — corrected.** The ChatGPT row now cites the current official OpenAI "Build skills" documentation (see "Independent verification" above) and records the narrow, accurate claim: standalone/plugin Skills exist across ChatGPT/Codex surfaces, but no official evidence establishes arbitrary-repository-path discovery for ChatGPT itself. The adjacent §3 "product/plugin exposure" table row was updated in the same pass to reference this evidence rather than assert a blanket "no evidence found," while preserving the exact same architectural conclusion (ChatGPT remains a separate, non-comparable distribution question, not a fifth denominator in the repo-path comparison).
+- **`AS49-F008` (two stale/misattributed cross-references) — corrected.** RFC-014 T10's "access-control condition" and T12's case 17 now correctly attribute the accepted-access-controls clarification to `ML-DEVOS-AS-048` (not `AS-047`, which is the unrelated repository-visibility correction). `devos/changes/rfcs/README.md`'s index summary now correctly attributes the Gemini CLI evidence correction to `ML-DEVOS-AS-045` finding `AS45-F007` (Remediation Cycle 2), not `AS-047`. No historical archive was rewritten — only this Builder's own RFC/README text, which had misattributed them, was corrected.
+
+### Additional consistency fix made while remediating (disclosed, not requested by name but a direct consequence of AS49-F008's own correction)
+
+The RFC's closing "Architect Sync requirement" section still said "This is the third returned revision," which became stale the moment Cycle 3 began. Updated to "fourth returned revision," explicitly listing all four (original, Cycle 1, Cycle 2, Cycle 3) and their reviewing Architect Syncs, for the same reason `AS49-F008` asked other stale references to be normalized.
+
+### Full suite result (sanity check — no application code was in scope or touched)
+
+```
+$ npm test
+# tests 352
+# pass 352
+# fail 0
+```
+
+Unchanged, as expected for a documentation-only consistency patch.
+
+### Explicit confirmations
+
+- **No previously accepted architecture was reopened** — the four-skill set, the `.agents/skills/` recommendation, the Claude Code bridge concept, the SKILL CHECK routing model, the consequence-sensitive external-skill tiers, progressive disclosure, and the entire Treasury classification/dedup/provenance/eval/anti-bloat model are all unchanged from the Cycle 2 revision, per the review's explicit "preserve accepted architecture" instruction and because no new evidence emerged against any of them.
+- **The 3-of-4 repository-native portability conclusion is unchanged** — `AS49-F007`'s correction added evidence about ChatGPT's existence as a product, not about repository-path discovery, so it does not move the denominator or the recommendation.
+- **No skill file, canonical/provider-adapter directory, private-repository/secret-store, or Treasury implementation was created.**
+- **No historical RFC/AS/ADR/Decision content was rewritten**, and no Architect Sync archive was fabricated by this Builder.
+- **`RISK-WEB-013` was not marked resolved.**
+- **No S3/S4+/S5/S7/S9 implementation, CI/ruleset, runtime/application code, Sentinel version bump, remote resource, deployment, or `main` merge occurred.**
+- **`REMOTE_R2_AUTHORIZED: NO`, `REMOTE_D1_AUTHORIZED: NO`, `DEPLOY_AUTHORIZED: NO`, `MAIN_MERGE_AUTHORIZED: NO` all remain unchanged.**
+- **The Implementer has not self-certified this remediation as `ARCHITECT VERIFIED`**, and has not self-authorized RFC acceptance, Skills/Treasury implementation, S3 resumption, or any Paulo decision — all of which the review explicitly reserved.
+- **This is the final permitted remediation cycle (`3` of `MAX_REMEDIATION_CYCLES: 3`)** for this discovery; no further remediation cycle may be requested for `RFC-014` under this same authorization without a new Paulo/Architect decision to raise the cap.
+
+### Known limitations / carried-forward items
+
+- Canonical skill location remains a clear recommendation (`.agents/skills/` + Claude Code bridge) pending Paulo's explicit `ARCHITECTURE`-class gate — unchanged from Cycle 2.
+- `RISK-WEB-013` remains open, now requiring reassessment against the repository's private-visibility premise — unchanged from Cycle 2.
+- The one lightweight Knowledge/Principles canonical file remains proposed, not created.
+- Direct `WebFetch` verification of `developers.openai.com`/`learn.chatgpt.com` (this cycle), `docs.github.com`, and the primary `geminicli.com` URL (prior cycles) all remain blocked by this session's network egress policy; each was instead verified via a search-engine-summarized excerpt of the same official page, or (for Gemini CLI specifically) a directly-fetched GitHub-hosted mirror of the identical official content — each limitation is disclosed in its own evidence-table row rather than smoothed over.
+- `S3 — Typed Task Contracts` remains queued behind this discovery's independent closure.
+
+### Remediation commit
+
+The 2 files above, plus this same documentation update to `coordination/IMPLEMENTER_HANDOFF.md`/`coordination/STATE.md`, are committed together to `governance/maisoglabs-v0.1` on top of base `bbe847381f4db46690bdc37164100e9a03178f28`. This commit will be mirrored to the session branch `claude/phase-0-governance-scope-w8o3jp`.
