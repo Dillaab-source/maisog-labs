@@ -3452,3 +3452,21 @@ No Paulo-level decision beyond `D-048` itself was required or made in this cycle
 ### Next expected actor
 
 `ARCHITECT` — per the return gate below and the review's own "Independent design review comes before separate Paulo implementation approval."
+
+---
+
+## ML-DEVOS-RFC-016 Micro-Remediation Cycle 2 — AS65-F001 stale-lock fix (D-049, LEAN MODE)
+
+Input HEAD: `7ef86f35336857d10a5ce4f01f41371a500e959c`. `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 2` (raised for this one pass by `D-049`).
+
+**Files changed:** `devos/changes/rfcs/ML-DEVOS-RFC-016.md` (§D, §F, Risks, Implementation-mapping row 8, Unresolved questions, header authority line); `devos/governance/traceability/traceability-index.json`/`TRACEABILITY_INDEX.md` (regenerated, changed).
+
+**Finding resolved — `AS65-F001` (remaining blocker, unsafe stale-lock stealing):** removed the automatic age-based `unlink`-and-recreate lock-stealing path entirely. §D now specifies: ordinary mutation hitting `EEXIST` never inspects the lock's age and never auto-unlinks it — it returns a deterministic `LOCK_HELD`/`LOCK_RECOVERY_REQUIRED` result and performs no mutation. Recovery of a genuinely orphaned lock is an explicit, out-of-band operator/admin action (`force_clear_lock`-style, outside the kernel's ordinary operation surface), invoked only after independently confirming no writer remains — never triggered by the kernel itself or by age. Documented explicitly as a deliberate availability trade-off (a crashed writer blocks one task until operator intervention) in preference to the two-writer correctness violation the age-based design permitted. Updated the restart-recovery bullet (§E), the persistence comparison table's "Recovery simplicity" cell (§F), the Implementation-mapping row 8 test description (now an "Orphaned-lock test" proving no age-based auto-steal branch exists, plus a separate `force_clear_lock` test), added one new Risk entry, and updated Unresolved Question 3 (removed the now-nonexistent "lock-staleness ceiling" scoping question) and added Question 5 (whether `force_clear_lock`'s own authorization shape needs specifying now or can defer to implementation).
+
+**Commands/checks:** `node devos/governance/traceability/generate-traceability.mjs` then `node devos/governance/traceability/validate-traceability.mjs` — no drift, error fingerprint unchanged at exactly `CORE-022` + `WEB-REQ-009` (2 errors, 15 warnings). Confirmed `D-049` already has a canonical `brain/DECISION_LOG.md` heading before citing it (avoiding the cycle-1 premature-citation mistake). `git status --porcelain` confirmed diff limited to the exact write whitelist.
+
+**Blockers:** none.
+
+**Resulting HEAD:** recorded in the commit carrying this handoff update.
+
+**Next actor:** `ARCHITECT`.

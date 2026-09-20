@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S4_STATE_MACHINE_PROPOSAL
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
-AUTHORIZED_SCOPE: S4_STATE_MACHINE_STALE_LOCK_MICRO_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
@@ -19,67 +19,28 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-049 authorizes exactly one additional S4 proposal micro-remediation pass. D-048 remains the underlying proposal/audit authority. No executable S4 implementation is authorized.
+D-049 (one additional S4 micro-remediation pass, MAX_REMEDIATION_CYCLES raised to 2 for this pass only). D-048 remains the underlying proposal/audit authority.
 
-Architect re-review of remediation HEAD `cead2405e0147967bb89391c4d772d0579d94009` closed AS65-F002, AS65-F003, AS65-F004, and all listed clarifications. Only the remaining AS65-F001 stale-lock recovery issue is in scope.
+## What was delivered this cycle
 
-## Required delta — one issue only
+ML-DEVOS-RFC-016.md §D revised to close the remaining AS65-F001 blocker: removed automatic age-based stale-lock stealing entirely; ordinary mutation on EEXIST now returns a deterministic LOCK_HELD/LOCK_RECOVERY_REQUIRED result with no age inspection; recovery of a genuinely orphaned lock is an explicit out-of-band operator/admin action, never automatic. Documented as a deliberate fail-closed availability trade-off. Updated the directly affected restart-recovery text, persistence comparison table, Implementation-mapping row 8 test, Risks, and Unresolved Questions accordingly; no other already-closed AS65 finding reopened.
 
-Revise `ML-DEVOS-RFC-016.md` so V1 lock recovery FAILS CLOSED:
-- remove automatic age-based unlink/steal of a held lock;
-- ordinary task mutation encountering an existing lock returns a deterministic `LOCK_HELD` or `LOCK_RECOVERY_REQUIRED` result;
-- retain bounded diagnostic metadata sufficient for an operator/admin to inspect a suspected orphan;
-- recovery of a confirmed orphaned lock is an explicit operator/admin maintenance action outside ordinary task mutation and occurs only after confirming no writer remains;
-- document the availability trade-off: a crashed writer may temporarily block one task, but Sentinel prefers a visible stopped task over two concurrent authoritative writers;
-- update only the directly affected crash/orphan-lock and concurrency planned tests/mapping text.
+Traceability regenerated: no drift, fingerprint unchanged at exactly CORE-022 + WEB-REQ-009.
 
-Preserve all other remediated design sections unless a tiny wording adjustment is strictly necessary for consistency.
+Full delta description and command evidence: see the "ML-DEVOS-RFC-016 Micro-Remediation Cycle 2 — AS65-F001 stale-lock fix (D-049, LEAN MODE)" section of coordination/IMPLEMENTER_HANDOFF.md.
 
-## LEAN / DELTA-ONLY BUILDER MODE — REQUIRED
+## Required audit — result
 
-Read first and normally read only:
-1. `coordination/STATE.md`;
-2. `coordination/ARCHITECT_REVIEW.md`;
-3. `devos/changes/rfcs/ML-DEVOS-RFC-016.md`.
+Diff whitelist verified via git status --porcelain: exactly ML-DEVOS-RFC-016.md, the two regenerated traceability outputs, this file, and IMPLEMENTER_HANDOFF.md. No README/index edit. No S4 code, no architecture/core/S3/manifest/version/ADR/workflow/product mutation.
 
-Read another repository file only if this active stale-lock finding specifically requires resolving a citation or canonical fact.
+## Preserved state (unchanged, not reopened)
 
-Efficiency rules:
-- do not reread the complete governance/architecture history;
-- do not summarize files merely read;
-- do not restate old decisions or prior-cycle narrative;
-- do not perform unrelated cleanup or redesign;
-- make the smallest coherent RFC delta;
-- do not run the full application/repository test suite;
-- run only traceability generation/validation if the RFC edit requires it, plus exact diff-whitelist verification;
-- keep `coordination/IMPLEMENTER_HANDOFF.md` compact: input HEAD, exact files changed, AS65-F001 delta, commands/checks, blockers, resulting HEAD, next actor;
-- commit once where practical;
-- satisfy the return gate and stop.
+AS65-F002, AS65-F003, AS65-F004, and all non-blocking clarifications remain closed from cycle 1, not reopened by this micro-remediation.
 
-## Exact write whitelist
-
-- `devos/changes/rfcs/ML-DEVOS-RFC-016.md`
-- `devos/governance/traceability/traceability-index.json` only if deterministic regeneration changes it
-- `devos/governance/traceability/TRACEABILITY_INDEX.md` only if deterministic regeneration changes it
-- `coordination/IMPLEMENTER_HANDOFF.md`
-- `coordination/STATE.md`
-
-No README/index edit is authorized unless the current RFC description becomes factually false because of this micro-delta; if that unexpectedly occurs, stop and return BLOCKED rather than expanding scope.
-
-## Return gate
-
-When the micro-remediation is complete:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: S4_STATE_MACHINE_PROPOSAL_REVIEW_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-- CURRENT_REMEDIATION_CYCLE: 2
-- MAX_REMEDIATION_CYCLES: 2
-
-Keep every prohibition flag NO.
-
-## Hard boundaries
+## Hard boundaries held this cycle
 
 No S4 implementation/live task storage; no S5+; no ML-DEVOS-ARCH-001/core-rule/S3 schema-validator/manifest/version/ADR/workflow/product mutation; no credentials or remote resources; no deployment/production write; no protected/main merge; no PR #10 merge/auto-merge.
+
+## Next step
+
+Architect re-reviews the AS65-F001 delta only. CURRENT_REMEDIATION_CYCLE is 2 of MAX_REMEDIATION_CYCLES: 2 — this authorized pass is now used; any further cycle requires a new Paulo decision to raise the cap again. S4 implementation remains unauthorized.

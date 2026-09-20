@@ -440,7 +440,7 @@
       "pattern": "D-\\d{3}",
       "canonicalType": "heading",
       "canonicalSource": "brain/DECISION_LOG.md",
-      "definitionCount": 48,
+      "definitionCount": 49,
       "ids": [
         {
           "id": "D-001",
@@ -969,6 +969,17 @@
           ],
           "occurrenceCount": 11,
           "inboundReferenceCount": 10
+        },
+        {
+          "id": "D-049",
+          "definitionSites": [
+            {
+              "file": "brain/DECISION_LOG.md",
+              "line": 724
+            }
+          ],
+          "occurrenceCount": 2,
+          "inboundReferenceCount": 1
         }
       ]
     },
@@ -2158,8 +2169,8 @@
               "line": 1
             }
           ],
-          "occurrenceCount": 2,
-          "inboundReferenceCount": 1
+          "occurrenceCount": 4,
+          "inboundReferenceCount": 3
         }
       ]
     },
@@ -2894,7 +2905,7 @@
   "summary": {
     "errorCount": 2,
     "warningCount": 15,
-    "totalDefinitions": 252
+    "totalDefinitions": 253
   },
   "errors": [
     {
