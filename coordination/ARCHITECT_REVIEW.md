@@ -1,244 +1,215 @@
-# Architect Review / Closure Implementation Handoff
+# Architect Review
 
-Status: AUTHORIZED_CLOSURE_IMPLEMENTATION — COORDINATED SENTINEL v1.6.0
+Status: `D.2 POST-DECISION CLOSURE VERIFICATION — CHANGES_REQUESTED / PROVENANCE CLEANUP ONLY`
 
-Architect: ChatGPT
-Product / Risk Owner: Paulo
-Builder: Claude
-Working branch: governance/maisoglabs-v0.1
+Architect: ChatGPT  
+Product / Risk Owner: Paulo  
+Builder: Claude  
+Working branch: `governance/maisoglabs-v0.1`
 
 ---
 
-# Coordinated closure handoff
+# ML-DEVOS-AS-062 — Sentinel v1.6.0 D.2 Closure Verification
 
 Authority:
-- ML-DEVOS-AS-061 — D.1 Pre-decision Closure Preflight PASS
-- D-046 — Paulo coordinated closure authorization
+- `ML-DEVOS-AS-061` — D.1 pre-decision closure preflight PASS
+- `D-046` — coordinated closure authorization
+- `brain/protocols/ARCHITECT_SYNC.md` D.2
 
-## Objective
+Reviewed closure tree:
+- substantive closure commit: `78f007a9b6ea10906fe095ddf5cf2c5f4134ee5e`
+- current branch HEAD: `d63f6f0042cfd26b59863c7390dad77a5b6c07fa`
+- HEAD differs only by the intentionally created zero-diff webhook test commit, so repository tree content is identical to the closure commit.
 
-Execute only the coordinated closure package approved by D-046 and AS-061, then return for D.2 Post-decision Closure Verification.
+## D.2 findings
 
-## Mandatory first actions — before any mutation
+### AS62-F001 — PASS — final closure authority and version state
 
-1. Pull the latest governance/maisoglabs-v0.1.
-2. Record exact HEAD as CLOSURE_EXECUTION_BASE_SHA.
-3. Compare that HEAD against AS-061 evidence baseline:
-   f9995565860d3f6a33ef96070ac88eb3953303ba
-4. Confirm only expected AS-060/AS-061/D-046/coordination bookkeeping differs.
-5. Inspect live devos/changes/adrs/ and identify the current highest ADR.
-6. Run:
-   node devos/governance/traceability/validate-traceability.mjs
-7. Record exact ERROR fingerprint.
-8. STOP and return to Architect before mutation if:
-   - there is unexpected substantive repository drift;
-   - ADR numbering is inconsistent/non-sequential;
-   - the traceability fingerprint differs unexpectedly from AS-061's disclosed baseline;
-   - any new architecture/security blocker appears.
+Final Decision exists:
+- `D-046`
 
-Do not treat the checked-in TRACEABILITY_INDEX.md as current baseline evidence; AS-061 already found it stale.
+Final ADRs exist:
+- `ML-DEVOS-ADR-011` — Skills/Treasury explicit no-bump;
+- `ML-DEVOS-ADR-012` — RFC-015;
+- `ML-DEVOS-ADR-013` — S3 release-closing ADR.
 
-## Authorized closure work
+Manifest reports:
+- active Sentinel baseline `v1.6.0`;
+- baseline decision `D-046`;
+- baseline ADR `ML-DEVOS-ADR-013`;
+- frozen architecture remains `ML-DEVOS-ARCH-001 / v1.2.0`.
 
-### A. Skills Foundation V0.1 + Portable Knowledge Treasury
+### AS62-F002 — PASS — S3 manifest lifecycle is fail-closed and internally consistent
 
-Create the next live sequential ADR recording adoption of:
-- RFC-014;
-- AS-050;
-- D-042;
-- AS-053;
-- .agents/skills/ canonical Skills payload;
-- deterministic non-diverging .claude/skills/ bridge;
-- manual Portable Knowledge Treasury;
-- brain/KNOWLEDGE_PRINCIPLES.md;
-- no CORE meaning/actor-authority/trust-boundary/remote/deploy/main change;
-- RISK-WEB-013 remains separately open.
+`devos/contracts/` now has:
+- `owning_phase: S3`;
+- `status: IMPLEMENTED`;
+- `closure_ref: ML-DEVOS-ADR-013`;
+- `executable_runtime_present: false`.
 
-Version disposition:
-- explicit NO SENTINEL CAPABILITY-BASELINE BUMP;
-- effective baseline remains v1.5.0.
+`closure_ref` resolves to exactly one closure-history entry:
+- phase `S3`;
+- ADR `ML-DEVOS-ADR-013`;
+- Decision `D-046`;
+- Architect Sync `ML-DEVOS-AS-055`;
+- version `1.6.0`.
 
-Update RFC-014 status/provenance to IMPLEMENTED AND CLOSED without rewriting its proposal body.
+All later reserved roots remain non-implemented.
+`devos/schemas/` remains the sole `FOUNDATION_ACTIVE` root.
 
-### B. RFC-015
+### AS62-F003 — PASS — coordinated release history preserved
 
-Create the next live sequential ADR after the Skills/Treasury ADR.
+Manifest closure history preserves prior S2 / risk-escalation entries and appends:
+- `GOV-RESERVED-LIFECYCLE` / ADR-012 / v1.6.0;
+- `S3` / ADR-013 / v1.6.0.
 
-It must cite:
-- RFC-015;
-- D-043, D-044, D-045, D-046;
-- AS-057, AS-058, AS-059, AS-060;
-- AS-061 preflight.
+The one-release / multiple-ADR convention is represented without changing `manifest_version`.
 
-Record adoption of:
-- IMPLEMENTED reserved-root lifecycle;
-- ADR-keyed fail-closed closure_ref;
-- S2-only FOUNDATION_ACTIVE;
-- behavior-based executable_runtime_present semantics;
-- D.1 pre-decision Closure Preflight;
-- D.2 post-decision Closure Verification;
-- no manifest_version semantic change.
+### AS62-F004 — PASS — RFC/provenance/version surfaces are materially reconciled
 
-Version disposition:
-- MINOR-class capability;
-- deliberately co-released with S3 under v1.6.0.
+Observed:
+- RFC-013 = `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-013 / D-046`;
+- RFC-014 = `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-011 / D-046`, explicit no-bump;
+- RFC-015 = `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-012 / D-046`;
+- `devos/contracts/README.md` correctly distinguishes D-037 implementation authority, D-042 sequential reopening authority, and AS-053 reopening event;
+- `VERSIONING_POLICY.md` records Skills/Treasury no-bump and the coordinated `v1.5.0 → v1.6.0` release.
 
-Update RFC-015 status/provenance to IMPLEMENTED AND CLOSED.
+### AS62-F005 — PASS — traceability output is current at closure tree
 
-### C. S3 Typed Task Contracts
+Checked-in generated Traceability V1 output now reports:
+- 245 scanned files;
+- 2 ERRORs;
+- 15 warnings;
+- 246 canonical definitions.
 
-Create the next live sequential ADR after the RFC-015 ADR.
+The two remaining ERROR families are:
+- `CORE-022`;
+- `WEB-REQ-009`.
 
-It must cite:
-- RFC-013;
-- AS-038;
-- D-037 as the actual S3 implementation authorization;
-- D-042 as sequential reopening authority only;
-- AS-053 reopening;
-- AS-054 remediation;
-- AS-055 final technical approval;
-- AS-056 discrepancy review;
-- RFC-015 / AS-060 closure-lifecycle mechanism;
-- AS-061 preflight;
-- D-046 closure authorization.
+The closure-created ADR forward-reference errors are gone.
 
-Record:
-- Typed Task Contracts adopted;
-- task contracts remain descriptive/non-authoritative;
-- devos/contracts/ becomes IMPLEMENTED;
-- executable_runtime_present remains false;
-- effective Sentinel version v1.6.0.
+This matches Builder's reported post-closure fingerprint and the AS-061 expectation that zero total ERRORs was not required.
 
-Correct devos/contracts/README.md:
-- D-037 = implementation authorization;
-- D-042 = sequential reopening authority;
-- AS-053 = reopening event.
+### AS62-F006 — PASS — S4 / runtime / remote / deploy authority did not leak
 
-Update RFC-013 status to IMPLEMENTED AND CLOSED without rewriting its proposal body.
+The live manifest still marks:
+- `devos/state/` (S4) = `NOT_IMPLEMENTED`;
+- top-level and S3 `executable_runtime_present: false`.
 
-### D. DevOS manifest
+No S4 authority appears in the closure ADRs.  
+No deployment / remote-resource / protected-main authority was introduced.
 
-Update devos/devos-manifest.json:
+### AS62-F007 — BLOCKER — ADR-012 contains false durable provenance for AS-057
 
-sentinel_capability_baseline:
-- version → 1.6.0;
-- status remains ACTIVE;
-- adr → S3 closure ADR;
-- decision → D-046;
-- document → S3 ADR path.
+`ML-DEVOS-ADR-012.md` currently says:
 
-devos/contracts/ root:
-- status → IMPLEMENTED;
-- closure_ref → S3 closure ADR;
-- executable_runtime_present remains false.
+> `ML-DEVOS-AS-057 — remediation cycle 1 (evidence-guarantee semantics, empty-string structural parity, DEPLOYED floor-not-ceiling)`
 
-Append closure_history entries, preserving all prior entries:
+and its Context section repeats that AS-057 corrected:
+- a mixed-`any_of` evidence-guarantee bypass;
+- empty-string structural parity;
+- over-strict DEPLOYED handling.
 
-1. RFC-015:
-   - phase: GOV-RESERVED-LIFECYCLE
-   - version: 1.6.0
-   - adr: RFC-015 ADR
-   - decision: D-046
-   - architect_sync: ML-DEVOS-AS-060
-   - closed_at: actual closure date
-   - bounded note explaining co-release
+That is factually incorrect.
 
-2. S3:
-   - phase: S3
-   - version: 1.6.0
-   - adr: S3 ADR
-   - decision: D-046
-   - architect_sync: ML-DEVOS-AS-055
-   - closed_at: actual closure date
-   - bounded note explaining Typed Task Contracts closure
+Those were S3 Task Contract remediation issues handled in the AS-054/AS-055 chain.
 
-Also:
-- update descriptive baseline text to v1.6.0 where it claims the current baseline;
-- update updated_at to closure date;
-- keep manifest_version exactly "1";
-- leave later roots NOT_IMPLEMENTED;
-- keep all executable_runtime_present values false.
+Actual AS-057 findings were:
+1. event-specific ADR-keyed `closure_ref`;
+2. traceability generated-output currency / baseline / new-error separation;
+3. coherent version/ADR sequencing;
+4. behavior-based runtime distinction.
 
-### E. Version policy
+AS-058 then closed those four findings and requested only the final pre-decision vs post-decision closure sequencing split.
 
-Update VERSIONING_POLICY.md to record:
-- active baseline v1.6.0;
-- D-046;
-- coordinated one-release/two-MINOR-capability adoption of RFC-015 + S3;
-- separate ADR provenance;
-- Skills/Treasury no-bump closure remains effective at v1.5.0 immediately before the v1.6.0 transition;
-- frozen S0 architecture remains v1.2.0.
+ADR-012 is a durable architecture record. Leaving the wrong remediation history there would make the closure provenance itself inaccurate.
 
-Do not change semantic-version definitions.
+#### Required correction
 
-### F. ADR index and minimal indexes
+Correct ADR-012 only; do not alter its adopted decision.
 
-Update devos/changes/adrs/README.md with the three new ADRs.
+At minimum:
+- replace the AS-057 summary with the real four findings above;
+- correct the Context paragraph so it says **two remediation cycles** before AS-059 approval, not three;
+- remove the false S3 validator issue attribution;
+- keep AS-058 as the closure-sequencing remediation;
+- keep AS-059/060/061/D-046 roles unchanged.
 
-Only update RFC/AS index text if directly required for new closure records. Do not broaden documentation cleanup.
+### AS62-F008 — CLEANUP REQUIRED — closure-touched manifest test comments still describe pre-closure state
 
-### G. Traceability regeneration
+`tests/devos-manifest.test.mjs` logic is correctly adapted to S3 closure, but comments still say:
+- the live closure history "today cites only ML-DEVOS-ADR-002 and ML-DEVOS-ADR-006";
+- D-045's "no live manifest migration this cycle" as if still-current context;
+- one FOUNDATION_ACTIVE fixture comment refers to `devos/contracts/` even though the synthetic target is now `devos/state/`.
 
-After all final closure records exist:
+These are not validator defects, but they are stale comments in the exact test file changed by the closure.
 
-1. run the traceability validator;
-2. run the traceability generator;
-3. rerun the validator;
-4. prove generated JSON/Markdown match a fresh regeneration;
-5. record exact post-closure ERROR fingerprint.
+#### Required correction
 
-Expected:
-- ADR forward-reference errors should resolve if the actual assigned ADRs correspond to those references;
-- WEB-REQ-009 remains open unless separately evidenced as resolved — not authorized here;
-- CORE-022 remains visible unless separately evidenced as resolved — not authorized here;
-- zero total errors is not required;
-- no NEW unexpected ERROR is allowed.
+Documentation/comments only:
+- describe the current live closure history without hard-coding a stale pre-closure list;
+- make D-045 wording explicitly historical to the RFC-015 implementation cycle;
+- correct the synthetic-target comment to `devos/state/`.
 
-If live ADR numbering differs from the preflight's expected 011–013, do not force old references to fit; allocate correct live IDs and report how traceability findings changed.
+Do not change test semantics or test count unless a real defect is found.
 
-## Rolling coordination
+### AS62-F009 — remediation must preserve traceability currentness
 
-Update coordination/IMPLEMENTER_HANDOFF.md top/current header so it no longer presents Skills Foundation as current.
+Because ADR/test-text edits can change reference occurrence counts and line positions:
+- regenerate Traceability V1 JSON/Markdown after the corrections;
+- verify no generated-output drift;
+- post-remediation ERROR fingerprint must remain only `CORE-022` + `WEB-REQ-009`, unless an independently evidenced change explains otherwise.
 
-Set STATE after closure implementation:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-- AUTHORIZED_SCOPE: D2_POST_DECISION_CLOSURE_VERIFICATION_ONLY
+## Evidence classification
 
-## Required evidence
+Independently inspected:
+- final manifest state;
+- final ADR/RFC/version-policy text;
+- S3 closure_ref linkage;
+- generated traceability summary;
+- closure-touched test source;
+- current STATE/handoff.
 
-Return:
-- exact execution base SHA;
-- exact result SHA;
-- exact live ADR ceiling before allocation;
-- assigned ADR IDs and titles;
-- exact changed-file list;
-- pre-mutation traceability fingerprint;
-- post-closure traceability fingerprint;
-- generated-index currentness proof;
-- manifest validator result;
-- focused RFC-015 manifest tests;
-- S3/task-contract focused tests;
-- Skills tests if touched by closure docs only as sanity check;
-- full repository suite if practical;
-- explicit proof S4/core/product/remote/deploy/main remained untouched.
+Builder-reported and not independently executed here:
+- 458/458 full suite;
+- 22/22 manifest tests;
+- 44/44 task-contract tests;
+- 40/40 skills tests;
+- manifest CLI PASS;
+- traceability generator/validator command execution.
 
-All Builder-run command output remains ACTOR_REPORTED until independently reproduced/verified.
+## Verdict
 
-## Hard boundaries
+`ML-DEVOS-AS-062: CHANGES_REQUESTED — D.2 PROVENANCE CLEANUP ONLY`
 
-No:
-- S4 proposal/implementation;
-- core-rule mutation;
-- unrelated governance expansion;
-- product/runtime code changes;
-- remote/cloud resource mutation;
-- credentials;
-- deployment;
-- production writes;
-- protected/main merge.
+The coordinated v1.6.0 architecture/implementation is **not reopened**.
 
-Builder must not self-perform D.2 acceptance.
+Only durable closure provenance/currentness cleanup is required before final D.2 acceptance.
+
+## Authorized remediation
+
+Claude may modify only:
+- `devos/changes/adrs/ML-DEVOS-ADR-012.md`;
+- `tests/devos-manifest.test.mjs` comments/documentation only, unless an actual test defect is discovered and reported before changing semantics;
+- `devos/governance/traceability/traceability-index.json`;
+- `devos/governance/traceability/TRACEABILITY_INDEX.md`;
+- normal `coordination/IMPLEMENTER_HANDOFF.md`;
+- normal `coordination/STATE.md`.
+
+Required verification:
+- focused manifest tests;
+- traceability validator/generator/currentness;
+- full suite if practical.
+
+No new ADR/Decision/version/manifest lifecycle mutation is authorized.
+
+## Return gate
+
+After cleanup:
+- `TURN: ARCHITECT`;
+- `STATUS: READY_FOR_ARCHITECT`;
+- `AUTHORIZED_SCOPE: D2_POST_DECISION_CLOSURE_VERIFICATION_ONLY`;
+- `ARCHITECT_ACTION_REQUIRED: YES`;
+- `IMPLEMENTER_ACTION_REQUIRED: NO`.
+
+S4 remains unauthorized until D.2 final acceptance and a separate S4 proposal/decision.
