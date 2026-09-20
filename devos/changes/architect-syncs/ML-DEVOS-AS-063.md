@@ -1,3 +1,12 @@
+# ML-DEVOS-AS-063 — Durable Architect Sync Archive
+
+Status: CONCLUDED — D.2 POST-DECISION CLOSURE VERIFICATION ACCEPTED
+
+Canonical rolling source:
+- coordination/ARCHITECT_REVIEW.md
+
+## Concluding snapshot
+
 # Architect Review
 
 Status: `D.2 POST-DECISION CLOSURE VERIFICATION — ACCEPTED`
