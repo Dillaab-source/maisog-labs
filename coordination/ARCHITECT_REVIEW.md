@@ -1,106 +1,129 @@
 # Architect Review — ML-DEVOS-RFC-016 S4 State Machine Kernel
 
-Status: PAULO_DECISION_REQUIRED
+Status: ARCHITECT_APPROVED — PAULO IMPLEMENTATION DECISION REQUIRED
 Review mode: STAGE GATE REVIEW
 Cycle: SENTINEL_S4_STATE_MACHINE_PROPOSAL
-Reviewed remediation HEAD: cead2405e0147967bb89391c4d772d0579d94009
-Prior reviewed proposal: 4e9b6aeacd2977051f08c450eeef966ab43b17c4
-Authority: D-048 proposal/audit only. S4 implementation remains unauthorized.
+Final reviewed HEAD: e084699212d0aeca9ad3ae2827127d51df4bd5b5
+Original proposal HEAD: 4e9b6aeacd2977051f08c450eeef966ab43b17c4
+Remediation authorities: D-048, D-049
+Proposed durable sync ID on conclusion: ML-DEVOS-AS-065
 
-## Independent review result
+## Final independent review
 
-The bounded remediation materially improved RFC-016.
+The S4 State Machine Kernel proposal is architecturally compatible and implementation-ready as a design, subject to Paulo's separate implementation/policy decision below.
 
-Closed:
-- AS65-F002 — ownership handoff deadlock: CLOSED.
-- AS65-F003 — retry policy coupled to coordination/STATE.md: CLOSED.
-- AS65-F004 — incomplete mutating-operation idempotency semantics: CLOSED.
-- Non-blocking clarification set: CLOSED.
+### Findings disposition
 
-Still open:
-- AS65-F001 — persistence/concurrency correctness: PARTIALLY REMEDIATED, ONE SAFETY BLOCKER REMAINS.
+- AS65-F001 — persistence/CAS/single-writer correctness: CLOSED.
+  - Normal writers are serialized by exclusive-create lock acquisition.
+  - revision validation occurs inside the lock-held read/validate/mutate/persist boundary.
+  - automatic age-based stale-lock stealing has been removed.
+  - an existing/suspected orphan lock now fails closed; ordinary mutation does not unlink or bypass it.
+- AS65-F002 — cross-role ownership handoff deadlock: CLOSED.
+- AS65-F003 — task retry policy coupled to bootstrap coordination state: CLOSED.
+- AS65-F004 — mutating-operation idempotency semantics: CLOSED.
+- Four prior non-blocking clarifications: CLOSED.
 
-## AS65-F001 remaining blocker — unsafe stale-lock stealing
+No executable S4 implementation exists yet. All implementation-mapping rows remain NOT STARTED.
 
-The revised `fs.open(path, 'wx')` exclusive lock correctly serializes normal concurrent writers while the lock remains intact. That fixes the original rename-only race.
+## Micro-remediation review — D-049
 
-However, the proposed stale-lock recovery is not safe enough for an authoritative state kernel:
+The cycle-2 delta is accepted.
 
-1. writer A legitimately holds `<task>.lock`;
-2. A pauses longer than the configured lock-staleness ceiling (scheduler stall, GC pause, debugger, filesystem delay, or unexpectedly slow I/O) but is still alive;
-3. writer B observes the old timestamp, unlinks A's lock, and creates a new lock;
-4. A and B can now both execute the supposedly exclusive critical section and both write task state.
+On ordinary mutation, EEXIST no longer leads to timestamp-age inspection or lock stealing. The RFC now returns deterministic LOCK_HELD / LOCK_RECOVERY_REQUIRED with no state mutation. A genuinely orphaned lock may be cleared only through a distinct, out-of-band operator/admin maintenance path after independently confirming no active writer remains.
 
-The second exclusive-create performed by B does not protect against A because A still believes it owns the now-unlinked inode/file handle. Time age alone is not proof that the original holder is dead.
+This closes the two-writer safety failure identified in the prior review. The accepted V1 trade-off is availability over unsafe autonomous recovery: one crashed writer may temporarily block one task, but the kernel never regains availability by creating two possible authoritative writers.
 
-That violates RFC-016's core invariant: at most one authoritative writer may enter the state mutation critical section.
+The planned test mapping now explicitly requires an orphan-lock test proving that lock age never causes ordinary mutation to auto-unlink the lock.
 
-### Architect recommendation — smallest safe V1
+## Architect resolutions of RFC-016 open questions
 
-Keep the JSON + exclusive-create design, but make orphaned-lock recovery FAIL CLOSED rather than automatic.
+### Q1 — FAILED / ABANDONED terminal states
 
-For V1:
-- never auto-unlink a held lock merely because its timestamp is old;
-- on `EEXIST`, return a deterministic `LOCK_HELD` / `LOCK_RECOVERY_REQUIRED` result;
-- record enough diagnostic lock metadata for an operator to inspect the suspected orphan;
-- recovery of a genuinely orphaned lock is an explicit operator/admin maintenance action outside ordinary task mutation, performed only after confirming no writer remains;
-- document this as a deliberate availability trade-off: a crashed writer may temporarily block that task, but Sentinel must prefer a visible stopped task over two concurrent authoritative writers;
-- add a crash/orphan-lock test proving ordinary mutation never steals a lock automatically.
+Architect position: ACCEPTABLE DESIGN, BUT REQUIRES EXPLICIT PAULO ADOPTION.
 
-This is a much smaller delta than replacing persistence entirely and preserves the zero-third-party-dependency V1 direction.
+FAILED and ABANDONED solve real lifecycle gaps and are compatible with the intended state-machine architecture. However, they add states to the frozen ML-DEVOS-ARCH-001 §10 lifecycle. Architect approval of RFC-016 recommends the amendment; it does not by itself rewrite frozen architecture.
 
-SQLite remains a valid later alternative if autonomous multi-process crash recovery becomes important. The current Node built-in SQLite API is still documented by Node as Stability 1.2 / release candidate, so adopting it now would introduce a separate runtime/API maturity decision rather than merely fixing this RFC's concurrency invariant.
+Before implementation, Paulo's implementation Decision must explicitly adopt these two additive terminal states for S4. ML-DEVOS-ARCH-001 itself is not edited during this design review.
+
+### Q2 — passive sweep_expired_leases boundary
+
+Architect decision: ACCEPTED FOR V1.
+
+S4 remains a deterministic state kernel rather than an active scheduler. sweep_expired_leases() is a passive query; autonomous polling/dispatch remains S8 Orchestrator territory. No S4 daemon or autonomous timeout transition is introduced.
+
+### Q3 — Task Policy retry-ceiling scope
+
+Architect decision: PER-PROJECT FOR V1.
+
+Use one versioned S4 Task Policy for Dillaab-source/maisog-labs rather than adding retry policy to each S3 Task Contract. This avoids reopening the S3 schema and keeps policy separate from task description.
+
+The actual numeric build/QA/review retry ceiling is intentionally unresolved and must be explicitly set by Paulo before implementation. Builder may not invent the number.
+
+### Q4 — transition history boundary
+
+Architect decision: ACCEPTED INSIDE TASK ENGINE STATE FOR V1.
+
+A compact, bounded transition-provenance history may remain inside each task-state record when limited to state-change metadata such as from/to, actor/reference, timestamp, idempotency reference and evidence reference. Raw commands, logs, failures, token/cost/timing telemetry and execution narrative remain future Run History / S11 concerns.
+
+### Q5 — force_clear_lock authorization
+
+Architect decision: AUTHORIZATION MUST BE EXPLICIT BEFORE IMPLEMENTATION.
+
+force_clear_lock (or equivalent) is not part of ordinary Builder/task mutation and must never be implicitly available merely because a process can access the filesystem.
+
+V1 implementation must treat it as a separate maintenance capability:
+- ordinary claim/renew/release/transition paths cannot invoke it;
+- invocation requires a Paulo-authorized operator/admin role or explicit Decision reference;
+- caller/operator identity and reason are recorded;
+- the operator must confirm out-of-band that no writer remains;
+- it grants no general task-transition, merge, deployment or remote-resource authority.
+
+The exact code/API shape may be chosen during bounded S4 implementation, but this authority boundary is part of the accepted design.
+
+## Traceability / scope audit
+
+Independently inspected:
+- exact D-049 delta from 7ef86f35336857d10a5ce4f01f41371a500e959c to e084699212d0aeca9ad3ae2827127d51df4bd5b5;
+- changed-file set: RFC-016, two deterministic traceability outputs, coordination STATE and IMPLEMENTER_HANDOFF only;
+- generated TRACEABILITY_INDEX.md reports 249 scanned files, 2 errors, 15 warnings, 253 canonical definitions;
+- remaining ERROR fingerprint is the known pre-existing CORE-022 + WEB-REQ-009 pair;
+- no executable S4 file under devos/state/ was introduced.
+
+Builder's command execution remains ACTOR_REPORTED; this Architect review independently inspected the resulting artifacts/diff. No executable behavior exists to independently reproduce yet.
 
 ## Stage-gate verdict
 
-S4 DESIGN STAGE GATE: NOT YET APPROVED
-READY TO IMPLEMENT: NO
-PAULO DECISION REQUIRED: YES
+S4 DESIGN STAGE GATE: ARCHITECT_APPROVED
+RFC-016 DESIGN: ACCEPTED FOR BOUNDED IMPLEMENTATION
+READY TO IMPLEMENT: REQUIRES PAULO DECISION
+S4 IMPLEMENTATION AUTHORITY: NOT YET GRANTED
 
-Reason: the one authorized remediation cycle is exhausted (`CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 1`). Architect will not silently raise the cap.
+This approval is a technical recommendation only. Capability != authority remains unchanged.
 
-Recommended Paulo decision:
-- authorize exactly one micro-remediation pass;
-- raise the remediation ceiling only for this pass;
-- scope it solely to replacing automatic stale-lock stealing with fail-closed orphan-lock handling and updating the directly affected RFC tests/mapping text;
-- no S4 implementation.
+## Paulo decision package required before Builder implementation
 
-## Standing coordination efficiency rule — LEAN / DELTA-ONLY BUILDER MODE
+A single explicit Paulo decision may now:
+1. authorize bounded S4 implementation of the accepted RFC-016 design;
+2. explicitly adopt FAILED and ABANDONED as additive S4 lifecycle terminal states;
+3. set the V1 per-project retry ceiling values (build / QA / review);
+4. authorize the bounded operator/admin force-clear-lock maintenance capability and its required provenance;
+5. preserve all remote/deploy/protected-main prohibitions;
+6. return implementation to Architect for independent review before closure.
 
-Paulo explicitly requested that future Claude turns minimize token consumption. This rule applies to the next Builder handoff and should be carried forward in subsequent bounded Builder turns unless Paulo changes it.
+No implementation begins until those items are explicit.
 
-Claude reads only:
-1. `coordination/STATE.md`;
-2. `coordination/ARCHITECT_REVIEW.md`;
-3. the exact files authorized for mutation.
+## LEAN / DELTA-ONLY BUILDER MODE — STANDING RULE
 
-Additional repository files are read only when an active finding specifically requires resolving a cited source.
+Future Claude Builder turns remain lean:
+- read STATE.md, ARCHITECT_REVIEW.md and exact authorized mutation files first;
+- read additional repository sources only when an active finding or implementation requirement requires them;
+- do not reread full governance history;
+- do not restate prior-cycle narrative;
+- smallest coherent delta only;
+- only relevant tests/checks;
+- compact IMPLEMENTER_HANDOFF;
+- one commit where practical;
+- return gate then stop.
 
-Builder rules:
-- do not reread the whole governance/architecture history;
-- do not summarize files that were merely read;
-- do not restate old decisions or prior-cycle narrative;
-- make the smallest coherent delta;
-- do not perform unrelated cleanup;
-- run only checks required by the changed surface;
-- keep `IMPLEMENTER_HANDOFF.md` compact: input HEAD, files changed, findings resolved, commands/checks, blockers, resulting HEAD, next actor;
-- commit once where practical;
-- stop immediately after the return gate is satisfied.
-
-Architect remains responsible for broad architecture/governance reasoning. Builder is responsible for the bounded delta.
-
-## If Paulo authorizes the recommended micro-remediation
-
-Next Builder scope must be exactly:
-- `devos/changes/rfcs/ML-DEVOS-RFC-016.md`;
-- traceability derived outputs only if regeneration changes them;
-- `coordination/IMPLEMENTER_HANDOFF.md`;
-- `coordination/STATE.md`.
-
-Required RFC delta only:
-- remove automatic age-based lock stealing;
-- specify fail-closed orphan-lock behavior and explicit operator recovery boundary;
-- update crash/recovery and race tests/mapping accordingly;
-- preserve all already-closed AS65 findings without reopening or rewriting unrelated sections.
-
-No executable S4 code, no architecture/core/S3/manifest/version/ADR/workflow/product/remote/deploy/main mutation.
+This efficiency rule changes context consumption only, never authority or evidence requirements.
