@@ -88,6 +88,31 @@ test("the live devos-manifest.json remains valid under the extended schema/valid
   assert.deepEqual(errors, [], `live manifest must validate cleanly with zero errors; got: ${JSON.stringify(errors)}`);
 });
 
+// D2-F002 (S4 closure D.2 verification): the manifest's descriptive
+// source_of_truth_precedence text names the current Sentinel capability
+// baseline as a human-readable string ("... currently vX.Y.Z)"), separate
+// from the machine-readable sentinel_capability_baseline.version field the
+// validator actually checks. Nothing previously asserted the two agree, so a
+// closure that bumped one without the other (as this S4 closure initially
+// did, bumping sentinel_capability_baseline.version to 1.7.0 while leaving
+// this descriptive string at v1.6.0) went undetected. This assertion is
+// intentionally dynamic -- it derives the expected version from the live
+// manifest's own sentinel_capability_baseline.version rather than hardcoding
+// "v1.7.0", so a future MINOR/MAJOR closure that repeats this drift fails
+// here immediately instead of leaving the manifest internally inconsistent.
+test("source_of_truth_precedence's descriptive Sentinel capability baseline version matches sentinel_capability_baseline.version", () => {
+  const doc = loadManifest();
+  const currentVersion = `v${doc.sentinel_capability_baseline.version}`;
+  const precedenceLine = doc.source_of_truth_precedence.find((line) =>
+    line.includes("Sentinel capability baseline")
+  );
+  assert.ok(precedenceLine, "expected a source_of_truth_precedence entry describing the Sentinel capability baseline");
+  assert.ok(
+    precedenceLine.includes(currentVersion),
+    `source_of_truth_precedence entry '${precedenceLine}' must contain the current baseline version '${currentVersion}' (from sentinel_capability_baseline.version)`
+  );
+});
+
 // Updated by the coordinated Sentinel v1.6.0 closure (D-046 / ML-DEVOS-ADR-013)
 // and again by the S4 closure (D-051 / ML-DEVOS-ADR-014): devos/contracts/
 // (S3) and devos/state/ (S4) are now the two reserved roots that have reached

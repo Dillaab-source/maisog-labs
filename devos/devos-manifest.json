@@ -18,7 +18,7 @@
   },
   "source_of_truth_precedence": [
     "Frozen Architecture (ML-DEVOS-ARCH-001 / v1.2.0)",
-    "Active Governance Kernel (Sentinel capability baseline, currently v1.6.0)",
+    "Active Governance Kernel (Sentinel capability baseline, currently v1.7.0)",
     "Decisions (brain/DECISION_LOG.md)",
     "ADRs (devos/changes/adrs/)",
     "Durable Architect Syncs (devos/changes/architect-syncs/)",

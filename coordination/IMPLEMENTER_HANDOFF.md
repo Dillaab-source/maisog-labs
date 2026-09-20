@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_CLOSURE`, D2-F001 test-fixture remediation complete, awaiting D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_CLOSURE`, D2-F002 final metadata remediation complete (remediation cycle 2 of 2, no cycles remain), awaiting final D.2 Post-decision Closure Verification (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "S4 Closure D.2-F001 Test-Fixture Remediation (Cycle 1)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY remediation. `tests/devos-manifest.test.mjs` now passes 22/22 — no closure record, manifest, ADR, RFC, VERSIONING_POLICY, ARCH-001, or S4 implementation file was touched.
+**Current cycle:** see the "S4 Closure D2-F002 Final Metadata Remediation (Cycle 2)" section at the very end of this document for the exact delta and evidence of this LEAN/DELTA-ONLY remediation. `devos/devos-manifest.json`'s `source_of_truth_precedence` descriptive baseline string now reads `v1.7.0`, matching `sentinel_capability_baseline.version`; `tests/devos-manifest.test.mjs` now passes 23/23 with a new dynamic regression assertion guarding this consistency for future closures. This is `MAX_REMEDIATION_CYCLES`'s final cycle — no further autonomous remediation is available.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "S4 Closure D2-F001 Test-Fixture Remediation (Cycle 1)" section further below for the exact delta and evidence of that remediation, which the Architect confirmed `CLOSED` by exact source/diff inspection before finding the separate `D2-F002` metadata blocker this cycle resolves.
 
 ---
 
@@ -3724,3 +3728,26 @@ No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, versi
 **Blockers:** none.
 
 **Next actor:** `ARCHITECT` — D.2 Post-decision Closure Verification.
+
+---
+
+## S4 Closure D2-F002 Final Metadata Remediation (Cycle 2)
+
+**Authority:** `D-051` (unchanged). Architect D.2 review of remediation HEAD `8546e5d64802a758b1888e361c224e23250918e5` confirmed `D2-F001: CLOSED` and found one final closure-consistency defect, `D2-F002`. `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 2` — **this is the last authorized autonomous remediation cycle.** **LEAN / DELTA-ONLY mode** — read only `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, `devos/devos-manifest.json`, `tests/devos-manifest.test.mjs`.
+
+**Input HEAD:** `c0d56a82ef3d09c33590a26cf6fe949517dea13e` (the D.2 review commit, fast-forwarded before any edit).
+
+**D2-F002 (manifest contains contradictory current-baseline metadata) — fixed, exactly per the Architect's required final micro-remediation:**
+1. `devos/devos-manifest.json`'s `source_of_truth_precedence` array: corrected the descriptive string `"Active Governance Kernel (Sentinel capability baseline, currently v1.6.0)"` → `"...currently v1.7.0)"`, matching `sentinel_capability_baseline.version: "1.7.0"`. No other manifest field touched.
+2. Added exactly one dynamic regression test to `tests/devos-manifest.test.mjs`: `source_of_truth_precedence's descriptive Sentinel capability baseline version matches sentinel_capability_baseline.version`. It reads the live manifest, derives `v${sentinel_capability_baseline.version}` (never a hardcoded `"v1.7.0"`), locates the `source_of_truth_precedence` entry mentioning "Sentinel capability baseline", and asserts it contains that exact derived version string — so a future MINOR/MAJOR closure that repeats this same drift (bumping the machine-readable version field without the descriptive precedence string) fails this test immediately rather than leaving the manifest internally inconsistent, exactly as the brief required ("do not hardcode future behavior around S4 specifically").
+3. No schema or validator semantics changed — this is a live-instance consistency assertion only, per the brief.
+
+**Commands/checks (all `ACTOR_REPORTED`):**
+- `node --test tests/devos-manifest.test.mjs` → `23/23 pass` (was 22/22 before adding the new regression test).
+- `node devos/schemas/validate-devos-manifest.mjs` → `PASS: 0 error(s) across 1 file(s)`.
+- `node devos/governance/traceability/generate-traceability.mjs` then `validate-traceability.mjs` → `Scanned 263 files. Errors: 2. Warnings: 14.`, fingerprint unchanged (`CORE-022` + `WEB-REQ-009`); generated output byte-identical to the already-committed version (this edit's comment/reference text did not shift any indexed reference), so no traceability file was re-staged.
+- `git status --porcelain` against input HEAD: exactly `devos/devos-manifest.json` and `tests/devos-manifest.test.mjs` changed — matching the final-cycle authorized write surface exactly. `ML-DEVOS-ADR-014`, `ML-DEVOS-RFC-016.md`, `VERSIONING_POLICY.md`, `ML-DEVOS-ARCH-001.md`, `brain/DECISION_LOG.md`, every S4 implementation/test file, the manifest schema/validator, and every product/runtime/workflow file: byte-identical to input HEAD.
+
+**Blockers:** none. No further autonomous remediation cycle remains available under `MAX_REMEDIATION_CYCLES: 2` — the next Architect verdict is final for this closure package (either `APPROVED` or a Paulo-level escalation, per the review's own note).
+
+**Next actor:** `ARCHITECT` — final D.2 Post-decision Closure Verification.
