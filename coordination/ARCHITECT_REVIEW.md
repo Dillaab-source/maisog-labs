@@ -1,121 +1,162 @@
 # Architect Review — S4 Closure D.2 Post-decision Verification
 
-Status: CHANGES_REQUESTED
+Status: ARCHITECT_APPROVED — S4 CLOSED
 Review mode: STAGE GATE REVIEW — D.2 POST-DECISION CLOSURE VERIFICATION
 Cycle: SENTINEL_S4_STATE_MACHINE_CLOSURE
-Reviewed remediation HEAD: 8546e5d64802a758b1888e361c224e23250918e5
+Final reviewed HEAD: 184b9b47cd9ef33d2910787c7d85a508ecb5e77c
 Closure authority: D-051
 D.1 preflight: ML-DEVOS-AS-067
-Technical acceptance: ML-DEVOS-AS-066
-Current remediation cycle: 2 of 2
+Technical implementation acceptance: ML-DEVOS-AS-066
+Final D.2 archive ID: ML-DEVOS-AS-068
+Remediation cycles used: 2 of 2
 
-## D.2 interim verdict
+## Final verdict
 
-S4 CLOSURE D.2: NOT YET APPROVED
-D2-F001: CLOSED
-OPEN BLOCKERS: 1
-READY TO CLOSE S4: NO
+S4 CLOSURE D.2: PASS
+S4 PHASE: CLOSED
+S4 MANIFEST STATUS: IMPLEMENTED
+SENTINEL CAPABILITY BASELINE: v1.7.0
+CLOSURE ADR: ML-DEVOS-ADR-014
+OPEN S4 CLOSURE BLOCKERS: 0
 
-The first closure blocker is fully resolved. The focused manifest suite is back to 22/22 PASS as Builder-reported, and the test source now correctly treats S3 and S4 as IMPLEMENTED while using devos/orchestration/ as the synthetic NOT_IMPLEMENTED fixture.
+The S4 State Machine Kernel is now fully closed under the reserved-subsystem lifecycle procedure established by ML-DEVOS-RFC-015.
 
-One final closure-consistency defect remains in the live manifest.
+This verdict closes S4 only. It grants no S5, website/product, Skills V0.2, remote-resource, deployment, production-write, protected/main-merge, or PR #10 merge authority.
 
-## D2-F001 — closure-induced manifest test fixture staleness: CLOSED
+## D.2 checklist — final
 
-Confirmed by exact source/diff inspection:
-- TARGET_ROOT_PATH is now devos/orchestration/;
-- live-state assertions explicitly verify devos/contracts/ -> ADR-013 and devos/state/ -> ADR-014;
-- remaining roots are asserted non-IMPLEMENTED;
-- synthetic owning-phase comments/assertions are updated from S4 to S8;
-- validator/schema semantics were not changed;
-- remediation delta touched only tests/devos-manifest.test.mjs, coordination handoff/state, and regenerated traceability outputs.
+1. RFC status: PASS.
+   - ML-DEVOS-RFC-016 reads IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051.
 
-Builder-reported verification:
-- tests/devos-manifest.test.mjs: 22/22 PASS;
-- manifest validator: PASS, 0 errors;
-- traceability: 2 errors / 14 warnings, fingerprint CORE-022 + WEB-REQ-009, no drift.
+2. Closure ADR: PASS.
+   - ML-DEVOS-ADR-014 exists and records the accepted S4 implementation, D-050 policy, AS-066 evidence classification, D-051 closure, v1.7.0 consequence, and known API/prose discrepancy.
 
-## D2-F002 — BLOCKER: manifest contains contradictory current-baseline metadata
+3. Closure Decision: PASS.
+   - D-051 exists in brain/DECISION_LOG.md.
 
-The live `devos/devos-manifest.json` now correctly says:
+4. Manifest closure_ref resolution: PASS.
+   - devos/state/ status = IMPLEMENTED.
+   - closure_ref = ML-DEVOS-ADR-014.
+   - exactly one closure_history entry uses ADR-014.
 
-`sentinel_capability_baseline.version: "1.7.0"`
+5. Closure phase/root ownership match: PASS.
+   - closure_history phase = S4.
+   - devos/state/ owning_phase = S4.
 
-but `source_of_truth_precedence` still contains the stale string:
+6. Active baseline / closure history agreement: PASS.
+   - sentinel_capability_baseline.version = 1.7.0.
+   - adr = ML-DEVOS-ADR-014.
+   - decision = D-051.
+   - S4 closure_history records the same version/ADR/Decision.
+   - source_of_truth_precedence now also correctly says currently v1.7.0.
 
-`"Active Governance Kernel (Sentinel capability baseline, currently v1.6.0)"`
+7. Current-phase wording: PASS.
+   - coordination surfaces are current.
+   - brain/00_HOME.md and CLAUDE.md explicitly defer live scope/turn/authorization to coordination/STATE.md, so historical Phase 1 material is non-authoritative provenance rather than stale current scope.
 
-This is current-state metadata, not historical prose. The same manifest therefore simultaneously claims the current Sentinel baseline is v1.7.0 and v1.6.0.
+8. Traceability generated outputs: PASS for closure-delta discipline.
+   - Builder reports generation/validation complete and no drift.
+   - Architect inspected the generated index at final HEAD.
+   - final fingerprint remains exactly the D.1 baseline: CORE-022 + WEB-REQ-009.
+   - no closure-induced new ERROR exists.
 
-The validator does not currently catch this because its precedence check verifies ordering/textual authority classes, not equality between the embedded descriptive version string and `sentinel_capability_baseline.version`.
+9. D.1 baseline findings preserved: PASS.
+   - CORE-022 remains disclosed.
+   - WEB-REQ-009 remains disclosed.
+   - neither was suppressed/downgraded to manufacture zero.
 
-D.2 cannot approve a closure while the authoritative manifest is internally inconsistent about the active baseline.
+10. No new traceability ERROR: PASS.
 
-### Required final micro-remediation
+11. No next-phase authority leakage: PASS.
+   - no S5+, website/product, Skills V0.2, workflow, remote-resource, deploy, production, or main-merge authority was introduced.
 
-1. In `devos/devos-manifest.json`, change only:
-   - `currently v1.6.0` → `currently v1.7.0`
-   inside the `source_of_truth_precedence` string.
+## Remediation disposition
 
-2. In `tests/devos-manifest.test.mjs`, add one dynamic regression assertion that:
-   - reads the live manifest;
-   - derives `v${doc.sentinel_capability_baseline.version}`;
-   - asserts the source-of-truth precedence text that describes the current Sentinel capability baseline contains that exact current version.
-   
-   Do not hardcode future behavior around S4 specifically; make the assertion track the manifest's active baseline dynamically so future MINOR closures do not repeat this drift.
+### D2-F001 — stale manifest-test fixture: CLOSED
 
-3. Do not alter schema or validator semantics in this cycle. This is a live-instance consistency assertion, not a new manifest schema rule.
+Final source inspection confirms:
+- synthetic NOT_IMPLEMENTED fixture moved from devos/state/ to devos/orchestration/;
+- S3 and S4 are both explicitly asserted IMPLEMENTED with ADR-013 / ADR-014;
+- all remaining roots retain their correct non-IMPLEMENTED/FOUNDATION_ACTIVE expectations;
+- synthetic phase comments/assertions now track S8.
 
-4. Regenerate traceability outputs if the test/comment/reference change alters them.
+Builder-reported focused manifest suite after this correction: 22/22 PASS.
 
-5. Run:
-   - `node --test tests/devos-manifest.test.mjs`;
-   - `node devos/schemas/validate-devos-manifest.mjs`;
-   - traceability generate + validate;
-   - exact diff whitelist.
+### D2-F002 — contradictory current-baseline metadata: CLOSED
 
-Expected focused suite after adding the regression assertion: 23/23 PASS.
+Final source inspection confirms:
+- manifest sentinel_capability_baseline.version = 1.7.0;
+- source_of_truth_precedence descriptive current-baseline text = v1.7.0;
+- a dynamic regression test derives the expected string from sentinel_capability_baseline.version rather than hardcoding S4/v1.7.0.
 
-## Final-cycle write surface
+Builder-reported focused manifest suite after this correction: 23/23 PASS.
 
-Authorized:
-- devos/devos-manifest.json — exactly one stale descriptive version string correction;
-- tests/devos-manifest.test.mjs — exactly one dynamic current-baseline consistency regression assertion, plus minimal explanatory comment if needed;
-- deterministic traceability outputs if regeneration changes them;
-- coordination/IMPLEMENTER_HANDOFF.md;
-- coordination/STATE.md.
+## Evidence classification
 
-Nothing else.
+INDEPENDENTLY_INSPECTED:
+- exact closure/remediation diffs;
+- live manifest structure and cross-links;
+- RFC/ADR/version/architecture closure records;
+- final manifest current-version consistency;
+- final test source and regression logic;
+- generated traceability index/fingerprint;
+- scope boundaries.
 
-## Explicit prohibitions
+ACTOR_REPORTED:
+- 23/23 manifest-test execution;
+- manifest-validator zero-error execution;
+- traceability generator/validator command execution and no-drift command result.
 
-No ADR-014 edit.
-No RFC-016 edit.
-No VERSIONING_POLICY edit.
-No ML-DEVOS-ARCH-001 edit.
-No S4 implementation source/test edit.
-No schema/validator edit.
-No brain/DECISION_LOG.md edit.
-No S5+.
-No website/product mutation.
-No Skills V0.2.
-No workflows.
-No credentials/remote resources.
-No deployment/production/main merge.
+The Architect environment still cannot clone/run the private repository test suite directly. This limitation remains disclosed and does not get silently upgraded to INDEPENDENTLY_REPRODUCED.
 
-## Return gate
+The earlier S4 implementation acceptance remains supported by independent source/diff inspection and targeted executable spot checks of the critical remediation invariants documented in ML-DEVOS-AS-066.
 
-After D2-F002 is fixed:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- AUTHORIZED_SCOPE: S4_CLOSURE_D2_VERIFICATION_ONLY
-- ARCHITECT_ACTION_REQUIRED: YES
-- IMPLEMENTER_ACTION_REQUIRED: NO
-- PAULO_DECISION_REQUIRED: NO
-- CURRENT_REMEDIATION_CYCLE: 2
-- MAX_REMEDIATION_CYCLES: 2
-- all remote/deploy/main flags NO
+## Adopted S4 state
 
-Then stop.
+Sentinel capability baseline:
+- v1.7.0
+- ML-DEVOS-ADR-014
+- D-051
 
-If this final correction passes, no further autonomous remediation cycle is available; the Architect must issue the final D.2 closure verdict.
+Reserved root:
+- devos/state/
+- status: IMPLEMENTED
+- closure_ref: ML-DEVOS-ADR-014
+- executable_runtime_present: false
+
+The false runtime flag is intentional: the repository-local kernel is implemented architecture/library code, but no active operational Sentinel runtime service/orchestrator invokes it yet.
+
+Frozen architecture:
+- ML-DEVOS-ARCH-001
+- version remains 1.2.0
+- status remains FROZEN
+- §10 now includes the separately governed additive FAILED / ABANDONED terminal-state amendment.
+
+## Known debt carried forward — not S4 closure blockers
+
+- CORE-022 missing canonical target.
+- WEB-REQ-009 missing canonical target.
+- claim() explicit API omits presented revision while RFC-016 contains broader prose that mutating requests present last-observed revision; ADR-014 records this rather than hiding it.
+- complete Builder test suite remains ACTOR_REPORTED rather than fully Architect-reproduced.
+
+These are preserved debt/evidence limitations, not unresolved blockers introduced by or materially required for S4 closure.
+
+## S4 health
+
+Design: 100%
+Implementation: 100%
+Closure: 100%
+Governance / scope discipline: 100%
+S4 overall: 100% CLOSED
+
+## Next sequencing
+
+S4 closure does not automatically start S5.
+
+The previously established product sequencing remains the recommended next gate:
+1. get the MaisogLabs website/admin workflow genuinely operational;
+2. run 3–5 real operating/content/project-update cycles;
+3. use measured friction/context data for Skills V0.2;
+4. resume deeper Sentinel phase expansion afterward unless Paulo reprioritizes.
+
+A separate Paulo authorization is required before website/product mutation begins.
