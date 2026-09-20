@@ -1,12 +1,16 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_PROPOSAL`, `ML-DEVOS-RFC-016` design-remediation cycle 1 complete (four blockers fixed), awaiting Architect Sync re-review (see `coordination/STATE.md`)
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION`, bounded S4 State Machine Kernel implementation and focused tests complete under `D-050`, awaiting independent Architect implementation review (see `coordination/STATE.md`)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "ML-DEVOS-RFC-016 Design Remediation Cycle 1 (D-048)" section at the very end of this document for the exact scope and evidence of this remediation cycle, which corrects the four design blockers the Architect's Stage Gate Review found in the original S4 proposal, without any executable implementation.
+**Current cycle:** see the "S4 State Machine Kernel — Bounded Implementation (D-050 / ML-DEVOS-AS-065)" section at the very end of this document for the exact scope and evidence of this implementation cycle. **No S4 closure is claimed** — `devos/devos-manifest.json`'s `devos/state/` entry remains `NOT_IMPLEMENTED`, unchanged.
+
+---
+
+**Prior cycle (superseded by the section above as the live "current cycle" pointer, but retained as accurate historical record):** see the "ML-DEVOS-RFC-016 Design Remediation Cycle 1 (D-048)" section further below for the exact scope and evidence of the remediation cycle that corrected the four design blockers the Architect's Stage Gate Review found in the original S4 proposal, without any executable implementation. That design was subsequently accepted in full (`ML-DEVOS-AS-065`, `RFC-016 DESIGN: ACCEPTED FOR BOUNDED IMPLEMENTATION`) and `D-050` then authorized this implementation cycle.
 
 ---
 
@@ -3470,3 +3474,145 @@ Input HEAD: `7ef86f35336857d10a5ce4f01f41371a500e959c`. `CURRENT_REMEDIATION_CYC
 **Resulting HEAD:** recorded in the commit carrying this handoff update.
 
 **Next actor:** `ARCHITECT`.
+
+---
+
+## S4 State Machine Kernel — Bounded Implementation (D-050 / ML-DEVOS-AS-065)
+
+### Cycle ID and authority
+
+`SENTINEL_S4_STATE_MACHINE_IMPLEMENTATION`. Authority: `D-050` (bounded implementation of `ML-DEVOS-RFC-016` after `ML-DEVOS-AS-065`'s design acceptance). `AUTHORIZED_SCOPE: S4_STATE_MACHINE_IMPLEMENTATION_ONLY`. **No S4 closure or manifest activation is claimed or performed** — `devos/devos-manifest.json` was not touched (confirmed below).
+
+### Input HEAD
+
+`9146a24a55e7b51173de1289e784762e87629ca4`, confirmed via `git rev-parse HEAD` before any file was touched. Working tree clean at that point.
+
+### Gate values confirmed before acting
+
+Read `coordination/STATE.md` and the full Architect Builder Brief in `coordination/ARCHITECT_REVIEW.md` in full before proceeding. Confirmed `TURN: CLAUDE`, `IMPLEMENTER_ACTION_REQUIRED: YES`, `AUTHORIZED_SCOPE: S4_STATE_MACHINE_IMPLEMENTATION_ONLY`, and every mutation/remote/deploy/main flag `NO`, unchanged.
+
+### Exact changed-file list
+
+**New (10):**
+- `devos/state/task-state.schema.json` — structural schema for a Task Engine State record.
+- `devos/state/lifecycle.mjs` — pure, deterministic transition-table logic (state vocabulary, adjacency, retry-ceiling guards, the six evidence-class-label guards, the `ABANDONED`-destination role gate, the five designated handoff destinations). No I/O.
+- `devos/state/task-policy.mjs` — the explicit, `D-050`-locked S4 Task Policy: `retryCeilings: {build:2, qa:2, review:2}`, `forceClearAuthorizedOperators: ["Paulo"]`. Performs no I/O of any kind.
+- `devos/state/store.mjs` — the local, file-backed persistence adapter: `fs.open(path, "wx")` exclusive-create lock, the exact six-step atomic critical section RFC-016 §D specifies, write-temp-then-atomic-rename, and fail-closed `forceClearLock` (no automatic age-based lock stealing).
+- `devos/state/kernel.mjs` — the public operations: `createTask`, `claim`, `renew`, `release`, `transition`, `getState`, `sweepExpiredLeases`, `forceClearLock`.
+- `devos/state/validate-task-state.mjs` — hand-written structural validator, zero third-party dependencies, mirroring S3's `validate-task-contract.mjs` convention.
+- `tests/state-lifecycle.test.mjs` — 14 tests against the pure transition logic and validator.
+- `tests/state-kernel.test.mjs` — 15 tests against the store-backed kernel operations.
+- `tests/state-concurrency.test.mjs` — 2 tests using real, separate OS processes (`node:child_process`) against the exclusive-lock primitive.
+- `tests/fixtures/state-claim-worker.mjs` — the worker script the concurrency tests spawn as real child processes.
+
+**Modified (3):**
+- `devos/state/README.md` — updated to describe the now-present implementation truth, with an explicit, prominent "This is NOT a closure" section stating the manifest remains `NOT_IMPLEMENTED`.
+- `devos/governance/traceability/traceability-index.json` / `TRACEABILITY_INDEX.md` — regenerated (see traceability audit below).
+
+### Required implementation behavior — coverage against the brief's list
+
+Every item in `coordination/ARCHITECT_REVIEW.md`'s "Required implementation behavior" is implemented: task-state schema/validator; pure deterministic lifecycle transitions (`CREATED` through `VERIFIED` plus `FAILED`/`ABANDONED`); all six public operations plus `forceClearLock`; exclusive-create per-task lock; the exact lock-held → revision-check → validate → mutate → temp-write → atomic-rename → unlock critical section; monotonically increasing unified `revision`; designated cross-role handoff transitions clearing owner/lease atomically; persisted idempotency for `claim`/`renew`/`transition`; `release`'s documented already-unowned no-op exception; injected clock; local JSON per-task persistence; history bounded to state-change provenance only; per-project Task Policy at exactly `2`/`2`/`2`; fail-closed `LOCK_HELD`/`LOCK_RECOVERY_REQUIRED`-equivalent behavior (`LockHeldError`) with no age-based stealing; a separate `forceClearLock` operation gated on D-050's operator/provenance conditions; evidence-reference presence/class-label guards only; the fixed, unoverridable non-authority disclaimer. **Not implemented, as required**: orchestration, an actor-permission gateway beyond the one narrow `ABANDONED`-destination role check the RFC itself specifies as a rejected-transition example, evidence artifact storage, an Evidence Gate, CI/rulesets, deployment/runtime verification, remote storage, credentials, or any S5+ capability.
+
+### Two implementation-discovered issues, disclosed and fixed (not silently patched around)
+
+Building and testing this design surfaced two genuine correctness gaps in the accepted `ML-DEVOS-RFC-016` design that its prose did not anticipate. Both are fixed in code with an inline "Implementation note" comment at the fix site; **neither `ML-DEVOS-RFC-016.md` nor any other governance document was edited this cycle** (it is not in this cycle's authorized write whitelist) — both are flagged here for the Architect's awareness and, if warranted, a future documentation correction to the RFC text itself.
+
+1. **Idempotency binding on `transition` included a server-derived `from_state`, which made every genuine replay falsely conflict.** RFC-016 §E names the `transition` binding as `(from_state, to_state, revision presented, evidence_ref content hash)`. Implementing this literally means recomputing `from_state` from the *current* persisted record at the time of the replay check — but by the time a retry arrives, the original successful call has already advanced the record's state, so the recomputed `from_state` on the replay attempt never matches the `from_state` captured at the original call's time. Every identical-key replay would therefore be misclassified as a conflicting reuse rather than a safe replay — the opposite of the RFC's intended behavior. **Fix**: the binding drops `from_state` and uses `(to_state, expectedRevision, evidence_ref content hash)`; `expectedRevision` already uniquely pins the exact record version the caller intended to act on, strictly more precisely than a bare state name, so nothing is lost. See `devos/state/kernel.mjs`'s `transition()` for the inline note.
+2. **A combined owner-or-revision conflict check produced misleading diagnostics, and this session's own tests initially masked a real ownership-flow gap because of it.** The original implementation pass checked `record.owner !== actorId || record.revision !== expectedRevision` in one branch, throwing one generic `REVISION_CONFLICT` regardless of which fact actually failed. When the two values happened to be numerically equal (e.g. `"presented revision 3 does not match current revision 3"`), the error was contradictory-looking and obscured that the true cause was an ownership mismatch (most often: the caller failed to re-`claim()` after a designated handoff transition it did not realize had cleared ownership — including `READY_FOR_BUILD`, which RFC-016 §D lists as a handoff destination alongside `READY_FOR_QA`/`READY_FOR_REVIEW`/`CHANGES_REQUESTED`/`PAULO_DECISION_REQUIRED`). **Fix**: split into two distinct checks/error codes, `NOT_CURRENT_OWNER` and `REVISION_CONFLICT` (see `checkOwnerAndRevision()` in `kernel.mjs`), which immediately surfaced and let this cycle correct several of its own draft tests that had the same ownership-flow gap (missing a re-claim after `READY_FOR_BUILD`, or after `QA->BUILDING`, which is *not* a handoff destination and therefore does not itself clear `qa-1`'s ownership).
+
+### Focused tests — literal results
+
+`node --test tests/state-lifecycle.test.mjs`:
+```
+# tests 14
+# pass 14
+# fail 0
+```
+
+`node --test tests/state-kernel.test.mjs`:
+```
+# tests 15
+# pass 15
+# fail 0
+```
+
+`node --test tests/state-concurrency.test.mjs` (real child processes, per the brief's explicit requirement that "two sequential calls in one event loop do not satisfy the race requirement"):
+```
+# tests 2
+# pass 2
+# fail 0
+```
+Re-run 5 consecutive times to check for flakiness in the real-process race: 5/5 clean passes, no flake observed.
+
+All three files together: `# tests 31`, `# pass 31`, `# fail 0`.
+
+### Focused-test coverage against the brief's exact list
+
+- All legal lifecycle transitions and representative illegal skips/terminal exits — `state-lifecycle.test.mjs`.
+- Structural field rejection / Task Engine State boundary — `state-lifecycle.test.mjs` (`validate()` rejects an unknown top-level field) and `state-kernel.test.mjs`'s structural-independence test.
+- Two real concurrent OS-level claim writers, exactly one winner — `state-concurrency.test.mjs`, using `node:child_process`, not sequential calls.
+- Stale revision after superseding claim rejected — `state-kernel.test.mjs`.
+- Builder→QA, QA→Reviewer, Reviewer→Builder immediate handoffs and prior-owner fencing — `state-kernel.test.mjs`.
+- Claim/renew/transition replay and conflicting idempotency-key reuse — `state-kernel.test.mjs`.
+- Repeated release safe no-op vs. stale release against a new owner — `state-kernel.test.mjs`.
+- Retry ceiling 2/2/2 and fail-closed escalation — `state-lifecycle.test.mjs` (pure guard logic) and `state-kernel.test.mjs` (end-to-end through the store).
+- Proof that `coordination/STATE.md`'s `MAX_REMEDIATION_CYCLES` does not influence S4 task retry behavior — `state-kernel.test.mjs`'s structural-independence test (task-policy.mjs performs no I/O at all; no file under `devos/state/` contains a filesystem read of `coordination/STATE.md`).
+- Deterministic injected-clock behavior — `state-kernel.test.mjs`.
+- Tmp-file crash recovery / corrupt final record scoped failure — `state-kernel.test.mjs`.
+- Orphaned lock of any age is never auto-stolen — `state-kernel.test.mjs` (single-process simulation) and `state-concurrency.test.mjs` (real concurrent contention against a simulated orphan).
+- Force-clear requires the D-050 operator/provenance conditions — `state-kernel.test.mjs`.
+- Evidence-class-label guards without evidence-content inspection — `state-lifecycle.test.mjs` and `state-kernel.test.mjs` (a bogus, non-existent `ref` path never causes a filesystem error, only a label-based rejection).
+- Fixed non-authority disclaimer — `state-lifecycle.test.mjs` and `state-kernel.test.mjs`.
+
+### Traceability audit
+
+**Pre-edit baseline** (before any file was touched): matched the prior cycle's closing fingerprint exactly — `CORE-022` + `WEB-REQ-009`, 2 errors.
+
+**First regeneration attempt** surfaced two self-inflicted, transient issues, both caught and fixed before finalizing (not shipped):
+1. Four new `TEST` family errors (`TEST-TASK-001`..`004`) — caused by test fixture `task_id` values like `"S4-TEST-TASK-001"` accidentally containing the substring pattern `TEST-[A-Z]+-\d{3}` that `traceability.config.json` uses to detect real `brain/TEST_LEDGER.md` test-ID references. Fixed by renaming the fixtures to `"S4-SAMPLE-CASE-00N"`, which contains no such substring.
+2. (Addressed proactively before it could occur) a bare `ML-DEVOS-AS-065` citation would have been safe this time only because `devos/changes/architect-syncs/ML-DEVOS-AS-065.md` now durably exists (created when the design-acceptance cycle landed) — confirmed via `ls` before citing it in `devos/state/README.md`, learning directly from the prior remediation cycle's premature-citation mistake.
+
+**Final regeneration** (`node devos/governance/traceability/generate-traceability.mjs`):
+```
+Scanned 260 files. Errors: 2. Warnings: 15.
+```
+
+**Final validation** (`node devos/governance/traceability/validate-traceability.mjs`):
+```
+Scanned 260 files across 12 ID families.
+Errors: 2  Warnings: 15  Total canonical definitions: 255
+ERROR [missing-canonical-target] CORE CORE-022: ...
+ERROR [missing-canonical-target] WEB-REQ WEB-REQ-009: ...
+[... 13 further WARNING lines, unchanged in kind from the pre-cycle baseline ...]
+No drift: on-disk generated index matches a fresh generation run.
+```
+Exit code `1` (the two known, pre-existing errors, unchanged). **Fingerprint confirmed unchanged**: exactly `CORE-022` + `WEB-REQ-009`.
+
+### Verification performed
+
+- Full repository suite: `node --test tests/*.test.mjs` → `# tests 489`, `# pass 489`, `# fail 0` (`458` prior + `31` new S4 tests; no regression anywhere else).
+- Diff whitelist confirmed via `git status --porcelain`: exactly the 10 new files and 3 modified files listed above, plus this handoff and `coordination/STATE.md`.
+- `git diff --stat` against `devos/devos-manifest.json`, `devos/governance/rules/core-rules.json`, `devos/changes/adrs/`, `devos/architecture/ML-DEVOS-ARCH-001.md`, `devos/contracts/`, `.github/workflows/`, `app/`, `worker/`, `lib/`, `migrations/`: empty output, confirming byte-identical to input HEAD.
+- `node devos/state/validate-task-state.mjs` (no args) prints usage cleanly, confirming the module loads and its `isDirectRun` CLI gate works without side effects.
+
+### No S4 closure performed
+
+`devos/devos-manifest.json` was not touched (confirmed above). `devos/state/`'s `reserved_subsystem_roots` entry remains `status: "NOT_IMPLEMENTED"`, `executable_runtime_present: false`. `devos/state/README.md`'s update explicitly states this is not a closure and names the exact D.1/D.2 procedure a future closure would need to follow. Nothing in this implementation is wired into any live orchestration, dispatch, or CI path.
+
+### No prohibited mutation performed
+
+No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, version record, workflow file, or product/runtime code was touched. No credential or remote-resource access. No deployment or production write. No protected/main merge. PR #10 was not touched or merged. No S5+ work.
+
+### Evidence classification
+
+`ACTOR_REPORTED` for all Builder execution narrative, test results, and traceability output above — pending independent Architect reproduction of the focused S4 tests, per the brief's explicit "Builder output remains ACTOR_REPORTED until Architect independently reproduces focused S4 tests."
+
+### Known limitations / open questions
+
+- The two implementation-discovered design corrections above (idempotency-binding field drop; split owner/revision error codes) are disclosed for Architect awareness; `ML-DEVOS-RFC-016.md`'s own text was not updated to reflect them, since RFC-016 is not in this cycle's authorized write surface. A future documentation-only correction to the RFC (or a note in its eventual closure ADR) may be warranted.
+- The four `ML-DEVOS-RFC-016` "Unresolved questions for Architect / Paulo" (frozen-document amendment sign-off; S4/S8 timeout-sweep boundary; Task Policy scope granularity; Task Engine State vs. Run History history-store boundary) remain genuinely open — this implementation cycle did not resolve any of them, only implemented the design as accepted.
+- No fixtures/examples directory was built for `validate-task-state.mjs` (unlike S3's `examples/valid|invalid/`) to keep this cycle's footprint minimal per LEAN mode; valid/invalid coverage instead lives directly in `tests/state-lifecycle.test.mjs`.
+
+### Next expected actor
+
+`ARCHITECT` — per the return gate below and the brief's explicit "Builder output remains ACTOR_REPORTED until Architect independently reproduces focused S4 tests."
