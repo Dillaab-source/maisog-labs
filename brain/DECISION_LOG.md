@@ -798,3 +798,21 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Traceability:** preserve the known traceability debt `CORE-022` + `WEB-REQ-009`; no new unexpected hard ERROR may be introduced by the repository-side CI file/coordination changes.
 - **Still prohibited:** opening/merging the governance→main PR; any direct push to `main`; remote D1/R2 creation or mutation; Cloudflare Access setup; Worker deployment; DNS/domain mutation; production data writes; website public-source cutover; new product features; Sentinel S5+; Skills V0.2 implementation; PR #10 merge.
 - **Return gate:** after Gate A implementation/evidence, return `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` for independent review. Gate B (opening the governance→main PR) remains a separate later Paulo decision.
+
+
+### D-053 — Authorize public repository visibility for Gate A completion
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After ML-DEVOS-AS-069 independently verified Gate A CI and surfaced GitHub's private-repository protection plan blocker, Paulo stated: `ok public`.
+- **Decision:** Explicitly authorize changing repository `Dillaab-source/maisog-labs` from **private** to **public** solely to unblock GitHub Free repository rulesets / protected-main controls required by WEB-REL-001 Gate A.
+- **Disclosure acknowledgment:** This is a material visibility change. Once executed, repository source code, governance records, historical decisions, Architect Syncs, project documentation, and Git history become publicly accessible unless GitHub or the repository contents themselves provide otherwise. This authorization is explicit and is not inferred from any prior Gate A decision.
+- **Post-visibility protection requirement:** Immediately after public visibility is confirmed, configure the original D-052 / ML-DEVOS-AS-069 minimum `main` protection:
+  - require pull request before merge;
+  - required approving reviews = 0 while single-owner;
+  - block force pushes / non-fast-forward updates;
+  - block branch deletion;
+  - require the already-observed live CI context `test-and-build`;
+  - owner/admin bypass only as narrowly as GitHub supports.
+- **Fail-closed sequencing:** Do not open Gate B / governance→main PR until both public visibility and the `main` protection/ruleset are independently confirmed active.
+- **Still prohibited:** direct push/merge to `main`; governance→main PR opening before protection confirmation; remote D1/R2; Cloudflare Access production configuration; Worker deployment; DNS/domain changes; production data writes; public-source cutover; S5+; Skills V0.2; PR #10 merge.
+- **Tooling limitation:** The connected GitHub tool available to ChatGPT can write repository contents but does not expose repository-visibility mutation or ruleset/branch-protection administration. Those admin-setting mutations must be completed through an authorized GitHub admin surface, then independently re-checked before Gate A can close.
