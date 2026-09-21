@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_B
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: WEB_REL_001_GATE_C_DECISION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_C
+TURN: ARCHITECT
+STATUS: MERGE_AUTHORIZED_PENDING_FINAL_CHECK
+AUTHORIZED_SCOPE: WEB_REL_001_GATE_C_PR12_MERGE_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -15,48 +15,46 @@ AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: NO
+MAIN_MERGE_AUTHORIZED: YES
 
-## Gate B final state
+## Authority
 
-D-055 accepts automatic non-production Cloudflare PR/branch previews as permitted review evidence.
-ML-DEVOS-AS-072: ARCHITECT_APPROVED — GATE B CLOSED.
+D-056 authorizes merging exactly PR #12 only.
 
-PR #12 remains:
-- open;
-- draft;
-- governance/maisoglabs-v0.1 -> main;
-- DO NOT MERGE until Gate C;
-- production deployment/promotion not authorized.
+Gate B remains CLOSED under D-055 / ML-DEVOS-AS-072.
 
-Reviewed release evidence:
-- test-and-build on reviewed release head: SUCCESS;
-- main protection: active;
-- main remained 887849283ee9cd16e8d60b937bac95b1c85bf3d9 during review;
-- unresolved review threads: 0;
-- no post-Gate-A product/runtime drift.
+## Merge target
 
-## Gate C precondition
+PR: #12
+head branch: governance/maisoglabs-v0.1
+base branch: main
+expected base before merge: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
+merge method: merge commit
 
-Because D-055 / AS-072 / closure records advance the PR head, Gate C must independently verify the then-current PR head is governance-only drift from the reviewed release head and that `test-and-build` is green on that exact current head before any merge.
+## Final-head condition
 
-## Next owner gate
+Before merging:
+- re-fetch PR #12;
+- confirm current head differs from reviewed head 60c9d940e73182acd42dfc38e9aa7011a61e3f8c only by D-056 / Gate C governance bookkeeping;
+- confirm test-and-build SUCCESS on that exact head;
+- confirm main-protection remains active;
+- confirm main base SHA is unchanged;
+- confirm unresolved review threads = 0.
 
-Gate C — authorize merging exactly PR #12 into main.
+Use the exact current PR head SHA as the merge expected-head guard.
 
-Gate C is not yet authorized.
-MAIN_MERGE_AUTHORIZED remains NO.
+If any condition fails or the head moves again, STOP and re-review.
 
 ## Hard boundaries
 
-No PR #12 merge yet.
-No auto-merge.
+Authorize ONLY PR #12 merge.
+No PR #10 merge.
 No direct push to main.
-No production Worker deployment/promotion.
+No production Worker promotion/deployment.
 No remote D1/R2.
 No production Cloudflare Access mutation.
-No DNS/domain/production write.
+No DNS/domain mutation.
+No production data writes.
 No public D1 cutover.
 No S5+.
 No Skills V0.2.
-No PR #10 merge.
