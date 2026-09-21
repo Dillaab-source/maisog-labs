@@ -853,3 +853,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Merge safety:** use the exact current PR head SHA as the expected-head guard when invoking the merge. If the PR head moves again, the authorization pauses until the new delta and CI are re-verified.
 - **Scope after merge:** this decision authorizes the GitHub merge only. It does **not** authorize production Worker promotion/deployment, remote D1/R2 creation or mutation, production Cloudflare Access changes, DNS/domain mutation, production data writes, public D1 cutover, S5+, Skills V0.2, or PR #10 merge.
 - **Post-merge verification required:** confirm PR #12 reports merged, `main` advances to the merge result, the governed release tree is represented on `main`, and no prohibited Cloudflare/remote action was intentionally initiated as part of the merge command.
+
+
+### D-057 — Decouple main merge from Cloudflare production deployment
+
+- **Decided by:** Paulo (Product / Risk Owner), delegating the choice to Architect with the instruction: `Chosee what is nescesary`.
+- **Architect selection:** Option B.
+- **Decision:** Restore a strict separation between source-control integration and production release. Merging an approved pull request into `main` must **not by itself authorize or trigger a Cloudflare production deployment**.
+- **Reason:** GC-F001 proved the current Git integration couples two materially different risk events: accepting governed code into `main`, and changing the live production Worker. Sentinel governance requires those to remain independently reviewable and independently authorizable.
+- **Required remediation:** Disable or alter the Cloudflare production Git build/deploy behavior so future `main` merges do not automatically deploy to production. Non-production PR/branch previews remain permitted under D-055.
+- **Future release model:** `review PR -> merge gate -> main -> separate production deploy gate -> runtime verification`.
+- **Current production version:** No rollback is authorized merely because the coupling was discovered. The already-created Cloudflare version `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` remains in place unless later runtime verification shows a concrete reason to roll back and Paulo separately authorizes it.
+- **Fail closed:** Do not open the next production release gate until the main-to-production auto-deploy coupling is independently verified as disabled or otherwise separated.
+- **Still prohibited:** additional production deploy/rollback, remote D1/R2 changes, production Access changes, DNS/domain mutation, production data writes, public D1 cutover, S5+, Skills V0.2, PR #10 merge.
