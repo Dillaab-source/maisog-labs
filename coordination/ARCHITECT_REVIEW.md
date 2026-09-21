@@ -107,3 +107,42 @@ Until GC-F001 is dispositioned:
 - no S5+;
 - no Skills V0.2;
 - no PR #10 merge.
+
+## D-057 remediation verification
+
+Authority: D-057
+Review result: PASS
+Verification scope: CLOUDFLARE_PRODUCTION_GIT_AUTODEPLOY_DECOUPLING_VERIFICATION_AND_REVIEW_ONLY
+
+Verified Cloudflare Worker build configuration:
+- Worker: maisog-labs
+- Git integration: preserved and connected
+- production Deploy command: `npx wrangler versions upload`
+- non-production Deploy command: `npx wrangler versions upload`
+- non-production branch builds and previews: enabled
+
+Production safety verification:
+- active production Version ID remained `a28ee2e9-a9a0-4528-b89f-07e0c827be2b`;
+- saving the build configuration did not create or promote a replacement production deployment;
+- no deployment or rollback was initiated;
+- Cloudflare audit evidence showed the Worker build-configuration update only;
+- no D1, R2, Access, DNS, domain, or production-data mutation was observed.
+
+D-057 result:
+The production Git build path now uploads a Worker version without promoting it to active production. The merge gate and production promotion gate are therefore decoupled while Git-connected builds and governed non-production previews remain available.
+
+Health: 100%
+Blockers: NONE
+
+Hard boundaries remain in force:
+- no application-code change;
+- no deployment or rollback;
+- no merge;
+- no remote D1/R2 mutation;
+- no Access, DNS, or domain mutation;
+- no production-data write;
+- no public D1 cutover;
+- no S5+;
+- no Skills V0.2;
+- no PR #10 merge.
+
