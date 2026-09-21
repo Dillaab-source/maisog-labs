@@ -1,97 +1,109 @@
-# Architect Review — WEB-REL-001 Gate B Final
+# Architect Review — WEB-REL-001 Gate C Post-merge Verification
 
-Status: ARCHITECT_APPROVED — GATE B CLOSED, SUBJECT TO LIVE REQUIRED CHECK ON FINAL GOVERNANCE HEAD
-Review mode: RELEASE REVIEW
-Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_B
+Status: MERGE PASS — PRODUCTION AUTO-DEPLOY COUPLING REQUIRES OWNER DISPOSITION
+Review mode: POST-MERGE RELEASE VERIFICATION
+Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_C
+Authority: D-056
 PR: #12
-Authority: D-054 + D-055
-Prior review: ML-DEVOS-AS-071
-Final Gate B archive ID: ML-DEVOS-AS-072
+Merged head: 3262dbad4b2e18998586e125b1d34702211862c1
+Merge commit / new main: 882ad253b5dbec06b209d1ee1a2a54b21b392e2e
+Archive ID: ML-DEVOS-AS-073
 
-## Final Gate B verdict
+## Gate C merge verdict
 
-PR CREATION: PASS
-HEAD/BASE: PASS
-RELEASE INVENTORY REVIEW: PASS
-REQUIRED CI ON REVIEWED RELEASE HEAD: PASS
-MAIN PROTECTION: PASS
-MAIN IMMUTABILITY: PASS
-UNRESOLVED REVIEW THREADS: 0
-GB-F001 PREVIEW POLICY: CLOSED BY D-055
-MAIN MERGE AUTHORITY: NO
+PR #12 MERGE: PASS
+EXPECTED-HEAD GUARD: PASS
+MAIN ADVANCEMENT: PASS
+TREE INCLUSION: PASS
+MAIN PROTECTION AFTER MERGE: PASS
+PRODUCTION-DEPLOYMENT SEPARATION ASSUMPTION: FAILED BY PRE-EXISTING GIT INTEGRATION
 
-Gate B is approved as a review gate. Because these final governance records themselves advance the PR head, the active ruleset's required `test-and-build` check must still be green on the final head before any later Gate C merge could execute. This is an enforcement condition, not a reopening of product review, provided the post-AS-071 delta remains governance/coordination-only.
+Gate C's GitHub merge action completed successfully. The repository's existing Cloudflare Git integration then automatically started and completed a production Workers build for the new main merge commit.
 
-## PR #12 reviewed release state
+## Pre-merge controls
 
-- head branch: governance/maisoglabs-v0.1
-- base: main
-- reviewed product/release head at ML-DEVOS-AS-071: 2f1030417550994d3190b6d63b6bad5152fb39c2
-- base SHA: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
-- draft: yes
-- mergeable: yes
-- 608 commits / 283 changed files at the reviewed release head
-- required PR CI run 35547402737: SUCCESS
-- required context: test-and-build
-- no unresolved review threads
-- no direct push/merge to main
+Immediately before merge:
+- PR #12 was open, ready for review, mergeable, and targeted main;
+- head SHA exactly 3262dbad4b2e18998586e125b1d34702211862c1;
+- base SHA exactly 887849283ee9cd16e8d60b937bac95b1c85bf3d9;
+- final Gate C delta from reviewed head consisted only of brain/DECISION_LOG.md and coordination/STATE.md;
+- required CI run 35551313397 completed SUCCESS on the exact final head;
+- unresolved review threads: 0;
+- main-protection ruleset remained active;
+- expected-head guard was supplied to the merge operation.
 
-## Release inventory
+## Merge result
 
-The reviewed main→release delta was:
-- runtime/application/config: 33 files
-- tests: 19 files
-- migrations/D1 tooling: 6 files
-- governance/docs/coordination: 209 files
-- GitHub CI/support: 2 files
-- skills/brand/support surfaces: 14 files
+GitHub merge result:
+- merged: true
+- merge commit: 882ad253b5dbec06b209d1ee1a2a54b21b392e2e
 
-No post-Gate-A product/runtime drift existed at the reviewed release head. The only changes after ML-DEVOS-AS-070 were Gate B governance records.
+Post-merge:
+- PR #12 is closed/merged;
+- live main HEAD = 882ad253b5dbec06b209d1ee1a2a54b21b392e2e;
+- compare governance head -> main reports main ahead by exactly one merge commit and zero changed files, confirming the governed release tree is represented on main;
+- main-protection ruleset 23740878 remains active with the same PR/status/deletion/non-fast-forward controls.
 
-## GB-F001 — CLOSED
+## GC-F001 — automatic production Workers build after merge
 
-D-055 explicitly permits automatically generated Cloudflare non-production PR/branch previews as review evidence.
+Live GitHub check-run evidence on merge commit 882ad253...:
 
-The policy preserves a hard distinction:
-- non-production preview version/deployment: permitted when automatically triggered by governed PR review;
-- production promotion/deployment: separately gated and still prohibited.
+- check name: Workers Builds: maisog-labs
+- provider: Cloudflare Workers and Pages GitHub App
+- details path: Cloudflare Workers service / production / builds
+- build id: 017a6911-f5e8-42b1-899a-c2360d18122d
+- conclusion: success
+- resulting Version ID: a28ee2e9-a9a0-4528-b89f-07e0c827be2b
 
-No evidence showed PR #12's preview promoted the reviewed Worker version to the active production deployment.
+The GitHub App's own metadata states that it automatically deploys code to Cloudflare when a pull request is merged.
 
-## Gate B health
+Therefore the repository's actual integration topology couples:
+PR merge to main -> Cloudflare production Workers build/deployment.
 
-PR correctness: 100%
-CI on reviewed release head: 100%
-Release inventory review: 100%
+This coupling existed before Gate C. D-056 intended to authorize only the GitHub merge and explicitly did not authorize production deployment/promotion. No manual Wrangler deploy or separate Cloudflare mutation was invoked by Architect, but the authorized merge indirectly triggered the pre-existing automated production path.
+
+## Governance disposition
+
+Do not conceal or relabel GC-F001.
+
+The GitHub merge itself is valid and complete; rolling main back solely to erase the merge would itself create another protected change and may trigger another production build.
+
+Before further release operations, Paulo must choose how production Git integration should be governed going forward.
+
+Suggested decision space:
+
+A. Accept the current automatic main->production Cloudflare Git integration as the deployment mechanism, and revise future release gates so a main merge explicitly includes production deployment authority and post-deploy verification.
+
+B. Decouple merge from deployment by disabling/altering Cloudflare production Git builds, restoring separate merge and deploy gates before future releases.
+
+C. If the newly auto-deployed production version is unacceptable after runtime verification, perform an explicitly authorized Cloudflare rollback using a supported Cloudflare admin surface. No rollback is authorized by this record.
+
+## Evidence limitation
+
+Architect independently verified the GitHub merge result and Cloudflare production-build check run. The current tool surface does not expose Cloudflare's active deployment object directly, so the strongest direct evidence is:
+- successful Cloudflare production build/check on the merge commit;
+- returned Cloudflare Version ID;
+- GitHub App metadata that the integration automatically deploys on PR merge.
+
+## Gate C health
+
+GitHub merge controls: 100%
+Required CI: 100%
 Main protection: 100%
-Main immutability: 100%
-Preview-policy consistency: 100%
-Gate B: 100% CLOSED as review gate
+Tree integration: 100%
+Deployment-governance separation: 0% — hidden coupling discovered
+Gate C merge objective: COMPLETE
+Post-merge release governance: OWNER DECISION REQUIRED
 
-## Next gate
+## Hard boundaries
 
-Gate C — explicit authorization to merge PR #12 into main.
-
-Gate C must verify immediately before merge:
-1. PR #12 still targets main from governance/maisoglabs-v0.1;
-2. current PR head differs from the reviewed release head only by Gate B/D-055/closure governance records;
-3. `test-and-build` is green on the current head;
-4. ruleset main-protection remains active;
-5. main base SHA has not unexpectedly moved;
-6. no unresolved review thread or new product/runtime drift exists.
-
-No merge may occur until Paulo explicitly authorizes Gate C.
-
-## Still prohibited
-
-- merge or auto-merge of PR #12;
-- direct push to main;
-- production Worker deployment/promotion;
-- remote D1/R2 mutation;
-- production Access mutation;
-- DNS/domain mutation;
-- production data write;
-- public D1 cutover;
-- S5+;
-- Skills V0.2;
-- PR #10 merge.
+Until GC-F001 is dispositioned:
+- no further production deployment action;
+- no remote D1/R2 creation or mutation;
+- no production Access mutation;
+- no DNS/domain mutation;
+- no production data write;
+- no public D1 cutover;
+- no S5+;
+- no Skills V0.2;
+- no PR #10 merge.
