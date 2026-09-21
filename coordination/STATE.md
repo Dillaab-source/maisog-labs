@@ -2,8 +2,8 @@
 
 CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_B
 TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: WEB_REL_001_GATE_B_PREVIEW_POLICY_DECISION_ONLY
+STATUS: CLOSED
+AUTHORIZED_SCOPE: WEB_REL_001_GATE_C_DECISION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: YES
@@ -17,44 +17,42 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Gate B review
+## Gate B final state
 
-ML-DEVOS-AS-071 completed the Gate B release review.
+D-055 accepts automatic non-production Cloudflare PR/branch previews as permitted review evidence.
+ML-DEVOS-AS-072: ARCHITECT_APPROVED — GATE B CLOSED.
 
-PR #12:
-- draft: YES
-- head: governance/maisoglabs-v0.1
-- base: main
-- head SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
-- mergeable: YES
-- test-and-build: SUCCESS
-- unresolved review threads: 0
-- main unchanged: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
-- main protection remains active
-- no post-Gate-A product drift
+PR #12 remains:
+- open;
+- draft;
+- governance/maisoglabs-v0.1 -> main;
+- DO NOT MERGE until Gate C;
+- production deployment/promotion not authorized.
 
-## GB-F001
+Reviewed release evidence:
+- test-and-build on reviewed release head: SUCCESS;
+- main protection: active;
+- main remained 887849283ee9cd16e8d60b937bac95b1c85bf3d9 during review;
+- unresolved review threads: 0;
+- no post-Gate-A product/runtime drift.
 
-Opening PR #12 automatically triggered a Cloudflare non-production preview version/deployment through the pre-existing Git integration.
+## Gate C precondition
 
-No production promotion is evidenced, but D-054 literally prohibited deployment during Gate B.
+Because D-055 / AS-072 / closure records advance the PR head, Gate C must independently verify the then-current PR head is governance-only drift from the reviewed release head and that `test-and-build` is green on that exact current head before any merge.
 
-## Paulo decision required
+## Next owner gate
 
-A. Accept automatic non-production Cloudflare PR previews as permitted Gate B review evidence, while keeping production deployment separately gated.
+Gate C — authorize merging exactly PR #12 into main.
 
-B. Keep previews prohibited; disable Cloudflare non-production branch builds before Gate B can close cleanly.
-
-Until Paulo chooses:
-- Gate B is not fully closed;
-- Gate C does not open;
-- PR #12 remains DO NOT MERGE.
+Gate C is not yet authorized.
+MAIN_MERGE_AUTHORIZED remains NO.
 
 ## Hard boundaries
 
-No PR #12 merge.
-No main merge/push.
-No production Worker deployment.
+No PR #12 merge yet.
+No auto-merge.
+No direct push to main.
+No production Worker deployment/promotion.
 No remote D1/R2.
 No production Cloudflare Access mutation.
 No DNS/domain/production write.
