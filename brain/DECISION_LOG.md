@@ -827,3 +827,14 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Review requirements:** verify the PR head/base, exact head SHA, full change inventory at release level, CI result, ruleset enforcement, mergeability, unresolved conversations if any, and that no unrelated/new scope was introduced after Gate A closure.
 - **Still prohibited:** direct push to `main`; merge/auto-merge; remote D1/R2 creation or mutation; production Cloudflare Access setup; Worker deployment; DNS/domain mutation; production data writes; public D1 cutover; S5+; Skills V0.2; PR #10 merge.
 - **Return gate:** Gate B may be marked review-complete only after the draft PR exists and `test-and-build` reports its live result. If review is clean, route a separate Gate C merge decision to Paulo. If not clean, do not merge and return the smallest bounded remediation.
+
+
+### D-055 — Accept automatic non-production Cloudflare PR previews as Gate B review evidence
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After ML-DEVOS-AS-071 identified that opening Gate B PR #12 automatically triggered the repository's pre-existing Cloudflare Workers Git integration, Paulo selected `A`.
+- **Decision:** Accept automatic **non-production Cloudflare PR/branch preview versions** created by the existing Git integration as permitted review evidence for Gate B and future governed review pull requests.
+- **Boundary:** This decision does **not** authorize production promotion, production Worker deployment, custom-domain/DNS mutation, remote D1/R2 mutation, production Cloudflare Access changes, or production data writes. Preview versions and production deployment remain distinct.
+- **Governance interpretation:** Prior Gate B wording prohibiting deployment is clarified prospectively to prohibit **production deployment/promotion** while allowing automatically generated non-production preview versions that are isolated from the active production deployment.
+- **Gate B disposition:** GB-F001 is accepted/closed under this owner policy. PR #12 may complete Gate B review once its current/final review head remains governance-only after ML-DEVOS-AS-071/D-055 bookkeeping and the required `test-and-build` check is green.
+- **Gate C remains separate:** No merge authority is granted. `MAIN_MERGE_AUTHORIZED` remains `NO` until a later explicit Paulo Gate C decision.
