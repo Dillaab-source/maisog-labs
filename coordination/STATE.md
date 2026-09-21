@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S5_RFC017_DESIGN_REMEDIATION_CYCLE_2_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: PAULO_S5_IMPLEMENTATION_AND_TRACEABILITY_BOOKKEEPING_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -19,43 +19,49 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-058 remains the authority for S5 proposal/audit only.
-The Architect's Stage Gate Re-Review is the current review of record.
-D-060 remains a separate queued planning decision only and grants no Context Plane implementation authority.
+D-058 authorized S5 proposal/audit only.
+The final Architect design review is ARCHITECT_APPROVED.
+D-060 remains a separate queued Context Plane planning decision only and grants no implementation authority.
 
-## Cycle 2 result (final remediation cycle)
+## Final S5 design disposition
 
-RFC-017 DIRECTION: ACCEPTED (unchanged from Cycle 1 re-review).
+RFC-017 DIRECTION: ACCEPTED.
+RFC-017 DESIGN: ARCHITECT_APPROVED.
+RFC-017 IMPLEMENTATION READINESS: READY FOR PAULO DECISION.
+S5 IMPLEMENTATION: NOT YET AUTHORIZED.
 
-Closed this cycle:
-- AS76-F001 — evaluate() gained a fifth, trusted, branded evaluationContext
-  argument (time only); no wall-clock read remains, purity now honestly
-  holds over the complete explicit input set.
-- AS76-F002 — each adapter is now the sole public invocation surface,
-  internally constructing and branding subjectContext/evaluationContext;
-  evaluate()'s raw signature is an internal core, not the caller-facing API.
-- AS76-F003 — canonicalization moved to explicit per-adapter contracts (one
-  per provider domain); the core matcher never decodes anything itself.
-- AS76-F004 — the denial-reason vocabulary is now stated exactly once, in
-  section 4, with every other section referencing it by name.
+Closed:
+- AS75-F001 / AS76-F002 — trusted adapter-wrapper + branded subject/evaluation context boundary.
+- AS75-F002 — consequence tier remains policy-validation-only.
+- AS75-F003 — pinned immutable policy + separate live revocation list.
+- AS75-F004 / AS76-F003 — deterministic matching + provider-specific canonicalization.
+- AS75-F005 / AS76-F001 — pure five-input decision separated from non-pure AuditEnvelope.
+- AS76-F004 — one canonical denial-reason vocabulary.
 
-## Self-discovered, out-of-scope blocker (not an RFC-017 defect)
+No Cycle 3 is opened.
 
-Traceability regeneration surfaced one ERROR beyond the CORE-022/WEB-REQ-009
-baseline: a missing-canonical-target for ML-DEVOS-AS-075, referenced at
-brain/DECISION_LOG.md:888 (D-059). Confirmed via git show that this citation
-already existed at this cycle's own input HEAD, before any edit -- it is
-pre-existing drift from the fast-forward, not caused by ML-DEVOS-RFC-017.md.
-brain/DECISION_LOG.md is not on any S5-review cycle's authorized write
-surface, so this cannot be fixed here. See
-coordination/IMPLEMENTER_HANDOFF.md's Cycle 2 section for full evidence.
-Per the cycle-cap rule, this is routed to Architect/Paulo disposition rather
-than absorbed into an unauthorized Cycle 3 -- it does not block RFC-017's
-own design, which is fully corrected.
+## Known traceability bookkeeping gap
 
-## Hard boundaries respected
+Current generated traceability reports 3 ERRORs:
 
-No executable S5 implementation.
+- CORE-022 — known pre-existing debt.
+- WEB-REQ-009 — known pre-existing debt.
+- ML-DEVOS-AS-075 — missing durable Architect Sync archive referenced by D-059.
+
+The AS-075 gap predates the Cycle 2 RFC delta and is not an RFC-017 design defect. It must not be suppressed. A separately authorized bounded archive/traceability reconciliation is requested before or together with S5 implementation.
+
+## Paulo decision gate
+
+Paulo may now choose whether to authorize:
+
+- bounded S5 implementation exactly against the approved RFC-017 design; and
+- the smallest bounded Architect-Sync archive/traceability reconciliation needed to resolve the missing AS-075 canonical target and regenerate derived traceability honestly.
+
+Any implementation authorization should also permit the one-line non-behavioral RFC clarification that null-expiry policy supersession affects new-attempt grantability, not already-pinned attempts absent revocation.
+
+## Hard boundaries
+
+No executable S5 implementation until Paulo explicitly authorizes it.
 No S6+.
 No Context Plane implementation or coordination-protocol migration.
 No Skills V0.2.
@@ -69,14 +75,3 @@ No production-data write.
 No public D1 cutover.
 No protected/main merge.
 No PR #10 merge or auto-merge.
-D-060 / docs/SENTINEL_CONTEXT_PLANE_V1_PLAN.md not touched.
-
-## Return gate (this state)
-
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- CURRENT_REMEDIATION_CYCLE: 2
-- MAX_REMEDIATION_CYCLES: 2
-
-This was the final authorized remediation cycle. Every prohibition flag
-remains NO.
