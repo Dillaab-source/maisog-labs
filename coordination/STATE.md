@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_PROPOSAL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: RFC018_CONTEXT_BOOTSTRAP_V0_INDEPENDENT_DESIGN_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: RFC018_CONTEXT_BOOTSTRAP_V0_DESIGN_REMEDIATION_CYCLE_1_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,48 +19,57 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-061 authorizes Context Plane Bootstrap V0 discovery/design and the AS-075/076/077 archival bookkeeping repair only.
-D-060 remains the broader queued Context Plane planning decision.
-D-058 / ML-DEVOS-RFC-017 S5 design remains Architect-approved, but S5 executable implementation is paused and not authorized.
+D-061 authorizes Bootstrap V0 discovery/design and independent review only.
+ML-DEVOS-AS-078 is the current independent design review of record.
+D-060 remains the broader queued Context Plane planning record.
+S5 RFC-017 remains Architect-approved but executable implementation remains paused and unauthorized.
 
-## Current review target
+## Remediation Cycle 1
 
-- RFC: ML-DEVOS-RFC-018
-- Change class: ARCHITECTURE
-- Review mode: independent architecture review
-- Preferred reviewer: fresh Astra or equivalently independent fresh Architect context
-- Authoring context must not self-approve the proposal.
+Correct exactly B018-01 through B018-07 in ML-DEVOS-RFC-018.
 
-Review especially:
-- snapshot-consistent reads and TOCTOU/publication semantics;
-- STATE ↔ CURRENT_HANDOFF identity and authority boundaries;
-- active-obligation completeness without history preload;
-- coherent reader/writer migration;
-- durable rolling-record preservation;
-- advisory versus governed operational mode;
-- provider-neutral but capability-specific publication semantics;
-- failure tests, rollback, measurements and S5 trial sequencing.
+Required corrections:
+- precise expected-tip atomic publication transaction contract;
+- complete turn/handoff/review identity binding;
+- mandatory immutable preservation of every outgoing rolling record;
+- independently reviewed operative-obligation carry-forward;
+- explicit provenance-versus-authorization rule;
+- atomic reader/writer cutover with mandatory supported-writer checks and protocol version;
+- forward rollback preserving current authority and evidence;
+- required failure-test additions from ML-DEVOS-AS-078.
 
-## Bookkeeping repair status
+## Allowed design-remediation files
 
-Durable files for ML-DEVOS-AS-075, ML-DEVOS-AS-076 and ML-DEVOS-AS-077 have been recovered from exact Git-history snapshots and indexed.
+- devos/changes/rfcs/ML-DEVOS-RFC-018.md
+- devos/changes/rfcs/README.md only if summary becomes inaccurate
+- coordination/IMPLEMENTER_HANDOFF.md for remediation evidence only
+- coordination/STATE.md
+- deterministic traceability outputs only if explicitly regenerated
 
-Traceability regeneration is still required in an executable validation step; do not claim a new clean fingerprint until it is actually regenerated.
+## Return gate
+
+After remediation:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- CURRENT_REMEDIATION_CYCLE: 1
+- MAX_REMEDIATION_CYCLES: 2
+
+Return exact finding-to-section mapping, changed files, and only evidence actually executed/observed.
 
 ## Hard boundaries
 
 No Bootstrap V0 implementation.
-No CURRENT_HANDOFF cutover.
-No AGENTS.md / CLAUDE.md / skill / coordination-protocol migration.
+No CURRENT_HANDOFF creation or cutover.
+No AGENTS.md / CLAUDE.md / skill / protocol / bridge migration.
 No checker/runtime implementation.
 No executable S5 implementation.
 No S6+.
-No product/runtime application change.
+No application/product runtime change.
 No live credential or secret access.
 No S3/S4 mutation.
 No manifest, ADR, Sentinel-version, frozen-architecture, or CORE-rule mutation.
 No remote D1/R2.
-No Cloudflare Access, DNS, domain, deployment, or rollback change.
+No Cloudflare Access, DNS, domain, deployment, or rollback mutation.
 No production-data write.
 No public D1 cutover.
 No protected/main merge.
