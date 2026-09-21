@@ -881,3 +881,12 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Return gate:** Builder returns `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, with the proposal and audit evidence. Architect reviews the design before any S5 implementation authority can be considered.
 - **Still prohibited:** S5 executable implementation; S6+; Skills V0.2; product/runtime changes; remote D1/R2; Cloudflare Access, DNS, domains, deployment or rollback; production-data writes; public D1 cutover; protected/main merge; PR #10 merge or auto-merge.
 
+### D-059 — Reassign S5 RFC-017 remediation Cycle 1 from Claude to Codex Builder
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** Claude reported 97% weekly usage consumption with reset not until Thursday. Paulo then instructed Codex: `ur turn`.
+- **Decision:** Reassign only the already-authorized `ML-DEVOS-AS-075` remediation Cycle 1 Builder work from Claude to Codex. The scope, five findings, authorized files, remediation counter, and hard boundaries remain unchanged.
+- **Role integrity:** Codex acts as Builder for this remediation and must not approve its own work. After pushing the bounded correction and audit evidence, control returns to `TURN: ARCHITECT`; the final stage-gate review must be performed from a fresh Architect context.
+- **Authorized work:** correct exactly `AS75-F001` through `AS75-F005` in `ML-DEVOS-RFC-017`; update its README summary only if needed; regenerate deterministic traceability outputs; append Implementer evidence; update coordination state.
+- **Still prohibited:** executable S5 implementation; S6+; Skills V0.2; application/product/runtime changes; live credentials or secrets; S3/S4 mutation; manifest/ADR/version/frozen-architecture/CORE-rule mutation; remote D1/R2; Cloudflare Access/DNS/domain/deployment/rollback changes; production-data writes; public D1 cutover; protected/main merge; PR #10 merge or auto-merge.
+
