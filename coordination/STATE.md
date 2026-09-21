@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: PAULO_S5_IMPLEMENTATION_AND_TRACEABILITY_BOOKKEEPING_DECISION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_PROPOSAL
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: RFC018_CONTEXT_BOOTSTRAP_V0_INDEPENDENT_DESIGN_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 2
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,55 +19,45 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-058 authorized S5 proposal/audit only.
-The final Architect design review is ARCHITECT_APPROVED.
-D-060 remains a separate queued Context Plane planning decision only and grants no implementation authority.
+D-061 authorizes Context Plane Bootstrap V0 discovery/design and the AS-075/076/077 archival bookkeeping repair only.
+D-060 remains the broader queued Context Plane planning decision.
+D-058 / ML-DEVOS-RFC-017 S5 design remains Architect-approved, but S5 executable implementation is paused and not authorized.
 
-## Final S5 design disposition
+## Current review target
 
-RFC-017 DIRECTION: ACCEPTED.
-RFC-017 DESIGN: ARCHITECT_APPROVED.
-RFC-017 IMPLEMENTATION READINESS: READY FOR PAULO DECISION.
-S5 IMPLEMENTATION: NOT YET AUTHORIZED.
+- RFC: ML-DEVOS-RFC-018
+- Change class: ARCHITECTURE
+- Review mode: independent architecture review
+- Preferred reviewer: fresh Astra or equivalently independent fresh Architect context
+- Authoring context must not self-approve the proposal.
 
-Closed:
-- AS75-F001 / AS76-F002 — trusted adapter-wrapper + branded subject/evaluation context boundary.
-- AS75-F002 — consequence tier remains policy-validation-only.
-- AS75-F003 — pinned immutable policy + separate live revocation list.
-- AS75-F004 / AS76-F003 — deterministic matching + provider-specific canonicalization.
-- AS75-F005 / AS76-F001 — pure five-input decision separated from non-pure AuditEnvelope.
-- AS76-F004 — one canonical denial-reason vocabulary.
+Review especially:
+- snapshot-consistent reads and TOCTOU/publication semantics;
+- STATE ↔ CURRENT_HANDOFF identity and authority boundaries;
+- active-obligation completeness without history preload;
+- coherent reader/writer migration;
+- durable rolling-record preservation;
+- advisory versus governed operational mode;
+- provider-neutral but capability-specific publication semantics;
+- failure tests, rollback, measurements and S5 trial sequencing.
 
-No Cycle 3 is opened.
+## Bookkeeping repair status
 
-## Known traceability bookkeeping gap
+Durable files for ML-DEVOS-AS-075, ML-DEVOS-AS-076 and ML-DEVOS-AS-077 have been recovered from exact Git-history snapshots and indexed.
 
-Current generated traceability reports 3 ERRORs:
-
-- CORE-022 — known pre-existing debt.
-- WEB-REQ-009 — known pre-existing debt.
-- ML-DEVOS-AS-075 — missing durable Architect Sync archive referenced by D-059.
-
-The AS-075 gap predates the Cycle 2 RFC delta and is not an RFC-017 design defect. It must not be suppressed. A separately authorized bounded archive/traceability reconciliation is requested before or together with S5 implementation.
-
-## Paulo decision gate
-
-Paulo may now choose whether to authorize:
-
-- bounded S5 implementation exactly against the approved RFC-017 design; and
-- the smallest bounded Architect-Sync archive/traceability reconciliation needed to resolve the missing AS-075 canonical target and regenerate derived traceability honestly.
-
-Any implementation authorization should also permit the one-line non-behavioral RFC clarification that null-expiry policy supersession affects new-attempt grantability, not already-pinned attempts absent revocation.
+Traceability regeneration is still required in an executable validation step; do not claim a new clean fingerprint until it is actually regenerated.
 
 ## Hard boundaries
 
-No executable S5 implementation until Paulo explicitly authorizes it.
+No Bootstrap V0 implementation.
+No CURRENT_HANDOFF cutover.
+No AGENTS.md / CLAUDE.md / skill / coordination-protocol migration.
+No checker/runtime implementation.
+No executable S5 implementation.
 No S6+.
-No Context Plane implementation or coordination-protocol migration.
-No Skills V0.2.
-No application/product/runtime change.
+No product/runtime application change.
 No live credential or secret access.
-No S3/S4 schema or implementation change.
+No S3/S4 mutation.
 No manifest, ADR, Sentinel-version, frozen-architecture, or CORE-rule mutation.
 No remote D1/R2.
 No Cloudflare Access, DNS, domain, deployment, or rollback change.
