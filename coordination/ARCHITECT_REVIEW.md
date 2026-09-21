@@ -1,155 +1,181 @@
-# Architect Review — WEB-REL-001 Gate A Final Verification
+# Architect Review — WEB-REL-001 Gate B
 
-Status: ARCHITECT_APPROVED — GATE A CLOSED
+Status: PAULO_DECISION_REQUIRED — RELEASE REVIEW CLEAN / PREVIEW-DEPLOYMENT SCOPE FINDING
 Review mode: RELEASE REVIEW
-Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A
-Reviewed governance HEAD: 6602a5228bb196a5248445a00f461ef8dee56660
-Authority: D-052 + D-053
-Prior Gate A review: ML-DEVOS-AS-069
-Final Gate A archive ID: ML-DEVOS-AS-070
+Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_B
+PR: #12
+Head: governance/maisoglabs-v0.1
+Base: main
+Reviewed head SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
+Base SHA: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
+Authority: D-054
+Archive ID: ML-DEVOS-AS-071
 
-## Final verdict
+## Gate B review result
 
-GATE A / CI: PASS
-GATE A / REPOSITORY VISIBILITY: PASS
-GATE A / MAIN TECHNICAL PROTECTION: PASS
-GATE A OVERALL: CLOSED
-OPEN GATE A BLOCKERS: 0
+PR CREATION: PASS
+HEAD/BASE: PASS
+REQUIRED CI: PASS
+RELEASE DIFF REVIEW: PASS AT RELEASE-INVENTORY LEVEL
+MAIN IMMUTABILITY: PASS
+UNRESOLVED REVIEW THREADS: NONE
+MAIN MERGE AUTHORITY: NOT GRANTED
 
-No merge, deployment, Cloudflare-resource, public-data cutover, S5, or Skills V0.2 authority is granted by this closure.
+GATE B FINALIZATION: PAULO DECISION REQUIRED
 
-## Independent verification
+## Pull request evidence
 
-### Repository visibility
+PR #12:
+- title: [WEB-REL-001 Gate B] Governance release review — DO NOT MERGE
+- state: open
+- draft: true
+- mergeable: true
+- head: governance/maisoglabs-v0.1
+- head SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
+- base: main
+- base SHA: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
+- commits: 608
+- changed files: 283
+- additions: 66,716
+- deletions: 85
 
-PASS.
+No merge or auto-merge was requested.
 
-Live GitHub repository metadata reports:
-- repository: Dillaab-source/maisog-labs
-- visibility: public
+## Required CI
 
-This visibility change was explicitly authorized by D-053.
+PASS — independently verified live GitHub Actions run:
+- run ID: 35547402737
+- event: pull_request
+- workflow: ci
+- job/check: test-and-build
+- triggering SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
+- status: completed
+- conclusion: success
 
-### CI workflow
-
-PASS.
-
-The previously accepted minimal workflow remains:
-- .github/workflows/ci.yml
-- workflow name: ci
-- pull_request -> main
-- push -> governance/maisoglabs-v0.1
-- one job: test-and-build
-- Node 22
+Every required step completed successfully:
+- checkout
+- setup-node
 - npm ci
 - npm test
 - npm run build
-- no deployment or secret-bearing step
 
-Live run 35538010928 remains independently verified:
-- status: completed
-- conclusion: success
-- triggering SHA: 274b319db1aa9e11cd8a7db6910c8b98492c31fe
-- exact required check context: test-and-build
+## Release diff inventory
 
-### Main ruleset
+main -> PR head:
+- 608 commits ahead
+- 0 behind
+- 283 changed files
 
-PASS.
+Release-level grouping:
+- runtime/application/config: 33 files
+- tests: 19 files
+- migrations/D1 tooling: 6 files
+- governance/docs/coordination: 209 files
+- GitHub CI/support: 2 files
+- skills/brand/supporting repository surfaces: 14 files
 
-Live ruleset:
-- id: 23740878
-- name: main-protection
-- target: branch
-- enforcement: active
-- included ref: refs/heads/main
-- excluded refs: none
+This scale is expected because main still represents the old Phase-2 content baseline while the governed branch contains the complete subsequently governed WEB/Sentinel work.
 
-Active rules:
-1. deletion protection
-2. non_fast_forward protection
-3. pull_request requirement
-   - required approving reviews: 0
-   - no code-owner review requirement
-   - no last-push approval requirement
-4. required_status_checks
-   - strict/up-to-date policy: false
-   - do-not-enforce-on-create: false
-   - required context: test-and-build
-   - GitHub Actions integration id: 15368
-
-Bypass:
-- one repository-role bypass actor
-- bypass mode: pull_request
-- current_user_can_bypass: pull_requests_only
-
-This satisfies the bounded Gate A requirement: bypass is not an unconditional direct-push exemption; the current user may bypass only through the pull-request path.
-
-### Main immutability
+## Drift since Gate A closure
 
 PASS.
 
-Live main HEAD remains:
+Compare ML-DEVOS-AS-070 Gate A closure HEAD 322a7559959d99fec96731ad416f52ecfd6a58b1 to Gate B PR head:
+- exactly 2 commits
+- changed files only:
+  - brain/DECISION_LOG.md
+  - coordination/STATE.md
+
+Those changes record D-054 and the Gate B cycle. No website/product/runtime/schema/migration/test/Sentinel implementation surface changed after Gate A closure.
+
+## Main protection
+
+PASS / unchanged.
+
+Ruleset 23740878 remains:
+- main-protection
+- active
+- target refs/heads/main only
+- deletion blocked
+- non-fast-forward / force-push blocked
+- PR required
+- 0 required approvals
+- test-and-build required
+- bypass mode pull_request only
+
+## Main immutability
+
+PASS.
+
+main remains:
 887849283ee9cd16e8d60b937bac95b1c85bf3d9
 
-No direct push or merge to main occurred during Gate A.
+No merge or direct push occurred.
 
-### Gate B not opened prematurely
+## Review state
 
-PASS.
+- unresolved review threads: 0
+- submitted reviews: 0
+- ordinary PR comments: 1 automated Cloudflare integration comment
 
-No open pull request currently targets main.
+No human review blocker exists.
 
-PR #10 remains outside this release path and must not be merged.
+## GB-F001 — automatic Cloudflare preview version/deployment occurred
 
-## Evidence classification
+Opening PR #12 triggered the repository's pre-existing Cloudflare Workers Git integration.
 
-INDEPENDENTLY_VERIFIED:
-- repository visibility = public
-- ruleset existence / id / target / enforcement / exact rule payload
-- required check context in the ruleset
-- live successful CI run and job name
-- live main SHA
-- absence of open PRs targeting main
+The Cloudflare bot reported a successful build and produced:
+- one commit preview URL
+- one governance-branch preview URL
 
-ACTOR_REPORTED from earlier Builder work:
-- local npm test count
-- local npm run build execution before CI existed
-- traceability generator invocation
+This was not initiated by ChatGPT, Claude, or a manual Wrangler action during Gate B.
 
-The live CI run supersedes the earlier Builder-only test/build evidence for Gate A's minimum required automated check.
+Cloudflare documents that its Git integration automatically builds/deploys connected repository changes and that non-production branch builds use a preview deploy command that creates a preview version without promoting it to the active production deployment. Cloudflare also describes preview URLs as a mechanism for testing Worker versions without deploying them to production.
 
-## Gate A health
+Therefore:
+- PRODUCTION PROMOTION: no evidence of one;
+- PRODUCTION MAIN/CUSTOM-DOMAIN CHANGE: no evidence of one;
+- PREVIEW VERSION/DEPLOYMENT: yes, automatically created by the pre-existing Git integration.
 
+### Governance consequence
+
+D-054 literally prohibited any "deployment" action during Gate B, not merely production deployment.
+
+The automatic preview therefore creates a wording/scope contradiction even though the production-risk boundary appears preserved.
+
+Architect will not silently reinterpret D-054 after the fact.
+
+## Required Paulo decision
+
+Choose one:
+
+A. Accept the automatically generated Cloudflare non-production PR preview as permitted review evidence for Gate B and future governed review PRs, while keeping production deployment separately gated.
+
+B. Keep the literal no-preview-deployment boundary. In that case, disable Cloudflare non-production branch builds / preview deployment behavior before Gate B can be treated as clean, then re-run/re-open the review as needed.
+
+No Gate C merge authorization exists under either option until this decision is recorded.
+
+## Gate B health
+
+PR correctness: 100%
 CI: 100%
-Visibility transition: 100%
+Release-diff review: 100%
 Main protection: 100%
-Gate A overall: 100% CLOSED
-
-## Next gate
-
-The existing WEB-REL-001 release sequence now permits consideration of:
-
-GATE B — DRAFT/REVIEW PR TO MAIN
-
-Gate B remains separately owner-gated. Gate A closure does not itself authorize opening or merging that PR.
-
-If Paulo authorizes Gate B, the next bounded action is:
-- open exactly one PR from governance/maisoglabs-v0.1 to main;
-- do not merge it;
-- let test-and-build run on the PR;
-- inspect the full release diff and CI result;
-- return to Architect for release review;
-- preserve a separate later Paulo Gate C for the actual main merge.
+Main immutability: 100%
+Governance scope consistency: BLOCKED on GB-F001
+Gate B overall: ~90%, awaiting one owner decision
 
 ## Hard boundaries
 
-Until Gate B is explicitly authorized:
-- no governance->main PR;
-- no main merge/push;
-- no remote D1/R2;
-- no Cloudflare Access production mutation;
-- no deploy/DNS/production write;
-- no public-source cutover;
+- PR #12 MUST NOT MERGE.
+- MAIN_MERGE_AUTHORIZED remains NO.
+- no direct push to main;
+- no production Worker deployment;
+- no remote D1/R2 mutation;
+- no production Cloudflare Access mutation;
+- no DNS/domain mutation;
+- no production data write;
+- no public D1 cutover;
 - no S5+;
 - no Skills V0.2;
 - no PR #10 merge.
