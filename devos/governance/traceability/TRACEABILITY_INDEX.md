@@ -188,7 +188,7 @@ Scanned files: 271 (263 used for durable reference/error detection; rolling work
 | `CORE-005` | devos/governance/rules/core-rules.json:5 | 7 | 7 |
 | `CORE-006` | devos/governance/rules/core-rules.json:6 | 13 | 13 |
 | `CORE-007` | devos/governance/rules/core-rules.json:7 | 21 | 21 |
-| `CORE-008` | devos/governance/rules/core-rules.json:8 | 40 | 40 |
+| `CORE-008` | devos/governance/rules/core-rules.json:8 | 41 | 41 |
 | `CORE-009` | devos/governance/rules/core-rules.json:9 | 34 | 34 |
 | `CORE-010` | devos/governance/rules/core-rules.json:10 | 7 | 7 |
 | `CORE-011` | devos/governance/rules/core-rules.json:11 | 16 | 16 |

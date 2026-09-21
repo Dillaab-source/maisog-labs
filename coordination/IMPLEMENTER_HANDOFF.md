@@ -1,18 +1,14 @@
 # Implementer Handoff
 
-Status: `CHANGES_REQUESTED` — `SENTINEL_S5_RFC017_DESIGN_REMEDIATION_CYCLE_1_ONLY`; Builder action required under `D-058` / `ML-DEVOS-AS-075`
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S5_RFC017_DESIGN_REMEDIATION_CYCLE_1_ONLY`; `AS75-F001`–`AS75-F005` resolved, awaiting Architect re-review
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** S5 RFC-017 Design Remediation Cycle 1 of 2.
+**Current cycle:** see the "S5 RFC-017 Design Remediation Cycle 1 (AS75-F001–AS75-F005)" section at the very end of this document for the exact finding-to-section mapping, changed files, and audit evidence.
 
-Live source of truth is `coordination/STATE.md` at `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 1`, `IMPLEMENTER_ACTION_REQUIRED: YES`.
-
-Builder must fetch and fast-forward `governance/maisoglabs-v0.1`, read `coordination/STATE.md` first, then read `coordination/ARCHITECT_REVIEW.md` / `ML-DEVOS-AS-075`. Correct exactly AS75-F001 through AS75-F005 in `ML-DEVOS-RFC-017`, regenerate traceability, append remediation evidence to this handoff, and return `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `CURRENT_REMEDIATION_CYCLE: 1`. No executable S5 implementation is authorized.
-
-The original S5 proposal section at the end of this document is prior-cycle evidence and is not the current task.
+The original S5 proposal section further below is prior-cycle evidence and is not the current task.
 
 ---
 
@@ -3835,3 +3831,38 @@ Added the corresponding one-paragraph index entry to `devos/changes/rfcs/README.
 **Unresolved design questions (carried into the RFC's own "Unresolved questions" section, not hidden here):** (1) exact `resource_scope` pattern-matching grammar for non-path-shaped provider resources, left to implementation subject to Architect review; (2) where the real enforcement integration point that calls `evaluate()` lives (adapter wrapper vs. future S8 Orchestrator vs. caller convention) — deliberately left to a future, separately authorized integration RFC; (3) whether a `DENY` decision should be durably evidence-worthy before S7/S11 exist, or remain in-process/`ACTOR_REPORTED`-only for V1; (4) whether a future multi-project Sentinel deployment needs stronger policy isolation than a single `project`-field-filtered descriptor list.
 
 **Next actor:** `ARCHITECT` — S5 design (`ARCHITECTURE`-class) Stage Gate Review of `ML-DEVOS-RFC-017`. Implementation remains separately Paulo-gated even if the design is approved.
+
+---
+
+## S5 RFC-017 Design Remediation Cycle 1 (AS75-F001–AS75-F005)
+
+**Authority:** `D-058` (unchanged — proposal/audit only). Architect Stage Gate Review of proposal HEAD `e72e29de0e3445cb639f30062622c82d1316a379` returned `RFC-017 DIRECTION: ACCEPTED` / `RFC-017 IMPLEMENTATION READINESS: CHANGES_REQUESTED`, five bounded design findings. `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`. **LEAN / DELTA-ONLY mode** — read only live `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md`, and `ML-DEVOS-RFC-017.md` itself; no full governance-history reread, no unrelated cleanup.
+
+**Input HEAD:** `44016d944c9d4561e1fb5e4404916dd1f31d08dc` — verified exact match against the required commit before any file was touched (`git rev-parse origin/governance/maisoglabs-v0.1`, confirmed against `git show origin/governance/maisoglabs-v0.1:coordination/STATE.md` directly, before fast-forwarding local state).
+
+**Finding-to-section mapping (each finding corrected, not silently reworded elsewhere):**
+
+- **`AS75-F001` (caller-forgeable subject and credential assertions)** — corrected in RFC §1 (evaluate() signature split into `subjectContext`/`requestIntent`), §3 (new "Subject context (trusted)" / "Request intent (untrusted)" split, with `attested_by`/`attestation_ref` fields and evaluation step (a)), §4 (new `UNTRUSTED_SUBJECT_CONTEXT` default-deny row), §7 (credential attestation relocated into the trusted `subjectContext`), §9 (adapters named as the only registered `attested_by` sources), the "Required design decisions" table's Decision-API and Adapter-registration rows, and the Threat model / Misuse cases sections (new/revised bullets on subject-context forgery and adapter-side trust).
+- **`AS75-F002` (undefined consequence-tier gate risking MAY-inside-CAN)** — corrected in RFC §3 (evaluation order no longer includes a consequence-tier step; decision denial-reason vocabulary no longer includes `CONSEQUENCE_TIER_GATE_UNSATISFIED`), §8 (rewritten to state explicitly that `consequence_tier` is a policy-authoring/validation-time-only classification, never an `evaluate()` input), and the "Required design decisions" table's Audit-event-fields row cross-reference.
+- **`AS75-F003` (contradictory active-policy freshness and attempt binding)** — corrected in RFC §3 (`evaluate()` takes `policy` and `revocationList` as explicit arguments, no ambient "current policy" lookup), §6 (rewritten: policy-version pinning for stability, a separate always-fresh `revocationList` for emergency override that works regardless of pinning), §11 (idempotency/concurrency restated against the four-argument signature), §4 (`POLICY_VERSION_MISMATCH` replaces `POLICY_VERSION_STALE`; new `REVOKED`-via-`revocationList` row), the "Required design decisions" table's Policy-version-binding and Revocation/expiry rows, Risks (renamed/added entries), and Threat model / Failure modes (new revocation-list-freshness threat and failure mode).
+- **`AS75-F004` (nondeterministic resource matching and multi-match)** — corrected in RFC §2 (new bounded V1 resource grammar — exact literal / single trailing `/*` prefix wildcard / bare `*` — plus canonicalization and a deterministic project/resource specificity precedence rule), §4 (`AMBIGUOUS_POLICY_MATCH` now fires on any specificity tie, not only a materially-differing one), §9 (adapters own canonicalization), Threat model, Test plan (explicit precedence/overlap/canonicalization/traversal fixtures), and Unresolved question 1 (narrowed from "no grammar defined" to "is the now-defined grammar expressive enough for every provider").
+- **`AS75-F005` (pure evaluation vs. audit-event generation conflict)** — corrected in RFC §3 (Decision paragraph states the `CapabilityDecision` is fully pure with no event-varying field), §12 (rewritten: strict separation between the pure `CapabilityDecision` and a separately-constructed `AuditEnvelope` whose `event_id`/`timestamp`/`evidence_provenance` are supplied by the constructing caller, never by `evaluate()`; provenance must be explicitly chosen, never defaulted), the "Required design decisions" table's Audit-event-fields row, Test plan (retried-call-purity-vs.-distinct-envelope fixture), Implementation mapping (`subject-context.schema.json` added), and Unresolved question 3 (updated terminology).
+
+**Self-caught, unintended new traceability ERROR (disclosed, not silently smoothed over):** the first post-edit regeneration surfaced an unexpected third `missing-canonical-target` ERROR for `ML-DEVOS-AS-075`, because one sentence in RFC §1 cited the reviewing Architect Sync by its full identifier before its own durable archive exists under `devos/changes/architect-syncs/` (the same trap this repository's own history has hit before). Corrected immediately by rephrasing that sentence to cite only the non-canonical-ID-matching finding label `AS75-F001` and a prose description, mirroring `ML-DEVOS-RFC-016`'s own established precedent for the identical situation. Re-verified clean afterward (see commands below).
+
+**Exact changed files:**
+- `devos/changes/rfcs/ML-DEVOS-RFC-017.md` — all five findings corrected as mapped above. `devos/changes/rfcs/README.md` was inspected but not changed — its existing one-paragraph summary does not contradict any corrected section and needed no edit, per the brief's "only if its summary must change."
+- `devos/governance/traceability/{TRACEABILITY_INDEX.md,traceability-index.json}` — regenerated twice (once mid-cycle after the self-caught `AS-075` citation defect, once final) to reach the clean final state below.
+- `coordination/IMPLEMENTER_HANDOFF.md` / `coordination/STATE.md` — this remediation record and the return-gate update.
+
+**Not touched:** `devos/changes/rfcs/README.md` content, any S3/S4 schema/kernel/validator file, `devos/devos-manifest.json`, any ADR, `ML-DEVOS-ARCH-001.md`, `VERSIONING_POLICY.md`, `brain/DECISION_LOG.md`, any product/runtime/website file, any workflow file.
+
+**Commands/checks (all `ACTOR_REPORTED`):**
+- `node devos/governance/traceability/generate-traceability.mjs` (final run) → `Wrote devos/governance/traceability/traceability-index.json and devos/governance/traceability/TRACEABILITY_INDEX.md` / `Scanned 271 files. Errors: 2. Warnings: 14.` — exit `0`.
+- `node devos/governance/traceability/validate-traceability.mjs` (final run) → `Scanned 271 files across 12 ID families. Errors: 2  Warnings: 14  Total canonical definitions: 274.` Fingerprint exactly `CORE-022` + `WEB-REQ-009` — unchanged, no unexpected new ERROR, nothing suppressed. Exit `1` (the validator's normal, established exit code whenever any ERROR-level finding exists — not a script failure).
+- **Before/after:** input-HEAD-committed baseline (`TRACEABILITY_INDEX.md`'s own header at `44016d9`): `271` files, `2` errors, `14` warnings, `274` canonical definitions. After this cycle's final regeneration: identical — `271` files, `2` errors (same fingerprint), `14` warnings, `274` canonical definitions. This remediation is a pure content/wording correction to an existing file with no net change in scanned-file count or reference totals.
+- `git status --porcelain` against input HEAD: exactly `devos/changes/rfcs/ML-DEVOS-RFC-017.md` + the two regenerated traceability output files changed — matching the authorized `Required Cycle 1 delta` write surface exactly (`devos/changes/rfcs/README.md` inspected, not modified).
+
+**Blockers:** none.
+
+**Next actor:** `ARCHITECT` — S5 design (`ARCHITECTURE`-class) Stage Gate Review, Remediation Cycle 1 re-review of `ML-DEVOS-RFC-017`.
