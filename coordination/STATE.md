@@ -1,17 +1,17 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_POST_MERGE_DECOUPLING
-TURN: PAULO
-STATUS: MANUAL_ADMIN_ACTION_REQUIRED
-AUTHORIZED_SCOPE: CLOUDFLARE_PRODUCTION_GIT_AUTODEPLOY_DECOUPLING_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+TURN: ARCHITECT
+STATUS: ARCHITECT_REVIEW_REQUIRED
+AUTHORIZED_SCOPE: CLOUDFLARE_PRODUCTION_GIT_AUTODEPLOY_DECOUPLING_VERIFICATION_AND_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
-AUDIT_APPEND_AUTHORIZED: NO
+AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
@@ -21,6 +21,16 @@ MAIN_MERGE_AUTHORIZED: NO
 
 D-057 selects Option B after GC-F001:
 decouple main merge from production deployment.
+
+## Architect authorization
+
+Architect is authorized to append the verified D-057 remediation result
+to coordination/ARCHITECT_REVIEW.md and commit that documentation-only
+review to governance/maisoglabs-v0.1.
+
+No application-code change, deployment, rollback, merge, D1/R2 mutation,
+Access change, DNS/domain change, production-data write, S5+ work,
+Skills V0.2 work, or PR #10 merge is authorized.
 
 ## Required release architecture
 
