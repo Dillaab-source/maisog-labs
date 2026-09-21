@@ -816,3 +816,14 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Fail-closed sequencing:** Do not open Gate B / governance→main PR until both public visibility and the `main` protection/ruleset are independently confirmed active.
 - **Still prohibited:** direct push/merge to `main`; governance→main PR opening before protection confirmation; remote D1/R2; Cloudflare Access production configuration; Worker deployment; DNS/domain changes; production data writes; public-source cutover; S5+; Skills V0.2; PR #10 merge.
 - **Tooling limitation:** The connected GitHub tool available to ChatGPT can write repository contents but does not expose repository-visibility mutation or ruleset/branch-protection administration. Those admin-setting mutations must be completed through an authorized GitHub admin surface, then independently re-checked before Gate A can close.
+
+
+### D-054 — Authorize WEB-REL-001 Gate B draft/review PR to main
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After ML-DEVOS-AS-070 closed Gate A with public visibility, green CI, and active `main-protection`, Paulo stated: `Okay proceed`.
+- **Decision:** Authorize Gate B only: open exactly one **draft/review pull request** from `governance/maisoglabs-v0.1` to `main`, allow the required `test-and-build` check to run on that PR, inspect the complete release diff and GitHub mergeability/protection state, and return the result for Architect review.
+- **No merge authority:** This decision does **not** authorize merging the PR. `MAIN_MERGE_AUTHORIZED` remains `NO`. A separate Gate C / Paulo decision is required before any merge to `main`.
+- **Review requirements:** verify the PR head/base, exact head SHA, full change inventory at release level, CI result, ruleset enforcement, mergeability, unresolved conversations if any, and that no unrelated/new scope was introduced after Gate A closure.
+- **Still prohibited:** direct push to `main`; merge/auto-merge; remote D1/R2 creation or mutation; production Cloudflare Access setup; Worker deployment; DNS/domain mutation; production data writes; public D1 cutover; S5+; Skills V0.2; PR #10 merge.
+- **Return gate:** Gate B may be marked review-complete only after the draft PR exists and `test-and-build` reports its live result. If review is clean, route a separate Gate C merge decision to Paulo. If not clean, do not merge and return the smallest bounded remediation.
