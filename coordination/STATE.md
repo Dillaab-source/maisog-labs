@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_C
+CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_POST_MERGE_DECOUPLING
 TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: POST_MERGE_CLOUDFLARE_DEPLOYMENT_COUPLING_DECISION_ONLY
+STATUS: MANUAL_ADMIN_ACTION_REQUIRED
+AUTHORIZED_SCOPE: CLOUDFLARE_PRODUCTION_GIT_AUTODEPLOY_DECOUPLING_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -17,47 +17,42 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Gate C result
+## Authority
 
-D-056 authorized exactly PR #12 merge.
+D-057 selects Option B after GC-F001.
 
-MERGE: COMPLETE.
-PR #12: MERGED.
-Merged governed head: 3262dbad4b2e18998586e125b1d34702211862c1
-New main HEAD: 882ad253b5dbec06b209d1ee1a2a54b21b392e2e
+## Required architecture
 
-Final required CI before merge:
-- run 35551313397
-- test-and-build: SUCCESS
+Future release path:
 
-Post-merge tree verification:
-- main is exactly one merge commit ahead of governed head;
-- zero file differences between governed head and main tree.
+review PR
+-> merge gate
+-> main
+-> separate production deploy gate
+-> runtime verification
 
-Main-protection remains active.
+Non-production PR/branch previews remain permitted under D-055.
 
-## GC-F001
+## Required remediation
 
-The pre-existing Cloudflare Workers GitHub App automatically triggered a successful production Workers build from the new main merge commit.
+Disable or alter the existing Cloudflare Workers Git integration so a future merge/push to main does not automatically deploy production.
 
-Cloudflare check evidence:
-- build id: 017a6911-f5e8-42b1-899a-c2360d18122d
-- result: SUCCESS
-- Version ID: a28ee2e9-a9a0-4528-b89f-07e0c827be2b
+Do not disable governed non-production PR previews unless that is technically inseparable from production auto-deploy and a later owner decision accepts the tradeoff.
 
-No manual Cloudflare deploy was invoked, but the repo integration couples main merge to production Workers deployment.
+## Verification gate
 
-## Paulo decision required
+After Cloudflare production auto-deploy is disabled/separated, Architect must independently verify the configuration before the next production release gate opens.
 
-A. Accept main->production automatic Cloudflare Git deployment as the governed deployment model. Future main-merge gates must explicitly include production deployment authority + runtime verification.
+## Current production version
 
-B. Decouple main merge from deployment by disabling/altering Cloudflare production Git builds, restoring distinct merge and deploy gates.
+Cloudflare Version ID created by the Gate C auto-deploy:
+a28ee2e9-a9a0-4528-b89f-07e0c827be2b
 
-C. If runtime verification shows this deployed version is unacceptable, explicitly authorize a Cloudflare rollback. Rollback is not currently authorized.
+No rollback is authorized by D-057.
 
 ## Hard boundaries
 
-No additional production deploy/rollback action.
+No additional production deploy/rollback.
 No remote D1/R2.
 No production Access mutation.
 No DNS/domain mutation.
