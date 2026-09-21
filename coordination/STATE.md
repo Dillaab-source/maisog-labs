@@ -19,11 +19,10 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-057 selects Option B after GC-F001.
+D-057 selects Option B after GC-F001:
+decouple main merge from production deployment.
 
-## Required architecture
-
-Future release path:
+## Required release architecture
 
 review PR
 -> merge gate
@@ -33,35 +32,65 @@ review PR
 
 Non-production PR/branch previews remain permitted under D-055.
 
-## Required remediation
+## Exact Cloudflare remediation
 
-Decouple build/version creation from production promotion using Cloudflare Workers Builds.
+Use the existing Workers Git integration, but change the production Deploy command so a push/merge to main uploads a version without promoting it to active production.
 
-Preferred implementation:
-- keep the existing Git integration;
-- keep non-production branch builds / PR previews enabled under D-055;
-- in Cloudflare Worker `maisog-labs` -> Settings -> Build, change the **production Deploy command** from:
-  `npx wrangler deploy`
-  to:
-  `npx wrangler versions upload`
+Cloudflare Worker:
+maisog-labs
 
-Expected effect:
-- pushes/merges to `main` may still trigger a Cloudflare build and upload a Worker version;
-- the uploaded version must NOT be automatically promoted to the Active Deployment;
-- production promotion becomes a separate explicitly authorized release gate;
-- PR/non-production preview behavior remains available.
+Dashboard path:
+Workers & Pages
+-> maisog-labs
+-> Settings
+-> Build
+-> Deploy command
 
-Fallback only if Cloudflare does not permit this separation:
-- disconnect/disable automatic production builds, preserving previews only if technically possible;
-- otherwise return to Paulo for a tradeoff decision rather than disabling previews silently.
+Change:
+npx wrangler deploy
+
+To:
+npx wrangler versions upload
+
+Save the build settings.
+
+Keep the non-production branch deploy command at:
+npx wrangler versions upload
+
+Keep non-production branch builds enabled so governed PR previews remain available.
+
+Do NOT disconnect the Git repository unless the above supported deploy-command separation proves unavailable.
+
+## Why this remediation
+
+Cloudflare Workers Builds normally executes the production deploy command for the production Git branch. Cloudflare documents that changing the deploy command to `npx wrangler versions upload` allows automatic builds to continue while creating versions without promoting them to the active production deployment.
+
+This preserves:
+- Git-connected build evidence;
+- PR/branch previews;
+- automatic compile/test-adjacent build feedback.
+
+It restores:
+- explicit production promotion as a separate owner-gated action.
 
 ## Verification gate
 
-After Cloudflare production auto-deploy is disabled/separated, Architect must independently verify the configuration before the next production release gate opens.
+After saving the Cloudflare setting, Paulo says `ur turn`.
 
-## Current production version
+Architect must then verify, using available evidence:
+1. future production-branch Git builds are configured to use version upload rather than production deploy;
+2. non-production preview builds remain available;
+3. current live production version is not rolled back or replaced by the setting change itself;
+4. no remote D1/R2/Access/DNS mutation occurred.
 
-Cloudflare Version ID created by the Gate C auto-deploy:
+If direct Cloudflare configuration evidence cannot be independently read with the connected tool surface, require a screenshot of Settings > Build showing both deploy commands before closing this remediation.
+
+## Current main / production evidence
+
+main:
+882ad253b5dbec06b209d1ee1a2a54b21b392e2e
+
+Current known Cloudflare version produced by Gate C auto-deploy:
 a28ee2e9-a9a0-4528-b89f-07e0c827be2b
 
 No rollback is authorized by D-057.
