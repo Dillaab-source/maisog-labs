@@ -1,12 +1,18 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL`; `ML-DEVOS-RFC-017` filed, audit complete, awaiting Architect design stage-gate review
+Status: `CHANGES_REQUESTED` — `SENTINEL_S5_RFC017_DESIGN_REMEDIATION_CYCLE_1_ONLY`; Builder action required under `D-058` / `ML-DEVOS-AS-075`
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "S5 Capability & Permission Gateway Proposal (D-058 / ML-DEVOS-RFC-017)" section at the very end of this document for the exact delta and full audit evidence. `devos/changes/rfcs/ML-DEVOS-RFC-017.md` is filed as `DRAFT`, `ARCHITECTURE`-class. No executable S5 code, schema, or live policy exists — proposal/audit only, exactly as `D-058` authorized.
+**Current cycle:** S5 RFC-017 Design Remediation Cycle 1 of 2.
+
+Live source of truth is `coordination/STATE.md` at `TURN: CLAUDE`, `STATUS: CHANGES_REQUESTED`, `CURRENT_REMEDIATION_CYCLE: 1`, `IMPLEMENTER_ACTION_REQUIRED: YES`.
+
+Builder must fetch and fast-forward `governance/maisoglabs-v0.1`, read `coordination/STATE.md` first, then read `coordination/ARCHITECT_REVIEW.md` / `ML-DEVOS-AS-075`. Correct exactly AS75-F001 through AS75-F005 in `ML-DEVOS-RFC-017`, regenerate traceability, append remediation evidence to this handoff, and return `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` / `CURRENT_REMEDIATION_CYCLE: 1`. No executable S5 implementation is authorized.
+
+The original S5 proposal section at the end of this document is prior-cycle evidence and is not the current task.
 
 ---
 
