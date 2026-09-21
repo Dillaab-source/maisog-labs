@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S5_RFC017_DESIGN_REMEDIATION_CYCLE_1_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: SENTINEL_S5_RFC017_DESIGN_REMEDIATION_CYCLE_2_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,63 +19,64 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-058 remains the authority for proposal and audit only.
+D-058 remains the authority for S5 proposal/audit only.
+ML-DEVOS-AS-076 is the current Architect review.
+D-060 remains a separate queued planning decision only and grants no Context Plane implementation authority.
 
-The Architect's S5 design Stage Gate Review returned CHANGES_REQUESTED with
-five bounded design findings, now resolved:
-- AS75-F001: caller-forgeable subject and credential assertions;
-- AS75-F002: undefined consequence-tier gate;
-- AS75-F003: contradictory active-policy freshness and attempt binding;
-- AS75-F004: nondeterministic resource and multi-match semantics;
-- AS75-F005: pure-evaluation and audit-event contract conflict.
+## Architect Cycle 1 re-review result
 
-## Remediation Cycle 1 — result
+RFC-017 DIRECTION: ACCEPTED.
+RFC-017 IMPLEMENTATION READINESS: CHANGES_REQUESTED.
 
-Executed exactly per coordination/ARCHITECT_REVIEW.md's Required Cycle 1
-delta. See coordination/IMPLEMENTER_HANDOFF.md's "S5 RFC-017 Design
-Remediation Cycle 1 (AS75-F001-AS75-F005)" section for the exact
-finding-to-section mapping and full evidence.
+Closed:
+- AS75-F002 — consequence tier is policy-validation-only.
+- AS75-F003 — pinned policy + separately supplied live revocation list resolves the original policy-freshness contradiction.
+- AS75-F005 audit-envelope separation — pure decision and non-pure audit envelope are now separated.
 
-Delivered:
-- All five findings corrected in devos/changes/rfcs/ML-DEVOS-RFC-017.md
-  (evaluate() split into trusted subjectContext / untrusted requestIntent;
-  consequence-tier gate removed from evaluation, kept policy-validation-only;
-  policy-version pinning + a separate always-fresh revocationList resolving
-  the freshness/pinning contradiction; a bounded deterministic resource
-  grammar and matching precedence; pure CapabilityDecision separated from a
-  caller-constructed AuditEnvelope).
-- Self-caught and fixed one unintended new traceability ERROR mid-cycle (a
-  full ML-DEVOS-AS-075 citation before its own durable archive exists) --
-  disclosed in the handoff, not silently smoothed over.
-- Traceability: 271 files / 2 errors (CORE-022 + WEB-REQ-009, unchanged
-  fingerprint) / 14 warnings -- identical to the input-HEAD baseline.
-- devos/changes/rfcs/README.md inspected, not modified (summary did not
-  need to change).
+Still requiring bounded remediation:
+- AS76-F001 — four-argument purity contradicts injected decision-time clock.
+- AS76-F002 — trusted subject origin remains mechanically forgeable unless the adapter/host invocation boundary is defined.
+- AS76-F003 — universal resource canonicalization is insufficient for shell/GitHub/Cloudflare/MCP/browser provider domains.
+- AS76-F004 — denial-reason vocabulary is inconsistent between RFC sections.
 
-No S3/S4/manifest/ADR/ARCH-001/VERSIONING_POLICY/DECISION_LOG file touched.
-No executable S5 code created.
+AS75-F001 and AS75-F004 are therefore only partially closed until AS76-F002 and AS76-F003 are resolved.
 
-## Hard boundaries respected
+## Cycle 2 scope
+
+LEAN / DELTA-ONLY.
+
+Allowed:
+- devos/changes/rfcs/ML-DEVOS-RFC-017.md
+- devos/changes/rfcs/README.md only if its summary must change
+- deterministic traceability regeneration outputs
+- coordination/IMPLEMENTER_HANDOFF.md
+- coordination/STATE.md
+
+Do not modify D-060 or docs/SENTINEL_CONTEXT_PLANE_V1_PLAN.md in this cycle.
+
+## Return gate
+
+After correcting AS76-F001..F004:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- CURRENT_REMEDIATION_CYCLE: 2
+- MAX_REMEDIATION_CYCLES: 2
+
+If a blocker remains after Cycle 2, do not start Cycle 3; route to Paulo.
+
+## Hard boundaries
 
 No executable S5 implementation.
 No S6+.
+No Context Plane implementation or coordination-protocol migration.
 No Skills V0.2.
 No application/product/runtime change.
 No live credential or secret access.
 No S3/S4 schema or implementation change.
-No manifest, ADR, version, frozen-architecture, or CORE-rule mutation.
+No manifest, ADR, Sentinel-version, frozen-architecture, or CORE-rule mutation.
 No remote D1/R2.
 No Cloudflare Access, DNS, domain, deployment, or rollback change.
 No production-data write.
 No public D1 cutover.
 No protected/main merge.
 No PR #10 merge or auto-merge.
-
-## Return gate (this state)
-
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- CURRENT_REMEDIATION_CYCLE: 1
-- MAX_REMEDIATION_CYCLES: 2
-
-Every prohibition flag remains NO.
