@@ -1,16 +1,12 @@
 # Implementer Handoff
 
-Status: `AUTHORIZED_PROPOSAL` — `SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL`; Builder action required under `D-058`
+Status: `READY_FOR_ARCHITECT` — `SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL`; `ML-DEVOS-RFC-017` filed, audit complete, awaiting Architect design stage-gate review
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** Sentinel S5 Capability & Permission Gateway proposal and audit only.
-
-Live source of truth is `coordination/STATE.md` at `TURN: CLAUDE`, `STATUS: AUTHORIZED_PROPOSAL`, `IMPLEMENTER_ACTION_REQUIRED: YES`.
-
-Builder must first fetch and fast-forward `governance/maisoglabs-v0.1`, then read the live `coordination/STATE.md` and `coordination/ARCHITECT_REVIEW.md`. Produce `devos/changes/rfcs/ML-DEVOS-RFC-017.md` within the exact authorized file list and return `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` with audit evidence. No executable S5 implementation is authorized.
+**Current cycle:** see the "S5 Capability & Permission Gateway Proposal (D-058 / ML-DEVOS-RFC-017)" section at the very end of this document for the exact delta and full audit evidence. `devos/changes/rfcs/ML-DEVOS-RFC-017.md` is filed as `DRAFT`, `ARCHITECTURE`-class. No executable S5 code, schema, or live policy exists — proposal/audit only, exactly as `D-058` authorized.
 
 ---
 
@@ -3795,3 +3791,41 @@ No `ML-DEVOS-ARCH-001`, `CORE-*` rule, S3 schema/validator, manifest, ADR, versi
 **Blockers:** one — the Step 3 GitHub ruleset-administration tool-capability gap above. Steps 1–2 are fully complete with independently-checkable live evidence (run/job/check-run IDs and URLs given above); nothing about this blocker required weakening or faking Step 3.
 
 **Next actor:** `ARCHITECT` — review Gate A evidence and disposition the Step 3 blocker (delegate out-of-band configuration, or authorize/provide an alternate mechanism).
+
+---
+
+## S5 Capability & Permission Gateway Proposal (D-058 / ML-DEVOS-RFC-017)
+
+**Authority:** `D-058` (Paulo) — S5 discovery, architecture proposal, and audit only. Precondition confirmed live: S4 fully closed at Sentinel `v1.7.0` / `ML-DEVOS-ADR-014` / `D-051` / `ML-DEVOS-AS-068`; WEB-REL-001 Gates A–C and `D-057` are prior, superseded cycles (see the historical section above). **LEAN / DELTA-ONLY mode.**
+
+**Input HEAD:** `d6650be3815abe70ba2074f3b81c7dc69d3028c5` — fetched and fast-forwarded fresh at the start of this turn; independently confirmed via `git rev-parse HEAD` before any file was touched.
+
+**Sources read (per the brief's required read list, nothing broader):**
+- `coordination/STATE.md`, `coordination/ARCHITECT_REVIEW.md` (this cycle's Builder Brief);
+- `devos/architecture/ML-DEVOS-ARCH-001.md` §3 (Actors), §4 (System mechanisms), §5 (Governance vs. Capability), §6 (Evidence provenance), §7 (Integration/Evidence-Gate order);
+- `devos/capabilities/README.md` (the S5 reserved-root boundary notice);
+- `devos/contracts/TASK_CONTRACT_SPEC.md` (S3 contract shape — identity/provenance, scope, claims/evidence, `authority_disclaimer` — read for composition-boundary purposes only, never duplicated);
+- `devos/state/kernel.mjs` (S4's exact public operation signatures — `createTask`/`claim`/`renew`/`release`/`transition`/`getState`/`sweepExpiredLeases`/`forceClearLock` — read for composition-boundary purposes only, never modified or re-implemented);
+- `devos/templates/RFC_TEMPLATE.md`;
+- `devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` §1 (change-class table) and `devos/governance/TRUST_BOUNDARIES.md` TB-7;
+- `devos/governance/rules/core-rules.json` — `CORE-002`, `CORE-008`, `CORE-019`, `CORE-020` full text (read-only reference, none modified).
+
+**Deliverable:** `devos/changes/rfcs/ML-DEVOS-RFC-017.md` — S5 Capability & Permission Gateway, `Status: DRAFT`, `Proposed change class: ARCHITECTURE`. Covers, in numbered sections matching the brief's own required-content numbering: (1) scope of the gateway (is/is-not, mirroring RFC-016's S4 boundary discipline); (2) provider-neutral capability descriptors (actor_role, project, provider, action, resource_scope, environment, expiry, credential_requirement, consequence_tier — the last reusing `core-rules.json`'s existing `low`/`medium`/`high`/`highest` vocabulary rather than inventing a second one); (3) request/evaluation/decision/denial-reason contracts (`evaluate(request, policy) -> ALLOW/DENY`, pure function, short-circuit evaluation order); (4) default-deny table for every unknown axis plus ambiguous-match; (5) explicit CAN/MAY/risk-acceptance separation with a fixed, schema-`const`-style non-authority disclaimer on every decision, mirroring S3's `authority_disclaimer`; (6) least-privilege/revocation-as-policy-version-removal/expiry-at-decision-time/stale-policy-is-DENY; (7) credential-*class*-only requirements, explicitly never a value/reference (disclosed V1 limitation: credential liveness/validity checking is out of scope); (8) sensitive-operation consequence-tier structural floor for merge/deploy/remote-mutation/credential/destructive actions; (9) five bounded, translation-only provider adapters (shell/GitHub/Cloudflare/MCP/browser) with a reserved `future` slot; (10) reference-only composition with S3/S4 (opaque `contract_ref`/`task_id` correlation only, no schema reads/writes, no wiring into S4's kernel by this RFC); (11) idempotency/concurrency/policy-versioning (pure-function purity substitutes for S4's lock/fencing machinery); (12) audit-event minimum fields, evidence class `ACTOR_REPORTED` by default, explicit no-S7/no-S9-exists disclaimer. Also includes the brief's required design-decision comparison table (9 rows), threat model, misuse cases, failure modes, test plan, implementation mapping (not authorized), and 4 explicitly named unresolved questions.
+
+Added the corresponding one-paragraph index entry to `devos/changes/rfcs/README.md`.
+
+**Not touched:** `devos/capabilities/README.md` (read-only reference), any S3/S4 schema/validator/kernel file, `devos/devos-manifest.json`, any ADR, `ML-DEVOS-ARCH-001.md`, `VERSIONING_POLICY.md`, `brain/DECISION_LOG.md`, any product/runtime/website file, any workflow file.
+
+**Commands/checks (all `ACTOR_REPORTED`):**
+- `node devos/governance/traceability/generate-traceability.mjs` → `Wrote devos/governance/traceability/traceability-index.json and devos/governance/traceability/TRACEABILITY_INDEX.md` / `Scanned 271 files. Errors: 2. Warnings: 14.` — exit `0`.
+- `node devos/governance/traceability/validate-traceability.mjs` → `Scanned 271 files across 12 ID families. Errors: 2  Warnings: 14  Total canonical definitions: 274.` Fingerprint exactly `CORE-022` + `WEB-REQ-009` — unchanged, no new unexpected ERROR, nothing suppressed. Exit `1` (the validator's normal exit code whenever any ERROR-level finding exists, per its established convention in every prior cycle in this session — not a script failure).
+- **Before/after:** committed baseline at input HEAD (`TRACEABILITY_INDEX.md`'s own header, pre-regeneration): `264` files scanned, `2` errors, `15` warnings, `261` canonical definitions. After this cycle's regeneration: `271` files, `2` errors (unchanged fingerprint), `14` warnings, `274` canonical definitions. The single warning drop (`orphan-no-inbound-reference` on `D-052`) is **not** caused by this cycle's own content — `ML-DEVOS-RFC-017.md`/`README.md` cite no Decision IDs at all (verified via `grep -n "D-052"` on both, zero matches). It resolves pre-existing drift: `devos/changes/architect-syncs/ML-DEVOS-AS-069.md` (brought in by this turn's fast-forward, from the prior WEB-REL-001 Gate B/C cycle) already cites `D-052` several times, but the traceability outputs committed at input HEAD had not been regenerated since that file landed. This regeneration is exactly the kind of deterministic, non-suppressive drift correction the traceability system is designed to surface — disclosed here rather than silently absorbed.
+- `git status --porcelain` against input HEAD: exactly `devos/changes/rfcs/ML-DEVOS-RFC-017.md` (new) + `devos/changes/rfcs/README.md` + the two regenerated traceability output files changed — matching the authorized mutation surface exactly.
+
+**Result HEAD:** recorded after commit/push below.
+
+**Blockers:** none preventing this cycle's return.
+
+**Unresolved design questions (carried into the RFC's own "Unresolved questions" section, not hidden here):** (1) exact `resource_scope` pattern-matching grammar for non-path-shaped provider resources, left to implementation subject to Architect review; (2) where the real enforcement integration point that calls `evaluate()` lives (adapter wrapper vs. future S8 Orchestrator vs. caller convention) — deliberately left to a future, separately authorized integration RFC; (3) whether a `DENY` decision should be durably evidence-worthy before S7/S11 exist, or remain in-process/`ACTOR_REPORTED`-only for V1; (4) whether a future multi-project Sentinel deployment needs stronger policy isolation than a single `project`-field-filtered descriptor list.
+
+**Next actor:** `ARCHITECT` — S5 design (`ARCHITECTURE`-class) Stage Gate Review of `ML-DEVOS-RFC-017`. Implementation remains separately Paulo-gated even if the design is approved.
