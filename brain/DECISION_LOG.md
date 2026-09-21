@@ -838,3 +838,18 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Governance interpretation:** Prior Gate B wording prohibiting deployment is clarified prospectively to prohibit **production deployment/promotion** while allowing automatically generated non-production preview versions that are isolated from the active production deployment.
 - **Gate B disposition:** GB-F001 is accepted/closed under this owner policy. PR #12 may complete Gate B review once its current/final review head remains governance-only after ML-DEVOS-AS-071/D-055 bookkeeping and the required `test-and-build` check is green.
 - **Gate C remains separate:** No merge authority is granted. `MAIN_MERGE_AUTHORIZED` remains `NO` until a later explicit Paulo Gate C decision.
+
+
+### D-056 — Authorize WEB-REL-001 Gate C merge of PR #12 into main
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After D-055 / ML-DEVOS-AS-072 closed Gate B and the final live pre-merge checks confirmed PR #12 remains clean, protected, mergeable, and green, Paulo stated: `Proceed`.
+- **Decision:** Authorize merging **exactly PR #12** from `governance/maisoglabs-v0.1` into `main`.
+- **Merge method:** normal GitHub merge commit, preserving the governed commit history and traceability.
+- **Expected base before merge:** `887849283ee9cd16e8d60b937bac95b1c85bf3d9`.
+- **Pre-authorization reviewed head:** `60c9d940e73182acd42dfc38e9aa7011a61e3f8c`.
+- **Final-head rule:** because recording D-056 and Gate C state advances the PR head, the merge is authorized only if the then-current PR head differs from the reviewed head solely by Gate C governance/coordination bookkeeping and the required `test-and-build` check is green on that exact final head.
+- **Protection rule:** ruleset `main-protection` must remain active and continue to require PR flow plus `test-and-build`, while blocking deletion and non-fast-forward/force-push updates.
+- **Merge safety:** use the exact current PR head SHA as the expected-head guard when invoking the merge. If the PR head moves again, the authorization pauses until the new delta and CI are re-verified.
+- **Scope after merge:** this decision authorizes the GitHub merge only. It does **not** authorize production Worker promotion/deployment, remote D1/R2 creation or mutation, production Cloudflare Access changes, DNS/domain mutation, production data writes, public D1 cutover, S5+, Skills V0.2, or PR #10 merge.
+- **Post-merge verification required:** confirm PR #12 reports merged, `main` advances to the merge result, the governed release tree is represented on `main`, and no prohibited Cloudflare/remote action was intentionally initiated as part of the merge command.
