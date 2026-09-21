@@ -1,12 +1,20 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_A`, CI workflow created and observed green; main-protection step BLOCKED on missing GitHub ruleset-administration tool capability (see `coordination/STATE.md`)
+Status: `AUTHORIZED_PROPOSAL` — `SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL`; Builder action required under `D-058`
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "WEB-REL-001 Gate A — CI Workflow + Blocked Main Protection (D-052)" section at the very end of this document for the exact delta and evidence. Steps 1–2 of Gate A (minimal CI workflow, one observed green run) are complete with live GitHub evidence. Step 3 (main technical protection) could not be attempted: no tool in this session's GitHub MCP toolset can inspect or mutate repository rulesets or branch protection. Per D-052's fail-closed rule, this was **not** worked around with a weaker/legacy substitute — it is reported as a blocker for Paulo/Architect disposition.
+**Current cycle:** Sentinel S5 Capability & Permission Gateway proposal and audit only.
+
+Live source of truth is `coordination/STATE.md` at `TURN: CLAUDE`, `STATUS: AUTHORIZED_PROPOSAL`, `IMPLEMENTER_ACTION_REQUIRED: YES`.
+
+Builder must first fetch and fast-forward `governance/maisoglabs-v0.1`, then read the live `coordination/STATE.md` and `coordination/ARCHITECT_REVIEW.md`. Produce `devos/changes/rfcs/ML-DEVOS-RFC-017.md` within the exact authorized file list and return `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` with audit evidence. No executable S5 implementation is authorized.
+
+---
+
+**Prior cycle (historical; Gate A was subsequently completed and superseded by Gate B, Gate C, D-057, and the current S5 proposal cycle):** see the "WEB-REL-001 Gate A — CI Workflow + Blocked Main Protection (D-052)" section at the very end of this document for its original delta and evidence. The ruleset-tooling blocker recorded there is historical and is not the live coordination state.
 
 ---
 
