@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_C
-TURN: ARCHITECT
-STATUS: MERGE_AUTHORIZED_PENDING_FINAL_CHECK
-AUTHORIZED_SCOPE: WEB_REL_001_GATE_C_PR12_MERGE_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: POST_MERGE_CLOUDFLARE_DEPLOYMENT_COUPLING_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
@@ -15,46 +15,54 @@ AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: YES
+MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Gate C result
 
-D-056 authorizes merging exactly PR #12 only.
+D-056 authorized exactly PR #12 merge.
 
-Gate B remains CLOSED under D-055 / ML-DEVOS-AS-072.
+MERGE: COMPLETE.
+PR #12: MERGED.
+Merged governed head: 3262dbad4b2e18998586e125b1d34702211862c1
+New main HEAD: 882ad253b5dbec06b209d1ee1a2a54b21b392e2e
 
-## Merge target
+Final required CI before merge:
+- run 35551313397
+- test-and-build: SUCCESS
 
-PR: #12
-head branch: governance/maisoglabs-v0.1
-base branch: main
-expected base before merge: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
-merge method: merge commit
+Post-merge tree verification:
+- main is exactly one merge commit ahead of governed head;
+- zero file differences between governed head and main tree.
 
-## Final-head condition
+Main-protection remains active.
 
-Before merging:
-- re-fetch PR #12;
-- confirm current head differs from reviewed head 60c9d940e73182acd42dfc38e9aa7011a61e3f8c only by D-056 / Gate C governance bookkeeping;
-- confirm test-and-build SUCCESS on that exact head;
-- confirm main-protection remains active;
-- confirm main base SHA is unchanged;
-- confirm unresolved review threads = 0.
+## GC-F001
 
-Use the exact current PR head SHA as the merge expected-head guard.
+The pre-existing Cloudflare Workers GitHub App automatically triggered a successful production Workers build from the new main merge commit.
 
-If any condition fails or the head moves again, STOP and re-review.
+Cloudflare check evidence:
+- build id: 017a6911-f5e8-42b1-899a-c2360d18122d
+- result: SUCCESS
+- Version ID: a28ee2e9-a9a0-4528-b89f-07e0c827be2b
+
+No manual Cloudflare deploy was invoked, but the repo integration couples main merge to production Workers deployment.
+
+## Paulo decision required
+
+A. Accept main->production automatic Cloudflare Git deployment as the governed deployment model. Future main-merge gates must explicitly include production deployment authority + runtime verification.
+
+B. Decouple main merge from deployment by disabling/altering Cloudflare production Git builds, restoring distinct merge and deploy gates.
+
+C. If runtime verification shows this deployed version is unacceptable, explicitly authorize a Cloudflare rollback. Rollback is not currently authorized.
 
 ## Hard boundaries
 
-Authorize ONLY PR #12 merge.
-No PR #10 merge.
-No direct push to main.
-No production Worker promotion/deployment.
+No additional production deploy/rollback action.
 No remote D1/R2.
-No production Cloudflare Access mutation.
+No production Access mutation.
 No DNS/domain mutation.
-No production data writes.
+No production data write.
 No public D1 cutover.
 No S5+.
 No Skills V0.2.
+No PR #10 merge.
