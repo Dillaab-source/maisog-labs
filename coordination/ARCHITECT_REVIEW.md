@@ -1,181 +1,97 @@
-# Architect Review — WEB-REL-001 Gate B
+# Architect Review — WEB-REL-001 Gate B Final
 
-Status: PAULO_DECISION_REQUIRED — RELEASE REVIEW CLEAN / PREVIEW-DEPLOYMENT SCOPE FINDING
+Status: ARCHITECT_APPROVED — GATE B CLOSED, SUBJECT TO LIVE REQUIRED CHECK ON FINAL GOVERNANCE HEAD
 Review mode: RELEASE REVIEW
 Cycle: MAISOGLABS_WEB_OPERATIONAL_BASELINE_GATE_B
 PR: #12
-Head: governance/maisoglabs-v0.1
-Base: main
-Reviewed head SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
-Base SHA: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
-Authority: D-054
-Archive ID: ML-DEVOS-AS-071
+Authority: D-054 + D-055
+Prior review: ML-DEVOS-AS-071
+Final Gate B archive ID: ML-DEVOS-AS-072
 
-## Gate B review result
+## Final Gate B verdict
 
 PR CREATION: PASS
 HEAD/BASE: PASS
-REQUIRED CI: PASS
-RELEASE DIFF REVIEW: PASS AT RELEASE-INVENTORY LEVEL
+RELEASE INVENTORY REVIEW: PASS
+REQUIRED CI ON REVIEWED RELEASE HEAD: PASS
+MAIN PROTECTION: PASS
 MAIN IMMUTABILITY: PASS
-UNRESOLVED REVIEW THREADS: NONE
-MAIN MERGE AUTHORITY: NOT GRANTED
+UNRESOLVED REVIEW THREADS: 0
+GB-F001 PREVIEW POLICY: CLOSED BY D-055
+MAIN MERGE AUTHORITY: NO
 
-GATE B FINALIZATION: PAULO DECISION REQUIRED
+Gate B is approved as a review gate. Because these final governance records themselves advance the PR head, the active ruleset's required `test-and-build` check must still be green on the final head before any later Gate C merge could execute. This is an enforcement condition, not a reopening of product review, provided the post-AS-071 delta remains governance/coordination-only.
 
-## Pull request evidence
+## PR #12 reviewed release state
 
-PR #12:
-- title: [WEB-REL-001 Gate B] Governance release review — DO NOT MERGE
-- state: open
-- draft: true
-- mergeable: true
-- head: governance/maisoglabs-v0.1
-- head SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
+- head branch: governance/maisoglabs-v0.1
 - base: main
+- reviewed product/release head at ML-DEVOS-AS-071: 2f1030417550994d3190b6d63b6bad5152fb39c2
 - base SHA: 887849283ee9cd16e8d60b937bac95b1c85bf3d9
-- commits: 608
-- changed files: 283
-- additions: 66,716
-- deletions: 85
+- draft: yes
+- mergeable: yes
+- 608 commits / 283 changed files at the reviewed release head
+- required PR CI run 35547402737: SUCCESS
+- required context: test-and-build
+- no unresolved review threads
+- no direct push/merge to main
 
-No merge or auto-merge was requested.
+## Release inventory
 
-## Required CI
-
-PASS — independently verified live GitHub Actions run:
-- run ID: 35547402737
-- event: pull_request
-- workflow: ci
-- job/check: test-and-build
-- triggering SHA: 2f1030417550994d3190b6d63b6bad5152fb39c2
-- status: completed
-- conclusion: success
-
-Every required step completed successfully:
-- checkout
-- setup-node
-- npm ci
-- npm test
-- npm run build
-
-## Release diff inventory
-
-main -> PR head:
-- 608 commits ahead
-- 0 behind
-- 283 changed files
-
-Release-level grouping:
+The reviewed main→release delta was:
 - runtime/application/config: 33 files
 - tests: 19 files
 - migrations/D1 tooling: 6 files
 - governance/docs/coordination: 209 files
 - GitHub CI/support: 2 files
-- skills/brand/supporting repository surfaces: 14 files
+- skills/brand/support surfaces: 14 files
 
-This scale is expected because main still represents the old Phase-2 content baseline while the governed branch contains the complete subsequently governed WEB/Sentinel work.
+No post-Gate-A product/runtime drift existed at the reviewed release head. The only changes after ML-DEVOS-AS-070 were Gate B governance records.
 
-## Drift since Gate A closure
+## GB-F001 — CLOSED
 
-PASS.
+D-055 explicitly permits automatically generated Cloudflare non-production PR/branch previews as review evidence.
 
-Compare ML-DEVOS-AS-070 Gate A closure HEAD 322a7559959d99fec96731ad416f52ecfd6a58b1 to Gate B PR head:
-- exactly 2 commits
-- changed files only:
-  - brain/DECISION_LOG.md
-  - coordination/STATE.md
+The policy preserves a hard distinction:
+- non-production preview version/deployment: permitted when automatically triggered by governed PR review;
+- production promotion/deployment: separately gated and still prohibited.
 
-Those changes record D-054 and the Gate B cycle. No website/product/runtime/schema/migration/test/Sentinel implementation surface changed after Gate A closure.
-
-## Main protection
-
-PASS / unchanged.
-
-Ruleset 23740878 remains:
-- main-protection
-- active
-- target refs/heads/main only
-- deletion blocked
-- non-fast-forward / force-push blocked
-- PR required
-- 0 required approvals
-- test-and-build required
-- bypass mode pull_request only
-
-## Main immutability
-
-PASS.
-
-main remains:
-887849283ee9cd16e8d60b937bac95b1c85bf3d9
-
-No merge or direct push occurred.
-
-## Review state
-
-- unresolved review threads: 0
-- submitted reviews: 0
-- ordinary PR comments: 1 automated Cloudflare integration comment
-
-No human review blocker exists.
-
-## GB-F001 — automatic Cloudflare preview version/deployment occurred
-
-Opening PR #12 triggered the repository's pre-existing Cloudflare Workers Git integration.
-
-The Cloudflare bot reported a successful build and produced:
-- one commit preview URL
-- one governance-branch preview URL
-
-This was not initiated by ChatGPT, Claude, or a manual Wrangler action during Gate B.
-
-Cloudflare documents that its Git integration automatically builds/deploys connected repository changes and that non-production branch builds use a preview deploy command that creates a preview version without promoting it to the active production deployment. Cloudflare also describes preview URLs as a mechanism for testing Worker versions without deploying them to production.
-
-Therefore:
-- PRODUCTION PROMOTION: no evidence of one;
-- PRODUCTION MAIN/CUSTOM-DOMAIN CHANGE: no evidence of one;
-- PREVIEW VERSION/DEPLOYMENT: yes, automatically created by the pre-existing Git integration.
-
-### Governance consequence
-
-D-054 literally prohibited any "deployment" action during Gate B, not merely production deployment.
-
-The automatic preview therefore creates a wording/scope contradiction even though the production-risk boundary appears preserved.
-
-Architect will not silently reinterpret D-054 after the fact.
-
-## Required Paulo decision
-
-Choose one:
-
-A. Accept the automatically generated Cloudflare non-production PR preview as permitted review evidence for Gate B and future governed review PRs, while keeping production deployment separately gated.
-
-B. Keep the literal no-preview-deployment boundary. In that case, disable Cloudflare non-production branch builds / preview deployment behavior before Gate B can be treated as clean, then re-run/re-open the review as needed.
-
-No Gate C merge authorization exists under either option until this decision is recorded.
+No evidence showed PR #12's preview promoted the reviewed Worker version to the active production deployment.
 
 ## Gate B health
 
 PR correctness: 100%
-CI: 100%
-Release-diff review: 100%
+CI on reviewed release head: 100%
+Release inventory review: 100%
 Main protection: 100%
 Main immutability: 100%
-Governance scope consistency: BLOCKED on GB-F001
-Gate B overall: ~90%, awaiting one owner decision
+Preview-policy consistency: 100%
+Gate B: 100% CLOSED as review gate
 
-## Hard boundaries
+## Next gate
 
-- PR #12 MUST NOT MERGE.
-- MAIN_MERGE_AUTHORIZED remains NO.
-- no direct push to main;
-- no production Worker deployment;
-- no remote D1/R2 mutation;
-- no production Cloudflare Access mutation;
-- no DNS/domain mutation;
-- no production data write;
-- no public D1 cutover;
-- no S5+;
-- no Skills V0.2;
-- no PR #10 merge.
+Gate C — explicit authorization to merge PR #12 into main.
+
+Gate C must verify immediately before merge:
+1. PR #12 still targets main from governance/maisoglabs-v0.1;
+2. current PR head differs from the reviewed release head only by Gate B/D-055/closure governance records;
+3. `test-and-build` is green on the current head;
+4. ruleset main-protection remains active;
+5. main base SHA has not unexpectedly moved;
+6. no unresolved review thread or new product/runtime drift exists.
+
+No merge may occur until Paulo explicitly authorizes Gate C.
+
+## Still prohibited
+
+- merge or auto-merge of PR #12;
+- direct push to main;
+- production Worker deployment/promotion;
+- remote D1/R2 mutation;
+- production Access mutation;
+- DNS/domain mutation;
+- production data write;
+- public D1 cutover;
+- S5+;
+- Skills V0.2;
+- PR #10 merge.
