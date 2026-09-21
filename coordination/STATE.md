@@ -35,9 +35,25 @@ Non-production PR/branch previews remain permitted under D-055.
 
 ## Required remediation
 
-Disable or alter the existing Cloudflare Workers Git integration so a future merge/push to main does not automatically deploy production.
+Decouple build/version creation from production promotion using Cloudflare Workers Builds.
 
-Do not disable governed non-production PR previews unless that is technically inseparable from production auto-deploy and a later owner decision accepts the tradeoff.
+Preferred implementation:
+- keep the existing Git integration;
+- keep non-production branch builds / PR previews enabled under D-055;
+- in Cloudflare Worker `maisog-labs` -> Settings -> Build, change the **production Deploy command** from:
+  `npx wrangler deploy`
+  to:
+  `npx wrangler versions upload`
+
+Expected effect:
+- pushes/merges to `main` may still trigger a Cloudflare build and upload a Worker version;
+- the uploaded version must NOT be automatically promoted to the Active Deployment;
+- production promotion becomes a separate explicitly authorized release gate;
+- PR/non-production preview behavior remains available.
+
+Fallback only if Cloudflare does not permit this separation:
+- disconnect/disable automatic production builds, preserving previews only if technically possible;
+- otherwise return to Paulo for a tradeoff decision rather than disabling previews silently.
 
 ## Verification gate
 
