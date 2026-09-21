@@ -1,55 +1,79 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_OPERATIONAL_BASELINE_POST_MERGE_DECOUPLING
-TURN: PAULO
-STATUS: CLOSED
-AUTHORIZED_SCOPE: D057_REMEDIATION_CLOSED_NO_FURTHER_ACTION_AUTHORIZED
+CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL
+TURN: CLAUDE
+STATUS: AUTHORIZED_PROPOSAL
+AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_PROPOSAL_AND_AUDIT_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
-AUDIT_APPEND_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
+AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## D-057 final state
+## Authority
 
-D-057 remediation: CLOSED.
-Architect review: PASS.
-Health: 100%.
-Blockers: NONE.
+D-058 authorizes the S5 Capability & Permission Gateway discovery,
+architecture proposal, and audit only.
 
-Verified:
-- Cloudflare Worker `maisog-labs` retains its Git integration;
-- production Deploy command is `npx wrangler versions upload`;
-- non-production Deploy command is `npx wrangler versions upload`;
-- non-production branch builds and previews remain enabled;
-- active production Version ID remains `a28ee2e9-a9a0-4528-b89f-07e0c827be2b`;
-- no deployment or rollback was initiated by the remediation;
-- no D1, R2, Access, DNS, domain, or production-data mutation was observed.
+Target RFC:
+ML-DEVOS-RFC-017
 
-The governed release model is now:
-review PR
--> merge gate
--> main
--> separate production deploy gate
--> runtime verification
+Read first:
+- coordination/ARCHITECT_REVIEW.md
+- devos/architecture/ML-DEVOS-ARCH-001.md sections governing actors,
+  system mechanisms, and Governance MAY versus Capability CAN
+- devos/capabilities/README.md
+- accepted S3 Task Contracts and S4 Task State interfaces needed for
+  composition boundaries
+- the RFC template and change-governance policy
 
-No further action is authorized by this closed cycle.
+## Authorized files
+
+- devos/changes/rfcs/ML-DEVOS-RFC-017.md
+- devos/changes/rfcs/README.md
+- devos/governance/traceability/TRACEABILITY_INDEX.md, only through
+  deterministic regeneration
+- devos/governance/traceability/traceability-index.json, only through
+  deterministic regeneration
+- coordination/IMPLEMENTER_HANDOFF.md
+- coordination/STATE.md
+
+## Required result
+
+Produce ML-DEVOS-RFC-017 as a design proposal only.
+
+Return with:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- exact changed-file list
+- command and exit-code evidence
+- traceability before/after counts and ERROR fingerprints
+- blockers and unresolved design questions
+
+Preserve the known traceability ERROR baseline:
+- CORE-022
+- WEB-REQ-009
+
+No unexpected new hard ERROR is authorized.
 
 ## Hard boundaries
 
-No additional production deploy/rollback.
-No remote D1/R2.
-No production Access mutation.
-No DNS/domain mutation.
-No production data write.
-No public D1 cutover.
-No S5+.
+No executable S5 gateway or permission-enforcement code.
+No live credential or secret access.
+No manifest status, closure_ref, Sentinel version, ADR, or frozen-architecture mutation.
+No S6+.
 No Skills V0.2.
-No PR #10 merge.
+No application/product/runtime change.
+No remote D1/R2.
+No Cloudflare Access, DNS, domain, deployment, or rollback change.
+No production-data write.
+No public D1 cutover.
+No protected/main merge.
+No PR #10 merge or auto-merge.
