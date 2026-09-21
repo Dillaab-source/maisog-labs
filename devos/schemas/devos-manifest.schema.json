@@ -1,0 +1,158 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/schemas/devos-manifest.schema.json",
+  "title": "Sentinel DevOS Foundation Manifest",
+  "description": "Static, machine-readable repository-foundation manifest introduced by S2 (ML-DEVOS-RFC-001, ML-DEVOS-AS-006, D-016). Descriptive metadata only -- not a Task Engine, Policy Engine, Orchestrator, runtime loader, or enforcement mechanism. Strictly subordinate to the frozen architecture (ML-DEVOS-ARCH-001), the active governance-capability baseline, brain/DECISION_LOG.md decisions, ADRs, and durable Architect Syncs -- this manifest may summarize or reference those records; it may never redefine, weaken, or override them.",
+  "type": "object",
+  "required": [
+    "manifest_id", "manifest_version", "repository", "devos_root",
+    "architecture_baseline", "sentinel_capability_baseline",
+    "source_of_truth_precedence", "precedence_statement",
+    "reserved_subsystem_roots", "reserved_root_invariant",
+    "project_registry", "legacy_bootstrap_surfaces",
+    "executable_runtime_present", "prohibition", "provenance",
+    "closure_history", "created_at", "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "manifest_id": { "type": "string", "minLength": 1 },
+    "manifest_version": { "type": "string", "minLength": 1 },
+    "repository": { "type": "string", "minLength": 1 },
+    "devos_root": { "type": "string", "minLength": 1 },
+    "architecture_baseline": {
+      "type": "object",
+      "required": ["id", "version", "status", "document"],
+      "additionalProperties": false,
+      "description": "The frozen S0 architecture. MUST remain distinct from sentinel_capability_baseline (S2-F001 / RFC acceptance criterion 2).",
+      "properties": {
+        "id": { "type": "string", "const": "ML-DEVOS-ARCH-001" },
+        "version": { "type": "string", "const": "1.2.0" },
+        "status": { "type": "string", "const": "FROZEN" },
+        "document": { "type": "string", "minLength": 1 }
+      }
+    },
+    "sentinel_capability_baseline": {
+      "type": "object",
+      "required": ["version", "status", "adr", "decision", "document"],
+      "additionalProperties": false,
+      "description": "The active Sentinel governance-capability baseline (S1 Governance Kernel, closed at v1.3.0 by D-013/ML-DEVOS-ADR-001). MUST remain distinct from architecture_baseline.",
+      "properties": {
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "status": { "type": "string", "enum": ["ACTIVE", "SUPERSEDED"] },
+        "adr": { "type": "string", "minLength": 1 },
+        "decision": { "type": "string", "minLength": 1 },
+        "document": { "type": "string", "minLength": 1 }
+      }
+    },
+    "source_of_truth_precedence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Ordered, highest authority first. Must place the frozen architecture, active governance kernel, decisions, ADRs, and durable Architect Syncs above this manifest, and this manifest above the project registry index (S2-F002)."
+    },
+    "precedence_statement": { "type": "string", "minLength": 1 },
+    "reserved_subsystem_roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["path", "owning_phase", "consuming_phases", "status", "executable_runtime_present"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "owning_phase": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Exactly one canonical owning phase per root (S2-F005). Never an array -- a root with more than one owner is a modeling error, not a valid state."
+          },
+          "consuming_phases": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Phases that may consume this root's artifacts once implemented, without owning or redefining the root."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["NOT_IMPLEMENTED", "FOUNDATION_ACTIVE", "IMPLEMENTED"],
+            "description": "NOT_IMPLEMENTED for every root reserved for a later phase not yet closed. FOUNDATION_ACTIVE only for devos/schemas/, which S2 itself owns and populates. IMPLEMENTED (ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 / D-044 / D-045) means the owning phase's bounded repository capability has been built, independently reviewed, and closed under an explicit Paulo decision -- it is descriptive only and grants no authority, does not imply deployment/runtime verification (CORE-007/016/017/018 are untouched by this field), and does not itself authorize any later phase (reserved_root_invariant remains in force)."
+          },
+          "closure_ref": {
+            "type": ["string", "null"],
+            "description": "ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 / D-044 / D-045: optional fail-closed link to this root's closure event. Absent or null for NOT_IMPLEMENTED/FOUNDATION_ACTIVE (a root that has not closed cannot cite a closure event). For IMPLEMENTED, must be a non-null string matching an ML-DEVOS-ADR-NNN identifier that resolves to exactly one devos-manifest.json closure_history[] entry whose own 'adr' field equals this value, whose 'phase' field equals this root's own 'owning_phase', and whose 'decision'/'architect_sync'/'version' fields are all non-empty and structurally valid -- enforced by validate-devos-manifest.mjs, not by this static schema alone (matches by adr, a unique never-reused identifier, never by phase, a reusable category label -- AS57-F002)."
+          },
+          "executable_runtime_present": {
+            "type": "boolean",
+            "const": false,
+            "description": "MUST be false for every root while no later phase has genuinely added live execution. Clarified by responsibility, not invocation method (ML-DEVOS-RFC-015 / ML-DEVOS-AS-059 AS57-F005/AS58-F004): false means the root contains no active Sentinel operational subsystem that owns/persists operational state, executes lifecycle/state transitions, dispatches/orchestrates actors, brokers/enforces capabilities, or performs autonomous/consequence-bearing operational actions. Repository-local schemas, specifications, deterministic validators/generators, and their tests may be executable code and may be invoked manually or automatically (including from CI) without becoming a Sentinel runtime subsystem by that fact alone -- invocation mechanism never determines this field's value. A root may legitimately reach status IMPLEMENTED while this remains false indefinitely (S2-F007, RFC non-goals)."
+          }
+        }
+      }
+    },
+    "reserved_root_invariant": { "type": "string", "minLength": 1 },
+    "project_registry": {
+      "type": "object",
+      "required": ["location", "schema", "role", "status", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "location": { "type": "string", "minLength": 1 },
+        "schema": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "const": "index only" },
+        "status": {
+          "type": "string",
+          "enum": ["EMPTY", "POPULATED"],
+          "description": "MUST be EMPTY throughout S2 (RFC acceptance criterion 6/7). Only a later, separately authorized PROJECT_ONBOARDING decision may make this POPULATED."
+        },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "legacy_bootstrap_surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "status", "note"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["ACTIVE", "RETIRED"] },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "executable_runtime_present": {
+      "type": "boolean",
+      "const": false,
+      "description": "MUST be false -- no Task/Policy/Capability/Orchestrator/Evidence runtime, CI enforcement, or ruleset exists at the manifest level. Clarified by responsibility, not invocation method (ML-DEVOS-RFC-015 / ML-DEVOS-AS-059): see the matching per-root field's description for the exact behavior-based definition, which applies identically here."
+    },
+    "prohibition": { "type": "string", "minLength": 1 },
+    "closure_history": {
+      "type": "array",
+      "description": "Ledger of Sentinel phase closures recorded by this manifest. Added at S2 closure (D-017, ML-DEVOS-ADR-002); the manifest did not exist during S1's own closure, so S1's closure is recorded only in D-013/ML-DEVOS-ADR-001, not backfilled here as a fabricated entry. Append-only in spirit -- a later closure adds a new entry, it does not edit a prior one (CORE-011).",
+      "items": {
+        "type": "object",
+        "required": ["phase", "closed_at", "version", "adr", "decision", "architect_sync", "note"],
+        "additionalProperties": false,
+        "properties": {
+          "phase": { "type": "string", "minLength": 1 },
+          "closed_at": { "type": "string", "format": "date" },
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+          "adr": { "type": "string", "minLength": 1 },
+          "decision": { "type": "string", "minLength": 1 },
+          "architect_sync": { "type": "string", "minLength": 1 },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["rfc", "architect_sync", "proposal_decision", "implementation_decision"],
+      "additionalProperties": false,
+      "properties": {
+        "rfc": { "type": "string", "minLength": 1 },
+        "architect_sync": { "type": "string", "minLength": 1 },
+        "proposal_decision": { "type": "string", "minLength": 1 },
+        "implementation_decision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "created_at": { "type": "string", "format": "date" },
+    "updated_at": { "type": "string", "format": "date" }
+  }
+}

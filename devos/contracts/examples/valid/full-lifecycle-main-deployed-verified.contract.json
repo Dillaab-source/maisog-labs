@@ -1,0 +1,56 @@
+{
+  "contract_schema_version": "1.0.0",
+  "task_id": "TASK-EXAMPLE-FULL-LIFECYCLE",
+  "title": "Example: correct MAIN/DEPLOYED/VERIFIED evidence declarations for a hypothetical release task",
+  "project": "Dillaab-source/maisog-labs",
+  "change_class": "ARCHITECTURE",
+  "authorization_references": ["ML-DEVOS-RFC-013", "ML-DEVOS-AS-038", "D-042"],
+  "requirement_references": ["ML-DEVOS-ARCH-001 §6", "ML-DEVOS-ARCH-001 §10"],
+  "risk_references": [],
+  "design_references": ["EVIDENCE_PROVENANCE_MODEL.md"],
+  "scope": {
+    "allowed_paths": ["worker/", "app/"],
+    "prohibited_paths": [],
+    "prohibited_actions": [],
+    "remote_resources_involved": true,
+    "protected_main_or_deploy_in_scope": true,
+    "production_write_in_scope": true,
+    "credential_or_security_in_scope": false,
+    "destructive_actions_in_scope": false
+  },
+  "acceptance_criteria": [
+    { "criterion_id": "AC-1", "statement": "The change is merge-eligible and reaches the protected main branch." },
+    { "criterion_id": "AC-2", "statement": "The change is deployed to the production environment." },
+    { "criterion_id": "AC-3", "statement": "The deployed system is confirmed working by direct observation, not merely by a build/test environment." }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLAIM-1",
+      "claim_kind": "MAIN",
+      "statement": "This change reached the protected main branch.",
+      "evidence": {
+        "all_of": [],
+        "any_of": ["INDEPENDENTLY_REPRODUCED", "CI_ATTESTED"]
+      }
+    },
+    {
+      "claim_id": "CLAIM-2",
+      "claim_kind": "DEPLOYED",
+      "statement": "This change was deployed to the production environment.",
+      "evidence": {
+        "all_of": [],
+        "any_of": ["ACTOR_REPORTED", "CI_ATTESTED"]
+      }
+    },
+    {
+      "claim_id": "CLAIM-3",
+      "claim_kind": "VERIFIED",
+      "statement": "The deployed system was directly observed working in production.",
+      "evidence": {
+        "all_of": ["RUNTIME_OBSERVED"],
+        "any_of": []
+      }
+    }
+  ],
+  "authority_disclaimer": "This Task Contract describes already-authorized scope. It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). Satisfying this contract's acceptance criteria and evidence requirements does not certify task success or accept the task; that judgment belongs to the Architect/Paulo review that consumes this contract's evidence, not to the contract or its validator."
+}

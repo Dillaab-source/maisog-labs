@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/governance/registry/rule-record.schema.json",
+  "title": "Sentinel Rule Record",
+  "description": "Static, machine-readable rule record shape. See RULE_RECORD_SCHEMA.md for the human-readable specification, including the class-level minimum authority/risk invariants (S1-F001) that this schema alone cannot express as cross-field constraints. This schema is descriptive only and is not consumed by any runtime engine in S1.",
+  "type": "object",
+  "required": [
+    "rule_id", "title", "description", "class", "scope", "project", "risk",
+    "status", "authority", "applies_when", "waivable", "introduced_by",
+    "decision_id", "adr_id", "effective_version", "proposed_effective_version",
+    "supersedes", "created_at", "updated_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "rule_id": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*-[0-9]{3}$" },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "class": {
+      "type": "string",
+      "enum": ["PATCH", "LOCAL_RULE", "CORE_POLICY", "CAPABILITY", "ARCHITECTURE", "CONSTITUTIONAL", "WAIVER", "PROJECT_ONBOARDING"]
+    },
+    "scope": { "type": "string", "enum": ["sentinel-wide", "project"] },
+    "project": { "type": ["string", "null"] },
+    "risk": { "type": "string", "enum": ["low", "medium", "high", "highest"] },
+    "status": { "type": "string", "enum": ["ACTIVE", "SUPERSEDED", "WAIVED", "PROPOSED", "REJECTED"] },
+    "authority": {
+      "type": "object",
+      "required": ["owner", "architect_sync_required", "paulo_approval_required"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "architect_sync_required": { "type": "boolean" },
+        "paulo_approval_required": { "type": "boolean" }
+      }
+    },
+    "applies_when": { "type": "string", "minLength": 1 },
+    "waivable": {
+      "type": "boolean",
+      "description": "Whether this rule may ever be the target of a WAIVER record. If true, any waiver against it requires authority at least equal to this rule's own `authority` fields (S1-F003)."
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["all_of", "any_of"],
+          "properties": {
+            "all_of": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+              },
+              "description": "Every listed evidence class is independently required (AND semantics). Empty array means this rule imposes no fixed baseline beyond any_of below."
+            },
+            "any_of": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+              },
+              "description": "At least one listed evidence class is required (OR semantics) whenever this array is non-empty. Empty array means no OR-set is imposed beyond all_of above."
+            }
+          },
+          "description": "S1-F002 correction: the minimum evidence combination required for this rule's applies_when condition, with explicit AND (`all_of`) vs OR (`any_of`) semantics — a flat array could not distinguish 'both required' from 'either satisfies.' Never a claim that every evidence class from EVIDENCE_PROVENANCE_MODEL.md is universally required; stronger, claim-specific evidence beyond this baseline is determined by the Task Contract/policy, not hardcoded here."
+        },
+        "evidence_note": {
+          "type": "string",
+          "description": "Free-text clarification of when stronger or different evidence applies beyond the baseline `evidence` combination, since this schema cannot express full claim-specific conditionality (S1-F002)."
+        },
+        "qa": { "type": "boolean" },
+        "independent_review": { "type": "boolean" },
+        "evidence_gate": { "type": "boolean" }
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Built-in exceptions the rule itself always had. Distinct from a WAIVER record (a time-boxed departure filed separately under devos/changes/waivers/ and validated by validate-waivers.mjs, never by this file's validator)."
+    },
+    "introduced_by": { "type": "string", "minLength": 1 },
+    "decision_id": { "type": ["string", "null"] },
+    "adr_id": { "type": ["string", "null"] },
+    "effective_version": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Null only when status is PROPOSED and the rule is not yet effective under any released version (S1-F007). Non-null (and required) for ACTIVE/SUPERSEDED/WAIVED/REJECTED rules."
+    },
+    "proposed_effective_version": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "The version this rule would take effect at if/when its authorizing cycle (e.g. S1) is approved. Required (non-null) when status is PROPOSED; must be null otherwise (S1-F007)."
+    },
+    "supersedes": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "format": "date" },
+    "updated_at": { "type": "string", "format": "date" }
+  }
+}

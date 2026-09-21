@@ -1,0 +1,408 @@
+# Test Ledger
+
+Seeded from `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §18. Status values: `REQUIRED`, `NOT IMPLEMENTED`, `PASS`, `FAIL`, `BLOCKED`.
+
+## Evidence-class rule
+
+Every result below is labeled with exactly one evidence class. Never upgrade a class silently:
+
+- **Implementer-reported** — Claude ran the command and reports the output. Not yet independently checked.
+- **Architect-reproduced** — the Architect independently ran or inspected the same evidence.
+- **Production/runtime evidence** — observed from the actual deployed system.
+
+As of this Phase 1 cycle, no ledger entry has Architect-reproduced or production/runtime evidence; the Architect's Phase 0 review explicitly recorded the Phase 0 test/build claims as "implementer-reported... not independently reproduced" (`coordination/ARCHITECT_REVIEW.md`). This ledger preserves that distinction rather than upgrading it.
+
+## Existing tests (already present in the repository)
+
+| Test | Covers | Result | Evidence class |
+|---|---|---|---|
+| `tests/content.test.mjs` — "local source validates and adapter returns independent data" | `getPublicContent()` returns an independent copy | Implementer-reported PASS (part of 27/27) | Implementer-reported |
+| `tests/content.test.mjs` — "all record collections filter drafts and archives before serialization" | Draft/archived filtering across all record collections | Implementer-reported PASS | Implementer-reported |
+| `tests/content.test.mjs` — "stable ordering and empty collections" | Deterministic ordering; empty-collection handling | Implementer-reported PASS | Implementer-reported |
+| `tests/content.test.mjs` — 22 × "rejects `<case>`" | Schema rejection of unknown fields, unsafe links/HTML, duplicate/reserved slugs, malformed email/date/URL, wrong types, etc. | Implementer-reported PASS (all 22) | Implementer-reported |
+| `tests/content.test.mjs` — "unpublished root cannot produce a public build" | Root `meta.state` gating of the entire public build | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-auth.test.mjs` — `isProtectedPath` matching (7 assertions) | Only `/admin`/`/admin/*` are treated as protected | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-auth.test.mjs` — `verifyAccessAssertion` negative paths (missing/malformed/expired/not-yet-valid/wrong-audience/wrong-issuer/untrusted-key, 7 tests) | Fail-closed JWT verification | Implementer-reported PASS (all 7) | Implementer-reported |
+| `tests/worker-auth.test.mjs` — `verifyAccessAssertion` accepts a correctly signed token | Valid deterministic test-token acceptance | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-auth.test.mjs` — `handleRequest` routing/rejection (8 tests: public routes asset-first with/without a token, protected-path rejection for no/malformed/expired/wrong-audience token, protected-path acceptance for a valid token) | End-to-end request handling for `WEB-INC-001` | Implementer-reported PASS (all 8) | Implementer-reported |
+| `tests/worker-auth.test.mjs` — `isValidTeamDomain`/`isValidAudience`/`isValidAuthConfig` unit tests (5 tests) | Config values themselves are rejected when missing/blank/placeholder/malformed (`ML-DEVOS-AS-012` `AS12-F001`) | Implementer-reported PASS (all 5) | Implementer-reported |
+| `tests/worker-auth.test.mjs` — `handleRequest` config-failure cases (9 tests: 4 bad team-domain forms, 3 bad audience forms, a valid token against invalid config, and a spy proving `getJWKS` is never called) | Auth configuration itself fails closed, with no JWKS/network lookup attempted when invalid (`AS12-F001`) | Implementer-reported PASS (all 9) | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "schema migration creates exactly the 14 authorized tables" | Table-inventory proof (`AS13-F002`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "fresh migration of real siteContent achieves deep parity with `projectPublishedContent(siteContent)`" | Deep semantic parity across every current domain, including `services` (`AS13-F010`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "sections substrate is bootstrapped separately and is not part of the legacy parity projection" | Sections isolation from the legacy parity shape (`AS13-F005`, `AS13-F010`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "second migration run of unchanged content is a deterministic no-op" | Repeat-run determinism, no duplicate revisions/pointer drift (`AS13-F009`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "migration refuses to overwrite an entity whose stored content differs ... with no partial write" | Explicit safe-refusal path, no partial write (`AS13-F009`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "published/draft/archived source fixtures map to the correct pointer state" | Published/draft/archived pointer-mapping fixtures (`AS13-F011`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "a draft reorder does not affect the published projection/order" | Draft/published isolation under reorder (`AS13-F011`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "a base-entity pointer cannot successfully reference another entity's revision" | Cross-entity pointer rejection (`AS13-F003`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "project slug uniqueness is enforced" | Slug uniqueness (`AS13-F011`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "reserved project slugs are rejected at the database layer and by the JS validator" | Reserved-slug enforcement, DB + JS layer (`AS13-F011`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "revision-number uniqueness per entity is enforced" | Revision-number uniqueness (`AS13-F011`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "a revision row cannot reference a non-existent base entity" | Foreign-key/integrity failure handling (RFC-003 §13) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "a late-processing conflicting entity causes zero partial writes across the whole migration run" | Whole-run migration atomicity: a conflict discovered late (process steps, the last collection processed) leaves zero rows from every earlier entity (`AS14-F001`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "migration refuses (rather than reporting noop) when a pointer targets a different same-entity revision" | Exact pointer-identity no-op equivalence, not mere truthiness (`AS14-F002`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "migration refuses when existing creation provenance/metadata has been altered" | Immutable creation metadata (`created_at`/`created_by`) is part of no-op equivalence (`AS14-F002`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "D1 validator order boundary matches the current content contract exactly: 0..10000" | D1 validator/legacy `lib/content/schema.mjs` contract convergence (`AS14-F003`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "D1 validator icon enum matches the current content contract exactly" | D1 validator/legacy contract convergence (`AS14-F003`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "D1 validator date validity matches the current content contract exactly, rejecting impossible calendar dates" | D1 validator/legacy contract convergence (`AS14-F003`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-migration.test.mjs` — "D1 validator project stack capacity matches the current content contract exactly: up to 100 entries" | D1 validator/legacy contract convergence (`AS14-F003`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "applying the current schema (0001 + 0002) creates exactly the 15 authorized tables, including audit_log" | Exact 15-table current-schema inventory (`AS17-F002`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "appendAuditEvent persists a valid success event" | Valid `result: success` append persists exactly as given | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "appendAuditEvent persists a valid failure event and never transforms it to success" | Valid `result: failure` append persists and is never transformed (`ADM-REQ-016`/`WEB-SEC-012`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "occurred_at is generated by the writer itself, not accepted from the caller" | Server-owned timestamp; caller-supplied `occurredAt` is rejected as an unknown field | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "validateAuditEvent and appendAuditEvent reject an unknown field" | Strict allowlist validation, zero rows written on rejection | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "validateAuditEvent and appendAuditEvent reject an invalid actor" | Bounded/printable opaque-actor validation | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "validateAuditEvent and appendAuditEvent reject an invalid action/entityType" | Bounded lowercase name-pattern validation | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "validateAuditEvent and appendAuditEvent reject an invalid entityId" | Bounded entity-id validation | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "validateAuditEvent and appendAuditEvent reject an invalid revisionId" | Null/undefined/positive-safe-integer-only `revisionId` validation | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "validateAuditEvent and appendAuditEvent reject a result that is not exactly success or failure" | `result` CHECK-equivalent JS-layer enforcement (`D-026`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "the audit writer refuses to persist a JWT-shaped or oversized actor value" | Identity-boundary defense: a JWT-shaped `actor` cannot be persisted (`D-026` identity boundary) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "a direct UPDATE against audit_log is rejected at the database layer" | Database-level append-only enforcement, independent of the application (`AS17-F005`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "a direct DELETE against audit_log is rejected at the database layer" | Database-level append-only enforcement, independent of the application (`AS17-F005`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "a forced audit INSERT failure propagates/rejects and is never reported as success" | Audit writer's own storage failure must reject, never report success (`AS17-F007`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "audit_log declares no foreign key (logical references only)" | No FK into/out of `audit_log`; entity references are logical only (`AS17-F009`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "buildDashboardPayload's output is unchanged and exposes no audit data even when audit_log has rows" | `WEB-INC-002` dashboard contract/behavior unchanged; no audit data leak (`AS17-F010`) | Implementer-reported PASS | Implementer-reported |
+| `tests/d1-audit.test.mjs` — "applyCurrentSchema(db) is repeat-safe: reapplying it against the same DB causes no error, no table/trigger loss or duplication, and preserves existing audit data" | Migration/schema-helper repeat-safety: a second `applyCurrentSchema(db)` call against an already-migrated, non-empty database causes no error, no table count change, no trigger loss, and no duplication/mutation of existing audit rows; the append-only triggers still function correctly afterward (`AS18-F014` remediation) | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — 4 × "unauthenticated \<method\> \<mutating route\> is rejected with zero D1 invocation" + 1 × unauthenticated preview | Zero mutation/D1 access before valid auth, across all 5 project routes (`AS20-F002`/`F003`) | Implementer-reported PASS (all 5) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — 4 × "a valid Access token with no usable subject cannot \<mutating route\> (403, zero D1 invocation)" + "...can still read preview" | Bounded non-empty verified `sub` required for mutation only, not preview (`AS20-F003`) | Implementer-reported PASS (all 5) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "a mutating request with a missing/mismatched Origin is rejected (403)", "...non-JSON content type is rejected (415)", "...oversized ... body is rejected (413)", "...malformed JSON ... is rejected (400)" | Same-origin + JSON + bounded-body request hardening, all before any D1 access (`AS20-F004`) | Implementer-reported PASS (all 4) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "POST /admin/api/projects creates one project + one immutable revision + one success audit row, atomically" | Create-draft happy path: exact row/pointer/audit state (`AS20-F005`) | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "create-draft rejects a duplicate id/slug with 409...", "...rejects invalid content with 400...", "...with an unusable id records the bounded 'unassigned' audit sentinel..." | Create-draft conflict/validation failure paths, each with a bounded failure audit event | Implementer-reported PASS (all 3) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "PUT .../draft creates a new immutable revision, moves only draft_revision_id, and leaves revision 1 untouched" | Edit-draft happy path: immutable revision history proof (`AS20-F005`) | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "PUT .../draft with a stale expectedDraftRevisionId is rejected (409)...", "...on an unknown project returns 404...", "...without expectedPublished.../expectedDraft... is rejected (400)" | Edit-draft stale-write/not-found/malformed-request protection (`AS20-F006`) | Implementer-reported PASS (all 3) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "GET .../preview returns 404 when no draft exists and never falls back to published content", "...reads only the current draft content, distinct from published content, and writes no audit row" | Preview is protected, draft-only, and non-mutating (`AS20-F014`) | Implementer-reported PASS (both) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "POST .../publish atomically promotes the draft, clears the draft pointer, preserves history, and appends one success audit row" | Publish happy path (`AS20-F007`) | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "POST .../publish with no current draft is rejected (409)...", "...with a stale expected pointer is rejected (409)...", "...fully revalidates the persisted draft and refuses to promote corrupted stored content" | Publish precondition/stale/revalidation failure paths (`AS20-F006`, `F007`) | Implementer-reported PASS (all 3) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "POST .../unpublish atomically clears the published pointer, preserves history/draft, and appends one success audit row", "...with nothing published is rejected (409)..." | Unpublish happy path + precondition failure (`AS20-F008`) | Implementer-reported PASS (both) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "a forced audit-statement failure inside a create-draft-shaped batch rolls back the project/revision insert too" | Real-D1 proof of atomic mutation+audit commit/rollback, via a genuine SQL-level CHECK violation (`AS20-F009`/`F010`) | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "a simulated storage failure during publish returns a generic 500, changes nothing, and never reports success" | HTTP-level forced-failure behavior (`AS20-F009`, `F011`) | Implementer-reported PASS | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "DELETE is never an accepted method on any project route", "an unrecognized /admin/api/projects/\* sub-route returns protected 404...", "GET /admin/api/projects (wrong method...) returns 405..." | No delete route; fail-closed method/route dispatch (`AS20-F002`) | Implementer-reported PASS (all 3) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "every project route response carries Cache-Control: no-store...", "a generic internal error never leaks D1/SQL detail, subject, or claims" | Header hardening + non-leakage (`AS20-F004`, `F013`) | Implementer-reported PASS (both) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "the current schema remains exactly 15 product tables after project mutation activity", "GET /admin/api/dashboard remains unchanged (same 7 keys, no audit/mutation data) after project mutation activity" | Schema-gate and WEB-INC-002 dashboard regression proof (`AS20-F015`, `F016`) | Implementer-reported PASS (both) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "edit vs a competing draft change...", "publish vs a competing draft change...", "unpublish vs a competing pointer change..." | Commit-time stale-write enforcement: a competing pointer change committed *after* the handler's pre-read but *before* the mutation batch executes is still caught, via a deterministic `interleavingDb` TOCTOU simulation — each proves `409`, the competing state survives untouched, no orphan revision, and no success audit row for the stale attempt (`AS21-F007`, Remediation Cycle 1) | Implementer-reported PASS (all 3) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "an empty-string subject cannot mutate...", "a whitespace-only subject cannot mutate...", "an oversized subject (91 chars...) cannot mutate...", "the maximum accepted subject (exactly 90 chars) completes a normal mutation and produces a valid bounded cf-access:\<sub\> audit actor" | Bounded, explicitly-validated mutation subject at the `worker/auth.mjs` identity-reduction boundary, before any project D1 access (`AS21-F008`, Remediation Cycle 1) | Implementer-reported PASS (all 4) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "a declared Content-Length over the budget is rejected (413) as an early reject...", "a multibyte body that exceeds the 32 KiB byte budget is rejected (413) even though its JS string length is well under 32768" | True byte-accurate request-body budget: an early `Content-Length`-based reject, and a streaming byte-counted read that a JS-character-counted check would have let bypass (`AS21-F009`, Remediation Cycle 1) | Implementer-reported PASS (both) | Implementer-reported |
+| `tests/worker-admin-projects.test.mjs` — "an unrecognized project sub-route returns 404, not 503, even when DB is absent", "a wrong method on a recognized project route returns 405, not 503, even when DB is absent", "a recognized project route+method returns 503 when DB is absent" | Route/method classification precedes the DB-binding requirement, so only a recognized route that actually needs D1 can return `503` (`AS21-F010`, Remediation Cycle 1) | Implementer-reported PASS (all 3) | Implementer-reported |
+
+Command: `npm test` (`node --test tests/*.test.mjs`). Result recorded in Phase 0 (`# pass 27, # fail 0`); re-run for Phase 1 with the same result; re-run for `WEB-INC-001` with `tests/worker-auth.test.mjs` added (`# pass 43`); re-run for `WEB-INC-001` Remediation Cycle 1 with 14 new config-validation tests added — `# pass 57, # fail 0` (27 existing `content.test.mjs` + 30 `worker-auth.test.mjs`) — see "`WEB-INC-001` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-005` with `tests/d1-migration.test.mjs` added — `# pass 69, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 12 `d1-migration.test.mjs`) — see "`WEB-INC-005` command evidence" below; re-run for `WEB-INC-005` Remediation Cycle 1 (`ML-DEVOS-AS-014`) with 7 new tests added — `# pass 76, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs`) — see "`WEB-INC-005` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-002` with `tests/worker-admin-dashboard.test.mjs` added — `# pass 96, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs`) — see "`WEB-INC-002` command evidence" below; re-run for `WEB-INC-008` with `tests/d1-audit.test.mjs` added — `# pass 112, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 16 new `d1-audit.test.mjs`) — see "`WEB-INC-008` command evidence" below; re-run for `WEB-INC-008` Remediation Cycle 1 (`ML-DEVOS-AS-018`) with 1 new repeat-safety regression test added — `# pass 113, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 17 `d1-audit.test.mjs`) — see "`WEB-INC-008` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-003` with `tests/worker-admin-projects.test.mjs` added (and one pre-existing `worker-admin-dashboard.test.mjs` fixture path corrected — see below) — `# pass 152, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 17 `d1-audit.test.mjs` + 39 new `worker-admin-projects.test.mjs`) — see "`WEB-INC-003` command evidence" below; re-run for `WEB-INC-003` Remediation Cycle 1 (`ML-DEVOS-AS-021`) with 12 new tests added to `tests/worker-admin-projects.test.mjs` — `# pass 164, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 17 `d1-audit.test.mjs`, all unchanged, + 51 `worker-admin-projects.test.mjs` — 39 preserved + 12 new) — see "`WEB-INC-003` Remediation Cycle 1 command evidence" below; re-run for `WEB-INC-004` (`ML-DEVOS-AS-023`) with `tests/worker-admin-media.test.mjs` added and 9 new tests added to `tests/worker-admin-projects.test.mjs` — `# pass 195, # fail 0` (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs` + 17 `d1-audit.test.mjs`, all five unchanged, + 60 `worker-admin-projects.test.mjs` — 51 preserved + 9 new + 22 new `worker-admin-media.test.mjs`) — see "`WEB-INC-004` command evidence" below.
+
+`WEB-INC-003` (`ML-DEVOS-RFC-006`/`ML-DEVOS-AS-020`/`D-027`) also required one small correction to a pre-existing `WEB-INC-002` test: "authenticated GET to an unknown /admin/api/* path returns protected 404 with zero D1 invocation" used `/admin/api/projects` as its example of an unknown path — that path is now a real, authorized route, so the fixture was changed to `/admin/api/nope` (already used elsewhere in the same file for the same purpose). The test's assertions and intent are unchanged; only the example path was corrected, since the earlier example is a factual regression, not a design decision, once this increment legitimately authorized that route (`/admin/api/projects`'s own behavior is now covered by `tests/worker-admin-projects.test.mjs` on its own terms).
+
+### `tests/worker-admin-dashboard.test.mjs` (`WEB-INC-002`, `ML-DEVOS-AS-015` — 20 tests)
+
+| Test | Covers |
+|---|---|
+| "unauthenticated GET /admin/api/dashboard is rejected with zero D1 invocation" | `AS15-F002` |
+| "malformed/expired/wrong-audience assertions against the dashboard endpoint cause zero D1 invocation" | `AS15-F002` |
+| "invalid auth configuration causes zero D1 invocation even with a validly signed token" | `AS15-F002` |
+| "authenticated GET /admin/api/dashboard reads seeded local D1 and returns the bounded projection" | `AS15-F015` #6 |
+| "dashboard derives all four lifecycle states correctly from navigation fixtures" | `AS15-F010`, `AS15-F015` #7 |
+| "sections carry a bounded order/visible summary using the same draft-then-published precedence" | `AS15-F010` |
+| "projects carry their slug in the dashboard projection" | RFC-004 §5 |
+| "the dashboard response excludes every non-allowlisted field, including sensitive legacy content" | `AS15-F004`, `AS15-F005`, `AS15-F015` #8 |
+| "POST/PUT/PATCH/DELETE /admin/api/dashboard returns 405 ... zero D1 invocation" (4 tests) | `AS15-F006`, `AS15-F015` #9 |
+| "authenticated GET to an unknown /admin/api/* path returns protected 404 with zero D1 invocation" | `AS15-F001`, `AS15-F015` #10 |
+| "missing DB after valid authentication returns a generic 503" | `AS15-F007`, `AS15-F015` #11 |
+| "a D1 read failure after valid authentication returns a generic 500 without leaking the underlying error" | `AS15-F007`, `AS15-F015` #12 |
+| "every protected /admin response carries Cache-Control: no-store" | `AS15-F008`, `AS15-F015` #13 |
+| "the protected admin static asset response also carries Cache-Control: no-store" | `AS15-F008` |
+| "dashboard JSON sets an explicit JSON content type and X-Content-Type-Options: nosniff" | `AS15-F008`, `AS15-F015` #14 |
+| "no permissive CORS header is present on any protected admin response" | `AS15-F008`, `AS15-F015` #15 |
+| "the dashboard path performs no INSERT/UPDATE/DELETE/REPLACE/DDL — only SELECT statements" | `AS15-F006`, `AS15-F013`, `AS15-F015` #18 |
+
+All 20 tests: implementer-reported PASS.
+
+### `tests/worker-admin-media.test.mjs` (`WEB-INC-004`, `ML-DEVOS-AS-023` — 22 tests)
+
+| Test | Covers |
+|---|---|
+| "unauthenticated POST/GET /admin/api/media is rejected with zero D1/R2 invocation" (2 tests) | `AS23-F006` |
+| "a valid Access token with no usable subject is rejected (403) from uploading, zero D1/R2 invocation" | `AS23-F006` |
+| "a valid Access token with no usable subject can still list media" | `AS23-F006`, `F011` |
+| "a cross-origin POST /admin/api/media is rejected (403) before any D1/R2 access" | `AS23-F006` |
+| "POST /admin/api/media accepts a valid JPEG/PNG/WebP upload and writes exactly one object + one media row + one success audit row" (3 tests) | `AS23-F007`, `F008`, `F009`, `F010` |
+| "POST /admin/api/media rejects SVG content outright (415)" | `AS23-F007` |
+| "... rejects a body whose signature does not match its declared Content-Type (400)" | `AS23-F007` |
+| "... rejects an unsupported/arbitrary signature disguised with an allowed Content-Type (400)" | `AS23-F007` |
+| "... rejects a zero-byte body (400)" | `AS23-F007` |
+| "a declared Content-Length over the 5 MiB budget is rejected (413) as an early reject" | `AS23-F007` |
+| "a body actually exceeding the 5 MiB budget is rejected (413) even without a declared Content-Length" | `AS23-F007` |
+| "POST /admin/api/media rejects a missing alt-text header (400)" | RFC-007 upload contract |
+| "an R2 object write failure leaves no media row and no success audit row" | `AS23-F009` |
+| "an R2 write success followed by a D1 batch failure triggers a compensating delete; no media row survives" | `AS23-F009` |
+| "a D1 batch failure whose compensating R2 delete also fails still fails the request, without crashing" | `AS23-F009` |
+| "GET /admin/api/media returns exactly the active media rows as a positive metadata projection" | `AS23-F011` |
+| "GET /admin/api/media with a non-GET/POST method is rejected (405) with zero D1 access" | `AS23-F006` |
+| "an unrecognized /admin/api/media/\* sub-path is protected 404, not the upload/list route" | `AS23-F006` |
+| "detectImageContentType matches exactly the three allowed signatures and nothing else" | `AS23-F007` (pure unit coverage) |
+
+All 22 tests: implementer-reported PASS.
+
+## `WEB-INC-006` Journal evidence
+
+Final implementation: `cdc8f84cbdb2c5a76336512b6c0e5111030d3e4e`  
+Architect acceptance: `ML-DEVOS-AS-029`  
+Architecture record: `ML-DEVOS-ADR-008`
+
+Builder-reported focused evidence:
+
+- `tests/worker-admin-journal.test.mjs`: **44/44** passed.
+- `tests/worker-public-journal.test.mjs`: **16/16** passed.
+- full `npm test`: **269/269** passed.
+- `npm run build`: success; `/journal` remains static.
+- fresh local migrations: exactly **20 product tables** after 0001–0004.
+- local Wrangler smoke:
+  - `GET /journal` → 200;
+  - `GET /api/journal` → 200;
+  - `GET /api/journal/:slug` → 200 for published entry;
+  - unknown detail → 404;
+  - public non-GET → 405;
+  - unauthenticated admin Journal mutations/preview → 401.
+- public Journal SQL follows only `published_revision_id`; draft-only, unpublished, and superseding-draft content are covered by focused non-disclosure tests.
+- publish revalidates the persisted draft content and active media snapshot before pointer promotion.
+- Journal revision rows are immutable except one-time `published_at: NULL → non-null`; `journal_media` rows are immutable/non-deletable with duplicate-association and duplicate-slot constraints.
+- public Journal responses use positive allowlists and do not expose storage keys, upload identity, draft IDs, audit data, or binding/resource identifiers.
+- D1/R2 remained `remote: false`; no deployment or main merge occurred.
+
+Evidence classification:
+
+- source/diff/architecture behavior independently inspected by Architect in `ML-DEVOS-AS-029`;
+- runtime/test/build/CLI/visual claims remain `ACTOR_REPORTED`, not independently reproduced.
+
+Accepted limitations are recorded as `AS29-L001`, `AS29-L002`, and `AS29-L003`.
+
+## `WEB-INC-007` final evidence
+
+Initial implementation:
+- `17577838d1007210cd1893fdb71ea8063d764fa8`
+
+Remediation:
+- `9773d76641bef0b9f57b94d78087438f4d2ffc15`
+
+Final Architect review:
+- `ML-DEVOS-AS-033`
+
+Architecture record:
+- `ML-DEVOS-ADR-009`
+
+Builder-reported final evidence:
+- admin design suite: 49/49;
+- public design suite: 13/13;
+- overlay mapping suite: 7/7;
+- full suite: 338/338;
+- static build: success;
+- local product-table count: 22;
+- visual draft preview works on homepage and Journal;
+- unauthenticated preview falls back to published/baseline;
+- overlay intensity 40/68/85 produces distinct monotonic output while 68 preserves baseline;
+- no remote D1/R2, deployment, or main merge.
+
+Evidence classification:
+- final source/diff independently inspected in `ML-DEVOS-AS-033`;
+- runtime/test/build/CLI/visual claims remain `ACTOR_REPORTED`.
+
+## Plan-defined test IDs — current status
+
+| ID | Description | Status | Notes |
+|---|---|---|---|
+| TEST-WEB-001 | Production homepage availability | `NOT IMPLEMENTED` | No automated check; no production access from this session |
+| TEST-WEB-002 | Desktop rendering | `NOT IMPLEMENTED` | No automated visual test; `docs/CHANGE_LEDGER.md` records past manual QA only |
+| TEST-WEB-003 | Mobile rendering | `NOT IMPLEMENTED` | Same as above |
+| TEST-WEB-004 | Build succeeds | `PASS` | Latest Builder-reported full build after `WEB-INC-006` succeeded with static routes `/`, `/_not-found`, `/admin`, and `/journal`; no SSR conversion. Runtime/build claim remains ACTOR_REPORTED. |
+| TEST-WEB-005 | Existing projects remain intact | `PASS` (indirect) | Implementer-reported: `data/site.js` unchanged this cycle; `tests/content.test.mjs` project-related assertions pass |
+| TEST-ADM-001 | Unauthorized user cannot access admin | `PASS` | `WEB-INC-001` + Remediation Cycle 1: `tests/worker-auth.test.mjs` covers missing/malformed/expired/wrong-audience tokens against `/admin`, plus missing/blank/placeholder/malformed auth configuration itself (`AS12-F001`); local `wrangler dev` smoke test: `GET /admin` (no token) → `401`, `GET /admin` (garbage token) → `401`, `GET /admin.html` (no token) → `307` redirect to `/admin` with an empty body, followed → `401`, `GET /admin/index.html` (no token) → `401` (`AS12-F003`). Implementer-reported; not yet Architect-reproduced |
+| TEST-ADM-002 | Authorized admin can access admin | `PASS` | `WEB-INC-001`: `tests/worker-auth.test.mjs` "handleRequest allows a correctly signed token to reach the admin asset" using a deterministic test key/JWKS (never a production credential). Implementer-reported; not yet Architect-reproduced |
+| TEST-ADM-003 | Content write persists | `PASS` (projects + Journal, local-only) | Project persistence is covered by `WEB-INC-003`; Journal persistence is covered by `tests/worker-admin-journal.test.mjs` create/edit/publish/unpublish cases, including atomic revision/pointer/audit behavior. Other content domains remain outside these bounded mutation APIs. Runtime claims remain ACTOR_REPORTED. |
+| TEST-ADM-004 | Project CRUD/publish works | `PASS` (create/edit/publish/unpublish only — no delete) | `WEB-INC-003`: `tests/worker-admin-projects.test.mjs` covers create-draft, edit-draft (new immutable revision, revision 1 untouched), preview, publish (atomic promote + revalidation), and unpublish (atomic clear + history/draft preserved), including stale-pointer `409` and not-found `404` cases. No delete route exists or is authorized (`AS20-F002`) — `TEST-ADM-004` is satisfied only for the CRUD verbs this increment actually implements. `WEB-INC-004` extends the same tests to cover an optional revision-scoped media snapshot on create/edit (supply/inherit/replace/reject-missing/reject-duplicate), with the media snapshot committing atomically with the same revision+pointer+audit batch |
+| TEST-ADM-005 | Journal CRUD/publish works | `PASS` (create/edit/preview/publish/unpublish; no delete) | `WEB-INC-006`: `tests/worker-admin-journal.test.mjs` 44/44 Builder-reported PASS covers immutable revision creation, media inherit/replace, preview, publish, unpublish, stale-pointer conflicts, validation, audit, and fail-closed auth. Accepted by `ML-DEVOS-AS-029`. |
+| TEST-ADM-006 | Invalid content is rejected (at the Admin write boundary) | `PASS` (projects + Journal) | Project validation remains covered by `WEB-INC-003`; Journal validation is covered by `WEB-INC-006` for bounded id/slug/title/summary/plain-text body/media input, with invalid requests rejected before successful business mutation. |
+| TEST-ADM-007 | Failed write does not report success | `PASS` (projects + Journal) | Project atomicity/failure semantics remain covered by `WEB-INC-003`; Journal focused tests cover stale conflicts, invalid persisted draft/media revalidation failures, and batch-failure paths without reporting success. Append-only audit failure behavior remains backed by `WEB-INC-008`. |
+| TEST-ADM-008 | Media upload validation works | `PASS` | `WEB-INC-004`: `tests/worker-admin-media.test.mjs` covers accepted JPEG/PNG/WebP uploads, SVG rejection, signature/Content-Type-mismatch rejection, an unsupported-signature-disguised-as-allowed-type rejection, zero-byte and over-5-MiB rejection (both a declared-`Content-Length` early reject and an actual-body-size reject), and a missing-alt-text-header rejection. Implementer-reported; not yet Architect-reproduced |
+| TEST-ADM-009 | Theme settings remain within allowed values | `PASS` (local/repository) | `WEB-INC-007`: `tests/worker-admin-design.test.mjs` covers all fixed enum vocabularies, numeric range boundaries, unknown-field rejection, injection attempts, draft/publish isolation, auth, and stale-write behavior. Final remediation adds `tests/design-overlay.test.mjs` 7/7 for DESIGN-008 full-range behavior. Final full suite Builder-reported: 338/338; source/diff accepted by `ML-DEVOS-AS-033`. |
+| TEST-ADM-010 | Public users cannot perform admin mutations | `PASS` (projects + Journal) | Project auth-negative tests remain valid; `WEB-INC-006` adds unauthenticated/invalid-sub tests for Journal mutation/preview paths with zero pre-auth D1 access. Public `/api/journal*` routes are intentionally read-only GET paths and do not expose mutation. |
+| TEST-DATA-001 | Existing static content migration preserves data | `PASS` (local-only substrate) | `WEB-INC-005`: `tests/d1-migration.test.mjs` "fresh migration ... achieves deep parity with `projectPublishedContent(siteContent)`" — deep-equal across every domain including `services`. This is a local D1 revision-substrate migration, not yet the public system's cutover migration; the risk this test ID tracks (`RISK-WEB-015`) remains `MITIGATED`, not `VERIFIED`, until Architect-reproduced |
+| TEST-DATA-002 | Draft content remains unpublished | `PASS` | Existing static-content filtering remains covered; `WEB-INC-006` additionally proves public Journal index/detail follow only `published_revision_id` and do not disclose draft-only, unpublished, or superseding-draft content. Journal runtime tests are ACTOR_REPORTED; source isolation was independently inspected in `ML-DEVOS-AS-029`. |
+| TEST-DEP-001 | Deployment succeeds | `NOT IMPLEMENTED` | No deployment was performed or authorized this cycle |
+| TEST-DEP-002 | Production verification succeeds after deployment | `NOT IMPLEMENTED` | Same reason |
+
+## Phase 1 command evidence (implementer-reported)
+
+| Command | Result |
+|---|---|
+| `npm test` | 27 passed, 0 failed (re-run this cycle; identical to Phase 0 result) |
+| `npm run build` | Succeeded; static pages generated for `/` and `/_not-found`; `out/` populated |
+| `npm audit` | 0 vulnerabilities |
+| `git status --short` after the above | Only `package-lock.json` metadata churn from `npm install`, reverted with `git checkout -- package-lock.json` before committing, matching the Phase 0 handling |
+
+## `WEB-INC-001` command evidence (implementer-reported)
+
+| Command | Result |
+|---|---|
+| `npm test` | 43 passed, 0 failed (27 existing `content.test.mjs` + 16 new `worker-auth.test.mjs`) |
+| `npm run build` | Succeeded; static pages generated for `/`, `/_not-found`, `/admin`; `out/` populated including `out/admin.html` |
+| `npx wrangler deploy --dry-run` | Succeeded; confirms `wrangler.jsonc`, `worker/index.mjs` (importing `jose`), and the Assets binding all parse/bundle correctly; no external Cloudflare resource created or modified |
+| `wrangler dev` (local, background) + `curl` | `GET /` → `200` (unauthenticated, public homepage content present); `GET /nope` → `404`; `GET /admin` (no token) → `401 Unauthorized`; `GET /admin` (`Cf-Access-Jwt-Assertion: garbage`) → `401 Unauthorized` |
+| Secret scan | `grep` for `process.env`, PEM/private-key markers, and secret/credential keyword patterns across `worker/`, `app/admin/`, `wrangler.jsonc`, `tests/worker-auth.test.mjs`; `find` for `.env*` files — no matches beyond explanatory comments stating that no secret exists |
+
+## `WEB-INC-001` Remediation Cycle 1 command evidence (implementer-reported, `ML-DEVOS-AS-012`)
+
+| Command | Result |
+|---|---|
+| `npm test` | 57 passed, 0 failed (27 existing `content.test.mjs` + 30 `worker-auth.test.mjs`, 14 of them new config-fail-closed tests for `AS12-F001`) |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler deploy --dry-run` | Succeeded with `wrangler.jsonc`'s new `assets.html_handling: "auto-trailing-slash"` pin added (`AS12-F003`); confirms config/bundle validity, no external Cloudflare resource created or modified |
+| `wrangler dev` (local) + `curl` — canonical/public paths | `GET /` → `200` (unchanged); `GET /nope` → `404` (unchanged); `GET /admin` → `401` (no token); `GET /admin/` → `401` (no token) |
+| `wrangler dev` (local) + `curl` — alternate admin URL forms (`AS12-F003`) | `GET /admin.html` (no token, no redirect follow) → `307 Temporary Redirect`, `Location: /admin`, **empty response body** (no admin content leaked); `GET /admin.html` (`-L`, following the redirect) → final response `401 Unauthorized` at `/admin`; `GET /admin.html` with a garbage `Cf-Access-Jwt-Assertion` header → still `307` with an empty body (config/token state cannot change the redirect-only behavior of a file-style URL); `GET /admin/index.html` (no token) → `401` directly |
+| Secret scan (re-run) | `grep` for `process.env`, PEM/private-key markers, secret/credential keyword patterns across `worker/`, `wrangler.jsonc`, `tests/worker-auth.test.mjs` — no matches beyond explanatory comments |
+
+This local `wrangler dev` evidence (both cycles) is still implementer-reported and local-only — it is not production/runtime evidence, since no production Cloudflare Access application or deployment exists (`ML-DEVOS-AS-011` `AS11-F006`). The `/admin.html` redirect-then-401 behavior is Wrangler's local Static Assets simulation of `html_handling`, not a guarantee of the exact production edge behavior — it is the best deterministic evidence available without a production deployment, and the Architect's independent review of the pinned config/Cloudflare documentation is required before any stronger claim.
+
+## `WEB-INC-005` command evidence (implementer-reported, `ML-DEVOS-AS-013`)
+
+| Command | Result |
+|---|---|
+| `npm test` | 69 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs`, both unchanged and still passing, + 12 new `d1-migration.test.mjs`) |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) — confirms `app/page.js`/`lib/content/local.mjs` are unmodified and unaffected |
+| `node scripts/d1-migrate.mjs` (fresh local D1 state) | 23 entities created, 0 no-op; exactly the 14 authorized product tables reported present |
+| `node scripts/d1-migrate.mjs` (second run, same local D1 state) | 0 entities created, 23 no-op — deterministic repeat-run confirmed (`AS13-F009`) |
+| `npx wrangler d1 migrations list DB --local` | `Resource location: local`; lists `0001_web_inc_005_init.sql` as pending — confirms the CLI targets the local database only |
+| `npx wrangler d1 migrations apply DB --local` | `Resource location: local`; "16 commands executed successfully"; migration applied and recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table' ..."` | Returned exactly the 14 authorized tables plus Wrangler's own `d1_migrations` bookkeeping table and SQLite/D1-internal `_cf_METADATA`/`sqlite_sequence` (excluded from the product-table count by convention, same filter `worker/d1/schema.mjs`'s `listProductTables` applies) |
+| `npx wrangler deploy --dry-run` | Succeeded; confirms `wrangler.jsonc`'s new `d1_databases` binding (`env.DB`, database `maisog-labs-web-inc-005-local`, no `database_id`) parses/bundles correctly alongside the existing Assets/`ACCESS_*` bindings; "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| Secret/config scan | `grep` for `process.env`, PEM/private-key markers, and secret/credential/token/account-id keyword patterns across `worker/`, `migrations/`, `scripts/`, `tests/worker-auth.test.mjs`, `tests/d1-migration.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and an unrelated `url.password` property-name check; no `.env*` files found; no `database_id` present in `wrangler.jsonc` |
+
+Every D1 CLI command above used `--local` explicitly, or (for `wrangler deploy --dry-run`) performed no resource mutation at all; none used `--remote`, and `wrangler.jsonc`'s D1 binding carries no `database_id` and `remote: false`, so there is no configuration path by which any of these commands could have reached a real Cloudflare D1 resource. This local `wrangler`/D1 evidence, like the `WEB-INC-001` `wrangler dev` evidence above, remains implementer-reported until the Architect independently reproduces or inspects it.
+
+## `WEB-INC-005` Remediation Cycle 1 command evidence (implementer-reported, `ML-DEVOS-AS-014`)
+
+| Command | Result |
+|---|---|
+| `npm test` | 76 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs`, both unchanged and still passing, + 19 `d1-migration.test.mjs` — 12 preserved + 7 new for `AS14-F001`/`F002`/`F003`) |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `node scripts/d1-migrate.mjs` (fresh local D1 state) | 23 entities created, 0 no-op |
+| `node scripts/d1-migrate.mjs` (second run, same local D1 state) | 0 entities created, 23 no-op — deterministic repeat-run confirmed under the new exact pointer-identity/provenance equivalence check (`AS14-F002`) |
+| `npx wrangler deploy --dry-run` | Succeeded; same bindings as before; "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; "16 commands executed successfully"; migration applied and recorded `✅` |
+| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table' ..."` | Returned exactly the 14 authorized tables plus `d1_migrations`/`_cf_METADATA`/`sqlite_sequence` — table set unchanged by this remediation |
+| Manual probe: a same-`db.batch()` call containing one valid `INSERT` followed by one `UNIQUE`-violating `INSERT` | The batch threw `D1_ERROR: UNIQUE constraint failed`, and a subsequent `SELECT * FROM projects` returned zero rows — confirms the write-phase's single `db.batch()` call is a genuine all-or-nothing D1 transaction, independent of and in addition to the preflight-refusal path the automated regression test exercises (`AS14-F001`) |
+| Secret/config scan | Re-run over `worker/`, `migrations/`, `scripts/`, `tests/worker-auth.test.mjs`, `tests/d1-migration.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and the unrelated `url.password` property-name check; no `.env*` files; no `database_id` in `wrangler.jsonc` |
+
+No `migrations/0001_web_inc_005_init.sql`, `worker/d1/repository.mjs`, `worker/d1/schema.mjs`, `scripts/d1-migrate.mjs`, or `wrangler.jsonc` change was needed for this remediation cycle — the composite foreign-key design and table set already satisfied `AS14-F001`/`F002`/`F003`'s requirements once `worker/d1/migrate.mjs` and `worker/d1/validate.mjs` were corrected.
+
+## `WEB-INC-002` command evidence (implementer-reported, `ML-DEVOS-AS-015`)
+
+| Command | Result |
+|---|---|
+| `npm test` | 96 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs`, both unchanged and still passing, + 19 `d1-migration.test.mjs`, unchanged and still passing, + 20 new `worker-admin-dashboard.test.mjs`) |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`); "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| `node scripts/d1-migrate.mjs` (fresh local D1 state, used to seed local `wrangler dev`) | 23 entities created, 0 no-op — unchanged migration behavior, confirms no schema/migration regression |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers runtime, not just the Node test harness) | `GET /` → `200` (public unaffected); `GET /admin` → `401` with `Cache-Control: no-store`; `GET /admin/api/dashboard` → `401` with `Cache-Control: no-store`; `GET /admin/api/nope` → `401`; `POST /admin/api/dashboard` → `401` — every protected path fails closed identically before any route/method dispatch, exactly as required (`AS15-F002`), reproduced in the real Miniflare/Workers runtime rather than only the pure-JS `handleRequest` unit tests |
+| `curl http://localhost:8799/cdn-cgi/local/explorer/api/d1/database` (local Wrangler dev-session introspection) | Confirmed the `DB` binding is live and attached to the running local Worker instance |
+| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='table' ..."` | Returned exactly the same 14 authorized tables plus `d1_migrations`(if present)/`_cf_METADATA`/`sqlite_sequence` — confirms `AS15-F013`: no schema change, no new table |
+| Secret/config scan | `grep` for `process.env`, PEM/private-key markers, and secret/credential/token/account-id keyword patterns across `worker/`, `app/admin/`, `tests/worker-admin-dashboard.test.mjs`, `wrangler.jsonc` — no matches beyond explanatory comments and deliberate `SECRET_*_SHOULD_NOT_LEAK` test-fixture placeholder strings used to prove non-leakage; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty (no new dependency) |
+
+Every D1/Wrangler command above is `--local` or non-mutating; none used `--remote`; `wrangler.jsonc` was not modified. The `wrangler dev` HTTP evidence is genuine runtime evidence (the actual local Workers/Miniflare runtime, not the Node test harness), while the 500/503/leakage/lifecycle/cache-header assertions rely on the deterministic Node test suite's local D1 (`getPlatformProxy({ remoteBindings: false })`) since a real production Cloudflare Access application does not exist to drive an authenticated `wrangler dev` request end-to-end. All of this remains implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it.
+
+## `WEB-INC-008` command evidence (implementer-reported, `ML-DEVOS-AS-017`)
+
+| Command | Result |
+|---|---|
+| `npm test` | 112 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs`, all four files unchanged and still passing, + 16 new `d1-audit.test.mjs`) |
+| `node --test tests/d1-migration.test.mjs` (isolated re-run) | 19 passed, 0 failed; "schema migration creates exactly the 14 authorized tables" still asserts exactly 14 from `applySchema()` alone, byte-unchanged from `WEB-INC-005` |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; migrations table listed both `0001_web_inc_005_init.sql` and `0002_web_inc_008_audit_log.sql`; "16 commands executed successfully" for `0001`, "5 commands executed successfully" for `0002`; both recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --command "SELECT name, type FROM sqlite_master WHERE type IN ('table','trigger') AND name NOT LIKE '_cf_%' AND name NOT LIKE 'sqlite_%' AND name != 'd1_migrations' ORDER BY type, name"` | Returned exactly the 14 `WEB-INC-005` tables plus `audit_log` (15 tables total) and the two triggers `audit_log_reject_delete`/`audit_log_reject_update` |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` | `n: 15` |
+| `npx wrangler d1 execute DB --local --command "INSERT INTO audit_log (...) VALUES (...)"` | Row inserted successfully via raw SQL (CLI-level positive-path confirmation, independent of the Node test harness) |
+| `npx wrangler d1 execute DB --local --command "UPDATE audit_log SET result='failure'"` | Rejected: `audit_log is append-only: UPDATE is not permitted: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)` — direct CLI-level confirmation of `AS17-F005`, independent of the Node test harness |
+| `npx wrangler d1 execute DB --local --command "DELETE FROM audit_log"` | Rejected: `audit_log is append-only: DELETE is not permitted: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)` — same independent confirmation for `DELETE` |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB` → `maisog-labs-web-inc-005-local`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `database_id`, no `remote: true`; "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, and AWS-style key patterns across `migrations/0002_web_inc_008_audit_log.sql`, `worker/d1/schema.mjs`, `worker/d1/audit.mjs`, `tests/d1-audit.test.mjs` — the only match is a deliberately-constructed fake JWT-shaped string used as a negative test fixture in `tests/d1-audit.test.mjs` ("the audit writer refuses to persist a JWT-shaped or oversized actor value"), proving the validator rejects it rather than a real credential; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty (no new dependency) |
+| `git diff --stat` against expected-unchanged surfaces (`migrations/0001_web_inc_005_init.sql`, `worker/admin/dashboard.mjs`, `worker/auth.mjs`, `app/admin/*`, `app/page.js`, `data/site.js`, `lib/content/*`, `wrangler.jsonc`, `package.json`) | Empty for every path — none of these files changed |
+| `git diff worker/d1/schema.mjs` | Confirms every pre-existing export (`AUTHORIZED_TABLE_NAMES`, `readMigrationSql`, `applySchema`, `listProductTables`) is byte-unchanged; only new exports (`AUDIT_TABLE_NAMES`, `CURRENT_PRODUCT_TABLE_NAMES`, `readAuditMigrationSql`, `applyAuditMigration`, `applyCurrentSchema`) were added |
+
+Every D1/Wrangler command above is `--local` or non-mutating; none used `--remote`; `wrangler.jsonc` was not modified. The direct `wrangler d1 execute` UPDATE/DELETE-rejection evidence is genuine runtime evidence from the actual local D1/SQLite simulation (not merely the Node test harness), independently confirming the same invariant `tests/d1-audit.test.mjs` proves at the test-suite level. All of this remains implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it.
+
+## `WEB-INC-008` Remediation Cycle 1 command evidence (implementer-reported, `ML-DEVOS-AS-018`)
+
+Closes the single blocking finding `AS18-F014` — missing migration/schema repeat-safety evidence. No architecture or schema/writer change was made; only one focused regression test was added.
+
+| Command | Result |
+|---|---|
+| `node --test tests/d1-audit.test.mjs` (isolated) | 17 passed, 0 failed (16 preserved + 1 new repeat-safety regression test) |
+| `npm test` (full suite) | 113 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 20 `worker-admin-dashboard.test.mjs`, all four unchanged and still passing, + 17 `d1-audit.test.mjs` — 16 preserved + 1 new) |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database, 1st run) | `Resource location: local`; `0001_web_inc_005_init.sql` → 16 commands executed successfully; `0002_web_inc_008_audit_log.sql` → 5 commands executed successfully; both recorded `✅` |
+| `npx wrangler d1 execute DB --local --command "INSERT INTO audit_log (...) VALUES (...)"` (representative row, same database) | Row inserted successfully (`id: 1`, `actor: 'cli-remediation-fixture'`) |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` (before 2nd apply) | `n: 15` |
+| `npx wrangler d1 migrations apply DB --local` (same database/state, 2nd run) | `✅ No migrations to apply!` — Wrangler's own `d1_migrations` tracking table correctly recognizes both `0001` and `0002` as already applied; neither migration is reapplied |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` (after 2nd apply) | `n: 15` — unchanged |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM audit_log"` (after 2nd apply) | `n: 1` — the representative row was not duplicated or destroyed |
+| `npx wrangler d1 execute DB --local --command "SELECT * FROM audit_log"` (after 2nd apply) | Returned the exact same single row inserted before the 2nd apply, byte-identical (`id: 1`, `actor: 'cli-remediation-fixture'`, `action: 'cli_repeat_probe'`, ...) |
+| `npx wrangler d1 execute DB --local --command "SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'audit_log_%' ..."` (after 2nd apply) | `audit_log_reject_delete`, `audit_log_reject_update` — both triggers still present |
+| `git diff --stat` | Exactly one file changed: `tests/d1-audit.test.mjs` (53 insertions, 0 deletions) — no schema/writer/migration file was touched, since the repeat-safety test exposed no defect |
+
+This CLI-level double-apply evidence directly mirrors and independently confirms what `tests/d1-audit.test.mjs`'s new "applyCurrentSchema(db) is repeat-safe" test already proves at the Node-test/`getPlatformProxy` level: applying the current schema twice against the same non-empty local database is a safe no-op — no table/trigger loss, no data duplication or destruction, and the append-only triggers keep functioning correctly afterward. All of this remains implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it.
+
+## `WEB-INC-003` command evidence (implementer-reported, `ML-DEVOS-AS-020`)
+
+| Command | Result |
+|---|---|
+| `node --test tests/worker-admin-projects.test.mjs` (isolated) | 39 passed, 0 failed |
+| `npm test` (full suite) | 152 passed, 0 failed (27 `content.test.mjs` + 30 `worker-auth.test.mjs` + 19 `d1-migration.test.mjs` + 17 `d1-audit.test.mjs`, all unchanged and still passing, + 20 `worker-admin-dashboard.test.mjs` with one fixture-path correction (see above), still 20/20 passing, + 39 new `worker-admin-projects.test.mjs`) |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; `0001_web_inc_005_init.sql` → 16 commands executed successfully; `0002_web_inc_008_audit_log.sql` → 5 commands executed successfully; both recorded `✅` — no schema/migration change in this cycle, confirmed by re-running the exact same two migrations unmodified |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` | `n: 15` — unchanged |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers runtime, not just the Node test harness) | `GET /` → `200` (public unaffected); `POST /admin/api/projects` (no token) → `401` + `Cache-Control: no-store`; `GET /admin/api/projects/foo/preview` (no token) → `401`; `POST /admin/api/projects/foo/publish` (no token) → `401`; `DELETE /admin/api/projects` (no token) → `401` — every new protected route fails closed before any route/method dispatch, reproduced in the real local Workers/Miniflare runtime, not only the Node unit-test harness |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB` → `maisog-labs-web-inc-005-local`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `database_id`, no `remote: true`; "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, and AWS-style key patterns across `worker/admin/projects.mjs`, `worker/d1/projects.mjs`, `worker/d1/audit.mjs`, `worker/d1/validate.mjs`, `worker/auth.mjs`, `worker/index.mjs`, `worker/admin/dashboard.mjs`, `tests/worker-admin-projects.test.mjs` — zero matches of any kind; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty (no new dependency) |
+| `git diff --stat` against expected-unchanged surfaces (`migrations/0001_web_inc_005_init.sql`, `migrations/0002_web_inc_008_audit_log.sql`, `wrangler.jsonc`, `package.json`, `app/page.js`, `data/site.js`, `lib/content/*`) | Empty for every path — none of these files changed |
+
+Every D1/Wrangler command above is `--local` or non-mutating; none used `--remote`; `wrangler.jsonc` was not modified. The `wrangler dev` HTTP evidence is genuine runtime evidence (the actual local Workers/Miniflare runtime, not the Node test harness) for the auth-negative path; the create/edit/preview/publish/unpublish success/failure paths, stale-pointer protection, and the real-D1 atomicity/rollback proof all rely on the deterministic Node test suite's local D1 (`getPlatformProxy({ remoteBindings: false })`), since a real production Cloudflare Access application does not exist to drive an authenticated `wrangler dev` request end-to-end (the same limitation every prior increment's evidence in this ledger already carries). All of this remains implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it.
+
+## `WEB-INC-003` Remediation Cycle 1 command evidence (implementer-reported, `ML-DEVOS-AS-021`)
+
+Closes the four blocking/required findings `AS21-F007` through `AS21-F010`. No route, schema, migration, or product-domain expansion — only `worker/auth.mjs`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, and `tests/worker-admin-projects.test.mjs` changed.
+
+| Command | Result |
+|---|---|
+| `node --test tests/worker-admin-projects.test.mjs` (isolated) | 51 passed, 0 failed (39 preserved + 12 new) |
+| `npm test` (full suite) | 164 passed, 0 failed |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; `0001_web_inc_005_init.sql` → 16 commands executed successfully; `0002_web_inc_008_audit_log.sql` → 5 commands executed successfully; both recorded `✅` — unmodified migrations reapplied cleanly |
+| `npx wrangler d1 execute DB --local --command "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' ..."` | `n: 15` — unchanged |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table unchanged (`env.DB`, `env.ASSETS`, `env.ACCESS_TEAM_DOMAIN`, `env.ACCESS_AUD`) — no new binding, no `database_id`, no `remote: true`; "--dry-run: exiting now." |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, AWS-style key patterns across `worker/auth.mjs`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `tests/worker-admin-projects.test.mjs` — zero matches; no `.env*` files; no `database_id` in `wrangler.jsonc`; `package.json`/`package-lock.json` diff empty (no new dependency) |
+| `git diff --stat` against expected-unchanged surfaces (`migrations/*`, `wrangler.jsonc`, `package.json`, `worker/d1/schema.mjs`, `app/*`, `data/site.js`, `lib/content/*`) | Empty for every path |
+| Empirical probe of the commit-time guard mechanism (scratch script, not committed) against a real local D1 instance | Confirmed: (1) a self-referential `CASE` guard correctly no-ops when its condition is false; (2) when the guard's `WHERE`/`CASE` condition fails but the row still matches `WHERE id = ?`, SQLite's `changes()` still reports the row as touched — ruling out `changes()` as a reliable "did my specific update actually apply" signal, which is why the fix instead poisons `slug` against its own existing `CHECK` constraint on mismatch; (3) that poison technique genuinely aborts the whole `db.batch()` transaction, rolling back every other statement in the same batch, confirmed via `D1_ERROR: CHECK constraint failed: slug NOT IN (...)` |
+
+The `AS21-F007` fix (`stalePointerGuardedSlugAssignment` in `worker/d1/projects.mjs`) is independently proven three ways: (a) the three deterministic `interleavingDb`-based TOCTOU tests above, each of which would fail under the previous pre-read-only implementation; (b) the pre-existing "forced audit-statement failure..." real-D1 rollback test, unaffected and still passing, confirming the new guard did not weaken the already-accepted create-path atomicity; (c) the empirical scratch probe recorded above, run directly against `getPlatformProxy`'s local D1 simulation before the fix was finalized, establishing that the chosen technique (not `changes()`) is the one that actually works.
+
+## `WEB-INC-004` command evidence (implementer-reported, `ML-DEVOS-AS-023`)
+
+Adds exactly one new migration (`migrations/0003_web_inc_004_media.sql`, two tables) and the local media upload/list capability. `migrations/0001_web_inc_005_init.sql`/`0002_web_inc_008_audit_log.sql` are unmodified; `worker/d1/schema.mjs`'s pre-existing exports (`AUTHORIZED_TABLE_NAMES`, `CURRENT_PRODUCT_TABLE_NAMES`, `applySchema`, `applyAuditMigration`, `applyCurrentSchema`) are unmodified — only new, separately-named exports (`MEDIA_TABLE_NAMES`, `ALL_PRODUCT_TABLE_NAMES`, `applyMediaMigration`, `applyAllMigrations`) were added (`AS23-F003`/`F016`).
+
+| Command | Result |
+|---|---|
+| `node --test tests/worker-admin-media.test.mjs` (isolated) | 22 passed, 0 failed |
+| `node --test tests/worker-admin-projects.test.mjs` (isolated) | 60 passed, 0 failed (51 preserved + 9 new; fixture schema application switched from `applyCurrentSchema` to `applyAllMigrations` so the extended create/edit/preview routes have the `project_media` table available, and the pre-existing "schema remains exactly 15 product tables" regression test was updated to assert 17, per `ALL_PRODUCT_TABLE_NAMES` — see `git diff` note below) |
+| `npm test` (full suite) | 195 passed, 0 failed |
+| `npm run build` | Succeeded, unchanged routes (`/`, `/_not-found`, `/admin`) |
+| `npx wrangler d1 migrations apply DB --local` (fresh local database) | `Resource location: local`; `0001_web_inc_005_init.sql` → 16 commands executed successfully; `0002_web_inc_008_audit_log.sql` → 5 commands executed successfully; `0003_web_inc_004_media.sql` → 8 commands executed successfully; all three recorded `✅` — no `--remote` flag used |
+| `npx wrangler d1 execute DB --local --json --command "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'd1_migrations' ORDER BY name;"` | Returned exactly the 15 existing tables plus `media`/`project_media` (17 product tables) alongside Wrangler's own `_cf_METADATA` bookkeeping table (excluded from the product-table count by the same convention `worker/d1/schema.mjs`'s `listProductTables` applies) |
+| Empirical probe of the new migration's DDL/triggers (scratch script, not committed) against a real local D1 instance via `getPlatformProxy` | Confirmed: exactly 17 tables after `applyAllMigrations`; a direct `UPDATE ... SET alt_text = ...` against an existing `media` row is rejected by `media_reject_immutable_field_update`; a `state`-only no-op `UPDATE` is allowed; `DELETE FROM media` is rejected by `media_reject_delete`; an `image/svg+xml` `content_type` INSERT is rejected by the `CHECK` constraint; an oversized `size_bytes` INSERT is rejected by the `CHECK` constraint; a valid `project_media` INSERT succeeds; a direct `UPDATE`/`DELETE` against an existing `project_media` row is rejected by its own triggers; a `project_media` INSERT referencing a nonexistent `media_id` is rejected by the foreign key; an invalid `role` value is rejected by the `CHECK` constraint; re-running `applyAllMigrations` against the same database is idempotent |
+| `npx wrangler dev --local` + `curl` (unauthenticated, real Workers runtime, not just the Node test harness) | `GET /` → `200` (public unaffected); `POST /admin/api/media` (no token) → `401` + `Cache-Control: no-store`; `GET /admin/api/media` (no token) → `401`; `DELETE /admin/api/media` (no token) → `401`; `GET /admin/api/media/whatever` (no token) → `401` — every new route fails closed before any route/method dispatch, reproduced in the real local Workers/Miniflare runtime |
+| `npx wrangler deploy --dry-run` | Succeeded; binding table shows the new `env.MEDIA` R2 binding (`maisog-labs-web-inc-004-local`) alongside the unchanged `env.DB`/`env.ASSETS`/`env.ACCESS_TEAM_DOMAIN`/`env.ACCESS_AUD` bindings — no `remote: true`, no bucket/database production identifier; "--dry-run: exiting now." — no external Cloudflare resource created or modified |
+| Secret/config scan | `grep` for JWT/PEM/private-key markers, `Bearer` tokens, `database_id`, `bucket_name`/`remote:\s*true`, and AWS-style key patterns across `migrations/0003_web_inc_004_media.sql`, `worker/d1/media.mjs`, `worker/admin/media.mjs`, `worker/media/signature.mjs`, `worker/d1/schema.mjs`, `worker/d1/validate.mjs`, `worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `worker/index.mjs`, `worker/admin/dashboard.mjs`, `wrangler.jsonc`, `tests/worker-admin-media.test.mjs`, `tests/worker-admin-projects.test.mjs` — zero matches beyond explanatory "no secret"/"no credential" comments; no `.env*` files; `wrangler.jsonc`'s new `r2_buckets` entry carries no `database_id`/production bucket name and is `remote: false` |
+| `git diff --stat` against expected-unchanged surfaces (`migrations/0001_web_inc_005_init.sql`, `migrations/0002_web_inc_008_audit_log.sql`, `app/page.js`, `data/site.js`, `lib/content/*`, `package.json`) | Empty for every path — none of these files changed |
+| `git diff worker/d1/schema.mjs` | Confirms every pre-existing export is byte-unchanged; only new exports were added |
+| `git diff worker/d1/projects.mjs` | Confirms `stalePointerGuardedSlugAssignment()` and `buildPublishBatch`/`buildUnpublishBatch` are byte-unchanged; only `buildCreateDraftBatch`/`buildEditDraftBatch` gained an additive `mediaEntries` parameter (`AS23-F016`) |
+| `git diff worker/admin/projects.mjs` | Confirms `readBoundedBodyBytes`/`MAX_MUTATION_BODY_BYTES` (the AS21-F009 byte-accurate body reader) are untouched — the media route implements its own separate byte-accurate body reader in `worker/admin/media.mjs` instead of sharing this one, by design |
+
+`tests/worker-admin-projects.test.mjs`'s fixture change (`applyCurrentSchema` → `applyAllMigrations`) was necessary because the extended create/edit/preview handlers now unconditionally read/write the `project_media` table (with zero rows when no media is supplied), and the existing regression test asserting "exactly 15 product tables" is now factually superseded by this cycle's authorized 17-table schema — it was updated in place to assert 17 against `ALL_PRODUCT_TABLE_NAMES`, not deleted or silently left inconsistent. `tests/d1-migration.test.mjs` and `tests/d1-audit.test.mjs` were not touched and continue to assert their own historical 14-table/15-table evidence via `applySchema`/`applyCurrentSchema` unchanged, per `AS23-F016`.
+
+Every D1/Wrangler/R2 command above is `--local`/local-simulation-only or non-mutating; none used `--remote`; `wrangler.jsonc`'s new R2 binding carries `remote: false` and no production bucket identifier. The `wrangler dev` HTTP evidence is genuine runtime evidence (the actual local Workers/Miniflare runtime) for the auth-negative path; the authenticated upload/list/compensation/atomicity paths rely on the deterministic Node test suite's local D1+R2 simulation (`getPlatformProxy({ remoteBindings: false })`), since no real production Cloudflare Access application exists to drive an authenticated `wrangler dev` request end-to-end (the same limitation every prior increment's evidence in this ledger already carries). All of this remains implementer-reported (`ACTOR_REPORTED`) until the Architect independently reproduces or inspects it.
+
+**Documented operational limitation (`AS23-F009`):** if a D1 batch failure's own compensating R2 object delete also fails, the just-written R2 object remains orphaned (no D1 media row references it, and no success audit exists for it). This is exercised directly by "a D1 batch failure whose compensating R2 delete also fails still fails the request, without crashing" in `tests/worker-admin-media.test.mjs`, which confirms the request still fails (no fabricated D1 consistency) rather than that the orphan is prevented — prevention is out of scope for this cycle, per RFC-007/AS23-F009's explicit "this cycle does not require a distributed transaction mechanism."
+
+Do not represent any `NOT IMPLEMENTED` row above as `PASS` in a future handoff without the actual feature and test existing first.

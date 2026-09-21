@@ -2,8 +2,72 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "maisog-labs",
   "compatibility_date": "2026-09-11",
+  "main": "worker/index.mjs",
   "assets": {
     "directory": "./out",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // WEB-INC-001 remediation (AS12-F003): explicitly pinned rather than left
+    // to an implicit default. "auto-trailing-slash" redirects a file-style
+    // request (e.g. /admin.html) to its canonical extensionless path
+    // (/admin) instead of serving the HTML directly, so an alternate static
+    // URL form is never served as a 200 outside the Worker-first auth check
+    // below. Verified locally — see coordination/IMPLEMENTER_HANDOFF.md.
+    "html_handling": "auto-trailing-slash",
+    // WEB-INC-001: only /admin and /admin/* are routed to the Worker for
+    // authentication. Every other request continues to be served asset-first,
+    // exactly as before this increment. Do not widen this list or set this to
+    // `true` without a separately reviewed/authorized change (ML-DEVOS-AS-011
+    // AS11-F001). WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 /
+    // ML-DEVOS-AS-028 / D-031, AS28-F003) authorized /api/journal and
+    // /api/journal/*: public, unauthenticated, GET-only, read-only paths,
+    // classified before the Access-auth admin dispatch in
+    // worker/auth.mjs's handleRequest (AS28-F010). WEB-INC-007
+    // (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032, AS30-F008) authorizes
+    // exactly one more, narrower widening: /api/design — an EXACT path, not
+    // a wildcard (no /api/design/* is authorized) — same public/
+    // unauthenticated/GET-only/read-only/classified-before-Access-auth
+    // treatment. No other public path becomes Worker-first.
+    "run_worker_first": ["/admin", "/admin/*", "/api/journal", "/api/journal/*", "/api/design"]
+  },
+  // Non-secret runtime configuration only (ML-DEVOS-RFC-002 §4). No secret,
+  // private key, credential, or administrator identity is set here. Real
+  // values are configured outside tracked source before any production
+  // Access application exists; these placeholders are inert until then.
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_ACCESS_TEAM_DOMAIN",
+    "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD"
+  },
+  // WEB-INC-005 (ML-DEVOS-RFC-003 / ML-DEVOS-AS-013 / D-024): local-only D1
+  // revision substrate for current-content migration/parity/integrity testing.
+  // No `database_id` is set — it is not required by Wrangler's config schema,
+  // and omitting it avoids any placeholder that could resemble a real
+  // production D1 resource identifier. `remote: false` is explicit, not
+  // merely the default, so this binding can never target a production D1
+  // database under any invocation (AS13-F008). Every command exercising this
+  // binding is run with `--local` / local-only tooling only — see
+  // coordination/IMPLEMENTER_HANDOFF.md for the exact command log.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "maisog-labs-web-inc-005-local",
+      "migrations_dir": "migrations",
+      "remote": false
+    }
+  ],
+  // WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029): local-only R2
+  // object-storage simulation for the media subsystem (AS23-F002). `remote:
+  // false` is explicit, exactly like the D1 binding above, so this binding
+  // can never target a real/production R2 bucket under any invocation. No
+  // public bucket, custom domain, or production resource identifier is
+  // configured here or anywhere else in this repository. Every command
+  // exercising this binding is run with `--local` / local-only tooling only
+  // — see coordination/IMPLEMENTER_HANDOFF.md for the exact command log.
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "maisog-labs-web-inc-004-local",
+      "remote": false
+    }
+  ]
 }

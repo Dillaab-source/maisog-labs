@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/state/task-state.schema.json",
+  "title": "Sentinel Task Engine State record",
+  "description": "S4 State Machine Kernel task-state record (ML-DEVOS-RFC-016 / ML-DEVOS-AS-065 / D-050). Describes only a task's kernel-tracked lifecycle progress: current state, owner/lease, the unified revision fencing token, per-transition-class retry counts, a bounded state-change-provenance history, and a reference to the task's S3 Task Contract. It never grants authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002) -- see the required `authority_disclaimer` field, whose value this schema fixes verbatim. This schema is descriptive/structural only; devos/state/lifecycle.mjs and devos/state/kernel.mjs implement the semantic transition/ownership/idempotency rules this file cannot express.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "contract_ref",
+    "state",
+    "owner",
+    "revision",
+    "lease_expires_at",
+    "retry_counts",
+    "idempotency_ledger",
+    "history",
+    "authority_disclaimer"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*$",
+      "minLength": 3,
+      "description": "Stable identifier, reusing the same shape convention as S3's task_id (devos/contracts/task-contract.schema.json)."
+    },
+    "contract_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "References an S3 Task Contract's task_id. The kernel never copies that contract's scope/claims/evidence fields -- it stores only this reference (ML-DEVOS-RFC-016 section G)."
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "CREATED", "PLANNING", "READY_FOR_BUILD", "BUILDING", "READY_FOR_QA", "QA",
+        "READY_FOR_REVIEW", "REVIEW", "CHANGES_REQUESTED", "PAULO_DECISION_REQUIRED",
+        "APPROVED", "MERGE_READY", "MERGED", "RELEASE_READY", "DEPLOYED", "VERIFIED",
+        "FAILED", "ABANDONED"
+      ],
+      "description": "Exactly the frozen ML-DEVOS-ARCH-001 section 10 lifecycle plus the two additive terminal states FAILED and ABANDONED that D-050 explicitly adopted for this implementation."
+    },
+    "owner": {
+      "type": ["string", "null"],
+      "description": "Current lease holder's actor identity, or null when unowned (including immediately after a designated handoff transition)."
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The single unified fencing/optimistic-concurrency token. Increments by exactly 1 on every successful mutating operation (create/claim/renew/release/transition)."
+    },
+    "lease_expires_at": {
+      "type": ["integer", "null"],
+      "description": "Epoch-millisecond lease expiry, or null when unowned."
+    },
+    "retry_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build", "qa", "review"],
+      "properties": {
+        "build": { "type": "integer", "minimum": 0 },
+        "qa": { "type": "integer", "minimum": 0 },
+        "review": { "type": "integer", "minimum": 0 }
+      },
+      "description": "Durable, bounded per-transition-class retry counters compared against the explicit S4 Task Policy retry ceiling (devos/state/task-policy.mjs) -- never against coordination/STATE.md."
+    },
+    "idempotency_ledger": {
+      "type": "object",
+      "description": "Per-operation-class map of idempotency-key -> {binding, result}, covering claim/renew/transition. release() is deliberately not ledgered here -- see TASK_STATE_KERNEL.md / kernel.mjs for its documented already-unowned no-op exception.",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "history": {
+      "type": "array",
+      "description": "Bounded internal transition-provenance log (from/to/actor/timestamp/evidence-reference/revision). Strictly scoped to state-change provenance -- never raw command output, tool invocations, or cost/timing telemetry, which remain a future Run History store's domain (ML-DEVOS-ARCH-001 section 11).",
+      "items": {
+        "type": "object"
+      }
+    },
+    "authority_disclaimer": {
+      "type": "string",
+      "const": "This Task Engine State record describes only the kernel's tracked lifecycle progress for a task already authorized elsewhere (its S3 Task Contract, referenced by contract_ref). It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). A task reaching MERGED/DEPLOYED/VERIFIED in this record is a descriptive fact about kernel-tracked progress, not a merge/deployment/production authorization by itself.",
+      "description": "Fixed verbatim by `const`, mirroring S3's task-contract.schema.json authority_disclaimer convention, so no instance can soften, omit, or reword the non-authority boundary."
+    }
+  }
+}

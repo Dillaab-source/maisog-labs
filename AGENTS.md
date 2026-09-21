@@ -10,7 +10,7 @@ This repository is the source for the Maisog Labs portfolio website.
 ## Stack
 - Next.js App Router
 - React
-- Static export for Cloudflare Pages
+- Static export (`next.config.mjs`: `output: "export"`), deployed as a Cloudflare Worker asset-only deployment via Wrangler (`wrangler.jsonc`, `npm run deploy`) — not Cloudflare Pages. `docs/ARCHITECTURE.md` is the canonical deployment description; keep this file consistent with it.
 
 ## Repository map
 - `app/` — routes and page composition.
@@ -41,3 +41,4 @@ This repository is the source for the Maisog Labs portfolio website.
 - Inspect existing components and data modules before creating duplicates.
 - Make the smallest coherent change that satisfies the task.
 - Explain architectural changes in the commit or PR description.
+- Before re-deriving a governance/repeatable procedure from scattered files, check `.agents/skills/` (canonical Skill location; `.claude/skills/` is a generated bridge, never hand-edited) for a matching Skill — see `brain/00_HOME.md`'s "Skill check and Knowledge Treasury" section. `GOVERNANCE > SKILLS`; a Skill never grants authority.

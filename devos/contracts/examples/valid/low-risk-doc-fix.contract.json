@@ -1,0 +1,46 @@
+{
+  "contract_schema_version": "1.0.0",
+  "task_id": "TASK-EXAMPLE-LOW-RISK-DOC-FIX",
+  "title": "Example: fix a stale cross-reference in a documentation file",
+  "project": "Dillaab-source/maisog-labs",
+  "change_class": "PATCH",
+  "authorization_references": ["ML-DEVOS-RFC-013", "ML-DEVOS-AS-038", "D-042"],
+  "requirement_references": [],
+  "risk_references": [],
+  "design_references": [],
+  "scope": {
+    "allowed_paths": ["docs/", "brain/"],
+    "prohibited_paths": ["app/", "worker/", "lib/", "migrations/"],
+    "prohibited_actions": ["merge to main", "deploy", "remote resource creation"],
+    "remote_resources_involved": false,
+    "protected_main_or_deploy_in_scope": false,
+    "production_write_in_scope": false,
+    "credential_or_security_in_scope": false,
+    "destructive_actions_in_scope": false
+  },
+  "acceptance_criteria": [
+    { "criterion_id": "AC-1", "statement": "The stale cross-reference is corrected to point at the current file/section." },
+    { "criterion_id": "AC-2", "statement": "No other documentation file is left contradicting the corrected reference." }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLAIM-1",
+      "claim_kind": "DOCUMENTATION_CORRECTNESS",
+      "statement": "The corrected cross-reference points at a file/section that actually exists.",
+      "evidence": {
+        "all_of": [],
+        "any_of": ["INDEPENDENTLY_INSPECTED"]
+      }
+    },
+    {
+      "claim_id": "CLAIM-2",
+      "claim_kind": "IMPLEMENTATION_PRESENT",
+      "statement": "The edit is present in the working tree at the stated path.",
+      "evidence": {
+        "all_of": ["ACTOR_REPORTED"],
+        "any_of": []
+      }
+    }
+  ],
+  "authority_disclaimer": "This Task Contract describes already-authorized scope. It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). Satisfying this contract's acceptance criteria and evidence requirements does not certify task success or accept the task; that judgment belongs to the Architect/Paulo review that consumes this contract's evidence, not to the contract or its validator."
+}

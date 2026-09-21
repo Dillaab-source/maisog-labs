@@ -1,0 +1,28 @@
+{
+  "contract_schema_version": "1.0.0",
+  "task_id": "TASK-EXAMPLE-INVALID-CORE020-ESCALATION",
+  "title": "Invalid: a destructive/production-write task closes a non-lifecycle claim solely on ACTOR_REPORTED evidence",
+  "project": "Dillaab-source/maisog-labs",
+  "change_class": "CAPABILITY",
+  "authorization_references": ["ML-DEVOS-RFC-013"],
+  "scope": {
+    "allowed_paths": ["migrations/"],
+    "remote_resources_involved": true,
+    "protected_main_or_deploy_in_scope": false,
+    "production_write_in_scope": true,
+    "credential_or_security_in_scope": false,
+    "destructive_actions_in_scope": true
+  },
+  "acceptance_criteria": [
+    { "criterion_id": "AC-1", "statement": "N/A -- this fixture exists only to prove CORE-020 fails closed on a consequence-sensitive contract that lets a non-lifecycle claim close on Builder self-report alone." }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLAIM-1",
+      "claim_kind": "SECURITY_OR_TRUST_BOUNDARY",
+      "statement": "A destructive production migration was applied safely, evidenced only by the Builder's own report that it ran without error.",
+      "evidence": { "all_of": ["ACTOR_REPORTED"], "any_of": [] }
+    }
+  ],
+  "authority_disclaimer": "This Task Contract describes already-authorized scope. It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). Satisfying this contract's acceptance criteria and evidence requirements does not certify task success or accept the task; that judgment belongs to the Architect/Paulo review that consumes this contract's evidence, not to the contract or its validator."
+}

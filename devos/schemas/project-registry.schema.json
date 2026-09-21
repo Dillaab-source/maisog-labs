@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/schemas/project-registry.schema.json",
+  "title": "Sentinel Project Registry",
+  "description": "Static shape for the top-level project registry (S2, ML-DEVOS-RFC-001). This is an INDEX of governed-project registrations only -- never authoritative project memory, task state, evidence, requirements, risks, capability state, or local governance. Those remain in the project's own repository / .devos/ overlay; the registry only points to them. No project entry is authorized in S2 -- validate-project-registry.mjs additionally enforces, as an S2-scope closure invariant on top of this schema, that `projects` remains empty until a PROJECT_ONBOARDING decision authorizes an entry.",
+  "type": "object",
+  "required": ["schema_version", "projects"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "string", "const": "1" },
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/project_entry" }
+    }
+  },
+  "definitions": {
+    "project_entry": {
+      "type": "object",
+      "required": [
+        "project_id", "repository", "owner", "status", "overlay",
+        "onboarding_decision_id", "onboarding_adr_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable identifier, unique within this registry. validate-project-registry.mjs rejects a duplicate project_id."
+        },
+        "repository": { "type": "string", "minLength": 1, "description": "Repository locator (e.g. owner/repo), independent of Sentinel core." },
+        "owner": { "type": "string", "minLength": 1, "description": "Human owner of the project." },
+        "status": {
+          "type": "string",
+          "enum": ["PROPOSED", "ACTIVE", "SUSPENDED", "RETIRED"]
+        },
+        "overlay": {
+          "type": "object",
+          "required": ["location", "mode"],
+          "additionalProperties": false,
+          "description": "Where and how this project's own overlay lives. Never implies the project's application source moved into this monorepo (CORE-015).",
+          "properties": {
+            "location": { "type": "string", "minLength": 1 },
+            "mode": { "type": "string", "enum": ["in-repo-overlay", "external-devos-overlay"] }
+          }
+        },
+        "onboarding_decision_id": {
+          "type": ["string", "null"],
+          "description": "brain/DECISION_LOG.md entry authorizing onboarding. MUST be a non-null, non-empty string when status is ACTIVE (RFC future registry-entry invariant: no ACTIVE project without an onboarding decision reference)."
+        },
+        "onboarding_adr_id": {
+          "type": ["string", "null"],
+          "description": "ADR recording the onboarding, if one exists yet."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "ACTIVE" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "onboarding_decision_id": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

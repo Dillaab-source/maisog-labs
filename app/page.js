@@ -3,6 +3,16 @@ import Logo from "../components/Logo";
 import ProjectRail from "../components/ProjectRail";
 import { getPublicContent } from "../lib/content/local.mjs";
 
+// WEB-INC-007 (ML-DEVOS-RFC-010 / ML-DEVOS-AS-030 / D-032, DESIGN-002/003):
+// the four `data-section="..."` attributes below are the only markup change
+// this increment makes to this file — a minimal wrapper/data-attribute
+// addition (RFC-010 "Section visibility/order"), not a content or D1
+// cutover. `app/DesignRuntime.js` (mounted once in app/layout.js) reads
+// published section visibility/order from GET /api/design at runtime and
+// applies it to exactly these four elements via inline `style.display`/
+// `style.order`; this file itself remains an ordinary static server
+// component with no D1 import and no knowledge of the design system.
+
 export default async function Home() {
   const content = await getPublicContent();
   const { site, hero, contact, foundations, navigation, process, about, footer, projectSection } = content;
@@ -22,7 +32,7 @@ export default async function Home() {
         <a className="header-action" href={`mailto:${contact.email}`}>{contact.headerLabel} <span aria-hidden="true">↗</span></a>
       </header>
 
-      <section className="hero" id="home">
+      <section className="hero" id="home" data-section="home">
         <span className="coordinate coordinate-a" aria-hidden="true">{site.location.toUpperCase()} · {site.timezone}</span>
         <span className="coordinate coordinate-b" aria-hidden="true">SYSTEM / {content.meta.contentVersion}</span>
         <div className="hero-copy" id="main-content">
@@ -47,7 +57,7 @@ export default async function Home() {
         </nav>
       </section>
 
-      <section className="content-section projects-section" id="projects">
+      <section className="content-section projects-section" id="projects" data-section="projects">
         <div className="section-heading">
           <div><span className="section-kicker">{projectSection.kicker}</span><h2>{projectSection.title}</h2></div>
           <p>{projectSection.description}</p>
@@ -55,7 +65,7 @@ export default async function Home() {
         {projects.length ? <ProjectRail projects={projects} /> : <p>{projectSection.emptyMessage}</p>}
       </section>
 
-      <section className="content-section process-section" id="process">
+      <section className="content-section process-section" id="process" data-section="process">
         <div className="section-heading compact-heading"><div><span className="section-kicker">{process.kicker}</span><h2>{process.title}</h2></div></div>
         <div className="process-grid">
           {process.steps.map((step, index) => (
@@ -68,7 +78,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="content-section about-section" id="about">
+      <section className="content-section about-section" id="about" data-section="about">
         <div className="about-panel">
           <span className="section-kicker">{about.kicker}</span>
           <h2>{about.title[0]}<br />{about.title[1]}</h2>

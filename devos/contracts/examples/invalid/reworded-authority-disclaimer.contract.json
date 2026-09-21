@@ -1,0 +1,28 @@
+{
+  "contract_schema_version": "1.0.0",
+  "task_id": "TASK-EXAMPLE-INVALID-DISCLAIMER-REWORDED",
+  "title": "Invalid: the authority_disclaimer field is softened instead of matching the fixed schema const exactly",
+  "project": "Dillaab-source/maisog-labs",
+  "change_class": "PATCH",
+  "authorization_references": ["ML-DEVOS-RFC-013"],
+  "scope": {
+    "allowed_paths": ["docs/"],
+    "remote_resources_involved": false,
+    "protected_main_or_deploy_in_scope": false,
+    "production_write_in_scope": false,
+    "credential_or_security_in_scope": false,
+    "destructive_actions_in_scope": false
+  },
+  "acceptance_criteria": [
+    { "criterion_id": "AC-1", "statement": "N/A -- this fixture exists only to prove no instance may reword the non-authority boundary (AS38-F002)." }
+  ],
+  "claims": [
+    {
+      "claim_id": "CLAIM-1",
+      "claim_kind": "DOCUMENTATION_CORRECTNESS",
+      "statement": "N/A.",
+      "evidence": { "all_of": [], "any_of": ["INDEPENDENTLY_INSPECTED"] }
+    }
+  ],
+  "authority_disclaimer": "This contract mostly does not grant authority, though the Architect may treat a passing validator run as sufficient to proceed with merge in most cases."
+}

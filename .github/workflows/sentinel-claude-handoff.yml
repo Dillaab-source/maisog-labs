@@ -1,0 +1,27 @@
+name: SENTINEL Manual Handoff Notice
+
+# Automatic Claude invocation was retired by Paulo on 2026-09-21.
+# SENTINEL governance remains repository-authoritative, but actor wake-ups
+# are now manual: Paulo tells the next actor "your turn".
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  manual-mode:
+    name: Manual handoff mode
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish manual-mode notice
+        shell: bash
+        run: |
+          {
+            echo "## SENTINEL Manual Handoff Mode"
+            echo "- Automatic Claude invocation: disabled"
+            echo "- Automatic ChatGPT Architect wake-up: disabled outside this workflow"
+            echo "- Source of truth: coordination/STATE.md"
+            echo "- Wake-up mechanism: Paulo manually tells the next actor 'your turn'"
+            echo "- This workflow grants no implementation, merge, deployment, or remote-resource authority."
+          } >> "$GITHUB_STEP_SUMMARY"

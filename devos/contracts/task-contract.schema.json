@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs.internal/devos/contracts/task-contract.schema.json",
+  "title": "Sentinel Task Contract",
+  "description": "S3 typed, machine-readable Task Contract (ML-DEVOS-RFC-013 / ML-DEVOS-AS-038 / D-042). A Task Contract is a compact, typed description of scope, acceptance criteria, and claim/evidence expectations for a single already-authorized task. It never itself grants authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002) -- see the required `authority_disclaimer` field, whose value this schema fixes verbatim so no instance can weaken it. This schema is descriptive/structural only; see TASK_CONTRACT_SPEC.md for the semantic rules (CORE-016/017/018/020) that validate-task-contract.mjs enforces beyond what a JSON Schema can express.",
+  "type": "object",
+  "required": [
+    "contract_schema_version",
+    "task_id",
+    "title",
+    "project",
+    "change_class",
+    "authorization_references",
+    "scope",
+    "acceptance_criteria",
+    "claims",
+    "authority_disclaimer"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "contract_schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Version of this schema the instance was authored against, not the Sentinel governance-capability version."
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*$",
+      "minLength": 3,
+      "description": "Stable, unique identifier for this task. Uniqueness across contracts is a repository-level convention this schema cannot itself enforce for a single instance file."
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "project": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Repository/project this task is scoped to, e.g. 'Dillaab-source/maisog-labs'."
+    },
+    "change_class": {
+      "type": "string",
+      "enum": ["PATCH", "LOCAL_RULE", "CORE_POLICY", "CAPABILITY", "ARCHITECTURE", "CONSTITUTIONAL", "WAIVER", "PROJECT_ONBOARDING"],
+      "description": "Reuses the existing change-class vocabulary from devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md and devos/governance/registry/rule-record.schema.json rather than inventing a parallel taxonomy."
+    },
+    "authorization_references": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "IDs (RFC/Architect Sync/Decision/ADR) that already authorized this task's scope. Required and non-empty: a Task Contract with no authorization reference would itself look like a claim of self-granted authority, which CORE-001/CORE-002 forbid."
+    },
+    "requirement_references": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "risk_references": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "design_references": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_paths",
+        "remote_resources_involved",
+        "protected_main_or_deploy_in_scope",
+        "production_write_in_scope",
+        "credential_or_security_in_scope",
+        "destructive_actions_in_scope"
+      ],
+      "properties": {
+        "allowed_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Bounded repository paths or artifact domains this task may modify. Describes already-authorized scope; does not itself grant write access."
+        },
+        "prohibited_paths": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "prohibited_actions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "remote_resources_involved": { "type": "boolean" },
+        "protected_main_or_deploy_in_scope": { "type": "boolean" },
+        "production_write_in_scope": { "type": "boolean" },
+        "credential_or_security_in_scope": { "type": "boolean" },
+        "destructive_actions_in_scope": { "type": "boolean" }
+      },
+      "description": "The five boolean flags let validate-task-contract.mjs determine whether CORE-020's consequence-sensitive evidence escalation applies, without re-deriving that judgment from prose."
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion_id", "statement"],
+        "properties": {
+          "criterion_id": { "type": "string", "pattern": "^AC-[0-9]+$" },
+          "statement": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Describes an expected outcome. Its presence here never certifies that the outcome occurred -- that is a claim/evidence matter, not an acceptance-criterion matter."
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "claim_kind", "statement", "evidence"],
+        "properties": {
+          "claim_id": { "type": "string", "pattern": "^CLAIM-[0-9]+$" },
+          "claim_kind": {
+            "type": "string",
+            "enum": [
+              "DOCUMENTATION_CORRECTNESS",
+              "IMPLEMENTATION_PRESENT",
+              "TESTED_BEHAVIOR",
+              "SECURITY_OR_TRUST_BOUNDARY",
+              "MAIN",
+              "DEPLOYED",
+              "VERIFIED"
+            ],
+            "description": "V1 bounded claim-kind vocabulary (ML-DEVOS-RFC-013). Additional kinds require a future governed extension, not an ad hoc addition to this schema."
+          },
+          "statement": { "type": "string", "minLength": 1 },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["all_of", "any_of"],
+            "properties": {
+              "all_of": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+                },
+                "description": "Every listed evidence class is independently required (AND semantics), reusing the exact all_of/any_of shape from rule-record.schema.json rather than inventing a second evidence-combination grammar."
+              },
+              "any_of": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["ACTOR_REPORTED", "INDEPENDENTLY_INSPECTED", "INDEPENDENTLY_REPRODUCED", "CI_ATTESTED", "RUNTIME_OBSERVED"]
+                },
+                "description": "At least one listed evidence class is required (OR semantics) whenever this array is non-empty."
+              }
+            }
+          }
+        }
+      }
+    },
+    "authority_disclaimer": {
+      "type": "string",
+      "const": "This Task Contract describes already-authorized scope. It does not itself grant authority, tool access, credentials, remote-resource access, merge approval, deployment approval, or risk acceptance (CORE-001, CORE-002). Satisfying this contract's acceptance criteria and evidence requirements does not certify task success or accept the task; that judgment belongs to the Architect/Paulo review that consumes this contract's evidence, not to the contract or its validator.",
+      "description": "Fixed verbatim by `const` so no instance can soften, omit, or reword the non-authority boundary (ML-DEVOS-AS-038 AS38-F002)."
+    }
+  }
+}
