@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_PROPOSAL
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_IMPLEMENTATION_DECISION_ONLY
+CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_IMPLEMENTATION
+TURN: CLAUDE
+STATUS: AUTHORIZED_IMPLEMENTATION
+AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_PRECUTOVER_IMPLEMENTATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 2
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,65 +19,111 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-061 authorized Bootstrap V0 discovery/design and independent review only.
+D-062 authorizes bounded implementation of Architect-approved ML-DEVOS-RFC-018.
 
-The final Architect review of HEAD `5140370393330681d739c19d546cb0147952d3b9` closes B018-01 through B018-07 and accepts ML-DEVOS-RFC-018 as implementation-ready design.
+The implementation is deliberately split into:
+- Stage A — PRE-CUTOVER implementation and independent inventory/checker review;
+- Stage B — one atomic activation/cutover, conditionally available under D-062 only after Architect accepts Stage A and explicitly routes the live state to Stage B.
 
-Bootstrap V0 executable implementation is NOT yet authorized.
+This state authorizes Stage A only.
+
 S5 executable implementation remains paused and unauthorized.
+Context Plane CP-4+ remains unauthorized.
+SENTINEL Model Router V0 remains queued post-pilot only and unauthorized.
 
-## Architect verdict
+## Builder mode
 
-CONTEXT PLANE BOOTSTRAP V0 DESIGN STAGE GATE: ARCHITECT_APPROVED
-RFC-018 DESIGN: ACCEPTED FOR BOUNDED IMPLEMENTATION DECISION
-NEXT ACTOR: PAULO
+LEAN / DELTA-ONLY is mandatory.
 
-See coordination/ARCHITECT_REVIEW.md for the complete final review.
+Read first:
+1. this `coordination/STATE.md`;
+2. `coordination/ARCHITECT_REVIEW.md`;
+3. `devos/changes/rfcs/ML-DEVOS-RFC-018.md`;
+4. only the exact Stage-A implementation surfaces below.
 
-## Paulo decision required before implementation
+Do not preload the historical `coordination/IMPLEMENTER_HANDOFF.md`. Read only its current tail or exact prior section if needed to append the Stage-A evidence record. Do not reread broad governance history unless a concrete RFC-018 requirement cannot otherwise be resolved.
 
-An explicit implementation decision should:
+## Stage A objective — PRE-CUTOVER ONLY
 
-1. authorize only bounded Bootstrap V0 implementation of the accepted ML-DEVOS-RFC-018 design;
-2. authorize the exact repository migration/checker/test surfaces required by that RFC, including CURRENT_HANDOFF, archive/index support, protocol-version marker, carry-forward obligation inventory, supported reader/writer migration, canonical-skill changes plus regenerated bridges, focused checker/failure tests, and required coordination/governance entrypoint updates;
-3. require baseline measurement before cutover and pilot measurement afterward;
-4. preserve `MAX_PUBLICATION_ATTEMPTS = 3`, exact-tip publication, complete machine-readable handoff/review binding, unconditional outgoing-record preservation, authority/provenance separation, atomic activation, stale-session fail-closed behavior, and forward-recovery rollback;
-5. prohibit Context Plane CP-4+ expansion during Bootstrap V0;
-6. preserve all S5/S6+, remote-resource, credential, deployment, production-write, protected/main-merge prohibitions;
-7. require return to Architect for independent implementation review before any separate S5 implementation decision.
+Prepare and test the repository-native Bootstrap V0 foundation without activating the new routing.
 
-No Builder action until Paulo decides.
+Required:
+- capture a bounded pre-cutover baseline of mandatory startup files/read burden, including the legacy handoff size and repeated-history dependency;
+- create the small inactive Context Bootstrap protocol/kernel document;
+- implement the small repository-native mechanical checker;
+- implement focused RFC-018 failure tests that can be exercised pre-cutover;
+- create the candidate bounded operative-obligation carry-forward inventory for independent Architect review;
+- create inert deterministic CURRENT_HANDOFF archive/index scaffolding;
+- regenerate traceability only if required/changed;
+- report exact evidence and return to Architect.
 
-## Queued post-pilot candidate — no authority
+## Stage A authorized mutation surfaces
 
-SENTINEL Model Router V0 is recorded in the final Architect review as a future candidate after Bootstrap implementation + independent acceptance + S5 pilot evidence.
+Primary:
+- `brain/protocols/CONTEXT_BOOTSTRAP.md`
+- `scripts/check-context-bootstrap.mjs`
+- `tests/context-bootstrap.test.mjs`
+- narrowly necessary fixtures under `tests/fixtures/`
+- `coordination/OPERATIVE_OBLIGATIONS.md`
+- `coordination/archive/handoffs/README.md`
+- only directly necessary inert archive scaffolding under `coordination/archive/handoffs/`
 
-Candidate purpose:
-- automatically route bounded low-consequence tasks to cheaper capable models/providers;
-- escalate ambiguity, verification failure, architecture/security/capital/credential risk to stronger tiers;
-- prevent models from lowering their own required tier or expanding authority;
-- support provider fallback without making any one provider quota a project single point of failure;
-- evaluate routing using measured success, remediation, scope-violation, cost/token, and escalation data.
+Supporting:
+- deterministic traceability outputs only if regeneration changes them;
+- `coordination/IMPLEMENTER_HANDOFF.md` for this Stage-A evidence record only;
+- `coordination/STATE.md` for the return gate.
 
-This queue entry grants no implementation or design-cycle authority.
+## Stage A explicit prohibitions
 
-## Standing efficiency rule
+Do NOT:
+- create or activate live `coordination/CURRENT_HANDOFF.md`;
+- cut over or freeze `coordination/IMPLEMENTER_HANDOFF.md`;
+- change root `AGENTS.md` or `CLAUDE.md`;
+- change `coordination/README.md`;
+- change `brain/00_HOME.md`, `brain/PROJECT_GOVERNANCE.md`, `brain/ARCHITECT_HANDOFF.md`, or `brain/protocols/ARCHITECT_SYNC.md`;
+- change canonical skills or generated provider bridges;
+- claim the reader/writer migration is active;
+- perform Bootstrap Stage B;
+- implement Context Plane CP-4+;
+- implement S5 or S6+;
+- touch product/application runtime;
+- access live credentials/secrets;
+- create/mutate remote D1/R2;
+- mutate Cloudflare Access/DNS/domain/deployment/rollback/production;
+- perform public D1 cutover;
+- merge protected/main or PR #10.
 
-LEAN / DELTA-ONLY mode remains required.
+The current legacy coordination protocol remains active throughout Stage A.
 
-Repository state is durable memory; models should read current state/current delta first and retrieve history only for a concrete unanswered question.
+## Locked design requirements
 
-## Hard boundaries
+Preserve exactly:
+- `MAX_PUBLICATION_ATTEMPTS = 3`;
+- exact-snapshot governed reads;
+- exact-tip conflict-detecting publication;
+- read-back reconciliation after ambiguous publication outcomes;
+- machine-readable handoff/cycle/review-target/applicable-review binding;
+- outcome-independent rolling-record preservation;
+- Architect-reviewed carry-forward obligations before cutover;
+- provenance != authority;
+- stale protocol sessions fail closed;
+- forward-recovery rollback;
+- no generalized Context Resolver or model/tool router.
 
-No Bootstrap implementation until Paulo explicitly authorizes it.
-No CURRENT_HANDOFF cutover yet.
-No S5 implementation.
-No S6+.
-No remote D1/R2.
-No credentials.
-No Cloudflare Access, DNS, domain, deployment, rollback, or production write.
-No public D1 cutover.
-No protected/main merge.
-No PR #10 merge or auto-merge.
+## Stage A review gate
 
-All authorization flags remain NO.
+Return:
+- `TURN: ARCHITECT`
+- `STATUS: READY_FOR_ARCHITECT`
+- `AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_PRECUTOVER_REVIEW_ONLY`
+- `ARCHITECT_ACTION_REQUIRED: YES`
+- `IMPLEMENTER_ACTION_REQUIRED: NO`
+- `PAULO_DECISION_REQUIRED: NO`
+- `CURRENT_REMEDIATION_CYCLE: 0`
+- `MAX_REMEDIATION_CYCLES: 2`
+
+Return exact changed files, baseline measurements, commands/tests with exit codes, traceability fingerprint if run, known limitations, and the candidate obligation inventory.
+
+If Stage A passes without architecture expansion, Architect may open Stage B atomic activation under D-062 without another Paulo decision.
+
+All remote/deploy/main authorization flags remain NO.
