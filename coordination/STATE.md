@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_PROPOSAL
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: RFC018_CONTEXT_BOOTSTRAP_V0_DESIGN_REMEDIATION_CYCLE_2_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
@@ -24,59 +24,44 @@ ML-DEVOS-AS-078 remains the current independent design review of record.
 D-060 remains the broader queued Context Plane planning record.
 S5 RFC-017 remains Architect-approved but executable implementation remains paused and unauthorized.
 
-## Architect Remediation Cycle 1 Re-review
+## Remediation Cycle 2 — FINAL — result
 
-Reviewed snapshot:
-- `960a01195624097178c3c84449aa7cb36a48bdcc`
+Corrected exactly the two narrow issues the Architect's Cycle 1 Re-Review
+left open. See coordination/IMPLEMENTER_HANDOFF.md's "RFC-018 Bootstrap V0
+Design Remediation Cycle 2 - FINAL" section for the exact section mapping
+and evidence actually executed.
 
-Result:
-- B018-03 through B018-07: CLOSED.
-- B018-01: one narrow exact-constant correction remains.
-- B018-02: one narrow machine-readable/non-stale target-binding correction remains.
-- RFC-018 implementation readiness: CHANGES_REQUESTED.
-- Bootstrap implementation remains unauthorized.
-- S5 implementation remains unauthorized.
+Delivered:
+- B018-01: exact fixed constant MAX_PUBLICATION_ATTEMPTS = 3 (no longer an
+  "e.g." example); explicit terminal-exhaustion semantics that do not
+  silently reset on session resume.
+- B018-02: explicit machine-readable applicable_review_id field added to
+  CURRENT_HANDOFF's header and mirrored as an explicit STATE field;
+  mechanical field-for-field tuple comparison required (never prose
+  inference); for a Builder -> Architect handoff, review_target_commit
+  now must equal exactly the coordination-transition commit's own parent
+  (the same tip the exact-tip publication contract already requires),
+  making a stale-but-reachable target structurally impossible; explicit
+  no-handoff state preserved unchanged.
+- Checker contract and failure-test list adjusted only as directly
+  required by the two corrections above (3 new failure-test cases:
+  applicable_review_id mismatch, reachable-but-not-exact-tip target,
+  attempt-exhaustion-does-not-reset-on-resume).
 
-## Remediation Cycle 2 — FINAL
+B018-03 through B018-07 were not reopened; git diff --stat confirms a
+28-insertion/11-deletion delta confined to the sections these two
+corrections touch. No new Context Plane V1 feature was added.
 
-Correct only:
+Traceability: regeneration was run explicitly; it produced byte-identical
+output to what was already committed (no new/removed governance IDs in
+this cycle's prose), so no traceability output file is part of this
+commit, per the brief's "only if explicitly regenerated and changed"
+instruction. Fingerprint before and after: 276 files / 2 errors
+(CORE-022 + WEB-REQ-009) / 14 warnings, unchanged.
 
-1. **Exact publication-attempt bound**
-   - replace the current example/implementation-deferred retry count with one exact V0 constant, recommended `MAX_PUBLICATION_ATTEMPTS = 3`;
-   - define exhaustion as terminal for that governed publication attempt/session until a fresh bootstrap/new authorized attempt; resume must not silently reset the counter.
+Self-discovered blocker: none.
 
-2. **Complete machine-readable applicable-review / target binding**
-   - add an explicit machine-readable applicable-review identity field to CURRENT_HANDOFF;
-   - define the matching explicit STATE selector field(s);
-   - require mechanical tuple comparison rather than prose inference;
-   - for Builder → Architect handoff, require `review_target_commit` to equal the exact revalidated branch tip immediately before the atomic coordination-transition commit, making that target the candidate coordination commit's direct parent;
-   - preserve explicit no-handoff semantics for turns where this relation does not apply;
-   - adjust only directly affected checker/failure-test contract text.
-
-Do not reopen B018-03 through B018-07.
-Do not add new Context Plane V1 features.
-
-## Allowed design-remediation files
-
-- devos/changes/rfcs/ML-DEVOS-RFC-018.md
-- devos/changes/rfcs/README.md only if summary becomes inaccurate
-- coordination/IMPLEMENTER_HANDOFF.md for Cycle 2 evidence only
-- coordination/STATE.md
-- deterministic traceability outputs only if explicitly regenerated
-
-## Return gate
-
-After remediation:
-- TURN: ARCHITECT
-- STATUS: READY_FOR_ARCHITECT
-- CURRENT_REMEDIATION_CYCLE: 2
-- MAX_REMEDIATION_CYCLES: 2
-
-Return exact section mapping, exact changed files, and only evidence actually executed/observed.
-
-There is no Cycle 3. A material blocker remaining after Cycle 2 routes to Paulo.
-
-## Hard boundaries
+## Hard boundaries respected
 
 No Bootstrap V0 implementation.
 No CURRENT_HANDOFF creation or cutover.
@@ -94,3 +79,13 @@ No production-data write.
 No public D1 cutover.
 No protected/main merge.
 No PR #10 merge or auto-merge.
+
+## Return gate (this state)
+
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- CURRENT_REMEDIATION_CYCLE: 2
+- MAX_REMEDIATION_CYCLES: 2
+
+This was the final authorized remediation cycle. There is no Cycle 3.
+Every prohibition flag remains NO.

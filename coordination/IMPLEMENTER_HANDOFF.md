@@ -1,14 +1,14 @@
 # Implementer Handoff
 
-Status: `READY_FOR_ARCHITECT` — `RFC018_CONTEXT_BOOTSTRAP_V0_DESIGN_REMEDIATION_CYCLE_1_ONLY`; `B018-01`–`B018-07` resolved (cycle 1 of 2)
+Status: `READY_FOR_ARCHITECT` — `RFC018_CONTEXT_BOOTSTRAP_V0_DESIGN_REMEDIATION_CYCLE_2_ONLY`; two narrow micro-corrections resolved (final cycle, 2 of 2)
 
 Branch: `governance/maisoglabs-v0.1`
 
 ---
 
-**Current cycle:** see the "RFC-018 Bootstrap V0 Design Remediation Cycle 1 (B018-01–B018-07)" section at the very end of this document for the exact finding-to-section mapping, changed files, and evidence actually executed.
+**Current cycle:** see the "RFC-018 Bootstrap V0 Design Remediation Cycle 2 — FINAL (exact publication-attempt constant + machine-readable non-stale review-target binding)" section at the very end of this document for the exact section mapping and evidence actually executed.
 
-The S5 RFC-017 remediation sections and the original S5/Bootstrap proposal sections further below are prior-cycle evidence and are not the current task.
+The Cycle 1 remediation and original S5/Bootstrap proposal sections further below are prior-cycle evidence and are not the current task.
 
 ---
 
@@ -3935,3 +3935,35 @@ Added the corresponding one-paragraph index entry to `devos/changes/rfcs/README.
 **Self-discovered blocker:** none. The one blocker disclosed in the immediately prior S5 cycle (the `ML-DEVOS-AS-075` traceability ERROR) is confirmed resolved by this cycle's own fast-forward, not by any action this cycle took.
 
 **Next actor:** `ARCHITECT` — Remediation Cycle 1 re-review of `ML-DEVOS-RFC-018` against `B018-01`–`B018-07`.
+
+---
+
+## RFC-018 Bootstrap V0 Design Remediation Cycle 2 — FINAL (exact publication-attempt constant + machine-readable non-stale review-target binding)
+
+**Authority:** `D-061` (unchanged — Bootstrap V0 discovery/design and independent review only; no implementation authority). The Architect's Remediation Cycle 1 Re-Review (`ML-DEVOS-AS-078`, reviewed snapshot `960a01195624097178c3c84449aa7cb36a48bdcc`) confirmed `B018-03` through `B018-07` `CLOSED` and found exactly two narrow, precisely-scoped remaining issues on `B018-01` and `B018-02`. `CURRENT_REMEDIATION_CYCLE: 2` of `MAX_REMEDIATION_CYCLES: 2` — **this is the final authorized cycle; there is no Cycle 3.** Design remediation only, LEAN/DELTA-ONLY, correcting only the two named issues and not reopening `B018-03`–`B018-07`.
+
+**Input HEAD:** `c6147086b1939f4f0d338ea5d7c2402b234b1d73` — exact SHA per `git rev-parse HEAD`, confirmed via `git fetch origin governance/maisoglabs-v0.1 && git merge --ff-only origin/governance/maisoglabs-v0.1`, matching live `STATE.md`'s exact expected fields before any file was touched. (The Architect's review names `960a01195624097178c3c84449aa7cb36a48bdcc` — my own prior Cycle 1 commit — as the reviewed snapshot; `c6147086b1939f4f0d338ea5d7c2402b234b1d73` is the Architect's own subsequent routing commit that is this cycle's actual live input HEAD.)
+
+**Exact section mapping for the two corrections:**
+
+1. **B018-01 remaining issue (publication-attempt limit stated as an example, not an exact constant)** — corrected in `### B0-A — Fresh Snapshot and Safe Publication Contract` → "Exact-tip atomic publication transaction contract," item 5: replaced "a small integer (e.g. 3) the implementation must state explicitly" with the exact fixed constant `MAX_PUBLICATION_ATTEMPTS = 3`, plus explicit terminal-exhaustion semantics (exhaustion ends that governed publication attempt/session; a resumed/reconnected session must not silently reset the counter; a fresh attempt requires an explicitly authorized new bootstrap). Also added one new failure-test case under "Cycle 2 correction failure-test additions" exercising exactly this exhaustion-does-not-reset-on-resume behavior, and tightened the checker's bullet list to name the exact `MAX_PUBLICATION_ATTEMPTS = 3` bound.
+2. **B018-02 remaining issues (no machine-readable `applicable_review_id` field; `review_target_commit` still permitted to be merely "reachable" rather than the exact tip)** — corrected in three places: (a) the CURRENT_HANDOFF minimum machine-readable header (`### STATE and CURRENT_HANDOFF relationship`) gained an explicit `applicable_review_id` field, with a paragraph stating it is a required machine-readable field a checker compares mechanically, never a prose inference; (b) "Complete turn-packet identity binding," items 1–5 and 7 updated to reference `applicable_review_id` as an explicit STATE field mirrored field-for-field against CURRENT_HANDOFF's own header (STATE now explicitly carries matching `handoff_id`/`applicable_review_id` fields, not an inferred value); item 6 rewritten to require, for a Builder→Architect handoff specifically, that `review_target_commit` equal exactly the coordination-transition commit's own parent (the same tip the exact-tip atomic publication contract already requires the candidate to be parented to) — making a stale-but-reachable target structurally impossible rather than merely discouraged; (c) the checker's identity-binding bullet updated to state the comparison is mechanical/field-for-field, and a new bullet added requiring the checker to verify `review_target_commit` equals the transition commit's exact parent for a Builder→Architect handoff. Also added two new failure-test cases under "Cycle 2 correction failure-test additions": a machine-readable `applicable_review_id` mismatch case, and a reachable-but-not-exact-tip `review_target_commit` case.
+
+**Not reopened:** `B018-03` (rolling-record preservation), `B018-04` (carry-forward inventory), `B018-05` (provenance vs. authorization), `B018-06` (reader/writer cutover), `B018-07` (forward rollback) — none of their sections were touched in this cycle; `git diff --stat` confirms a 28-insertion/11-deletion delta confined to the sections named above.
+
+**Not touched (explicitly out of this cycle's scope, unchanged from Cycle 1):** `AGENTS.md`, `CLAUDE.md`, canonical skills, generated bridges, coordination protocols, `brain/00_HOME.md`, `PROJECT_GOVERNANCE.md`, any S5 runtime file, any S6+ file, any product/runtime/website file, `brain/DECISION_LOG.md`, any ADR, `ML-DEVOS-ARCH-001.md`, `VERSIONING_POLICY.md`. No Bootstrap V0 implementation, `CURRENT_HANDOFF` file, or checker script was created. No new Context Plane V1 feature was added.
+
+**Commands actually run, with exit codes (all `ACTOR_REPORTED`):**
+- `git fetch origin governance/maisoglabs-v0.1 && git merge --ff-only origin/governance/maisoglabs-v0.1` → fast-forwarded `960a011..c6147086b1939f4f0d338ea5d7c2402b234b1d73`, confirmed via the live `STATE.md`/`ARCHITECT_REVIEW.md` read (both matched the expected Cycle 2 brief exactly). Exit `0`.
+- `git diff --stat devos/changes/rfcs/ML-DEVOS-RFC-018.md` → `1 file changed, 28 insertions(+), 11 deletions(-)`, confirming a small, precisely-scoped delta. Exit `0`.
+- `grep -n "ML-DEVOS-AS-078\|TEST-[A-Z]" devos/changes/rfcs/ML-DEVOS-RFC-018.md` → no match, confirming no unsafe full-identifier citation of the still-rolling `ML-DEVOS-AS-078` review and no `TEST-[A-Z]+-\d{3}`-pattern collision. Exit `0`.
+- `node devos/governance/traceability/validate-traceability.mjs` (run once before any regeneration, against the live edited file) → `Scanned 276 files across 12 ID families. Errors: 2  Warnings: 14.` Fingerprint exactly `CORE-022` + `WEB-REQ-009` — identical to the committed input-HEAD baseline, confirming this cycle's two-correction delta introduces zero new missing-canonical-target findings. Exit `1` (expected — known ERROR baseline present, not a script failure).
+- `node devos/governance/traceability/generate-traceability.mjs` → `Wrote devos/governance/traceability/traceability-index.json and devos/governance/traceability/TRACEABILITY_INDEX.md` / `Scanned 276 files. Errors: 2. Warnings: 14.` Exit `0`.
+- `node devos/governance/traceability/validate-traceability.mjs` (re-run after regeneration) → same fingerprint; `No drift: on-disk generated index matches a fresh generation run.` Exit `1` (same expected reason).
+- `git status --porcelain` after regeneration → only `devos/changes/rfcs/ML-DEVOS-RFC-018.md` shows as changed; the traceability output files show **no diff** (regeneration produced byte-identical output to what was already committed, since this cycle's prose edits reference no new/removed governance IDs) — so, per the brief's own "only if explicitly regenerated and changed" instruction, no traceability output file is included in this cycle's commit. Exit `0`.
+
+**Traceability fingerprint (regeneration was run; reported per the brief since it was explicitly executed, even though it produced no diff):** unchanged at `276` files, `2` errors (`CORE-022` + `WEB-REQ-009`), `14` warnings, before and after this cycle's edits.
+
+**Blockers:** none. Both Cycle 2 corrections are fully resolved in the RFC text.
+
+**Next actor:** `ARCHITECT` — final Remediation Cycle 2 re-review of `ML-DEVOS-RFC-018`. There is no Cycle 3; if a material blocker remains, it routes to Paulo rather than a further autonomous cycle.
