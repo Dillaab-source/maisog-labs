@@ -3967,3 +3967,44 @@ Added the corresponding one-paragraph index entry to `devos/changes/rfcs/README.
 **Blockers:** none. Both Cycle 2 corrections are fully resolved in the RFC text.
 
 **Next actor:** `ARCHITECT` — final Remediation Cycle 2 re-review of `ML-DEVOS-RFC-018`. There is no Cycle 3; if a material blocker remains, it routes to Paulo rather than a further autonomous cycle.
+
+---
+
+## Bootstrap V0 Stage A — PRE-CUTOVER Implementation (D-062)
+
+**Authority:** `D-062` Stage A only; scope `RFC018_BOOTSTRAP_V0_PRECUTOVER_IMPLEMENTATION_ONLY`. Design: `ML-DEVOS-RFC-018`, approved in `ML-DEVOS-AS-078`. Nothing is activated: no `CURRENT_HANDOFF.md`, no `PROTOCOL_VERSION` marker, legacy handoff not frozen, no reader/writer/skill/bridge/entrypoint change. This legacy file remains the active handoff surface.
+
+**Input base (exact authoritative snapshot):** `93a66b7fd5c0815f7e950768de9292c46779b420` (`origin/governance/maisoglabs-v0.1` after fetch; STATE, ARCHITECT_REVIEW, RFC-018 read at that commit). Review target for this handoff is that same commit (the parent of this Stage-A commit).
+
+**Changed files:**
+- `brain/protocols/CONTEXT_BOOTSTRAP.md` (new) — inactive kernel/protocol summary, disclosed bypasses, baseline `CBV0-BASELINE-PRE-1`.
+- `scripts/check-context-bootstrap.mjs` (new) — mechanical checker: read-only `--status`/`--baseline` CLI plus exported identity, snapshot, protocol-version, obligation, worktree, legacy-append, transition-completeness, archive, exact-tip publication (`MAX_PUBLICATION_ATTEMPTS = 3`, ledger in `.git`), read-back reconciliation, and rollback checks.
+- `tests/context-bootstrap.test.mjs` (new) — 44 focused RFC-018 failure/positive tests; git cases use hermetic throwaway bare repos.
+- `coordination/OPERATIVE_OBLIGATIONS.md` (new) — **candidate** carry-forward inventory, 21 rows (16 `OPEN`, 4 `DEFERRED`, 1 `CLOSED`), for independent review.
+- `coordination/archive/handoffs/README.md` (new) — inert archive layout/index; no entries.
+- `devos/governance/traceability/{TRACEABILITY_INDEX.md,traceability-index.json}` — regenerated (see below).
+- `coordination/IMPLEMENTER_HANDOFF.md` (this record), `coordination/STATE.md` (return gate).
+
+**Baseline `CBV0-BASELINE-PRE-1`** (`node scripts/check-context-bootstrap.mjs --baseline --commit 93a66b7…`; bytes measured, tokens ESTIMATED as bytes/4, not provider-reported): `CLAUDE.md` mandatory set 11 files / 579,438 B (~144,860 est. tok); `brain/00_HOME.md` read order 16 files / 348,694 B; union 20 files / 876,890 B (~219,223 est. tok); legacy handoff 515,669 B, 3,969 lines, 63 history sections (~128,918 est. tok) = 0.89 of the `CLAUDE.md` mandatory bytes; 7 files repeated across both startup sets; 10 operative readers/writers reference the legacy handoff. Full table in `brain/protocols/CONTEXT_BOOTSTRAP.md` §9.
+
+**Commands (all `ACTOR_REPORTED`):**
+- `node --test tests/context-bootstrap.test.mjs` → 44 tests, 44 pass, 0 fail. Exit `0`.
+- Mutation check (scratch copy, restored byte-identical after): removing the exact-tip target check, the exhaustion guard, the carry-forward drop check, or adding `--force` to the push each made ≥1 test fail.
+- `npm ci` (lockfile; `node_modules` absent in this container, which made 10 worker/D1 test files fail with `ERR_MODULE_NOT_FOUND: jose` before install) → exit `0`. Then `npm test` → 544 tests, 544 pass, 0 fail. Exit `0`.
+- `node scripts/check-context-bootstrap.mjs --commit 93a66b7…` → `REPOSITORY_OK`, `SNAPSHOT_FRESH`, `LEGACY_PROTOCOL_ACTIVE` (active=false). Exit `0`.
+- Traceability: at input base, validator reported 277 files / 2 errors (`CORE-022`, `WEB-REQ-009`) / 14 warnings / 283 definitions **with pre-existing DRIFT** (regenerating the untouched base alone changes the index by 55+/31−). After Stage A: `generate-traceability.mjs` exit `0`; `validate-traceability.mjs` → 282 files / 2 errors (same fingerprint) / 14 warnings / 283 definitions, `No drift`, exit `1` (established convention when any ERROR exists). The committed regeneration therefore also absorbs that pre-existing drift.
+
+**RFC-018 failure-test coverage:** mechanically executed (hermetic): wrong repository; wrong branch; stale STATE; mixed snapshot; identity mismatch; matching ID with wrong cycle/target; stale review (`applicable_review_id`); reachable-but-not-exact-tip target; reused ID with different bytes; omitted obligation; missing required reference; unsupported protocol/schema; resumed stale session (protocol mismatch); concurrent advancement; movement after final validation; simultaneous publishers; timeout after successful publication; ambiguous/unknown outcome; partial coordination publication; failed archive write; conflicting archive destination; old-session legacy append; checker bypass; unrelated staged/untracked work; local work after validation; advisory turn with no mutation; Architect turn with prohibited actions; unavailable freshness source; bounded-retry exhaustion; exhaustion not reset on resume; rollback after three fixture V0 turns. **Mechanical part only (behavior not proven):** forged committed authorization; hostile instruction-shaped evidence. **Not executable pre-cutover:** rollback after real V0 turns, live writer enforcement, and participant publication demonstrations (tracked as `OBL-010`–`OBL-012`).
+
+**Known limitations:**
+- The checker is not wired into any active reader/writer; enforcement starts only at Stage B.
+- Plain fast-forward push has no expected-old-value lease; a remote rewind to an ancestor between tip check and push is not detected (needs a forbidden force-push; disclosed in the protocol §8). The receipt is a procedural guard, and the attempt ledger is per-clone.
+- Review-archive exactness: `ML-DEVOS-AS-078` was published three times with different bytes under one ID; RFC-018's immutable-ID rule and this checker would reject that pattern. Stage B needs an identity rule for successive rolling reviews (`OBL-008`). Not resolved here, since it would be an architecture choice.
+- The obligation inventory is Builder-compiled from live registers/decisions; the legacy handoff history was not swept (LEAN mode). Its completeness is for the Architect to judge.
+- Baseline omits per-session behaviors (orientation time, actual history reads), which are not repository facts.
+
+**Candidate operative-obligation inventory:** `coordination/OPERATIVE_OBLIGATIONS.md` (`OBL-001`–`OBL-021`).
+
+**Blockers:** none.
+
+**Next actor:** `ARCHITECT` — independent Stage A pre-cutover review of the checker contract, failure tests, baseline, and candidate inventory; Stage B only if routed under `D-062`.
