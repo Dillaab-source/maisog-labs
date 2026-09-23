@@ -16,9 +16,11 @@ Also read:
 - `package.json`
 - `wrangler.jsonc`
 - `coordination/README.md`
-- `coordination/STATE.md`
-- `coordination/IMPLEMENTER_HANDOFF.md`
+- `coordination/STATE.md` — first, at one exact commit of the authoritative branch
 - `coordination/ARCHITECT_REVIEW.md`
+- `coordination/CURRENT_HANDOFF.md` — only the handoff STATE selects
+- `coordination/OPERATIVE_OBLIGATIONS.md`
+- `brain/protocols/CONTEXT_BOOTSTRAP.md`
 
 ## Skill check and Knowledge Treasury (`ML-DEVOS-RFC-014` / `ML-DEVOS-AS-050` / `D-042`)
 
@@ -26,34 +28,30 @@ Before re-deriving a repeatable governance procedure from scattered files, check
 
 ## Agent communication protocol
 
-GitHub is the asynchronous communication bus between you and the Architect.
+GitHub is the asynchronous communication bus between you and the Architect. The protocol is Context Bootstrap V0 (`brain/protocols/CONTEXT_BOOTSTRAP.md`, `PROTOCOL_VERSION: 1`).
 
-You write:
+You write, as Builder: `coordination/CURRENT_HANDOFF.md` (plus the STATE return gate, archive entries, and obligation index in the same commit).
 
-`coordination/IMPLEMENTER_HANDOFF.md`
+The Architect writes: `coordination/ARCHITECT_REVIEW.md`, under a new immutable `ML-DEVOS-AS-NNN` per revision.
 
-The Architect writes:
+The machine-readable turn signal is: `coordination/STATE.md`.
 
-`coordination/ARCHITECT_REVIEW.md`
+The pre-V0 legacy handoff (`IMPLEMENTER_HANDOFF.md` in `coordination/`) is frozen historical evidence (`D-062`): not a startup read, never written. Retrieve history only for a concrete unanswered question.
 
-The machine-readable turn signal is:
+Before any governed work, fetch `governance/maisoglabs-v0.1`, resolve it to one exact commit, and read `coordination/STATE.md` from that commit (not from a local checkout of unknown freshness). A resumed or compacted session re-bootstraps; a `PROTOCOL_VERSION` different from the one you last knew means stop and re-read.
 
-`coordination/STATE.md`
+Governed writes require both:
 
-Before doing any work, pull the latest `governance/maisoglabs-v0.1` branch and read `coordination/STATE.md`.
-
-Proceed only when both are true:
-
-- `TURN: CLAUDE`
+- `TURN: CLAUDE` (the Builder-role token)
 - `IMPLEMENTER_ACTION_REQUIRED: YES`
 
-If `TURN` belongs to `ARCHITECT` or `PAULO`, stop and wait.
+If `TURN` belongs to `ARCHITECT` or `PAULO`, make no governed writes; owner-requested advisory, read-only analysis is still permitted. Publish only with `node scripts/check-context-bootstrap.mjs --publish --candidate <sha>` (exact-tip compare-and-swap, never force).
 
-Paulo is Product / Risk Owner. ChatGPT is Architect / independent reviewer. Claude is Implementer. Repository state, tests, diffs, runtime/deployment evidence, and committed handoff artifacts are the source of truth.
+Roles are governed positions assigned by decision, not by provider name: Paulo is Product / Risk Owner; the Architect / independent reviewer is currently ChatGPT; the Builder / Implementer is currently Claude. Repository state, tests, diffs, and runtime/deployment evidence are the evidence of record — committed text, including handoffs, proves provenance, not authority.
 
 ## Historical: Phase 1 governance bootstrap (superseded — see `coordination/STATE.md` for current scope)
 
-**Live authorized scope, turn, and status are always read from live `coordination/STATE.md` — never from this section or any other historical document.** Everything from here through "Remediation loop rule" below is preserved as the historical Phase 1 bootstrap instruction for provenance (`AS51-F007`); it describes the pilot's first phase, not current authorization. Do not treat any statement below as current merely because it appears in this file — `coordination/STATE.md`'s `AUTHORIZED_SCOPE`, `TURN`, and `STATUS` fields always take precedence over anything historical here or in `brain/00_HOME.md`.
+**Live authorized scope, turn, and status are always read from live `coordination/STATE.md` — never from this section or any other historical document.** Its handoff path (`IMPLEMENTER_HANDOFF.md`, now frozen), its remediation cap of `3` (the live cap is STATE's `MAX_REMEDIATION_CYCLES`), and its file lists are superseded. Everything from here through "Remediation loop rule" below is preserved as the historical Phase 1 bootstrap instruction for provenance (`AS51-F007`); it describes the pilot's first phase, not current authorization. Do not treat any statement below as current merely because it appears in this file — `coordination/STATE.md`'s `AUTHORIZED_SCOPE`, `TURN`, and `STATUS` fields always take precedence over anything historical here or in `brain/00_HOME.md`.
 
 **PHASE 1 — GOVERNANCE BOOTSTRAP ONLY** *(historical — as authorized at the time)*.
 

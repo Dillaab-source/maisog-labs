@@ -28,6 +28,7 @@ import {
   checkHandoffIdUnique,
   checkIdentityBinding,
   checkLegacyAppend,
+  checkLegacyFrozen,
   checkObligationCarryForward,
   checkObligationInventory,
   checkPacketReferences,
@@ -44,6 +45,7 @@ import {
   makeGit,
   makeReceipt,
   measureBaseline,
+  normalizeRepository,
   parseStateFields,
   publishCandidate,
   publishWithRetries,
@@ -856,6 +858,124 @@ test('rollback after several V0 turns is forward recovery that preserves authori
   });
   assert.equal(checkRollbackTransition({ ...silentLegacy, candidateParent: fresh, freshTip: fresh }).code, 'ROLLBACK_SILENT_LEGACY_RESUME');
   assert.ok(checkRollbackTransition({ ...silentLegacy, candidateParent: fresh, freshTip: fresh, legacyAppendExplicitlyAuthorized: true }).ok);
+});
+
+// -------------------------------------------- Stage B activation (D-062)
+
+test('deselecting a live handoff (ACTIVE -> NONE) must archive it in the same transition', () => {
+  const live = handoffText(header('H-1'));
+  const before = { [PATHS.state]: stateText(v0State('H-1')), [PATHS.currentHandoff]: live };
+  const none = stateText({ ...BASE_STATE, PROTOCOL_VERSION: '1', CURRENT_HANDOFF: 'NONE' });
+  const read = (after) => (w, p) => (w === 'before' ? before : after)[p] ?? null;
+  const unarchived = { ...before, [PATHS.state]: none };
+  assert.equal(checkTransitionCompleteness({ read: read(unarchived), changedFiles: [PATHS.state] }).code, 'OUTGOING_HANDOFF_NOT_PRESERVED');
+  const archived = { ...unarchived, [handoffArchivePath('H-1')]: live };
+  assert.ok(checkTransitionCompleteness({ read: read(archived), changedFiles: [PATHS.state, handoffArchivePath('H-1')] }).ok);
+});
+
+test('frozen legacy handoff: any blob change is detected', () => {
+  assert.ok(checkLegacyFrozen('43eddba31695a567412c431ae3d1e4c9372cabdd').ok);
+  assert.equal(checkLegacyFrozen(gitBlobId('edited')).code, 'LEGACY_HANDOFF_MODIFIED');
+  assert.equal(checkLegacyFrozen(null).code, 'LEGACY_HANDOFF_MODIFIED');
+});
+
+// Pre-cutover repository shaped like the real one at the Stage B base.
+function preCutoverRepo(t) {
+  const review = `Architect Sync: ${AS_X}\nStatus: APPROVED\n`;
+  const env = setupRemote(t, {
+    [PATHS.state]: stateText({ ...BASE_STATE, TURN: 'CLAUDE', ARCHITECT_ACTION_REQUIRED: 'NO', IMPLEMENTER_ACTION_REQUIRED: 'YES' }),
+    [PATHS.legacyHandoff]: '# legacy history\n',
+    [PATHS.review]: review,
+    [`devos/changes/architect-syncs/${AS_X}.md`]: review,
+    [PATHS.obligations]: INVENTORY,
+  });
+  const c = env.clone('builder');
+  const legacyBlob = ok(c.git(['rev-parse', `HEAD:${PATHS.legacyHandoff}`]));
+  const repo = normalizeRepository(env.remote);
+  return { ...env, c, legacyBlob, repo };
+}
+
+function activationFiles(parent, { id = 'H-ACT-1', target = parent, extra = {} } = {}) {
+  return {
+    [PATHS.state]: stateText(v0State(id, { reviewTarget: target, review: AS_X })),
+    [PATHS.currentHandoff]: handoffText(header(id, { base: parent, target, review: AS_X })),
+    ...extra,
+  };
+}
+
+function runCli(c, args) {
+  const out = captureStdout();
+  const code = main(args, { cwd: c.dir, stdout: out });
+  return { code, report: JSON.parse(out.text()) };
+}
+
+test('Stage B: atomic activation publishes through the CLI with every transition check and the leased push', (t) => {
+  const { c, legacyBlob, repo } = preCutoverRepo(t);
+  const parent = resolveRemoteTip(c.git, 'origin', BRANCH);
+  const cand = buildCandidate(c, parent, activationFiles(parent), 'activate');
+  ok(c.git(['checkout', '-q', '--detach', cand]));
+  const dry = runCli(c, ['--publish', '--check-only', '--candidate', cand, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob]);
+  assert.equal(dry.code, 0, JSON.stringify(dry.report.checks.filter((x) => !x.ok)));
+  assert.equal(dry.report.publication, 'CHECK_ONLY');
+  assert.equal(resolveRemoteTip(c.git, 'origin', BRANCH), parent);
+  const pub = runCli(c, ['--publish', '--candidate', cand, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob]);
+  assert.equal(pub.code, 0, JSON.stringify(pub.report.checks.filter((x) => !x.ok)));
+  assert.equal(pub.report.publication.code, 'PUBLISHED');
+  assert.equal(resolveRemoteTip(c.git, 'origin', BRANCH), cand);
+
+  const status = runCli(c, ['--commit', cand, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob, '--session-protocol', '1']);
+  assert.equal(status.code, 0, JSON.stringify(status.report.checks.filter((x) => !x.ok)));
+  const codes = status.report.checks.map((x) => x.code);
+  for (const want of ['PROTOCOL_VERSION_SUPPORTED', 'IDENTITY_BOUND', 'REVIEW_TARGET_IS_PUBLICATION_PARENT', 'LEGACY_HANDOFF_FROZEN', 'LIVE_REVIEW_ID_IMMUTABLE']) {
+    assert.ok(codes.includes(want), want);
+  }
+  // A pre-V0 session that bootstrapped on the legacy protocol is stopped.
+  const stale = runCli(c, ['--commit', cand, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob, '--session-protocol', '0']);
+  assert.equal(stale.code, 1);
+  assert.ok(stale.report.checks.some((x) => x.code === 'STALE_SESSION_PROTOCOL'));
+});
+
+test('Stage B: activation that also appends to the legacy handoff is refused and nothing is pushed', (t) => {
+  const { c, legacyBlob, repo } = preCutoverRepo(t);
+  const parent = resolveRemoteTip(c.git, 'origin', BRANCH);
+  const cand = buildCandidate(c, parent, activationFiles(parent, { extra: { [PATHS.legacyHandoff]: '# legacy history\nappended\n' } }));
+  ok(c.git(['checkout', '-q', '--detach', cand]));
+  const pub = runCli(c, ['--publish', '--candidate', cand, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob]);
+  assert.equal(pub.code, 1);
+  assert.equal(pub.report.publication, 'NOT_ATTEMPTED');
+  const failed = pub.report.checks.filter((x) => !x.ok).map((x) => x.code);
+  assert.ok(failed.includes('LEGACY_APPEND_AFTER_CUTOVER'));
+  assert.ok(failed.includes('LEGACY_HANDOFF_MODIFIED'));
+  assert.equal(resolveRemoteTip(c.git, 'origin', BRANCH), parent);
+});
+
+test('Stage B: review target other than the exact parent, or a stale parent, is refused before any push', (t) => {
+  const { c, legacyBlob, repo, clone } = preCutoverRepo(t);
+  const parent = resolveRemoteTip(c.git, 'origin', BRANCH);
+  const badTarget = buildCandidate(c, parent, activationFiles(parent, { target: A }));
+  ok(c.git(['checkout', '-q', '--detach', badTarget]));
+  let pub = runCli(c, ['--publish', '--candidate', badTarget, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob]);
+  assert.equal(pub.code, 1);
+  assert.ok(pub.report.checks.some((x) => x.code === 'IDENTITY_MISMATCH' || x.code === 'REVIEW_TARGET_NOT_EXACT_TIP'));
+
+  const good = buildCandidate(c, parent, activationFiles(parent));
+  const other = clone('other');
+  ok(other.git(['push', '-q', 'origin', `${buildCandidate(other, parent, { 'z.txt': '1' })}:refs/heads/${BRANCH}`]));
+  ok(c.git(['checkout', '-q', '--detach', good]));
+  pub = runCli(c, ['--publish', '--candidate', good, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob]);
+  assert.equal(pub.code, 1);
+  assert.ok(pub.report.checks.some((x) => x.code === 'BRANCH_ADVANCED'));
+  assert.equal(pub.report.publication, 'NOT_ATTEMPTED');
+});
+
+test('Stage B: publishing without the protocol marker is not a governed V0 publication', (t) => {
+  const { c, legacyBlob, repo } = preCutoverRepo(t);
+  const parent = resolveRemoteTip(c.git, 'origin', BRANCH);
+  const cand = buildCandidate(c, parent, { 'notes.txt': 'x' });
+  ok(c.git(['checkout', '-q', '--detach', cand]));
+  const pub = runCli(c, ['--publish', '--candidate', cand, '--expected-repo', repo, '--frozen-legacy-blob', legacyBlob]);
+  assert.equal(pub.code, 1);
+  assert.ok(pub.report.checks.some((x) => x.code === 'PROTOCOL_NOT_ACTIVE'));
 });
 
 // ---------------------------------------------------- baseline and CLI

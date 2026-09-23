@@ -1,6 +1,6 @@
 # CURRENT_HANDOFF Archive
 
-Status: `INERT — PRE-CUTOVER SCAFFOLDING` (D-062 Stage A). No entries exist; nothing writes here until Stage B activation is routed by the Architect.
+Status: `ACTIVE` since the `D-062` Stage B activation. No entries yet: the first CURRENT_HANDOFF (`H-CBV0-0001`) is live, and it is archived here when a later transition replaces or deselects it.
 
 Authority: `ML-DEVOS-RFC-018` § Rolling-record preservation (`B018-03`), `D-062`.
 

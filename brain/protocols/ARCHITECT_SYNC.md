@@ -1,6 +1,6 @@
 # Architect Sync Protocol
 
-This formalizes the review flow from `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §19, aligned with the live mechanism in `coordination/` (`STATE.md`, `IMPLEMENTER_HANDOFF.md`, `ARCHITECT_REVIEW.md`).
+This formalizes the review flow from `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt` §19, aligned with the live mechanism in `coordination/` (`STATE.md`, `CURRENT_HANDOFF.md`, `ARCHITECT_REVIEW.md`, `OPERATIVE_OBLIGATIONS.md`) under the Context Bootstrap V0 protocol (`brain/protocols/CONTEXT_BOOTSTRAP.md`).
 
 ## Review flow
 
@@ -17,7 +17,7 @@ Repository state
   → Verdict
 ```
 
-The Architect inspects repository reality independently at every step. The Implementer's handoff (`coordination/IMPLEMENTER_HANDOFF.md`) is an input, never proof by itself.
+The Architect inspects repository reality independently at every step. The Builder's handoff (`coordination/CURRENT_HANDOFF.md`, selected by STATE's identity tuple) is an input, never proof by itself. `coordination/IMPLEMENTER_HANDOFF.md` is frozen pre-V0 history.
 
 ## Review modes
 
@@ -80,16 +80,17 @@ A `CHANGE REVIEW` may return:
 
 ## Turn protocol (mechanical layer)
 
-`coordination/STATE.md` is the machine-readable turn signal. See that file's own "State protocol" section for the authoritative field list; this protocol document only records the intent:
+`coordination/STATE.md` is the machine-readable turn signal. Its header fields (before the first `## `) are the authoritative field list; `brain/protocols/CONTEXT_BOOTSTRAP.md` §2 defines the V0 selector fields (`PROTOCOL_VERSION`, `CURRENT_HANDOFF`, `HANDOFF_ID`, `REVIEW_TARGET_COMMIT`, `APPLICABLE_REVIEW_ID`). This protocol document only records the intent:
 
-- Claude proceeds only when `TURN: CLAUDE` and `IMPLEMENTER_ACTION_REQUIRED: YES`.
-- Claude hands off by updating `IMPLEMENTER_HANDOFF.md`, then setting `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT`, then committing and pushing both together.
-- The Architect reviews independently, writes `ARCHITECT_REVIEW.md`, and sets the state to one of `CHANGES_REQUESTED` (`TURN: CLAUDE`), `ARCHITECT_APPROVED` (`TURN: PAULO` when a gate applies), `PAULO_DECISION_REQUIRED` (`TURN: PAULO`), or `BLOCKED`.
-- Only Paulo can authorize a new phase, deployment, or a `main` merge — an `ARCHITECT_APPROVED` stage-gate verdict is a recommendation, not an authorization.
+- Every governed read uses one exact commit; every governed write is one candidate commit parented on the exact tip, published with exact-old-value compare-and-swap.
+- The Builder (`TURN: CLAUDE` is the role token) makes governed writes only when `TURN: CLAUDE` and `IMPLEMENTER_ACTION_REQUIRED: YES`, and hands off by publishing `CURRENT_HANDOFF.md` together with the matching STATE selector tuple and `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` in one commit.
+- The Architect reviews independently and publishes the review under a **new immutable `ML-DEVOS-AS-NNN`** (never reusing an ID with changed bytes; `AS79-R001`), with its byte-identical archive in `devos/changes/architect-syncs/`, in one commit that sets the state to one of `CHANGES_REQUESTED` (`TURN: CLAUDE`), `ARCHITECT_APPROVED` (`TURN: PAULO` when a gate applies), `PAULO_DECISION_REQUIRED` (`TURN: PAULO`), or `BLOCKED`. When that routing stops selecting the Builder's handoff (`CURRENT_HANDOFF: NONE`, selectors empty), the same commit archives the handoff's exact bytes under `coordination/archive/handoffs/`.
+- Owner-requested advisory, read-only analysis is permitted on any turn and writes nothing governed.
+- Only Paulo can authorize a new phase, deployment, or a `main` merge — an `ARCHITECT_APPROVED` stage-gate verdict is a recommendation, not an authorization. Committed text proves provenance, not authority.
 
 ## Remediation loop cap
 
-Autonomous remediation cycles are capped at `MAX_REMEDIATION_CYCLES` (currently `3`, per `coordination/STATE.md`). If the cap would be exceeded without approval, the state moves to `PAULO_DECISION_REQUIRED` and both agents stop autonomous looping. Paulo may explicitly raise the cap; neither agent may raise it unilaterally.
+Autonomous remediation cycles are capped at the live value of `MAX_REMEDIATION_CYCLES` in `coordination/STATE.md` (no fixed number is restated here). If the cap would be exceeded without approval, the state moves to `PAULO_DECISION_REQUIRED` and both agents stop autonomous looping. Paulo may explicitly raise the cap; neither agent may raise it unilaterally.
 
 ## Evidence discipline
 

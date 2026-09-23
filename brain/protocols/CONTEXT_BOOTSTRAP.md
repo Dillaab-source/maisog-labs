@@ -1,8 +1,8 @@
 # Context Bootstrap V0 — Repository Turn Protocol
 
-Status: `INACTIVE — PRE-CUTOVER (D-062 Stage A)`. The legacy coordination protocol (`coordination/README.md`, `CLAUDE.md`, `brain/protocols/ARCHITECT_SYNC.md`) remains the active protocol. This document becomes operative only through the Stage B atomic activation, which adds `PROTOCOL_VERSION: 1` to `coordination/STATE.md`. Until that marker exists, nothing here changes who reads or writes what.
+Status: `ACTIVE — PROTOCOL_VERSION 1`. Activated by the `D-062` Stage B atomic activation commit, whose parent is `487af93afa926f85755f0aa7ad9606ad31a92ed4` (routed by `ML-DEVOS-AS-080`). It is pending the Architect's final implementation review. `coordination/README.md`, `CLAUDE.md`, `AGENTS.md`, `brain/00_HOME.md`, `brain/protocols/ARCHITECT_SYNC.md`, and the three coordination Skills implement this protocol.
 
-Authority: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062`. RFC-018 is the governing text; where this summary and the RFC differ, the RFC wins.
+Authority: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062` (Stage A accepted in `ML-DEVOS-AS-079`/`ML-DEVOS-AS-080`). RFC-018 is the governing text; where this summary and the RFC differ, the RFC wins.
 
 ## 1. Kernel invariants
 
@@ -65,9 +65,15 @@ Every outgoing CURRENT_HANDOFF or ARCHITECT_REVIEW is preserved byte-for-byte in
 
 `coordination/OPERATIVE_OBLIGATIONS.md` is the carry-forward index. Every transition keeps each `OPEN`/`DEFERRED` row, or changes it to `CLOSED`/`SUPERSEDED` with a cited reference. A row that stays unresolved keeps its obligation text and authoritative source byte-identical, ignoring only table-cell padding (`AS79-F002`). To change what an obligation means, close or supersede it with a citation and add a new row. Handoff summaries are navigation only.
 
-## 6. Protocol version and stale sessions
+## 6. Protocol version, stale sessions, and the frozen legacy handoff
 
-After activation, every governed writer checks `PROTOCOL_VERSION` against the version it bootstrapped on. An unsupported marker, or a mismatch, stops the session until it bootstraps fresh. After cutover, any write to `coordination/IMPLEMENTER_HANDOFF.md` is rejected (`LEGACY_APPEND_AFTER_CUTOVER`).
+Every governed writer checks `PROTOCOL_VERSION` against the version it bootstrapped on. An unsupported marker, or a mismatch, stops the session until it bootstraps fresh.
+
+`coordination/IMPLEMENTER_HANDOFF.md` is frozen byte-for-byte at Git blob `43eddba31695a567412c431ae3d1e4c9372cabdd` (526,469 bytes). It is historical evidence, not a startup read, and never written. Any write to it is rejected (`LEGACY_APPEND_AFTER_CUTOVER`), and any blob change is detected (`LEGACY_HANDOFF_MODIFIED`).
+
+## 6a. Architect routing transitions
+
+The Architect publishes each review under a new `ML-DEVOS-AS-NNN` with its byte-identical archive, in one commit parented on the exact tip. When that routing stops selecting the Builder's handoff, STATE sets `CURRENT_HANDOFF: NONE` and empties `HANDOFF_ID`, `REVIEW_TARGET_COMMIT`, and `APPLICABLE_REVIEW_ID`. The same commit archives the deselected handoff's exact bytes under `coordination/archive/handoffs/` (checked as `OUTGOING_HANDOFF_NOT_PRESERVED` otherwise). The deselected file may stay in place. With `NONE` it is not applicable, and the Builder's next handoff replaces it.
 
 ## 7. Rollback
 
@@ -75,7 +81,23 @@ Rollback is a new forward-recovery commit parented on the fresh tip, never a rev
 
 ## 8. Checker
 
-`node scripts/check-context-bootstrap.mjs [--commit <sha>]` runs read-only status checks (repository, freshness, protocol version and, once active, identity and inventory). `--baseline` prints the measured startup-read baseline. Exit `0` pass, `1` fail closed, `2` usage. Transition, archive, publication, and rollback checks are exported functions exercised by `tests/context-bootstrap.test.mjs`.
+- `node scripts/check-context-bootstrap.mjs [--commit <sha>] [--session-protocol <n>]` runs read-only snapshot checks:
+  - repository and freshness;
+  - protocol version, plus a stale-session mismatch;
+  - identity binding against the live review;
+  - that `review_target_commit` is the parent of the commit that published the handoff;
+  - required handoff sections;
+  - inventory shape;
+  - the frozen legacy blob;
+  - that the live review's Sync ID is immutable.
+- `node scripts/check-context-bootstrap.mjs --publish --candidate <sha>` is the governed publication path for Git-native writers:
+  - it requires a clean worktree and a single-parent candidate whose parent is the current tip;
+  - it runs every transition check (identity binding, completeness and archives, legacy append/freeze, obligation carry-forward);
+  - only then does it push with the exact-old-value lease, recording attempts against `MAX_PUBLICATION_ATTEMPTS`.
+- `--baseline` prints the measured startup-read baseline.
+- Exit codes: `0` pass, `1` fail closed, `2` usage.
+
+`tests/context-bootstrap.test.mjs` exercises these checks, including an end-to-end activation published through `--publish`.
 
 The checker does not prove: legitimacy of recorded authority; that a committed authorization claim was actually granted; actor/model identity; semantic completeness of a review; external side-effect atomicity; S5 capability; that nobody bypassed it.
 

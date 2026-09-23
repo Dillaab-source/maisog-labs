@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // SENTINEL Context Bootstrap V0 mechanical checker.
 //
-// Authority: ML-DEVOS-RFC-018 (design, ML-DEVOS-AS-078) -> D-062 Stage A.
-// Status: PRE-CUTOVER / INACTIVE. The legacy coordination protocol stays
-// active until a separately routed Stage B activation adds PROTOCOL_VERSION
-// to coordination/STATE.md. Until then this checker reports the protocol as
-// inactive and never claims the reader/writer migration is live.
+// Authority: ML-DEVOS-RFC-018 (design, ML-DEVOS-AS-078) -> D-062
+// (Stage A, ML-DEVOS-AS-079/080; Stage B atomic activation).
+// Protocol state is read from coordination/STATE.md: with PROTOCOL_VERSION
+// present the V0 checks apply; without it the checker reports the legacy
+// protocol and never claims V0 is live.
 //
 // The checker validates only mechanically knowable facts. It never proves
 // authority legitimacy, model identity, semantic review completeness,
@@ -23,6 +23,9 @@ export const SUPPORTED_HANDOFF_SCHEMA_VERSIONS = Object.freeze([1]);
 export const MAX_PUBLICATION_ATTEMPTS = 3;
 export const EXPECTED_REPOSITORY = 'Dillaab-source/maisog-labs';
 export const AUTHORITATIVE_BRANCH = 'governance/maisoglabs-v0.1';
+// Git blob of coordination/IMPLEMENTER_HANDOFF.md frozen at Stage B
+// activation (bytes as of 487af93afa926f85755f0aa7ad9606ad31a92ed4).
+export const FROZEN_LEGACY_HANDOFF_BLOB = '43eddba31695a567412c431ae3d1e4c9372cabdd';
 
 export const PATHS = Object.freeze({
   state: 'coordination/STATE.md',
@@ -390,6 +393,13 @@ export function checkLegacyAppend(stateFields, changedFiles) {
   return pass('LEGACY_UNTOUCHED');
 }
 
+export function checkLegacyFrozen(blobAtSnapshot, expected = FROZEN_LEGACY_HANDOFF_BLOB) {
+  if (blobAtSnapshot !== expected) {
+    return fail('LEGACY_HANDOFF_MODIFIED', `${PATHS.legacyHandoff} blob ${blobAtSnapshot ?? '∅'} != frozen ${expected}`);
+  }
+  return pass('LEGACY_HANDOFF_FROZEN');
+}
+
 export function checkExpectedTip({ candidateParent, currentTip }) {
   if (!currentTip) return fail('FRESHNESS_UNAVAILABLE', 'current tip unknown; do not publish');
   if (candidateParent !== currentTip) {
@@ -497,13 +507,18 @@ export function checkTransitionCompleteness({ read, changedFiles }) {
     return fail('PARTIAL_COORDINATION_TRANSITION', 'CURRENT_HANDOFF changed without the STATE transition that selects it');
   }
 
+  // A handoff stops being live when its file is replaced/removed, or when
+  // STATE stops selecting it (e.g. ACTIVE -> NONE on an Architect routing
+  // turn). Either way its exact bytes must be archived in this transition.
   const outgoingHandoff = read('before', PATHS.currentHandoff);
-  if (outgoingHandoff != null && handoffChanged) {
+  const deselected = b.CURRENT_HANDOFF === 'ACTIVE'
+    && (a.CURRENT_HANDOFF !== 'ACTIVE' || (a.HANDOFF_ID ?? '') !== (b.HANDOFF_ID ?? ''));
+  if (outgoingHandoff != null && (handoffChanged || deselected)) {
     let header;
     try { header = parseHandoffHeader(outgoingHandoff); } catch { header = null; }
     const outgoingId = header?.handoff_id;
     if (!outgoingId || !HANDOFF_ID_RE.test(outgoingId)) return fail('OUTGOING_HANDOFF_UNIDENTIFIED', 'outgoing handoff has no valid handoff_id');
-    const incoming = read('after', PATHS.currentHandoff);
+    const incoming = handoffChanged ? read('after', PATHS.currentHandoff) : null;
     if (incoming != null) {
       let inHeader;
       try { inHeader = parseHandoffHeader(incoming); } catch { inHeader = null; }
@@ -593,6 +608,31 @@ export function makeGit(cwd, { env } = {}) {
 export function readAtCommit(git, commit, relPath) {
   const r = git(['cat-file', 'blob', `${commit}:${relPath}`]);
   return r.status === 0 ? r.stdout : null;
+}
+
+export function blobAtCommit(git, commit, relPath) {
+  const r = git(['rev-parse', '--verify', '--quiet', `${commit}:${relPath}`]);
+  return r.status === 0 ? r.stdout.trim() : null;
+}
+
+export function commitParents(git, commit) {
+  const r = git(['rev-list', '--parents', '-n', '1', commit]);
+  return r.status === 0 ? r.stdout.trim().split(/\s+/).slice(1) : null;
+}
+
+// The live handoff's review_target_commit must be the sole parent of the
+// commit that published the current CURRENT_HANDOFF bytes.
+export function checkReviewTargetAtSnapshot(git, snapshot, stateFields) {
+  if (stateFields.CURRENT_HANDOFF !== 'ACTIVE') return pass('NO_HANDOFF_STATE');
+  const r = git(['log', '-1', '--format=%H', snapshot, '--', PATHS.currentHandoff]);
+  const publishing = r.status === 0 ? r.stdout.trim() : '';
+  if (!SHA_RE.test(publishing)) return fail('HANDOFF_PUBLICATION_UNKNOWN', 'cannot find the commit that published CURRENT_HANDOFF');
+  const parents = commitParents(git, publishing) ?? [];
+  if (parents.length !== 1 || parents[0] !== stateFields.REVIEW_TARGET_COMMIT) {
+    return fail('REVIEW_TARGET_NOT_EXACT_TIP',
+      `CURRENT_HANDOFF published by ${publishing} with parents [${parents.join(', ')}]; REVIEW_TARGET_COMMIT is ${stateFields.REVIEW_TARGET_COMMIT}`);
+  }
+  return pass('REVIEW_TARGET_IS_PUBLICATION_PARENT', { publishing });
 }
 
 export function resolveRemoteTip(git, remote, branch) {
@@ -812,10 +852,97 @@ function parseArgs(argv) {
     else if (a === '--branch') opts.branch = next();
     else if (a === '--expected-repo') opts.repo = next();
     else if (a === '--session-protocol') opts.sessionProtocolVersion = next();
+    else if (a === '--publish') opts.mode = 'publish';
+    else if (a === '--candidate') opts.candidate = next();
+    else if (a === '--transition-id') opts.transitionId = next();
+    else if (a === '--check-only') opts.checkOnly = true;
+    else if (a === '--frozen-legacy-blob') opts.frozenLegacyBlob = next();
     else if (a === '--help' || a === '-h') opts.mode = 'help';
     else throw new Error(`unknown argument ${a}`);
   }
   return opts;
+}
+
+// Checks every V0 invariant knowable from one exact snapshot.
+function activeSnapshotChecks(git, snapshot, fields, opts) {
+  const read = (p) => readAtCommit(git, snapshot, p);
+  const handoff = read(PATHS.currentHandoff);
+  const review = read(PATHS.review);
+  const checks = [
+    checkIdentityBinding(fields, handoff, fields.CURRENT_HANDOFF === 'ACTIVE' ? { reviewText: review ?? '' } : {}),
+    checkReviewTargetAtSnapshot(git, snapshot, fields),
+  ];
+  if (fields.CURRENT_HANDOFF === 'ACTIVE') checks.push(checkPacketReferences(handoff));
+  const obligations = read(PATHS.obligations);
+  checks.push(obligations == null ? fail('OBLIGATION_INVENTORY_MISSING', PATHS.obligations) : checkObligationInventory(obligations));
+  checks.push(checkLegacyFrozen(blobAtCommit(git, snapshot, PATHS.legacyHandoff), opts.frozenLegacyBlob));
+  const liveId = review == null ? null : parseReviewId(review);
+  if (!liveId) {
+    checks.push(fail('REVIEW_ID_UNPARSEABLE', 'live ARCHITECT_REVIEW has no Sync ID'));
+  } else {
+    const archived = read(syncArchivePath(liveId));
+    checks.push(archived != null && archived !== review
+      ? fail('REVIEW_ID_REUSED', `${liveId} archive differs from the live review`)
+      : pass('LIVE_REVIEW_ID_IMMUTABLE', { reviewId: liveId, archived: archived != null }));
+  }
+  return checks;
+}
+
+// Governed publication of one already-committed candidate: every transition
+// check at (parent -> candidate), then the leased exact-tip push.
+function runPublish(git, opts) {
+  const candidate = opts.candidate;
+  const report = { checker: 'check-context-bootstrap', mode: 'publish', candidate, branch: opts.branch, not_proven: NOT_PROVEN };
+  const checks = [checkRepository(git(['remote', 'get-url', opts.remote]).stdout.trim(), opts.repo)];
+  const parents = SHA_RE.test(String(candidate)) ? commitParents(git, candidate) : null;
+  if (!parents || parents.length !== 1) {
+    checks.push(fail('CANDIDATE_NOT_DIRECTLY_PARENTED', `candidate must be one exact commit with one parent; parents: ${JSON.stringify(parents)}`));
+    return { ...report, checks, ok: false };
+  }
+  const [parent] = parents;
+  const remoteTip = resolveRemoteTip(git, opts.remote, opts.branch);
+  checks.push(checkExpectedTip({ candidateParent: parent, currentTip: remoteTip }));
+  checks.push(checkWorktree(git(['status', '--porcelain=v1', '-uall']).stdout, []));
+
+  const read = (w, p) => readAtCommit(git, w === 'before' ? parent : candidate, p);
+  const changedFiles = git(['diff', '--name-only', parent, candidate]).stdout.split('\n').filter(Boolean);
+  let after;
+  try {
+    after = parseStateFields(read('after', PATHS.state) ?? '');
+  } catch (err) {
+    checks.push(fail('AMBIGUOUS_STATE', err.message));
+    return { ...report, parent, checks, ok: false };
+  }
+  const pv = checkProtocolVersion(after, { sessionProtocolVersion: opts.sessionProtocolVersion });
+  checks.push(pv.ok && !pv.active ? fail('PROTOCOL_NOT_ACTIVE', 'governed V0 publication requires PROTOCOL_VERSION in the candidate STATE') : pv);
+  if (pv.ok && pv.active) {
+    if (after.CURRENT_HANDOFF === 'ACTIVE' && changedFiles.includes(PATHS.currentHandoff)) {
+      const handoff = read('after', PATHS.currentHandoff);
+      checks.push(checkIdentityBinding(after, handoff, {
+        transitionParent: parent,
+        reviewText: read('after', PATHS.review) ?? '',
+        isAncestor: (x, y) => git(['merge-base', '--is-ancestor', x, y]).status === 0,
+      }));
+      checks.push(checkPacketReferences(handoff));
+    } else {
+      checks.push(checkIdentityBinding(after, read('after', PATHS.currentHandoff), {}));
+    }
+    checks.push(checkTransitionCompleteness({ read, changedFiles }));
+    checks.push(checkLegacyAppend(after, changedFiles));
+    checks.push(checkLegacyFrozen(blobAtCommit(git, candidate, PATHS.legacyHandoff), opts.frozenLegacyBlob));
+    const beforeInv = read('before', PATHS.obligations);
+    const afterInv = read('after', PATHS.obligations);
+    checks.push(afterInv == null ? fail('OBLIGATION_INVENTORY_MISSING', PATHS.obligations)
+      : beforeInv == null ? checkObligationInventory(afterInv) : checkObligationCarryForward(beforeInv, afterInv));
+  }
+  const receipt = makeReceipt({ checks, candidate, expectedParent: parent });
+  if (!receipt.ok) return { ...report, parent, changed_files: changedFiles, checks, ok: false, publication: 'NOT_ATTEMPTED' };
+  if (opts.checkOnly) return { ...report, parent, changed_files: changedFiles, checks, ok: true, publication: 'CHECK_ONLY' };
+  const transitionId = opts.transitionId ?? `${after.CYCLE_ID}:${after.HANDOFF_ID || 'NONE'}:${after.TURN}`;
+  const result = publishCandidate({
+    git, remote: opts.remote, branch: opts.branch, candidate, expectedParent: parent, receipt, ledger: defaultLedger(git), transitionId,
+  });
+  return { ...report, parent, transition_id: transitionId, changed_files: changedFiles, checks, publication: result, ok: result.ok };
 }
 
 function runStatus(git, opts) {
@@ -839,16 +966,11 @@ function runStatus(git, opts) {
     if (fields) {
       const pv = checkProtocolVersion(fields, { sessionProtocolVersion: opts.sessionProtocolVersion });
       checks.push(pv);
-      if (pv.ok && pv.active) {
-        checks.push(checkIdentityBinding(fields, readAtCommit(git, snapshot, PATHS.currentHandoff)));
-        const obligations = readAtCommit(git, snapshot, PATHS.obligations);
-        checks.push(obligations == null ? fail('OBLIGATION_INVENTORY_MISSING', PATHS.obligations) : checkObligationInventory(obligations));
-      }
+      if (pv.ok && pv.active) checks.push(...activeSnapshotChecks(git, snapshot, fields, opts));
     }
   }
   return {
     checker: 'check-context-bootstrap',
-    stage: 'D-062 Stage A (pre-cutover, inactive)',
     snapshot,
     authoritative_tip: remoteTip,
     branch: opts.branch,
@@ -861,6 +983,7 @@ function runStatus(git, opts) {
 const HELP = `usage: node scripts/check-context-bootstrap.mjs [--status] [--commit <sha>] [--remote origin]
          [--branch ${AUTHORITATIVE_BRANCH}] [--expected-repo ${EXPECTED_REPOSITORY}] [--session-protocol <n>]
        node scripts/check-context-bootstrap.mjs --baseline [--commit <sha>]
+       node scripts/check-context-bootstrap.mjs --publish --candidate <sha> [--check-only] [--transition-id <id>] [--remote origin] [--branch ...]
 Exit: 0 all checks pass; 1 a check failed (fail closed); 2 usage error.`;
 
 export function main(argv = process.argv.slice(2), { cwd = process.cwd(), stdout = process.stdout } = {}) {
@@ -880,6 +1003,15 @@ export function main(argv = process.argv.slice(2), { cwd = process.cwd(), stdout
     const commit = opts.commit ?? git(['rev-parse', 'HEAD']).stdout.trim();
     stdout.write(`${JSON.stringify(measureBaseline(git, commit), null, 2)}\n`);
     return 0;
+  }
+  if (opts.mode === 'publish') {
+    if (!opts.candidate) {
+      stdout.write(`--publish requires --candidate <sha>\n${HELP}\n`);
+      return 2;
+    }
+    const pub = runPublish(git, opts);
+    stdout.write(`${JSON.stringify(pub, null, 2)}\n`);
+    return pub.ok ? 0 : 1;
   }
   const report = runStatus(git, opts);
   stdout.write(`${JSON.stringify(report, null, 2)}\n`);

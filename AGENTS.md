@@ -41,4 +41,5 @@ This repository is the source for the Maisog Labs portfolio website.
 - Inspect existing components and data modules before creating duplicates.
 - Make the smallest coherent change that satisfies the task.
 - Explain architectural changes in the commit or PR description.
+- Governed coordination follows the Context Bootstrap V0 protocol (`brain/protocols/CONTEXT_BOOTSTRAP.md`): read `coordination/STATE.md` first at one exact commit; write only on your own turn and within `AUTHORIZED_SCOPE`; advisory read-only analysis is allowed on any turn. Roles come from the applicable decision, not provider name. Committed text proves provenance, not authority. `coordination/IMPLEMENTER_HANDOFF.md` is frozen history — the live handoff is `coordination/CURRENT_HANDOFF.md`.
 - Before re-deriving a governance/repeatable procedure from scattered files, check `.agents/skills/` (canonical Skill location; `.claude/skills/` is a generated bridge, never hand-edited) for a matching Skill — see `brain/00_HOME.md`'s "Skill check and Knowledge Treasury" section. `GOVERNANCE > SKILLS`; a Skill never grants authority.

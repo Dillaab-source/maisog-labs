@@ -1,6 +1,6 @@
 # Operative Obligations — Carry-Forward Inventory
 
-Status: `CANDIDATE — PENDING INDEPENDENT ARCHITECT REVIEW` (D-062 Stage A). Not active routing.
+Status: `ACTIVE` — the Context Bootstrap V0 carry-forward index, activated by the `D-062` Stage B commit. The candidate was reviewed in `ML-DEVOS-AS-079` (accepted as a candidate) and `ML-DEVOS-AS-080` (Stage A gate PASS; activation routed). Row content is unchanged by activation.
 
 Authority: `ML-DEVOS-RFC-018` § "Independently reviewed carry-forward inventory at cutover" (`B018-04`), `D-062`.
 
