@@ -1,11 +1,11 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_PROPOSAL
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: RFC018_CONTEXT_BOOTSTRAP_V0_DESIGN_REMEDIATION_CYCLE_1_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
@@ -24,9 +24,9 @@ ML-DEVOS-AS-078 is the current independent design review of record.
 D-060 remains the broader queued Context Plane planning record.
 S5 RFC-017 remains Architect-approved but executable implementation remains paused and unauthorized.
 
-## Remediation Cycle 1
+## Remediation Cycle 1 — COMPLETE, awaiting Architect re-review
 
-Correct exactly B018-01 through B018-07 in ML-DEVOS-RFC-018.
+Corrected exactly B018-01 through B018-07 in ML-DEVOS-RFC-018. See `coordination/IMPLEMENTER_HANDOFF.md`'s "SENTINEL Context Plane Bootstrap V0 Design Remediation Cycle 1 (B018-01–B018-07)" section for the exact finding-to-section mapping, changed files, and commands/checks actually run.
 
 Required corrections:
 - precise expected-tip atomic publication transaction contract;
