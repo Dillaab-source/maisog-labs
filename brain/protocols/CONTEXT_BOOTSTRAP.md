@@ -25,7 +25,7 @@ CURRENT_HANDOFF: ACTIVE | NONE
 HANDOFF_ID: H-...
 CYCLE_ID: ...
 REVIEW_TARGET_COMMIT: <40-hex>
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-NNN | <40-hex>
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-NNN
 ```
 
 CURRENT_HANDOFF header (first ```yaml block):
@@ -36,10 +36,10 @@ handoff_id: H-...
 cycle_id: ...
 input_base_commit: <40-hex>
 review_target_commit: <40-hex>
-applicable_review_id: ML-DEVOS-AS-NNN | <40-hex>
+applicable_review_id: ML-DEVOS-AS-NNN
 ```
 
-A packet is coherent only if `handoff_id`, `cycle_id`, `review_target_commit`, and `applicable_review_id` match field-for-field. For a Builder→Architect handoff, `review_target_commit` equals the parent of the coordination-transition commit. `CURRENT_HANDOFF: NONE` requires the selector fields to be empty. Only header fields are parsed; body text never sets authority or identity.
+A packet is coherent only if `handoff_id`, `cycle_id`, `review_target_commit`, and `applicable_review_id` match field-for-field. For a Builder→Architect handoff, `review_target_commit` equals the parent of the coordination-transition commit. `applicable_review_id` is always the immutable published Sync ID of the live `ARCHITECT_REVIEW` (never a commit or a revision suffix). `CURRENT_HANDOFF: NONE` requires the selector fields to be empty. Only header fields are parsed; body text never sets authority or identity.
 
 Required CURRENT_HANDOFF sections: `Objective`, `Changed files`, `Tests and evidence`, `Unresolved findings and limitations`, `Governing references`, `Evidence locations`, `Next action`. The packet must reference `coordination/OPERATIVE_OBLIGATIONS.md`. It must not restate TURN, approval status, or authorization flags.
 
@@ -48,7 +48,7 @@ Required CURRENT_HANDOFF sections: `Objective`, `Changed files`, `Tests and evid
 1. Resolve the authoritative tip `T` (`git ls-remote`). No tip → stop (`FRESHNESS_UNAVAILABLE`).
 2. Read all governed inputs at `T`; run the checker; bound the candidate to the transition's files (unrelated local work is left untouched and stops the write).
 3. Build exactly one candidate commit whose sole parent is `T`, containing the complete coordination transition: STATE, CURRENT_HANDOFF and/or ARCHITECT_REVIEW, and the archive of every outgoing rolling record.
-4. Push the candidate with a plain, fast-forward-only push (never `--force`) after rechecking that the tip is still `T`.
+4. Recheck that the tip is still `T`, then push with an explicit expected-old-value lease on the exact ref: `git push --force-with-lease=refs/heads/<branch>:T <remote> <candidate>:refs/heads/<branch>`. The remote updates only if the ref still equals `T`, so any movement is rejected, whether an advance or a rewind to an ancestor. The lease is a compare-and-swap guard only. Because the candidate's single parent must be `T` (step 3, checked before the push), every accepted update is a fast-forward. The lease never authorizes a history rewrite, and unleased force pushes are forbidden.
 5. Rejected, or tip moved → the attempt is void; go back to step 1 and build a new candidate from a fresh snapshot.
 6. Ambiguous result (timeout, dropped connection) → read back the tip before anything else: tip = candidate → published; tip = `T` → not published; anything else → treat as advancement; tip unknown → stop.
 7. `MAX_PUBLICATION_ATTEMPTS = 3` per transition, counted in `.git/sentinel-context-bootstrap/attempts.json` so a resumed session cannot reset it. Exhaustion is terminal and disclosed.
@@ -59,9 +59,11 @@ A provider that cannot show this exact-tip conflict detection is advisory/read-o
 
 Every outgoing CURRENT_HANDOFF or ARCHITECT_REVIEW is preserved byte-for-byte in the same transition that replaces it, whatever its outcome, unless those exact bytes are already archived. Locations: `coordination/archive/handoffs/<handoff_id>.md` (+ `.provenance.json`) and `devos/changes/architect-syncs/ML-DEVOS-AS-<NNN>.md`. Entries are immutable; an existing ID with different bytes fails closed. See `coordination/archive/handoffs/README.md`.
 
+**Architect review identity (`ML-DEVOS-AS-079` `AS79-R001`).** After activation, every published `ARCHITECT_REVIEW` revision mints the next available immutable `ML-DEVOS-AS-NNN`. A Sync ID is never republished with changed bytes, and V0 has no revision-suffix scheme. The outgoing review is archived under its own ID in the same transition. `APPLICABLE_REVIEW_ID` names only the immutable published ID. The checker rejects same-ID changed-byte reviews (`REVIEW_ID_REUSED`). Pre-activation history, including the reuse of `ML-DEVOS-AS-078` across three revisions, is preserved as-is and is not rewritten.
+
 ## 5. Obligations
 
-`coordination/OPERATIVE_OBLIGATIONS.md` is the carry-forward index. Every transition keeps each `OPEN`/`DEFERRED` row, or changes it to `CLOSED`/`SUPERSEDED` with a cited reference. Handoff summaries are navigation only.
+`coordination/OPERATIVE_OBLIGATIONS.md` is the carry-forward index. Every transition keeps each `OPEN`/`DEFERRED` row, or changes it to `CLOSED`/`SUPERSEDED` with a cited reference. A row that stays unresolved keeps its obligation text and authoritative source byte-identical, ignoring only table-cell padding (`AS79-F002`). To change what an obligation means, close or supersede it with a citation and add a new row. Handoff summaries are navigation only.
 
 ## 6. Protocol version and stale sessions
 
@@ -80,7 +82,6 @@ The checker does not prove: legitimacy of recorded authority; that a committed a
 ### Disclosed bypasses V0 cannot prevent
 
 - Anyone with write access can hand-edit coordination files or push without running the checker. The prepublication receipt is a procedural guard, not a cryptographic one.
-- A client-side plain push is fast-forward-only but has no expected-old-value lease. If the remote were rewound to an ancestor of `T` between the tip check and the push, the push could still succeed. Moving back to an ancestor needs a force-push, which this protocol forbids.
 - The attempt ledger lives in the local `.git` directory. A fresh clone, or a new transition ID, starts a new count.
 - Behavioral cases (forged authorization, hostile instruction-shaped evidence) depend on agent conduct. Tests cover only the parser/checker side.
 

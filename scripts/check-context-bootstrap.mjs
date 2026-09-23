@@ -214,7 +214,7 @@ export function checkProtocolVersion(stateFields, { sessionProtocolVersion } = {
 }
 
 // Mechanical field-for-field turn-packet binding (RFC-018 B018-02).
-export function checkIdentityBinding(stateFields, handoffText, { transitionParent, isAncestor } = {}) {
+export function checkIdentityBinding(stateFields, handoffText, { transitionParent, isAncestor, reviewText } = {}) {
   const selector = stateFields.CURRENT_HANDOFF;
   if (selector === 'NONE') {
     const stale = ['HANDOFF_ID', 'APPLICABLE_REVIEW_ID', 'REVIEW_TARGET_COMMIT']
@@ -248,9 +248,14 @@ export function checkIdentityBinding(stateFields, handoffText, { transitionParen
   for (const k of ['input_base_commit', 'review_target_commit']) {
     if (!SHA_RE.test(header[k] ?? '')) return fail('IDENTITY_COMMIT_NOT_EXACT', `${k}=${header[k] ?? '∅'}`);
   }
+  // AS79-R001: the applicable review is always an immutable published
+  // ML-DEVOS-AS-NNN ID, and it must be the live review at this snapshot.
   const reviewId = header.applicable_review_id;
-  if (!SYNC_ID_RE.test(reviewId) && !SHA_RE.test(reviewId)) {
-    return fail('INVALID_APPLICABLE_REVIEW_ID', `${reviewId} is neither ML-DEVOS-AS-NNN nor an exact commit`);
+  if (!SYNC_ID_RE.test(reviewId)) {
+    return fail('INVALID_APPLICABLE_REVIEW_ID', `${reviewId} is not an immutable ML-DEVOS-AS-NNN review ID`);
+  }
+  if (reviewText !== undefined && parseReviewId(reviewText) !== reviewId) {
+    return fail('APPLICABLE_REVIEW_NOT_LIVE', `applicable_review_id ${reviewId} != live review ${parseReviewId(reviewText) ?? '∅'}`);
   }
   if (transitionParent !== undefined && header.review_target_commit !== transitionParent) {
     return fail('REVIEW_TARGET_NOT_EXACT_TIP',
@@ -297,19 +302,34 @@ function hasReference(cell) {
   return c !== '' && c !== '—' && c !== '-' && c.toUpperCase() !== 'N/A';
 }
 
-// Every unresolved obligation in `before` must survive in `after`, either
-// still unresolved or closed/superseded with an explicit citation.
+// Every unresolved obligation in `before` must survive in `after` (AS79-F002):
+// - still OPEN/DEFERRED: obligation and source cells byte-identical (cell
+//   padding whitespace is table formatting, not content);
+// - CLOSED/SUPERSEDED: a non-empty closure/supersession reference;
+// - absent: hard failure.
+// Purely mechanical; no semantic inference.
 export function checkObligationCarryForward(beforeText, afterText) {
   const shape = checkObligationInventory(afterText);
   if (!shape.ok) return shape;
   const after = new Map(parseObligations(afterText).map((r) => [r.id, r]));
   const dropped = [];
+  const rewritten = [];
+  const unclosed = [];
   for (const r of parseObligations(beforeText)) {
     if (!UNRESOLVED.has(r.disposition)) continue;
     const next = after.get(r.id);
-    if (!next) dropped.push(r.id);
+    if (!next) {
+      dropped.push(r.id);
+    } else if (UNRESOLVED.has(next.disposition)) {
+      if (next.obligation !== r.obligation) rewritten.push(`${r.id} obligation text`);
+      if (next.source !== r.source) rewritten.push(`${r.id} authoritative source`);
+    } else if (!hasReference(next.closure)) {
+      unclosed.push(r.id);
+    }
   }
   if (dropped.length) return fail('OBLIGATION_DROPPED', `unresolved obligations removed without closure: ${dropped.join(', ')}`);
+  if (rewritten.length) return fail('OBLIGATION_REWRITTEN', `unresolved obligation changed in place: ${rewritten.join(', ')}; close/supersede it with a citation instead`);
+  if (unclosed.length) return fail('CLOSURE_REFERENCE_MISSING', `closed/superseded without a reference: ${unclosed.join(', ')}`);
   return pass('OBLIGATIONS_CARRIED_FORWARD');
 }
 
@@ -497,14 +517,29 @@ export function checkTransitionCompleteness({ read, changedFiles }) {
     }
   }
 
+  // AS79-R001: every published review revision carries a new immutable ID.
   if (changed.has(PATHS.review)) {
     const outgoingReview = read('before', PATHS.review);
+    const incomingReview = read('after', PATHS.review);
+    const incomingId = incomingReview == null ? null : parseReviewId(incomingReview);
+    if (incomingReview != null && !incomingId) {
+      return fail('REVIEW_ID_UNPARSEABLE', 'incoming ARCHITECT_REVIEW has no "Architect Sync: ML-DEVOS-AS-NNN" line');
+    }
     if (outgoingReview != null) {
       const id = parseReviewId(outgoingReview);
       if (!id) return fail('REVIEW_ID_UNPARSEABLE', 'outgoing ARCHITECT_REVIEW has no "Architect Sync: ML-DEVOS-AS-NNN" line');
+      if (incomingId === id) {
+        return fail('REVIEW_ID_REUSED', `${id} republished with different bytes; mint a new ML-DEVOS-AS-NNN`);
+      }
       const archived = read('after', syncArchivePath(id));
       if (archived == null || Buffer.compare(Buffer.from(archived), Buffer.from(outgoingReview)) !== 0) {
         return fail('OUTGOING_REVIEW_NOT_PRESERVED', `${syncArchivePath(id)} must hold the exact outgoing bytes`);
+      }
+    }
+    if (incomingId) {
+      const prior = read('before', syncArchivePath(incomingId));
+      if (prior != null && Buffer.compare(Buffer.from(prior), Buffer.from(incomingReview)) !== 0) {
+        return fail('REVIEW_ID_REUSED', `${incomingId} is already archived with different bytes; mint a new ML-DEVOS-AS-NNN`);
       }
     }
   }
@@ -637,7 +672,11 @@ export function makeReceipt({ checks, candidate, expectedParent }) {
 const REJECTION_RE = /\[rejected\]|non-fast-forward|fetch first|stale info|\[remote rejected\]/;
 
 // One publication attempt of one candidate against one exact expected tip.
-// Pushes are plain (fast-forward-only); force is never used.
+// The push carries an explicit expected-old-value lease on the exact ref
+// (AS79-F001): the remote updates only if the ref still equals
+// expectedParent. The lease is a compare-and-swap guard only. The
+// single-parent == expectedParent check below guarantees every accepted
+// update is a fast-forward child of the expected tip, never a rewrite.
 export function publishCandidate({ git, remote, branch, candidate, expectedParent, receipt, ledger, transitionId }) {
   if (ledger.exhausted(transitionId)) {
     return fail('PUBLICATION_ATTEMPTS_EXHAUSTED', `${MAX_PUBLICATION_ATTEMPTS} attempts used for ${transitionId}; explicit fresh bootstrap required`);
@@ -655,7 +694,11 @@ export function publishCandidate({ git, remote, branch, candidate, expectedParen
   const tipCheck = checkExpectedTip({ candidateParent: expectedParent, currentTip: tip });
   if (!tipCheck.ok) return { ...tipCheck, attempt };
 
-  const push = git(['push', '--porcelain', remote, `${candidate}:refs/heads/${branch}`]);
+  const push = git([
+    'push', '--porcelain',
+    `--force-with-lease=refs/heads/${branch}:${expectedParent}`,
+    remote, `${candidate}:refs/heads/${branch}`,
+  ]);
   const out = `${push.stdout}\n${push.stderr}`;
   if (push.status === 0) {
     const readBack = resolveRemoteTip(git, remote, branch);

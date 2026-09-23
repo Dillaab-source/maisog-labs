@@ -4008,3 +4008,31 @@ Added the corresponding one-paragraph index entry to `devos/changes/rfcs/README.
 **Blockers:** none.
 
 **Next actor:** `ARCHITECT` — independent Stage A pre-cutover review of the checker contract, failure tests, baseline, and candidate inventory; Stage B only if routed under `D-062`.
+
+---
+
+## Bootstrap V0 Stage A — Pre-Cutover Remediation Cycle 1 (AS79-F001, AS79-F002, AS79-R001)
+
+**Authority:** `D-062`; review `ML-DEVOS-AS-079` (CHANGES_REQUESTED on Stage-A result `02169f4`); scope `RFC018_BOOTSTRAP_V0_PRECUTOVER_REMEDIATION_CYCLE_1_ONLY`, cycle 1 of 2. Still pre-cutover: no CURRENT_HANDOFF, no PROTOCOL_VERSION, no reader/writer/skill/bridge/entrypoint change, no Stage B.
+
+**Input base:** `732f88693b201c37ab8ba1e98684c9439e6b6abd` (`origin/governance/maisoglabs-v0.1` after fetch; STATE and ARCHITECT_REVIEW read at that commit). It is the parent of this remediation commit.
+
+**Finding → change:**
+- **AS79-F001:** `publishCandidate` now pushes with `--force-with-lease=refs/heads/<branch>:<expectedParent>` (exact-old-value CAS on the exact ref). The single-parent == `expectedParent` check still runs before the push, so every accepted update is a fast-forward child of the expected tip. New real-git test: the final read sees `T`; the remote ref is then rewound to an ancestor; publication is rejected (`BRANCH_ADVANCED`) and the ref stays at the ancestor. A control push without the lease then succeeds, demonstrating the gap that was closed. The remote-rewind limitation is removed from `CONTEXT_BOOTSTRAP.md` §8.
+- **AS79-F002:** `checkObligationCarryForward` now requires, for every previously `OPEN`/`DEFERRED` row that stays unresolved, byte-identical obligation and authoritative-source cells (cell padding excluded) → `OBLIGATION_REWRITTEN`. Unresolved → `CLOSED`/`SUPERSEDED` requires a citation → `CLOSURE_REFERENCE_MISSING`. A dropped unresolved ID still fails → `OBLIGATION_DROPPED`. New tests: rewritten text, rewritten source, cited closure/supersession accepted, uncited closure/supersession rejected, and OPEN↔DEFERRED with unchanged content accepted.
+- **AS79-R001:** Protocol §2/§4 state the rule: a new immutable `ML-DEVOS-AS-NNN` per published review revision, no suffix scheme, outgoing review archived under its own ID, `APPLICABLE_REVIEW_ID` names only the immutable ID, historical AS-078 untouched. Checker: `checkTransitionCompleteness` rejects same-ID changed-byte review publication and incoming IDs already archived with different bytes (`REVIEW_ID_REUSED`). `checkIdentityBinding` accepts only an `ML-DEVOS-AS-NNN` `applicable_review_id` (commit-SHA form removed) and, given the live review, requires it to match (`APPLICABLE_REVIEW_NOT_LIVE`). Inventory: `OBL-008` → `CLOSED` citing `AS79-R001`, with text/source unchanged; new linked `OBL-022` (OPEN) carries the Stage-B implementation in Architect-side writers.
+
+**Changed files:** `scripts/check-context-bootstrap.mjs`, `tests/context-bootstrap.test.mjs`, `brain/protocols/CONTEXT_BOOTSTRAP.md`, `coordination/OPERATIVE_OBLIGATIONS.md`, `devos/governance/traceability/{TRACEABILITY_INDEX.md,traceability-index.json}`, `coordination/IMPLEMENTER_HANDOFF.md` (this record), `coordination/STATE.md` (return gate).
+
+**Commands (all `ACTOR_REPORTED`):**
+- `node --test tests/context-bootstrap.test.mjs` → 50 tests, 50 pass, 0 fail. Exit `0`.
+- Mutation check (scratch copy, restored byte-identical): removing the lease, the text check, the source check, the same-ID review check, or the Sync-ID-only rule each failed exactly its intended new test.
+- `checkObligationCarryForward(committed inventory at 732f886, remediated inventory)` → `OBLIGATIONS_CARRIED_FORWARD`; inventory 22 rows, well-formed.
+- `npm test` (dependencies from the earlier `npm ci`) → 550 tests, 550 pass, 0 fail. Exit `0`.
+- Traceability: the input base already had DRIFT (283 files / 2 errors / 14 warnings / 284 definitions). A fictional `D-999` fixture first surfaced as a third error; it was changed to a runtime-built ID. `generate-traceability.mjs` exit `0`. `validate-traceability.mjs` → 283 files / 2 errors (`CORE-022`, `WEB-REQ-009`) / 14 warnings / 284 definitions, `No drift`, exit `1` (established convention).
+
+**Known limitations (remaining):** the checker is not wired into any active writer until Stage B. The prepublication receipt is procedural. The attempt ledger is per-clone. Forged-authorization and hostile-evidence cases are covered mechanically only. Rollback is exercised on fixtures, not real V0 turns. `--force-with-lease` behavior depends on the remote honoring standard Git ref-update semantics (verified against a local bare repository; the hosted remote was not exercised).
+
+**Blockers:** none.
+
+**Next actor:** `ARCHITECT` — remediation review of AS79-F001/F002/R001; Stage B only if routed under `D-062`.

@@ -351,6 +351,31 @@ test('required obligation omitted: dropping an unresolved obligation fails; clos
   assert.ok(checkObligationCarryForward(INVENTORY, closedGone).ok);
 });
 
+test('AS79-F002: same unresolved OBL ID with rewritten obligation text is rejected', () => {
+  const next = INVENTORY.replace('| Keep S5 paused |', '| Keep S5 paused unless convenient |');
+  const r = checkObligationCarryForward(INVENTORY, next);
+  assert.equal(r.code, 'OBLIGATION_REWRITTEN');
+  assert.match(r.detail, /OBL-001 obligation text/);
+});
+
+test('AS79-F002: same unresolved OBL ID with rewritten authoritative source is rejected', () => {
+  const next = INVENTORY.replace('| Keep S5 paused | D-062 |', `| Keep S5 paused | ${AS_Y} |`);
+  const r = checkObligationCarryForward(INVENTORY, next);
+  assert.equal(r.code, 'OBLIGATION_REWRITTEN');
+  assert.match(r.detail, /OBL-001 authoritative source/);
+  // OPEN <-> DEFERRED with identical text/source is not a rewrite.
+  assert.ok(checkObligationCarryForward(INVENTORY, INVENTORY.replace('| D-062 | OPEN |', '| D-062 | DEFERRED |')).ok);
+});
+
+test('AS79-F002: unresolved -> CLOSED/SUPERSEDED requires a citation', () => {
+  for (const to of ['CLOSED', 'SUPERSEDED']) {
+    const cited = INVENTORY.replace('| D-062 | OPEN | — |', `| D-062 | ${to} | ${AS_Z} |`);
+    assert.ok(checkObligationCarryForward(INVENTORY, cited).ok, to);
+    const uncited = INVENTORY.replace('| D-062 | OPEN | — |', `| D-062 | ${to} | — |`);
+    assert.equal(checkObligationCarryForward(INVENTORY, uncited).code, 'CLOSURE_REFERENCE_MISSING', to);
+  }
+});
+
 test('an otherwise valid packet that omits obligations still fails without the inventory reference', () => {
   const noRef = handoffText(header('H-1')).replaceAll(PATHS.obligations, 'see elsewhere');
   assert.equal(checkPacketReferences(noRef).code, 'MISSING_OBLIGATION_REFERENCE');
@@ -400,6 +425,35 @@ test('outgoing handoff and review must be preserved byte-for-byte in the same tr
   assert.equal(checkTransitionCompleteness({ read: read(withHandoff), changedFiles: changed }).code, 'OUTGOING_REVIEW_NOT_PRESERVED');
   const complete = { ...withHandoff, [`devos/changes/architect-syncs/${AS_X}.md`]: review };
   assert.ok(checkTransitionCompleteness({ read: read(complete), changedFiles: changed }).ok);
+});
+
+test('AS79-R001: a changed review may not reuse its Sync ID, in place or from the archive', () => {
+  const before = {
+    [PATHS.state]: stateText(v0State('H-1')),
+    [PATHS.review]: `Architect Sync: ${AS_X}\nStatus: CHANGES_REQUESTED\n`,
+    [`devos/changes/architect-syncs/${AS_Y}.md`]: `Architect Sync: ${AS_Y}\nold\n`,
+  };
+  const read = (after) => (w, p) => (w === 'before' ? before : after)[p] ?? null;
+  const changed = [PATHS.state, PATHS.review];
+  const archiveX = { [`devos/changes/architect-syncs/${AS_X}.md`]: before[PATHS.review] };
+
+  const sameId = { ...before, ...archiveX, [PATHS.review]: `Architect Sync: ${AS_X}\nStatus: APPROVED\n` };
+  assert.equal(checkTransitionCompleteness({ read: read(sameId), changedFiles: changed }).code, 'REVIEW_ID_REUSED');
+
+  const archivedId = { ...before, ...archiveX, [PATHS.review]: `Architect Sync: ${AS_Y}\nnew bytes\n` };
+  assert.equal(checkTransitionCompleteness({ read: read(archivedId), changedFiles: changed }).code, 'REVIEW_ID_REUSED');
+
+  const incoming = `Architect Sync: ${AS_Z}\nStatus: APPROVED\n`;
+  const fresh = { ...before, ...archiveX, [PATHS.review]: incoming, [`devos/changes/architect-syncs/${AS_Z}.md`]: incoming };
+  assert.ok(checkTransitionCompleteness({ read: read(fresh), changedFiles: changed }).ok);
+});
+
+test('AS79-R001: applicable_review_id must be an immutable Sync ID and the live review', () => {
+  const st = v0State('H-1', { review: A });
+  assert.equal(checkIdentityBinding(st, handoffText(header('H-1', { review: A }))).code, 'INVALID_APPLICABLE_REVIEW_ID');
+  const h = handoffText(header('H-1'));
+  assert.equal(checkIdentityBinding(v0State('H-1'), h, { reviewText: `Architect Sync: ${AS_Y}\n` }).code, 'APPLICABLE_REVIEW_NOT_LIVE');
+  assert.equal(checkIdentityBinding(v0State('H-1'), h, { reviewText: `Architect Sync: ${AS_X}\n` }).code, 'IDENTITY_BOUND');
 });
 
 // ------------------------------------------------------------- archive
@@ -599,6 +653,29 @@ test('branch movement after final validation read (between tip check and push) i
   const r = publishCandidate({ git: racing, remote: 'origin', branch: BRANCH, candidate: cand, expectedParent: tip, receipt: receiptFor(cand, tip), ledger: ledgerIn(root), transitionId: 'T' });
   assert.equal(r.code, 'BRANCH_ADVANCED');
   assert.equal(resolveRemoteTip(a.git, 'origin', BRANCH), theirs);
+});
+
+test('AS79-F001: remote rewound to an ancestor after the final read is rejected by the expected-old-value lease', (t) => {
+  const { clone, root, remote } = setupRemote(t);
+  const a = clone('a');
+  const ancestor = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const tip = buildCandidate(a, ancestor, { 'x.txt': '1' });
+  ok(a.git(['push', '-q', 'origin', `${tip}:refs/heads/${BRANCH}`]));
+  const cand = buildCandidate(a, tip, { 'y.txt': '2' });
+  const remoteGit = makeGit(root, { env: GIT_ENV });
+  const rewindThenPush = countingGit(a.git, (args, opts, git) => {
+    // Final read (inside publishCandidate) saw `tip`; now the ref moves back.
+    ok(remoteGit(['--git-dir', remote, 'update-ref', `refs/heads/${BRANCH}`, ancestor]));
+    return git(args, opts);
+  });
+  const r = publishCandidate({ git: rewindThenPush, remote: 'origin', branch: BRANCH, candidate: cand, expectedParent: tip, receipt: receiptFor(cand, tip), ledger: ledgerIn(root), transitionId: 'T' });
+  assert.equal(r.code, 'BRANCH_ADVANCED');
+  assert.equal(rewindThenPush.pushes(), 1);
+  assert.equal(resolveRemoteTip(a.git, 'origin', BRANCH), ancestor);
+  // Control: without the lease the same stale candidate is a valid fast-forward
+  // from the rewound ref and would have been published.
+  assert.equal(a.git(['push', '-q', 'origin', `${cand}:refs/heads/${BRANCH}`]).status, 0);
+  assert.equal(resolveRemoteTip(a.git, 'origin', BRANCH), cand);
 });
 
 test('timeout after successful publication: read-back reconciles to PUBLISHED with no duplicate push', (t) => {
