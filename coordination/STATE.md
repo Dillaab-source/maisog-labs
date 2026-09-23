@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_PRECUTOVER_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_PRECUTOVER_REMEDIATION_CYCLE_1_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -19,118 +19,83 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-062 authorizes bounded implementation of Architect-approved ML-DEVOS-RFC-018.
+D-062 remains the implementation authority for Architect-approved ML-DEVOS-RFC-018.
 
-The implementation is deliberately split into:
-- Stage A — PRE-CUTOVER implementation and independent inventory/checker review;
-- Stage B — one atomic activation/cutover, conditionally available under D-062 only after Architect accepts Stage A and explicitly routes the live state to Stage B.
+Architect pre-cutover review ML-DEVOS-AS-079 reviewed Stage-A result `02169f4008689365ab67dee4f27c2f2b729f3d78`.
 
-This state authorizes Stage A only. Stage A implementation is complete and awaits independent Architect pre-cutover review; Stage B is not open.
+Stage A direction/scope/baseline are accepted, but Stage B is NOT open.
+
+Two checker blockers and one review-identity implementation resolution must be completed before activation.
 
 S5 executable implementation remains paused and unauthorized.
 Context Plane CP-4+ remains unauthorized.
 SENTINEL Model Router V0 remains queued post-pilot only and unauthorized.
 
-## Stage A result — awaiting Architect review
+## Remediation Cycle 1 — PRE-CUTOVER ONLY
 
-- Input base: `93a66b7fd5c0815f7e950768de9292c46779b420`.
-- Evidence record: `coordination/IMPLEMENTER_HANDOFF.md` § "Bootstrap V0 Stage A — PRE-CUTOVER Implementation (D-062)" (ACTOR_REPORTED).
-- Review targets: `brain/protocols/CONTEXT_BOOTSTRAP.md`, `scripts/check-context-bootstrap.mjs`, `tests/context-bootstrap.test.mjs`, candidate `coordination/OPERATIVE_OBLIGATIONS.md`, inert `coordination/archive/handoffs/README.md`.
-- Bootstrap V0 is NOT active: no `PROTOCOL_VERSION` marker, no `CURRENT_HANDOFF.md`, legacy protocol unchanged.
+Correct exactly:
 
-## Builder mode (Stage A, as authorized)
+1. **AS79-F001 — exact-old-value publication CAS**
+   - replace the plain-push publication gap with an explicit expected-old-value lease on the exact branch ref;
+   - preserve the mandatory candidate-direct-parent == expectedParent check so the permitted update remains a fast-forward child of the expected tip;
+   - add a real git test where the remote is rewound to an ancestor after the final read and publication is rejected by the lease;
+   - remove the remote-rewind gap from the accepted limitations.
 
-LEAN / DELTA-ONLY is mandatory.
+2. **AS79-F002 — semantic preservation of unresolved obligations**
+   - when an existing OPEN/DEFERRED row remains unresolved, require its obligation text and authoritative source to remain byte-identical;
+   - unresolved -> CLOSED/SUPERSEDED requires a closure reference;
+   - add tests for rewritten obligation text, rewritten source, valid closure/supersession, and missing closure reference.
 
-Read first:
-1. this `coordination/STATE.md`;
-2. `coordination/ARCHITECT_REVIEW.md`;
-3. `devos/changes/rfcs/ML-DEVOS-RFC-018.md`;
-4. only the exact Stage-A implementation surfaces below.
+3. **AS79-R001 — immutable Architect review revision IDs**
+   - after V0 activation, every published ARCHITECT_REVIEW revision mints a new ML-DEVOS-AS-NNN ID;
+   - no same-ID changed-byte review publication;
+   - APPLICABLE_REVIEW_ID points to the immutable published review ID;
+   - update CONTEXT_BOOTSTRAP.md and the OBL-008 disposition/linked implementation obligation accordingly;
+   - do not rewrite historical AS-078.
 
-Do not preload the historical `coordination/IMPLEMENTER_HANDOFF.md`. Read only its current tail or exact prior section if needed to append the Stage-A evidence record. Do not reread broad governance history unless a concrete RFC-018 requirement cannot otherwise be resolved.
+## Authorized remediation files
 
-## Stage A objective — PRE-CUTOVER ONLY
+- scripts/check-context-bootstrap.mjs
+- tests/context-bootstrap.test.mjs
+- brain/protocols/CONTEXT_BOOTSTRAP.md
+- coordination/OPERATIVE_OBLIGATIONS.md
+- coordination/IMPLEMENTER_HANDOFF.md for remediation evidence only
+- coordination/STATE.md
+- deterministic traceability outputs only if regeneration changes them
 
-Prepare and test the repository-native Bootstrap V0 foundation without activating the new routing.
+## Explicit prohibitions
 
-Required:
-- capture a bounded pre-cutover baseline of mandatory startup files/read burden, including the legacy handoff size and repeated-history dependency;
-- create the small inactive Context Bootstrap protocol/kernel document;
-- implement the small repository-native mechanical checker;
-- implement focused RFC-018 failure tests that can be exercised pre-cutover;
-- create the candidate bounded operative-obligation carry-forward inventory for independent Architect review;
-- create inert deterministic CURRENT_HANDOFF archive/index scaffolding;
-- regenerate traceability only if required/changed;
-- report exact evidence and return to Architect.
+No CURRENT_HANDOFF.
+No PROTOCOL_VERSION activation.
+No Stage B.
+No legacy-handoff freeze/cutover.
+No AGENTS.md / CLAUDE.md / coordination protocol / Architect-Sync migration.
+No canonical skill or provider-bridge migration.
+No S5 or S6+.
+No CP-4+.
+No Model Router implementation.
+No application/product runtime.
+No credentials.
+No remote D1/R2.
+No Cloudflare Access/DNS/domain/deployment/rollback/production mutation.
+No public D1 cutover.
+No protected/main merge.
+No PR #10 merge or auto-merge.
 
-## Stage A authorized mutation surfaces
+## Return gate
 
-Primary:
-- `brain/protocols/CONTEXT_BOOTSTRAP.md`
-- `scripts/check-context-bootstrap.mjs`
-- `tests/context-bootstrap.test.mjs`
-- narrowly necessary fixtures under `tests/fixtures/`
-- `coordination/OPERATIVE_OBLIGATIONS.md`
-- `coordination/archive/handoffs/README.md`
-- only directly necessary inert archive scaffolding under `coordination/archive/handoffs/`
+After remediation:
+- TURN: ARCHITECT
+- STATUS: READY_FOR_ARCHITECT
+- AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_PRECUTOVER_REMEDIATION_REVIEW_ONLY
+- ARCHITECT_ACTION_REQUIRED: YES
+- IMPLEMENTER_ACTION_REQUIRED: NO
+- PAULO_DECISION_REQUIRED: NO
+- CURRENT_REMEDIATION_CYCLE: 1
+- MAX_REMEDIATION_CYCLES: 2
 
-Supporting:
-- deterministic traceability outputs only if regeneration changes them;
-- `coordination/IMPLEMENTER_HANDOFF.md` for this Stage-A evidence record only;
-- `coordination/STATE.md` for the return gate.
+Return exact changed files, tests/checks and exit codes, traceability fingerprint if run, and known limitations.
 
-## Stage A explicit prohibitions
+If this closes the blockers, Architect may open Stage B under D-062 without another Paulo decision.
 
-Do NOT:
-- create or activate live `coordination/CURRENT_HANDOFF.md`;
-- cut over or freeze `coordination/IMPLEMENTER_HANDOFF.md`;
-- change root `AGENTS.md` or `CLAUDE.md`;
-- change `coordination/README.md`;
-- change `brain/00_HOME.md`, `brain/PROJECT_GOVERNANCE.md`, `brain/ARCHITECT_HANDOFF.md`, or `brain/protocols/ARCHITECT_SYNC.md`;
-- change canonical skills or generated provider bridges;
-- claim the reader/writer migration is active;
-- perform Bootstrap Stage B;
-- implement Context Plane CP-4+;
-- implement S5 or S6+;
-- touch product/application runtime;
-- access live credentials/secrets;
-- create/mutate remote D1/R2;
-- mutate Cloudflare Access/DNS/domain/deployment/rollback/production;
-- perform public D1 cutover;
-- merge protected/main or PR #10.
-
-The current legacy coordination protocol remains active throughout Stage A.
-
-## Locked design requirements
-
-Preserve exactly:
-- `MAX_PUBLICATION_ATTEMPTS = 3`;
-- exact-snapshot governed reads;
-- exact-tip conflict-detecting publication;
-- read-back reconciliation after ambiguous publication outcomes;
-- machine-readable handoff/cycle/review-target/applicable-review binding;
-- outcome-independent rolling-record preservation;
-- Architect-reviewed carry-forward obligations before cutover;
-- provenance != authority;
-- stale protocol sessions fail closed;
-- forward-recovery rollback;
-- no generalized Context Resolver or model/tool router.
-
-## Stage A review gate
-
-Return:
-- `TURN: ARCHITECT`
-- `STATUS: READY_FOR_ARCHITECT`
-- `AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_PRECUTOVER_REVIEW_ONLY`
-- `ARCHITECT_ACTION_REQUIRED: YES`
-- `IMPLEMENTER_ACTION_REQUIRED: NO`
-- `PAULO_DECISION_REQUIRED: NO`
-- `CURRENT_REMEDIATION_CYCLE: 0`
-- `MAX_REMEDIATION_CYCLES: 2`
-
-Return exact changed files, baseline measurements, commands/tests with exit codes, traceability fingerprint if run, known limitations, and the candidate obligation inventory.
-
-If Stage A passes without architecture expansion, Architect may open Stage B atomic activation under D-062 without another Paulo decision.
-
-All remote/deploy/main authorization flags remain NO.
+All remote/deploy/main flags remain NO.
