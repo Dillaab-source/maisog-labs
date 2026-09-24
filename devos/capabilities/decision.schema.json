@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs/devos/capabilities/decision.schema.json",
+  "title": "S5 CapabilityDecision (V1)",
+  "description": "ML-DEVOS-RFC-017 §3-§5, §12. Pure: no field varies between identical evaluate() calls; no event_id or timestamp (those belong to the separately constructed AuditEnvelope).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome",
+    "denial_reason",
+    "descriptor_id",
+    "policy_version",
+    "non_authority_disclaimer"
+  ],
+  "properties": {
+    "outcome": {
+      "enum": [
+        "ALLOW",
+        "DENY"
+      ]
+    },
+    "denial_reason": {
+      "oneOf": [
+        {
+          "enum": [
+            "UNTRUSTED_SUBJECT_CONTEXT",
+            "UNTRUSTED_EVALUATION_CONTEXT",
+            "UNKNOWN_ACTOR_ROLE",
+            "UNKNOWN_PROVIDER",
+            "UNKNOWN_ACTION",
+            "UNKNOWN_PROJECT",
+            "UNKNOWN_ENVIRONMENT",
+            "RESOURCE_SCOPE_MISMATCH",
+            "POLICY_VERSION_MISMATCH",
+            "AMBIGUOUS_POLICY_MATCH",
+            "EXPIRED",
+            "REVOKED",
+            "CREDENTIAL_REQUIREMENT_UNSATISFIED",
+            "MALFORMED_REQUEST"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "null iff ALLOW. The single canonical RFC-017 §4 vocabulary."
+    },
+    "descriptor_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Always set on ALLOW; set on a DENY only when a descriptor was matched (EXPIRED, REVOKED, CREDENTIAL_REQUIREMENT_UNSATISFIED)."
+    },
+    "policy_version": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "non_authority_disclaimer": {
+      "const": "This capability decision describes only what is technically permitted under the pinned policy version presented to it. It does not itself grant governance authority, certify that an action should happen, accept risk, or satisfy any merge, deployment, or production-write approval requirement (CORE-001, CORE-002, CORE-008). An ALLOW decision from a Governance-authorized actor is necessary but never sufficient for a sensitive operation (§8); a DENY decision blocks the action regardless of any governance authorization that may otherwise exist."
+    }
+  }
+}

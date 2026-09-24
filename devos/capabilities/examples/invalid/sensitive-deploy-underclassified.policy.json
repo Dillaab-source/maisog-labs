@@ -1,0 +1,22 @@
+{
+  "policy_version": "bad-2",
+  "descriptors": [
+    {
+      "descriptor_id": "CF-DEPLOY",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "cloudflare",
+      "action": "worker.deploy",
+      "resource_scope": [
+        "zone-1"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "medium"
+    }
+  ]
+}

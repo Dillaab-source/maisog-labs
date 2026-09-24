@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S5-TRIAL1-0001
+REVIEW_TARGET_COMMIT: ce9c0391260ef0ba4620936b1b448e3de8d135cb
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-081
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -34,15 +34,17 @@ This authority is limited to the S5 implementation defined by RFC-017 and D-063.
 
 Context Bootstrap V0 remains active: `brain/protocols/CONTEXT_BOOTSTRAP.md`.
 
-- `CURRENT_HANDOFF: NONE` at the opening of the Builder turn.
+- Builder handoff `H-S5-TRIAL1-0001` is the current packet (`coordination/CURRENT_HANDOFF.md`); the prior handoff `H-CBV0-0001` is archived under `coordination/archive/handoffs/`.
 - `coordination/OPERATIVE_OBLIGATIONS.md` remains the carry-forward index.
 - `coordination/IMPLEMENTER_HANDOFF.md` remains frozen historical evidence and is never appended.
 - Governed publication must use exact-tip conflict detection.
 - Repository evidence is durable memory; use lean/delta-only reads and retrieve history only for a concrete unresolved requirement.
 
-## Next action — bounded S5 implementation only
+## Next action — Architect independent implementation review only
 
-Builder implements only the D-063 / RFC-017 Capability & Permission Gateway V1.
+The Builder has implemented the D-063 / RFC-017 Capability & Permission Gateway V1 and returns the turn. Evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` only. The Architect reviews independently under the next unused immutable Sync ID after `ML-DEVOS-AS-081`. No further Builder action is authorized, and no later phase is implied. `devos/devos-manifest.json` still records `devos/capabilities/` as `NOT_IMPLEMENTED`; closure would be a separate, later gated act.
+
+The Builder turn was authorized to implement the following:
 
 Required implementation direction includes:
 
@@ -60,7 +62,6 @@ Required implementation direction includes:
 - the AS-077 descriptor-expiry wording reconciliation;
 - OBL-009 Bootstrap Trial #1 measurements where actually observable.
 
-On completion, publish a new CURRENT_HANDOFF under Context Bootstrap V0 and return the turn to the Architect for independent review.
 
 ## Hard boundaries
 
