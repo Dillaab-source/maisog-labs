@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-019: Sentinel S6 Isolated Execution
 
-Status: `DRAFT` — proposal only. Revised in Remediation Cycle 1 for `ML-DEVOS-AS-086` (`AS86-F001`–`AS86-F004`); resubmitted for independent Architect re-review.
+Status: `DRAFT` — proposal only. Revised in Remediation Cycle 1 for `ML-DEVOS-AS-086` (`AS86-F001`–`AS86-F004`) and Remediation Cycle 2 for `ML-DEVOS-AS-087` (`AS87-F001`); resubmitted for independent Architect re-review.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -8,6 +8,8 @@ Sentinel phase:
 - `S6 — Isolated Execution` (`ML-DEVOS-SIP-001`: "Implement task-scoped branch/worktree/sandbox isolation for Builder/QA work.")
 
 Authority chain: `D-066` (Paulo) authorizes S6 discovery, architecture proposal, and audit only, following S5's D.2 closure at Sentinel `v1.8.0` (`ML-DEVOS-ADR-015`, `D-065`, `ML-DEVOS-AS-085`). This RFC is the input to the S6 Architect Sync. It grants no authority and authorizes no implementation. No executable S6 file, directory, reserved root, manifest change, closure ADR, or version change is created by, or implied by, this RFC. Every artifact named below is a planned deliverable of a future, separately authorized implementation cycle.
+
+Remediation Cycle 2 (`ML-DEVOS-AS-087`) changed only the Builder publication `evidenceRef` contract (`AS87-F001`). The exact payload now satisfies S4's existing `BUILDING->READY_FOR_QA` evidence-class guard, and crash-recovery replay reuses the byte-identical payload (§7.1.1). The matching updates are in §7.1 steps 2, 3 and 5, the §13 *complete* row, §18 item 9, and summary decision 2.
 
 Remediation Cycle 1 (`ML-DEVOS-AS-086`) changed only what the four findings require:
 - `AS86-F001`: the immutable identity is separated from the mutable Fencing Checkpoint (§3, §3.1).
@@ -195,14 +197,57 @@ S4 stays the lifecycle and fencing authority, and its implementation and interfa
 
 **Builder side (inside *complete*, §13), in order:**
 1. **Push and verify.** Quiesce and validate. Push `task_branch` with its explicit lease. Verify with a read of the remote ref that it points at `result_commit_sha`.
-2. **Write ahead.** Under the S6 per-task registry lock, durably write the RTR as `PENDING`, using temp-then-rename. At most one `PENDING` RTR may exist per `(task_id, pre_revision)`; a second is `RESULT_TRANSFER_UNPROVEN`.
-3. **Transition.** The S6 host calls S4's public `transition` as the owner's agent: `BUILDING → READY_FOR_QA`, `expectedRevision = pre_revision`, `idempotencyKey = transfer_id`, `evidenceRef` carrying `transfer_id` and `result_commit_sha`. S4 stores the `evidenceRef` opaquely for audit. S6 never reads it back and does not depend on it.
+2. **Write ahead.** Build the publication `evidenceRef` exactly once, per §7.1.1. Under the S6 per-task registry lock, durably write the RTR as `PENDING`, using temp-then-rename. The record stores the exact serialized `evidenceRef` bytes (`publication_evidence_ref_json`) and their SHA-256 (`publication_evidence_ref_digest`). At most one `PENDING` RTR may exist per `(task_id, pre_revision)`; a second is `RESULT_TRANSFER_UNPROVEN`.
+3. **Transition.** The S6 host calls S4's public `transition` as the owner's agent with exactly these parameters:
+   - `toState: "READY_FOR_QA"`, from `BUILDING`;
+   - `expectedRevision = pre_revision`;
+   - `idempotencyKey = transfer_id`;
+   - `evidenceRef` = the object obtained by `JSON.parse` of the stored `publication_evidence_ref_json` bytes (§7.1.1);
+   - no `decisionRef`, no `explicitFailureFlag` and no `explicitAmbiguityFlag`.
+
+   S4 stores the `evidenceRef` opaquely for audit. S6 never reads it back and does not depend on it.
 4. **Commit only on proof.** On a successful transition result with `revision == pre_revision + 1`, S6 confirms through `getState()` that `state` is `READY_FOR_QA`, `owner` is `null`, and `revision` is `pre_revision + 1`, or a later value explained by the QA chain in step 6. Only then does it mark the RTR `COMMITTED` with `post_revision = pre_revision + 1`.
    - This is sound because S4's transition table allows exactly one mutation from (`BUILDING`, owner `O`, revision `R`) to (`READY_FOR_QA`, no owner, `R+1`): owner `O`'s own `BUILDING → READY_FOR_QA` transition at `R`. S6 makes that call itself, under its registry lock, with the key `transfer_id`.
 5. **Failure and crash recovery.**
    - If S4 rejects the transition (owner or revision mismatch), the RTR becomes `ABORTED`. The pushed branch is `STALE_UNPUBLISHED` (§15). It can never become an accepted handoff, because no `COMMITTED` RTR points at it.
-   - After a crash with a `PENDING` RTR, S6 re-issues the identical `transition` with the same `idempotencyKey` and bindings. S4's own idempotency ledger either replays the original success, and the RTR commits, or reports the conflict, and the RTR aborts.
+   - After a crash with a `PENDING` RTR, S6 re-issues the identical `transition`: same `toState`, `expectedRevision`, `idempotencyKey`, and absent `decisionRef`. The `evidenceRef` is re-parsed from the stored `publication_evidence_ref_json` bytes after their digest is verified. It is never rebuilt from the RTR's individual fields (§7.1.1).
+     - If S4's idempotency ledger replays the original success, the RTR commits.
+     - If S4 reports a conflict (`IDEMPOTENCY_CONFLICT`, or an owner or revision mismatch), the RTR aborts.
+     - If the stored bytes are missing or fail their digest, recovery stops with `RESULT_TRANSFER_UNPROVEN`. The RTR is not aborted or committed by inference; it waits for an explicit, audited operator resolution.
    - A `PENDING` RTR is never promoted by inference alone.
+
+##### 7.1.1 Builder publication `evidenceRef` — the single payload contract (`AS87-F001`)
+
+S4 already guards `BUILDING->READY_FOR_QA`. `devos/state/lifecycle.mjs` accepts that edge only if `evidenceRef.evidenceClass` is present and is one of the five bounded evidence classes; otherwise `transition()` fails `ILLEGAL_TRANSITION`. S6 satisfies that guard as it stands and changes nothing in S4. The payload is a JSON object with exactly these members, **in exactly this order**:
+
+| # | Member | Value |
+|---|---|---|
+| 1 | `evidenceClass` | The literal `"ACTOR_REPORTED"`. This is the Builder's own publication evidence. S6's isolation proof does not upgrade it: `INDEPENDENTLY_REPRODUCED` can only come from independent QA, and S7/S9 evidence handling stays separate. A future implementation MUST NOT emit any other value on this edge. |
+| 2 | `ref` | `"s6-rtr:<transfer_id>"`, the Result Transfer Record reference. |
+| 3 | `s6_transfer_id` | `transfer_id` (64 lowercase hex). |
+| 4 | `result_commit_sha` | 40 lowercase hex. |
+| 5 | `result_tree_sha` | 40 lowercase hex. |
+| 6 | `base_sha` | 40 lowercase hex. |
+| 7 | `identity_digest` | 64 lowercase hex (§3). |
+| 8 | `provenance_digest` | 64 lowercase hex: the hash-chained journal head up to and including the `PENDING` RTR entry. It excludes the transition outcome, which does not exist yet. |
+| 9 | `remote_ref` | `"refs/heads/sentinel/s6/<task_id>/builder/<instance_id>"`. |
+
+**Constraints on the payload:**
+- No other members.
+- String values only. Hex values are always lowercase.
+- No secret, credential, path on the host, or environment value.
+
+**Why byte identity matters.** S4 binds the idempotency ledger entry to `JSON.stringify(evidenceRef)`. That comparison depends on member *order* as well as content. A replay that rebuilds the object with the same values in a different order would be rejected as `IDEMPOTENCY_CONFLICT`. So S6:
+1. builds the object once, in the table's order;
+2. serializes it with `JSON.stringify` (no whitespace) into `publication_evidence_ref_json`;
+3. stores those bytes and their SHA-256 in the `PENDING` RTR before the first transition attempt;
+4. obtains the `evidenceRef` for every attempt, first or replay, only by `JSON.parse` of those stored bytes. `JSON.parse` preserves member order for these non-integer-like keys, so `JSON.stringify` of the parsed object reproduces the stored bytes exactly.
+
+Before each attempt S6 re-checks two things:
+- `JSON.stringify(parsed) === publication_evidence_ref_json`;
+- the stored digest.
+
+A mismatch is `RESULT_TRANSFER_UNPROVEN` and no call is made.
 
 **QA side (inside QA *create*):**
 
@@ -442,7 +487,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 | **use** | `ATTACHED`; S5 `ALLOW` per command; S4 checks per mutating command. | Run the command; journal it. |
 | **renew** | The owner performed S4 `renew` and hands over its result. | The checkpoint advances only under §3.1's gap-free rule (journaled); otherwise `INSTANCE_STALE`. The identity does not change. |
 | **quiesce** | — | Terminate the process group or job; prove it empty (`QUIESCE_UNPROVEN` otherwise); snapshot tree state. → `QUIESCED`. |
-| **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5: (1) push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA) and verify the remote ref; (2) write the Result Transfer Record ahead as `PENDING`; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision` and `idempotencyKey = transfer_id`; (4) mark the record `COMMITTED` only after the `getState()` proof. Only a committed record after a successful S4 transition means *published*. → `COMPLETED`. |
+| **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5: (1) push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA) and verify the remote ref; (2) write the Result Transfer Record ahead as `PENDING`; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision`, `idempotencyKey = transfer_id`, and the stored §7.1.1 `evidenceRef` (`evidenceClass: "ACTOR_REPORTED"`), with the payload stored before this step; (4) mark the record `COMMITTED` only after the `getState()` proof. Only a committed record after a successful S4 transition means *published*. → `COMPLETED`. |
 | **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; path rules (§9). | No-follow deletion of the instance root; verify absence; the journal is retained. → `CLEANED`. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
 
 **Concurrency.**
@@ -591,6 +636,12 @@ A future implementation's tests MUST:
    - Crash after the push but before the record: no record, so the branch is `STALE_UNPUBLISHED`.
    - Crash after `PENDING` but before the transition, and crash after the transition but before the commit: re-issuing with the same idempotency key commits via S4 replay, or aborts on conflict.
    - A rejected transition leaves the record `ABORTED`.
+   - **Payload contract (§7.1.1), against the real, unmodified S4 kernel:**
+     - The §7.1.1 payload passes the `BUILDING->READY_FOR_QA` guard. The same payload without `evidenceClass`, or with a value outside the five classes, fails `ILLEGAL_TRANSITION`.
+     - `evidenceClass` is always `ACTOR_REPORTED`; a mutant emitting any stronger class must fail a test.
+     - Replay from the stored bytes, after the original succeeded, returns S4's recorded result.
+     - A replay object rebuilt from the RTR fields in a different member order fails `IDEMPOTENCY_CONFLICT`. It must never be produced by S6.
+     - Stored bytes whose digest or `JSON.stringify` round-trip does not match stop recovery with `RESULT_TRANSFER_UNPROVEN` before any S4 call.
    - QA with a gapped chain, a chain containing a non-QA mutation, a later rebuild round, or duplicate records is `RESULT_TRANSFER_UNPROVEN`.
    - A moved or force-updated remote branch does not change the commit QA builds.
 10. **Path creation (§9.1):**
@@ -660,7 +711,7 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 ## Required design decisions (summary)
 
 1. V1 isolation level is **L3 on a dedicated clone**. L4 is not provided and must not be claimed.
-2. Publication is linearized at **S4 `transition`**, not at Git push. The S6 host issues that one transition as the owner's agent, with a write-ahead Result Transfer Record (§7.1).
+2. Publication is linearized at **S4 `transition`**, not at Git push. The S6 host issues that one transition as the owner's agent, with a write-ahead Result Transfer Record (§7.1). The transition carries the single §7.1.1 `evidenceRef` payload (`evidenceClass: "ACTOR_REPORTED"`, never upgraded), stored as exact bytes and reused byte-identically on replay.
 3. QA reconstructs from the **commit named by the committed Result Transfer Record**, proven to be the current handoff by a gap-free S4 revision chain and fetched by exact SHA from the remote. QA is a different actor in its own instance. No S4 interface change is assumed (§7.1).
 4. MAY / CAN / ISOLATED are separate, conjunctive conditions. S5 `ALLOW` is never sufficient; S5 `DENY` is always blocking.
 5. S6 has no task state machine. Its environment lifecycle is subordinate to S4 fencing. The immutable Execution Identity is separate from the mutable Fencing Checkpoint, which advances only through verified, gap-free S4 `claim`/`renew` results (§3.1).
