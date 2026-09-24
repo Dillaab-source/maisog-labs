@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-019: Sentinel S6 Isolated Execution
 
-Status: `DRAFT` — proposal only. Revised in Remediation Cycle 1 for `ML-DEVOS-AS-086` (`AS86-F001`–`AS86-F004`) and Remediation Cycle 2 for `ML-DEVOS-AS-087` (`AS87-F001`); resubmitted for independent Architect re-review.
+Status: `DRAFT` — proposal only. Revised in Remediation Cycle 1 for `ML-DEVOS-AS-086` (`AS86-F001`–`AS86-F004`), Remediation Cycle 2 for `ML-DEVOS-AS-087` (`AS87-F001`), and the exceptional Remediation Cycle 3 authorized by `D-067` for `ML-DEVOS-AS-088` (`AS88-F001`); resubmitted for final independent Architect review.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -8,6 +8,8 @@ Sentinel phase:
 - `S6 — Isolated Execution` (`ML-DEVOS-SIP-001`: "Implement task-scoped branch/worktree/sandbox isolation for Builder/QA work.")
 
 Authority chain: `D-066` (Paulo) authorizes S6 discovery, architecture proposal, and audit only, following S5's D.2 closure at Sentinel `v1.8.0` (`ML-DEVOS-ADR-015`, `D-065`, `ML-DEVOS-AS-085`). This RFC is the input to the S6 Architect Sync. It grants no authority and authorizes no implementation. No executable S6 file, directory, reserved root, manifest change, closure ADR, or version change is created by, or implied by, this RFC. Every artifact named below is a planned deliverable of a future, separately authorized implementation cycle.
+
+Exceptional Remediation Cycle 3 (`D-067`, `ML-DEVOS-AS-088`) changed only the publication provenance value (`AS88-F001`). The payload's former self-referential `provenance_digest` becomes the non-circular `prepublication_provenance_digest`: the journal head immediately *before* the `PENDING` Result Transfer Record is appended. The journal chain and the construction order are now defined, and proof of the `PENDING` record itself is recorded outside the payload (§7.1.1, §7.1.2). The matching updates are in the RTR field list, §7.1 steps 2 and 5, and §18 item 9.
 
 Remediation Cycle 2 (`ML-DEVOS-AS-087`) changed only the Builder publication `evidenceRef` contract (`AS87-F001`). The exact payload now satisfies S4's existing `BUILDING->READY_FOR_QA` evidence-class guard, and crash-recovery replay reuses the byte-identical payload (§7.1.1). The matching updates are in §7.1 steps 2, 3 and 5, the §13 *complete* row, §18 item 9, and summary decision 2.
 
@@ -190,14 +192,23 @@ S4 stays the lifecycle and fencing authority, and its implementation and interfa
 - `transfer_id`: SHA-256 of `(identity_digest, result_commit_sha, pre_revision)`;
 - `task_id`, `builder_identity_digest`, `owner`;
 - `pre_revision`: the checkpoint `current_revision` presented to S4;
-- `post_revision`: set only on commit;
+- `post_revision`: set only on commit. It lives in the status part (see `status` below);
 - `result_commit_sha`, `result_tree_sha`, `base_sha`;
-- `remote_ref` (the instance's `task_branch`) and `provenance_digest`;
+- `remote_ref` (the instance's `task_branch`) and `prepublication_provenance_digest` (§7.1.2);
 - `status`: `PENDING`, `COMMITTED` or `ABORTED`.
+
+All fields other than `status` and `post_revision` form the RTR's **immutable body**, written once when the record is written as `PENDING` and never rewritten. `status` and `post_revision` live in a separate status part of the record. Every change to them is also appended as its own journal entry. The digest proof in §7.1.2 therefore stays valid after commit or abort.
 
 **Builder side (inside *complete*, §13), in order:**
 1. **Push and verify.** Quiesce and validate. Push `task_branch` with its explicit lease. Verify with a read of the remote ref that it points at `result_commit_sha`.
-2. **Write ahead.** Build the publication `evidenceRef` exactly once, per §7.1.1. Under the S6 per-task registry lock, durably write the RTR as `PENDING`, using temp-then-rename. The record stores the exact serialized `evidenceRef` bytes (`publication_evidence_ref_json`) and their SHA-256 (`publication_evidence_ref_digest`). At most one `PENDING` RTR may exist per `(task_id, pre_revision)`; a second is `RESULT_TRANSFER_UNPROVEN`.
+2. **Write ahead.** Everything in this step happens under the S6 per-task registry lock, in the exact construction order of §7.1.2:
+   1. read the journal head, `prepublication_provenance_digest`;
+   2. build the publication `evidenceRef` exactly once, per §7.1.1, using that fixed value;
+   3. serialize it;
+   4. durably write the RTR as `PENDING`, using temp-then-rename;
+   5. append the `PENDING` entry to the journal normally.
+
+   The record stores the exact serialized `evidenceRef` bytes (`publication_evidence_ref_json`) and their SHA-256 (`publication_evidence_ref_digest`). At most one `PENDING` RTR may exist per `(task_id, pre_revision)`; a second is `RESULT_TRANSFER_UNPROVEN`.
 3. **Transition.** The S6 host calls S4's public `transition` as the owner's agent with exactly these parameters:
    - `toState: "READY_FOR_QA"`, from `BUILDING`;
    - `expectedRevision = pre_revision`;
@@ -213,7 +224,7 @@ S4 stays the lifecycle and fencing authority, and its implementation and interfa
    - After a crash with a `PENDING` RTR, S6 re-issues the identical `transition`: same `toState`, `expectedRevision`, `idempotencyKey`, and absent `decisionRef`. The `evidenceRef` is re-parsed from the stored `publication_evidence_ref_json` bytes after their digest is verified. It is never rebuilt from the RTR's individual fields (§7.1.1).
      - If S4's idempotency ledger replays the original success, the RTR commits.
      - If S4 reports a conflict (`IDEMPOTENCY_CONFLICT`, or an owner or revision mismatch), the RTR aborts.
-     - If the stored bytes are missing or fail their digest, recovery stops with `RESULT_TRANSFER_UNPROVEN`. The RTR is not aborted or committed by inference; it waits for an explicit, audited operator resolution.
+     - If the stored bytes are missing or fail their digest, or the §7.1.2 adjacency check fails (the `PENDING` journal entry's predecessor head differs from the payload's `prepublication_provenance_digest`, or the entry's `rtr_digest` differs from SHA-256 of the stored immutable RTR body), recovery stops with `RESULT_TRANSFER_UNPROVEN`. The RTR is not aborted or committed by inference; it waits for an explicit, audited operator resolution.
    - A `PENDING` RTR is never promoted by inference alone.
 
 ##### 7.1.1 Builder publication `evidenceRef` — the single payload contract (`AS87-F001`)
@@ -229,7 +240,7 @@ S4 already guards `BUILDING->READY_FOR_QA`. `devos/state/lifecycle.mjs` accepts 
 | 5 | `result_tree_sha` | 40 lowercase hex. |
 | 6 | `base_sha` | 40 lowercase hex. |
 | 7 | `identity_digest` | 64 lowercase hex (§3). |
-| 8 | `provenance_digest` | 64 lowercase hex: the hash-chained journal head up to and including the `PENDING` RTR entry. It excludes the transition outcome, which does not exist yet. |
+| 8 | `prepublication_provenance_digest` | 64 lowercase hex: the journal head (§7.1.2) immediately **before** the `PENDING` RTR entry is appended, read under the registry lock. It is a fixed value computed before the payload exists. It covers the Builder's journal through quiesce, validation, push and push verification. It never covers the `PENDING` entry, the payload, or the transition outcome. |
 | 9 | `remote_ref` | `"refs/heads/sentinel/s6/<task_id>/builder/<instance_id>"`. |
 
 **Constraints on the payload:**
@@ -248,6 +259,37 @@ Before each attempt S6 re-checks two things:
 - the stored digest.
 
 A mismatch is `RESULT_TRANSFER_UNPROVEN` and no call is made.
+
+##### 7.1.2 Journal chain and non-circular construction order (`AS88-F001`)
+
+**Journal chain.** Each instance's journal is an append-only sequence of entries, each serialized with `JSON.stringify` in a fixed member order and never rewritten:
+- the chain starts at `head_0 = SHA-256("s6-journal-v1\n" ‖ identity_digest)`;
+- appending entry `n` with serialized bytes `e_n` sets `head_n = SHA-256(head_{n-1} ‖ SHA-256(e_n))`, where hex digests are concatenated as ASCII;
+- every entry records `prev_head = head_{n-1}`.
+
+A value is therefore a hash only over entries that already exist when it is computed.
+
+**Construction order for publication.** Every step runs under the per-task registry lock, and no other journal append may interleave between steps 1 and 4:
+1. **Read the head.** Read the current journal head `head_k`, the head after the push-verification entry, and fix `prepublication_provenance_digest = head_k`.
+2. **Build and serialize.** Build the §7.1.1 payload using that fixed value, together with the already-known `transfer_id`, commit, tree, base, identity and ref values, and serialize it to `publication_evidence_ref_json`. No input depends on the payload itself.
+3. **Write the record.** Write the RTR's immutable body containing those exact bytes and their SHA-256, with status `PENDING` in the separate status part.
+4. **Append the entry.** Append the journal entry `e_{k+1} = { type: "RTR_PENDING", transfer_id, rtr_digest, prev_head: head_k }`, where `rtr_digest` is the SHA-256 of the exact immutable RTR body bytes written in step 3. Then `head_{k+1} = SHA-256(head_k ‖ SHA-256(e_{k+1}))` is computed normally.
+5. **Keep proof outside the payload.** Proof of the `PENDING` record lives outside the publication payload and the RTR body: `rtr_digest` in `e_{k+1}`, and `head_{k+1}` itself. `head_{k+1}` is carried into later journal entries (the transition attempt, the `COMMITTED`/`ABORTED` status) and into the Isolation Provenance (§17). It is never written back into the payload or the `PENDING` RTR, so no value is ever a hash over itself.
+
+**Dependency direction.** The dependency graph is acyclic:
+
+`head_k → payload → PENDING RTR bytes → rtr_digest → e_{k+1} → head_{k+1}`
+
+No fixed-point or self-hash construction is used or needed.
+
+**Adjacency proof.** The payload digest and the `PENDING` entry are bound by adjacency, not by self-inclusion. For every recovery and audit, S6 checks:
+- the entry `e_{k+1}` whose `type` is `RTR_PENDING` for this `transfer_id` has `prev_head == prepublication_provenance_digest`, as parsed from the stored payload bytes;
+- its `rtr_digest` equals SHA-256 of the stored immutable RTR body;
+- the chain recomputes from `head_0` through `head_{k+1}`.
+
+Any failure is `RESULT_TRANSFER_UNPROVEN` (§7.1 step 5). A broken chain elsewhere in the journal remains `ISOLATION_UNPROVABLE` (§14).
+
+**Replay is unaffected.** Crash recovery never recomputes `prepublication_provenance_digest` or rebuilds the payload. It re-parses the stored `publication_evidence_ref_json` bytes (§7.1.1), so every S4 attempt carries a byte-identical `evidenceRef`. That holds even though the journal head has since advanced past `head_{k+1}`.
 
 **QA side (inside QA *create*):**
 
@@ -642,6 +684,12 @@ A future implementation's tests MUST:
      - Replay from the stored bytes, after the original succeeded, returns S4's recorded result.
      - A replay object rebuilt from the RTR fields in a different member order fails `IDEMPOTENCY_CONFLICT`. It must never be produced by S6.
      - Stored bytes whose digest or `JSON.stringify` round-trip does not match stop recovery with `RESULT_TRANSFER_UNPROVEN` before any S4 call.
+   - **Non-circular construction (§7.1.2):**
+     - A deterministic construction test builds the payload from a fixture journal and checks the result: `prepublication_provenance_digest` equals the head read before the `PENDING` append; recomputing that head from `head_0` over the fixture entries reproduces it; and the payload contains no digest of the `PENDING` RTR, its entry, or itself.
+     - After the append, `e_{k+1}.prev_head` equals the payload value, `rtr_digest` equals SHA-256 of the stored immutable RTR body, and it still does after the status changes to `COMMITTED` or `ABORTED`. `head_{k+1}` recomputes normally.
+     - Replay after further journal appends still sends the byte-identical stored `evidenceRef`. S4 replays the original result.
+     - Each of the following is `RESULT_TRANSFER_UNPROVEN` before any S4 call: a corrupted `prev_head`, a corrupted `rtr_digest`, a mutated immutable RTR body, and a payload whose `prepublication_provenance_digest` differs from `e_{k+1}.prev_head`.
+     - A mutant that computes the digest *after* the `PENDING` append, or that interleaves another journal append between steps 1 and 4, must fail a test.
    - QA with a gapped chain, a chain containing a non-QA mutation, a later rebuild round, or duplicate records is `RESULT_TRANSFER_UNPROVEN`.
    - A moved or force-updated remote branch does not change the commit QA builds.
 10. **Path creation (§9.1):**

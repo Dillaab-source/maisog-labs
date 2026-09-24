@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN_EXCEPTIONAL_REMEDIATION_CYCLE_3_AS88_F001_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-RFC019-REM3-0001
+REVIEW_TARGET_COMMIT: 5f92140e96b287c7c04f778c07172c246a71805b
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-088
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -33,7 +33,11 @@ explicitly authorized one additional cycle for AS88-F001 only.
 This raises the remediation ceiling to 3 for this S6 design cycle only. It does not
 change the default remediation budget for any other cycle or phase.
 
-## Authorized correction — AS88-F001 only
+## Architect final-review return — Exceptional Remediation Cycle 3
+
+The Builder has corrected `AS88-F001` in `ML-DEVOS-RFC-019` (still `DRAFT`, design only) and returns the turn for the final independent S6 design review, under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-088`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-RFC019-REM3-0001`) only. D-067 is not implementation authority. No S6 implementation, root reservation, manifest change, S5 runtime use or transport authorization is granted. No further Builder action is authorized.
+
+## Authorized correction — AS88-F001 only (as authorized)
 
 Remove the self-referential publication provenance digest in ML-DEVOS-RFC-019.
 
