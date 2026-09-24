@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S5_IMPLEMENTATION_ACCEPTED_AWAITING_CLOSURE_DIRECTION
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: SENTINEL_S5_CLOSURE_PREFLIGHT
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: SENTINEL_S5_D1_PREDECISION_CLOSURE_PREFLIGHT_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 1
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
 CURRENT_HANDOFF: NONE
@@ -24,40 +24,41 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-`ML-DEVOS-AS-083` independently accepts the bounded S5 Capability & Permission Gateway V1 implementation authorized by `D-063`, after Remediation Cycle 1 closed `AS82-F001` and `AS82-F002`.
+`D-064` authorizes only the Architect's S5 D.1 Pre-decision Closure Preflight.
 
-This is technical implementation acceptance only.
+S5 Capability & Permission Gateway V1 implementation was technically accepted by `ML-DEVOS-AS-083`.
 
-`devos/devos-manifest.json` remains unchanged with `devos/capabilities/` still `NOT_IMPLEMENTED`. No ADR, closure-history mutation, Sentinel version transition, runtime integration, S6+, CP-4+, Model Router, remote resource, deployment, production mutation, protected/main merge, or PR #10 merge is authorized by this state.
+The Architect may inspect and publish the bounded closure proposal/preflight only. No final closure mutation is authorized yet.
 
-## Protocol
+## Required D.1 review
 
-Context Bootstrap V0 remains active: `brain/protocols/CONTEXT_BOOTSTRAP.md`.
+The Architect must verify the exact live repository state and produce the existing RFC-015 D.1 closure-preflight findings for S5, including:
 
-- `CURRENT_HANDOFF: NONE`; outgoing `H-S5-REM1-0001` is archived byte-for-byte by the AS-083 transition.
-- `coordination/OPERATIVE_OBLIGATIONS.md` remains the carry-forward index.
-- `coordination/IMPLEMENTER_HANDOFF.md` remains frozen historical evidence.
-- Governed publication continues to require exact-tip conflict detection.
+- exact closure base SHA;
+- current RFC-017 status and stale/current surfaces;
+- current `devos/capabilities/` manifest state;
+- proposed manifest `IMPLEMENTED` + ADR-keyed `closure_ref`;
+- proposed closure-history entry;
+- proposed ADR provenance;
+- explicit version disposition against the active Sentinel baseline/version policy;
+- pre-closure traceability ERROR fingerprint;
+- bounded closure diff;
+- confirmation that no S6+ or other later authority is implied.
 
-## Next action — Paulo direction only
-
-Paulo decides whether to proceed to the repository's existing S5 closure lifecycle.
-
-If Paulo chooses to proceed, the next bounded step is the D.1 pre-decision closure process for S5. That step must define and review the proposed closure package before any manifest/ADR/version closure mutation.
-
-No immediate closure mutation and no later phase is authorized by AS-083.
+After the D.1 review, route back to Paulo for the actual closure decision.
 
 ## Hard boundaries
 
-No manifest closure yet.
-No ADR/version transition yet.
+No manifest mutation.
+No closure ADR creation.
+No RFC-017 final closure mutation.
+No closure-history append.
+No Sentinel version change.
+No D.2 closure implementation.
 No S3/S4 integration or wiring.
 No S6+.
 No CP-4+.
 No Model Router implementation.
-No dynamic plugin discovery.
-No external/live policy service.
-No credentials or secret values.
 No remote D1/R2.
 No Cloudflare Access/DNS/domain/deployment/rollback/production mutation.
 No production-data writes.

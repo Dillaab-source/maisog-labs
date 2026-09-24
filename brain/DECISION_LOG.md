@@ -950,3 +950,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Publication boundary:** this D-063 decision/routing transaction must itself publish under Context Bootstrap V0 exact-tip conflict detection. It does not implement any S5 executable file.
 - **Builder route:** after this decision is durably published, route `TURN: CLAUDE`, `STATUS: AUTHORIZED`, `AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION_ONLY`, `IMPLEMENTER_ACTION_REQUIRED: YES`. `CURRENT_HANDOFF` remains `NONE` until the Builder completes the bounded implementation and returns a new Builder→Architect handoff.
 - **Return gate:** after bounded S5 implementation and evidence collection, Builder creates the next CURRENT_HANDOFF and returns `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` for independent implementation review. No later phase is implied.
+
+
+### D-064 — Authorize S5 D.1 pre-decision closure preflight only
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Decision input:** After `ML-DEVOS-AS-083` technically accepted S5 Capability & Permission Gateway V1 and routed `TURN: PAULO` / `PAULO_DECISION_REQUIRED`, Paulo explicitly stated: `ok proceed authorized`.
+- **Decision:** Proceed to the repository's existing **D.1 Pre-decision Closure Preflight** for S5 only.
+- **Authority granted:** the Architect may inspect the live S5 closure inputs and publish the bounded D.1 preflight review/package for Paulo's later closure decision.
+- **Required D.1 scope:** name the exact base SHA; inspect current RFC status, manifest entry, closure history, rolling coordination surfaces, active Sentinel baseline and version policy; define the proposed RFC status change; define the proposed `devos/capabilities/` manifest transition to `IMPLEMENTED` with an ADR-keyed `closure_ref`; define the proposed S5 closure-history entry; identify the proposed ADR provenance; state an explicit version disposition; record the pre-closure traceability ERROR fingerprint; verify bounded closure scope; and confirm no later-phase authority is implied.
+- **Current baseline facts to verify, not assume:** Sentinel active capability baseline is presently `v1.7.0`; `devos/capabilities/` is presently `NOT_IMPLEMENTED`; S5 implementation was technically accepted by `ML-DEVOS-AS-083`.
+- **No closure mutation authority:** D-064 does **not** authorize changing `devos/devos-manifest.json`, creating the final closure ADR, changing RFC-017's final closure status, appending closure history, changing the active Sentinel version, or performing any D.2 post-decision closure mutation.
+- **No later-phase authority:** S6+, CP-4+, Model Router V0, S3/S4 integration/wiring, remote D1/R2, Cloudflare production mutation, deployment/rollback, production writes, protected/main merge, and PR #10 merge/auto-merge remain unauthorized.
+- **Return gate:** Architect publishes the D.1 preflight under the next unused immutable Architect Sync ID and routes back to `TURN: PAULO` / `PAULO_DECISION_REQUIRED` for the actual closure/version decision. No Builder implementation turn is authorized by D-064.
