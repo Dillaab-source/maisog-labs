@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_D071_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS094_REMEDIATION_CYCLE_1_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-CORE-IMPL-0001
-REVIEW_TARGET_COMMIT: db73a73fab022405d0882ec75f4f40a97cc5adea
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-093
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-094
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -24,155 +24,73 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-071 authorizes one fresh bounded S6-core implementation cycle against the
-D-069 / D-070 amended ML-DEVOS-RFC-019 approved by ML-DEVOS-AS-093.
+D-071 remains the owner implementation authority.
+ML-DEVOS-AS-094 returns four bounded implementation findings for remediation cycle 1
+of 2.
 
-D-068 remains suspended and is not revived.
+S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
 
-## Architect implementation review return — D-071 (cycle 0 of 2)
+## Authorized remediation
 
-The Builder has implemented the bounded S6 core in `devos/execution/`, with focused tests and fixtures, the approved `NOT_IMPLEMENTED` manifest root entry (no `closure_ref`, no version change), factual RFC-019/README status notes and regenerated traceability. It returns the turn for independent implementation review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-093`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-IMPL-0001`) only. S6 core exposes no generic executor, no real execution driver was introduced, and no live S6 remote transport or credential was used. S6 is not closed. The Builder's suspended local `D-068` draft remains preserved, uncommitted and unpushed. No further Builder action is authorized.
+Correct only:
 
-## Authorized S6-core implementation
+- AS94-F001 — move final claim fencing + fresh S5 recheck into the claim
+  linearization lock immediately before ISSUED -> CLAIMED, with deterministic race
+  tests.
+- AS94-F002 — make request-binding + permit minting crash-recoverable so a crash at any
+  sub-step can never let the same request_id mint a second permit.
+- AS94-F003 — remove generic argv-taking Git/process helpers from S6 core and test
+  fixtures; replace with closed fixed operations / structured parameters.
+- AS94-F004 — implement the complete RFC-019 Execution Report contract in schema,
+  runtime validation and durable report/journal evidence.
 
-Claude / Builder may implement the RFC-019 S6 core, including:
-
-- immutable Execution Identity and mutable gap-free Fencing Checkpoint;
-- platform profiles, path confinement, verified creation/deletion and fail-closed
-  TOCTOU handling;
-- dedicated-clone workspace lifecycle and validation;
-- environment/config construction and secret-channel stripping;
-- S6 registry, hash-chained journal and provenance;
-- Result Transfer Record construction/replay/non-circular publication provenance;
-- Execution Request / Permit / Report contracts and permit lifecycle;
-- request_id idempotency and one-request/one-permit binding;
-- S5 shell decision consumption at issuance;
-- claim-time S5 live revocation/expiry/trusted-time recheck;
-- S5 subject actor_id/actor_role binding to immutable S6 owner/role using:
-  BUILDER -> Builder and QA -> QA;
-- quiescence proof, cleanup, quarantine and crash recovery;
-- completion/publication control and independent QA reconstruction;
-- transport/ref/lease/provenance logic exercised only with local/synthetic transport;
-- RFC-019 reason vocabulary/precedence and focused tests.
-
-## Execution boundary
-
-S6 core MUST NOT expose or implement:
-
-- run(arbitraryCommand);
-- raw caller-supplied spawn();
-- a shell bridge;
-- a generic actor/tool command executor;
-- any equivalent API that executes caller-selected argv.
-
-No real execution driver is authorized.
-
-Permitted testing is limited to:
-
-- injected fake drivers that execute nothing;
-- fixed deterministic checked-in fixture operations with literal behavior/argv where
-  RFC-019 requires real filesystem/process evidence;
-- local bare Git repositories and synthetic/mocked provider results.
-
-Test fixtures must not accept caller-supplied command strings/argv and must not evolve
-into a generic driver.
-
-If a provider/runtime safety control blocks even a bounded fixture/test operation, STOP
-and return to Architect/Paulo. Do not expand permissions, wrap the blocked action, use an
-alternate execution path, or otherwise route around the control.
-
-## S3 / S4 / S5 boundary
-
-No S3/S4/S5 implementation, interface, schema, policy semantics, persistence,
-evaluator/minter or lifecycle mutation is authorized.
-
-S4 remains task-state/fencing authority.
-S5 remains CAN authority and is not argv-aware.
-S6 consumes only accepted public interfaces.
-
-## Manifest / root
-
-Authorized:
-
-- create canonical devos/execution/;
-- add exactly the approved S6 manifest root entry:
-  { "path": "devos/execution/", "owning_phase": "S6",
-    "consuming_phases": ["S7","S8"], "status": "NOT_IMPLEMENTED",
-    "executable_runtime_present": false }
-- no closure_ref;
-- narrowly update tests/devos-manifest.test.mjs only if required for this NOT_IMPLEMENTED
-  root.
-
-This is implementation-in-progress metadata, not S6 closure.
+Preserve every implementation property AS-094 marked accepted.
 
 ## Authorized repository writes
 
 Only:
 
 - devos/execution/**;
-- devos/devos-manifest.json for the approved S6 root entry only;
 - tests/execution-*.test.mjs;
-- narrowly necessary tests/fixtures/**;
-- tests/devos-manifest.test.mjs only as required by the root addition;
-- ML-DEVOS-RFC-019.md and devos/changes/rfcs/README.md only for factual
-  implementation-status/provenance notes that do not claim closure;
-- deterministic traceability outputs;
+- narrowly necessary tests/fixtures/execution/**;
+- deterministic traceability outputs if needed;
+- ML-DEVOS-RFC-019.md and devos/changes/rfcs/README.md only for factual remediation
+  status/provenance notes, with no design change;
 - coordination/STATE.md and coordination/CURRENT_HANDOFF.md.
 
-No other subsystem source/interface mutation.
+Do not change devos/devos-manifest.json. Its S6 entry remains NOT_IMPLEMENTED with
+executable_runtime_present false and no closure_ref.
+
+No S3/S4/S5 source/interface/schema/policy mutation.
 
 ## Required evidence
 
-Builder must report exact results/exit codes for:
+Return exact test/validator exit codes and new focused evidence for all four findings,
+including:
 
-- applicable RFC-019 §18 S6-core focused tests;
-- permit lifecycle/idempotency/freshness/subject-binding tests;
-- path/environment/quiescence/recovery/failure/mutation tests;
-- RTR replay/non-circular provenance and QA-reconstruction tests;
-- local/synthetic transport denial/ref/lease tests;
-- npm test;
-- manifest validator;
-- capability-policy validator;
-- task-contract validator;
-- rules validator;
-- waiver validator;
-- skills bridge validator;
-- git diff --check;
-- traceability generation/validation.
+- claim race with local task-lock contention + S4 mutation;
+- claim race with live S5 revocation/expiry change;
+- permit-creation crash/fault injection at every durable sub-step and same-permit replay;
+- source-level proof that no S6-core or fixture export accepts arbitrary command/argv for
+  execution;
+- complete Execution Report positive/negative contract tests;
+- full S6 focused suites, mutation suite, npm test, standard validators,
+  git diff --check and traceability.
 
-Platform claims must be honest: NOT RUN is required for platforms not actually executed.
-
-All Builder evidence remains ACTOR_REPORTED pending Architect inspection/reproduction.
+Platform claims remain actual-run only; otherwise state NOT RUN.
+Builder evidence remains ACTOR_REPORTED pending Architect review.
 
 ## Return gate
 
-After the bounded implementation, publish a fresh CURRENT_HANDOFF and return:
+After remediation publish a fresh CURRENT_HANDOFF and return:
 
 TURN: ARCHITECT
 STATUS: READY_FOR_ARCHITECT
 ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
-
-The handoff must include changed files, exact test/validator exit codes, platform matrix,
-failure/mutation evidence, traceability result, residual limitations, and confirmation
-that no real execution driver or live S6 remote transport was introduced.
-
-## Version / closure
-
-Sentinel remains v1.8.0.
-
-Do NOT:
-
-- set S6 manifest status to IMPLEMENTED;
-- add closure_ref;
-- create S6 closure ADR/history;
-- bump Sentinel version;
-- represent implementation completion as phase closure.
-
-Closure remains separately gated after independent implementation review.
 
 ## Hard boundaries
 
@@ -181,12 +99,11 @@ No generic command-execution implementation.
 No real execution-driver implementation.
 No standing live S6 GitHub transport authority.
 No real S6 network writes or credentials.
-No protected ref mutation, force push, delete, tag, PR-setting or repository-setting mutation.
-No S3/S4/S5 implementation/interface mutation.
-No S6 closure / closure_ref / version bump.
+No S3/S4/S5 mutation.
+No manifest status/root/closure change.
+No S6 closure, closure_ref or Sentinel version bump.
 No S7+.
-No S8 orchestration.
-No S9 evidence gate.
+No S8/S9.
 No CP-4+.
 No Model Router.
 No dynamic plugin discovery.
@@ -200,4 +117,4 @@ No automatic stale-branch deletion.
 No L4/container/VM implementation.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by D-071.
+No operative obligation is closed by AS-094.
