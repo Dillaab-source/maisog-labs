@@ -28,3 +28,4 @@ Append one row per entry; never edit or remove rows.
 
 | handoff_id | cycle_id | source_commit | source_blob |
 |---|---|---|---|
+| H-CBV0-0001 | SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_IMPLEMENTATION | 6eb88cf1b9248ce5f01d113e555ec59950f0d622 | df666b9a47155d54c87b4bac9b03a0a75660c31e |
