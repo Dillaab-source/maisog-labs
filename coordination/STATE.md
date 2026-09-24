@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN_REMEDIATION_CYCLE_2_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN_REMEDIATION_BUDGET_EXHAUSTED_AWAITING_OWNER_DIRECTION
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-RFC019-REM2-0001
-REVIEW_TARGET_COMMIT: 7e9c55af0d16227984b2a1ff388eb9ec8c92b344
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-087
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -24,35 +24,32 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-066 remains the owner authority for this S6 design cycle.
-ML-DEVOS-AS-087 returns CHANGES_REQUESTED — Remediation Cycle 2 of 2.
-This remains design/proposal work only.
+D-066 remains the owner authority for the S6 design cycle.
 
-## Architect re-review return — Remediation Cycle 2
+ML-DEVOS-AS-088 closes AS87-F001 but identifies AS88-F001:
+RFC-019's publication provenance digest is self-referential because the payload stores
+a digest defined over the PENDING RTR entry that itself stores that payload.
 
-The Builder has corrected `AS87-F001` in `ML-DEVOS-RFC-019` (still `DRAFT`, design only) and returns the turn for independent re-review, under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-087`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-RFC019-REM2-0001`) only. No S6 implementation, root reservation, manifest change, S5 runtime use or transport authorization is granted. No further Builder action is authorized.
+The automatic remediation budget is exhausted at 2 of 2.
 
-## Remediation scope (as authorized)
+## Paulo decision required
 
-Correct exactly AS87-F001:
+Paulo may decide whether to:
 
-RFC-019's S4 BUILDING → READY_FOR_QA publication call must carry an evidenceRef that
-satisfies the existing S4 evidence-class guard, including
-`evidenceClass: "ACTOR_REPORTED"`, the Result Transfer Record identifier/reference,
-and the result commit/provenance fields already required by S6.
+- authorize one exceptional narrowly bounded remediation for AS88-F001 only;
+- authorize a broader redesign;
+- stop/defer S6.
 
-Crash-recovery replay must use byte/content-identical evidenceRef binding.
+The Architect recommends the first option if S6 is to continue: redefine the
+publication provenance field using a non-circular pre-PENDING journal head (or another
+fully specified non-circular construction) while preserving the S4 payload and evidence
+class contract already accepted in AS-088.
 
-Update only directly necessary RFC/index, deterministic traceability outputs, and
-Context Bootstrap coordination/handoff evidence.
-
-Do not modify S3, S4 or S5 implementation/interfaces.
-
-On completion, publish a new CURRENT_HANDOFF and return TURN: ARCHITECT /
-STATUS: READY_FOR_ARCHITECT / ARCHITECT_ACTION_REQUIRED: YES.
+No option is selected by this STATE.
 
 ## Hard boundaries
 
+No further Builder remediation without a new Paulo decision.
 No S6 executable implementation.
 No devos/execution root or manifest-status/root-ownership change.
 No S3/S4/S5 implementation/interface mutation.
@@ -70,4 +67,4 @@ No PR #10 merge or auto-merge.
 
 All remote/deploy/main/mutation flags remain NO.
 Known traceability debt CORE-022 and WEB-REQ-009 remains visible unless separately and
-legitimately resolved. No operative obligation is closed by AS-087.
+legitimately resolved. No operative obligation is closed by AS-088.
