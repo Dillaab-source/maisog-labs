@@ -1,18 +1,18 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS094_REMEDIATION_CYCLE_1_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-CORE-IMPL-REM1-0001
+REVIEW_TARGET_COMMIT: a91c509ce3e16aef02e76f873f8893159a3eda71
 APPLICABLE_REVIEW_ID: ML-DEVOS-AS-094
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -29,6 +29,10 @@ ML-DEVOS-AS-094 returns four bounded implementation findings for remediation cyc
 of 2.
 
 S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
+
+## Architect re-review return — AS-094 remediation cycle 1 of 2
+
+The Builder has corrected `AS94-F001` (all final claim checks under the S6 task lock, S5 recheck last), `AS94-F002` (the atomically published request binding is the only permit commit point; derived artifacts are rebuilt after a crash; orphans are never permits), `AS94-F003` (closed named Git and fixture operations; no argv-taking execution export) and `AS94-F004` (complete, validated, durably recorded Execution Report). It returns the turn for independent re-review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-094`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-IMPL-REM1-0001`) only. The manifest is unchanged, S6 is not closed, and no real execution driver, live remote transport or credential was introduced. No further Builder action is authorized.
 
 ## Authorized remediation
 

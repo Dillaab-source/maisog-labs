@@ -11,7 +11,7 @@
 // closed as TRANSPORT_NOT_AUTHORIZED until a separate Paulo decision exists.
 import path from "node:path";
 
-import { tryGit } from "./git.mjs";
+import { cloneNoCheckout, fetchCommit, hasCommit, isAncestor, lsRemoteRef, pushWithLease } from "./git.mjs";
 import { HEX40, fail } from "./vocabulary.mjs";
 
 const OPAQUE = /^[A-Za-z0-9._:-]{1,128}$/;
@@ -63,7 +63,7 @@ export function createTransport({ project, remote, authorizationRef, gateway, po
   function lsRemote(ref, env) {
     authorize();
     decide("git.ls_remote", `${slug}:${ref}`);
-    const out = tryGit(["ls-remote", "--refs", "--", remote, ref], { env });
+    const out = lsRemoteRef(remote, ref, env);
     if (out === null) fail("BASE_UNAVAILABLE", `cannot read ${ref} from the remote`);
     const line = out.split("\n").find((l) => l.endsWith(`\t${ref}`));
     return line ? line.split("\t")[0] : null;
@@ -72,15 +72,15 @@ export function createTransport({ project, remote, authorizationRef, gateway, po
   function clone(target, env) {
     authorize();
     decide("git.fetch", slug);
-    if (tryGit(["clone", "--quiet", "--no-local", "--no-hardlinks", "--no-checkout", "--", remote, target], { env }) === null) fail("BASE_UNAVAILABLE", "clone from the remote failed");
+    if (!cloneNoCheckout(remote, target, env)) fail("BASE_UNAVAILABLE", "clone from the remote failed");
   }
 
   function fetchSha(repo, sha, env) {
     authorize();
     if (!HEX40.test(sha ?? "")) fail("MALFORMED_REQUEST", "fetch requires an exact commit");
     decide("git.fetch", slug);
-    if (tryGit(["fetch", "--quiet", "--no-tags", "origin", sha], { cwd: repo, env }) === null) fail("BASE_UNAVAILABLE", `commit ${sha} is not fetchable from the remote`);
-    if (tryGit(["cat-file", "-e", `${sha}^{commit}`], { cwd: repo, env }) === null) fail("BASE_UNAVAILABLE", `commit ${sha} missing after fetch`);
+    if (!fetchCommit(repo, sha, env)) fail("BASE_UNAVAILABLE", `commit ${sha} is not fetchable from the remote`);
+    if (!hasCommit(repo, sha, env)) fail("BASE_UNAVAILABLE", `commit ${sha} missing after fetch`);
   }
 
   // Non-force push with an explicit lease: the remote ref must be absent
@@ -92,10 +92,10 @@ export function createTransport({ project, remote, authorizationRef, gateway, po
     if (p) fail("TRANSPORT_NOT_AUTHORIZED", p);
     if (expectedOld !== null) {
       if (!HEX40.test(expectedOld)) fail("MALFORMED_REQUEST", "expected lease value must be an exact commit");
-      if (tryGit(["merge-base", "--is-ancestor", expectedOld, newSha], { cwd: repo, env }) === null) fail("TRANSPORT_NOT_AUTHORIZED", "non-fast-forward update would be a force push");
+      if (!isAncestor(repo, expectedOld, newSha, env)) fail("TRANSPORT_NOT_AUTHORIZED", "non-fast-forward update would be a force push");
     }
     decide("git.push", `${slug}:${ref}`);
-    if (tryGit(["push", "--porcelain", "--no-verify", `--force-with-lease=${ref}:${expectedOld ?? ""}`, "origin", `${newSha}:${ref}`], { cwd: repo, env }) === null) {
+    if (!pushWithLease(repo, ref, newSha, expectedOld, env)) {
       fail("BRANCH_COLLISION", `push lease on ${ref} was rejected`);
     }
     const now = lsRemote(ref, env);

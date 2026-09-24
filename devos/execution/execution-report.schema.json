@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "devos/execution/execution-report.schema.json",
   "title": "S6 Execution Report (ML-DEVOS-RFC-019 \u00a713.1)",
-  "description": "Produced by an execution driver (none is implemented in V1 core). ACTOR_REPORTED evidence; verified against the claimed permit's digests.",
+  "description": "Produced by an execution driver (none is implemented in V1 core). ACTOR_REPORTED evidence; verified against the claimed permit's digests. Every field is required (null where allowed). terminated=true: ended_at is set and not before started_at, and exactly one of exit_code/signal is set. terminated=false: ended_at, exit_code and signal are null and at least one live process group is named. Runtime validation (permits.mjs validateReport) additionally rejects rollover dates, duplicate process groups and ended_at before started_at.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,6 +11,12 @@
     "argv_digest",
     "environment_digest",
     "process_groups",
+    "started_at",
+    "ended_at",
+    "exit_code",
+    "signal",
+    "stdout_digest",
+    "stderr_digest",
     "terminated"
   ],
   "properties": {
@@ -32,43 +38,127 @@
     },
     "process_groups": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "integer",
         "minimum": 2
       }
     },
     "started_at": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?Z$"
     },
     "ended_at": {
-      "type": "string"
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?Z$"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "exit_code": {
-      "type": [
-        "integer",
-        "null"
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "signal": {
-      "type": [
-        "string",
-        "null"
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^SIG[A-Z0-9]{1,15}$"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "stdout_digest": {
-      "type": [
-        "string",
-        "null"
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "stderr_digest": {
-      "type": [
-        "string",
-        "null"
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
       ]
     },
     "terminated": {
       "type": "boolean"
+    }
+  },
+  "if": {
+    "properties": {
+      "terminated": {
+        "const": true
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "ended_at": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?Z$"
+      }
+    },
+    "oneOf": [
+      {
+        "properties": {
+          "exit_code": {
+            "type": "integer"
+          },
+          "signal": {
+            "type": "null"
+          }
+        }
+      },
+      {
+        "properties": {
+          "exit_code": {
+            "type": "null"
+          },
+          "signal": {
+            "type": "string"
+          }
+        }
+      }
+    ]
+  },
+  "else": {
+    "properties": {
+      "ended_at": {
+        "type": "null"
+      },
+      "exit_code": {
+        "type": "null"
+      },
+      "signal": {
+        "type": "null"
+      },
+      "process_groups": {
+        "minItems": 1
+      }
     }
   }
 }

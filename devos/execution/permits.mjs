@@ -123,19 +123,68 @@ export function parsePermitBody(bytes, expectedDigest) {
   return JSON.parse(bytes);
 }
 
-const REPORT_FIELDS = ["permit_id", "instance_id", "argv_digest", "environment_digest", "process_groups", "started_at", "ended_at", "exit_code", "signal", "stdout_digest", "stderr_digest", "terminated"];
+// RFC-019 §13.1 Execution Report (AS94-F004). Every field is required (null
+// where the contract allows it) and validated; contradictory combinations fail
+// closed. `terminated` states whether every reported process group has ended:
+//   - true:  ended_at is an instant not before started_at, and exactly one of
+//            exit_code (0..255) / signal ("SIG...") is set;
+//   - false: ended_at, exit_code and signal are null, and at least one live
+//            process group is reported (it must be proven gone by quiesce).
+export const REPORT_FIELDS = Object.freeze([
+  "permit_id", "instance_id", "argv_digest", "environment_digest", "process_groups", "started_at", "ended_at",
+  "exit_code", "signal", "stdout_digest", "stderr_digest", "terminated",
+]);
+const INSTANT = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d{1,3})?Z$/;
+const SIGNAL = /^SIG[A-Z0-9]{1,15}$/;
+
+// Milliseconds for a strict UTC instant, or null (rejects rollover dates).
+export function instantMs(v) {
+  const m = typeof v === "string" ? INSTANT.exec(v) : null;
+  if (!m) return null;
+  const t = Date.parse(v);
+  if (!Number.isFinite(t)) return null;
+  const d = new Date(t);
+  const same = d.getUTCFullYear() === Number(m[1]) && d.getUTCMonth() + 1 === Number(m[2]) && d.getUTCDate() === Number(m[3])
+    && d.getUTCHours() === Number(m[4]) && d.getUTCMinutes() === Number(m[5]) && d.getUTCSeconds() === Number(m[6]);
+  return same ? t : null;
+}
 
 export function validateReport(report) {
   const r = report ?? {};
   const bad = [];
+  if (typeof report !== "object" || report === null || Array.isArray(report)) fail("ISOLATION_UNPROVABLE", "execution report invalid: not an object");
+  const missing = REPORT_FIELDS.filter((k) => !Object.hasOwn(r, k));
+  if (missing.length) bad.push(`missing ${missing.join(",")}`);
+  const extra = Object.keys(r).filter((k) => !REPORT_FIELDS.includes(k));
+  if (extra.length) bad.push(`unknown fields ${extra.join(",")}`);
   if (!ID128.test(r.permit_id ?? "")) bad.push("permit_id");
   if (!ID128.test(r.instance_id ?? "")) bad.push("instance_id");
   if (!HEX64.test(r.argv_digest ?? "")) bad.push("argv_digest");
   if (!HEX64.test(r.environment_digest ?? "")) bad.push("environment_digest");
-  if (!Array.isArray(r.process_groups) || r.process_groups.some((g) => !Number.isInteger(g) || g <= 1)) bad.push("process_groups");
+  if (!Array.isArray(r.process_groups) || r.process_groups.some((g) => !Number.isInteger(g) || g <= 1) || new Set(r.process_groups).size !== r.process_groups.length) bad.push("process_groups");
+  const started = instantMs(r.started_at);
+  if (started === null) bad.push("started_at");
+  const ended = r.ended_at === null ? null : instantMs(r.ended_at);
+  if (r.ended_at !== null && ended === null) bad.push("ended_at");
+  if (r.exit_code !== null && !(Number.isInteger(r.exit_code) && r.exit_code >= 0 && r.exit_code <= 255)) bad.push("exit_code");
+  if (r.signal !== null && !(typeof r.signal === "string" && SIGNAL.test(r.signal))) bad.push("signal");
+  for (const k of ["stdout_digest", "stderr_digest"]) if (r[k] !== null && !HEX64.test(r[k] ?? "")) bad.push(k);
   if (typeof r.terminated !== "boolean") bad.push("terminated");
-  const extra = Object.keys(r).filter((k) => !REPORT_FIELDS.includes(k));
-  if (extra.length) bad.push(`unknown fields ${extra.join(",")}`);
+  if (r.terminated === true) {
+    if (r.ended_at === null) bad.push("terminated report without ended_at");
+    if (started !== null && ended !== null && ended < started) bad.push("ended_at before started_at");
+    if ((r.exit_code === null) === (r.signal === null)) bad.push("terminated report needs exactly one of exit_code / signal");
+  } else if (r.terminated === false) {
+    if (r.ended_at !== null || r.exit_code !== null || r.signal !== null) bad.push("unterminated report cannot carry ended_at / exit_code / signal");
+    if (Array.isArray(r.process_groups) && r.process_groups.length === 0) bad.push("unterminated report must name its live process groups");
+  }
   if (bad.length) fail("ISOLATION_UNPROVABLE", `execution report invalid: ${bad.join("; ")}`);
   return r;
+}
+
+// The durable evidence form of a verified report: every contract field except
+// the two identifiers (which key the record), plus its canonical digest.
+export function reportEvidence(report) {
+  const evidence = Object.fromEntries(REPORT_FIELDS.filter((k) => k !== "permit_id" && k !== "instance_id").map((k) => [k, report[k]]));
+  return { ...evidence, report_digest: sha256(canonicalJson(evidence)) };
 }

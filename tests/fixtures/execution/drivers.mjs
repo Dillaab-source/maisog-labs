@@ -8,6 +8,7 @@
 //     is that operation's own literal constant; the driver looks operations up
 //     by name and refuses anything not in the table.
 import { execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -68,15 +69,24 @@ export async function runFixed(host, { instanceId, checkpointRevision, requestId
   const request = { instance_id: instanceId, request_id: requestId, argv: [...FIXED_OPERATIONS[op].argv], checkpoint_revision: checkpointRevision };
   const issued = await host.requestPermit(request);
   const claimed = await host.claimPermit({ permitId: issued.permit_id, request });
+  const startedAt = new Date().toISOString();
   const out = perform(op, claimed.cwd, claimed.environment);
+  const terminated = out.process_groups.length === 0;
+  // Complete RFC-019 report. Output is not captured by the fixed operations,
+  // so the stdout/stderr digests are honestly null ("not captured").
   const report = {
     permit_id: issued.permit_id,
     instance_id: instanceId,
     argv_digest: argvDigest(request.argv),
     environment_digest: claimed.permit.environment_digest,
     process_groups: out.process_groups,
-    exit_code: out.exit_code,
-    terminated: out.process_groups.length === 0,
+    started_at: startedAt,
+    ended_at: terminated ? new Date().toISOString() : null,
+    exit_code: terminated ? out.exit_code : null,
+    signal: null,
+    stdout_digest: null,
+    stderr_digest: null,
+    terminated,
   };
   await host.recordReport(report);
   return { permitId: issued.permit_id, request, processGroups: out.process_groups, environment: claimed.environment };
@@ -93,17 +103,30 @@ export function terminateFixtureGroups(groups) {
   }
 }
 
-// Executes nothing: synthetic claims and reports for lifecycle tests.
+// Deterministic synthetic report values for the fake driver.
+export const SYNTHETIC_REPORT = Object.freeze({
+  started_at: "2026-09-24T12:00:01.000Z",
+  ended_at: "2026-09-24T12:00:02.500Z",
+  exit_code: 0,
+  signal: null,
+  stdout_digest: createHash("sha256").update("synthetic stdout").digest("hex"),
+  stderr_digest: createHash("sha256").update("").digest("hex"),
+});
+
+// Executes nothing: synthetic claims and complete synthetic reports.
 export function fakeDriver(host) {
   return {
     async claim(permitId, request) {
       return host.claimPermit({ permitId, request });
     },
-    async report(permit, request, over = {}) {
-      return host.recordReport({
+    reportFor(permit, request, over = {}) {
+      return {
         permit_id: permit.permit_id, instance_id: request.instance_id, argv_digest: argvDigest(request.argv),
-        environment_digest: permit.environment_digest, process_groups: [], exit_code: 0, terminated: true, ...over,
-      });
+        environment_digest: permit.environment_digest, process_groups: [], ...SYNTHETIC_REPORT, terminated: true, ...over,
+      };
+    },
+    async report(permit, request, over = {}) {
+      return host.recordReport(this.reportFor(permit, request, over));
     },
   };
 }

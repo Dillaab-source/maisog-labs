@@ -14,7 +14,10 @@ import { renew } from "../devos/state/kernel.mjs";
 import { PAYLOAD_MEMBERS, REASON_CODES } from "../devos/execution/index.mjs";
 import { createDirChain, verifiedBase } from "../devos/execution/paths.mjs";
 import { fakeDriver, runFixed, terminateFixtureGroups } from "./fixtures/execution/drivers.mjs";
-import { cleanupWorld, fixtureGit, gatewayFor, makeWorld, qaClaimChain, trustedHost } from "./fixtures/execution/harness.mjs";
+import {
+  advanceRemoteMain, cleanupWorld, createRemoteBranch, forceMoveRemoteBranch, gatewayFor, headCommitText, headOf, makeWorld, plantHooksPathConfig,
+  qaClaimChain, remoteRefSha, resetToOrphanOfBase, trustedHost,
+} from "./fixtures/execution/harness.mjs";
 
 const SLUG = "Dillaab-source__maisog-labs";
 const codeOf = async (p) => {
@@ -93,8 +96,8 @@ test("Builder happy path: publication replays the stored ACTOR_REPORTED evidence
   assert.equal(entries[pending - 1].type, "PUSH_VERIFIED");
 
   // The remote task branch holds the result; main is untouched.
-  assert.equal(fixtureGit(["rev-parse", `refs/heads/${rec.identity.task_branch}`], { cwd: w.dirs.remote, env: w.env }), out.result_commit_sha);
-  assert.equal(fixtureGit(["rev-parse", "refs/heads/main"], { cwd: w.dirs.remote, env: w.env }), w.baseSha);
+  assert.equal(remoteRefSha(w, `refs/heads/${rec.identity.task_branch}`), out.result_commit_sha);
+  assert.equal(remoteRefSha(w, "refs/heads/main"), w.baseSha);
 
   const prov = h.provenance(rec.instance_id);
   assert.equal(prov.evidence_class, "ACTOR_REPORTED");
@@ -124,7 +127,7 @@ test("instance environment excludes host credential canaries; instance commits a
     assert.equal(r.environment.HOME, path.join(instRoot(w, rec), "home"));
     assert.equal(r.environment.GIT_CONFIG_NOSYSTEM, "1");
     await build(h, rec, ["STAGE_ALL", "COMMIT"]);
-    const commit = fixtureGit(["cat-file", "-p", "HEAD"], { cwd: repoOf(w, rec), env: w.env });
+    const commit = headCommitText(w, repoOf(w, rec));
     assert.doesNotMatch(commit, /^gpgsig/m, "unsigned");
     assert.match(commit, /^author Sentinel S6 Instance <s6-instance@invalid>/m);
     assert.deepEqual(fs.readdirSync(path.join(instRoot(w, rec), "config", "hooks")), [], "no hooks installed");
@@ -168,11 +171,11 @@ test("QA reconstructs independently from the committed record's exact commit; it
 
 test("QA reconstruction pins the recorded SHA even after the remote task branch is moved", () => withWorld({}, async (w) => {
   const { rec, out } = await published(w);
-  fixtureGit(["push", "--quiet", "--force", w.dirs.remote, `${w.baseSha}:refs/heads/${rec.identity.task_branch}`], { cwd: w.dirs.seed, env: w.env });
+  forceMoveRemoteBranch(w, w.baseSha, `refs/heads/${rec.identity.task_branch}`);
   const chain = await qaClaimChain(w, "qa-1");
   const qa = await qaHost(w).hq.createInstance({ role: "QA", qaChain: chain });
   assert.equal(qa.identity.base_sha, out.result_commit_sha);
-  assert.equal(fixtureGit(["rev-parse", "HEAD"], { cwd: repoOf(w, qa), env: w.env }), out.result_commit_sha);
+  assert.equal(headOf(w, repoOf(w, qa)), out.result_commit_sha);
 }));
 
 test("QA source proof: gapped chain, self-review, altered record body all fail closed", () => withWorld({}, async (w) => {
@@ -244,7 +247,7 @@ test("validation reports ALL failing checks and selects the lowest-ranked code (
   const { h, rec } = await created(w);
   fs.writeFileSync(path.join(repoOf(w, rec), "src", "unexplained.txt"), "x\n");
   fs.writeFileSync(path.join(instRoot(w, rec), "home", ".git-credentials"), "https://u:p@example.invalid\n");
-  fixtureGit(["config", "core.hooksPath", "/tmp/evil-hooks"], { cwd: repoOf(w, rec), env: w.env });
+  plantHooksPathConfig(w, repoOf(w, rec));
   const v = await h.validateInstance(rec.instance_id);
   assert.equal(v.reason, "ENV_POLICY_VIOLATION");
   for (const c of ["ENV_POLICY_VIOLATION", "SECRET_MATERIAL_DETECTED", "DIRTY_WORKTREE"]) assert.ok(v.codes.includes(c), c);
@@ -296,8 +299,7 @@ const MATRIX = {
   BASE_SHA_MISMATCH: async (w) => {
     const { h, rec } = await created(w);
     const repo = repoOf(w, rec);
-    const orphan = fixtureGit([...w.ci, "commit-tree", `${w.baseSha}^{tree}`, "-m", "orphan"], { cwd: repo, env: w.env });
-    fixtureGit(["reset", "--quiet", "--hard", orphan], { cwd: repo, env: w.env });
+    resetToOrphanOfBase(w, repo);
     const v = await h.validateInstance(rec.instance_id);
     assert.ok(v.codes.includes("DIRTY_WORKTREE"), "the snapshot also changed; precedence picks the base failure");
     return h.requestPermit({ instance_id: rec.instance_id, request_id: "x", argv: ["x"], checkpoint_revision: rec.checkpoint.current_revision });
@@ -306,9 +308,7 @@ const MATRIX = {
     const { h, rec } = await created(w);
     await build(h, rec);
     await h.quiesce(rec.instance_id);
-    fs.writeFileSync(path.join(w.dirs.seed, "src", "app.txt"), "v2\n");
-    fixtureGit([...w.ci, "commit", "--quiet", "-am", "advance"], { cwd: w.dirs.seed, env: w.env });
-    fixtureGit(["push", "--quiet", w.dirs.remote, "HEAD:refs/heads/main"], { cwd: w.dirs.seed, env: w.env });
+    advanceRemoteMain(w);
     return h.complete(rec.instance_id, { actorId: w.builder });
   },
   WORKTREE_COLLISION: (w) => {
@@ -319,7 +319,7 @@ const MATRIX = {
   BRANCH_COLLISION: (w) => w.host({
     faults: {
       onStep: (name, ctx) => {
-        if (name === "after-create-begin") fixtureGit(["push", "--quiet", w.dirs.remote, `${w.baseSha}:refs/heads/${ctx.record.identity.task_branch}`], { cwd: w.dirs.seed, env: w.env });
+        if (name === "after-create-begin") createRemoteBranch(w, w.baseSha, `refs/heads/${ctx.record.identity.task_branch}`);
       },
     },
   }).createInstance({ role: "BUILDER", claimResult: w.anchor }),
@@ -333,7 +333,7 @@ const MATRIX = {
   },
   ENV_POLICY_VIOLATION: async (w) => {
     const { h, rec } = await created(w);
-    fixtureGit(["config", "core.hooksPath", "/tmp/evil-hooks"], { cwd: repoOf(w, rec), env: w.env });
+    plantHooksPathConfig(w, repoOf(w, rec));
     return h.attach(rec.instance_id, { actorId: w.builder });
   },
   SECRET_MATERIAL_DETECTED: async (w) => {
@@ -406,7 +406,7 @@ test("scope: prohibited paths inside an allowed prefix are refused; nothing is p
   await build(h, rec, ["WRITE_PROHIBITED", "STAGE_ALL", "COMMIT"]);
   await h.quiesce(rec.instance_id);
   assert.equal(await codeOf(h.complete(rec.instance_id, { actorId: w.builder })), "SCOPE_VIOLATION");
-  assert.equal(fixtureGit(["ls-remote", w.dirs.remote, `refs/heads/${rec.identity.task_branch}`], { env: w.env }), "", "no push happened");
+  assert.equal(remoteRefSha(w, `refs/heads/${rec.identity.task_branch}`), null, "no push happened");
   assert.equal((await w.s4.getState({ dir: w.dirs.s4, taskId: w.taskId })).state, "BUILDING");
 }));
 
@@ -417,7 +417,7 @@ test("transport: a denied push is CAPABILITY_DENIED and leaves S4 and the remote
   await build(h, rec);
   await h.quiesce(rec.instance_id);
   assert.equal(await codeOf(h.complete(rec.instance_id, { actorId: w.builder })), "CAPABILITY_DENIED");
-  assert.equal(fixtureGit(["ls-remote", w.dirs.remote, `refs/heads/${rec.identity.task_branch}`], { env: w.env }), "");
+  assert.equal(remoteRefSha(w, `refs/heads/${rec.identity.task_branch}`), null);
   assert.equal((await w.s4.getState({ dir: w.dirs.s4, taskId: w.taskId })).state, "BUILDING");
   assert.equal(h.registry.listRtr(w.taskId).length, 0);
 }));

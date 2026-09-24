@@ -17,7 +17,9 @@ import { buildInstanceEnvironment, environmentFailures, instancePaths, localConf
 import { pushRefProblem, remoteProblem } from "../devos/execution/transport.mjs";
 import { profileFailures } from "../devos/execution/platform.mjs";
 import { proveGroupsEmpty } from "../devos/execution/liveness.mjs";
-import { argvDigest, buildPermitBody, validateReport, validateRequest, verifyClaimResult, verifyIssuanceResult } from "../devos/execution/permits.mjs";
+import {
+  REPORT_FIELDS, argvDigest, buildPermitBody, instantMs, reportEvidence, validateReport, validateRequest, verifyClaimResult, verifyIssuanceResult,
+} from "../devos/execution/permits.mjs";
 import { sha256 } from "../devos/execution/digest.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -50,6 +52,119 @@ test("S6 core exposes no command-execution primitive (D-069, §13.1, §18 item 1
   assert.doesNotMatch(fs.readFileSync(path.join(EXEC, "index.mjs"), "utf8"), /git\.mjs/, "the git runner is not public");
   // No S6 core module sends signals to processes.
   for (const f of files) assert.doesNotMatch(fs.readFileSync(path.join(EXEC, f), "utf8"), /process\.kill\([^)]*"SIG/, `${f} must not signal processes`);
+});
+
+// AS94-F003: no S6-core or fixture export accepts an argv/command that it then
+// executes. Three source-level proofs:
+//   1. no exported function (or class constructor) of any S6-core module or
+//      importable fixture module takes an argv/command-shaped parameter or a
+//      rest parameter;
+//   2. the process-starting runners are module-private;
+//   3. every call of those runners, and every direct process start, passes a
+//      literal argv whose head is a string literal (optionally after a fixed
+//      ALL-CAPS constant spread such as the fixture identity -c pairs).
+const FIXTURES = path.join(ROOT, "tests", "fixtures", "execution");
+const ARGV_PARAM = /^(args|argv|argvs|arguments|command|commands|cmd|cmdline|commandLine|shellCommand|script|program|binary|executable)$/i;
+
+function paramNames(fn) {
+  const src = Function.prototype.toString.call(fn);
+  const m = /^class\b/.test(src) ? src.match(/constructor\s*\(([^)]*)\)/) : src.match(/^[^(]*\(([^)]*)\)/);
+  if (!m) return [];
+  // Split on TOP-LEVEL commas only (destructured parameters stay whole).
+  const out = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of m[1]) {
+    if ("{[(".includes(ch)) depth += 1;
+    if ("}])".includes(ch)) depth -= 1;
+    if (ch === "," && depth === 0) {
+      out.push(cur.trim());
+      cur = "";
+    } else cur += ch;
+  }
+  out.push(cur.trim());
+  return out.filter(Boolean);
+}
+
+test("no S6-core or fixture export accepts an argv/command parameter (AS94-F003)", async () => {
+  const modules = [
+    ...fs.readdirSync(EXEC).filter((f) => f.endsWith(".mjs")).map((f) => path.join(EXEC, f)),
+    path.join(FIXTURES, "harness.mjs"),
+    path.join(FIXTURES, "drivers.mjs"),
+  ];
+  // Pure functions that take argv as DATA (hashing / validation) and execute
+  // nothing; their defining module must import no process API.
+  const ARGV_DATA_ONLY = { argvDigest: "permits.mjs" };
+  for (const f of new Set(Object.values(ARGV_DATA_ONLY))) assert.doesNotMatch(fs.readFileSync(path.join(EXEC, f), "utf8"), /child_process/);
+  let checked = 0;
+  for (const file of modules) {
+    const mod = await import(file);
+    for (const [name, value] of Object.entries(mod)) {
+      if (typeof value !== "function") continue;
+      if (Object.hasOwn(ARGV_DATA_ONLY, name)) {
+        checked += 1;
+        continue;
+      }
+      for (const p of paramNames(value)) {
+        assert.ok(!p.startsWith("..."), `${path.basename(file)} export ${name} takes a rest parameter ${p}`);
+        const bare = p.replace(/=.*$/, "").trim();
+        if (/^[{[]/.test(bare)) {
+          for (const inner of bare.replace(/^[{[]|[}\]]$/g, "").split(/[,\s:]+/).filter(Boolean)) {
+            assert.ok(!ARGV_PARAM.test(inner), `${path.basename(file)} export ${name} destructures ${inner}`);
+          }
+        } else {
+          assert.ok(!ARGV_PARAM.test(bare), `${path.basename(file)} export ${name}(${bare}) takes an argv/command parameter`);
+        }
+      }
+      checked += 1;
+    }
+  }
+  assert.ok(checked > 40, `checked ${checked} exported functions`);
+  // The removed generic helpers must not come back.
+  const gitMod = await import(path.join(EXEC, "git.mjs"));
+  for (const gone of ["git", "tryGit", "run", "succeeds"]) assert.equal(gitMod[gone], undefined, `git.mjs must not export ${gone}`);
+  const harness = await import(path.join(FIXTURES, "harness.mjs"));
+  for (const gone of ["fixtureGit", "fixtureRun"]) assert.equal(harness[gone], undefined, `harness must not export ${gone}`);
+});
+
+test("process-starting runners are module-private and only ever called with literal argv heads (AS94-F003)", () => {
+  const RUNNERS = {
+    // `succeeds` (itself private and checked here) forwards to `run` verbatim.
+    [path.join(EXEC, "git.mjs")]: { runners: ["run", "succeeds"], callShape: /^\(\s*"[a-z-]+",\s*\[\s*"[^"]+"|^\(op, argv, opts\);$/ },
+    [path.join(FIXTURES, "harness.mjs")]: { runners: ["fixtureRun"], callShape: /^\(\s*\[\s*(\.\.\.[A-Z_]+,\s*)?"[^"]+"/ },
+  };
+  for (const [file, { runners, callShape }] of Object.entries(RUNNERS)) {
+    const src = fs.readFileSync(file, "utf8");
+    for (const r of runners) {
+      assert.doesNotMatch(src, new RegExp(`export\\s+(async\\s+)?function\\s+${r}\\b`), `${r} must be module-private`);
+      assert.doesNotMatch(src, new RegExp(`export\\s*\\{[^}]*\\b${r}\\b`), `${r} must be module-private`);
+      const calls = [...src.matchAll(new RegExp(`(?<![\\w.])${r}(\\([^\\n]*)`, "g"))].filter((m) => !/function\s+$/.test(src.slice(0, m.index)));
+      assert.ok(calls.length > 0, `${r} has call sites`);
+      for (const m of calls) assert.match(m[1], callShape, `${path.basename(file)}: ${r}${m[1].slice(0, 80)} must pass a literal argv head`);
+    }
+  }
+  // Direct process starts outside those runners use a fixed binary and a literal argv.
+  const direct = /(?<![\w.])(execFileSync|execFile|spawnSync|spawn|exec|execSync)\(([^\n]*)/g; // not RegExp#exec
+  const allowedDirect = [
+    /^GIT_BINARY, argv, /, // git.mjs run(): the private runner itself
+    /^"git", argv, /, // harness fixtureRun(): the private runner itself
+    /^"git", \["add", "-A"\], /,
+    /^"git", \["commit", "--quiet", "-m", "s6 fixture commit"\], /,
+    /^process\.execPath, \[LONG_LIVED_CHILD\], /,
+  ];
+  for (const file of [...fs.readdirSync(EXEC).filter((f) => f.endsWith(".mjs")).map((f) => path.join(EXEC, f)), ...fs.readdirSync(FIXTURES).map((f) => path.join(FIXTURES, f))]) {
+    const src = fs.readFileSync(file, "utf8");
+    for (const m of src.matchAll(direct)) {
+      if (/^\s*\/\//.test(src.slice(src.lastIndexOf("\n", m.index) + 1, m.index))) continue; // comment
+      assert.ok(allowedDirect.some((re) => re.test(m[2])), `${path.basename(file)}: ${m[1]}(${m[2].slice(0, 80)}) is not a fixed literal process start`);
+    }
+  }
+  // The crash worker and the long-lived child import no process API at all.
+  for (const f of ["crash-worker.mjs", "long-lived-child.mjs"]) assert.doesNotMatch(fs.readFileSync(path.join(FIXTURES, f), "utf8"), /child_process/);
+  // The crash worker accepts only closed operation and crash-point sets.
+  const worker = fs.readFileSync(path.join(FIXTURES, "crash-worker.mjs"), "utf8");
+  assert.match(worker, /const OPERATIONS = new Set\(\[/);
+  assert.match(worker, /const CRASH_POINTS = new Set\(\[/);
 });
 
 // ------------------------------------------------------------- vocabulary
@@ -403,10 +518,83 @@ test("request/report contracts are closed; argv is bound by digest only", () => 
   for (const bad of [{ argv: [] }, { argv: "x" }, { argv: ["a\u0000"] }, { request_id: "has space" }, { checkpoint_revision: 0 }, { s5_decision: { outcome: "ALLOW" } }, { env: {} }]) {
     assert.equal(code(() => validateRequest({ ...req, ...bad })), "MALFORMED_REQUEST", JSON.stringify(bad));
   }
-  const rep = { permit_id: ID, instance_id: ID, argv_digest: H64, environment_digest: H64, process_groups: [], terminated: true };
-  assert.equal(code(() => validateReport(rep)), "NO_ERROR");
-  assert.equal(code(() => validateReport({ ...rep, process_groups: [1] })), "ISOLATION_UNPROVABLE");
-  assert.equal(code(() => validateReport({ ...rep, extra: 1 })), "ISOLATION_UNPROVABLE");
+});
+
+// AS94-F004: the complete RFC-019 §13.1 Execution Report contract.
+test("Execution Report: every RFC field required and typed; contradictions fail closed (AS94-F004)", () => {
+  const done = {
+    permit_id: ID, instance_id: ID, argv_digest: H64, environment_digest: H64, process_groups: [],
+    started_at: "2026-09-24T12:00:01.000Z", ended_at: "2026-09-24T12:00:02Z", exit_code: 0, signal: null,
+    stdout_digest: H64, stderr_digest: null, terminated: true,
+  };
+  const running = { ...done, process_groups: [4242], ended_at: null, exit_code: null, signal: null, terminated: false };
+  const ok = [
+    ["terminated by exit code", done],
+    ["terminated by signal", { ...done, exit_code: null, signal: "SIGTERM" }],
+    ["zero-duration", { ...done, ended_at: done.started_at }],
+    ["non-zero exit", { ...done, exit_code: 255 }],
+    ["digests not captured", { ...done, stdout_digest: null, stderr_digest: null }],
+    ["still running, groups named", running],
+  ];
+  for (const [name, r] of ok) assert.equal(code(() => validateReport(r)), "NO_ERROR", name);
+  const bad = [
+    ...REPORT_FIELDS.map((k) => [`missing ${k}`, Object.fromEntries(Object.entries(done).filter(([f]) => f !== k))]),
+    ["unknown field", { ...done, argv: ["x"] }],
+    ["not an object", null],
+    ["array", []],
+    ["pgid 1", { ...done, process_groups: [1] }],
+    ["duplicate pgid", { ...running, process_groups: [7, 7] }],
+    ["non-integer pgid", { ...done, process_groups: ["7"] }],
+    ["started_at not an instant", { ...done, started_at: "yesterday" }],
+    ["started_at local time", { ...done, started_at: "2026-09-24T12:00:01+02:00" }],
+    ["started_at rollover date", { ...done, started_at: "2026-02-30T12:00:00Z" }],
+    ["started_at null", { ...done, started_at: null }],
+    ["ended_at malformed", { ...done, ended_at: "2026-09-24 12:00:02" }],
+    ["ended before started", { ...done, ended_at: "2026-09-24T12:00:00Z" }],
+    ["terminated without ended_at", { ...done, ended_at: null }],
+    ["terminated with neither code nor signal", { ...done, exit_code: null }],
+    ["terminated with both code and signal", { ...done, signal: "SIGKILL" }],
+    ["exit_code out of range", { ...done, exit_code: 256 }],
+    ["negative exit_code", { ...done, exit_code: -1 }],
+    ["fractional exit_code", { ...done, exit_code: 1.5 }],
+    ["string exit_code", { ...done, exit_code: "0" }],
+    ["malformed signal", { ...done, exit_code: null, signal: "KILL" }],
+    ["lowercase signal", { ...done, exit_code: null, signal: "sigterm" }],
+    ["stdout digest not hex64", { ...done, stdout_digest: "abc" }],
+    ["stderr digest uppercase", { ...done, stderr_digest: H64.toUpperCase() }],
+    ["terminated not boolean", { ...done, terminated: "true" }],
+    ["running with ended_at", { ...running, ended_at: "2026-09-24T12:00:02Z" }],
+    ["running with exit_code", { ...running, exit_code: 0 }],
+    ["running with signal", { ...running, signal: "SIGTERM" }],
+    ["running without groups", { ...running, process_groups: [] }],
+    ["bad argv digest", { ...done, argv_digest: "x" }],
+    ["bad permit id", { ...done, permit_id: "p" }],
+  ];
+  for (const [name, r] of bad) assert.equal(code(() => validateReport(r)), "ISOLATION_UNPROVABLE", name);
+  // Durable evidence carries every contract field (except the keying ids) and a digest.
+  const ev = reportEvidence(done);
+  assert.deepEqual(Object.keys(ev), [...REPORT_FIELDS.filter((k) => k !== "permit_id" && k !== "instance_id"), "report_digest"]);
+  assert.equal(ev.started_at, done.started_at);
+  assert.equal(ev.signal, null);
+  assert.match(ev.report_digest, /^[0-9a-f]{64}$/);
+  // instantMs is strict.
+  assert.equal(instantMs("2026-09-24T12:00:01.5Z"), Date.parse("2026-09-24T12:00:01.5Z"));
+  assert.equal(instantMs("2026-13-01T00:00:00Z"), null);
+});
+
+test("Execution Report schema agrees with the runtime contract", () => {
+  const schema = JSON.parse(fs.readFileSync(path.join(EXEC, "execution-report.schema.json"), "utf8"));
+  assert.deepEqual(schema.required, [...REPORT_FIELDS]);
+  assert.deepEqual(Object.keys(schema.properties), [...REPORT_FIELDS]);
+  assert.equal(schema.additionalProperties, false);
+  assert.deepEqual(schema.if, { properties: { terminated: { const: true } } });
+  assert.equal(schema.then.oneOf.length, 2, "exactly one of exit_code / signal when terminated");
+  assert.deepEqual(schema.else.properties.ended_at, { type: "null" });
+  assert.equal(schema.else.properties.process_groups.minItems, 1);
+  for (const k of ["ended_at", "exit_code", "signal", "stdout_digest", "stderr_digest"]) {
+    assert.ok(schema.properties[k].oneOf.some((alt) => alt.type === "null"), `${k} is nullable`);
+  }
+  assert.equal(schema.properties.started_at.type, "string", "started_at is never null");
 });
 
 // ------------------------------------------------------------- schemas agree with builders

@@ -28,7 +28,9 @@ import {
   buildInstanceEnvironment, environmentDigest, environmentFailures, instanceGitConfig, instanceNpmrc, instancePaths,
   localConfigFailures, scanCredentialFiles,
 } from "./environment.mjs";
-import { git, statusEntries, tryGit } from "./git.mjs";
+import {
+  changedFiles, checkoutDetached, createTaskBranch, currentBranch, gitVersion, headSha, isAncestor, localConfigLines, statusEntries, trackedFiles, treeOf,
+} from "./git.mjs";
 import {
   adoptS4Result, buildExecutionIdentity, fencingFailures, identityDigest, initialCheckpoint, newId128, taskBranchName,
 } from "./identity.mjs";
@@ -38,7 +40,7 @@ import {
   createDirChain, createFileExclusive, isWithin, removeTreeNoFollow, toCanonical, verifiedBase, verifyChain,
 } from "./paths.mjs";
 import {
-  argvDigest, buildPermitBody, expectedShellIntent, parsePermitBody, requestShellDecision, validateReport, validateRequest,
+  argvDigest, buildPermitBody, expectedShellIntent, parsePermitBody, reportEvidence, requestShellDecision, validateReport, validateRequest,
   verifyClaimResult, verifyIssuanceResult,
 } from "./permits.mjs";
 import { detectPlatformProfile, profileFailures } from "./platform.mjs";
@@ -46,7 +48,7 @@ import { Registry } from "./registry.mjs";
 import { buildPublicationPayload, buildRtrBody, storedEvidenceRef, transferIdOf, verifyAdjacency } from "./rtr.mjs";
 import { createTransport } from "./transport.mjs";
 import {
-  EVIDENCE_CLASS, ExecutionError, HEX40, ISOLATION_LEVEL, NON_AUTHORITY_DISCLAIMER, ROLES, fail, selectReason,
+  EVIDENCE_CLASS, ExecutionError, HEX40, ISOLATION_LEVEL, NON_AUTHORITY_DISCLAIMER, ROLES, ROLE_STATE, fail, selectReason,
 } from "./vocabulary.mjs";
 
 const CONSEQUENCE_FLAGS = [
@@ -94,7 +96,7 @@ function kernelCode(err) {
 }
 
 export function createExecutionHost(config) {
-  const cfg = { environment: "local", ignoredOutputAllowlist: [], maxCreateAttempts: 2, claimWindowMs: 5 * 60 * 1000, clock: Date.now, ...config };
+  const cfg = { environment: "local", ignoredOutputAllowlist: [], maxCreateAttempts: 2, claimWindowMs: 5 * 60 * 1000, lockWaitMs: 0, clock: Date.now, ...config };
   for (const k of ["workspaceRoot", "hostStateDir", "project", "repository", "remote", "baseRef", "s4Dir", "policyVersion"]) {
     if (typeof cfg[k] !== "string" || cfg[k].length === 0) fail("MALFORMED_REQUEST", `host configuration ${k} is required`);
   }
@@ -136,7 +138,7 @@ export function createExecutionHost(config) {
   function platformProfile() {
     if (profile) return profile;
     const probeDir = rootState().native;
-    const detected = detectPlatformProfile({ probeDir, gitVersionText: tryGit(["--version"], { env: bootEnv() }) });
+    const detected = detectPlatformProfile({ probeDir, gitVersionText: gitVersion(bootEnv()) });
     if (probeDir) profile = detected;
     return detected;
   }
@@ -179,7 +181,7 @@ export function createExecutionHost(config) {
     return { contract, digest: sha256(bytes) };
   }
 
-  const treeSnapshot = (repo, env) => sha256(`${tryGit(["rev-parse", "HEAD"], { cwd: repo, env }) ?? ""}\n${statusEntries(repo, env).join("\0")}`);
+  const treeSnapshot = (repo, env) => sha256(`${headSha(repo, env) ?? ""}\n${statusEntries(repo, env).join("\0")}`);
   const save = (record) => {
     registry.putInstance(record);
     return record;
@@ -216,8 +218,13 @@ export function createExecutionHost(config) {
   }
 
   // ------------------------------------------------------------ permit status
+  // Permits are enumerated from their request bindings -- the single source of
+  // truth (AS94-F002). A permit status/body file that no binding names is an
+  // orphan and is never treated as a permit.
   function permitsOf(record) {
-    return registry.listPermits(record.task_id).filter((p) => p.status?.instance_id === record.instance_id);
+    return registry.listBindings(record.task_id)
+      .filter((b) => b.instance_id === record.instance_id)
+      .map((b) => ({ permit_id: b.permit_id, binding: b, status: statusOf(record.task_id, b) }));
   }
 
   // Lazy expiry: an ISSUED permit past its claim deadline is EXPIRED_UNCLAIMED.
@@ -232,11 +239,49 @@ export function createExecutionHost(config) {
     return s;
   }
 
+  // The initial status a binding implies (used when a crash happened after the
+  // binding was published but before the derived status file was written).
+  function initialStatus(binding) {
+    return {
+      instance_id: binding.instance_id, state: "ISSUED", revocation_reason: null, permit_digest: binding.permit_digest,
+      claim_deadline_ms: binding.claim_deadline_ms, updated_at: new Date(binding.issued_at_ms).toISOString(),
+    };
+  }
+
+  function statusOf(taskId, binding) {
+    const s = currentPermitStatus(taskId, binding.permit_id);
+    if (s) {
+      if (s.permit_digest !== binding.permit_digest || s.instance_id !== binding.instance_id) fail("ISOLATION_UNPROVABLE", `permit ${binding.permit_id} status disagrees with its binding`);
+      return s;
+    }
+    const derived = initialStatus(binding);
+    return clock() >= derived.claim_deadline_ms ? { ...derived, state: "EXPIRED_UNCLAIMED" } : derived;
+  }
+
+  const journalHasPermit = (record, permitId) => journalOf(record).replay().entries
+    .some((e) => e.entry.type === "PERMIT_ISSUED" && e.entry.data?.permit_id === permitId);
+
+  const isMaterialized = (record, b) => registry.readPermitBody(record.task_id, b.permit_id) === b.permit_body
+    && registry.getPermitStatus(record.task_id, b.permit_id) !== null && journalHasPermit(record, b.permit_id);
+
+  // Derives (idempotently) every artifact from the binding: body, initial
+  // status, PERMIT_ISSUED journal entry. Caller holds the task lock. Each
+  // durable sub-step is a fault-injection point.
+  async function materialize(record, b) {
+    registry.writePermitBody(record.task_id, b.permit_id, b.permit_body);
+    await step("permit-after-body", { permitId: b.permit_id });
+    if (registry.getPermitStatus(record.task_id, b.permit_id) === null) registry.putPermitStatus(record.task_id, b.permit_id, initialStatus(b));
+    await step("permit-after-status", { permitId: b.permit_id });
+    if (!journalHasPermit(record, b.permit_id)) {
+      journalOf(record).append("PERMIT_ISSUED", { permit_id: b.permit_id, permit_digest: b.permit_digest, request_id: b.request_id });
+    }
+    await step("permit-after-journal", { permitId: b.permit_id });
+  }
+
   function revokeIssued(record, reason) {
-    for (const { permit_id: id } of permitsOf(record)) {
-      const s = currentPermitStatus(record.task_id, id);
-      if (s?.state === "ISSUED") {
-        registry.putPermitStatus(record.task_id, id, { ...s, state: "REVOKED", revocation_reason: reason, updated_at: new Date(clock()).toISOString() });
+    for (const { permit_id: id, binding, status } of permitsOf(record)) {
+      if (status.state === "ISSUED") {
+        registry.putPermitStatus(record.task_id, id, { ...initialStatus(binding), ...status, state: "REVOKED", revocation_reason: reason, updated_at: new Date(clock()).toISOString() });
         try {
           journalOf(record).append("PERMIT_REVOKED", { permit_id: id, reason });
         } catch {
@@ -343,17 +388,17 @@ export function createExecutionHost(config) {
       if (t.lsRemote(`refs/heads/${taskBranch}`, env) !== null) fail("BRANCH_COLLISION", `${taskBranch} already exists on the remote`);
       t.clone(p.repo, env);
       t.fetchSha(p.repo, baseSha, env);
-      if (tryGit(["checkout", "--quiet", "--detach", baseSha], { cwd: p.repo, env }) === null) fail("BASE_UNAVAILABLE", "cannot check out the base commit");
-      if (tryGit(["switch", "--quiet", "-c", taskBranch], { cwd: p.repo, env }) === null) fail("BRANCH_COLLISION", `cannot create ${taskBranch} locally`);
-      if (git(["rev-parse", "HEAD"], { cwd: p.repo, env }) !== baseSha) fail("BASE_SHA_MISMATCH", "HEAD is not the pinned base");
+      if (!checkoutDetached(p.repo, baseSha, env)) fail("BASE_UNAVAILABLE", "cannot check out the base commit");
+      if (!createTaskBranch(p.repo, taskBranch, env)) fail("BRANCH_COLLISION", `cannot create ${taskBranch} locally`);
+      if (headSha(p.repo, env) !== baseSha) fail("BASE_SHA_MISMATCH", "HEAD is not the pinned base");
       if (role === "QA") {
-        if (git(["rev-parse", `${baseSha}^{tree}`], { cwd: p.repo, env }) !== qaBody.result_tree_sha) fail("RESULT_TRANSFER_UNPROVEN", "fetched tree differs from the recorded result tree");
-        if (tryGit(["merge-base", "--is-ancestor", qaBody.base_sha, baseSha], { cwd: p.repo, env }) === null) fail("BASE_SHA_MISMATCH", "recorded base is not an ancestor of the result");
+        if (treeOf(p.repo, baseSha, env) !== qaBody.result_tree_sha) fail("RESULT_TRANSFER_UNPROVEN", "fetched tree differs from the recorded result tree");
+        if (!isAncestor(p.repo, qaBody.base_sha, baseSha, env)) fail("BASE_SHA_MISMATCH", "recorded base is not an ancestor of the result");
       }
       verifyChain(chain, pathOpts);
-      const tracked = new Set(git(["ls-files", "-z"], { cwd: p.repo, env }).split("\0").filter(Boolean).map((f) => `repo/${f}`));
+      const tracked = new Set(trackedFiles(p.repo, env).map((f) => `repo/${f}`));
       failWith([
-        ...localConfigFailures(git(["config", "--file", path.join(p.repo, ".git", "config"), "--list"], { env }).split("\n").filter(Boolean), { expectedRemoteUrl: cfg.remote }),
+        ...localConfigFailures(localConfigLines(p.repo, env), { expectedRemoteUrl: cfg.remote }),
         ...(statusEntries(p.repo, env).length ? ["DIRTY_WORKTREE"] : []),
         ...(scanCredentialFiles(inst.native, { tracked }).length ? ["SECRET_MATERIAL_DETECTED"] : []),
       ], "post-clone verification");
@@ -417,10 +462,10 @@ export function createExecutionHost(config) {
     const env = envFor(p);
     push(...environmentFailures(env, { windows, instanceRoot: record.identity.workspace_path, toolchainPath: cfg.toolchainPath }));
     try {
-      push(...localConfigFailures(git(["config", "--file", path.join(p.repo, ".git", "config"), "--list"], { env }).split("\n").filter(Boolean), { expectedRemoteUrl: cfg.remote }));
-      if (git(["symbolic-ref", "--short", "HEAD"], { cwd: p.repo, env }) !== record.identity.task_branch) push("INSTANCE_STALE");
-      if (tryGit(["merge-base", "--is-ancestor", record.identity.base_sha, "HEAD"], { cwd: p.repo, env }) === null) push("BASE_SHA_MISMATCH");
-      const tracked = new Set(git(["ls-files", "-z"], { cwd: p.repo, env }).split("\0").filter(Boolean).map((f) => `repo/${f}`));
+      push(...localConfigFailures(localConfigLines(p.repo, env), { expectedRemoteUrl: cfg.remote }));
+      if (currentBranch(p.repo, env) !== record.identity.task_branch) push("INSTANCE_STALE");
+      if (!isAncestor(p.repo, record.identity.base_sha, "HEAD", env)) push("BASE_SHA_MISMATCH");
+      const tracked = new Set(trackedFiles(p.repo, env).map((f) => `repo/${f}`));
       if (scanCredentialFiles(p.root, { tracked, skipDirs: new Set([".git", "node_modules"]) }).length) push("SECRET_MATERIAL_DETECTED");
       if (treeSnapshot(p.repo, env) !== record.tree_snapshot) push("DIRTY_WORKTREE");
     } catch (e) {
@@ -476,22 +521,36 @@ export function createExecutionHost(config) {
 
   const sameBinding = (a, b) => ["checkpoint_revision", "argv_digest", "cwd", "environment_digest"].every((k) => a[k] === b[k]);
 
-  function permitView(record, permitId) {
-    const status = currentPermitStatus(record.task_id, permitId);
-    const permit = parsePermitBody(registry.readPermitBody(record.task_id, permitId), status?.permit_digest);
-    return { permit_id: permitId, state: status.state, revocation_reason: status.revocation_reason ?? null, permit, report: status.report ?? null };
+  function permitView(record, binding) {
+    const status = statusOf(record.task_id, binding);
+    const permit = parsePermitBody(binding.permit_body, binding.permit_digest);
+    return { permit_id: binding.permit_id, state: status.state, revocation_reason: status.revocation_reason ?? null, permit, report: status.report ?? null };
+  }
+
+  // Exact replay of an existing binding: no S5 call, never a new permit. If a
+  // crash interrupted minting after the binding was published, the missing
+  // derived artifacts are rebuilt (under the task lock) from the binding.
+  async function replayBinding(record, binding, want) {
+    if (!sameBinding(binding, want)) fail("MALFORMED_REQUEST", "request_id reused with a different binding");
+    if (binding.instance_id !== record.instance_id) fail("ISOLATION_UNPROVABLE", "binding names another instance");
+    if (!isMaterialized(record, binding)) {
+      await registry.withTaskLock(record.task_id, () => materialize(record, binding), { waitMs: cfg.lockWaitMs });
+    }
+    return { replay: true, ...permitView(record, binding) };
   }
 
   // Request -> (exact replay | conflict | validate + S5 at issuance -> permit).
+  // Minting order (AS94-F002): the request binding -- carrying the complete
+  // permit body -- is published atomically FIRST; it is the only commit point.
+  // Body file, status and journal entry are derived from it afterwards, so a
+  // crash at any sub-step either left nothing (retry mints the one permit) or
+  // left the binding (retry replays and completes that same permit).
   async function requestPermit(request) {
     validateRequest(request);
     const record = loadRecord(request.instance_id);
     const want = bindingOf(record, request);
     const prior = registry.readBinding(record.task_id, record.instance_id, request.request_id);
-    if (prior) {
-      if (!sameBinding(prior, want)) fail("MALFORMED_REQUEST", "request_id reused with a different binding");
-      return { replay: true, ...permitView(record, prior.permit_id) }; // no S5 call, no new permit
-    }
+    if (prior) return replayBinding(record, prior, want);
     if (record.state !== "ATTACHED") fail("INSTANCE_STALE", "permits are issued only for an attached instance");
     await requireProven(record.instance_id);
     if (request.checkpoint_revision !== record.checkpoint.current_revision) fail("FENCING_REVISION_MISMATCH", "request checkpoint_revision is not the current fencing checkpoint");
@@ -504,12 +563,10 @@ export function createExecutionHost(config) {
       journal.append("PERMIT_DENIED", { request_id: request.request_id, code: e.code ?? "CAPABILITY_DENIED" });
       throw e;
     }
-    return registry.withTaskLock(record.task_id, async () => {
-      const raced = registry.readBinding(record.task_id, record.instance_id, request.request_id);
-      if (raced) {
-        if (!sameBinding(raced, want)) fail("MALFORMED_REQUEST", "request_id reused with a different binding");
-        return { replay: true, ...permitView(record, raced.permit_id) };
-      }
+    let raced = null;
+    const minted = await registry.withTaskLock(record.task_id, async () => {
+      raced = registry.readBinding(record.task_id, record.instance_id, request.request_id);
+      if (raced) return null;
       const permitId = newId128();
       const now = clock();
       const bytes = buildPermitBody({
@@ -517,52 +574,68 @@ export function createExecutionHost(config) {
         checkpointRevision: request.checkpoint_revision, argvDigest: want.argv_digest, cwd: want.cwd, environmentDigest: want.environment_digest,
         s5, issuedAt: new Date(now).toISOString(), claimDeadline: new Date(now + cfg.claimWindowMs).toISOString(),
       });
-      const permitDigest = sha256(bytes);
-      registry.writePermitBody(record.task_id, permitId, bytes);
-      registry.putPermitStatus(record.task_id, permitId, {
-        instance_id: record.instance_id, state: "ISSUED", revocation_reason: null, permit_digest: permitDigest,
-        claim_deadline_ms: now + cfg.claimWindowMs, updated_at: new Date(now).toISOString(),
-      });
-      registry.writeBinding(record.task_id, record.instance_id, request.request_id, { ...want, permit_id: permitId, permit_digest: permitDigest });
-      journal.append("PERMIT_ISSUED", { permit_id: permitId, permit_digest: permitDigest, request_id: request.request_id });
-      await step("after-permit-issued", { permitId });
-      return { replay: false, ...permitView(record, permitId) };
-    });
+      const binding = {
+        instance_id: record.instance_id, request_id: request.request_id, ...want, permit_id: permitId, permit_digest: sha256(bytes),
+        permit_body: bytes, claim_deadline_ms: now + cfg.claimWindowMs, issued_at_ms: now,
+      };
+      await step("permit-before-binding", { permitId });
+      registry.writeBinding(record.task_id, record.instance_id, request.request_id, binding); // the commit point
+      await step("permit-after-binding", { permitId });
+      await materialize(record, binding);
+      return binding;
+    }, { waitMs: cfg.lockWaitMs });
+    if (raced) return replayBinding(record, raced, want);
+    return { replay: false, ...permitView(record, minted) };
   }
 
-  // The driver claims: every check, then (last) the fresh S5 recheck.
+  // The driver claims (AS94-F001). EVERY final check runs under the per-task
+  // S6 lock, in this order, with no lock wait or unrelated work in between:
+  //   1. re-read the binding, permit status and body;
+  //   2. read S4 now and re-check fencing, role state, lease and the permit's
+  //      pinned checkpoint revision -> failure revokes the permit (STALE);
+  //   3. the fresh S5 recheck, LAST -> failure revokes (CAPABILITY_INVALIDATED);
+  //   4. write CLAIMED and journal the accepted check.
   async function claimPermit({ permitId, request } = {}) {
     validateRequest(request);
-    const record = loadRecord(request.instance_id);
-    const status = currentPermitStatus(record.task_id, permitId);
-    if (!status || status.instance_id !== record.instance_id) fail("ISOLATION_UNPROVABLE", "unknown permit for this instance");
-    const permit = parsePermitBody(registry.readPermitBody(record.task_id, permitId), status.permit_digest);
-    if (status.state !== "ISSUED") fail("ISOLATION_UNPROVABLE", `permit is ${status.state}, not ISSUED`);
-    if (permit.request_id !== request.request_id || permit.argv_digest !== argvDigest(request.argv)) fail("ISOLATION_UNPROVABLE", "claim does not match the permitted request");
-    const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
-    const f = fencingFailures(record.identity, record.checkpoint, observed, clock());
-    if (f.length) failWith(f, "S4 fencing at claim");
-    if (record.stale || record.state !== "ATTACHED") fail("INSTANCE_STALE", "instance is not attached");
-    const journal = journalOf(record);
-    const invalidate = (e) => {
-      registry.putPermitStatus(record.task_id, permitId, { ...status, state: "REVOKED", revocation_reason: "CAPABILITY_INVALIDATED", updated_at: new Date(clock()).toISOString() });
-      journal.append("CLAIM_S5_CHECK", { permit_id: permitId, permit_digest: status.permit_digest, outcome: "DENIED", code: e.code ?? "CAPABILITY_DENIED", detail: e.detail ?? String(e.message) });
-      throw e instanceof ExecutionError ? e : new ExecutionError("CAPABILITY_DENIED", String(e.message));
-    };
-    let check;
-    try {
-      check = verifyClaimResult(requestShellDecision(cfg.gateway, permit.s5_request_intent), { permit, identity: record.identity });
-    } catch (e) {
-      invalidate(e);
-    }
-    return registry.withTaskLock(record.task_id, async () => {
-      const again = registry.getPermitStatus(record.task_id, permitId);
-      if (again.state !== "ISSUED") fail("ISOLATION_UNPROVABLE", `permit became ${again.state} before claim`);
-      registry.putPermitStatus(record.task_id, permitId, { ...again, state: "CLAIMED", claimed_at: new Date(clock()).toISOString(), updated_at: new Date(clock()).toISOString() });
-      journal.append("CLAIM_S5_CHECK", { permit_id: permitId, permit_digest: status.permit_digest, outcome: "ALLOW", ...check });
-      journal.append("PERMIT_CLAIMED", { permit_id: permitId, permit_digest: status.permit_digest });
+    const pre = loadRecord(request.instance_id);
+    return registry.withTaskLock(pre.task_id, async () => {
+      const record = loadRecord(request.instance_id);
+      const binding = registry.readBinding(record.task_id, record.instance_id, request.request_id);
+      if (!binding || binding.permit_id !== permitId) fail("ISOLATION_UNPROVABLE", "no request binding names this permit (orphan or unknown permit)");
+      if (!isMaterialized(record, binding)) await materialize(record, binding);
+      const status = statusOf(record.task_id, binding);
+      const permit = parsePermitBody(binding.permit_body, binding.permit_digest);
+      if (status.state !== "ISSUED") fail("ISOLATION_UNPROVABLE", `permit is ${status.state}, not ISSUED`);
+      if (permit.request_id !== request.request_id || permit.argv_digest !== argvDigest(request.argv)) fail("ISOLATION_UNPROVABLE", "claim does not match the permitted request");
+      if (record.stale || record.state !== "ATTACHED") fail("INSTANCE_STALE", "instance is not attached");
+      const journal = journalOf(record);
+      const revoke = (reason, code, detail) => {
+        registry.putPermitStatus(record.task_id, permitId, { ...status, state: "REVOKED", revocation_reason: reason, updated_at: new Date(clock()).toISOString() });
+        journal.append("CLAIM_REFUSED", { permit_id: permitId, permit_digest: binding.permit_digest, reason, code, detail });
+      };
+      const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
+      const f = fencingFailures(record.identity, record.checkpoint, observed, clock());
+      if (permit.checkpoint_revision !== record.checkpoint.current_revision) f.push("FENCING_REVISION_MISMATCH");
+      if (observed && observed.state !== ROLE_STATE[record.identity.role]) f.push("INSTANCE_STALE");
+      if (f.length) {
+        const code = selectReason(f);
+        revoke("STALE", code, "S4 fencing at claim");
+        fail(code, `S4 fencing at claim: ${[...new Set(f)].join(", ")}`);
+      }
+      let check;
+      try {
+        check = verifyClaimResult(requestShellDecision(cfg.gateway, permit.s5_request_intent), { permit, identity: record.identity });
+      } catch (e) {
+        const err = e instanceof ExecutionError ? e : new ExecutionError("CAPABILITY_DENIED", String(e.message));
+        revoke("CAPABILITY_INVALIDATED", err.code, err.detail ?? String(err.message));
+        journal.append("CLAIM_S5_CHECK", { permit_id: permitId, permit_digest: binding.permit_digest, outcome: "DENIED", code: err.code, detail: err.detail ?? String(err.message) });
+        throw err;
+      }
+      registry.putPermitStatus(record.task_id, permitId, { ...status, state: "CLAIMED", claimed_at: new Date(clock()).toISOString(), updated_at: new Date(clock()).toISOString() });
+      journal.append("CLAIM_S5_CHECK", { permit_id: permitId, permit_digest: binding.permit_digest, outcome: "ALLOW", ...check });
+      journal.append("PERMIT_CLAIMED", { permit_id: permitId, permit_digest: binding.permit_digest });
       return { permit, cwd: pathsFor(record).repo, environment: envFor(pathsFor(record)) };
-    });
+    }, { waitMs: cfg.lockWaitMs });
   }
 
   async function recordReport(report) {
@@ -571,9 +644,11 @@ export function createExecutionHost(config) {
     const status = registry.getPermitStatus(record.task_id, report.permit_id);
     if (!status || status.instance_id !== record.instance_id) fail("ISOLATION_UNPROVABLE", "report for an unknown permit");
     const permit = parsePermitBody(registry.readPermitBody(record.task_id, report.permit_id), status.permit_digest);
+    const binding = registry.readBinding(record.task_id, record.instance_id, permit.request_id);
+    if (!binding || binding.permit_id !== report.permit_id || binding.permit_digest !== status.permit_digest) fail("ISOLATION_UNPROVABLE", "report for a permit no request binding names (orphan)");
     if (status.state !== "CLAIMED") fail("ISOLATION_UNPROVABLE", `report for a permit that is ${status.state}, not CLAIMED`);
     if (report.argv_digest !== permit.argv_digest || report.environment_digest !== permit.environment_digest) fail("ISOLATION_UNPROVABLE", "report digests do not match the permit");
-    const summary = { process_groups: report.process_groups, exit_code: report.exit_code ?? null, terminated: report.terminated, stdout_digest: report.stdout_digest ?? null, stderr_digest: report.stderr_digest ?? null };
+    const summary = reportEvidence(report); // every RFC-019 report field, durably (AS94-F004)
     registry.putPermitStatus(record.task_id, report.permit_id, { ...status, state: "REPORTED", report: summary, updated_at: new Date(clock()).toISOString() });
     const journal = journalOf(record);
     if (record.state === "QUARANTINED") {
@@ -658,8 +733,9 @@ export function createExecutionHost(config) {
     const baseNow = t.lsRemote(cfg.baseRef, env);
     if (baseNow === null) fail("BASE_UNAVAILABLE", "base ref vanished from the remote");
     if (baseNow !== record.identity.base_sha) fail("BASE_ADVANCED", `base advanced to ${baseNow}`);
-    const head = git(["rev-parse", "HEAD"], { cwd: p.repo, env });
-    if (tryGit(["merge-base", "--is-ancestor", record.identity.base_sha, head], { cwd: p.repo, env }) === null) fail("BASE_SHA_MISMATCH", "result is not a descendant of the base");
+    const head = headSha(p.repo, env);
+    if (head === null) fail("ISOLATION_UNPROVABLE", "instance repository has no HEAD commit");
+    if (!isAncestor(p.repo, record.identity.base_sha, head, env)) fail("BASE_SHA_MISMATCH", "result is not a descendant of the base");
     const codes = [];
     for (const e of statusEntries(p.repo, env)) {
       if (e.startsWith("! ")) {
@@ -669,7 +745,7 @@ export function createExecutionHost(config) {
         codes.push("DIRTY_WORKTREE");
       }
     }
-    const changed = git(["diff", "--name-only", "--no-renames", "-z", `${record.identity.base_sha}..${head}`], { cwd: p.repo, env }).split("\0").filter(Boolean);
+    const changed = changedFiles(p.repo, record.identity.base_sha, head, env);
     codes.push(...scopeFailures(changed, resolveContract(record.identity.contract_ref).contract.scope));
     failWith(codes, "completion checks");
 
@@ -680,7 +756,7 @@ export function createExecutionHost(config) {
     journal.append("PUSH_VERIFIED", { ref, sha: head });
     await step("after-push", { record });
 
-    const tree = git(["rev-parse", `${head}^{tree}`], { cwd: p.repo, env });
+    const tree = treeOf(p.repo, head, env);
     const preRevision = record.checkpoint.current_revision;
     const transferId = transferIdOf(record.identity_digest, head, preRevision);
     const bodyBytes = await registry.withTaskLock(record.task_id, async () => {
@@ -771,8 +847,13 @@ export function createExecutionHost(config) {
   }
 
   async function recover() {
-    const report = { pending: [], stale: [], quarantined: [], orphans: [] };
+    const report = { pending: [], stale: [], quarantined: [], orphans: [], orphan_permits: [] };
     for (const taskId of registry.listTasks()) {
+      // Permit files no binding names are reported, never adopted (AS94-F002).
+      const bound = new Set(registry.listBindings(taskId).map((b) => b.permit_id));
+      const files = fs.readdirSync(registry.taskDir(taskId, "permits"))
+        .map((n) => /^([0-9a-f]{32})\.(body|status)\.json$/.exec(n)?.[1]).filter(Boolean);
+      for (const id of new Set(files)) if (!bound.has(id)) report.orphan_permits.push(`${taskId}/${id}`);
       for (const { transfer_id: id, status } of registry.listRtr(taskId)) {
         if (status?.status === "PENDING") report.pending.push(await resolvePending(taskId, id));
       }

@@ -27,9 +27,74 @@ export function cleanGitEnv(home) {
   return { PATH: TOOLCHAIN.join(":"), HOME: home, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_TERMINAL_PROMPT: "0", LANG: "C.UTF-8" };
 }
 
-// Fixture setup only: literal Git subcommands on fixture repositories.
-export function fixtureGit(args, opts) {
-  return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts }).trim();
+// Fixture Git (AS94-F003). The process runner is module-private and every
+// call site below passes a literal argv whose subcommand and options are fixed
+// here. The exported helpers are NAMED operations with structured, validated
+// parameters (exact SHAs, plain branch refs, absolute paths); none accepts an
+// argv array or command string.
+const FIXTURE_IDENTITY = ["-c", "user.name=Seed", "-c", "user.email=seed@invalid", "-c", "commit.gpgsign=false"];
+const SHA = /^[0-9a-f]{40}$/;
+const BRANCH_REF = /^refs\/heads\/[A-Za-z0-9][A-Za-z0-9._/-]*$/;
+
+function fixtureRun(argv, opts) {
+  return execFileSync("git", argv, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts }).trim();
+}
+
+function checkSha(v) {
+  if (!SHA.test(v ?? "")) throw new TypeError("fixture helper requires an exact commit");
+  return v;
+}
+
+function checkRef(v) {
+  if (!BRANCH_REF.test(v ?? "") || v.includes("..")) throw new TypeError("fixture helper requires a plain refs/heads/ ref");
+  return v;
+}
+
+function checkDir(v) {
+  if (typeof v !== "string" || !path.isAbsolute(v) || v.startsWith("-")) throw new TypeError("fixture helper requires an absolute path");
+  return v;
+}
+
+// The commit a remote branch points at, or null when the ref is absent.
+export function remoteRefSha(world, ref) {
+  const out = fixtureRun(["ls-remote", "--refs", "--", world.dirs.remote, checkRef(ref)], { env: world.env });
+  return out ? out.split("\t")[0] : null;
+}
+
+export function headOf(world, repoDir) {
+  return fixtureRun(["rev-parse", "--verify", "HEAD^{commit}"], { cwd: checkDir(repoDir), env: world.env });
+}
+
+export function headCommitText(world, repoDir) {
+  return fixtureRun(["cat-file", "-p", "HEAD"], { cwd: checkDir(repoDir), env: world.env });
+}
+
+// Creates a remote branch at an existing commit (non-force; fails if present).
+export function createRemoteBranch(world, sha, ref) {
+  fixtureRun(["push", "--quiet", world.dirs.remote, `${checkSha(sha)}:${checkRef(ref)}`], { cwd: world.dirs.seed, env: world.env });
+}
+
+// Force-moves a remote branch (simulates a third party moving it).
+export function forceMoveRemoteBranch(world, sha, ref) {
+  fixtureRun(["push", "--quiet", "--force", world.dirs.remote, `${checkSha(sha)}:${checkRef(ref)}`], { cwd: world.dirs.seed, env: world.env });
+}
+
+// Advances remote main by one fixed commit.
+export function advanceRemoteMain(world) {
+  fs.writeFileSync(path.join(world.dirs.seed, "src", "app.txt"), "v2\n");
+  fixtureRun([...FIXTURE_IDENTITY, "commit", "--quiet", "-am", "advance"], { cwd: world.dirs.seed, env: world.env });
+  fixtureRun(["push", "--quiet", world.dirs.remote, "HEAD:refs/heads/main"], { cwd: world.dirs.seed, env: world.env });
+}
+
+// Plants a forbidden repository-local config key (core.hooksPath).
+export function plantHooksPathConfig(world, repoDir) {
+  fixtureRun(["config", "core.hooksPath", "/tmp/evil-hooks"], { cwd: checkDir(repoDir), env: world.env });
+}
+
+// Resets a repository to a parentless commit carrying the base tree.
+export function resetToOrphanOfBase(world, repoDir) {
+  const orphan = fixtureRun([...FIXTURE_IDENTITY, "commit-tree", `${checkSha(world.baseSha)}^{tree}`, "-m", "orphan"], { cwd: checkDir(repoDir), env: world.env });
+  fixtureRun(["reset", "--quiet", "--hard", checkSha(orphan)], { cwd: repoDir, env: world.env });
 }
 
 export function contractFor(taskId, overrides = {}) {
@@ -125,16 +190,15 @@ export async function makeWorld({ taskId = "S6TEST-TASK", contractOverrides = {}
   for (const d of [dirs.workspace, dirs.state, dirs.s4, dirs.contracts, dirs.home, dirs.outside]) fs.mkdirSync(d);
   fs.writeFileSync(path.join(dirs.outside, "SENTINEL.txt"), "must survive\n");
   const env = cleanGitEnv(dirs.home);
-  fixtureGit(["init", "--quiet", "--bare", "--initial-branch=main", dirs.remote], { env });
-  fixtureGit(["init", "--quiet", "--initial-branch=main", dirs.seed], { env });
+  fixtureRun(["init", "--quiet", "--bare", "--initial-branch=main", dirs.remote], { env });
+  fixtureRun(["init", "--quiet", "--initial-branch=main", dirs.seed], { env });
   fs.mkdirSync(path.join(dirs.seed, "src"));
   fs.writeFileSync(path.join(dirs.seed, "src", "app.txt"), "v1\n");
   fs.writeFileSync(path.join(dirs.seed, ".gitignore"), "node_modules/\nbuild-output/\n*.log\n");
-  const ci = ["-c", "user.name=Seed", "-c", "user.email=seed@invalid", "-c", "commit.gpgsign=false"];
-  fixtureGit(["add", "."], { cwd: dirs.seed, env });
-  fixtureGit([...ci, "commit", "--quiet", "-m", "seed"], { cwd: dirs.seed, env });
-  fixtureGit(["push", "--quiet", dirs.remote, "HEAD:refs/heads/main"], { cwd: dirs.seed, env });
-  const baseSha = fixtureGit(["rev-parse", "HEAD"], { cwd: dirs.seed, env });
+  fixtureRun(["add", "."], { cwd: dirs.seed, env });
+  fixtureRun([...FIXTURE_IDENTITY, "commit", "--quiet", "-m", "seed"], { cwd: dirs.seed, env });
+  fixtureRun(["push", "--quiet", dirs.remote, "HEAD:refs/heads/main"], { cwd: dirs.seed, env });
+  const baseSha = fixtureRun(["rev-parse", "HEAD"], { cwd: dirs.seed, env });
 
   const contractRef = `contract:${taskId}`;
   const contractPath = path.join(dirs.contracts, `${taskId}.json`);
@@ -171,7 +235,7 @@ export async function makeWorld({ taskId = "S6TEST-TASK", contractOverrides = {}
     ...over,
   });
   return {
-    dirs, env, baseSha, taskId, contractRef, contractPath, anchor, builder, ci, builderTrust, hostConfig,
+    dirs, env, baseSha, taskId, contractRef, contractPath, anchor, builder, builderTrust, hostConfig,
     host: (over) => createExecutionHost(hostConfig(over)),
     s4: { claim, getState, transition },
   };

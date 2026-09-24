@@ -200,3 +200,108 @@ test("a stale instance (S4 moved on) is quarantined by recovery, and its ISSUED 
   assert.equal(s.state, "REVOKED");
   assert.equal(s.revocation_reason, "QUARANTINE");
 }));
+
+// ---------------------------------------------------------------- AS94-F002
+// Permit minting crashes at every durable sub-step. After any crash, retrying
+// the same request_id yields exactly one binding and one permit, and every
+// successful response names the same permit_id.
+const PERMIT_STEPS = ["permit-before-binding", "permit-after-binding", "permit-after-body", "permit-after-status", "permit-after-journal"];
+const WRITE_ARGV = ["s6-fixture", "write", "src/feature.txt"];
+
+async function attached(w) {
+  const h = w.host();
+  const rec = await h.createInstance({ role: "BUILDER", claimResult: w.anchor });
+  await h.attach(rec.instance_id, { actorId: w.builder });
+  return { h, rec, request: { instance_id: rec.instance_id, request_id: "mint-1", argv: [...WRITE_ARGV], checkpoint_revision: rec.checkpoint.current_revision } };
+}
+
+function mintingCensus(w, rec, permitId) {
+  const reg = path.join(w.dirs.state, "registry", w.taskId);
+  const list = (d) => (fs.existsSync(path.join(reg, d)) ? fs.readdirSync(path.join(reg, d)).filter((n) => !n.startsWith(".")) : []);
+  const journal = fs.readFileSync(path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  return {
+    bindings: list("request-bindings").length,
+    bodies: list("permits").filter((n) => n.endsWith(".body.json")).length,
+    statuses: list("permits").filter((n) => n.endsWith(".status.json")).length,
+    issued: journal.filter((e) => e.type === "PERMIT_ISSUED" && (!permitId || e.data.permit_id === permitId)).length,
+    temps: ["request-bindings", "permits"].flatMap((d) => (fs.existsSync(path.join(reg, d)) ? fs.readdirSync(path.join(reg, d)) : [])).filter((n) => n.startsWith(".")).length,
+  };
+}
+
+async function assertSinglePermitAfterRecovery(w, h, rec, request, crashedPermitId, step) {
+  const first = await h.requestPermit(request);
+  if (step !== "permit-before-binding") {
+    assert.equal(first.permit_id, crashedPermitId, `${step}: the retry returns the permit minted before the crash`);
+    assert.equal(first.replay, true);
+  }
+  const again = await h.requestPermit(request);
+  assert.equal(again.permit_id, first.permit_id, "every replay returns the same permit");
+  assert.deepEqual(mintingCensus(w, rec, first.permit_id), { bindings: 1, bodies: 1, statuses: 1, issued: 1, temps: 0 });
+  const claimed = await h.claimPermit({ permitId: first.permit_id, request });
+  assert.equal(claimed.permit.permit_id, first.permit_id);
+  return first.permit_id;
+}
+
+for (const step of PERMIT_STEPS) {
+  test(`permit minting fault at ${step}: retry yields exactly one binding and one permit (AS94-F002)`, () => withWorld(async (w) => {
+    const { rec, request } = await attached(w);
+    let crashedPermitId = null;
+    const faulty = w.host({ faults: { onStep: (name, ctx) => { if (name === step) { crashedPermitId = ctx.permitId; throw new Error(`injected fault at ${step}`); } } } });
+    assert.match(await (async () => { try { await faulty.requestPermit(request); return "NO_ERROR"; } catch (e) { return e.code ?? "UNCODED"; } })(), /UNCODED/);
+    assert.ok(crashedPermitId);
+    const census = mintingCensus(w, rec);
+    assert.equal(census.bindings, step === "permit-before-binding" ? 0 : 1, "the binding is the first durable commit point");
+    await assertSinglePermitAfterRecovery(w, w.host(), rec, request, crashedPermitId, step);
+  }));
+
+  test(`REAL SIGKILL during permit minting at ${step}: after the operator clears the lock, retry yields one permit (AS94-F002)`, () => withWorld(async (w) => {
+    const { rec, request } = await attached(w);
+    const r = sigkillWorker(w, { op: "permit", crashAt: step, request });
+    assert.equal(r.signal, "SIGKILL", `worker must die by SIGKILL (status ${r.status}, stderr ${r.stderr})`);
+    const h = w.host();
+    const lock = path.join(w.dirs.state, "registry", w.taskId, "lock");
+    assert.ok(fs.existsSync(lock), "the killed process left its lock");
+    if (step === "permit-after-journal") {
+      // Fully materialized: the replay is a pure read and needs no lock.
+      assert.equal((await h.requestPermit(request)).replay, true);
+    } else {
+      // Anything left to (re)build needs the lock, which is never stolen.
+      assert.equal(await codeOf(h.requestPermit(request)), "ISOLATION_UNPROVABLE", "a held lock is never stolen");
+    }
+    fs.rmSync(lock); // explicit operator action
+    const bindingFile = fs.readdirSync(path.join(w.dirs.state, "registry", w.taskId, "request-bindings")).filter((n) => !n.startsWith("."));
+    const crashedPermitId = bindingFile.length ? JSON.parse(fs.readFileSync(path.join(w.dirs.state, "registry", w.taskId, "request-bindings", bindingFile[0]), "utf8")).permit_id : null;
+    assert.equal(crashedPermitId === null, step === "permit-before-binding");
+    // A leftover private temp file (killed mid-publish) is never read as a binding.
+    await assertSinglePermitAfterRecovery(w, h, rec, request, crashedPermitId, step);
+  }));
+}
+
+test("orphan permit files (no binding) are never permits: not claimable, not reportable, reported by recovery (AS94-F002)", () => withWorld(async (w) => {
+  const { h, rec, request } = await attached(w);
+  const real = await h.requestPermit(request);
+  const dir = path.join(w.dirs.state, "registry", w.taskId, "permits");
+  const orphanId = "e".repeat(32);
+  fs.copyFileSync(path.join(dir, `${real.permit_id}.body.json`), path.join(dir, `${orphanId}.body.json`));
+  const status = JSON.parse(fs.readFileSync(path.join(dir, `${real.permit_id}.status.json`), "utf8"));
+  fs.writeFileSync(path.join(dir, `${orphanId}.status.json`), JSON.stringify({ ...status, state: "CLAIMED" }));
+  assert.equal(await codeOf(h.claimPermit({ permitId: orphanId, request })), "ISOLATION_UNPROVABLE");
+  const { fakeDriver } = await import("./fixtures/execution/drivers.mjs");
+  assert.equal(await codeOf(fakeDriver(h).report({ ...real.permit, permit_id: orphanId }, request)), "ISOLATION_UNPROVABLE");
+  assert.deepEqual(h.provenance(rec.instance_id).permits.map((p) => p.permit_id), [real.permit_id], "only bound permits are permits");
+  const report = await w.host().recover();
+  assert.deepEqual(report.orphan_permits, [`${w.taskId}/${orphanId}`]);
+}));
+
+test("a tampered or inconsistent binding fails closed on replay and claim (AS94-F002)", () => withWorld(async (w) => {
+  const { h, request } = await attached(w);
+  const real = await h.requestPermit(request);
+  const bdir = path.join(w.dirs.state, "registry", w.taskId, "request-bindings");
+  const [name] = fs.readdirSync(bdir);
+  const b = JSON.parse(fs.readFileSync(path.join(bdir, name), "utf8"));
+  fs.writeFileSync(path.join(bdir, name), JSON.stringify({ ...b, permit_body: b.permit_body.replace(b.argv_digest, "0".repeat(64)) }));
+  assert.equal(await codeOf(h.requestPermit(request)), "ISOLATION_UNPROVABLE");
+  assert.equal(await codeOf(h.claimPermit({ permitId: real.permit_id, request })), "ISOLATION_UNPROVABLE");
+  fs.writeFileSync(path.join(bdir, name), "{ torn");
+  assert.equal(await codeOf(h.requestPermit(request)), "ISOLATION_UNPROVABLE");
+}));

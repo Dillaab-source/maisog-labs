@@ -219,6 +219,36 @@ export function writeAtomic(dirEntry, name, data) {
   fs.renameSync(createFileExclusive(dirEntry, tmp, data), path.join(dirEntry.native, name));
 }
 
+// Atomic exclusive publish (AS94-F002): the complete, fsynced bytes are
+// written to a private temp file and then hard-linked into place. link()
+// fails with EEXIST if the name exists, so the final name either does not
+// exist or holds the COMPLETE content -- a crash can never leave a partial
+// file under the final name, and two writers can never both succeed.
+export function publishFileExclusive(dirEntry, name, data, { existsCode = "ISOLATION_UNPROVABLE" } = {}) {
+  assertSegments([name]);
+  const tmp = createFileExclusive(dirEntry, `.${name}.${randomBytes(6).toString("hex")}.tmp`, data);
+  const final = path.join(dirEntry.native, name);
+  try {
+    fs.linkSync(tmp, final);
+  } catch (err) {
+    if (err.code === "EEXIST") fail(existsCode, `${final} already exists`);
+    fail("ISOLATION_UNPROVABLE", `cannot publish ${final}: ${err.code}`);
+  } finally {
+    fs.rmSync(tmp, { force: true });
+  }
+  try {
+    const dfd = fs.openSync(dirEntry.native, "r");
+    try {
+      fs.fsyncSync(dfd);
+    } finally {
+      fs.closeSync(dfd);
+    }
+  } catch {
+    // directory fsync is best-effort (unsupported on some platforms)
+  }
+  return final;
+}
+
 // Existing-path rule 5: deletion never follows links. Each directory's identity
 // is recorded when first seen. Immediately before ANY entry is read, unlinked
 // or removed, every ancestor directory from the target down is re-checked

@@ -7,8 +7,11 @@ import fs from "node:fs";
 import { createExecutionHost } from "../../../devos/execution/index.mjs";
 import { POLICY_VERSION, PROJECT, REPOSITORY, TOOLCHAIN, TRANSPORT_REF, gatewayFor, trustedHost } from "./harness.mjs";
 
-const OPERATIONS = new Set(["create", "complete"]);
-const CRASH_POINTS = new Set(["after-create-begin", "after-push", "after-pending", "after-transition"]);
+const OPERATIONS = new Set(["create", "complete", "permit"]);
+const CRASH_POINTS = new Set([
+  "after-create-begin", "after-push", "after-pending", "after-transition",
+  "permit-before-binding", "permit-after-binding", "permit-after-body", "permit-after-status", "permit-after-journal",
+]);
 
 const spec = JSON.parse(process.argv[2]);
 if (!OPERATIONS.has(spec.op) || !CRASH_POINTS.has(spec.crashAt)) {
@@ -41,7 +44,9 @@ const host = createExecutionHost({
   },
 });
 
+// "permit" submits the spec's Execution Request as DATA (it is never executed).
 if (spec.op === "create") await host.createInstance({ role: "BUILDER", claimResult: spec.anchor });
+else if (spec.op === "permit") await host.requestPermit(spec.request);
 else await host.complete(spec.instanceId, { actorId: spec.builder });
 process.stderr.write("crash-worker: crash point was never reached\n");
 process.exit(3);

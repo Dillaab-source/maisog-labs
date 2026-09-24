@@ -8,7 +8,7 @@ import path from "node:path";
 
 import { lifecycle } from "../state/kernel.mjs";
 import { sha256 } from "./digest.mjs";
-import { createFileExclusive, writeAtomic } from "./paths.mjs";
+import { createFileExclusive, publishFileExclusive, writeAtomic } from "./paths.mjs";
 import { HEX64, ID128, fail } from "./vocabulary.mjs";
 
 export class Registry {
@@ -32,16 +32,22 @@ export class Registry {
     return path.join(this.dir("journal"), `${instanceId}.jsonl`);
   }
 
-  // Per-task mutex. A held lock fails closed; removing a stale lock is an
-  // explicit, authorized operator action, never automatic.
-  async withTaskLock(taskId, fn) {
+  // Per-task mutex. A held lock is waited on for at most `waitMs` (default:
+  // not at all), then fails closed; a lock is NEVER stolen -- removing a stale
+  // lock is an explicit, authorized operator action.
+  async withTaskLock(taskId, fn, { waitMs = 0 } = {}) {
     const lock = path.join(this.taskDir(taskId), "lock");
+    const deadline = Date.now() + waitMs;
     let fd;
-    try {
-      fd = fs.openSync(lock, "wx", 0o600);
-    } catch (err) {
-      if (err.code === "EEXIST") fail("ISOLATION_UNPROVABLE", `S6 registry lock for ${taskId} is held (no automatic stealing)`);
-      throw err;
+    for (;;) {
+      try {
+        fd = fs.openSync(lock, "wx", 0o600);
+        break;
+      } catch (err) {
+        if (err.code !== "EEXIST") throw err;
+        if (Date.now() >= deadline) fail("ISOLATION_UNPROVABLE", `S6 registry lock for ${taskId} is held (no automatic stealing)`);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
     }
     fs.closeSync(fd);
     try {
@@ -115,24 +121,41 @@ export class Registry {
   }
 
   // ------------------------------------------------------------ permits (§13.1)
-  // Request binding: one immutable record per (instance_id, request_id),
-  // exclusive-created under the task lock in the same step as the permit.
+  // Request binding (AS94-F002): the ONE source of truth for a permit. One
+  // immutable record per (instance_id, request_id), published atomically and
+  // exclusively as the FIRST durable step of minting. It carries the complete
+  // permit body bytes, so the permit body file, its initial status and its
+  // journal entry are derived artifacts that can always be reconstructed. A
+  // permit file with no binding naming it is an orphan and is never a permit.
   bindingFile(taskId, instanceId, requestId) {
     return path.join(this.taskDir(taskId, "request-bindings"), `${sha256(`${instanceId}\n${requestId}`)}.json`);
   }
 
   readBinding(taskId, instanceId, requestId) {
-    return this.readJson(this.bindingFile(taskId, instanceId, requestId));
+    const f = this.bindingFile(taskId, instanceId, requestId);
+    if (!fs.existsSync(f)) return null;
+    return parseBinding(fs.readFileSync(f, "utf8"), f);
   }
 
   writeBinding(taskId, instanceId, requestId, binding) {
     const f = this.bindingFile(taskId, instanceId, requestId);
-    createFileExclusive({ native: path.dirname(f) }, path.basename(f), `${JSON.stringify(binding)}\n`, { existsCode: "MALFORMED_REQUEST" });
+    publishFileExclusive({ native: path.dirname(f) }, path.basename(f), `${JSON.stringify(binding)}\n`, { existsCode: "MALFORMED_REQUEST" });
   }
 
+  listBindings(taskId) {
+    const d = this.taskDir(taskId, "request-bindings");
+    return fs.readdirSync(d).filter((n) => /^[0-9a-f]{64}\.json$/.test(n)).map((n) => parseBinding(fs.readFileSync(path.join(d, n), "utf8"), n));
+  }
+
+  // Idempotent derived write: absent -> publish; present -> must be identical.
   writePermitBody(taskId, permitId, bytes) {
     if (!ID128.test(permitId)) fail("MALFORMED_REQUEST", "invalid permit_id");
-    createFileExclusive({ native: this.taskDir(taskId, "permits") }, `${permitId}.body.json`, bytes, { existsCode: "ISOLATION_UNPROVABLE" });
+    const existing = this.readPermitBody(taskId, permitId);
+    if (existing !== null) {
+      if (existing !== bytes) fail("ISOLATION_UNPROVABLE", `permit body ${permitId} differs from its binding`);
+      return;
+    }
+    publishFileExclusive({ native: this.taskDir(taskId, "permits") }, `${permitId}.body.json`, bytes, { existsCode: "ISOLATION_UNPROVABLE" });
   }
 
   readPermitBody(taskId, permitId) {
@@ -160,4 +183,37 @@ export class Registry {
   keyFile(taskId, kind, key) {
     return path.join(this.taskDir(taskId, kind), `${sha256(key)}.json`);
   }
+}
+
+// A binding is valid only if it is complete and self-consistent: its permit
+// body hashes to its permit_digest and names the same permit, instance and
+// request. Anything else fails closed.
+const BINDING_FIELDS = [
+  "instance_id", "request_id", "checkpoint_revision", "argv_digest", "cwd", "environment_digest", "permit_id", "permit_digest",
+  "permit_body", "claim_deadline_ms", "issued_at_ms",
+];
+
+function parseBinding(text, where) {
+  let b;
+  try {
+    b = JSON.parse(text);
+  } catch {
+    fail("ISOLATION_UNPROVABLE", `request binding ${where} is not JSON`);
+  }
+  const ok = b && typeof b === "object" && BINDING_FIELDS.every((k) => Object.hasOwn(b, k))
+    && ID128.test(b.permit_id ?? "") && ID128.test(b.instance_id ?? "") && HEX64.test(b.permit_digest ?? "")
+    && typeof b.permit_body === "string" && sha256(b.permit_body) === b.permit_digest
+    && Number.isFinite(b.claim_deadline_ms) && Number.isFinite(b.issued_at_ms);
+  if (!ok) fail("ISOLATION_UNPROVABLE", `request binding ${where} is incomplete or inconsistent`);
+  let body;
+  try {
+    body = JSON.parse(b.permit_body);
+  } catch {
+    fail("ISOLATION_UNPROVABLE", `request binding ${where} carries a non-JSON permit body`);
+  }
+  if (body.permit_id !== b.permit_id || body.instance_id !== b.instance_id || body.request_id !== b.request_id
+    || body.argv_digest !== b.argv_digest || body.checkpoint_revision !== b.checkpoint_revision) {
+    fail("ISOLATION_UNPROVABLE", `request binding ${where} does not match its permit body`);
+  }
+  return b;
 }
