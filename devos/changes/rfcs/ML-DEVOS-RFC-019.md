@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-019: Sentinel S6 Isolated Execution
 
-Status: `DRAFT` — proposal only. Revised in Remediation Cycle 1 for `ML-DEVOS-AS-086` (`AS86-F001`–`AS86-F004`), Remediation Cycle 2 for `ML-DEVOS-AS-087` (`AS87-F001`), and the exceptional Remediation Cycle 3 authorized by `D-067` for `ML-DEVOS-AS-088` (`AS88-F001`); resubmitted for final independent Architect review.
+Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3 (`ML-DEVOS-AS-086`, `ML-DEVOS-AS-087`, `ML-DEVOS-AS-088`/`D-067`). Amended under `D-069` (execution-boundary amendment) and resubmitted for independent Architect review of the amendment. The `D-068` implementation authority is suspended, and the amendment does not resume it.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -8,6 +8,13 @@ Sentinel phase:
 - `S6 — Isolated Execution` (`ML-DEVOS-SIP-001`: "Implement task-scoped branch/worktree/sandbox isolation for Builder/QA work.")
 
 Authority chain: `D-066` (Paulo) authorizes S6 discovery, architecture proposal, and audit only, following S5's D.2 closure at Sentinel `v1.8.0` (`ML-DEVOS-ADR-015`, `D-065`, `ML-DEVOS-AS-085`). This RFC is the input to the S6 Architect Sync. It grants no authority and authorizes no implementation. No executable S6 file, directory, reserved root, manifest change, closure ADR, or version change is created by, or implied by, this RFC. Every artifact named below is a planned deliverable of a future, separately authorized implementation cycle.
+
+**Execution-boundary amendment (`D-069`).** During the `D-068` implementation, the Builder's session safety control blocked the generic command-running surface (`run()` → process spawn) as a remote-code-execution surface. The block exposed a real architecture seam, so this amendment removes that surface from S6. It does not route around the block.
+- **S6 core keeps:** execution identity; dedicated-clone workspace isolation; environment construction and validation; S4-derived fencing; path confinement; journal, Result Transfer Record and provenance; cleanliness and scope validation; quiescence requirements and proof; completion and publication control; and independent-QA reconstruction.
+- **S6 core no longer exposes** any generic `run(arbitraryCommand)` or raw actor-command `spawn()` primitive.
+- **Actor- or tool-chosen command execution** moves to a distinct, separately authorized **execution driver** (§13.1). S6 core issues a single-use, S5-gated **Execution Permit** bound to the exact command, workspace and environment. It then consumes the driver's **Execution Report** as evidence.
+- **Changed sections:** §1 (L3 row), §2, §8, §8.1, §10, §13, new §13.1, §14 (rows 3, 28 and 30; no new code), §16, §17, §18 (items 2, 3, 14), the summary, affected components, rollout, security/trust impact, residual risks, and unresolved questions.
+- S3, S4 and S5 semantics are unchanged. The Builder's uncommitted local implementation draft from `D-068` is not part of this design and is not published.
 
 Exceptional Remediation Cycle 3 (`D-067`, `ML-DEVOS-AS-088`) changed only the publication provenance value (`AS88-F001`). The payload's former self-referential `provenance_digest` becomes the non-circular `prepublication_provenance_digest`: the journal head immediately *before* the `PENDING` Result Transfer Record is appended. The journal chain and the construction order are now defined, and proof of the `PENDING` record itself is recorded outside the payload (§7.1.1, §7.1.2). The matching updates are in the RTR field list, §7.1 steps 2 and 5, and §18 item 9.
 
@@ -48,7 +55,7 @@ The roadmap phrase "branch/worktree/sandbox isolation" covers four mechanisms of
 |---|---|---|---|
 | **L1 — Git branch isolation** | A task-scoped branch name. | Commits for task A landing on task B's branch or on the base branch *through normal Git use*. | Anything in the working directory. Two tasks on different branches in one checkout still share every uncommitted, untracked and ignored file. Branch names are refs, so any process with repository write access can move them. |
 | **L2 — Git working-tree isolation** | A separate working directory per execution instance. The instance is either a *linked worktree* (`git worktree add`) or a *dedicated clone*. | Uncommitted, untracked and ignored-file contamination between cooperating processes that stay in their own directory. | A linked worktree shares the repository's common directory: **refs, config, hooks, packed objects, and worktree metadata**. A process in worktree A can rewrite task B's branch, install a hook that runs in B, or change `core.hooksPath`/`core.fsmonitor` for every worktree. A dedicated clone removes that sharing. Neither form limits what else on the machine the process can read or write. |
-| **L3 — Filesystem / process / environment boundary** | A constructed environment per instance: allowlisted variables; instance-private `HOME`, temp, tool-config and caches; path-confined host operations; a supervised process tree; no inherited credentials. | *Accidental* inheritance and leakage: stray env credentials, a shared `~/.npmrc`, a shared temp directory, a global Git config or hook, a leftover process writing into another instance. | A process running **as the same OS user** that *deliberately* reads or writes outside its instance: `~/.ssh`, a credential helper's store, another instance's directory, the S6 host's own journal. At L3, "read-only" means policy plus after-the-fact detection, not kernel prevention. |
+| **L3 — Filesystem / process / environment boundary** | A constructed environment per instance: allowlisted variables; instance-private `HOME`, temp, tool-config and caches; path-confined host operations; process trees started only through permitted driver executions and proven quiesced (§13.1); no inherited credentials. | *Accidental* inheritance and leakage: stray env credentials, a shared `~/.npmrc`, a shared temp directory, a global Git config or hook, a leftover process writing into another instance. | A process running **as the same OS user** that *deliberately* reads or writes outside its instance: `~/.ssh`, a credential helper's store, another instance's directory, the S6 host's own journal. At L3, "read-only" means policy plus after-the-fact detection, not kernel prevention. |
 | **L4 — OS / container / VM sandbox** | Kernel-enforced confinement: namespaces/cgroups/seccomp or Landlock, macOS sandbox profiles, Windows AppContainer / Job Objects / a separate low-privilege user, a container runtime, or a hypervisor-backed VM. | Deliberate escape attempts, up to the strength of the specific mechanism. A VM is strongest; containers share the host kernel. | Kernel or hypervisor vulnerabilities; host misconfiguration (bind-mounted sockets, credentials mounted in); network egress unless separately restricted. |
 
 **V1 proposal: L1 + L2 (dedicated clone) + L3.** V1 does **not** provide L4 and MUST NOT be described as a sandbox, as security isolation, or as containment of a hostile process. V1's guarantee is precise:
@@ -73,7 +80,8 @@ Anything that needs containment of *untrusted code* is outside V1 and fails clos
 **Actors:**
 - **Builder instance process** — trusted but fallible, and may be stale.
 - **QA instance process** — must be independent of the Builder.
-- **S6 host** — the trusted local component that creates, validates and tears down instances.
+- **S6 host** — the trusted local component that creates, validates and tears down instances. It never executes actor- or tool-chosen commands (§13.1).
+- **Execution driver** — a separately authorized component that runs one permitted command in a proven instance and reports back (§13.1). It is trusted to report honestly, like an S5 adapter, and it is never a source of MAY, S4 ownership, S5 evaluation or S6 identity.
 - **Third-party code** that runs inside an instance: dependency install scripts, test code, build tools. It is *not* trusted in principle, and at V1 strength it runs with the host user's privileges (disclosed in Residual risks).
 - **A concurrent or stale S6 host.**
 
@@ -343,13 +351,13 @@ An action proceeds only if all three hold **and** S4 fencing holds. Any single f
 **S5 — CapabilityDecision (consumed, S5 unchanged):**
 - S5 is a decision library over five bounded provider adapters. It is not an interceptor for every operation. S6 asks for an S5 decision exactly where §8.1's table says one is required (`AS86-F004`), through the public adapter `request(requestIntent)`:
   - `github` for every remote Git call: fetch, the remote-ref read that verifies a push, and push;
-  - `shell` for every actor- or tool-chosen process executed in the instance, including dependency install, with `cwd` canonicalized by S5's own platform-aware shell contract.
+  - `shell` for every actor- or tool-chosen command, including dependency install. S6 core requests this decision when it issues the Execution Permit (§13.1), with `cwd` canonicalized by S5's own platform-aware shell contract. S6 core never executes the command; the execution driver does, only under that permit.
 - S6's fixed internal bookkeeping and isolation mechanics are not S5 actions (§8.1): directory creation and deletion, verification reads, journal and registry writes, and fixed local Git inspection. Their authority is the S6 implementation decision and their review evidence. S5 is not claimed to cover them.
 - S6 records each returned decision verbatim.
 - `DENY` is blocking: `CAPABILITY_DENIED`, carrying S5's `denial_reason` unchanged.
 - `ALLOW` is necessary, never sufficient.
 - S6 never constructs `subjectContext`/`evaluationContext` (it cannot — minters exist only inside `createGateway()`, `AS82-F001`), never calls the raw core, and never caches an `ALLOW` across actions.
-- **Wiring disclosure:** implementing this composition *is* runtime use of S5, and S6 would issue an S4 `transition` as the owner's agent. A future S6 implementation decision must therefore explicitly authorize both: S5 consumption and S4 publication-transition use. It must also authorize the execution-transport scope of §8.1. D-066 does not authorize any of these, and this RFC does not assume them.
+- **Wiring disclosure:** implementing this composition *is* runtime use of S5, and S6 would issue an S4 `transition` as the owner's agent. A future S6 implementation decision must therefore explicitly authorize S5 consumption, S4 publication-transition use, and the execution-transport scope of §8.1. A real execution driver (§13.1) needs its own, separate authority. `D-066` does not authorize any of these, and this RFC does not assume them.
 
 #### 8.1 Execution transport, task scope and the S5 boundary (`AS86-F004`)
 
@@ -383,8 +391,8 @@ A transport attempt outside this scope, or with no recorded authorization refere
 | Operation | S5 decision? | Why |
 |---|---|---|
 | Remote Git fetch (base resolution, QA fetch by SHA), remote-ref read, push | **Yes**: `github`, per call | A real remote call; S5 answers CAN for it under the pinned policy. |
-| Any actor- or tool-chosen command in the instance (build, test, install, `git commit` by the actor) | **Yes**: `shell`, per command | The actor chooses the command; S5 answers CAN for it. |
-| S6 host internals: canonicalization, `mkdir`/exclusive create, no-follow deletion, `lstat`/`realpath` verification, journal/registry/RTR writes, environment and config construction, process-group or Job Object teardown, and fixed-argv local Git inspection (`status`, `rev-parse`, `merge-base`, `cat-file`) | **No** | Trusted, fixed mechanism steps with no actor choice and no remote effect. Authority comes from the S6 implementation decision; assurance comes from review and tests (§18). S6 does not claim S5 covers them. |
+| Any actor- or tool-chosen command in the instance (build, test, install, `git commit` by the actor) | **Yes**: `shell`, per command, at Execution Permit issuance (§13.1) | The actor chooses the command; S5 answers CAN for it. S6 core binds the decision to the exact command digest, and only the execution driver runs the command. |
+| S6 host internals: canonicalization, `mkdir`/exclusive create, no-follow deletion, `lstat`/`realpath` verification, journal/registry/RTR writes, environment and config construction, Execution Permit issuance and Execution Report verification, read-only process-group liveness inspection, and fixed-argv local Git inspection (`status`, `rev-parse`, `merge-base`, `cat-file`) | **No** | Trusted, fixed mechanism steps with no actor choice and no remote effect. Authority comes from the S6 implementation decision; assurance comes from review and tests (§18). S6 does not claim S5 covers them. |
 | S4 `getState` and the publication `transition` | **No** | S4 is not an S5 provider. S4 fencing governs these calls, and the implementation decision must authorize them (§8, wiring disclosure). |
 
 **The three conditions stay separate.**
@@ -487,12 +495,15 @@ S5's accepted principles are reused without changing S5:
 
 Any hit is `ENV_POLICY_VIOLATION`. The allowlist is the control; the deny set proves the allowlist did not regress.
 
-**Process tree.**
-- Every instance process starts with `cwd` inside `repo/`, through the S5 shell adapter decision, in a new process group on POSIX or a Job Object with kill-on-close on Windows.
-- *Quiesce* terminates the group or job and then verifies no member remains. Where the platform cannot prove this, the result is `QUIESCE_UNPROVEN`, and publication is blocked.
+**Process tree (§13.1).**
+- S6 core starts no actor or tool process. Every such process is started by the execution driver, under a single-use Execution Permit:
+  - `cwd` is inside `repo/`;
+  - the environment is exactly the one this section constructs;
+  - the process runs in a new process group on POSIX, or a Job Object with kill-on-close on Windows.
+- *Quiesce* is split across the boundary. The driver terminates the process groups it started and reports them. S6 core then proves, by read-only inspection, that no member of any reported group remains. Where S6 cannot prove this, the result is `QUIESCE_UNPROVEN`, and publication is blocked.
 - V1 has no network-egress control (an L4 concern). This is disclosed under Residual risks.
 
-**Recorded per command:** argv, canonical cwd, environment *digest* (names and value hashes, never values), start and end trusted time, exit code, and the S5 decision.
+**Recorded per command:** the Execution Permit and the driver's Execution Report (§13.1). Together they cover argv (as issued), the argv digest, canonical cwd, environment *digest* (names and value hashes, never values), start and end trusted time, exit code, reported process groups, and the S5 decision.
 
 ### 11. Dependency and cache isolation / reuse
 
@@ -526,9 +537,10 @@ These are *environment* states, not task states. None of them is an S4 state or 
 | **create** | Platform supported; workspace root valid; S4 record exists; the owner presents its S4 `claim`/`renew` result and `getState()` confirms it (§3.1); S4 checks pass (owner, revision, lease, state↔role); QA only: committed Result Transfer Record proven current (§7.1); transport authorization recorded (§8.1); S3 contract resolves, `task_id`/`project` match, and consequence flags are within the V1 profile; S5 `ALLOW` for fetch; base resolved (§4). | Create the instance directory tree under §9.1, the final directory exclusively. Clone, check out `base_sha`, create `task_branch`. Construct environment and config. Pre-use scan. Write identity, the initial Fencing Checkpoint, and the journal. → `READY`. |
 | **validate** | — (pure verification, repeatable at any time) | Recompute every identity field from live facts; tree, config and environment checks; S4 checks. Returns `PROVEN` or the first failing reason (§14). |
 | **attach** | `validate` → `PROVEN`; caller is the identity `owner`; S4 revision equals the checkpoint's `current_revision`. | → `ATTACHED`. |
-| **use** | `ATTACHED`; S5 `ALLOW` per command; S4 checks per mutating command. | Run the command; journal it. |
+| **permit** | `ATTACHED`; S4 checks; a well-formed Execution Request from the owner; S5 `shell` `ALLOW` for it. | Issue one single-use Execution Permit bound to the command digest, workspace, environment digest and checkpoint revision; journal it (§13.1). S6 core runs nothing. |
+| **record** | A driver Execution Report for a claimed, unexpired permit whose digests match. | Verify the report; register its process groups for quiescence; recompute the tree snapshot; journal it (§13.1). |
 | **renew** | The owner performed S4 `renew` and hands over its result. | The checkpoint advances only under §3.1's gap-free rule (journaled); otherwise `INSTANCE_STALE`. The identity does not change. |
-| **quiesce** | — | Terminate the process group or job; prove it empty (`QUIESCE_UNPROVEN` otherwise); snapshot tree state. → `QUIESCED`. |
+| **quiesce** | Every issued permit is reported or expired, and the driver has terminated its reported groups. | S6 core proves every reported group empty by read-only inspection (`QUIESCE_UNPROVEN` otherwise), then snapshots tree state. → `QUIESCED`. |
 | **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5: (1) push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA) and verify the remote ref; (2) write the Result Transfer Record ahead as `PENDING`; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision`, `idempotencyKey = transfer_id`, and the stored §7.1.1 `evidenceRef` (`evidenceClass: "ACTOR_REPORTED"`), with the payload stored before this step; (4) mark the record `COMMITTED` only after the `getState()` proof. Only a committed record after a successful S4 transition means *published*. → `COMPLETED`. |
 | **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; path rules (§9). | No-follow deletion of the instance root; verify absence; the journal is retained. → `CLEANED`. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
 
@@ -541,6 +553,57 @@ These are *environment* states, not task states. None of them is an S4 state or 
 - *Refs on case-insensitive filesystems:* branch components are lowercase or fixed-case by construction (`task_id` is `^[A-Z][A-Z0-9_-]*$`; `role` and `instance_id` are lowercase), so two distinct names cannot fold to one.
 - *Instance records:* the S6 host's own instance registry uses the same patterns S4 already proved (exclusive-create lock, write-temp-then-atomic-rename, no age-based lock stealing). It uses them in S6's own root, without importing or modifying S4's store.
 
+#### 13.1 Execution-driver boundary (`D-069`)
+
+**Principle.** S6 core controls and proves *where* and *under what conditions* a command may run. It never runs actor- or tool-chosen commands itself, and it exposes no generic `run(command)` or `spawn()` primitive. Command execution is the job of a separate **execution driver**, which acts only on a permit S6 core issued and reports its result back to S6 as evidence.
+
+**Records.** These records cross the boundary. Their schemas belong to S6 core; the driver implementation does not.
+
+| Record | Produced by | Contents |
+|---|---|---|
+| **Execution Request** | The instance owner, through its caller. It is never produced by the driver. | `instance_id`; `request_id` (the caller's idempotency key); `argv` (non-empty string array, no shell, no environment overrides); `checkpoint_revision` the owner believes current. |
+| **Execution Permit** | S6 core. | `permit_id`; `instance_id`; `identity_digest`; `checkpoint_revision`; `argv_digest` (SHA-256 of the canonical argv JSON); canonical `cwd` (the instance `repo/`); `environment_digest`; the S5 `shell` decision fields verbatim; `issued_at` and `expires_at` (short); `single_use: true`. |
+| **Execution Report** | The execution driver. | `permit_id`; `argv_digest` and `environment_digest` as actually used; `process_groups` started; `started_at` and `ended_at`; `exit_code` and `signal`; stdout and stderr digests (never raw secrets); `terminated: true/false`. |
+
+**Flow.**
+1. **Request.** The owner submits an Execution Request for an `ATTACHED` instance. S6 core does not interpret `argv` beyond structure.
+2. **Permit.** S6 core checks, in §14 order:
+   - the request is well formed;
+   - the instance validates (§13 *validate*);
+   - S4 fencing holds and `checkpoint_revision` equals the checkpoint's `current_revision`;
+   - the environment has been constructed and verified (§10, §12).
+
+   It then obtains the S5 `shell` decision through the public adapter: action `shell.exec`, resource = the instance's canonical `repo/`. `DENY` is `CAPABILITY_DENIED`, and no permit is issued. On `ALLOW`, S6 core journals and returns the permit plus the exact `cwd` and environment to use. That is data only: S6 core starts nothing.
+3. **Claim.** The driver presents the permit and the original request back to S6 core. S6 core checks the permit is known, unexpired and unclaimed; recomputes `argv_digest` from the request; re-checks S4 fencing; and marks the permit claimed (journaled). A second claim of the same permit fails.
+4. **Execute (driver only).** The driver runs exactly `argv` with no shell, exactly the permitted environment, and exactly the permitted `cwd`, in a new process group or Job Object. It must not add or change arguments, environment, working directory or credentials.
+5. **Report.** The driver returns an Execution Report. S6 core verifies that `permit_id` was claimed and that `argv_digest` and `environment_digest` match the permit. It registers the reported process groups for quiescence, recomputes the tree snapshot, and journals the report. The report is `ACTOR_REPORTED` evidence from the driver. It never upgrades anything, and a report that cannot be verified is `ISOLATION_UNPROVABLE`.
+6. **Quiesce.** The driver terminates the process groups it started. S6 core proves every reported group empty by read-only inspection: `/proc` on Linux, signal-0 probing on other POSIX, and Job Object state on Windows where an implementation can read it. S6 core never spawns anything and never signals arbitrary processes. Unproven is `QUIESCE_UNPROVEN`.
+
+**What each side may not do.**
+- The driver is **not** a source of MAY: it acts only on permits, and permits carry no authority.
+- The driver is **not** a source of S4 ownership: it presents no S4 results and makes no S4 calls.
+- The driver does **not** evaluate S5 policy: it consumes the decision S6 core obtained, and cannot substitute its own.
+- The driver is **not** a source of S6 identity: it cannot create, alter or attach instances.
+- S6 core never executes a request's `argv` and exposes no primitive that would. Its own fixed-argv internal Git calls (§6, §8.1) take no caller-supplied argv.
+
+**Unpermitted activity.** A process that bypasses the driver, or a driver that misreports, is not contained at L3 (§1). S6 detects what it can:
+- validation compares the live tree snapshot against the last recorded snapshot, so a working-tree change with no verified Execution Report explaining it is `DIRTY_WORKTREE`;
+- unreported process groups cannot be proven absent in general. This is disclosed under Residual risks.
+
+**Reason codes.** No new code is added. A malformed request is `MALFORMED_REQUEST`. A permit for a stale checkpoint is `FENCING_REVISION_MISMATCH`, or `INSTANCE_STALE`. An S5 deny is `CAPABILITY_DENIED`. An unknown, expired, replayed or digest-mismatched permit or report is `ISOLATION_UNPROVABLE`. No available driver is `ISOLATION_CAPABILITY_MISSING`.
+
+**Testing S6 core without a generic executor.** S6 core is tested without any generic arbitrary-command API:
+- an **injected fake driver** that executes nothing and returns synthetic Execution Reports, for permit, claim, report, replay, expiry and mismatch cases;
+- **fixed deterministic fixture operations**, a closed enum implemented inside the test fixtures with literal argv only (for example: write a named fixture file, stage all, commit with a fixed message, start one fixed long-lived child from a checked-in fixture script). These produce real working-tree changes and real process groups for tree-snapshot and quiescence tests;
+- no test path accepts a caller-supplied command string or argv.
+
+**Later authority for a real driver.** A real execution driver that runs actor- or tool-chosen commands is **not** authorized by this amendment or by any S6 implementation decision that does not name it. It requires:
+- its own reviewed design, either a separate RFC or a separately reviewed section, fixing its location, operator and runtime;
+- an explicit Paulo implementation decision;
+- compatibility with the provider and runtime safety controls of every environment it will run in. Where a runtime forbids generic command execution, no driver is built for that runtime. The block is a stop signal, never an obstacle to route around (`D-069`).
+
+The driver's location is left to that decision (Unresolved question 7). It is not part of S6 core, and S6 core must not import it.
+
 ### 14. Deterministic fail-closed reason model
 
 Every S6 operation returns either `PROVEN`/success, or exactly **one** reason code: the first failing check in this fixed order. The same inputs and the same observed facts always give the same code. Codes are data. They grant nothing and carry the fixed disclaimer (§17).
@@ -549,7 +612,7 @@ Every S6 operation returns either `PROVEN`/success, or exactly **one** reason co
 |---|---|---|
 | 1 | `MALFORMED_REQUEST` | Structurally invalid input. |
 | 2 | `ISOLATION_PLATFORM_UNSUPPORTED` | Unsupported platform state (§16). |
-| 3 | `ISOLATION_CAPABILITY_MISSING` | Missing isolation capability (Git too old; no process-group/Job Object support; cannot canonicalize paths; required L4 profile absent). |
+| 3 | `ISOLATION_CAPABILITY_MISSING` | Missing isolation capability (Git too old; no process-group/Job Object support; cannot canonicalize paths; required L4 profile absent; no authorized execution driver available, §13.1). |
 | 4 | `WORKSPACE_ROOT_INVALID` | Root missing, relative, inside a Git tree, or not canonical. |
 | 5 | `TASK_CONTRACT_MISMATCH` | Task/contract mismatch (`task_id`, `contract_ref`, digest, `project`). |
 | 6 | `ISOLATION_PROFILE_INSUFFICIENT` | Contract consequence flags exceed what V1 (L3) can contain. |
@@ -574,9 +637,9 @@ Every S6 operation returns either `PROVEN`/success, or exactly **one** reason co
 | 25 | `DIRTY_WORKTREE` | Dirty or unexpected worktree state. |
 | 26 | `UNEXPECTED_UNTRACKED` | Untracked or ignored path outside the allowlist. |
 | 27 | `SCOPE_VIOLATION` | Committed diff outside the S3 declared scope. |
-| 28 | `QUIESCE_UNPROVEN` | Cannot prove the instance process tree is empty. |
+| 28 | `QUIESCE_UNPROVEN` | Cannot prove every reported process group is empty, or a permit is still outstanding (§13.1). |
 | 29 | `CLEANUP_CONTAMINATION_RISK` | Cleanup failure that risks contamination; shared-cache digest changed. |
-| 30 | `ISOLATION_UNPROVABLE` | Inability to prove the expected isolation state (identity-digest mismatch; path-component substitution or unverifiable creation race (§9.1); journal hash-chain break; read-only not enforceable and not detectable). |
+| 30 | `ISOLATION_UNPROVABLE` | Inability to prove the expected isolation state (identity-digest mismatch; path-component substitution or unverifiable creation race (§9.1); journal hash-chain break; read-only not enforceable and not detectable; unknown, expired, replayed or digest-mismatched Execution Permit or Report, §13.1). |
 
 The order puts input validity and platform first, then identity and authority-adjacent checks (contract, repository, S4, QA independence and result transfer, transport authorization, S5), then Git state, then filesystem and environment, then completion checks. An S4 or S5 failure is therefore never masked by a later tree or path finding. The catch-all `ISOLATION_UNPROVABLE` is last: it applies only when no specific code does. It is never used to hide a specific failure.
 
@@ -608,7 +671,7 @@ Anything else is `ISOLATION_PLATFORM_UNSUPPORTED`. This includes: FAT/exFAT or n
 - **Symlinks on Windows:** creating a symlink may require a privilege (`EPERM` without Developer Mode). V1 sets `core.symlinks` per profile and records it. Tests MUST cover the non-privileged case; the S5 shell-platform tests already met this limit.
 - **Long paths:** Windows paths over 260 characters require `core.longpaths` and OS support. If they are unavailable and the checkout would exceed the limit, the result is `ISOLATION_CAPABILITY_MISSING`.
 - **Line endings:** `core.autocrlf` is fixed per profile and recorded. A result's tree hash is compared, not the working-file bytes.
-- **Process teardown:** POSIX uses a process-group signal followed by a verification sweep. Windows uses Job Object termination. If neither is available, the result is `QUIESCE_UNPROVEN`.
+- **Process teardown:** the execution driver terminates what it started: a POSIX process-group signal, or Windows Job Object termination. S6 core then runs a read-only verification sweep (§13.1). If neither termination nor proof is available, the result is `QUIESCE_UNPROVEN`.
 - **Path canonical form:** S5's platform-aware form (`/…`, `C:/…`, `//server/share/…`), so S6 and S5 agree on what `cwd` is.
 
 ### 17. Evidence and provenance outputs
@@ -624,6 +687,7 @@ Each instance produces one **Isolation Provenance** record, written by the host 
 - the lockfile digest; shared-cache manifest digests before and after, if used;
 - the ordered lifecycle journal with trusted timestamps, hash-chained;
 - every consumed S5 decision (verbatim fields);
+- every Execution Permit issued, claimed or expired, and every verified Execution Report (§13.1);
 - every S4 observation (owner, revision, state, lease) at each check;
 - the result `commit_sha` and `tree_sha`;
 - the pushed ref and lease outcome;
@@ -644,15 +708,15 @@ Each instance produces one **Isolation Provenance** record, written by the host 
 A future implementation's tests MUST:
 
 1. **Cover every reason code.** At least one fixture per code in §14 produces exactly that code, and precedence tests prove that when two conditions fail together, the lower-numbered code wins, deterministically.
-2. **Use real Git, real filesystems, real processes.** Temporary bare repositories act as the "remote". Concurrency tests use separate OS processes, as S4's concurrency tests already do, not simulated interleavings.
+2. **Use real Git and real filesystems, and real processes only through fixed fixtures.** Temporary bare repositories act as the "remote". Concurrency tests use separate OS processes, as S4's concurrency tests already do, not simulated interleavings. Command execution in tests uses only the injected fake driver or the fixed deterministic fixture operations of §13.1. No test uses a generic arbitrary-command API.
 3. **Inject failures:**
    - kill the host at each create, complete and cleanup step, then verify the recovery classification;
    - make `unlink`/`rmdir` fail midway, which must quarantine and report `CLEANUP_CONTAMINATION_RISK`;
    - advance the remote base between create and complete (`BASE_ADVANCED`);
    - pre-create the branch remotely (`BRANCH_COLLISION`) and the instance directory (`WORKTREE_COLLISION`);
    - corrupt or reorder a journal entry (`ISOLATION_UNPROVABLE`);
-   - leave a child process running after quiesce (`QUIESCE_UNPROVEN`).
-4. **Fencing:** A claims → instance created → lease expires → B claims → A's instance attempts use, complete and S4 transition. Every step fails, S4 records nothing from A, and A's pushed branch (if any) is reported `STALE_UNPUBLISHED`.
+   - leave a fixed fixture child process running in a reported group (`QUIESCE_UNPROVEN`).
+4. **Fencing:** A claims → instance created → lease expires → B claims → A's instance attempts a permit (§13.1), complete and S4 transition. Every step fails, S4 records nothing from A, and A's pushed branch (if any) is reported `STALE_UNPUBLISHED`.
 5. **Path escape:**
    - symlink to an absolute outside path; relative symlink with `..`; symlink chain; loop; dangling link;
    - on Windows: a junction to a drive root, an 8.3 short name, an alternate data stream, and a device name;
@@ -705,6 +769,13 @@ A future implementation's tests MUST:
     - A `remote_resources_involved: true` contract is refused.
 12. **Mutation testing:** removing or weakening each guard MUST make at least one test fail. This covers every row of §14, the no-follow deletion, the S4 pre-check, the lease on push, the allowlist, the gap-free checkpoint rule, the write-ahead record and its commit proof, the §9.1 per-step revalidation, and the transport ref restriction. Surviving mutants are findings.
 13. **Platform matrix:** POSIX and Windows runs, including non-privileged Windows. Results are recorded per platform. A platform not actually run is reported as not run, never as passing.
+14. **Execution-driver boundary (§13.1):**
+    - S6 core's public surface exposes no function that accepts an argv or command and executes it. A source-level test asserts no S6 core module imports a process-spawning API except the fixed-argv internal Git runner, which accepts no caller-supplied argv.
+    - A permit is issued only after validation, fencing and an S5 `ALLOW`. An S5 `DENY` issues no permit (`CAPABILITY_DENIED`).
+    - A replayed claim, an expired permit, a report for an unclaimed permit, and an argv or environment digest mismatch are each `ISOLATION_UNPROVABLE`.
+    - A permit bound to an older checkpoint revision fails fencing.
+    - A working-tree change with no verified report explaining it is `DIRTY_WORKTREE`.
+    - An outstanding permit, or a fixed fixture child still alive in a reported group, blocks quiesce (`QUIESCE_UNPROVEN`).
 
 ### 19. Canonical home
 
@@ -721,7 +792,7 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 | `devos/contracts/` (S3) | Rejected. S3 describes scope. It must not own how scope is executed. |
 | Top-level `.sentinel/` or a runtime directory in the repo | Rejected for code. For *runtime workspaces*, any location inside a repository checkout is rejected outright (§9): workspaces live under a host-configured `workspace_root` outside every Git tree. |
 
-**Why the chosen root owns S6.** S6's artifacts would be: the Execution Identity and Isolation Provenance schemas; the reason vocabulary; the path/environment/config policy modules; the lifecycle host library; the platform profile detection; and the focused tests' fixtures. They are one cohesive subsystem with one owning phase. No existing root's owner could hold them without redefining that root.
+**Why the chosen root owns S6.** S6's artifacts would be: the Execution Identity and Isolation Provenance schemas; the reason vocabulary; the path/environment/config policy modules; the lifecycle host library (with no command-execution primitive, §13.1); the Execution Request, Permit and Report contracts; the platform profile detection; and the focused tests' fixtures. They are one cohesive subsystem with one owning phase. No existing root's owner could hold them without redefining that root.
 
 **Why S3/S4/S5 must not absorb it.** Each is closed (`ML-DEVOS-ADR-013`/`ADR-014`/`ADR-015`) with a narrow, accepted interface. Absorbing S6 into any of them would:
 - widen a closed interface;
@@ -767,6 +838,7 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 7. The canonical home is `devos/execution/`, to be reserved only by a separate `ARCHITECTURE`-class authorization.
 8. There are 30 deterministic, ordered reason codes. Nothing is auto-cleaned into compliance, and nothing orphaned is adopted.
 9. Paths that do not exist yet are created under §9.1: a verified existing ancestor, validated literal tails, exclusive per-segment creation, and immediate identity revalidation.
+10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use, S5-gated Execution Permit and returns a verified Execution Report. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
 
 ## Scope
 
@@ -787,7 +859,7 @@ Out of scope: every executable artifact. This RFC creates only itself and an RFC
 
 ## Affected components
 
-None today. A future implementation would add `devos/execution/` (schemas, reason vocabulary, policy modules, lifecycle host library, platform detection), its focused tests under `tests/execution-*.test.mjs`, and one manifest root entry, each separately authorized. S3/S4/S5 are consumed through public interfaces only and are not modified.
+None today. A future implementation would add `devos/execution/` (schemas, including the Execution Request, Permit and Report contracts of §13.1; reason vocabulary; policy modules; the lifecycle host library, with no command-execution primitive; platform detection), its focused tests under `tests/execution-*.test.mjs`, and one manifest root entry, each separately authorized. A real execution driver is a separate component with its own authority and location (§13.1). S3/S4/S5 are consumed through public interfaces only and are not modified.
 
 ## Affected rules
 
@@ -813,7 +885,7 @@ No trust boundary changes.
 - TB-4: supported by independent QA reconstruction. It remains procedurally enforced until evidenced otherwise.
 - TB-7: S6, like S5, is a capability-side mechanism and never an authority.
 
-`Capability != Authority` is preserved and extended to `Isolation != Authority`.
+`Capability != Authority` is preserved and extended to `Isolation != Authority`. A provider or runtime safety control is also respected as a boundary (`D-069`): S6 core adds no command-execution surface, and any real execution driver must be compatible with the controls of the runtime it runs in.
 
 ## Evidence requirements
 
@@ -828,7 +900,8 @@ Builder test runs are `ACTOR_REPORTED`. No `RUNTIME_OBSERVED` claim applies.
 
 1. Architect review of this RFC.
 2. Paulo decision on design acceptance.
-3. A separate Paulo decision authorizing implementation (and the `devos/execution/` root reservation and S5 consumption).
+3. A separate Paulo decision authorizing implementation of S6 core, including the `devos/execution/` root reservation and S5 consumption. It is tested with an injected fake driver and fixed fixture operations only (§13.1).
+3a. Separately, and only if wanted: a reviewed design and an explicit Paulo decision for a real execution driver, compatible with the runtime's safety controls (§13.1).
 4. Implementation with the §18 test plan.
 5. Architect implementation review.
 6. The RFC-015 D.1/D.2 closure.
@@ -856,7 +929,7 @@ Yes. `ARCHITECTURE` class (`CHANGE_GOVERNANCE_POLICY.md` §1). This RFC is the i
 
 ## Paulo decision requirement
 
-Yes. Design acceptance and implementation authorization are separate Paulo gates. The implementation gate must also explicitly cover the `devos/execution/` root reservation and S6's consumption of S5 adapters.
+Yes. Design acceptance and implementation authorization are separate Paulo gates. The implementation gate must also explicitly cover the `devos/execution/` root reservation and S6's consumption of S5 adapters. After `D-069`, S6 core implementation needs a fresh Paulo decision bound to this amended design, because `D-068` does not resume automatically. A real execution driver needs its own, separate Paulo decision.
 
 ## Residual risks (V1, disclosed)
 
@@ -870,6 +943,8 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 8. **The S6 host itself is trusted.** A lying host defeats S6, just as a lying adapter defeats S5. That includes a host that misnames the commit in a Result Transfer Record.
 9. **The Result Transfer Record is host-held.** Without a future additive S4 read interface, it cannot be cross-checked against the `evidenceRef` S4 stored (Unresolved question 6). Crash recovery of a `PENDING` record depends on S4's idempotency ledger still holding the original entry.
 10. **Transport is a standing remote-write grant.** It is narrowed to one repository's non-protected, instance-scoped refs and is revocable (§8.1), but while the transport authorization is active the S6 host holds a live Git write credential.
+11. **The execution driver is trusted to report honestly.** A lying or compromised driver can misreport argv, environment or process groups, just as a lying S5 adapter can misreport. S6 core verifies digests, single use and binding, but cannot see inside the driver.
+12. **Unpermitted execution is detected, not prevented.** A process started outside the driver is detected only through its effects: an unexplained working-tree change is `DIRTY_WORKTREE`. Unreported process groups cannot be proven absent in general, and a same-user process can leave its group (L3).
 
 ## Unresolved questions
 
@@ -879,3 +954,5 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 4. Should package-registry egress become an S5 provider, or be governed by an L4 network policy, before S6 is used for tasks whose dependencies change?
 5. Is a dedicated low-privilege OS user per instance an acceptable "L3+" profile for V1 hosts that support it? Or is that already an L4 decision needing its own review?
 6. Where do the Isolation Provenance and the Result Transfer Record durably live before S7 exists? V1 keeps them in the host registry and journal only (§7.1). Should a later, separately authorized additive S4 read interface expose the stored `evidenceRef`, so an auditor can cross-check a record against S4 itself? V1 does not assume one.
+7. *(`D-069`)* Where does a real execution driver live, and who operates it: a CI runner, an operator-run CLI, or an S8-adjacent component? What runtime safety-control compatibility evidence must its authorizing decision require? V1 S6 core does not depend on the answer: it is complete and testable with the injected fake driver and fixed fixture operations.
+8. *(`D-069`)* S6 core's own fixed-argv internal Git calls (clone, fetch, push with lease, and local inspection; §6, §8.1) take no caller-supplied argv. Should a future implementation confirm, before building them, that these fixed calls are acceptable under the target runtime's safety controls? If not, should they move to a Git library, or to a separately authorized transport driver?
