@@ -268,6 +268,55 @@ const MUTANTS = [
     tests: "tests/execution-linearization.test.mjs",
     pattern: "recovery holds the lock and quarantines, a report competes",
   },
+  // ---- AS96 remediation mutants
+  {
+    id: "M32-no-pending-publication-reservation",
+    file: "devos/execution/host.mjs",
+    from: "    const pending = pendingPublications(record);\n    if (pending.length) {",
+    to: "    const pending = [];\n    if (pending.length) {",
+    tests: "tests/execution-publication.test.mjs",
+    pattern: "competing finishWithoutPublication is refused",
+  },
+  {
+    id: "M33-finish-crosses-pending",
+    file: "devos/execution/host.mjs",
+    from: '      assertNoPendingPublicationLocked(record, "finishWithoutPublication");\n',
+    to: "",
+    tests: "tests/execution-publication.test.mjs",
+    pattern: "competing finishWithoutPublication is refused",
+  },
+  {
+    id: "M34-cleanup-crosses-pending",
+    file: "devos/execution/host.mjs",
+    from: '      assertNoPendingPublicationLocked(record, "cleanup");\n',
+    to: "",
+    tests: "tests/execution-publication.test.mjs",
+    pattern: "competing cleanup is refused",
+  },
+  {
+    id: "M35-renewal-crosses-pending",
+    file: "devos/execution/host.mjs",
+    from: '      assertNoPendingPublicationLocked(record, "adoptRenewal");\n',
+    to: "",
+    tests: "tests/execution-publication.test.mjs",
+    pattern: "classification while a PENDING reservation exists",
+  },
+  {
+    id: "M36-transient-s4-error-aborts",
+    file: "devos/execution/host.mjs",
+    from: "      if (!DEFINITIVE_S4_REJECTIONS.has(err?.code)) {",
+    to: "      if (false) {",
+    tests: "tests/execution-publication.test.mjs",
+    pattern: "a transient S4 failure",
+  },
+  {
+    id: "M37-publication-restores-quarantine",
+    file: "devos/execution/host.mjs",
+    from: '      if (fresh.state === "QUIESCED") {\n        fresh.state = "COMPLETED";',
+    to: '      if (fresh.state === "QUIESCED" || fresh.state === "QUARANTINED") {\n        fresh.state = "COMPLETED";',
+    tests: "tests/execution-publication.test.mjs",
+    pattern: "a quarantined instance is never restored",
+  },
 ];
 
 function copyTree() {

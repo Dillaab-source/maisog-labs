@@ -87,6 +87,10 @@ export function scopeFailures(files, scope) {
   return [];
 }
 
+// S4 errors that are a definitive, record-based refusal of the publication
+// transition (the transition did not and, for this pre-revision, cannot apply).
+const DEFINITIVE_S4_REJECTIONS = new Set(["NOT_CURRENT_OWNER", "REVISION_CONFLICT", "IDEMPOTENCY_CONFLICT", "ILLEGAL_TRANSITION", "TASK_NOT_FOUND"]);
+
 function kernelCode(err) {
   switch (err?.code) {
     case "NOT_CURRENT_OWNER": return "OWNER_MISMATCH";
@@ -563,7 +567,7 @@ export function createExecutionHost(config) {
       const record = freshLocked(instanceId);
       if (actorId !== record.identity.owner) fail("OWNER_MISMATCH", "only the identity owner may attach");
       if (record.stale || !["READY", "QUIESCED"].includes(record.state)) fail("INSTANCE_STALE", `cannot attach from ${record.state}`);
-      if (hasPendingPublication(record)) fail("INSTANCE_STALE", "a publication for this instance is in progress");
+      if (pendingPublications(record).length) fail("INSTANCE_STALE", "a publication for this instance is in progress");
       failWith(await currentFencing(record), "S4 fencing at attach");
       record.state = "ATTACHED";
       saveLocked(record);
@@ -572,9 +576,55 @@ export function createExecutionHost(config) {
     });
   }
 
-  function hasPendingPublication(record) {
-    return registry.listRtr(record.task_id).some((r) => r.status?.status === "PENDING"
-      && JSON.parse(registry.readRtrBody(record.task_id, r.transfer_id) ?? "{}").builder_identity_digest === record.identity_digest);
+  // ------------------------------------------------------------ publication reservation (AS96-F001)
+  // Publication is write-ahead: QUIESCED -> RTR PENDING (under the lock) ->
+  // external S4 transition (OUTSIDE the lock) -> RTR COMMITTED | ABORTED
+  // (under the lock). An unresolved PENDING RTR for this Builder identity is
+  // therefore an active, durable publication RESERVATION on the instance: it
+  // outlives the lock and a crash, and it is released only when the RTR
+  // becomes COMMITTED or ABORTED. Every local lifecycle operation is
+  // classified against it:
+  //
+  //   BLOCKED while PENDING (fail closed, RESULT_TRANSFER_UNPROVEN, checked
+  //   first under the lock):
+  //     finishWithoutPublication  would record "finished without publication"
+  //     cleanup                   would remove/clean an instance whose
+  //                               publication may still commit
+  //     adoptRenewal              would move the checkpoint a PENDING transfer
+  //                               id was derived from (a retry could mint a
+  //                               second, different PENDING record)
+  //     quiesce                   (also state-blocked: instance is QUIESCED)
+  //     attach                    existing guard, existing code INSTANCE_STALE
+  //   ALLOWED while PENDING (cannot contradict publication or recovery):
+  //     complete                  resumes THE SAME reservation: identical
+  //                               transfer id, stored bytes replayed exactly
+  //     publish / resolvePending  resolve the reservation (S4 idempotency key
+  //                               = transfer id, so concurrent resolvers
+  //                               converge on one S4 transition)
+  //     quarantine (recover, create failure)  safety-monotonic; a later
+  //                               COMMITTED leaves QUARANTINED as is
+  //     stale flag (validate, abort)          observation only
+  //     permit replay / materialize          derived artifacts of an
+  //                               existing binding; no lifecycle change
+  //   UNREACHABLE while PENDING (state-blocked, no extra guard needed):
+  //     requestPermit (mint), claimPermit     require ATTACHED
+  //     recordReport              needs a CLAIMED permit; complete refused to
+  //                               write PENDING while any permit was CLAIMED
+  //     createInstance            creates a different record; a second
+  //                               Builder PENDING at the same revision is
+  //                               refused by complete()
+  function pendingPublications(record) {
+    return registry.listRtr(record.task_id).filter((r) => r.status?.status === "PENDING"
+      && JSON.parse(registry.readRtrBody(record.task_id, r.transfer_id) ?? "{}").builder_identity_digest === record.identity_digest)
+      .map((r) => r.transfer_id);
+  }
+
+  function assertNoPendingPublicationLocked(record, operation) {
+    assertLocked(record.task_id);
+    const pending = pendingPublications(record);
+    if (pending.length) {
+      fail("RESULT_TRANSFER_UNPROVEN", `${operation} refused: publication ${pending[0]} is PENDING (reserved until COMMITTED or ABORTED)`);
+    }
   }
 
   // ===================================================== renew (checkpoint)
@@ -582,6 +632,7 @@ export function createExecutionHost(config) {
     const pre = loadRecord(instanceId);
     return locked(pre.task_id, async () => {
       const record = freshLocked(instanceId);
+      assertNoPendingPublicationLocked(record, "adoptRenewal");
       if (!LIVE_STATES.has(record.state)) fail("INSTANCE_STALE", `cannot adopt a checkpoint in ${record.state}`);
       const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
       try {
@@ -771,6 +822,7 @@ export function createExecutionHost(config) {
     return locked(pre.task_id, async () => {
       await step("quiesce-locked", { instanceId });
       const record = freshLocked(instanceId);
+      assertNoPendingPublicationLocked(record, "quiesce");
       if (record.stale || !["ATTACHED", "READY"].includes(record.state)) fail("INSTANCE_STALE", `cannot quiesce from ${record.state}`);
       const f = await currentFencing(record);
       if (f.length) {
@@ -812,13 +864,31 @@ export function createExecutionHost(config) {
         evidenceRef, // JSON.parse of the stored bytes -- never rebuilt from fields (§7.1.1)
       });
     } catch (err) {
+      // ABORTED is written only for a DEFINITIVE S4 rejection: S4 read the
+      // record under its own lock and refused (idempotency is checked first,
+      // so an already-applied transfer replays instead of being refused).
+      // Anything else -- S4 lock contention with a concurrent resolver of the
+      // same PENDING record, an unreadable record, an I/O error -- proves
+      // nothing about the outcome: the reservation stays PENDING for
+      // exactly-once resolution by retry/recover() (AS96-F001).
+      if (!DEFINITIVE_S4_REJECTIONS.has(err?.code)) {
+        journal.append("TRANSITION_UNRESOLVED", { transfer_id: transferId, code: err?.code ?? "error" });
+        fail("RESULT_TRANSFER_UNPROVEN", `S4 transition outcome unknown (${err?.code ?? err?.message}); publication stays PENDING`);
+      }
       const code = kernelCode(err);
       await locked(record.task_id, async () => {
-        registry.putRtrStatus(record.task_id, transferId, { status: "ABORTED", post_revision: null, rtr_digest: sha256(bodyBytes), reason: err.code ?? String(err.message) });
-        journal.append("RTR_ABORTED", { transfer_id: transferId, reason: err.code ?? "error", remote_ref: evidenceRef.remote_ref, disposition: "STALE_UNPUBLISHED" });
-        markStaleLocked(freshLocked(record.instance_id), code);
+        const current = registry.getRtrStatus(record.task_id, transferId);
+        if (current?.status === "PENDING") {
+          registry.putRtrStatus(record.task_id, transferId, { status: "ABORTED", post_revision: null, rtr_digest: sha256(bodyBytes), reason: err.code });
+          // Explicit disposition: the reservation is released and the pushed
+          // branch is stale, unpublished transport residue. The instance is
+          // marked stale; it may only finishWithoutPublication() and then be
+          // cleaned (or be quarantined by recover()); attach/complete refuse.
+          journal.append("RTR_ABORTED", { transfer_id: transferId, reason: err.code, remote_ref: evidenceRef.remote_ref, disposition: "STALE_UNPUBLISHED" });
+          markStaleLocked(freshLocked(record.instance_id), code);
+        }
       });
-      fail(code, `S4 rejected the publication transition: ${err.code ?? err.message}`);
+      fail(code, `S4 rejected the publication transition: ${err.code}`);
     }
     await step("after-transition", { record, transferId });
     const post = body.pre_revision + 1;
@@ -920,6 +990,7 @@ export function createExecutionHost(config) {
     const pre = loadRecord(instanceId);
     return locked(pre.task_id, async () => {
       const record = freshLocked(instanceId);
+      assertNoPendingPublicationLocked(record, "finishWithoutPublication");
       if (record.state !== "QUIESCED") fail("QUIESCE_UNPROVEN", "finish requires a quiesced instance");
       record.state = "COMPLETED";
       saveLocked(record);
@@ -933,6 +1004,7 @@ export function createExecutionHost(config) {
     const pre = loadRecord(instanceId);
     return locked(pre.task_id, async () => {
       const record = freshLocked(instanceId);
+      assertNoPendingPublicationLocked(record, "cleanup");
       if (!["COMPLETED", "QUARANTINED"].includes(record.state)) fail("INSTANCE_STALE", `cleanup requires COMPLETED or QUARANTINED, not ${record.state}`);
       revokeIssuedLocked(record, "CLEANUP");
       if (permitsOf(record).some((p) => currentPermitStatus(record.task_id, p.permit_id)?.state === "CLAIMED")) {

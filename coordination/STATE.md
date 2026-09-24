@@ -1,18 +1,18 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS96_EXCEPTIONAL_MICRO_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-CORE-IMPL-REM3-0001
+REVIEW_TARGET_COMMIT: eb79c40a1cbb5ac5fddd3171e040ad66ebba3ad5
 APPLICABLE_REVIEW_ID: ML-DEVOS-AS-096
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -33,6 +33,10 @@ ML-DEVOS-AS-096 is the controlling review.
 All AS94 and AS95 findings remain closed and MUST NOT be reopened.
 
 S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
+
+## Architect re-review return — AS96-F001 exceptional micro-remediation (cycle 3 of 3)
+
+The Builder has implemented the PENDING-publication reservation invariant. An unresolved PENDING RTR is a durable reservation on its instance: `finishWithoutPublication`, `cleanup`, `adoptRenewal` and `quiesce` fail closed while it exists, `attach` keeps its existing guard, and every other operation is explicitly classified. `ABORTED` is written only for a definitive S4 refusal, so a transient S4 failure leaves the reservation PENDING. The external S4 transition stays outside the task lock. The Builder returns the turn for re-review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-096`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-IMPL-REM3-0001`) only. All AS94/AS95 corrections are preserved, the manifest is unchanged, S6 is not closed, and no real execution driver or live S6 remote transport was added. Any further blocker routes to Paulo; no cycle 4. No further Builder action is authorized.
 
 ## Authorized correction — AS96-F001 only
 
