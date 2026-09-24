@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS96_EXCEPTIONAL_MICRO_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS097_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 3
 MAX_REMEDIATION_CYCLES: 3
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-CORE-IMPL-REM3-0001
-REVIEW_TARGET_COMMIT: eb79c40a1cbb5ac5fddd3171e040ad66ebba3ad5
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-096
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-097
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -22,133 +22,70 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect outcome
 
-D-072 authorizes exactly one exceptional AS96-F001-only S6 implementation
-micro-remediation beyond the ordinary 2-of-2 cap.
+ML-DEVOS-AS-097 preserves all closed AS94 and AS95 findings and confirms that the
+core D-072 PENDING-publication reservation mechanism is materially present.
 
-D-071 remains the underlying S6-core implementation authority.
-ML-DEVOS-AS-096 is the controlling review.
+One blocking fail-closed evidence-integrity defect remains:
 
-All AS94 and AS95 findings remain closed and MUST NOT be reopened.
+- AS97-F001 — a PENDING RTR whose body is missing or whose valid JSON body is altered
+  can disappear from the reservation scan because instance attribution is trusted
+  before body/digest integrity is proven.
 
 S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
 
-## Architect re-review return — AS96-F001 exceptional micro-remediation (cycle 3 of 3)
+## Remediation budget
 
-The Builder has implemented the PENDING-publication reservation invariant. An unresolved PENDING RTR is a durable reservation on its instance: `finishWithoutPublication`, `cleanup`, `adoptRenewal` and `quiesce` fail closed while it exists, `attach` keeps its existing guard, and every other operation is explicitly classified. `ABORTED` is written only for a definitive S4 refusal, so a transient S4 failure leaves the reservation PENDING. The external S4 transition stays outside the task lock. The Builder returns the turn for re-review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-096`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-IMPL-REM3-0001`) only. All AS94/AS95 corrections are preserved, the manifest is unchanged, S6 is not closed, and no real execution driver or live S6 remote transport was added. Any further blocker routes to Paulo; no cycle 4. No further Builder action is authorized.
+D-072's exceptional Cycle 3 of 3 is exhausted.
 
-## Authorized correction — AS96-F001 only
+No Builder action and no Cycle 4 are authorized by AS-097.
 
-Implement only the PENDING-publication reservation invariant:
+## Owner decision required
 
-- an unresolved PENDING RTR for an instance is an active durable publication
-  reservation;
-- finishWithoutPublication() MUST fail closed while such a reservation exists;
-- cleanup() MUST fail closed while such a reservation exists;
-- inspect every other mutable local instance-lifecycle operation and explicitly
-  classify it as either:
-  1. compatible with a PENDING publication and therefore allowed; or
-  2. incompatible and therefore blocked until the RTR becomes COMMITTED or ABORTED;
-- preserve attach()'s existing PENDING guard;
-- preserve publish()/resolvePending() crash recovery and exact stored-RTR replay;
-- preserve quarantine semantics: an S4-accepted publication may still commit its RTR
-  while a locally quarantined instance remains quarantined; do not silently restore
-  the local lifecycle;
-- preserve ABORTED and COMMITTED RTR monotonicity/idempotency;
-- keep the external S4 transition OUTSIDE the local S6 task lock;
-- use the durable PENDING RTR as the reservation boundary rather than extending the
-  local lock across the external effect.
+Paulo may authorize exactly one AS97-F001-only exceptional implementation
+micro-remediation, or keep S6 unclosed and require broader redesign/review.
 
-## Required focused evidence
+Architect recommendation: authorize one narrow AS97-F001-only correction.
 
-At minimum:
+If authorized, the correction must:
 
-- deterministic interleaving: PENDING exists -> competing finishWithoutPublication()
-  is refused -> publication resolves exactly once;
-- deterministic interleaving: PENDING exists -> cleanup is refused;
-- explicit test coverage for the classification of every other mutable local lifecycle
-  operation while PENDING;
-- ABORTED disposition is explicit and deterministic;
-- COMMITTED replay/recovery is idempotent;
-- a quarantined instance is never silently restored by publication resolution;
-- mutation test removing the PENDING reservation guard is killed;
-- all AS94/AS95 focused tests remain passing;
-- full S6 focused suites, mutation suite, npm test, standard validators,
-  git diff --check and traceability.
-
-Builder evidence remains ACTOR_REPORTED pending Architect review.
-
-## Authorized repository writes
-
-Only:
-
-- devos/execution/**;
-- tests/execution-*.test.mjs;
-- narrowly necessary tests/fixtures/execution/**;
-- deterministic traceability outputs if needed;
-- ML-DEVOS-RFC-019.md / devos/execution/README.md only for factual remediation notes
-  with no architecture redesign;
-- coordination/STATE.md and coordination/CURRENT_HANDOFF.md.
-
-Do not change devos/devos-manifest.json.
-
-No S3/S4/S5 source/interface/schema/policy/persistence/lifecycle mutation.
-
-## Return gate
-
-After the exceptional micro-remediation, publish a fresh CURRENT_HANDOFF and return:
-
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 3
-MAX_REMEDIATION_CYCLES: 3
-
-The handoff must explicitly list:
-- the PENDING-operation classification;
-- changed files;
-- deterministic interleaving/mutation evidence;
-- exact test/validator exit codes;
-- traceability result;
-- confirmation that all closed AS94/AS95 findings remain preserved;
-- confirmation that no real execution driver or live S6 remote transport was added.
-
-If another blocker remains after Architect re-review, route to Paulo. No Cycle 4 is
-authorized.
+- prove each PENDING RTR body exists and is integrity-bound before trusting its
+  builder_identity_digest attribution;
+- at minimum verify parseability, body SHA-256 == status rtr_digest, transfer/task
+  binding, and reuse the existing RTR/journal adjacency proof where practical;
+- if any PENDING record is unprovable, fail closed with RESULT_TRANSFER_UNPROVEN rather
+  than treating it as unrelated; task-scoped blocking is acceptable when attribution
+  itself cannot be trusted;
+- only after integrity proof may the reservation helper decide a PENDING belongs to a
+  different instance;
+- add missing-body, malformed-body, digest-mismatch and altered-identity tests plus a
+  mutation killer;
+- preserve every D-072 behavior and all closed AS94/AS95 findings.
 
 ## Post-S6 / pre-S7
 
-The AS-095 / AS-096 pre-S7 readiness recommendation remains queued for a separate
-owner-authorized checkpoint only after S6 technical acceptance/closure.
+After S6 technical acceptance/closure, perform the separately authorized pre-S7
+readiness checkpoint applying the captured S6 lessons.
 
-No S7 work is authorized by D-072.
+No S7 work is authorized yet.
 
 ## Hard boundaries
 
-No safety-control bypass or permission expansion.
+No safety-control bypass.
 No generic command-execution implementation.
-No real execution-driver implementation.
-No standing live S6 GitHub transport authority.
-No real S6 network writes or credentials.
+No real execution driver.
+No live S6 remote transport or credentials.
 No S3/S4/S5 mutation.
-No manifest status/root/closure change.
-No S6 closure, closure_ref or Sentinel version bump.
+No S6 manifest status/closure/version change.
 No S7+.
 No S8/S9.
 No CP-4+.
 No Model Router.
-No dynamic plugin discovery.
 No remote D1/R2.
-No Cloudflare production/deployment mutation.
-No production-data writes.
-No public D1 cutover.
+No deployment.
 No protected/main merge.
 No PR #10 merge or auto-merge.
-No automatic stale-branch deletion.
-No L4/container/VM implementation.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by D-072.
+No operative obligation is closed by AS-097.
