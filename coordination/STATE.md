@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
-AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_REMEDIATION_CYCLE_1_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_REMEDIATION_CYCLE_1_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S5-REM1-0001
+REVIEW_TARGET_COMMIT: f6fd5179d8a0d21e7ce0d2121dfc87f783735de3
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-082
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -37,16 +37,18 @@ No architecture redesign is authorized. No additional provider, remote service, 
 
 Context Bootstrap V0 remains active: `brain/protocols/CONTEXT_BOOTSTRAP.md`.
 
-- `CURRENT_HANDOFF: NONE` at the opening of this Builder remediation turn.
+- Builder remediation handoff `H-S5-REM1-0001` is the current packet (`coordination/CURRENT_HANDOFF.md`).
 - Outgoing `H-S5-TRIAL1-0001` is archived byte-for-byte by the AS-082 transition.
 - `coordination/OPERATIVE_OBLIGATIONS.md` remains the carry-forward index.
 - `coordination/IMPLEMENTER_HANDOFF.md` remains frozen historical evidence.
 - Governed publication must use exact-tip conflict detection.
 - Use lean/delta-only reads.
 
-## Next action — Remediation Cycle 1 only
+## Next action — Architect review of Remediation Cycle 1 only
 
-Builder fixes AS82-F001 and AS82-F002 and directly necessary tests/documentation/traceability evidence only.
+The Builder has addressed AS82-F001 and AS82-F002 and returns the turn. Evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` only. The Architect reviews independently under the next unused immutable Sync ID after `ML-DEVOS-AS-082`. No further Builder action is authorized.
+
+The remediation cycle was scoped as follows. Builder fixes AS82-F001 and AS82-F002 and directly necessary tests/documentation/traceability evidence only.
 
 Required regression evidence includes:
 
@@ -57,7 +59,6 @@ Required regression evidence includes:
 - all existing focused S5 tests still pass;
 - full repository tests/validators and traceability delta are reported honestly.
 
-On completion, publish a new CURRENT_HANDOFF and return TURN: ARCHITECT / STATUS: READY_FOR_ARCHITECT.
 
 ## Hard boundaries
 

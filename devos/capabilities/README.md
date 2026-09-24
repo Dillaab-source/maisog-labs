@@ -9,7 +9,7 @@ Canonical owning phase: **S5 — Capability & Permission Gateway**. Known consum
 Design `ML-DEVOS-RFC-017`, approved in `ML-DEVOS-AS-077`. Implementation authorized by `D-063` as Context Bootstrap V0 Trial #1. The Builder evidence for this cycle is `ACTOR_REPORTED` until independently reviewed.
 
 - `index.mjs` — the public entry. It exports `createGateway` plus the envelope, validator and vocabulary helpers. It does **not** export the raw `evaluate()` core.
-- `adapters/` — the five static V1 adapters (`shell`, `github`, `cloudflare`, `mcp`, `browser`) and the registry. An adapter's `request(requestIntent)` is the only caller-facing decision surface.
+- `adapters/` — the five static V1 adapters (`shell`, `github`, `cloudflare`, `mcp`, `browser`). An adapter's `request(requestIntent)` is the only caller-facing decision surface.
   - Each adapter canonicalizes the resource under its own contract.
   - It mints the branded trusted contexts from the host environment bound at gateway construction.
   - It fetches the live revocation list on every call.
@@ -17,11 +17,13 @@ Design `ML-DEVOS-RFC-017`, approved in `ML-DEVOS-AS-077`. Implementation authori
 - `evaluate.mjs` — the pure five-argument internal core: `evaluate(subjectContext, requestIntent, policy, revocationList, evaluationContext)`.
   - It steps through RFC-017 §3 (a)–(g) and short-circuits on the first failure.
   - It has no clock, randomness, or I/O.
-- `trusted-context.mjs` — the module-private brand.
-  - Minters are released once, to the static registry, which then seals itself.
+- `trusted-context.mjs` — the module-private brand, and the only place minters exist (`ML-DEVOS-AS-082` `AS82-F001`).
+  - Minters are created only inside `createGateway()` and passed only to the five statically imported adapter factories.
+  - No module exports, returns, or accepts a callback for a minter, so there is no register/claim surface for an early or foreign caller to acquire and combine with the raw core.
+  - Intrinsics used on branded values are captured when the module loads.
   - Hand-built objects are rejected.
   - Trust assumptions and bypass limits are stated in its header.
-- `canonical.mjs` — the per-provider canonicalization contracts (RFC-017 §9 table).
+- `canonical.mjs` — the per-provider canonicalization contracts (RFC-017 §9 table). The `shell` form is platform-aware (`AS82-F002`): POSIX `/…`, Windows drive `C:/…`, and UNC `//server/share/…`, always with `/` separators. `adapters/shell.mjs` resolves traversal and symlinks under the host OS's own path semantics and confines the result to trusted roots.
 - `validate-capability-policy.mjs` — the zero-dependency validator.
   - It checks structure, the bounded resource grammar, canonical literals, and class-only credentials.
   - It applies the §8 sensitive-operation tier rule, at load time only.
@@ -37,8 +39,10 @@ Design `ML-DEVOS-RFC-017`, approved in `ML-DEVOS-AS-077`. Implementation authori
 - `examples/valid|invalid/*.policy.json` — bounded fixtures.
 
 Focused tests:
-- `tests/capabilities-core.test.mjs` — the raw core, driven with genuine brands in its own process.
+- `tests/capabilities-core.test.mjs` — decision semantics, driven through the real adapter path with a configurable trusted host.
 - `tests/capabilities-gateway.test.mjs` — the public adapter surface.
+- `tests/capabilities-bypass.test.mjs` — the adversarial minter-acquisition and late-intrinsic-patch probes, each run in a fresh process.
+- `tests/capabilities-shell-platform.test.mjs` — Windows and POSIX shell resolution.
 
 ## Boundaries
 

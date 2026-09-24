@@ -13,7 +13,6 @@ import { fileURLToPath } from "node:url";
 import * as gatewayApi from "../devos/capabilities/index.mjs";
 import { createGateway, createAuditEnvelope, TrustedSourceUnavailableError, GatewayConfigurationError } from "../devos/capabilities/index.mjs";
 import { evaluate } from "../devos/capabilities/evaluate.mjs";
-import { registerAdapters, RegistrySealedError } from "../devos/capabilities/trusted-context.mjs";
 import { main as validatorCli, validateCapabilityPolicy } from "../devos/capabilities/validate-capability-policy.mjs";
 import * as V from "../devos/capabilities/vocabulary.mjs";
 
@@ -38,9 +37,9 @@ const outcome = (r) => r.decision.denial_reason ?? r.decision.outcome;
 
 // ------------------------------------------------------------ public surface
 
-test("the public entry never exposes the raw evaluate() core; the registry is sealed", () => {
+test("the public entry never exposes the raw evaluate() core or any minting surface", () => {
   assert.equal("evaluate" in gatewayApi, false);
-  assert.throws(() => registerAdapters((m) => m), RegistrySealedError);
+  for (const k of Object.keys(gatewayApi)) assert.doesNotMatch(k, /mint|register|brand/i);
 });
 
 test("hand-built contexts handed to the raw core are denied even with a valid policy", () => {

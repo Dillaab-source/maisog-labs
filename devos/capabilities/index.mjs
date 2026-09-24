@@ -10,7 +10,7 @@
 // fixed non-authority disclaimer. This library is not wired into S3, S4, or
 // any runtime path; nothing invokes it unless a caller imports it.
 
-export { createGateway, GatewayConfigurationError } from "./adapters/index.mjs";
+export { createGateway, GatewayConfigurationError } from "./trusted-context.mjs";
 export { TrustedSourceUnavailableError } from "./adapters/common.mjs";
 export { createAuditEnvelope, AuditEnvelopeError } from "./audit.mjs";
 export { validateCapabilityPolicy, PolicyValidationError } from "./validate-capability-policy.mjs";
