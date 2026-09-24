@@ -1,8 +1,22 @@
 # ML-DEVOS-RFC-019: Sentinel S6 Isolated Execution
 
-Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3 (`ML-DEVOS-AS-086`, `ML-DEVOS-AS-087`, `ML-DEVOS-AS-088`/`D-067`). Amended under `D-069` (execution-boundary amendment) and resubmitted for independent Architect review of the amendment. The `D-068` implementation authority is suspended, and the amendment does not resume it.
+Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3 (`ML-DEVOS-AS-086`, `ML-DEVOS-AS-087`, `ML-DEVOS-AS-088`/`D-067`). Amended under `D-069` (execution-boundary amendment, approved by `ML-DEVOS-AS-093`). Amended again under `D-073` (integrity-hardening amendment, below) and resubmitted for independent Architect review of that amendment. The `D-068` implementation authority is suspended, and no amendment resumes it.
 
-**Implementation status (`D-071`; factual, not closure).** The amended design was approved by `ML-DEVOS-AS-093`. `D-071` then authorized one bounded S6-core implementation cycle against it, with no generic executor and no real execution driver. That in-progress implementation lives in `devos/execution/`, registered in the DevOS manifest as the S6 root with `status: NOT_IMPLEMENTED`, `executable_runtime_present: false` and no `closure_ref`. This RFC stays `DRAFT`, Sentinel stays `v1.8.0`, and all Builder implementation evidence is `ACTOR_REPORTED` pending independent Architect review. Closure is separately gated (`ML-DEVOS-RFC-015` D.1/D.2). `ML-DEVOS-AS-094` returned four implementation findings (claim-lock placement, crash-atomic permit minting, argv-taking helpers, the incomplete Execution Report). Remediation cycle 1 corrects the implementation to match this design; the design itself is unchanged. `ML-DEVOS-AS-095` closed those and returned two more (a shared linearization for all lifecycle mutations; S4 fencing at quiesce). Remediation cycle 2 (the final ordinary cycle) implements them, again without a design change. `ML-DEVOS-AS-096` found that an unresolved `PENDING` publication did not reserve the local instance lifecycle. The exceptional micro-remediation authorized by `D-072` enforces the existing write-ahead `PENDING` record as that reservation, again without a design change.
+**Implementation status (`D-071`; factual, not closure).** The amended design was approved by `ML-DEVOS-AS-093`. `D-071` then authorized one bounded S6-core implementation cycle against it, with no generic executor and no real execution driver. That in-progress implementation lives in `devos/execution/`, registered in the DevOS manifest as the S6 root with `status: NOT_IMPLEMENTED`, `executable_runtime_present: false` and no `closure_ref`. This RFC stays `DRAFT`, Sentinel stays `v1.8.0`, and all Builder implementation evidence is `ACTOR_REPORTED` pending independent Architect review. Closure is separately gated (`ML-DEVOS-RFC-015` D.1/D.2). `ML-DEVOS-AS-094` returned four implementation findings (claim-lock placement, crash-atomic permit minting, argv-taking helpers, the incomplete Execution Report). Remediation cycle 1 corrects the implementation to match this design; the design itself is unchanged. `ML-DEVOS-AS-095` closed those and returned two more (a shared linearization for all lifecycle mutations; S4 fencing at quiesce). Remediation cycle 2 (the final ordinary cycle) implements them, again without a design change. `ML-DEVOS-AS-096` found that an unresolved `PENDING` publication did not reserve the local instance lifecycle. The exceptional micro-remediation authorized by `D-072` enforces the existing write-ahead `PENDING` record as that reservation, again without a design change. `ML-DEVOS-AS-097` then found that an unprovable `PENDING` record could drop out of that reservation (`AS97-F001`). `ML-DEVOS-AS-098` classified that and the related findings as one design gap. Under `D-073`, implementation is paused, and the implementation at `1bf18ef` predates the transaction model of §13.2–§13.4. A hardened implementation needs a fresh Paulo decision after this amendment is reviewed.
+
+**Integrity-hardening amendment (`D-073`, `ML-DEVOS-AS-098`).** S6 implementation is paused. `ML-DEVOS-AS-094` through `ML-DEVOS-AS-097` found one class of defect several times over. S6 kept its safety facts in independently written files and crossed external effects (push, S4 publication, deletion, clone) without one rule saying which facts commit together and how a crash is resolved. This amendment corrects the design, not one more symptom:
+- **One local transaction boundary** per task (new §13.2): every logical local transition commits atomically; the evidence that justifies a transition commits with it; immutable bodies are written before they are referenced.
+- **Prepare → effect → reconcile** for every external effect (new §13.3), with the open-reservation rules that `D-072` introduced for publication generalized to push, cleanup, create and driver execution.
+- **One ACTIVE S6 environment per task**, owned by S6 (new §13.4). S4 single ownership is no longer described as sufficient.
+- **Atomic report and liveness registration** (§13.1 step 5).
+- **Fail-closed attribution of a `PENDING` publication** (new §7.1.3, carrying `AS97-F001`).
+- **No mutable store in the public surface** (new §13.5).
+- **Isolation Provenance as a deterministic projection**, with an explicit S7 boundary (§17).
+- **Caller-presented S4 results are trusted control-plane input** (§3.1, §8).
+- **A systematic persistence-point crash and interleaving matrix** (§18 item 15) and **a small reference state model** (new §13.6, §18 item 16).
+- **Store alternatives and an exit condition** (§20.1; *Integrity-hardening exit condition*).
+
+Changed sections: §2 (T10), §3.1, §7.1 (fields, steps 2 and 5), §7.1.2 (steps 3–4), new §7.1.3, §8 (S4), §9 (layout), §13 (table, concurrency), §13.1 (steps 2, 3, 5; request binding; recovery), new §13.2–§13.6, §14 (rows 13, 19, 30; no new code), §15, §17, §18 (items 2, 3, 9, 12, 14, new 15 and 16), new §20.1, the summary, the exit condition, rollout, residual risks and unresolved questions. S3, S4 and S5 are unchanged. The `D-069` execution-driver separation, and every accepted `AS90`–`AS96` property, are preserved.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -114,7 +128,7 @@ Anything that needs containment of *untrusted code* is outside V1 and fails clos
 | T7 | Credential files are copied into the instance: `.npmrc`, `.git-credentials`, `.env`, SSH keys. | Prevented by the non-copy rule plus a pre-use scan (§12). |
 | T8 | Deliberate same-user reads of host credential stores. | **Not prevented at L3.** Disclosed (Residual risks). Requires an L4 profile or a dedicated OS user. |
 | T9 | Shared cache poisoning, where task A writes a tampered package that task B consumes. | Mitigated: private caches by default; shared caches read-only-by-policy with integrity verification against the lockfile, plus before/after digest detection (§11). Not prevented at L3. |
-| T10 | Two instances for one task race, or two tasks collide on a branch or directory name. | Prevented: S4 single-owner fencing plus exclusive-create naming (§13). |
+| T10 | Two instances for one task race, or two tasks collide on a branch or directory name. | Prevented: the S6-owned one-active-environment slot (§13.4), S4 fencing, and exclusive-create naming (§13). S4 single ownership alone is not sufficient. |
 | T11 | A crash leaves an orphaned directory, process, lock or pushed branch that is later adopted as valid. | Prevented: orphans are quarantined, never adopted (§15). |
 | T12 | QA "reproduces" inside the Builder's tree, or from Builder-supplied files. | Prevented: QA reconstructs from the commit named by a committed Result Transfer Record, proven current against S4 and fetched by exact SHA from the remote. It does so in its own instance, as a different actor (§7, §7.1). |
 | T13 | S6 provenance is quoted as authority, or as stronger evidence than it is. | Prevented by the fixed non-authority disclaimer and `ACTOR_REPORTED` classification (§17). |
@@ -160,6 +174,7 @@ The checkpoint is `{ current_revision, lease_expires_at, adopted_from }`. It is 
   - `taskId == identity.task_id` and `owner == identity.owner`;
   - `result.revision == current_revision + 1`. S4 increments the revision by exactly one per successful mutating operation (`claim`, `renew`, `release`, `transition`), so a one-step advance proves no other mutation happened in between;
   - an immediate S4 `getState()` shows `owner == identity.owner` and `revision == result.revision`. If it shows anything else, a further mutation has already occurred.
+- **Trusted control-plane input (`ML-DEVOS-AS-098` H).** A presented S4 `claim`/`renew` result, or a QA revision chain (§7.1 step 6), is accepted only from the trusted control-plane caller boundary: the component that itself called S4's public API for the owner. It is never accepted from a task- or actor-controlled payload, an Execution Report, or anything an instance process wrote. S6 cross-checks every presented result against a fresh public `getState()` as above. V1 introduces no signed S4 receipts and reads no S4 history. If receipts from an untrusted source ever have to be ingested verifiably, that is a separate S4/S8 architecture change.
 - **Anything else is stale.** A revision gap (`result.revision > current_revision + 1`); an S4 revision observed above `current_revision` without a matching adopted result; a result for another owner or task; or an attempt to move the checkpoint backwards. Any of these makes the instance `INSTANCE_STALE`, permanently. The instance is quiesced and quarantined, never re-anchored. A same-owner re-`claim` after an intervening mutation (for example after the lease expired and another actor held the task) is a gap, so it is stale by the same rule. That owner must create a new instance.
 - **Fencing uses the checkpoint.** Every S4 fencing comparison in §8 and §13 uses `current_revision`, never `anchor_revision`. The S4 `transition` at publication presents `expectedRevision = current_revision`.
 
@@ -212,27 +227,27 @@ QA MUST NOT test inside the Builder's working tree, reuse the Builder's clone, c
 
 #### 7.1 Result Transfer Record — S6-owned execution/provenance mapping (`AS86-F002`)
 
-S4 stays the lifecycle and fencing authority, and its implementation and interface stay unchanged. S6 owns only the mapping from a governed Builder handoff to the exact commit that handoff delivered. That mapping is the **Result Transfer Record (RTR)**, kept in the S6 host's registry under `<host_state_dir>` (§9). It is not an evidence store: S7 is not implemented early, and the RTR carries references and digests only.
+S4 stays the lifecycle and fencing authority, and its implementation and interface stay unchanged. S6 owns only the mapping from a governed Builder handoff to the exact commit that handoff delivered. That mapping is the **Result Transfer Record (RTR)**, kept in the S6 task store under `<host_state_dir>` (§9, §13.2). It is not an evidence store: S7 is not implemented early, and the RTR carries references and digests only.
 
 **RTR fields:**
 - `transfer_id`: SHA-256 of `(identity_digest, result_commit_sha, pre_revision)`;
 - `task_id`, `builder_identity_digest`, `owner`;
 - `pre_revision`: the checkpoint `current_revision` presented to S4;
-- `post_revision`: set only on commit. It lives in the status part (see `status` below);
+- `post_revision`: set only on commit. It lives in the transactional RTR metadata (below);
 - `result_commit_sha`, `result_tree_sha`, `base_sha`;
 - `remote_ref` (the instance's `task_branch`) and `prepublication_provenance_digest` (§7.1.2);
 - `status`: `PENDING`, `COMMITTED` or `ABORTED`.
 
-All fields other than `status` and `post_revision` form the RTR's **immutable body**, written once when the record is written as `PENDING` and never rewritten. `status` and `post_revision` live in a separate status part of the record. Every change to them is also appended as its own journal entry. The digest proof in §7.1.2 therefore stays valid after commit or abort.
+All fields other than `status` and `post_revision` form the RTR's **immutable body**. The body is a content-addressed blob (§13.2 rule 4), written and verified before the transaction that makes the record `PENDING`, and never rewritten. The task store holds the RTR **metadata**: `transfer_id`, `rtr_digest` (the SHA-256 of the body), `task_id`, the owning `instance_id`, `builder_identity_digest`, `status` and `post_revision`. Every status change is one transaction that also appends its journal entry (§13.2 rule 3). The digest proof in §7.1.2 therefore stays valid after commit or abort.
 
 **Builder side (inside *complete*, §13), in order:**
 1. **Push and verify.** Quiesce and validate. Push `task_branch` with its explicit lease. Verify with a read of the remote ref that it points at `result_commit_sha`.
-2. **Write ahead.** Everything in this step happens under the S6 per-task registry lock, in the exact construction order of §7.1.2:
-   1. read the journal head, `prepublication_provenance_digest`;
+2. **Write ahead.** This step is one prepare transaction (§13.2, §13.3), built in the exact construction order of §7.1.2:
+   1. under the writer lock, read the journal head at the transaction's base version: `prepublication_provenance_digest`;
    2. build the publication `evidenceRef` exactly once, per §7.1.1, using that fixed value;
    3. serialize it;
-   4. durably write the RTR as `PENDING`, using temp-then-rename;
-   5. append the `PENDING` entry to the journal normally.
+   4. write the immutable RTR body as a content-addressed blob and verify it;
+   5. commit, in one transaction, the RTR metadata as `PENDING` and the `RTR_PENDING` journal entry. The push must already be reconciled as done (§13.3) before this commit.
 
    The record stores the exact serialized `evidenceRef` bytes (`publication_evidence_ref_json`) and their SHA-256 (`publication_evidence_ref_digest`). At most one `PENDING` RTR may exist per `(task_id, pre_revision)`; a second is `RESULT_TRANSFER_UNPROVEN`.
 3. **Transition.** The S6 host calls S4's public `transition` as the owner's agent with exactly these parameters:
@@ -244,12 +259,13 @@ All fields other than `status` and `post_revision` form the RTR's **immutable bo
 
    S4 stores the `evidenceRef` opaquely for audit. S6 never reads it back and does not depend on it.
 4. **Commit only on proof.** On a successful transition result with `revision == pre_revision + 1`, S6 confirms through `getState()` that `state` is `READY_FOR_QA`, `owner` is `null`, and `revision` is `pre_revision + 1`, or a later value explained by the QA chain in step 6. Only then does it mark the RTR `COMMITTED` with `post_revision = pre_revision + 1`.
-   - This is sound because S4's transition table allows exactly one mutation from (`BUILDING`, owner `O`, revision `R`) to (`READY_FOR_QA`, no owner, `R+1`): owner `O`'s own `BUILDING → READY_FOR_QA` transition at `R`. S6 makes that call itself, under its registry lock, with the key `transfer_id`.
+   - This is sound because S4's transition table allows exactly one mutation from (`BUILDING`, owner `O`, revision `R`) to (`READY_FOR_QA`, no owner, `R+1`): owner `O`'s own `BUILDING → READY_FOR_QA` transition at `R`. S6 makes that call itself, outside the task lock (§13.3), always with the key `transfer_id` and the stored bytes. Concurrent resolvers of the same `PENDING` record, such as the original publisher and recovery, therefore converge through S4's idempotency on one transition.
 5. **Failure and crash recovery.**
-   - If S4 rejects the transition (owner or revision mismatch), the RTR becomes `ABORTED`. The pushed branch is `STALE_UNPUBLISHED` (§15). It can never become an accepted handoff, because no `COMMITTED` RTR points at it.
+   - If S4 definitively refuses the transition (§13.3: `NOT_CURRENT_OWNER`, `REVISION_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `ILLEGAL_TRANSITION`, `TASK_NOT_FOUND`), the RTR becomes `ABORTED`. The pushed branch is `STALE_UNPUBLISHED` (§15). It can never become an accepted handoff, because no `COMMITTED` RTR points at it.
+   - Any other S4 failure proves nothing about the outcome. S4 lock contention with a concurrent resolver of the same record is the typical case. The RTR stays `PENDING`, a `TRANSITION_UNRESOLVED` entry is journaled, and the reservation is resolved later by retry or recovery (`D-072`).
    - After a crash with a `PENDING` RTR, S6 re-issues the identical `transition`: same `toState`, `expectedRevision`, `idempotencyKey`, and absent `decisionRef`. The `evidenceRef` is re-parsed from the stored `publication_evidence_ref_json` bytes after their digest is verified. It is never rebuilt from the RTR's individual fields (§7.1.1).
      - If S4's idempotency ledger replays the original success, the RTR commits.
-     - If S4 reports a conflict (`IDEMPOTENCY_CONFLICT`, or an owner or revision mismatch), the RTR aborts.
+     - If S4 returns a definitive refusal (§13.3), the RTR aborts. Any other error leaves it `PENDING`.
      - If the stored bytes are missing or fail their digest, or the §7.1.2 adjacency check fails (the `PENDING` journal entry's predecessor head differs from the payload's `prepublication_provenance_digest`, or the entry's `rtr_digest` differs from SHA-256 of the stored immutable RTR body), recovery stops with `RESULT_TRANSFER_UNPROVEN`. The RTR is not aborted or committed by inference; it waits for an explicit, audited operator resolution.
    - A `PENDING` RTR is never promoted by inference alone.
 
@@ -266,7 +282,7 @@ S4 already guards `BUILDING->READY_FOR_QA`. `devos/state/lifecycle.mjs` accepts 
 | 5 | `result_tree_sha` | 40 lowercase hex. |
 | 6 | `base_sha` | 40 lowercase hex. |
 | 7 | `identity_digest` | 64 lowercase hex (§3). |
-| 8 | `prepublication_provenance_digest` | 64 lowercase hex: the journal head (§7.1.2) immediately **before** the `PENDING` RTR entry is appended, read under the registry lock. It is a fixed value computed before the payload exists. It covers the Builder's journal through quiesce, validation, push and push verification. It never covers the `PENDING` entry, the payload, or the transition outcome. |
+| 8 | `prepublication_provenance_digest` | 64 lowercase hex: the journal head (§7.1.2) immediately **before** the `PENDING` RTR entry is appended, read under the writer lock at the prepare transaction's base version (§7.1.2, §13.2). It is a fixed value computed before the payload exists. It covers the Builder's journal through quiesce, validation, push and push verification. It never covers the `PENDING` entry, the payload, or the transition outcome. |
 | 9 | `remote_ref` | `"refs/heads/sentinel/s6/<task_id>/builder/<instance_id>"`. |
 
 **Constraints on the payload:**
@@ -295,11 +311,11 @@ A mismatch is `RESULT_TRANSFER_UNPROVEN` and no call is made.
 
 A value is therefore a hash only over entries that already exist when it is computed.
 
-**Construction order for publication.** Every step runs under the per-task registry lock, and no other journal append may interleave between steps 1 and 4:
+**Construction order for publication.** Every step runs under the per-task writer lock, and the commit in step 4 is refused if any other commit happened after step 1 (§13.2 rule 2), so no other journal append can interleave:
 1. **Read the head.** Read the current journal head `head_k`, the head after the push-verification entry, and fix `prepublication_provenance_digest = head_k`.
 2. **Build and serialize.** Build the §7.1.1 payload using that fixed value, together with the already-known `transfer_id`, commit, tree, base, identity and ref values, and serialize it to `publication_evidence_ref_json`. No input depends on the payload itself.
-3. **Write the record.** Write the RTR's immutable body containing those exact bytes and their SHA-256, with status `PENDING` in the separate status part.
-4. **Append the entry.** Append the journal entry `e_{k+1} = { type: "RTR_PENDING", transfer_id, rtr_digest, prev_head: head_k }`, where `rtr_digest` is the SHA-256 of the exact immutable RTR body bytes written in step 3. Then `head_{k+1} = SHA-256(head_k ‖ SHA-256(e_{k+1}))` is computed normally.
+3. **Write the body.** Write the RTR's immutable body, containing those exact bytes and their SHA-256, as a content-addressed blob, and verify it (§13.2 rule 4).
+4. **Commit metadata and entry together.** In one transaction whose base version is the one read in step 1, commit the RTR metadata with status `PENDING` and the journal entry `e_{k+1} = { type: "RTR_PENDING", transfer_id, rtr_digest, prev_head: head_k }`. Here `rtr_digest` is the SHA-256 of the exact immutable RTR body bytes written in step 3. Then `head_{k+1} = SHA-256(head_k ‖ SHA-256(e_{k+1}))` is computed normally. A crash before this commit leaves only an unreferenced blob (§13.2) and no reservation; a crash after it leaves a complete, recoverable `PENDING` record.
 5. **Keep proof outside the payload.** Proof of the `PENDING` record lives outside the publication payload and the RTR body: `rtr_digest` in `e_{k+1}`, and `head_{k+1}` itself. `head_{k+1}` is carried into later journal entries (the transition attempt, the `COMMITTED`/`ABORTED` status) and into the Isolation Provenance (§17). It is never written back into the payload or the `PENDING` RTR, so no value is ever a hash over itself.
 
 **Dependency direction.** The dependency graph is acyclic:
@@ -316,6 +332,20 @@ No fixed-point or self-hash construction is used or needed.
 Any failure is `RESULT_TRANSFER_UNPROVEN` (§7.1 step 5). A broken chain elsewhere in the journal remains `ISOLATION_UNPROVABLE` (§14).
 
 **Replay is unaffected.** Crash recovery never recomputes `prepublication_provenance_digest` or rebuilds the payload. It re-parses the stored `publication_evidence_ref_json` bytes (§7.1.1), so every S4 attempt carries a byte-identical `evidenceRef`. That holds even though the journal head has since advanced past `head_{k+1}`.
+
+##### 7.1.3 Attribution of a `PENDING` record fails closed (`AS97-F001`, `ML-DEVOS-AS-098` E)
+
+The publication reservation (§13.3) is only as strong as S6's ability to say which instance a `PENDING` record belongs to. The first implementation read the owning instance from the body before proving the body. A missing or altered body could therefore make a reservation disappear.
+
+A `PENDING` record may be treated as belonging to *another* instance only after all of these are proven:
+1. the body blob exists and parses;
+2. its SHA-256 equals the committed `rtr_digest`;
+3. its `transfer_id` and `task_id` equal the committed metadata, and its `builder_identity_digest` equals the digest recorded for the owning instance;
+4. the §7.1.2 adjacency proof holds against that instance's journal.
+
+If any of these cannot be proven, the record cannot be attributed. Every lifecycle-mutating operation on **every** instance of the task then fails closed with `RESULT_TRANSFER_UNPROVEN`. Only recovery diagnostics, read-only views and an explicit, audited operator resolution remain possible. Uncertainty never makes a reservation disappear. Task-scoped blocking is the intended cost.
+
+Because the body is written before the transaction that references it (§13.2), and the metadata, status and `RTR_PENDING` entry commit together, a crash can no longer leave a prefix that recovery cannot classify. An unattributable `PENDING` record therefore means tampering or storage damage, not an ordinary crash.
 
 **QA side (inside QA *create*):**
 
@@ -352,7 +382,7 @@ An action proceeds only if all three hold **and** S4 fencing holds. Any single f
 - S6 has **no task state machine**. It never decides task progress, retries, or failure. The caller performs S4 `claim`, `renew`, `release` and every other transition through S4's public API.
   - The single exception is mechanical: when the owner requests *complete*, the S6 host itself issues the one publication `transition` (`BUILDING → READY_FOR_QA`) as the owner's agent. It does this so the Result Transfer Record can be written ahead of the transition and committed under proof (§7.1).
   - S6 never decides whether to publish: the owner requests it, and S4 accepts or rejects it.
-- The S6 instance *environment* lifecycle (§13) is subordinate to S4. Every mutating S6 step first checks, through S4 `getState`, that:
+- The S6 instance *environment* lifecycle (§13) is subordinate to S4. Every mutating S6 step checks, through S4 `getState` read under the writer lock immediately before its local commit (§13.2), that:
   - `owner == instance.owner`;
   - `revision == checkpoint.current_revision` (§3.1);
   - `lease_expires_at` is later than trusted time;
@@ -364,7 +394,8 @@ An action proceeds only if all three hold **and** S4 fencing holds. Any single f
 - **The publication linearization point is S4 `transition`,** which re-checks owner and revision under S4's exclusive lock. A pushed Git branch is *not* publication.
   - A stale instance can at most leave an unrecorded branch behind (§15). It cannot get its result recorded, because its `expectedRevision` no longer matches.
   - This closes the check-then-push time-of-check/time-of-use (TOCTOU) window that a Git-only fence would leave open.
-- S6 uses S4's public operations only. It reads `getState`, accepts `claim`/`renew` result objects as the caller hands them over, and issues the publication `transition` as the owner's agent. It never writes S4 records, reads S4 persistence or history, or imports S4-internal modules.
+- S6 uses S4's public operations only. It reads `getState`, accepts `claim`/`renew` result objects only from the trusted control-plane caller (§3.1), and issues the publication `transition` as the owner's agent. It never writes S4 records, reads S4 persistence or history, or imports S4-internal modules.
+- S4 single ownership is necessary for every step, but it does not by itself keep a task to one S6 environment. That invariant is S6's own (§13.4).
 
 **S5 — CapabilityDecision (consumed, S5 unchanged):**
 - S5 is a decision library over five bounded provider adapters. It is not an interceptor for every operation. S6 asks for an S5 decision exactly where §8.1's table says one is required (`AS86-F004`), through the public adapter `request(requestIntent)`:
@@ -439,7 +470,9 @@ A transport attempt outside this scope, or with no recorded authorization refere
   tmp/       writable — TMPDIR / TMP / TEMP
   cache/     writable — instance-private package/tool caches
   config/    host-written — generated git/npm config; checked by digest
-<host_state_dir>/journal/<instance_id>/   host-only — identity, journal, provenance
+<host_state_dir>/tasks/<task_id>/        host-only — the S6 task store (§13.2): the state envelope
+                                          (identities, checkpoints, permits, RTR metadata, journals,
+                                          prepared intents) and content-addressed immutable blobs
 ```
 The journal lives **outside** the instance root, so deleting or corrupting the instance cannot erase its own evidence. At L3 a same-user process could still reach it (Residual risks). Tampering is detected by journal hash chaining, not prevented.
 
@@ -554,24 +587,24 @@ These are *environment* states, not task states. None of them is an S4 state or 
 
 | Step | Preconditions (all fail closed) | Effect |
 |---|---|---|
-| **create** | Platform supported; workspace root valid; S4 record exists; the owner presents its S4 `claim`/`renew` result and `getState()` confirms it (§3.1); S4 checks pass (owner, revision, lease, state↔role); QA only: committed Result Transfer Record proven current (§7.1); transport authorization recorded (§8.1); S3 contract resolves, `task_id`/`project` match, and consequence flags are within the V1 profile; S5 `ALLOW` for fetch; base resolved (§4). | Create the instance directory tree under §9.1, the final directory exclusively. Clone, check out `base_sha`, create `task_branch`. Construct environment and config. Pre-use scan. Write identity, the initial Fencing Checkpoint, and the journal. → `READY`. |
+| **create** | Platform supported; workspace root valid; S4 record exists; the trusted caller presents the owner's S4 `claim`/`renew` result and `getState()` confirms it (§3.1); S4 checks pass (owner, revision, lease, state↔role); QA only: committed Result Transfer Record proven current (§7.1); transport authorization recorded (§8.1); S3 contract resolves, `task_id`/`project` match, and consequence flags are within the V1 profile; S5 `ALLOW` for fetch; base resolved (§4); the task's active-environment slot is free, or held by this create key (§13.4). | Prepare (§13.3): commit the slot, the create binding, the identity, the initial Fencing Checkpoint and the `CREATING` record in one transaction. Then, outside the lock, create the instance directory tree under §9.1 (the final directory exclusively), clone, check out `base_sha`, create `task_branch`, construct environment and config, and run the pre-use scan. Reconcile and commit → `READY`. |
 | **validate** | — (pure verification, repeatable at any time) | Recompute every identity field from live facts; tree, config and environment checks; S4 checks. Returns `PROVEN` or the first failing reason (§14). |
 | **attach** | `validate` → `PROVEN`; caller is the identity `owner`; S4 revision equals the checkpoint's `current_revision`. | → `ATTACHED`. |
 | **permit** | `ATTACHED`; S4 checks; a well-formed Execution Request from the owner, not conflicting with an existing `(instance_id, request_id)` binding; S5 `shell` `ALLOW` at the verified canonical request intent. | Exact replay returns the stored permit. Otherwise S6 creates the one request binding and one single-use Execution Permit, bound to the argv digest, workspace, environment digest, checkpoint revision and canonical S5 request intent and decision, and journals it (§13.1). S6 core runs nothing. |
-| **record** | A driver Execution Report for a `CLAIMED` permit whose digests match. Permit expiry does not end a claimed permit. | Verify the report; register its process groups for quiescence; recompute the tree snapshot; journal it (§13.1). |
+| **record** | A complete driver Execution Report (§13.1) for a `CLAIMED` permit whose digests match. Permit expiry does not end a claimed permit. | Write the report body blob, then commit in **one transaction** `CLAIMED → REPORTED`, the report reference and fields, every reported process group as a liveness obligation, the recomputed tree snapshot and the `REPORT` entry (§13.1 step 5). |
 | **renew** | The owner performed S4 `renew` and hands over its result. | The checkpoint advances only under §3.1's gap-free rule (journaled); otherwise `INSTANCE_STALE`. The identity does not change. |
-| **quiesce** | No permit is `CLAIMED` without a verified report. Every `REPORTED` permit's groups are terminated by the driver. | S6 core first revokes every still-`ISSUED` permit. It then proves every reported group empty by read-only inspection (`QUIESCE_UNPROVEN` otherwise, including any claimed-but-unreported permit) and snapshots tree state. → `QUIESCED`. |
-| **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5: (1) push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA) and verify the remote ref; (2) write the Result Transfer Record ahead as `PENDING`; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision`, `idempotencyKey = transfer_id`, and the stored §7.1.1 `evidenceRef` (`evidenceClass: "ACTOR_REPORTED"`), with the payload stored before this step; (4) mark the record `COMMITTED` only after the `getState()` proof. Only a committed record after a successful S4 transition means *published*. → `COMPLETED`. |
-| **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; path rules (§9). | No-follow deletion of the instance root; verify absence; the journal is retained. → `CLEANED`. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
+| **quiesce** | S4 fencing at the commit (§8); no open reservation that blocks quiesce (§13.3); no permit is `CLAIMED` without a verified report; every `REPORTED` permit's groups are terminated by the driver. | Under the writer lock: check S4 before any change, prove every registered liveness obligation empty by read-only inspection (`QUIESCE_UNPROVEN` otherwise, including any claimed-but-unreported permit), and snapshot tree state. Then commit in one transaction the revocation of every still-`ISSUED` permit and → `QUIESCED`. |
+| **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5 as two prepare → effect → reconcile sequences (§13.3): (1) prepare the push intent, push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA), and reconcile it by reading the remote ref; (2) prepare the publication: write the RTR body blob, then commit the RTR as `PENDING` with its journal entry; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision`, `idempotencyKey = transfer_id`, and the stored §7.1.1 `evidenceRef` (`evidenceClass: "ACTOR_REPORTED"`); (4) commit `COMMITTED` and `COMPLETED` together only after the `getState()` proof, or `ABORTED` on a definitive refusal. Only a committed record after a successful S4 transition means *published*. |
+| **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; no open reservation that blocks cleanup (§13.3); path rules (§9). | Prepare a cleanup intent with the proven root identity. Outside the lock, run no-follow deletion of the instance root. Reconcile by observation, and commit `CLEANED`. The task store and its journals are retained. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
 
 **Concurrency.**
-- *Same task, same role:* S4 single ownership means at most one instance can hold the current `(owner, revision)`. A second instance created under an older revision fails every S4 check and is `INSTANCE_STALE`.
+- *Same task:* at most one ACTIVE environment, enforced by S6's own slot (§13.4), whatever the role. S4 fencing additionally makes an instance created under an older revision fail every S4 check (`INSTANCE_STALE`).
 - *Name collisions:*
   - Instance directories are created with exclusive-create. `EEXIST` is `WORKTREE_COLLISION`, never reuse.
   - `task_branch` must not exist locally or on the remote at create; otherwise `BRANCH_COLLISION`.
   - The push lease makes a racing push fail rather than overwrite.
 - *Refs on case-insensitive filesystems:* branch components are lowercase or fixed-case by construction (`task_id` is `^[A-Z][A-Z0-9_-]*$`; `role` and `instance_id` are lowercase), so two distinct names cannot fold to one.
-- *Instance records:* the S6 host's own instance registry uses the same patterns S4 already proved (exclusive-create lock, write-temp-then-atomic-rename, no age-based lock stealing). It uses them in S6's own root, without importing or modifying S4's store.
+- *S6 records:* every mutable S6 fact lives in the per-task S6 task store and changes only by local transaction (§13.2). The store uses the same lock discipline S4 already proved: an exclusive-create lock and no age-based lock stealing. It lives in S6's own root, without importing or modifying S4's store.
 
 #### 13.1 Execution-driver boundary (`D-069`)
 
@@ -582,7 +615,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 | Record | Produced by | Contents |
 |---|---|---|
 | **Execution Request** | The instance owner, through its caller. It is never produced by the driver. | `instance_id`; `request_id` (the caller's idempotency key); `argv` (non-empty string array, no shell, no environment overrides); `checkpoint_revision` the owner believes current. |
-| **Execution Permit** | S6 core. | An **immutable body**, written once, whose SHA-256 is `permit_digest`:<br>`permit_id`; `instance_id`; `request_id`; `identity_digest`; `checkpoint_revision`; `argv_digest` (SHA-256 of the canonical argv JSON); canonical `cwd` (the instance `repo/`); `environment_digest`;<br>`s5_request_intent` (the canonical `presented.request_intent` the S5 adapter evaluated, verbatim) and `s5_request_intent_digest`; `s5_presented_digest` (canonical digest over the adapter's presented request intent, subject-context snapshot and evaluation-context snapshot); `s5_subject_binding` (`actor_id`, `actor_role`: the two non-secret subject fields verified at issuance, stored in the clear for field-level comparison; `AS92-F001`);<br>`s5_decision` (`outcome`, `denial_reason`, `descriptor_id`, `policy_version`, `non_authority_disclaimer`, verbatim); `s5_consequence_tier`;<br>`issued_at`; `claim_deadline`; `single_use: true`.<br>A separate **status part** carries the permit lifecycle state (below). |
+| **Execution Permit** | S6 core. | An **immutable body**, written once, whose SHA-256 is `permit_digest`:<br>`permit_id`; `instance_id`; `request_id`; `identity_digest`; `checkpoint_revision`; `argv_digest` (SHA-256 of the canonical argv JSON); canonical `cwd` (the instance `repo/`); `environment_digest`;<br>`s5_request_intent` (the canonical `presented.request_intent` the S5 adapter evaluated, verbatim) and `s5_request_intent_digest`; `s5_presented_digest` (canonical digest over the adapter's presented request intent, subject-context snapshot and evaluation-context snapshot); `s5_subject_binding` (`actor_id`, `actor_role`: the two non-secret subject fields verified at issuance, stored in the clear for field-level comparison; `AS92-F001`);<br>`s5_decision` (`outcome`, `denial_reason`, `descriptor_id`, `policy_version`, `non_authority_disclaimer`, verbatim); `s5_consequence_tier`;<br>`issued_at`; `claim_deadline`; `single_use: true`.<br>The permit's lifecycle state is transactional task-store metadata (below; §13.2), never a separately written file. |
 | **Execution Report** | The execution driver. | `permit_id`; `argv_digest` and `environment_digest` as actually used; `process_groups` started; `started_at` and `ended_at`; `exit_code` and `signal`; stdout and stderr digests (never raw secrets); `terminated: true/false`. |
 
 **Flow.**
@@ -597,7 +630,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 
    Otherwise S6 obtains the S5 `shell` decision through the public adapter: action `shell.exec`, resource = the instance's canonical `repo/`. S6 then verifies the adapter's returned `presented.request_intent` against the expected canonical axes (below). `DENY`, or an `ALLOW` whose presented intent does not match those axes, is `CAPABILITY_DENIED`, and no permit is issued.
 
-   On a verified `ALLOW`, S6 core creates the request binding and the permit in one step under the per-task registry lock (§13, *Instance records*), journals it, and returns the permit plus the exact `cwd` and environment to use. That is data only: S6 core starts nothing.
+   On a verified `ALLOW`, S6 core writes and verifies the permit body blob, then commits the request binding, the permit status `ISSUED` and the `PERMIT_ISSUED` journal entry in **one transaction** (§13.2). It then returns the permit plus the exact `cwd` and environment to use. That is data only: S6 core starts nothing.
 3. **Claim.** The driver presents the permit and the original request back to S6 core. S6 core checks:
    - the permit is known and its body still hashes to `permit_digest`;
    - its status is `ISSUED` and trusted time is before `claim_deadline`;
@@ -605,35 +638,44 @@ These are *environment* states, not task states. None of them is an S4 state or 
    - S4 fencing still holds;
    - **last, and immediately before the state change,** a fresh S5 `shell` `ALLOW` under the *Claim-time S5 recheck* below.
 
-   Only if every check passes does S6 mark the permit `CLAIMED`, under the per-task registry lock, journaled with `permit_digest` and the claim-time S5 check. A second claim of the same permit fails.
+   All of these checks run under the writer lock, against the committed state re-read there. Only if every check passes does S6 commit `CLAIMED` in one transaction, together with the journal entries carrying `permit_digest` and the claim-time S5 check. A second claim of the same permit fails.
 4. **Execute (driver only).** The driver runs exactly `argv` with no shell, exactly the permitted environment, and exactly the permitted `cwd`, in a new process group or Job Object. It must not add or change arguments, environment, working directory or credentials.
-5. **Report.** The driver returns an Execution Report. S6 core verifies that the permit is `CLAIMED`, that its body still hashes to `permit_digest`, and that `argv_digest` and `environment_digest` match the permit. It registers the reported process groups for quiescence, recomputes the tree snapshot, and journals the report. The report is `ACTOR_REPORTED` evidence from the driver. It never upgrades anything, and a report that cannot be verified is `ISOLATION_UNPROVABLE`.
-6. **Quiesce.** The driver terminates the process groups it started. S6 core revokes every still-`ISSUED` permit. It then proves every reported group empty by read-only inspection: `/proc` on Linux, signal-0 probing on other POSIX, and Job Object state on Windows where an implementation can read it. S6 core never spawns anything and never signals arbitrary processes.
+5. **Report (`ML-DEVOS-AS-098` D).** The driver returns an Execution Report carrying every field listed above. S6 core validates it completely, and verifies that the permit is `CLAIMED`, that its body still hashes to `permit_digest`, and that `argv_digest` and `environment_digest` match the permit. S6 writes and verifies the report body as a blob, then commits **one transaction** containing:
+   - `CLAIMED → REPORTED`;
+   - the report reference and digest, and the report fields;
+   - every reported process group, registered as a liveness obligation that quiesce must prove;
+   - the tree snapshot recomputed at record time;
+   - the `REPORT` journal entry.
+
+   If that transaction does not commit, the permit stays `CLAIMED` and keeps blocking quiescence. A crash can never leave `REPORTED` without the process groups quiescence must prove dead.
+
+   The report is `ACTOR_REPORTED` evidence from the driver. It never upgrades anything, and a report that cannot be verified is `ISOLATION_UNPROVABLE`.
+6. **Quiesce.** The driver terminates the process groups it started. Under the writer lock, S6 core checks current S4 fencing before changing anything (§8). It then proves every registered liveness obligation empty by read-only inspection: `/proc` on Linux, signal-0 probing on other POSIX, and Job Object state on Windows where an implementation can read it. Finally it commits, in one transaction, the revocation of every still-`ISSUED` permit, the tree snapshot and `QUIESCED`. Because the whole step holds the writer lock, no claim can interleave. S6 core never spawns anything and never signals arbitrary processes.
    - Any `CLAIMED` permit without a verified report, or any unproven group, is `QUIESCE_UNPROVEN`.
 
 **Permit lifecycle (`AS90-F001`).** These states describe a permit record, subordinate to S4. They are not a task state machine.
 
 | State | Entered when | Quiescence effect |
 |---|---|---|
-| `ISSUED` | The permit is created. | Outstanding. Quiesce revokes it first, so it can never be claimed after a quiescence snapshot. |
+| `ISSUED` | The permit is created. | Outstanding. Quiesce revokes it in the same transaction that commits `QUIESCED`, so it can never be claimed after a quiescence snapshot. |
 | `EXPIRED_UNCLAIMED` | Trusted time passes `claim_deadline` while the permit is still `ISSUED`. It is terminal and can never be claimed. | Harmless: no execution can have started through it. |
-| `REVOKED` | An `ISSUED` permit is revoked. The status part records one reason: `QUIESCE`, `CLEANUP`, `QUARANTINE`, `STALE` or `CAPABILITY_INVALIDATED` (the claim-time S5 recheck did not yield a fresh, binding-matching `ALLOW`; `AS91-F001`). It is terminal. | Harmless, for the same reason. |
+| `REVOKED` | An `ISSUED` permit is revoked. The permit's status records one reason: `QUIESCE`, `CLEANUP`, `QUARANTINE`, `STALE` or `CAPABILITY_INVALIDATED` (the claim-time S5 recheck did not yield a fresh, binding-matching `ALLOW`; `AS91-F001`). It is terminal. | Harmless, for the same reason. |
 | `CLAIMED` | The driver claims it (step 3). **Time never moves a permit out of this state.** `claim_deadline` bounds claiming only, not execution. | **Execution-uncertain.** Blocks quiesce and completion (`QUIESCE_UNPROVEN`) until a verified report arrives. |
 | `REPORTED` | A verified report arrives (step 5). | Its reported groups must be proven empty at quiesce. |
 
 - **Claimed then driver crash.** The permit stays `CLAIMED`, with no known process groups. S6 cannot prove that no process started under it is still running, so quiesce and completion fail `QUIESCE_UNPROVEN`. S6 never infers safety from elapsed time.
 - **Claimed then expiry.** Nothing changes: the permit remains `CLAIMED` and execution-uncertain.
 - **Late report.** If the host is still running (no recovery has happened), a late report is verified normally. The permit becomes `REPORTED`, and quiesce can then prove its groups.
-- **Recovery.** A host restart with a `CLAIMED`, unreported permit does not resurrect or infer anything. The instance is quarantined (`QUARANTINED`, reason `QUIESCE_UNPROVEN`: execution uncertain). A report arriving after that is journaled as evidence only; it does not un-quarantine the instance. Completion from that instance is impossible, and the owner must create a new instance.
+- **Recovery.** A host restart with a `CLAIMED`, unreported permit does not resurrect or infer anything. The instance is quarantined (`QUARANTINED`, reason `QUIESCE_UNPROVEN`: execution uncertain). A report arriving after that is committed as evidence only: the permit becomes `REPORTED` with a `LATE_REPORT` entry, and the terminal instance record is neither restored nor rewritten. Completion from that instance is impossible, and the owner must create a new instance.
 - **Unclaimed expiry.** It needs no special handling beyond becoming `EXPIRED_UNCLAIMED`.
 
 **Request binding and idempotency (`AS90-F002`).** This is S6's own rule. It is not delegated to S4 transition idempotency.
-- **One immutable binding.** Each `(instance_id, request_id)` has at most one binding record. It holds `checkpoint_revision`, `argv_digest`, `cwd` and `environment_digest`, plus the `permit_id`. It is created by exclusive create, under the per-task registry lock, in the same step that creates the permit. `permit_id` is a 128-bit random value generated once at that moment and then only ever read back.
+- **One immutable binding.** Each `(instance_id, request_id)` has at most one binding record. It holds `checkpoint_revision`, `argv_digest`, `cwd` and `environment_digest`, plus the `permit_id` and `permit_digest`. It commits in the same local transaction as the permit (§13.2). `permit_id` is a 128-bit random value generated once at that moment and then only ever read back.
 - **Exact replay.** The same `(instance_id, request_id)` with an identical binding returns the stored permit and its current lifecycle state, plus the report reference if any. It never mints a second permit and makes no new S5 call. Replay has no execution effect; the mandatory S5 freshness check happens at claim (`AS91-F001`).
 - **Conflicting reuse.** The same `(instance_id, request_id)` with any different binding field is `MALFORMED_REQUEST`, fail closed. Nothing is minted.
 - **After a terminal or uncertain state.** Once the permit is `EXPIRED_UNCLAIMED`, `REVOKED`, `CLAIMED` or `REPORTED`, a replay returns that state. A new execution attempt always requires a **new** `request_id`.
 - **Before a binding exists.** A request that fails validation, fencing or S5 creates no binding, so a retry with the same `request_id` is evaluated afresh. Minting happens only on a verified `ALLOW`, so one `request_id` can still never mint more than one permit.
-- **Retry after crash.** The binding and permit are durable before anything is returned to the caller. A crash between creation and response is resolved by exact replay, which returns the stored permit.
+- **Retry after crash.** The binding and the permit commit together before anything is returned to the caller. A crash before that commit leaves only an unreferenced body blob, so a retry mints the one permit. A crash after it leaves both, so a retry replays and returns the stored permit.
 
 **The S5 binding (`AS90-F003`).** S5 is unchanged.
 - **What S5 answers.** S5 V1 evaluates `project`, `provider`, `action`, `resource`, `environment` and `policy_version` from the request intent, with the trusted subject and evaluation contexts. It never receives or evaluates argv. A `shell` `ALLOW` therefore means only "the shell-execution capability is available to this subject at this canonical resource under this pinned policy". It is **not** an approval of the specific command.
@@ -674,6 +716,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 - The driver does **not** evaluate S5 policy: it consumes the decision S6 core obtained, and cannot substitute its own.
 - The driver is **not** a source of S6 identity: it cannot create, alter or attach instances.
 - S6 core never executes a request's `argv` and exposes no primitive that would. Its own fixed-argv internal Git calls (§6, §8.1) take no caller-supplied argv.
+- Neither the driver nor any other caller receives a mutable S6 store or registry object (§13.5).
 
 **Unpermitted activity.** A process that bypasses the driver, or a driver that misreports, is not contained at L3 (§1). S6 detects what it can:
 - validation compares the live tree snapshot against the last recorded snapshot, so a working-tree change with no verified Execution Report explaining it is `DIRTY_WORKTREE`;
@@ -700,6 +743,136 @@ These are *environment* states, not task states. None of them is an S4 state or 
 
 The driver's location is left to that decision (Unresolved question 7). It is not part of S6 core, and S6 core must not import it.
 
+#### 13.2 Local transaction boundary (`ML-DEVOS-AS-098` A)
+
+**Why.** The first implementation kept S6's safety facts in several independently mutable files: instance records, permit bodies and statuses, request bindings, RTR bodies and statuses, and journals. It wrote them in a fixed order. Every crash between two of those writes could expose a prefix of one logical transition, and each prefix needed its own repair rule (`AS94`–`AS97`). This section replaces that shape with one rule.
+
+**The boundary.** Each task has one **S6 task store**. It holds every mutable S6 fact for that task:
+- the active-environment slot and the create bindings (§13.4);
+- each instance's lifecycle state, Fencing Checkpoint, stale flag, tree snapshot, pushed-branch state and registered liveness obligations;
+- permit request bindings and permit statuses (§13.1);
+- Result Transfer Record metadata and status (§7.1);
+- prepared external-effect intents (§13.3);
+- each instance's lifecycle and audit journal (§7.1.2).
+
+A logical local transition that changes any of these facts MUST commit as **one local transaction**:
+
+1. **All or nothing.** After any crash, the task store shows the committed state from immediately before the transaction or from immediately after it, never part of it.
+2. **One writer, versioned.** Writers for a task serialize under the per-task exclusive lock, and every commit carries a monotonically increasing store version. A commit whose base version is no longer current is refused (compare-and-set). The lock is never stolen; removing a stale lock stays an explicit operator action (§15).
+3. **Evidence commits with the state it justifies.** The journal entries that explain a transition (for example `REPORT`, `QUIESCE`, `RTR_PENDING`, `RTR_COMMITTED`) are written in the same transaction as the transition. No committed state lacks its explanation, and no explanation lacks its state.
+4. **Immutable bodies are written before they are referenced.** Large immutable records MAY live outside the transaction as content-addressed blobs named by their SHA-256: permit bodies, Execution Report bodies, RTR bodies with their stored `evidenceRef` bytes, and provenance snapshots (§17). A blob must be completely written, flushed and re-verified against its digest **before** the transaction that references it commits.
+   - A blob that no committed transaction references (left by a crash) is harmless orphan evidence and is never authoritative.
+   - A committed reference to a missing or digest-mismatched blob is `ISOLATION_UNPROVABLE`, or `RESULT_TRANSFER_UNPROVEN` for an RTR body (§7.1.3).
+5. **No independently mutable side files.** Body, status and journal files that change independently of one another are prohibited, unless a proven transaction substrate makes them one commit.
+6. **No lock across an external effect.** A transaction never spans a Git push, an S4 call, a clone, or the deletion of an instance directory. External effects follow §13.3.
+
+**Linearization points.** An S6 operation takes effect on local state at the commit of its local transaction. An operation with an external effect has two such points: the prepare commit and the outcome commit (§13.3). The checks that decide a transition are made under the writer lock, immediately before the commit that depends on them. These include the S4 `getState` fencing read (§8) and, at claim, the fresh S5 recheck (§13.1).
+
+**Durability scope.** The requirement above is atomicity across an S6 host *process* crash. Durability across an OS crash or power loss is claimed only for a storage backend and platform whose flush settings actually provide it, and only with evidence from that platform (§18 item 15). Process-crash tests are never reported as power-loss evidence.
+
+**Minimal V1 candidate (not mandated).**
+- **Shape:** one crash-atomic state envelope per task, replaced as a whole on each commit and carrying the store version. Each commit writes a complete temporary file, flushes it, renames it over the previous envelope and flushes the directory. A content-addressed blob directory holds the immutable bodies.
+- **Proof first:** the implementation MUST prove the envelope's replace-atomicity on every supported platform profile (§16) before relying on it. If it cannot, it stops and returns for a storage-backend decision (§20.1); it does not quietly go back to several mutable files.
+- **Cost:** the envelope grows with the task's journal, so each commit rewrites it. That cost is accepted for V1 task sizes. A measured size bound that is exceeded is also a reason to return for a backend decision.
+
+**What this section supersedes.**
+- The separately written RTR body file and "status part" of §7.1. The body is now a blob and the metadata is transactional.
+- The request-binding file created "in the same step" as the permit in §13.1. The binding and the permit are now one transaction.
+- The per-record write-temp-then-rename registry of §13 (*Instance records*).
+- Journal appends to separate files. Journal entries now commit inside the task store.
+
+The hash chain, its genesis and the non-circular publication order of §7.1.2 are unchanged.
+
+#### 13.3 External effects: prepare → effect → reconcile (`ML-DEVOS-AS-098` B)
+
+Every operation that changes something outside the task store follows four steps:
+
+`PREPARE DURABLE INTENT → PERFORM EXTERNAL EFFECT → RECONCILE BY OBSERVATION OR IDEMPOTENCY → COMMIT OUTCOME`
+
+- **Prepare** is a local transaction (§13.2). It records exactly what the effect is, where it applies, and the before and after values it expects.
+- **Effect** runs outside the task lock.
+- **Reconcile** decides the outcome only from an observation of the external system or from that system's idempotency record. A timeout or a transport error alone proves neither success nor failure.
+- **Commit outcome** is a second local transaction. It records the observed outcome together with the lifecycle transition that outcome allows.
+
+A prepared intent with no committed outcome is an **open reservation** on its instance. Recovery reconciles every open reservation before anything else (§15).
+
+| Effect | Prepared intent (committed first) | Reconciliation | Outcome |
+|---|---|---|---|
+| **Workspace create / clone** | The active-environment slot, the create binding, the new `instance_id` and its `CREATING` record, in one transaction (§13.4). | Re-verify the §9.1 creation chain, `HEAD == base_sha`, a clean tree, the config allowlist and the pre-use scan. | Verified → `READY`. A crash or a failed check → `QUARANTINED` (`INCOMPLETE_CREATE` or the failing code), with the slot released in the same transaction. A second environment is never minted silently. |
+| **Git push** | `{ ref, expected_remote_sha or null, target_sha }` for the instance's own task branch (§8.1). | Read the remote ref (S5 `github`). Equal to `target_sha`: the push already happened. Equal to `expected_remote_sha`: an exact retry of the same push is allowed. Anything else: conflict. | Done → `pushed_sha = target_sha`, journaled `PUSH_VERIFIED`. Conflict → `BRANCH_COLLISION`, and the branch is `STALE_UNPUBLISHED`. |
+| **S4 publication** | The RTR as `PENDING` (§7.1): the body blob first, then the metadata, status and `RTR_PENDING` entry in one transaction. The idempotency key is `transfer_id`, and the `evidenceRef` bytes are stored. | Re-issue the identical S4 `transition` from the stored bytes. A success whose `getState()` proof holds → commit. A definitive S4 refusal → abort. Anything else (S4 lock contention, an unreadable S4 record, an I/O error) → still `PENDING`. | `COMMITTED`, which also moves the instance to `COMPLETED` if it is still `QUIESCED`; or `ABORTED`, which marks the instance stale and leaves the branch `STALE_UNPUBLISHED`. A quarantined instance is never restored. |
+| **Cleanup** | A cleanup intent carrying the proven identity of the instance root: its canonical path and recorded component identities (§9.1). | Observe the exact proven root. Absent, with the parent chain still verified: done. Residue, a substituted component or an ambiguous path state: failure. | `CLEANED`, or `QUARANTINED` with `CLEANUP_CONTAMINATION_RISK`. |
+| **Driver execution** (§13.1) | The permit's `CLAIMED` state is the prepared intent. | The verified Execution Report. | `REPORTED`, committed together with its liveness obligations (§13.1 step 5). With no report, the permit stays `CLAIMED` and execution-uncertain (`AS90-F001`). |
+
+**Open reservations block incompatible transitions.** While an instance has an open reservation, a local lifecycle operation that could contradict the reservation's eventual outcome fails closed. Operations that resolve the reservation, or that cannot contradict it, stay allowed:
+
+| Open reservation | Blocked (fails closed) | Allowed |
+|---|---|---|
+| `PENDING` RTR (publication; `D-072`) | Finish without publication, cleanup, checkpoint adoption, quiesce → `RESULT_TRANSFER_UNPROVEN`. Attach → `INSTANCE_STALE`. | Resuming the same publication (same `transfer_id`, stored bytes); recovery; quarantine; stale marking; validation; read-only views. |
+| Prepared push | A second push, publication and cleanup until the push is reconciled → `ISOLATION_UNPROVABLE`. | Reconciliation; finish without publication (the branch then becomes `STALE_UNPUBLISHED`); quarantine. |
+| `CLAIMED` permit | Quiesce, complete, cleanup → `QUIESCE_UNPROVEN`. | The report; recovery quarantine (the claim stays execution-uncertain). |
+| Prepared cleanup | Everything except reconciliation and quarantine → `ISOLATION_UNPROVABLE`. | Reconciliation; quarantine. |
+| `CREATING` | Attach, permits, quiesce, complete: refused by state. | Create reconciliation; recovery quarantine. |
+
+**Definitive S4 refusals.** For publication, only these S4 errors abort an RTR: `NOT_CURRENT_OWNER`, `REVISION_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `ILLEGAL_TRANSITION` and `TASK_NOT_FOUND`. S4 reaches each of them after reading its record under its own lock, and it checks idempotency first, so an already-applied transfer replays its result rather than being refused. An S4 error that is not on this list leaves the reservation open. A future S4 code is therefore never read as a refusal by default.
+
+#### 13.4 One active environment per task (`ML-DEVOS-AS-098` C)
+
+Earlier text implied that S4 single ownership alone keeps a task to one S6 instance. It does not. The same S4 owner at the same revision can call *create* twice, concurrently or after a crash, and both calls would pass every S4 check. S6 therefore owns this invariant itself:
+
+**At most one ACTIVE S6 environment exists for a task at a time.**
+
+- **ACTIVE** means an instance that can still influence execution or publication:
+  - every instance in `CREATING`, `READY`, `ATTACHED` or `QUIESCED`;
+  - any instance, including a `QUARANTINED` one, that holds an unresolved `PENDING` publication reservation (§13.3).
+- **The slot.** The task store holds one `active_instance_id` slot. The create transaction's first committed facts are the slot, the create binding and the new instance's `CREATING` record, together (§13.3). Nothing is created on disk before that commit.
+- **Retry and concurrency.**
+  - Creates with the same logical key `(task_id, role, owner, anchor_revision, caller idempotency key)` replay the same instance and its current outcome.
+  - A create with any other key while the slot is held fails with `WORKTREE_COLLISION`.
+  - Concurrent creates serialize on the task store, and exactly one of them commits the slot.
+- **Release.** The slot is released in the same transaction that makes its instance non-ACTIVE: `COMPLETED` with no open reservation, `QUARANTINED` with no `PENDING` publication, or `CLEANED`.
+- **History stays.** Terminal and quarantined instances remain in the store and in provenance. A new instance created under a later, legitimate S4 authority does not remove them.
+- **Roles.** The invariant is per task, not per role. A QA instance can be created only after the Builder instance has become non-ACTIVE. The publication path guarantees that: `COMMITTED` moves a `QUIESCED` Builder instance to `COMPLETED`.
+
+S4 fencing remains necessary for every step (§8). It is no longer described as sufficient for uniqueness.
+
+#### 13.5 Public surface (`ML-DEVOS-AS-098` F)
+
+The production S6 host exposes only:
+- the closed lifecycle operations (create, validate, attach, checkpoint adoption, permit request, claim, report, quiesce, complete, finish without publication, cleanup, recover), each of which runs its own transactions (§13.2);
+- bounded read-only views: provenance (§17), and status views that return copies.
+
+It exposes no mutable store or registry object, no raw read-modify-write primitive, no journal append, and no fault-injection hook. Raw mutation stays module-private behind the transaction API. This is the same capability-minimization rule that removed the argv-taking Git helpers (§13.1): an object that can write S6 state is a capability, and S6 does not hand it out.
+
+Tests reach fault injection and deliberate corruption only through test-only construction under the test boundary, which the production export cannot reach. A source-level test asserts the export list, and asserts that no exported value exposes a mutation primitive (§18 item 14).
+
+#### 13.6 Reference state model (`ML-DEVOS-AS-098` J)
+
+Before the hardened implementation, a small pure reference model is kept beside it. It covers:
+- legal instance, permit and RTR transitions;
+- prepared external-effect intents and their reconciliation;
+- the active-environment slot;
+- the publication reservation.
+
+It checks these invariants after every modelled step, including every modelled crash:
+
+| # | Invariant |
+|---|---|
+| I1 | At most one ACTIVE environment per task (§13.4). |
+| I2 | Terminal states are monotonic. Permits: `EXPIRED_UNCLAIMED`, `REVOKED`, `REPORTED`. RTR: `COMMITTED`, `ABORTED`. Instance: `CLEANED`, and `QUARANTINED` moves only to `CLEANED`. |
+| I3 | A `REPORTED` permit's process groups are registered in the same committed state. |
+| I4 | While an RTR is `PENDING`, its instance records no finish without publication, cleanup or checkpoint change. `COMMITTED` only follows an S4 success for that `transfer_id`; `ABORTED` only follows a definitive S4 refusal (§13.3). |
+| I5 | Every committed lifecycle change has its justifying journal entry in the same committed version. |
+| I6 | No committed reference points to a missing or unverified blob. |
+| I7 | No prepared effect gets an outcome without an observation or an idempotent replay. |
+| I8 | One `request_id` mints at most one permit; one create key mints at most one instance. |
+| I9 | A `QUIESCED` instance has no `ISSUED` or `CLAIMED` permit at that version. |
+| I10 | A `PENDING` RTR that cannot be attributed blocks the task, and never counts as unrelated (§7.1.3). |
+
+Tests generate every bounded sequence of operations and crash points over a small world: one task, two instances, two permits and one publication. They check the invariants after each step. They also replay selected sequences against the implementation and require the same outcomes (§18 item 16).
+
+A formal TLA+ model is not required. It becomes the next step only if this bounded model cannot be reviewed or exhausted within the repository.
+
 ### 14. Deterministic fail-closed reason model
 
 Every S6 operation returns either `PROVEN`/success, or exactly **one** reason code: the first failing check in this fixed order. The same inputs and the same observed facts always give the same code. Codes are data. They grant nothing and carry the fixed disclaimer (§17).
@@ -718,13 +891,13 @@ Every S6 operation returns either `PROVEN`/success, or exactly **one** reason co
 | 10 | `LEASE_EXPIRED` | S4 lease expired, even if not yet reclaimed. |
 | 11 | `INSTANCE_STALE` | Stale execution instance: unexplained or gapped revision advance (§3.1), S4 state no longer matches role, or superseded instance. |
 | 12 | `QA_INDEPENDENCE_VIOLATION` | QA actor equals Builder actor; QA source is not the committed Result Transfer Record's commit; QA path overlaps a Builder instance. |
-| 13 | `RESULT_TRANSFER_UNPROVEN` | The QA source cannot be proven to be the current governed handoff: missing, `PENDING` or `ABORTED` Result Transfer Record; broken or gapped QA revision chain; duplicate `PENDING`/`COMMITTED` records (§7.1). |
+| 13 | `RESULT_TRANSFER_UNPROVEN` | The QA source cannot be proven to be the current governed handoff: missing, `PENDING` or `ABORTED` Result Transfer Record; broken or gapped QA revision chain; duplicate `PENDING`/`COMMITTED` records (§7.1). Also: an operation blocked by an unresolved `PENDING` publication reservation (§13.3), and every task operation blocked by a `PENDING` record that cannot be attributed (§7.1.3). |
 | 14 | `TRANSPORT_NOT_AUTHORIZED` | Git transport outside the §8.1 scope (another repository, another ref, force, delete, tag), or no recorded `transport_authorization_ref`. |
 | 15 | `CAPABILITY_DENIED` | S5 `DENY`; carries S5's `denial_reason` verbatim. |
 | 16 | `BASE_UNAVAILABLE` | Base or result commit cannot be fetched or verified. |
 | 17 | `BASE_SHA_MISMATCH` | Wrong base SHA; `HEAD` ≠ `base_sha`; result not a descendant. |
 | 18 | `BASE_ADVANCED` | Freshness failed at publication. |
-| 19 | `WORKTREE_COLLISION` | Instance directory already exists. |
+| 19 | `WORKTREE_COLLISION` | Instance directory already exists; or the task's active-environment slot is held by an instance created under a different create key (§13.4). |
 | 20 | `BRANCH_COLLISION` | `task_branch` exists locally or remotely; push lease rejected. |
 | 21 | `PATH_ESCAPE` | Canonical path outside the instance root. |
 | 22 | `UNRESOLVED_LINK` | Unresolved symlink or junction (dangling, loop, or denied). |
@@ -735,22 +908,25 @@ Every S6 operation returns either `PROVEN`/success, or exactly **one** reason co
 | 27 | `SCOPE_VIOLATION` | Committed diff outside the S3 declared scope. |
 | 28 | `QUIESCE_UNPROVEN` | Cannot prove every reported process group is empty, or a permit is still outstanding (§13.1). |
 | 29 | `CLEANUP_CONTAMINATION_RISK` | Cleanup failure that risks contamination; shared-cache digest changed. |
-| 30 | `ISOLATION_UNPROVABLE` | Inability to prove the expected isolation state (identity-digest mismatch; path-component substitution or unverifiable creation race (§9.1); journal hash-chain break; read-only not enforceable and not detectable; unknown, expired, replayed or digest-mismatched Execution Permit or Report, §13.1). |
+| 30 | `ISOLATION_UNPROVABLE` | Inability to prove the expected isolation state (identity-digest mismatch; path-component substitution or unverifiable creation race (§9.1); journal hash-chain break; read-only not enforceable and not detectable; unknown, expired, replayed or digest-mismatched Execution Permit or Report, §13.1; an unreadable task store or a refused version compare-and-set; a committed reference to a missing or digest-mismatched blob; an operation blocked by an unreconciled prepared push or cleanup intent, §13.2–§13.3). |
 
 The order puts input validity and platform first, then identity and authority-adjacent checks (contract, repository, S4, QA independence and result transfer, transport authorization, S5), then Git state, then filesystem and environment, then completion checks. An S4 or S5 failure is therefore never masked by a later tree or path finding. The catch-all `ISOLATION_UNPROVABLE` is last: it applies only when no specific code does. It is never used to hide a specific failure.
 
 ### 15. Retries, idempotency, crash/orphan recovery, stale leases
 
-- **Idempotency key:** `create` is keyed by `(task_id, role, owner, anchor_revision, caller idempotency key)`. A replay whose instance exists and is `READY`/`ATTACHED` *and* re-validates returns the same `instance_id`. A replay with different bindings is `MALFORMED_REQUEST`.
-- **Push idempotency:** the explicit-lease push is idempotent. The remote already holding the same SHA is success.
-- **S4 idempotency:** `transition` idempotency is S4's own ledger. S6 passes the caller's key through and never re-implements it.
-- **Retries are environment retries, not task retries.** At most **2** creation attempts per `(task_id, role, owner, anchor_revision)`. Each failed attempt's directory is quarantined, never reused. After that, S6 returns the last reason code. It never consumes or changes S4 retry counters, and never transitions the task. Whether the task fails or retries is the caller's S4 decision.
-- **Crash recovery.** On host start, S6 scans the registry, the journals and `workspace_root`:
-  - *Execution Permit `CLAIMED` with no verified report (§13.1, `AS90-F001`):* the instance is quarantined with reason `QUIESCE_UNPROVEN` (execution uncertain). Time elapsed is never evidence of termination, and a later report does not un-quarantine it. `ISSUED` permits of a recovering instance are revoked.
-  - *Result Transfer Record in `PENDING`:* resolve by re-issuing the identical S4 `transition` with the same `idempotencyKey` (§7.1 step 5). It commits on S4's replayed success, aborts on conflict, and is never promoted by inference.
-  - *Registry record in `CREATING`/`READY`/`ATTACHED`/`QUIESCED`:* re-check S4 against the Fencing Checkpoint. If not current, the instance is `INSTANCE_STALE`: quiesce, then quarantine. If current, it stays as recorded. It resumes only through an explicit `attach` by the same owner that re-validates.
-  - *Directory with no registry record, or registry record with no directory:* **orphan** → `QUARANTINED`, reported. It is never adopted, even if its contents look correct, because it cannot be proven.
-  - *Stale S6 registry lock:* fail closed, exactly as S4's store does. Removal is an explicit, authorized operator action. There is no age-based stealing.
+- **Create idempotency (§13.4):** `create` is keyed by `(task_id, role, owner, anchor_revision, caller idempotency key)`. The key's binding and the active-environment slot commit first, in one transaction. A replay returns the same `instance_id` and its current outcome; a `READY`/`ATTACHED` instance is returned only if it re-validates. A replay with different bindings is `MALFORMED_REQUEST`. A different key while the slot is held is `WORKTREE_COLLISION`.
+- **Push idempotency (§13.3):** the push is a prepared intent with exact expected and target SHAs. Reconciliation by reading the remote ref decides success (remote equals the target), an exact retry (remote equals the expected value) or a conflict (anything else). A timeout alone decides nothing.
+- **S4 idempotency:** `transition` idempotency is S4's own ledger. S6 passes the `transfer_id` key through and never re-implements it. Only a definitive S4 refusal aborts (§13.3).
+- **Retries are environment retries, not task retries.** At most **2** creation attempts per `(task_id, role, owner, anchor_revision)`. Each failed attempt's directory is quarantined, never reused, and its slot is released in the quarantining transaction. After that, S6 returns the last reason code. It never consumes or changes S4 retry counters, and never transitions the task. Whether the task fails or retries is the caller's S4 decision.
+- **Crash recovery.** On host start, S6 reads each task store and scans `workspace_root`, in this order. Every step commits through §13.2.
+  1. *Task store.* An envelope or blob that cannot be read or verified blocks that task with `ISOLATION_UNPROVABLE`. Nothing is repaired by inference.
+  2. *`PENDING` Result Transfer Records.* Prove attribution first (§7.1.3); an unattributable record blocks the whole task. Otherwise resolve by re-issuing the identical S4 `transition` with the same `idempotencyKey` (§7.1 step 5). It commits on S4's replayed success, aborts only on a definitive refusal, and otherwise stays `PENDING`. It is never promoted by inference.
+  3. *Prepared intents* (§13.3). Reconcile each push and cleanup intent by observation, and commit its outcome.
+  4. *Execution Permit `CLAIMED` with no verified report (§13.1, `AS90-F001`).* The instance is quarantined with reason `QUIESCE_UNPROVEN` (execution uncertain). Time elapsed is never evidence of termination, and a later report does not un-quarantine it. The recovering instance's `ISSUED` permits are revoked in the same transaction.
+  5. *`CREATING` instance.* Quarantine it (`INCOMPLETE_CREATE`) and release the slot in the same transaction. It is never adopted.
+  6. *`READY`/`ATTACHED`/`QUIESCED` instance.* Re-check S4 against the Fencing Checkpoint. If the instance is not current, it is `INSTANCE_STALE`: quiesce, then quarantine. If current, it stays as recorded, and resumes only through an explicit `attach` by the same owner that re-validates.
+  7. *Orphans.* A directory with no task-store record, or a record whose directory is missing, → `QUARANTINED`, reported. A blob no committed transaction references is orphan evidence, reported. None is ever adopted, even if its contents look correct, because it cannot be proven.
+  8. *Stale S6 lock.* Fail closed, exactly as S4's store does. Removal is an explicit, authorized operator action; there is no age-based stealing.
 - **Orphaned remote branches.** A branch pushed by an instance whose S4 transition then failed stays on the remote. Its Result Transfer Record is `ABORTED` (or was never written), so it can never be consumed as a result: QA consumes only a `COMMITTED` record proven current (§7.1). S6 does not delete remote branches automatically: remote deletion is destructive and needs its own authorization. The provenance lists it as `STALE_UNPUBLISHED`.
 - **Stale lease behavior.** §8: an expired lease halts every mutating step until an S4 `renew` succeeds. If another actor has claimed, the instance is permanently stale.
 
@@ -773,27 +949,36 @@ Anything else is `ISOLATION_PLATFORM_UNSUPPORTED`. This includes: FAT/exFAT or n
 
 ### 17. Evidence and provenance outputs
 
-Each instance produces one **Isolation Provenance** record, written by the host to the journal. A future S7 would consume it. It contains:
+**Isolation Provenance is a projection, not a second record (`ML-DEVOS-AS-098` G).** Each instance's **Isolation Provenance** is a deterministic function of:
+- the committed task-store history for that instance (§13.2);
+- the immutable blobs that history references, each proven against its digest.
 
-- the Execution Identity and its digest;
-- the Fencing Checkpoint history: every adopted S4 `claim`/`renew` result and its gap-free verification (§3.1);
-- `transport_authorization_ref`, with every transport call, ref, and before/after SHA (§8.1);
-- the Result Transfer Record's `transfer_id` and final status (§7.1). A QA instance also records the verified QA revision chain;
-- `platform_profile`; `isolation_level` (`L3`);
-- the environment digest; the config digest;
-- the lockfile digest; shared-cache manifest digests before and after, if used;
-- the ordered lifecycle journal with trusted timestamps, hash-chained;
+The same committed history always yields the same provenance. Provenance is never a separately mutable source of truth. It MAY be emitted as an immutable content-addressed snapshot, keyed by instance and store version, for a later consumer. That snapshot is a derived copy, and a snapshot that disagrees with a fresh projection is invalid.
+
+**Projected facts** (all S6-owned):
+- the immutable Execution Identity and its digest; the Fencing Checkpoint history, with every adopted S4 `claim`/`renew` result and its gap-free verification (§3.1);
+- the S3 contract reference and digest that S6 consumed;
+- every S4 observation used for fencing (owner, revision, state, lease) at each check;
+- the platform profile and `isolation_level` (`L3`);
+- environment and config digests; the lockfile digest and shared-cache manifest digests before and after, where applicable (§11);
 - every consumed S5 decision (verbatim fields);
-- every Execution Permit issued, claimed or expired, and every verified Execution Report (§13.1);
-- every S4 observation (owner, revision, state, lease) at each check;
-- the result `commit_sha` and `tree_sha`;
-- the pushed ref and lease outcome;
-- the S4 publication transition outcome, including idempotent replay if it occurred;
-- the final `outcome` and reason code;
+- the permit lifecycle, and every verified Execution Report (§13.1);
+- every registered liveness obligation and the quiescence result;
+- `transport_authorization_ref` and every transport call, with its ref and before/after SHA, including each push intent's reconciliation (§8.1, §13.3);
+- the result `commit_sha`, `tree_sha` and `base_sha`;
+- the Result Transfer Record's `transfer_id`, status and replay outcome (§7.1); for QA, the source `transfer_id` and the verified QA revision chain;
+- the ordered, hash-chained lifecycle and audit journal with trusted timestamps;
+- the final environment state, outcome and reason code;
 - `evidence_class: ACTOR_REPORTED`;
-- a fixed `non_authority_disclaimer`:
+- the fixed `non_authority_disclaimer`:
 
 > This isolation record describes the execution environment an S6 host observed. It is not authority, not a capability grant, and not acceptance of any result. Isolation level L3 does not contain a deliberately hostile process.
+
+**What S6 does not own (S7 boundary).** S6 records the facts needed to substantiate ISOLATED, and its own execution and publication history. S6 does **not** own:
+- the S7 Evidence Store, or cross-actor Evidence Packets;
+- deterministic QA evidence collection, or independent QA's evidence classification;
+- evidence-sufficiency judgment, or S9 Evidence Gate acceptance;
+- general input-integrity policy, beyond recording the source and build facts S6 itself observes. The pre-S7 Input Integrity requirement remains an S7 design input.
 
 **Classification.**
 - The S6 host's own observations are `ACTOR_REPORTED`.
@@ -805,9 +990,9 @@ Each instance produces one **Isolation Provenance** record, written by the host 
 A future implementation's tests MUST:
 
 1. **Cover every reason code.** At least one fixture per code in §14 produces exactly that code, and precedence tests prove that when two conditions fail together, the lower-numbered code wins, deterministically.
-2. **Use real Git and real filesystems, and real processes only through fixed fixtures.** Temporary bare repositories act as the "remote". Concurrency tests use separate OS processes, as S4's concurrency tests already do, not simulated interleavings. Command execution in tests uses only the injected fake driver or the fixed deterministic fixture operations of §13.1. No test uses a generic arbitrary-command API.
+2. **Use real Git and real filesystems, and real processes only through fixed fixtures.** Temporary bare repositories act as the "remote". Cross-process serialization and crash behaviour are tested with separate OS processes, as S4's concurrency tests already do. Ordering races are additionally tested with deterministic interleavings, where a competing operation starts at a named point inside another operation and the test proves which lock or reservation is held at that moment. Command execution in tests uses only the injected fake driver or the fixed deterministic fixture operations of §13.1. No test uses a generic arbitrary-command API.
 3. **Inject failures:**
-   - kill the host at each create, complete and cleanup step, then verify the recovery classification;
+   - kill the host at every persistence and effect boundary of the item 15 matrix, then verify the recovery classification;
    - make `unlink`/`rmdir` fail midway, which must quarantine and report `CLEANUP_CONTAMINATION_RISK`;
    - advance the remote base between create and complete (`BASE_ADVANCED`);
    - pre-create the branch remotely (`BRANCH_COLLISION`) and the instance directory (`WORKTREE_COLLISION`);
@@ -836,7 +1021,7 @@ A future implementation's tests MUST:
    - A same-owner re-`claim` after an intervening mutation is `INSTANCE_STALE`.
    - An S4 revision advance with no adopted result is `INSTANCE_STALE`.
 9. **Result Transfer Record (§7.1):**
-   - Crash after the push but before the record: no record, so the branch is `STALE_UNPUBLISHED`.
+   - Crash after the push but before the `PENDING` commit: recovery reconciles the push intent by observation, and no RTR exists. The branch stays unpublished until the owner resumes completion, and is `STALE_UNPUBLISHED` if it never does.
    - Crash after `PENDING` but before the transition, and crash after the transition but before the commit: re-issuing with the same idempotency key commits via S4 replay, or aborts on conflict.
    - A rejected transition leaves the record `ABORTED`.
    - **Payload contract (§7.1.1), against the real, unmodified S4 kernel:**
@@ -853,6 +1038,7 @@ A future implementation's tests MUST:
      - A mutant that computes the digest *after* the `PENDING` append, or that interleaves another journal append between steps 1 and 4, must fail a test.
    - QA with a gapped chain, a chain containing a non-QA mutation, a later rebuild round, or duplicate records is `RESULT_TRANSFER_UNPROVEN`.
    - A moved or force-updated remote branch does not change the commit QA builds.
+   - **Attribution (§7.1.3):** a `PENDING` record with a missing body, a malformed body, a body whose digest differs from the committed `rtr_digest`, or an altered `builder_identity_digest` blocks every instance of the task with `RESULT_TRANSFER_UNPROVEN`, and never counts as another instance's record. A mutant that trusts attribution before the proof must fail a test.
 10. **Path creation (§9.1):**
     - Every invalid tail-segment form is rejected before any filesystem call.
     - An intermediate directory pre-created as a symlink or junction, and one swapped for a link between `mkdir` and the next step, are both detected (`ISOLATION_UNPROVABLE` or `PATH_ESCAPE`).
@@ -864,10 +1050,19 @@ A future implementation's tests MUST:
     - A GitHub `DENY` is `CAPABILITY_DENIED`.
     - No credential variable or credential-bearing config is present in any instance process.
     - A `remote_resources_involved: true` contract is refused.
-12. **Mutation testing:** removing or weakening each guard MUST make at least one test fail. This covers every row of §14, the no-follow deletion, the S4 pre-check, the lease on push, the allowlist, the gap-free checkpoint rule, the write-ahead record and its commit proof, the §9.1 per-step revalidation, and the transport ref restriction. Surviving mutants are findings.
+12. **Mutation testing:** removing or weakening each guard MUST make at least one test fail. This covers:
+    - every row of §14;
+    - the no-follow deletion, the S4 pre-check, the lease on push, the allowlist and the gap-free checkpoint rule;
+    - the write-ahead record and its commit proof;
+    - the §9.1 per-step revalidation and the transport ref restriction;
+    - the transaction boundary (§13.2): splitting a transaction, dropping its journal entry, or referencing a blob before it is verified;
+    - the version compare-and-set, the active-environment slot, each open-reservation guard (§13.3), atomic report registration, and fail-closed attribution.
+
+    Surviving mutants are findings.
 13. **Platform matrix:** POSIX and Windows runs, including non-privileged Windows. Results are recorded per platform. A platform not actually run is reported as not run, never as passing.
 14. **Execution-driver boundary (§13.1):**
     - S6 core's public surface exposes no function that accepts an argv or command and executes it. A source-level test asserts no S6 core module imports a process-spawning API except the fixed-argv internal Git runner, which accepts no caller-supplied argv.
+    - The production export and every value it returns expose no mutable store, registry, journal-append or fault-injection hook (§13.5). Fault injection is reachable only through test-only construction.
     - A permit is issued only after validation, fencing and an S5 `ALLOW`. An S5 `DENY` issues no permit (`CAPABILITY_DENIED`).
     - A replayed claim, an expired permit, a report for an unclaimed permit, and an argv or environment digest mismatch are each `ISOLATION_UNPROVABLE`.
     - A permit bound to an older checkpoint revision fails fencing.
@@ -903,6 +1098,38 @@ A future implementation's tests MUST:
       - *Claim-time `actor_id` drift*: the fresh subject has a different `actor_id` from the owner and the stored binding. The claim is blocked (`CAPABILITY_DENIED`, the permit becomes `REVOKED`/`CAPABILITY_INVALIDATED`).
       - *Claim-time `actor_role` drift*: the fresh subject has a different role. The claim is blocked the same way.
       - *`AS91-F001` intact*: with a correct subject, live revocation and descriptor expiry before claim still block the claim, and ordinary supersession still allows it.
+
+15. **Persistence-point crash and interleaving matrix (`ML-DEVOS-AS-098` I).** This replaces representative crash tests with a systematic matrix. For every mutating operation the implementation documents and tests:
+
+    `PRE-STATE → LOCAL COMMIT POINT(S) → EXTERNAL EFFECT (IF ANY) → RECONCILIATION → POST-STATE`
+
+    | Operation | Local commit points | External effect | Reconciliation | Forbidden outcomes |
+    |---|---|---|---|---|
+    | create | (1) slot + binding + `CREATING`; (2) `READY` or quarantine + slot release | directories, clone, checkout, config | re-verify the creation chain, base, tree and config | two ACTIVE environments; an adopted half-created directory; a held slot for a quarantined instance |
+    | validate (stale mark) | stale flag + `STALE` entry | — | — | a state change without its entry |
+    | attach | → `ATTACHED` + entry, after S4 fencing | — | — | attach while a publication is `PENDING` |
+    | checkpoint adoption | checkpoint + `CHECKPOINT` entry | — | — | a gap accepted; a checkpoint change while a publication is `PENDING` |
+    | permit issuance | binding + `ISSUED` + entry (after the body blob) | — | — | two permits for one `request_id`; a binding without its permit |
+    | claim | → `CLAIMED` (or → `REVOKED`/`EXPIRED_UNCLAIMED`) + entries | — | — | `CLAIMED` after S4 or S5 changed, or after quiesce revoked the permit |
+    | report | → `REPORTED` + liveness obligations + snapshot + entry (after the report blob) | — | — | `REPORTED` without its process groups; a late report changing a quarantined instance |
+    | quiesce | revocations + → `QUIESCED` + entry, after S4 fencing | — | — | `QUIESCED` after S4 moved; `QUIESCED` with an `ISSUED` or `CLAIMED` permit |
+    | push | (1) push intent; (2) outcome + `pushed_sha` | remote push with lease | remote-ref observation | an outcome decided by timeout; a lost `pushed_sha` after a successful push |
+    | publication | (1) RTR `PENDING` + entry (after the body blob); (2) `COMMITTED` + `COMPLETED`, or `ABORTED` + stale | S4 `transition` | S4 idempotent replay + `getState` proof | `ABORTED` while S4 committed; two S4 transitions; a restored quarantined instance |
+    | finish without publication | → `COMPLETED` + entry | — | — | finish while a publication is `PENDING` |
+    | cleanup | (1) cleanup intent; (2) `CLEANED` or quarantine | no-follow deletion | proven-root absence | `CLEANED` with residue; deletion outside the root; cleanup while a publication is `PENDING` |
+    | recovery / quarantine | one transaction per recovered instance | resolves open effects | per effect (§13.3) | inference without observation; adoption of an orphan |
+    | concurrent duplicate create | one slot commit wins | — | — | two ACTIVE environments |
+
+    The matrix also carries every race already found: claim versus quiesce, expiry, replay and recovery; report versus quiesce and recovery; and publication versus finish, cleanup, renewal and a concurrent resolver. At every persistence and effect boundary the tests include:
+    - an injected exception;
+    - a real process SIGKILL, where executable;
+    - restart and recovery;
+    - an invariant check (§13.6 I1–I10);
+    - a forbidden-outcome assertion;
+    - a mutation that removes the controlling guard, which must fail a test.
+
+    Process-crash results are reported as process-crash evidence only. Any stronger OS-crash or power-loss durability claim needs the backend and platform settings that provide it, and evidence from that platform (§13.2).
+16. **Reference state model (§13.6).** Bounded exhaustive generation over the model's small world checks I1–I10 after every step and every modelled crash. Selected generated sequences are replayed against the implementation, and must produce the same outcomes.
 
 ### 19. Canonical home
 
@@ -954,6 +1181,15 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 | VM isolation | Good | Strongest L4 | Good, at higher cost | Good (discard VM) | Needs hypervisor availability | High | Slow | Future opt-in L4 profile for untrusted code |
 | Platform-native sandboxing (Landlock/seccomp, macOS sandbox profiles, AppContainer) | Good where available | L4 (per mechanism) | Good | Good | **Poor**: a different mechanism and semantics per OS; macOS `sandbox-exec` is deprecated | Low runtime, high engineering | Hard: per-OS test matrix | Future, per-platform, only with its own RFC |
 
+#### 20.1 Local state store alternatives (`ML-DEVOS-AS-098`)
+
+| Option | Atomic multi-fact commit | Crash recovery | Dependencies | Complexity | Verdict |
+|---|---|---|---|---|---|
+| **Independently mutable multi-file registry** (the first implementation) | No: each file commits alone, so a crash exposes a prefix | A repair rule per prefix; this produced `AS94`–`AS97` | None | Low per file, high in total | **Rejected** |
+| **Single crash-atomic per-task envelope + immutable content-addressed blobs** | Yes: one whole-envelope replace per transaction | Before-image or after-image only; unreferenced blobs are orphan evidence | None beyond Node `fs` | Low; the rewrite cost grows with task history | **Preferred minimal V1 candidate**, subject to proving replace-atomicity on every supported platform (§13.2) |
+| **Embedded SQLite transactional store** | Yes: real transactions and a write-ahead log | Mature and documented; durability depends on the configured synchronous mode | A database dependency; Node's built-in `node:sqlite` is not stable on every supported Node line | Medium | **Viable alternative and fallback**, not mandated. Chosen only by a separate backend decision if the envelope cannot be proven or outgrows its bound |
+| **Full event sourcing** | Yes, by construction | Replay-based | Event schema, snapshotting and upcasting machinery | High: storage, concurrency, schema evolution and operations | **Rejected for V1.** S6 needs an atomic transaction history, not an event-sourced architecture |
+
 ## Required design decisions (summary)
 
 1. V1 isolation level is **L3 on a dedicated clone**. L4 is not provided and must not be claimed.
@@ -966,6 +1202,29 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 8. There are 30 deterministic, ordered reason codes. Nothing is auto-cleaned into compliance, and nothing orphaned is adopted.
 9. Paths that do not exist yet are created under §9.1: a verified existing ancestor, validated literal tails, exclusive per-segment creation, and immediate identity revalidation.
 10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use Execution Permit and returns a verified Execution Report. The permit binds the canonical S5 `shell.exec` request intent and decision (not argv-aware) to S6's exact `argv_digest`. One `request_id` can mint at most one permit. Claim requires a fresh S5 `ALLOW` at the permit's pinned intent, which honours live revocation and descriptor expiry. At issuance and at claim alike, the S5 subject must be the instance's S4 owner in the mapped role (`BUILDER` → `Builder`, `QA` → `QA`). A claimed permit never becomes quiescence-safe by expiry. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
+11. Every mutable S6 fact for a task lives in one S6 task store. Each logical local transition commits atomically, together with the journal evidence that justifies it. Immutable bodies are content-addressed blobs, written and verified before they are referenced (§13.2). SQLite is an alternative, not a requirement (§20.1).
+12. Every external effect is prepare → effect → reconcile → commit outcome. The task lock is never held across an external effect. An open reservation blocks incompatible local transitions, and a timeout decides nothing (§13.3).
+13. At most one ACTIVE S6 environment exists per task. S6 owns that invariant through a slot committed first at create; S4 ownership is necessary but not sufficient (§13.4).
+14. The production surface is closed operations and read-only views; no mutable store is exposed (§13.5). Isolation Provenance is a deterministic projection of committed history. S7 owns evidence storage, packets, sufficiency and gating (§17).
+15. Caller-presented S4 results are trusted control-plane input, cross-checked with public `getState` (§3.1). The design is checked by a bounded reference state model and a persistence-point crash matrix (§13.6, §18 items 15–16).
+
+## Integrity-hardening exit condition (anti-bloat)
+
+Architecture hardening of S6 stops once an independent Architect review accepts all four of:
+- the transaction model (§13.2–§13.4);
+- the crash and interleaving matrix (§18 items 15–16);
+- the public-surface boundary (§13.5);
+- the provenance/S7 boundary (§17).
+
+From then on, a defect found in a hardened implementation is an implementation finding against this design, not a reason for a further architecture round, unless it shows that the design itself cannot satisfy an invariant of §13.6. The roadmap then returns to S6 capability delivery:
+1. a Paulo decision for one bounded hardening implementation;
+2. its independent review;
+3. the separately authorized execution-driver design (`D-069`);
+4. the S6 integrated Stage Gate;
+5. the `ML-DEVOS-RFC-015` closure steps;
+6. the short pre-S7 readiness checkpoint.
+
+A new storage backend, event sourcing, TLA+ or signed S4 receipts are adopted only when a specific, evidenced need arises, never pre-emptively.
 
 ## Scope
 
@@ -983,6 +1242,8 @@ Out of scope: every executable artifact. This RFC creates only itself and an RFC
 - Any change to S3/S4/S5 implementation, schemas or interfaces; any S5 runtime wiring; automatic remote-branch deletion.
 - Secret scanning of committed repository content.
 - Context Plane CP-4+, Model Router, S7+.
+- Full event sourcing; a mandatory SQLite (or any database) dependency; signed or verifiable S4 receipts; an S4 history interface (§3.1, §20.1).
+- S7 Evidence Store, Evidence Packets, QA evidence classification, evidence sufficiency and Input Integrity policy (§17).
 
 ## Affected components
 
@@ -1019,7 +1280,8 @@ No trust boundary changes.
 For a future implementation:
 - `INDEPENDENTLY_INSPECTED` review of the source and diff;
 - `INDEPENDENTLY_REPRODUCED` or `CI_ATTESTED` runs of the focused tests on both POSIX and Windows, where feasible (CORE-020: this is executable, security-adjacent behavior);
-- mutation-test results.
+- mutation-test results;
+- the §18 item 15 crash and interleaving matrix, and the item 16 reference-model results, reported per platform actually run.
 
 Builder test runs are `ACTOR_REPORTED`. No `RUNTIME_OBSERVED` claim applies.
 
@@ -1034,6 +1296,19 @@ Builder test runs are `ACTOR_REPORTED`. No `RUNTIME_OBSERVED` claim applies.
 6. The RFC-015 D.1/D.2 closure.
 
 Adoption by actual Builder/QA workflows is a further, separate integration step (S8 or explicit decision).
+
+**After the integrity-hardening amendment (`D-073`).** The sequence is:
+1. Architect review of this amendment;
+2. a Paulo decision on one bounded S6-core hardening implementation;
+3. that implementation;
+4. its independent review;
+5. the separately authorized execution-driver design and decision (`D-069`);
+6. the S6 integrated Stage Gate, which decides whether the frozen S6 outcome is actually met;
+7. the `ML-DEVOS-RFC-015` Closure Preflight, Paulo closure and Closure Verification;
+8. the short pre-S7 readiness checkpoint;
+9. S7 under its own authority.
+
+Core acceptance alone never sets S6 `IMPLEMENTED` while no real driver exists.
 
 ## Rollback
 
@@ -1052,11 +1327,11 @@ A future S6 implementation closure would plausibly be `MINOR`: a new backwards-c
 
 ## Architect Sync requirement
 
-Yes. `ARCHITECTURE` class (`CHANGE_GOVERNANCE_POLICY.md` §1). This RFC is the input to the next unused immutable Architect Sync after `ML-DEVOS-AS-085`.
+Yes. `ARCHITECTURE` class (`CHANGE_GOVERNANCE_POLICY.md` §1). This RFC was the input to the Architect Sync after `ML-DEVOS-AS-085`. The `D-073` integrity-hardening amendment is the input to the next unused immutable Architect Sync after `ML-DEVOS-AS-098`.
 
 ## Paulo decision requirement
 
-Yes. Design acceptance and implementation authorization are separate Paulo gates. The implementation gate must also explicitly cover the `devos/execution/` root reservation and S6's consumption of S5 adapters. After `D-069`, S6 core implementation needs a fresh Paulo decision bound to this amended design, because `D-068` does not resume automatically. A real execution driver needs its own, separate Paulo decision.
+Yes. Design acceptance and implementation authorization are separate Paulo gates. The implementation gate must also explicitly cover the `devos/execution/` root reservation and S6's consumption of S5 adapters. After `D-069`, S6 core implementation needs a fresh Paulo decision bound to this amended design, because `D-068` does not resume automatically. A real execution driver needs its own, separate Paulo decision. After the `D-073` amendment, a hardened S6-core implementation needs a fresh Paulo decision bound to the amended design; `D-071` and `D-072` do not extend to it.
 
 ## Residual risks (V1, disclosed)
 
@@ -1074,6 +1349,11 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 12. **Unpermitted execution is detected, not prevented.** A process started outside the driver is detected only through its effects: an unexplained working-tree change is `DIRTY_WORKTREE`. Unreported process groups cannot be proven absent in general, and a same-user process can leave its group (L3).
 13. **S5 `shell` capability is not argv-aware.** An `ALLOW` for `shell.exec` at an instance's `repo/` permits any command there as far as CAN is concerned. The exact command is bound and audited by S6's `argv_digest`, and its appropriateness rests on governance (MAY) and task scope, not on S5. Command-content-aware capability would be a separately governed S5 change (§13.1).
 14. **Revocation after claim does not interrupt a running command.** The claim-time recheck (§13.1) is the last S5 evaluation for that permit. A descriptor revoked or expired while an already-claimed command runs takes effect at the next S5-gated action, not mid-command. This matches the in-flight semantics RFC-017 accepted; no continuous polling is specified.
+15. **Envelope rewrite cost.** The minimal V1 store rewrites the whole task envelope on each commit (§13.2). That is accepted for V1 task sizes; a measured bound that is exceeded sends the design back for a backend decision.
+16. **Durability is proven only for process crashes** unless a backend and platform demonstrably provide more (§13.2). Power-loss durability is not claimed.
+17. **S4 results are trusted control-plane input.** A compromised control-plane caller can present forged `claim`/`renew` results. S6's `getState` cross-check narrows this but does not authenticate the caller (§3.1).
+18. **Fail-closed blocks need an operator.** An unattributable `PENDING` record, an unreadable task store or a stale lock blocks the task until an explicit, audited operator resolution (§7.1.3, §15).
+19. **The reference model is bounded.** It exhausts a small world, not every possible state. Escalation to a formal model is available but not pre-emptive (§13.6).
 
 ## Unresolved questions
 
@@ -1082,6 +1362,8 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 3. Should linked worktrees be allowed later as an optimization, given a separately reviewed hardening of the shared common directory (per-worktree config, ref namespace protection)?
 4. Should package-registry egress become an S5 provider, or be governed by an L4 network policy, before S6 is used for tasks whose dependencies change?
 5. Is a dedicated low-privilege OS user per instance an acceptable "L3+" profile for V1 hosts that support it? Or is that already an L4 decision needing its own review?
-6. Where do the Isolation Provenance and the Result Transfer Record durably live before S7 exists? V1 keeps them in the host registry and journal only (§7.1). Should a later, separately authorized additive S4 read interface expose the stored `evidenceRef`, so an auditor can cross-check a record against S4 itself? V1 does not assume one.
+6. Where do the Isolation Provenance and the Result Transfer Record durably live before S7 exists? V1 keeps them in the S6 task store only (§7.1, §13.2), with provenance as a projection of it (§17). Should a later, separately authorized additive S4 read interface expose the stored `evidenceRef`, so an auditor can cross-check a record against S4 itself? V1 does not assume one.
 7. *(`D-069`)* Where does a real execution driver live, and who operates it: a CI runner, an operator-run CLI, or an S8-adjacent component? What runtime safety-control compatibility evidence must its authorizing decision require? V1 S6 core does not depend on the answer: it is complete and testable with the injected fake driver and fixed fixture operations.
 8. *(`D-069`)* S6 core's own fixed-argv internal Git calls (clone, fetch, push with lease, and local inspection; §6, §8.1) take no caller-supplied argv. Should a future implementation confirm, before building them, that these fixed calls are acceptable under the target runtime's safety controls? If not, should they move to a Git library, or to a separately authorized transport driver?
+9. *(`D-073`)* If the minimal envelope's whole-file replace cannot be proven atomic on a supported platform (for example Windows rename-over-existing semantics), or the envelope outgrows its measured bound, which backend replaces it? SQLite is the documented fallback (§20.1), but it is chosen only by a separate backend decision.
+10. *(`D-073`)* Should Isolation Provenance be emitted as an immutable snapshot at each terminal environment state, or only projected on demand until S7 defines its intake (§17)? The projection is authoritative either way.

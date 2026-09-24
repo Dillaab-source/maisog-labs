@@ -1,18 +1,18 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_INTEGRITY_HARDENING_RFC
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: D073_RFC019_INTEGRITY_HARDENING_AMENDMENT_DRAFT_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
 CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-INTEGRITY-RFC-0001
-REVIEW_TARGET_COMMIT: 68968789bfa36f47a53179e3ed51d5d16e758203
+HANDOFF_ID: H-S6-INTEGRITY-RFC-DRAFT-0001
+REVIEW_TARGET_COMMIT: 82c8d59523094facbc5eb5230ef2e3911a1a5619
 APPLICABLE_REVIEW_ID: ML-DEVOS-AS-098
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -30,6 +30,22 @@ ML-DEVOS-AS-098 is the controlling Architect planning review.
 S6 implementation remains paused.
 AS97-F001 is not separately authorized for implementation.
 No executable S6/S7 mutation is authorized.
+
+## Architect review return — D-073 RFC-019 integrity-hardening amendment (design only)
+
+The Builder has drafted the RFC-019 integrity-hardening amendment required by `ML-DEVOS-AS-098` A–J, amending the affected normative sections in place:
+- the local transaction boundary (new §13.2);
+- prepare → effect → reconcile (new §13.3);
+- one active environment per task (new §13.4);
+- atomic report and liveness registration (§13.1 step 5);
+- fail-closed `PENDING` attribution (new §7.1.3);
+- the public surface (new §13.5);
+- provenance as a projection with an explicit S7 boundary (§17);
+- the S4 receipt trust boundary (§3.1);
+- the crash and interleaving matrix (§18 item 15) and the reference state model (new §13.6);
+- store alternatives (new §20.1) and the anti-bloat exit condition.
+
+It returns the turn for independent Architect review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-098`. The evidence and the A–J section map (ACTOR_REPORTED) are in `coordination/CURRENT_HANDOFF.md` (`H-S6-INTEGRITY-RFC-DRAFT-0001`) only. No executable S6 or S7 file changed; S6 implementation remains paused; S6 remains NOT_IMPLEMENTED at v1.8.0. No further Builder action is authorized.
 
 ## Builder objective
 
