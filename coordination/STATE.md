@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_AS091_FINAL_REMEDIATION_CYCLE_2_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_AS092_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-EXECBOUNDARY-REM2-0001
-REVIEW_TARGET_COMMIT: f8c41720fb9514014b0b2a5b55422c37c5a53ccc
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-091
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-092
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -22,100 +22,39 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect final review result
 
-D-069 remains the owner authorization for the S6 execution-boundary design amendment.
-ML-DEVOS-AS-091 closes AS90-F001/F002/F003 and authorizes the final bounded remediation
-cycle (2 of 2) for AS91-F001 only.
+ML-DEVOS-AS-092 closes AS91-F001 and preserves AS90-F001/F002/F003 as closed.
+
+One new blocker remains: AS92-F001 — the trusted S5 subject used for shell capability
+decisions is not explicitly bound to the S6 instance's immutable Execution Identity
+owner/role.
+
+The ordinary remediation budget is exhausted at 2 of 2.
 
 D-068 executable implementation remains suspended.
+No S6 implementation or real execution-driver work is authorized.
 
-## Architect final re-review return — AS-091 remediation cycle 2 (final)
+## Paulo decision required
 
-The Builder has corrected `AS91-F001` in `ML-DEVOS-RFC-019` §13.1 (claim-time S5 recheck; design only). It returns the turn for final independent re-review, under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-091`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-EXECBOUNDARY-REM2-0001`) only. `D-068` remains suspended. No S6 implementation, driver, root, manifest or S5 runtime use is authorized. No further Builder action is authorized. The Builder's local `D-068` draft remains preserved, uncommitted and unpushed.
+Choose one:
 
-## Authorized remediation (as authorized)
+1. Authorize one exceptional micro-remediation limited exactly to AS92-F001.
+   The correction must bind S5 subject actor_id/actor_role to the immutable S6
+   Execution Identity owner/role at permit issuance and claim, with the explicit V1 role
+   mapping BUILDER -> Builder and QA -> QA, plus focused design tests.
 
-Correct only AS91-F001:
+2. Keep the amendment paused / require broader redesign.
 
-An ISSUED Execution Permit must not be claimable/executable solely on the S5 ALLOW that
-was captured at permit issuance. Immediately before ISSUED -> CLAIMED, S6 must call the
-existing public S5 shell adapter again using the permit's exact pinned canonical request
-intent axes, so the check receives fresh trusted time and the current live revocation
-list.
+The Architect recommends option 1 because the remaining defect is narrow and does not
+require redesigning S5, S4, the execution-driver boundary, permit lifecycle,
+idempotency, or claim-time revocation freshness.
 
-Requirements:
-
-- keep the permit's pinned policy version;
-- ordinary policy supersession does not invalidate the already-pinned attempt;
-- emergency revocation and descriptor expiry before claim block claim/execution;
-- trusted-source failure at claim fails closed;
-- claim-time presented-intent mismatch fails closed;
-- journal the fresh claim-time S5 result separately without rewriting the immutable
-  permit body;
-- exact request replay may return the stored permit without another S5 call because
-  replay has no execution effect; claim is the mandatory freshness boundary;
-- no continuous S5 polling during an already-claimed command is required by this finding;
-- do not add argv to S5 or change any S5 interface.
-
-Preserve AS90-F001, AS90-F002 and AS90-F003 as closed.
-Preserve the D-069 execution-driver separation.
-
-## Required design tests
-
-Specify future focused tests for:
-
-- issue ALLOW -> live revoke -> claim blocked;
-- issue ALLOW -> descriptor expires -> claim blocked;
-- policy supersession without revocation -> pinned, still-valid attempt may claim;
-- exact replay returns existing permit, then claim performs the fresh S5 check;
-- claim-time S5 binding mismatch -> blocked;
-- claim-time trusted-source unavailable -> fail closed.
-
-## Local draft disposition
-
-The Builder's unpublished D-068 draft remains preserved locally, uncommitted and
-unpushed. Do not delete, stage, commit, import, execute further, or alter it.
-
-Use a clean worktree from the authoritative governed branch.
-
-## Authorized repository writes
-
-Only:
-
-- devos/changes/rfcs/ML-DEVOS-RFC-019.md;
-- devos/changes/rfcs/README.md if factual status/index wording requires it;
-- deterministic traceability outputs;
-- coordination/STATE.md and coordination/CURRENT_HANDOFF.md for the return gate.
-
-No executable S6 source.
-No devos/execution/ publication.
-No execution-driver implementation.
-No tests/execution-* implementation.
-No manifest entry or status change.
-No schema/runtime mutation.
-No S3/S4/S5 source/interface mutation.
-No ADR, closure record or Sentinel version change.
-
-## Return gate
-
-After correcting AS91-F001, publish a fresh CURRENT_HANDOFF and return:
-
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 2
-MAX_REMEDIATION_CYCLES: 2
-
-for final independent re-review.
-
-If another blocker remains, the remediation budget is exhausted and the matter routes
-to Paulo. Do not open an unapproved third cycle.
+A Paulo authorization must be explicit. This STATE does not itself grant a third cycle.
 
 ## Hard boundaries
 
+No Builder remediation until Paulo decides.
 No safety-control bypass or permission expansion.
 No S6 executable implementation.
 No generic command-execution implementation.
@@ -141,4 +80,4 @@ No automatic stale-branch deletion.
 No L4/container/VM implementation.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by AS-091.
+No operative obligation is closed by AS-092.
