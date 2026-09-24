@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-019: Sentinel S6 Isolated Execution
 
-Status: `DRAFT` — proposal only; submitted for independent Architect review.
+Status: `DRAFT` — proposal only. Revised in Remediation Cycle 1 for `ML-DEVOS-AS-086` (`AS86-F001`–`AS86-F004`); resubmitted for independent Architect re-review.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -8,6 +8,14 @@ Sentinel phase:
 - `S6 — Isolated Execution` (`ML-DEVOS-SIP-001`: "Implement task-scoped branch/worktree/sandbox isolation for Builder/QA work.")
 
 Authority chain: `D-066` (Paulo) authorizes S6 discovery, architecture proposal, and audit only, following S5's D.2 closure at Sentinel `v1.8.0` (`ML-DEVOS-ADR-015`, `D-065`, `ML-DEVOS-AS-085`). This RFC is the input to the S6 Architect Sync. It grants no authority and authorizes no implementation. No executable S6 file, directory, reserved root, manifest change, closure ADR, or version change is created by, or implied by, this RFC. Every artifact named below is a planned deliverable of a future, separately authorized implementation cycle.
+
+Remediation Cycle 1 (`ML-DEVOS-AS-086`) changed only what the four findings require:
+- `AS86-F001`: the immutable identity is separated from the mutable Fencing Checkpoint (§3, §3.1).
+- `AS86-F002`: an S6-owned Result Transfer Record replaces the nonexistent S4 read path (§7, §7.1).
+- `AS86-F003`: a creation algorithm for paths that do not exist yet (§9, §9.1).
+- `AS86-F004`: the execution-transport boundary and the S5 decision boundary (§8, §8.1).
+
+The consequential updates are to §13–§15, §17, §18, the summary, the residual risks and the unresolved questions, plus internal cross-reference corrections. S3, S4 and S5 are unchanged, and no S4 interface is assumed.
 
 Reading convention: **MUST / MUST NOT** are requirements a future implementation would be reviewed against. "V1" means the first implementation this RFC proposes, not anything that exists today.
 
@@ -62,7 +70,7 @@ Anything that needs containment of *untrusted code* is outside V1 and fails clos
 - **Builder instance process** — trusted but fallible, and may be stale.
 - **QA instance process** — must be independent of the Builder.
 - **S6 host** — the trusted local component that creates, validates and tears down instances.
-- **Third-party code** that runs inside an instance: dependency install scripts, test code, build tools. It is *not* trusted in principle, and at V1 strength it runs with the host user's privileges (disclosed in §21).
+- **Third-party code** that runs inside an instance: dependency install scripts, test code, build tools. It is *not* trusted in principle, and at V1 strength it runs with the host user's privileges (disclosed in Residual risks).
 - **A concurrent or stale S6 host.**
 
 | # | Threat | V1 treatment |
@@ -74,17 +82,24 @@ Anything that needs containment of *untrusted code* is outside V1 and fails clos
 | T5 | Symlink, junction or `..` traversal makes an S6 host write or delete outside the instance. | Prevented for S6 host operations: canonicalize, confine, never follow links (§9). Not prevented for the task process itself (L3 limit). |
 | T6 | Inherited environment carries credentials or redirects tools: `GITHUB_TOKEN`, `NPM_TOKEN`, `GIT_ASKPASS`, `SSH_AUTH_SOCK`, `PATH` hijack, `NODE_OPTIONS`. | Prevented for inheritance: allowlist-constructed environment plus verification (§10). |
 | T7 | Credential files are copied into the instance: `.npmrc`, `.git-credentials`, `.env`, SSH keys. | Prevented by the non-copy rule plus a pre-use scan (§12). |
-| T8 | Deliberate same-user reads of host credential stores. | **Not prevented at L3.** Disclosed (§21). Requires an L4 profile or a dedicated OS user. |
+| T8 | Deliberate same-user reads of host credential stores. | **Not prevented at L3.** Disclosed (Residual risks). Requires an L4 profile or a dedicated OS user. |
 | T9 | Shared cache poisoning, where task A writes a tampered package that task B consumes. | Mitigated: private caches by default; shared caches read-only-by-policy with integrity verification against the lockfile, plus before/after digest detection (§11). Not prevented at L3. |
 | T10 | Two instances for one task race, or two tasks collide on a branch or directory name. | Prevented: S4 single-owner fencing plus exclusive-create naming (§13). |
 | T11 | A crash leaves an orphaned directory, process, lock or pushed branch that is later adopted as valid. | Prevented: orphans are quarantined, never adopted (§15). |
-| T12 | QA "reproduces" inside the Builder's tree, or from Builder-supplied files. | Prevented: QA reconstructs from the S4-recorded commit SHA fetched from the remote, in its own instance, as a different actor (§7). |
+| T12 | QA "reproduces" inside the Builder's tree, or from Builder-supplied files. | Prevented: QA reconstructs from the commit named by a committed Result Transfer Record, proven current against S4 and fetched by exact SHA from the remote. It does so in its own instance, as a different actor (§7, §7.1). |
 | T13 | S6 provenance is quoted as authority, or as stronger evidence than it is. | Prevented by the fixed non-authority disclaimer and `ACTOR_REPORTED` classification (§17). |
 | T14 | S6 infers an isolation property it cannot actually verify on this platform. | Prevented: every property is either proven by a named check or the operation fails `ISOLATION_UNPROVABLE` (§14). |
 
 ### 3. Identity: task → repository → base → branch → workspace → instance
 
-Every execution instance carries one immutable **Execution Identity**, fixed at creation. No field may change for the life of the instance. A changed field means a *new* instance.
+Every execution instance carries two distinct records (`AS86-F001`):
+
+1. an immutable **Execution Identity**, fixed at creation and digested. No field may change for the life of the instance; a changed field means a *new* instance;
+2. a mutable, monotonic **Fencing Checkpoint** (§3.1), which tracks the S4 revision as it legitimately advances through lease renewal. The checkpoint is *not* part of the identity digest.
+
+S4's revision increments on every successful mutating operation, including `renew`. An ordinary renewal therefore must be able to advance the observed revision without changing the instance's identity.
+
+**Execution Identity (immutable):**
 
 | Field | Source (by reference only) | Verified how |
 |---|---|---|
@@ -93,29 +108,43 @@ Every execution instance carries one immutable **Execution Identity**, fixed at 
 | `task_id` | S4 record `task_id` | Must equal the S3 contract `task_id`. |
 | `contract_ref`, `contract_digest` | S4 record `contract_ref` → S3 contract bytes | SHA-256 of the exact contract bytes, recorded at create and re-checked at attach and complete. |
 | `role` | `BUILDER` or `QA` | Must match the S4 state: `BUILDING` for Builder, `QA` for QA. |
-| `owner`, `owner_revision` | S4 `claim`/`renew` result (`owner`, `revision`) | `owner_revision` is the S4 fencing token. S6 never allocates its own. |
-| `base_ref`, `base_sha` | Builder: authoritative base branch resolved once at create (§4). QA: the result commit S4 recorded (§7). | 40-hex exact SHA. `HEAD` must equal it after checkout. |
+| `owner` | The S4 `owner` (actor ID) whose `claim`/`renew` result the instance was created under | Must equal S4 `getState().owner` at every check. An instance never changes owner; a different owner needs a new instance. |
+| `anchor_revision` | The S4 `revision` at creation: exactly the `revision` in the S4 `claim`/`renew` result the owner presented, confirmed equal to `getState().revision` at create | A birth fact only. Recorded once and never compared as "current". The current fencing position lives in the checkpoint (§3.1). |
+| `base_ref`, `base_sha` | Builder: authoritative base branch resolved once at create (§4). QA: the `result_commit_sha` of the committed Result Transfer Record (§7.1). | 40-hex exact SHA. `HEAD` must equal it after checkout. |
 | `task_branch` | Deterministic: `sentinel/s6/<task_id>/<role-lowercase>/<instance_id>` | Must not exist locally or remotely at create (§13). |
 | `instance_id` | Generated by the S6 host. 128-bit random, lowercase hex. **Never caller-supplied.** | Exclusive-create of the instance directory proves uniqueness. |
 | `workspace_path` | `<workspace_root>/<project-slug>/<task_id>/<instance_id>/` | Canonical real path, strictly inside the canonical `workspace_root` (§9). |
 | `platform_profile` | Detected: OS family, filesystem case sensitivity, Git version, symlink/junction support, process-group support | Must be a supported profile (§16). |
 | `isolation_level` | `L3` in V1 | Never inferred upward. |
-| `capability_decisions` | S5 `CapabilityDecision`s consumed (§8) | Recorded as `outcome`, `denial_reason`, `descriptor_id` and `policy_version` exactly as S5 returned them. |
+
+S5 `CapabilityDecision`s accumulate during the instance's life, so they are *not* identity fields. Each consumed decision is journaled (§17) with `outcome`, `denial_reason`, `descriptor_id` and `policy_version` exactly as S5 returned them.
 
 The identity is serialized in canonical form (sorted keys, no insignificant whitespace), and its SHA-256 is the **identity digest**. Every later lifecycle step recomputes the digest from live facts and compares. Any difference is `ISOLATION_UNPROVABLE`, or the more specific code listed in §14.
+
+#### 3.1 Fencing Checkpoint (mutable, monotonic, S4-derived)
+
+The checkpoint is `{ current_revision, lease_expires_at, adopted_from }`. It is initialized at create to `current_revision = anchor_revision`, the lease from the presented S4 result, and `adopted_from = claim` or `renew`. Every advance is an entry in the hash-chained journal (§17).
+
+- **No second counter.** `current_revision` is always a value S4 itself produced. S6 never allocates, increments or predicts a revision.
+- **Only verified owner results advance it.** The checkpoint advances only when the owner hands the instance an S4 `claim` or `renew` *result object* that satisfies all of:
+  - `taskId == identity.task_id` and `owner == identity.owner`;
+  - `result.revision == current_revision + 1`. S4 increments the revision by exactly one per successful mutating operation (`claim`, `renew`, `release`, `transition`), so a one-step advance proves no other mutation happened in between;
+  - an immediate S4 `getState()` shows `owner == identity.owner` and `revision == result.revision`. If it shows anything else, a further mutation has already occurred.
+- **Anything else is stale.** A revision gap (`result.revision > current_revision + 1`); an S4 revision observed above `current_revision` without a matching adopted result; a result for another owner or task; or an attempt to move the checkpoint backwards. Any of these makes the instance `INSTANCE_STALE`, permanently. The instance is quiesced and quarantined, never re-anchored. A same-owner re-`claim` after an intervening mutation (for example after the lease expired and another actor held the task) is a gap, so it is stale by the same rule. That owner must create a new instance.
+- **Fencing uses the checkpoint.** Every S4 fencing comparison in §8 and §13 uses `current_revision`, never `anchor_revision`. The S4 `transition` at publication presents `expectedRevision = current_revision`.
 
 ### 4. Exact-base and freshness rules
 
 1. **Resolve once, pin forever.** At Builder create, the S6 host fetches the configured base ref from the configured remote, resolves it to one exact SHA, and pins it as `base_sha`. The clone is checked out at that SHA; the task branch is created from it. A symbolic ref (`main`, `HEAD`, a tag) is never stored as the base — only the SHA.
 2. **No local-checkout trust.** The base is never taken from a pre-existing local checkout of unknown freshness. This is the execution-time equivalent of Context Bootstrap V0's "read STATE from one exact commit" rule.
-3. **Freshness at publication.** Before publication (§8 *complete*), the S6 host re-resolves the base ref.
+3. **Freshness at publication.** Before publication (§13 *complete*), the S6 host re-resolves the base ref.
    - If it still equals `base_sha`, freshness passes.
    - If it has advanced, V1 fails closed with `BASE_ADVANCED`. It does not rebase, merge, or "update" automatically. The caller decides, under governance, whether to start a new instance on the new base. This mirrors the Context Bootstrap V0 exact-tip rule (`D-062`).
    - A future policy MAY permit "advanced but still an ancestor-compatible fast-forward". That is a separately reviewed relaxation, not a V1 default.
 4. **Result ancestry.** The result commit MUST have `base_sha` as an ancestor, via `git merge-base --is-ancestor`. Otherwise the result fails with `BASE_SHA_MISMATCH`.
 5. **Base unavailable.** If the remote cannot be reached, or the SHA cannot be fetched or verified, the result is `BASE_UNAVAILABLE`. There is no fallback to a cached or local value.
 
-S3 contracts carry no base-commit field today. S6 does not add one (it may not redefine S3). Whether a future *additive* S3 field should pin the base at contract level is §22 Q1.
+S3 contracts carry no base-commit field today. S6 does not add one (it may not redefine S3). Whether a future *additive* S3 field should pin the base at contract level is Unresolved question 1.
 
 ### 5. Dirty, untracked and ignored working-tree handling
 
@@ -141,15 +170,50 @@ V1 uses **one dedicated clone per execution instance**, not a linked worktree of
 
 QA MUST NOT test inside the Builder's working tree, reuse the Builder's clone, caches, `node_modules`, build output or environment, or accept files the Builder hands over. QA reconstructs its environment independently:
 
-1. **Source of truth is S4, not the Builder.** The Builder's governed completion is an S4 `transition` from `BUILDING` to `READY_FOR_QA`. Its `evidenceRef` carries `{ result_commit_sha, base_sha, identity_digest, provenance_digest }`. QA reads `result_commit_sha` from the S4 record via S4's public `getState`, never from the Builder's instance, handoff prose, or a path.
-2. **Fresh QA instance.** QA claims the task through S4's own claim operation, as an actor different from the Builder's `owner`; S6 checks `qa_actor != builder_actor`, otherwise `QA_INDEPENDENCE_VIOLATION`. S6 then creates a new instance with `role: QA` and `base_sha = result_commit_sha`, fetched from the **remote**. If the commit is not on the remote, the result is `BASE_UNAVAILABLE`: QA does not fall back to the Builder's local objects.
-3. **Content verification.** QA verifies the fetched commit's tree hash equals the tree hash in the Builder's provenance. It also verifies `base_sha` is an ancestor. The QA working tree is therefore bit-identical to what was recorded, and nothing else.
+1. **Source of truth is an S6 Result Transfer Record, cross-checked against S4 (§7.1).** QA never takes the result commit from the Builder's instance, handoff prose, a local file, a path, or a branch name. It also never takes it from S4 internals: S4's public `getState()` returns `taskId`, `contract_ref`, `state`, `owner`, `revision`, `lease_expires_at`, `retry_counts` and `authority_disclaimer`. It exposes neither `evidenceRef` nor transition history, and S6 does not read S4 persistence.
+2. **Fresh QA instance.** QA claims the task through S4's own claim operation, as an actor different from the Builder's `owner`; S6 checks `qa_actor != builder_actor`, otherwise `QA_INDEPENDENCE_VIOLATION`. S6 then creates a new instance with `role: QA` and `base_sha = result_commit_sha` from the committed Result Transfer Record, fetched **by exact SHA from the remote**. If the commit is not on the remote, the result is `BASE_UNAVAILABLE`: QA does not fall back to the Builder's local objects.
+3. **Content verification.** QA verifies the fetched commit's tree hash equals the record's `result_tree_sha`. It also verifies the record's `base_sha` is an ancestor. The QA working tree is therefore bit-identical to what was recorded, and nothing else.
 4. **Independent dependency materialization.** QA installs dependencies from the committed lockfile into its own private cache (§11). It never mounts or links the Builder's `node_modules` or cache.
-5. **Path denial.** The QA instance's path policy denies the Builder instance's directory and every other instance directory. At L3 this is policy plus detection, not prevention (§21).
+5. **Path denial.** The QA instance's path policy denies the Builder instance's directory and every other instance directory. At L3 this is policy plus detection, not prevention (Residual risks).
 6. **What this does and does not prove.**
    - S6 proves QA *executed from an independently reconstructed environment of the recorded commit*. That is necessary for QA output to be `INDEPENDENTLY_REPRODUCED`.
    - It does not prove the QA actor's *reasoning* was independent (TB-5 concerns conversational context), nor that QA ran the right checks.
    - S6 provenance is necessary, not sufficient, for the evidence class. The evidence-class judgment stays with S7/S9 and the Architect.
+
+#### 7.1 Result Transfer Record — S6-owned execution/provenance mapping (`AS86-F002`)
+
+S4 stays the lifecycle and fencing authority, and its implementation and interface stay unchanged. S6 owns only the mapping from a governed Builder handoff to the exact commit that handoff delivered. That mapping is the **Result Transfer Record (RTR)**, kept in the S6 host's registry under `<host_state_dir>` (§9). It is not an evidence store: S7 is not implemented early, and the RTR carries references and digests only.
+
+**RTR fields:**
+- `transfer_id`: SHA-256 of `(identity_digest, result_commit_sha, pre_revision)`;
+- `task_id`, `builder_identity_digest`, `owner`;
+- `pre_revision`: the checkpoint `current_revision` presented to S4;
+- `post_revision`: set only on commit;
+- `result_commit_sha`, `result_tree_sha`, `base_sha`;
+- `remote_ref` (the instance's `task_branch`) and `provenance_digest`;
+- `status`: `PENDING`, `COMMITTED` or `ABORTED`.
+
+**Builder side (inside *complete*, §13), in order:**
+1. **Push and verify.** Quiesce and validate. Push `task_branch` with its explicit lease. Verify with a read of the remote ref that it points at `result_commit_sha`.
+2. **Write ahead.** Under the S6 per-task registry lock, durably write the RTR as `PENDING`, using temp-then-rename. At most one `PENDING` RTR may exist per `(task_id, pre_revision)`; a second is `RESULT_TRANSFER_UNPROVEN`.
+3. **Transition.** The S6 host calls S4's public `transition` as the owner's agent: `BUILDING → READY_FOR_QA`, `expectedRevision = pre_revision`, `idempotencyKey = transfer_id`, `evidenceRef` carrying `transfer_id` and `result_commit_sha`. S4 stores the `evidenceRef` opaquely for audit. S6 never reads it back and does not depend on it.
+4. **Commit only on proof.** On a successful transition result with `revision == pre_revision + 1`, S6 confirms through `getState()` that `state` is `READY_FOR_QA`, `owner` is `null`, and `revision` is `pre_revision + 1`, or a later value explained by the QA chain in step 6. Only then does it mark the RTR `COMMITTED` with `post_revision = pre_revision + 1`.
+   - This is sound because S4's transition table allows exactly one mutation from (`BUILDING`, owner `O`, revision `R`) to (`READY_FOR_QA`, no owner, `R+1`): owner `O`'s own `BUILDING → READY_FOR_QA` transition at `R`. S6 makes that call itself, under its registry lock, with the key `transfer_id`.
+5. **Failure and crash recovery.**
+   - If S4 rejects the transition (owner or revision mismatch), the RTR becomes `ABORTED`. The pushed branch is `STALE_UNPUBLISHED` (§15). It can never become an accepted handoff, because no `COMMITTED` RTR points at it.
+   - After a crash with a `PENDING` RTR, S6 re-issues the identical `transition` with the same `idempotencyKey` and bindings. S4's own idempotency ledger either replays the original success, and the RTR commits, or reports the conflict, and the RTR aborts.
+   - A `PENDING` RTR is never promoted by inference alone.
+
+**QA side (inside QA *create*):**
+
+6. **Prove the RTR is still the current handoff.** QA uses the RTR only if S6 can prove no other mutation has happened since the handoff. That uses the same gap-free rule as §3.1. The QA actor presents the S4 result objects of every mutation it performed since `post_revision`: its `claim` of the `READY_FOR_QA` task, its `READY_FOR_QA → QA` transition, and any renewals. Their revisions must form the unbroken sequence `post_revision + 1 … C`, all by the QA actor. `getState()` must show `state == QA`, `owner ==` the QA actor, and `revision == C`.
+   - The chain is gap-free and holds only QA-actor mutations. So no later build round, send-back, or rival `READY_FOR_QA` handoff can have occurred, and no other RTR can be the current handoff.
+   - A missing, `PENDING` or `ABORTED` RTR, a broken chain, or more than one `COMMITTED` RTR claiming the same `post_revision` is `RESULT_TRANSFER_UNPROVEN`.
+7. **Fetch by SHA.** QA fetches `result_commit_sha` by exact SHA from the remote and applies the tree and ancestry checks in item 3 of this section. A remote branch that was moved, deleted or force-updated cannot change what QA builds: QA builds the SHA, not the branch.
+
+**What the RTR does not do.** It does not replace S4 authority: it only records which commit a successful S4 transition delivered, and S4 can reject it at any time through fencing. It does not read S4 internal history. It does not make S6 a second state machine: `PENDING`/`COMMITTED`/`ABORTED` describe a write-ahead record, not task progress.
+
+**Future dependency, not assumed.** An additive S4 read interface that exposes the stored `evidenceRef` would let an auditor cross-check an RTR against S4's own record. That would be a separate future architecture change needing separate authority. V1 does not require it (Unresolved question 6).
 
 ### 8. Composition with S3, S4 and S5
 
@@ -169,33 +233,80 @@ An action proceeds only if all three hold **and** S4 fencing holds. Any single f
 **S3 — Task Contract (consumed by reference):**
 - S6 reads `task_id`, `project`, `scope.allowed_paths`, `scope.prohibited_paths` and the five consequence flags from the contract identified by the S4 record's `contract_ref`, and records the contract digest.
 - It never copies, rewrites, extends or re-validates the contract's semantics beyond S3's own validator. It never creates contracts.
-- V1 supports only contracts whose five consequence flags are all `false`. Any `true` flag is `ISOLATION_PROFILE_INSUFFICIENT` (§14), because each would require credentials, remote/production writes, or destructive actions inside the instance, which L3 cannot contain. §22 Q2 asks whether `remote_resources_involved` could be relaxed.
+- V1 supports only contracts whose five consequence flags are all `false`. Any `true` flag is `ISOLATION_PROFILE_INSUFFICIENT` (§14), because each would require credentials, remote/production writes, or destructive actions inside the instance, which L3 cannot contain. This includes `remote_resources_involved`. S6's own host-side Git transport is not task remote-resource involvement; it is a separately authorized execution-transport action (§8.1).
 
 **S4 — ownership, lease, fencing (reused, not duplicated):**
-- S6 has **no task state machine**. It never decides task progress, retries, or failure. Those are S4 transitions performed by the caller through S4's public API.
+- S6 has **no task state machine**. It never decides task progress, retries, or failure. The caller performs S4 `claim`, `renew`, `release` and every other transition through S4's public API.
+  - The single exception is mechanical: when the owner requests *complete*, the S6 host itself issues the one publication `transition` (`BUILDING → READY_FOR_QA`) as the owner's agent. It does this so the Result Transfer Record can be written ahead of the transition and committed under proof (§7.1).
+  - S6 never decides whether to publish: the owner requests it, and S4 accepts or rejects it.
 - The S6 instance *environment* lifecycle (§13) is subordinate to S4. Every mutating S6 step first checks, through S4 `getState`, that:
   - `owner == instance.owner`;
-  - `revision == instance.owner_revision`;
+  - `revision == checkpoint.current_revision` (§3.1);
   - `lease_expires_at` is later than trusted time;
   - `state` matches `role`.
   
   Failure is `OWNER_MISMATCH`, `FENCING_REVISION_MISMATCH`, `LEASE_EXPIRED` or `INSTANCE_STALE`, in that order.
-- **Lease renewal is S4's.** The owner calls S4 `renew` and hands the new revision to the instance. The instance accepts a revision only if it is exactly the one returned by a renew or claim that this owner performed, which the journal records. An unexplained revision advance marks the instance stale.
+- **Lease renewal is S4's.** The owner calls S4 `renew` and hands the `renew` result to the instance. The instance advances its Fencing Checkpoint only under §3.1's gap-free rule. The immutable identity, including `anchor_revision`, never changes. An unexplained revision advance marks the instance stale.
 - **Expired-but-unclaimed leases** (which S4 still lets the owner `renew`) are treated as stale until a renew succeeds. S6 never proceeds on an expired lease.
 - **The publication linearization point is S4 `transition`,** which re-checks owner and revision under S4's exclusive lock. A pushed Git branch is *not* publication.
   - A stale instance can at most leave an unrecorded branch behind (§15). It cannot get its result recorded, because its `expectedRevision` no longer matches.
   - This closes the check-then-push time-of-check/time-of-use (TOCTOU) window that a Git-only fence would leave open.
-- S6 uses S4's public operations only (`getState`, and the caller's `claim`/`renew`/`transition`). It never writes S4 records or imports S4-internal modules.
+- S6 uses S4's public operations only. It reads `getState`, accepts `claim`/`renew` result objects as the caller hands them over, and issues the publication `transition` as the owner's agent. It never writes S4 records, reads S4 persistence or history, or imports S4-internal modules.
 
 **S5 — CapabilityDecision (consumed, S5 unchanged):**
-- Every real-world action an S6 host or instance performs goes through the corresponding public S5 adapter `request(requestIntent)`:
-  - `github` for fetch/push;
-  - `shell` for process execution in the instance, with `cwd` canonicalized by S5's own platform-aware shell contract.
+- S5 is a decision library over five bounded provider adapters. It is not an interceptor for every operation. S6 asks for an S5 decision exactly where §8.1's table says one is required (`AS86-F004`), through the public adapter `request(requestIntent)`:
+  - `github` for every remote Git call: fetch, the remote-ref read that verifies a push, and push;
+  - `shell` for every actor- or tool-chosen process executed in the instance, including dependency install, with `cwd` canonicalized by S5's own platform-aware shell contract.
+- S6's fixed internal bookkeeping and isolation mechanics are not S5 actions (§8.1): directory creation and deletion, verification reads, journal and registry writes, and fixed local Git inspection. Their authority is the S6 implementation decision and their review evidence. S5 is not claimed to cover them.
 - S6 records each returned decision verbatim.
 - `DENY` is blocking: `CAPABILITY_DENIED`, carrying S5's `denial_reason` unchanged.
 - `ALLOW` is necessary, never sufficient.
 - S6 never constructs `subjectContext`/`evaluationContext` (it cannot — minters exist only inside `createGateway()`, `AS82-F001`), never calls the raw core, and never caches an `ALLOW` across actions.
-- **Wiring disclosure:** implementing this composition *is* runtime use of S5. A future S6 implementation decision must therefore authorize S5 consumption explicitly. D-066 does not, and this RFC does not assume it.
+- **Wiring disclosure:** implementing this composition *is* runtime use of S5, and S6 would issue an S4 `transition` as the owner's agent. A future S6 implementation decision must therefore explicitly authorize both: S5 consumption and S4 publication-transition use. It must also authorize the execution-transport scope of §8.1. D-066 does not authorize any of these, and this RFC does not assume them.
+
+#### 8.1 Execution transport, task scope and the S5 boundary (`AS86-F004`)
+
+**Decision (resolves former open question 2).** Host-side Git fetch and push of the instance's own task branch, to and from the task's own repository, is **execution transport**. It is not task remote-resource involvement. V1 therefore keeps refusing every contract with `remote_resources_involved: true`, and a normal S6 task carries `remote_resources_involved: false`.
+
+**Why this boundary is honest, not a reinterpretation of S3.**
+- S3's scope flags describe the *task's own work*: what the change and the task's actions touch, which is what `CORE-020` evidence escalation keys on. Examples are a task that calls Cloudflare, writes remote D1, or pushes to a protected branch.
+- Execution transport is how *any* repository task's result reaches review under the standard flow (`ML-DEVOS-ARCH-001`: branch → PR → CI/QA plus review → gate → merge). It is identical for every task and fixed by S6, not chosen by the task.
+- Treating transport as task remote involvement would make the flag `true` for every S6 task. Either V1 would refuse all work, or V1 would have to admit remote-flagged tasks, and then the flag could no longer tell "pushes a task branch" apart from "mutates production".
+- S6 does not alter S3 semantics or add S3 fields. It defines transport as a separately governed S6 action with its own authority and its own record.
+
+**Transport is still a real remote write, so it is governed as one (`CORE-019`).** V1 transport is permitted only under a transport authorization that the future S6 implementation decision must grant explicitly. Its reference is recorded in every provenance record as `transport_authorization_ref`; S6 never infers it from a contract. The authorization must state every `CORE-019` element:
+
+| `CORE-019` element | V1 transport scope |
+|---|---|
+| Provider / service | GitHub Git transport only. |
+| Exact resource scope | The single configured repository whose identity equals the contract's `project`, and nothing else. |
+| Environment | The repository's development refs only. No deployment environment. |
+| Allowed operations | Fetch any ref or commit (read). Remote-ref read. Non-force push, with an explicit lease, to exactly the instance's own `refs/heads/sentinel/s6/<task_id>/<role>/<instance_id>`. |
+| Explicitly denied | Push to any other ref, including the base branch, `main`, protected refs and other instances' branches. Force push. Ref deletion (`branch.delete`, `git.push_force` are S5 sensitive actions). Tags. PR creation or merge. Repository settings. |
+| Acting identity / credential class | The S6 host's own Git credential class, held host-side only (§12). Never the task process's. |
+| Credential lifetime | Stated by the authorization, for example per cycle, with revocation at the end of the cycle. V1 holds no long-lived credential in any instance. |
+| Public / production / sensitive | Non-production development branches of a private repository. |
+| Rollback / revocation | Revoke the credential or authorization. Stale task branches remain as `STALE_UNPUBLISHED` until a separately authorized deletion. |
+| Audit / evidence | Every transport call is journaled with its S5 decision, the ref, and the before/after SHAs. Every push appears in the RTR (§7.1) or as `STALE_UNPUBLISHED`. |
+
+A transport attempt outside this scope, or with no recorded authorization reference, is `TRANSPORT_NOT_AUTHORIZED`.
+
+**Which operations need an S5 decision in V1:**
+
+| Operation | S5 decision? | Why |
+|---|---|---|
+| Remote Git fetch (base resolution, QA fetch by SHA), remote-ref read, push | **Yes**: `github`, per call | A real remote call; S5 answers CAN for it under the pinned policy. |
+| Any actor- or tool-chosen command in the instance (build, test, install, `git commit` by the actor) | **Yes**: `shell`, per command | The actor chooses the command; S5 answers CAN for it. |
+| S6 host internals: canonicalization, `mkdir`/exclusive create, no-follow deletion, `lstat`/`realpath` verification, journal/registry/RTR writes, environment and config construction, process-group or Job Object teardown, and fixed-argv local Git inspection (`status`, `rev-parse`, `merge-base`, `cat-file`) | **No** | Trusted, fixed mechanism steps with no actor choice and no remote effect. Authority comes from the S6 implementation decision; assurance comes from review and tests (§18). S6 does not claim S5 covers them. |
+| S4 `getState` and the publication `transition` | **No** | S4 is not an S5 provider. S4 fencing governs these calls, and the implementation decision must authorize them (§8, wiring disclosure). |
+
+**The three conditions stay separate.**
+- *MAY*: the task's governance authorization (contract `authorization_references`, by reference), plus, for transport, `transport_authorization_ref`.
+- *CAN*: the S5 decisions above.
+- *ISOLATED*: S6's proof.
+- S3 scope says what the task may change. It does not authorize transport, and transport does not widen the task's scope: the committed diff is still checked against `allowed_paths` (§5).
+
+**Credentials stay host-side.** Transport runs in the S6 host process, outside the instance process tree, using host-held credentials (§12). Remote URLs in the instance clone are credential-free. The instance environment carries no credential variable and no credential-bearing config (§10, §12), so the task process is never handed a way to push. At L3 a deliberate same-user read of host credential stores remains the disclosed T8 residual (§2, Residual risks).
 
 ### 9. Filesystem boundaries; symlink, junction and path escape
 
@@ -215,17 +326,52 @@ An action proceeds only if all three hold **and** S4 fencing holds. Any single f
   config/    host-written — generated git/npm config; checked by digest
 <host_state_dir>/journal/<instance_id>/   host-only — identity, journal, provenance
 ```
-The journal lives **outside** the instance root, so deleting or corrupting the instance cannot erase its own evidence. At L3 a same-user process could still reach it (§21). Tampering is detected by journal hash chaining, not prevented.
+The journal lives **outside** the instance root, so deleting or corrupting the instance cannot erase its own evidence. At L3 a same-user process could still reach it (Residual risks). Tampering is detected by journal hash chaining, not prevented.
 
 **Read-only inputs:** toolchain directories and optional shared verified caches (§11). At L3 read-only is enforced only where the platform lets the host set it without elevated privilege (file modes/ACLs). Otherwise it is policy plus digest detection before and after use. Where neither is possible, the result is `ISOLATION_UNPROVABLE`.
 
-**Path rules for every S6 host filesystem operation** (create, write, verify, delete):
-1. Resolve to a canonical real path: fully resolve symlinks, junctions and reparse points using host-OS semantics, and normalize to S5's canonical shell form (`/…`, `C:/…`, `//server/share/…`).
+**Path rules for S6 host operations on *existing* paths** (write into, verify, delete). Creating a path that does not exist yet follows §9.1 instead: a non-existent tail cannot be real-path-resolved before it exists (`AS86-F003`).
+1. Resolve to a canonical real path: fully resolve symlinks, junctions and reparse points using host-OS semantics, and normalize to S5's canonical shell form (`/…`, `C:/…`, `//server/share/…`). A target that does not exist is not "resolved" by appending it lexically; it is either created under §9.1 or rejected.
 2. The canonical path must be strictly inside the instance root. That is a prefix comparison on canonical path *segments*, never on strings, so `/ws/a` does not match `/ws/ab`. It must be case-folded on case-insensitive filesystems and Unicode-normalized (NFC) where the filesystem normalizes (macOS). Otherwise the result is `PATH_ESCAPE`.
 3. Reject: `..` segments remaining after normalization; drive-relative paths (`C:foo`); rooted-without-drive paths (`\foo`); NT namespace prefixes (`\\?\`, `\\.\`); reserved Windows device names (`CON`, `NUL`, `COM1`…); alternate data streams (`name:stream`); trailing dots or spaces on Windows; and 8.3 short-name forms that expand outside the root.
 4. A link inside the instance root whose target cannot be resolved (dangling, a loop, or permission denied) is `UNRESOLVED_LINK`. A link resolving outside the root is `PATH_ESCAPE`.
 5. **Deletion never follows links.** Walk with `lstat`. Unlink the link itself. Remove a Windows junction as a directory entry without recursing into its target. Re-verify after each directory removal that the parent is still the expected canonical path.
-6. **TOCTOU disclosure.** Node's `fs` has no `openat`/`O_NOFOLLOW`-relative traversal on every platform. Between a check and a use, a concurrent same-user process could swap a directory for a link. V1 reduces the window: it re-verifies immediately before each destructive step and refuses to operate while any instance process is alive (quiesce first). It does not eliminate the window (§21).
+6. **TOCTOU disclosure.** Node's `fs` has no `openat`/`O_NOFOLLOW`-relative traversal on every platform. Between a check and a use, a concurrent same-user process could swap a directory for a link. V1 reduces the window: it re-verifies immediately before each destructive step and refuses to operate while any instance process is alive (quiesce first). It does not eliminate the window (Residual risks).
+
+#### 9.1 Creating paths that do not exist yet (`AS86-F003`)
+
+Every path S6 creates is `<existing canonical parent>/<literal tail>`. The tail segments are generated by S6 from already-validated identifiers: the project slug, `task_id` (S4 pattern `^[A-Z][A-Z0-9_-]*$`), the lowercase-hex `instance_id`, and the fixed names `repo`, `home`, `tmp`, `cache`, `config` and generated file names. The tail is never a caller-supplied path string. Creation proceeds as follows.
+
+1. **Validate every tail segment before touching the filesystem**, under the platform profile. Each segment must satisfy all of:
+   - non-empty; not `.` or `..`; no `/` or `\`; no NUL or control characters;
+   - no `:`, which rules out alternate data streams and drive forms;
+   - no trailing dot or space;
+   - not a reserved Windows device name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`–`COM9`, `LPT1`–`LPT9`), compared case-insensitively and with or without an extension;
+   - no `~` followed by digits (an 8.3 short-name shape);
+   - within the platform's segment-length limit, and with the whole path within the profile's path-length limit (§16);
+   - already in Unicode NFC.
+
+   The assembled tail must not be drive-relative, rooted-without-drive, or an NT namespace form (`\\?\`, `\\.\`). Any failure is `PATH_ESCAPE`, before anything is created. Because `..` is rejected outright, S6 never relies on lexical `..` handling. S5's `resolveShellPath` appends a non-existent tail lexically, which is acceptable for an S5 *decision* but not for S6 *creation*.
+2. **Canonicalize and verify the nearest existing ancestor.**
+   - Find the nearest existing ancestor. For instance creation this is `workspace_root` or one of its already-created descendants. `realpath` it and normalize it to S5's canonical form.
+   - It must equal `workspace_root` or lie strictly inside it, using the segment-wise, case-folded comparison of path rule 2.
+   - `lstat` must show a real directory, not a symlink, junction or other reparse point.
+   - Record its identity: `dev`/`ino` on POSIX; the volume serial and file index that Node exposes as `dev`/`ino` on Windows.
+   - Any failure is `PATH_ESCAPE`, `UNRESOLVED_LINK`, or `ISOLATION_UNPROVABLE` if identity cannot be read.
+3. **Create one segment at a time.** Never use recursive `mkdir`.
+   - Shared intermediate directories (`<project-slug>/`, `<task_id>/`): create with a non-recursive `mkdir`. `EEXIST` is acceptable only if `lstat` shows a real directory, not a link or reparse point, whose `realpath` equals the expected canonical join of the verified parent and the segment.
+   - The final instance directory: create exclusively. `EEXIST` is `WORKTREE_COLLISION` and is never reused. This is the uniqueness proof §3 relies on.
+   - Files (markers, generated config, journal entries): create exclusively (`wx`, i.e. `O_CREAT|O_EXCL`). On POSIX, `O_EXCL` fails even if the final component is a dangling symlink, which gives no-follow semantics for the last component.
+4. **Re-resolve and revalidate immediately after each creation.** `lstat` must show a real directory or regular file, not a link or reparse point. Its `realpath` must equal the expected canonical path. For a file, the identity from `fstat` on the open handle must equal the `lstat` identity of the path. Record the new identity.
+5. **Revalidate the whole chain before first use and before each write into it.** Every recorded component must still have the same identity and canonical path. A substitution anywhere (a component replaced by a symlink, junction or other reparse point, or its identity changed) is `ISOLATION_UNPROVABLE`. The instance is quarantined, and nothing is deleted through the substituted component.
+6. **Fail closed on unverifiable races.** Node provides no portable `openat`/`O_NOFOLLOW` for intermediate components. If the platform cannot report the identities in steps 2–5, or any check is inconclusive, creation stops with `ISOLATION_UNPROVABLE` rather than proceeding on an assumption. The window between steps is narrowed, not eliminated (Residual risks).
+7. **Clone into a verified empty directory.** `repo/` is created and verified by steps 1–5 before `git clone` writes into it. After the clone, `repo/`'s identity and canonical path are re-verified. Links inside the checkout are Git content and are never followed by S6 (path rule 4 and "Tracked symlinks" below).
+8. **Creation and deletion rules are distinct.** Deletion never creates and never follows links; path rule 5 governs it. Creation never deletes. A failed creation leaves whatever it made for quarantine and does not "clean up" through a path it could not verify.
+
+S5's accepted principles are reused without changing S5:
+- the platform-aware canonical form (`/…`, `C:/…`, `//server/share/…`);
+- the segment-wise containment check (`isWithinRoot`);
+- resolution under host-OS semantics.
 
 **Tracked symlinks in the repository** are legitimate Git content. S6 does not reject them, but S6 host operations never follow them, and the checkout respects the platform profile's `core.symlinks` setting.
 
@@ -257,7 +403,7 @@ Any hit is `ENV_POLICY_VIOLATION`. The allowlist is the control; the deny set pr
 **Process tree.**
 - Every instance process starts with `cwd` inside `repo/`, through the S5 shell adapter decision, in a new process group on POSIX or a Job Object with kill-on-close on Windows.
 - *Quiesce* terminates the group or job and then verifies no member remains. Where the platform cannot prove this, the result is `QUIESCE_UNPROVEN`, and publication is blocked.
-- V1 has no network-egress control (an L4 concern). This is disclosed in §21.
+- V1 has no network-egress control (an L4 concern). This is disclosed under Residual risks.
 
 **Recorded per command:** argv, canonical cwd, environment *digest* (names and value hashes, never values), start and end trusted time, exit code, and the S5 decision.
 
@@ -266,8 +412,8 @@ Any hit is `ENV_POLICY_VIOLATION`. The allowlist is the control; the deny set pr
 - **Default:** instance-private caches under `cache/`. Dependencies are installed from the committed lockfile only (`npm ci`-style), never from a lockfile-less resolve. `node_modules`, build outputs (`.next/`, `out/`) and tool state (`.wrangler/`) are instance-local and never shared, linked, or copied between instances.
 - **Optional shared cache, off by default.** A host MAY provide a shared, content-addressed package cache as a *read-only input*. Reuse is allowed only where the package manager verifies each artifact's integrity against the lockfile's integrity hashes; npm's integrity check is that mechanism.
   - The instance process must not be able to write to it. Where the host cannot make it read-only, S6 records its manifest digest before and after use. A change is `CLEANUP_CONTAMINATION_RISK`, and the shared cache is withdrawn for all instances until re-verified.
-- **Install scripts run third-party code** with the host user's privileges at L3. V1 discloses this (§21). A project policy MAY require `--ignore-scripts` where the build tolerates it; that is outside S6's decision.
-- **Registry network access is not an S5 V1 provider.** V1 treats the install as a `shell` action under S5, which governs the *command*, not the network destinations it reaches. This is a disclosed gap (§22 Q4).
+- **Install scripts run third-party code** with the host user's privileges at L3. V1 discloses this (Residual risks). A project policy MAY require `--ignore-scripts` where the build tolerates it; that is outside S6's decision.
+- **Registry network access is not an S5 V1 provider.** V1 treats the install as a `shell` action under S5, which governs the *command*, not the network destinations it reaches. This is a disclosed gap (Unresolved question 4).
 
 ### 12. Credentials and secrets — the non-copy policy
 
@@ -290,13 +436,13 @@ These are *environment* states, not task states. None of them is an S4 state or 
 
 | Step | Preconditions (all fail closed) | Effect |
 |---|---|---|
-| **create** | Platform supported; workspace root valid; S4 record exists; S4 checks pass (owner, revision, lease, state↔role); S3 contract resolves, `task_id`/`project` match, and consequence flags are within the V1 profile; S5 `ALLOW` for fetch; base resolved (§4). | Exclusive-create the instance directory (`O_EXCL`/`wx` on a marker file). Clone, check out `base_sha`, create `task_branch`. Construct environment and config. Pre-use scan. Write identity and journal. → `READY`. |
+| **create** | Platform supported; workspace root valid; S4 record exists; the owner presents its S4 `claim`/`renew` result and `getState()` confirms it (§3.1); S4 checks pass (owner, revision, lease, state↔role); QA only: committed Result Transfer Record proven current (§7.1); transport authorization recorded (§8.1); S3 contract resolves, `task_id`/`project` match, and consequence flags are within the V1 profile; S5 `ALLOW` for fetch; base resolved (§4). | Create the instance directory tree under §9.1, the final directory exclusively. Clone, check out `base_sha`, create `task_branch`. Construct environment and config. Pre-use scan. Write identity, the initial Fencing Checkpoint, and the journal. → `READY`. |
 | **validate** | — (pure verification, repeatable at any time) | Recompute every identity field from live facts; tree, config and environment checks; S4 checks. Returns `PROVEN` or the first failing reason (§14). |
-| **attach** | `validate` → `PROVEN`; caller is `owner` presenting `owner_revision`. | → `ATTACHED`. |
+| **attach** | `validate` → `PROVEN`; caller is the identity `owner`; S4 revision equals the checkpoint's `current_revision`. | → `ATTACHED`. |
 | **use** | `ATTACHED`; S5 `ALLOW` per command; S4 checks per mutating command. | Run the command; journal it. |
-| **renew** | Caller performed S4 `renew`. | Instance adopts the returned revision (journaled). |
+| **renew** | The owner performed S4 `renew` and hands over its result. | The checkpoint advances only under §3.1's gap-free rule (journaled); otherwise `INSTANCE_STALE`. The identity does not change. |
 | **quiesce** | — | Terminate the process group or job; prove it empty (`QUIESCE_UNPROVEN` otherwise); snapshot tree state. → `QUIESCED`. |
-| **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); S5 `ALLOW` for push. | (1) Push `task_branch` with an explicit lease: remote ref absent, or equal to this instance's last pushed SHA. (2) Caller performs S4 `transition` with `expectedRevision = owner_revision` and `evidenceRef` = result commit plus digests. Only a successful S4 transition means *published*. → `COMPLETED`. |
+| **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5: (1) push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA) and verify the remote ref; (2) write the Result Transfer Record ahead as `PENDING`; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision` and `idempotencyKey = transfer_id`; (4) mark the record `COMMITTED` only after the `getState()` proof. Only a committed record after a successful S4 transition means *published*. → `COMPLETED`. |
 | **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; path rules (§9). | No-follow deletion of the instance root; verify absence; the journal is retained. → `CLEANED`. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
 
 **Concurrency.**
@@ -324,38 +470,41 @@ Every S6 operation returns either `PROVEN`/success, or exactly **one** reason co
 | 8 | `OWNER_MISMATCH` | Owner mismatch (S4). |
 | 9 | `FENCING_REVISION_MISMATCH` | Fencing mismatch (S4 revision). |
 | 10 | `LEASE_EXPIRED` | S4 lease expired, even if not yet reclaimed. |
-| 11 | `INSTANCE_STALE` | Stale execution instance: unexplained revision advance, S4 state no longer matches role, or superseded instance. |
-| 12 | `QA_INDEPENDENCE_VIOLATION` | QA actor equals Builder actor; QA source is not the S4-recorded commit; QA path overlaps a Builder instance. |
-| 13 | `CAPABILITY_DENIED` | S5 `DENY`; carries S5's `denial_reason` verbatim. |
-| 14 | `BASE_UNAVAILABLE` | Base or result commit cannot be fetched or verified. |
-| 15 | `BASE_SHA_MISMATCH` | Wrong base SHA; `HEAD` ≠ `base_sha`; result not a descendant. |
-| 16 | `BASE_ADVANCED` | Freshness failed at publication. |
-| 17 | `WORKTREE_COLLISION` | Instance directory already exists. |
-| 18 | `BRANCH_COLLISION` | `task_branch` exists locally or remotely; push lease rejected. |
-| 19 | `PATH_ESCAPE` | Canonical path outside the instance root. |
-| 20 | `UNRESOLVED_LINK` | Unresolved symlink or junction (dangling, loop, or denied). |
-| 21 | `ENV_POLICY_VIOLATION` | Environment or config policy violation (deny-set hit, case-duplicate name, disallowed Git config key). |
-| 22 | `SECRET_MATERIAL_DETECTED` | Secret/credential material in the instance. |
-| 23 | `DIRTY_WORKTREE` | Dirty or unexpected worktree state. |
-| 24 | `UNEXPECTED_UNTRACKED` | Untracked or ignored path outside the allowlist. |
-| 25 | `SCOPE_VIOLATION` | Committed diff outside the S3 declared scope. |
-| 26 | `QUIESCE_UNPROVEN` | Cannot prove the instance process tree is empty. |
-| 27 | `CLEANUP_CONTAMINATION_RISK` | Cleanup failure that risks contamination; shared-cache digest changed. |
-| 28 | `ISOLATION_UNPROVABLE` | Inability to prove the expected isolation state (identity-digest mismatch; journal hash-chain break; read-only not enforceable and not detectable). |
+| 11 | `INSTANCE_STALE` | Stale execution instance: unexplained or gapped revision advance (§3.1), S4 state no longer matches role, or superseded instance. |
+| 12 | `QA_INDEPENDENCE_VIOLATION` | QA actor equals Builder actor; QA source is not the committed Result Transfer Record's commit; QA path overlaps a Builder instance. |
+| 13 | `RESULT_TRANSFER_UNPROVEN` | The QA source cannot be proven to be the current governed handoff: missing, `PENDING` or `ABORTED` Result Transfer Record; broken or gapped QA revision chain; duplicate `PENDING`/`COMMITTED` records (§7.1). |
+| 14 | `TRANSPORT_NOT_AUTHORIZED` | Git transport outside the §8.1 scope (another repository, another ref, force, delete, tag), or no recorded `transport_authorization_ref`. |
+| 15 | `CAPABILITY_DENIED` | S5 `DENY`; carries S5's `denial_reason` verbatim. |
+| 16 | `BASE_UNAVAILABLE` | Base or result commit cannot be fetched or verified. |
+| 17 | `BASE_SHA_MISMATCH` | Wrong base SHA; `HEAD` ≠ `base_sha`; result not a descendant. |
+| 18 | `BASE_ADVANCED` | Freshness failed at publication. |
+| 19 | `WORKTREE_COLLISION` | Instance directory already exists. |
+| 20 | `BRANCH_COLLISION` | `task_branch` exists locally or remotely; push lease rejected. |
+| 21 | `PATH_ESCAPE` | Canonical path outside the instance root. |
+| 22 | `UNRESOLVED_LINK` | Unresolved symlink or junction (dangling, loop, or denied). |
+| 23 | `ENV_POLICY_VIOLATION` | Environment or config policy violation (deny-set hit, case-duplicate name, disallowed Git config key). |
+| 24 | `SECRET_MATERIAL_DETECTED` | Secret/credential material in the instance. |
+| 25 | `DIRTY_WORKTREE` | Dirty or unexpected worktree state. |
+| 26 | `UNEXPECTED_UNTRACKED` | Untracked or ignored path outside the allowlist. |
+| 27 | `SCOPE_VIOLATION` | Committed diff outside the S3 declared scope. |
+| 28 | `QUIESCE_UNPROVEN` | Cannot prove the instance process tree is empty. |
+| 29 | `CLEANUP_CONTAMINATION_RISK` | Cleanup failure that risks contamination; shared-cache digest changed. |
+| 30 | `ISOLATION_UNPROVABLE` | Inability to prove the expected isolation state (identity-digest mismatch; path-component substitution or unverifiable creation race (§9.1); journal hash-chain break; read-only not enforceable and not detectable). |
 
-The order puts input validity and platform first, then identity and authority-adjacent checks (contract, repository, S4, QA independence, S5), then Git state, then filesystem and environment, then completion checks. An S4 or S5 failure is therefore never masked by a later tree or path finding. The catch-all `ISOLATION_UNPROVABLE` is last: it applies only when no specific code does. It is never used to hide a specific failure.
+The order puts input validity and platform first, then identity and authority-adjacent checks (contract, repository, S4, QA independence and result transfer, transport authorization, S5), then Git state, then filesystem and environment, then completion checks. An S4 or S5 failure is therefore never masked by a later tree or path finding. The catch-all `ISOLATION_UNPROVABLE` is last: it applies only when no specific code does. It is never used to hide a specific failure.
 
 ### 15. Retries, idempotency, crash/orphan recovery, stale leases
 
-- **Idempotency key:** `create` is keyed by `(task_id, role, owner, owner_revision, caller idempotency key)`. A replay whose instance exists and is `READY`/`ATTACHED` *and* re-validates returns the same `instance_id`. A replay with different bindings is `MALFORMED_REQUEST`.
+- **Idempotency key:** `create` is keyed by `(task_id, role, owner, anchor_revision, caller idempotency key)`. A replay whose instance exists and is `READY`/`ATTACHED` *and* re-validates returns the same `instance_id`. A replay with different bindings is `MALFORMED_REQUEST`.
 - **Push idempotency:** the explicit-lease push is idempotent. The remote already holding the same SHA is success.
 - **S4 idempotency:** `transition` idempotency is S4's own ledger. S6 passes the caller's key through and never re-implements it.
-- **Retries are environment retries, not task retries.** At most **2** creation attempts per `(task_id, role, owner_revision)`. Each failed attempt's directory is quarantined, never reused. After that, S6 returns the last reason code. It never consumes or changes S4 retry counters, and never transitions the task. Whether the task fails or retries is the caller's S4 decision.
+- **Retries are environment retries, not task retries.** At most **2** creation attempts per `(task_id, role, owner, anchor_revision)`. Each failed attempt's directory is quarantined, never reused. After that, S6 returns the last reason code. It never consumes or changes S4 retry counters, and never transitions the task. Whether the task fails or retries is the caller's S4 decision.
 - **Crash recovery.** On host start, S6 scans the registry, the journals and `workspace_root`:
-  - *Registry record in `CREATING`/`READY`/`ATTACHED`/`QUIESCED`:* re-check S4. If not current, the instance is `INSTANCE_STALE`: quiesce, then quarantine. If current, it stays as recorded. It resumes only through an explicit `attach` by the same owner that re-validates.
+  - *Result Transfer Record in `PENDING`:* resolve by re-issuing the identical S4 `transition` with the same `idempotencyKey` (§7.1 step 5). It commits on S4's replayed success, aborts on conflict, and is never promoted by inference.
+  - *Registry record in `CREATING`/`READY`/`ATTACHED`/`QUIESCED`:* re-check S4 against the Fencing Checkpoint. If not current, the instance is `INSTANCE_STALE`: quiesce, then quarantine. If current, it stays as recorded. It resumes only through an explicit `attach` by the same owner that re-validates.
   - *Directory with no registry record, or registry record with no directory:* **orphan** → `QUARANTINED`, reported. It is never adopted, even if its contents look correct, because it cannot be proven.
   - *Stale S6 registry lock:* fail closed, exactly as S4's store does. Removal is an explicit, authorized operator action. There is no age-based stealing.
-- **Orphaned remote branches.** A branch pushed by an instance whose S4 transition then failed stays on the remote, unrecorded. S4 never references it, so it can never be consumed as a result. S6 does not delete remote branches automatically: remote deletion is destructive and needs its own authorization. The provenance lists it as `STALE_UNPUBLISHED`.
+- **Orphaned remote branches.** A branch pushed by an instance whose S4 transition then failed stays on the remote. Its Result Transfer Record is `ABORTED` (or was never written), so it can never be consumed as a result: QA consumes only a `COMMITTED` record proven current (§7.1). S6 does not delete remote branches automatically: remote deletion is destructive and needs its own authorization. The provenance lists it as `STALE_UNPUBLISHED`.
 - **Stale lease behavior.** §8: an expired lease halts every mutating step until an S4 `renew` succeeds. If another actor has claimed, the instance is permanently stale.
 
 ### 16. Windows / POSIX portability
@@ -380,6 +529,9 @@ Anything else is `ISOLATION_PLATFORM_UNSUPPORTED`. This includes: FAT/exFAT or n
 Each instance produces one **Isolation Provenance** record, written by the host to the journal. A future S7 would consume it. It contains:
 
 - the Execution Identity and its digest;
+- the Fencing Checkpoint history: every adopted S4 `claim`/`renew` result and its gap-free verification (§3.1);
+- `transport_authorization_ref`, with every transport call, ref, and before/after SHA (§8.1);
+- the Result Transfer Record's `transfer_id` and final status (§7.1). A QA instance also records the verified QA revision chain;
 - `platform_profile`; `isolation_level` (`L3`);
 - the environment digest; the config digest;
 - the lockfile digest; shared-cache manifest digests before and after, if used;
@@ -388,7 +540,7 @@ Each instance produces one **Isolation Provenance** record, written by the host 
 - every S4 observation (owner, revision, state, lease) at each check;
 - the result `commit_sha` and `tree_sha`;
 - the pushed ref and lease outcome;
-- the S4 transition outcome;
+- the S4 publication transition outcome, including idempotent replay if it occurred;
 - the final `outcome` and reason code;
 - `evidence_class: ACTOR_REPORTED`;
 - a fixed `non_authority_disclaimer`:
@@ -430,8 +582,30 @@ A future implementation's tests MUST:
    - QA given a tree hash that differs from provenance.
    
    Each fails with its specific code.
-8. **Mutation testing:** removing or weakening each guard (every row of §14, the no-follow deletion, the S4 pre-check, the lease on push, the allowlist) MUST make at least one test fail. Surviving mutants are findings.
-9. **Platform matrix:** POSIX and Windows runs, including non-privileged Windows. Results are recorded per platform. A platform not actually run is reported as not run, never as passing.
+8. **Fencing Checkpoint (§3.1):**
+   - A normal `renew` advances the checkpoint and leaves the identity digest unchanged.
+   - A presented result with a revision gap, another owner, or a lower revision is `INSTANCE_STALE`.
+   - A same-owner re-`claim` after an intervening mutation is `INSTANCE_STALE`.
+   - An S4 revision advance with no adopted result is `INSTANCE_STALE`.
+9. **Result Transfer Record (§7.1):**
+   - Crash after the push but before the record: no record, so the branch is `STALE_UNPUBLISHED`.
+   - Crash after `PENDING` but before the transition, and crash after the transition but before the commit: re-issuing with the same idempotency key commits via S4 replay, or aborts on conflict.
+   - A rejected transition leaves the record `ABORTED`.
+   - QA with a gapped chain, a chain containing a non-QA mutation, a later rebuild round, or duplicate records is `RESULT_TRANSFER_UNPROVEN`.
+   - A moved or force-updated remote branch does not change the commit QA builds.
+10. **Path creation (§9.1):**
+    - Every invalid tail-segment form is rejected before any filesystem call.
+    - An intermediate directory pre-created as a symlink or junction, and one swapped for a link between `mkdir` and the next step, are both detected (`ISOLATION_UNPROVABLE` or `PATH_ESCAPE`).
+    - A final-directory `EEXIST` is `WORKTREE_COLLISION`.
+    - A dangling symlink at a file target makes exclusive create fail.
+    - A sentinel file outside the root survives every case.
+11. **Transport and S5 boundary (§8.1):**
+    - A push to any ref other than the instance's own `task_branch` is `TRANSPORT_NOT_AUTHORIZED`, as are a force push, a delete, a tag, another repository, and a missing `transport_authorization_ref`.
+    - A GitHub `DENY` is `CAPABILITY_DENIED`.
+    - No credential variable or credential-bearing config is present in any instance process.
+    - A `remote_resources_involved: true` contract is refused.
+12. **Mutation testing:** removing or weakening each guard MUST make at least one test fail. This covers every row of §14, the no-follow deletion, the S4 pre-check, the lease on push, the allowlist, the gap-free checkpoint rule, the write-ahead record and its commit proof, the §9.1 per-step revalidation, and the transport ref restriction. Surviving mutants are findings.
+13. **Platform matrix:** POSIX and Windows runs, including non-privileged Windows. Results are recorded per platform. A platform not actually run is reported as not run, never as passing.
 
 ### 19. Canonical home
 
@@ -486,13 +660,14 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 ## Required design decisions (summary)
 
 1. V1 isolation level is **L3 on a dedicated clone**. L4 is not provided and must not be claimed.
-2. Publication is linearized at **S4 `transition`**, not at Git push.
-3. QA reconstructs from the **S4-recorded result commit fetched from the remote**, as a different actor, in its own instance.
+2. Publication is linearized at **S4 `transition`**, not at Git push. The S6 host issues that one transition as the owner's agent, with a write-ahead Result Transfer Record (§7.1).
+3. QA reconstructs from the **commit named by the committed Result Transfer Record**, proven to be the current handoff by a gap-free S4 revision chain and fetched by exact SHA from the remote. QA is a different actor in its own instance. No S4 interface change is assumed (§7.1).
 4. MAY / CAN / ISOLATED are separate, conjunctive conditions. S5 `ALLOW` is never sufficient; S5 `DENY` is always blocking.
-5. S6 has no task state machine. Its environment lifecycle is subordinate to S4 fencing.
-6. V1 refuses contracts with any consequence flag `true`.
+5. S6 has no task state machine. Its environment lifecycle is subordinate to S4 fencing. The immutable Execution Identity is separate from the mutable Fencing Checkpoint, which advances only through verified, gap-free S4 `claim`/`renew` results (§3.1).
+6. V1 refuses contracts with any consequence flag `true`. Host-side Git transport of the instance's own task branch is separately authorized execution transport, scoped under `CORE-019` and S5-gated. It is not task remote-resource involvement (§8.1).
 7. The canonical home is `devos/execution/`, to be reserved only by a separate `ARCHITECTURE`-class authorization.
-8. There are 28 deterministic, ordered reason codes. Nothing is auto-cleaned into compliance, and nothing orphaned is adopted.
+8. There are 30 deterministic, ordered reason codes. Nothing is auto-cleaned into compliance, and nothing orphaned is adopted.
+9. Paths that do not exist yet are created under §9.1: a verified existing ancestor, validated literal tails, exclusive per-segment creation, and immediate identity revalidation.
 
 ## Scope
 
@@ -593,13 +768,15 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 5. **The journal** is tamper-*evident* (hash chain), not tamper-*proof*.
 6. **Actor independence ≠ reasoning independence.** S6 proves QA used a different actor and environment, not a different chain of reasoning (TB-5).
 7. **Orphaned remote branches** accumulate until separately authorized deletion.
-8. **The S6 host itself is trusted.** A lying host defeats S6, just as a lying adapter defeats S5.
+8. **The S6 host itself is trusted.** A lying host defeats S6, just as a lying adapter defeats S5. That includes a host that misnames the commit in a Result Transfer Record.
+9. **The Result Transfer Record is host-held.** Without a future additive S4 read interface, it cannot be cross-checked against the `evidenceRef` S4 stored (Unresolved question 6). Crash recovery of a `PENDING` record depends on S4's idempotency ledger still holding the original entry.
+10. **Transport is a standing remote-write grant.** It is narrowed to one repository's non-protected, instance-scoped refs and is revocable (§8.1), but while the transport authorization is active the S6 host holds a live Git write credential.
 
 ## Unresolved questions
 
 1. Should the Task Contract pin `base_sha` at contract level? That would need an additive, separately governed S3 change, or should the base stay an S6 create-time resolution (V1)?
-2. Can `remote_resources_involved: true` contracts be admitted to V1 when the only remote action is the host-side push of the task branch? Or should that flag remain a hard refusal until L4 or credential brokering exists?
+2. *(Resolved in remediation cycle 1 — §8.1.)* Host-side task-branch transport is separately authorized execution transport, not task remote-resource involvement. `remote_resources_involved: true` remains a V1 hard refusal.
 3. Should linked worktrees be allowed later as an optimization, given a separately reviewed hardening of the shared common directory (per-worktree config, ref namespace protection)?
 4. Should package-registry egress become an S5 provider, or be governed by an L4 network policy, before S6 is used for tasks whose dependencies change?
 5. Is a dedicated low-privilege OS user per instance an acceptable "L3+" profile for V1 hosts that support it? Or is that already an L4 decision needing its own review?
-6. Where does the Isolation Provenance durably live before S7 exists: the host journal only, or a repository-committed digest referenced from S4's `evidenceRef`?
+6. Where do the Isolation Provenance and the Result Transfer Record durably live before S7 exists? V1 keeps them in the host registry and journal only (§7.1). Should a later, separately authorized additive S4 read interface expose the stored `evidenceRef`, so an auditor can cross-check a record against S4 itself? V1 does not assume one.
