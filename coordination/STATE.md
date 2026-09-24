@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS097_OWNER_DECISION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: SENTINEL_S6_INTEGRITY_HARDENING_PLANNING
+TURN: ARCHITECT
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D073_S6_RFC019_INTEGRITY_HARDENING_PLANNING_SU_RESEARCH_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 3
-MAX_REMEDIATION_CYCLES: 3
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
+MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
 CURRENT_HANDOFF: NONE
 HANDOFF_ID:
@@ -22,70 +22,68 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect outcome
+## Authority
 
-ML-DEVOS-AS-097 preserves all closed AS94 and AS95 findings and confirms that the
-core D-072 PENDING-publication reservation mechanism is materially present.
+D-073 authorizes a bounded S6 architecture-planning cycle only.
 
-One blocking fail-closed evidence-integrity defect remains:
+S6 implementation is paused.
+No AS97-F001 implementation patch is authorized.
+No Builder code mutation is authorized.
 
-- AS97-F001 — a PENDING RTR whose body is missing or whose valid JSON body is altered
-  can disappear from the reservation scan because instance attribution is trusted
-  before body/digest integrity is proven.
+## Required planning work
 
-S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
+Architect must:
 
-## Remediation budget
+1. invoke SU-style evidence-first research as an advisory input;
+2. consolidate the post-AS097 sweep findings into explicit design invariants;
+3. separate implementation defects from genuine RFC-019 design amendments and from
+   S7-owned responsibilities;
+4. define a durable transaction/crash-recovery model spanning instance state, permits,
+   RTRs, journal evidence and external effects;
+5. define the S6 instance-concurrency invariant explicitly;
+6. define the production public-vs-internal capability surface;
+7. reconcile S6 Isolation Provenance with the S7 Evidence & QA boundary;
+8. define a systematic crash/fault matrix and exit criteria;
+9. propose the smallest RFC-019 amendment that fixes the class of defects without
+   widening into S7/S8/CP-4+.
 
-D-072's exceptional Cycle 3 of 3 is exhausted.
+## Authorized writes
 
-No Builder action and no Cycle 4 are authorized by AS-097.
+Planning/architecture records only:
 
-## Owner decision required
+- devos/changes/rfcs/ML-DEVOS-RFC-019.md
+- devos/changes/rfcs/README.md if factually required
+- devos/changes/architect-syncs/** for this planning cycle
+- brain/KNOWLEDGE_PRINCIPLES.md only through the existing Treasury procedure
+- deterministic traceability outputs if the RFC delta requires regeneration
+- coordination/STATE.md
+- coordination/ARCHITECT_REVIEW.md
+- coordination/CURRENT_HANDOFF.md
 
-Paulo may authorize exactly one AS97-F001-only exceptional implementation
-micro-remediation, or keep S6 unclosed and require broader redesign/review.
+No devos/execution/** source/test mutation.
 
-Architect recommendation: authorize one narrow AS97-F001-only correction.
+## Return gate
 
-If authorized, the correction must:
+After the SU-grounded planning proposal is complete, route to Paulo if the design is
+ready for owner authorization, or to a bounded RFC remediation cycle if independent
+Architect review identifies design defects.
 
-- prove each PENDING RTR body exists and is integrity-bound before trusting its
-  builder_identity_digest attribution;
-- at minimum verify parseability, body SHA-256 == status rtr_digest, transfer/task
-  binding, and reuse the existing RTR/journal adjacency proof where practical;
-- if any PENDING record is unprovable, fail closed with RESULT_TRANSFER_UNPROVEN rather
-  than treating it as unrelated; task-scoped blocking is acceptable when attribution
-  itself cannot be trusted;
-- only after integrity proof may the reservation helper decide a PENDING belongs to a
-  different instance;
-- add missing-body, malformed-body, digest-mismatch and altered-identity tests plus a
-  mutation killer;
-- preserve every D-072 behavior and all closed AS94/AS95 findings.
-
-## Post-S6 / pre-S7
-
-After S6 technical acceptance/closure, perform the separately authorized pre-S7
-readiness checkpoint applying the captured S6 lessons.
-
-No S7 work is authorized yet.
+Any resumed implementation requires a fresh explicit Paulo decision.
 
 ## Hard boundaries
 
-No safety-control bypass.
-No generic command-execution implementation.
+No S6 implementation.
 No real execution driver.
-No live S6 remote transport or credentials.
 No S3/S4/S5 mutation.
 No S6 manifest status/closure/version change.
-No S7+.
+No S7 implementation.
 No S8/S9.
 No CP-4+.
 No Model Router.
+No dynamic plugin discovery.
 No remote D1/R2.
 No deployment.
 No protected/main merge.
-No PR #10 merge or auto-merge.
+No PR #10 merge.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by AS-097.
