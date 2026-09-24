@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_CONTEXT_PLANE_BOOTSTRAP_V0_IMPLEMENTATION
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: RFC018_BOOTSTRAP_V0_ACCEPTED_AWAITING_S5_OWNER_DECISION
+CYCLE_ID: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
@@ -24,40 +24,56 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-`ML-DEVOS-AS-081` independently accepts the bounded Context Bootstrap V0 implementation authorized by `D-062`.
+`D-063` authorizes bounded implementation of the Architect-approved `ML-DEVOS-RFC-017` S5 Capability & Permission Gateway V1 as Context Bootstrap V0 Trial #1.
 
-Bootstrap V0 is now the active repository turn protocol. This acceptance grants no S5 implementation authority by itself.
+Final S5 design approval is `ML-DEVOS-AS-077`. Bootstrap V0 acceptance is `ML-DEVOS-AS-081`.
 
-Per `D-061` and `D-062`, the next gated action is Paulo's separate owner decision on whether to authorize the already Architect-approved `ML-DEVOS-RFC-017` S5 Capability & Permission Gateway implementation as Bootstrap Trial #1.
-
-S6+, Context Plane CP-4+, SENTINEL Model Router V0, remote resources, deployment/production mutation, protected/main merge, and PR #10 merge remain unauthorized.
+This authority is limited to the S5 implementation defined by RFC-017 and D-063. It does not authorize S3/S4 integration, S6+, Context Plane CP-4+, Model Router V0, remote resources, credentials/secrets, deployment/production mutation, protected/main merge, or PR #10 merge.
 
 ## Protocol
 
 Context Bootstrap V0 remains active: `brain/protocols/CONTEXT_BOOTSTRAP.md`.
 
-- `CURRENT_HANDOFF: NONE`; the outgoing `H-CBV0-0001` packet is archived byte-for-byte under `coordination/archive/handoffs/`.
+- `CURRENT_HANDOFF: NONE` at the opening of the Builder turn.
 - `coordination/OPERATIVE_OBLIGATIONS.md` remains the carry-forward index.
-- `coordination/IMPLEMENTER_HANDOFF.md` remains frozen historical evidence at blob `43eddba31695a567412c431ae3d1e4c9372cabdd`.
-- Governed publication continues to require exact-tip conflict detection. Providers that cannot demonstrate it remain advisory/read-only for governed writes.
+- `coordination/IMPLEMENTER_HANDOFF.md` remains frozen historical evidence and is never appended.
+- Governed publication must use exact-tip conflict detection.
+- Repository evidence is durable memory; use lean/delta-only reads and retrieve history only for a concrete unresolved requirement.
 
-## Next action — Paulo owner decision only
+## Next action — bounded S5 implementation only
 
-Paulo decides whether to authorize bounded S5 Capability & Permission Gateway implementation under `ML-DEVOS-RFC-017` as Bootstrap Trial #1.
+Builder implements only the D-063 / RFC-017 Capability & Permission Gateway V1.
 
-No Builder implementation is authorized until that separate decision is durably recorded and STATE routes the Builder turn.
+Required implementation direction includes:
+
+- capability descriptor, subject-context, evaluation-context, decision, and strictly necessary request/policy structural schemas;
+- zero-third-party-dependency capability-policy validation;
+- pure five-argument internal evaluator;
+- bounded V1 adapters for shell, GitHub, Cloudflare, MCP, and browser;
+- provider-specific canonicalization;
+- trusted branded subject/evaluation contexts constructed only by registered adapter wrappers;
+- default deny and canonical RFC-017 denial codes;
+- pinned policy version plus live revocation override;
+- no credential secret values;
+- pure CapabilityDecision plus separately constructed AuditEnvelope;
+- focused RFC-017 tests and bounded fixtures;
+- the AS-077 descriptor-expiry wording reconciliation;
+- OBL-009 Bootstrap Trial #1 measurements where actually observable.
+
+On completion, publish a new CURRENT_HANDOFF under Context Bootstrap V0 and return the turn to the Architect for independent review.
 
 ## Hard boundaries
 
-No S5 implementation until separate Paulo authorization.
+No S3/S4 integration or wiring.
 No S6+.
 No CP-4+.
 No Model Router implementation.
-No application/product runtime work outside a separately authorized scope.
+No dynamic plugin discovery.
+No external/live policy service.
 No credentials or secret values.
 No remote D1/R2.
 No Cloudflare Access/DNS/domain/deployment/rollback/production mutation.
-No production data writes.
+No production-data writes.
 No public D1 cutover.
 No protected/main merge.
 No PR #10 merge or auto-merge.

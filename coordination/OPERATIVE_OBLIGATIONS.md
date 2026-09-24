@@ -10,7 +10,7 @@ Compiled by the Builder at `93a66b7fd5c0815f7e950768de9292c46779b420` from: live
 
 | ID | Obligation | Authoritative source | Disposition | Closure / supersession |
 |---|---|---|---|---|
-| OBL-001 | S5 executable implementation stays paused until a separate Paulo decision after Bootstrap V0 is independently accepted. | `D-061`; `D-062`; `ML-DEVOS-AS-078` | OPEN | — |
+| OBL-001 | S5 executable implementation stays paused until a separate Paulo decision after Bootstrap V0 is independently accepted. | `D-061`; `D-062`; `ML-DEVOS-AS-078` | CLOSED | D-063 |
 | OBL-002 | Include the one-line RFC-017 descriptor-expiry wording reconciliation ("not grantable to new attempts after supersession") in any S5 implementation brief. | `ML-DEVOS-AS-077` § Non-blocking design note | DEFERRED | — |
 | OBL-003 | Bootstrap Stage B atomic activation (CURRENT_HANDOFF, protocol-version marker, legacy freeze, coherent reader/writer migration) only after Architect accepts Stage A and routes it. | `D-062` Stage B | CLOSED | ML-DEVOS-AS-081 |
 | OBL-004 | Reconcile the named migration inputs during Stage B: legacy handoff read/write requirements, provider names encoded as role holders, request-independent TURN gating that blocks advisory analysis, wording that overstates committed content as authority, stale remediation cap `3` vs live `2`, reference to an absent STATE "State protocol" section. | `ML-DEVOS-RFC-018` § Known migration inputs; `B018-05` item 6 | CLOSED | ML-DEVOS-AS-081 |
