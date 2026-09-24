@@ -1,14 +1,14 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_AS092_OWNER_DECISION_ONLY
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_AS92_F001_EXCEPTIONAL_MICRO_REMEDIATION_D070_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 2
-MAX_REMEDIATION_CYCLES: 2
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 3
+MAX_REMEDIATION_CYCLES: 3
 PROTOCOL_VERSION: 1
 CURRENT_HANDOFF: NONE
 HANDOFF_ID:
@@ -22,39 +22,125 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect final review result
+## Authority
 
-ML-DEVOS-AS-092 closes AS91-F001 and preserves AS90-F001/F002/F003 as closed.
+D-070 explicitly authorizes one exceptional micro-remediation beyond the ordinary
+2-of-2 cap, limited exactly to AS92-F001.
 
-One new blocker remains: AS92-F001 — the trusted S5 subject used for shell capability
-decisions is not explicitly bound to the S6 instance's immutable Execution Identity
-owner/role.
-
-The ordinary remediation budget is exhausted at 2 of 2.
+This is exceptional remediation Cycle 3 of 3. No fourth cycle is authorized.
 
 D-068 executable implementation remains suspended.
-No S6 implementation or real execution-driver work is authorized.
+No real execution-driver implementation is authorized.
 
-## Paulo decision required
+## Authorized remediation — AS92-F001 only
 
-Choose one:
+Correct the S5-subject-to-S6-identity binding without redesigning S4, S5 or S6.
 
-1. Authorize one exceptional micro-remediation limited exactly to AS92-F001.
-   The correction must bind S5 subject actor_id/actor_role to the immutable S6
-   Execution Identity owner/role at permit issuance and claim, with the explicit V1 role
-   mapping BUILDER -> Builder and QA -> QA, plus focused design tests.
+Required V1 mapping:
 
-2. Keep the amendment paused / require broader redesign.
+- S6 BUILDER -> S5 Builder
+- S6 QA -> S5 QA
 
-The Architect recommends option 1 because the remaining defect is narrow and does not
-require redesigning S5, S4, the execution-driver boundary, permit lifecycle,
-idempotency, or claim-time revocation freshness.
+At permit issuance, after S6 obtains the trusted S5 adapter result and before accepting
+ALLOW / creating the request binding and permit, require:
 
-A Paulo authorization must be explicit. This STATE does not itself grant a third cycle.
+- presented subject_context.actor_id == ExecutionIdentity.owner
+- presented subject_context.actor_role == canonicalRole(ExecutionIdentity.role)
+
+On mismatch:
+
+- fail closed as CAPABILITY_DENIED;
+- create no permit and no request binding.
+
+Bind the issuance subject identity inspectably into the immutable permit/audit record:
+
+- actor_id;
+- actor_role;
+
+These are non-secret identity fields. Do not rely only on an opaque whole-snapshot
+digest for later field-level comparison.
+
+At the claim-time S5 freshness recheck:
+
+- compare the fresh trusted S5 actor_id/actor_role directly against the immutable S6
+  Execution Identity and the stored issuance subject binding;
+- identity drift or mismatch is CAPABILITY_DENIED and prevents execution;
+- preserve AS91-F001 live revocation/expiry recheck semantics unchanged.
+
+Credential class, credential availability, attestation source/reference and trusted time
+remain S5-owned fresh trusted context. Do not copy secrets and do not add or change S5
+fields/interfaces.
+
+## Required design tests
+
+Add focused future design-test requirements proving:
+
+- wrong actor_id at issuance -> CAPABILITY_DENIED, no permit;
+- wrong actor_role at issuance -> CAPABILITY_DENIED, no permit;
+- correct BUILDER -> Builder mapping succeeds when all other gates pass;
+- correct QA -> QA mapping succeeds when all other gates pass;
+- claim-time actor_id drift -> CAPABILITY_DENIED;
+- claim-time actor_role drift -> CAPABILITY_DENIED;
+- AS91-F001 revocation/expiry freshness behavior remains intact.
+
+## Preservation requirements
+
+Keep closed:
+
+- AS90-F001
+- AS90-F002
+- AS90-F003
+- AS91-F001
+
+Keep the D-069 execution-driver separation unchanged.
+
+Do not reopen permit lifecycle, request idempotency, claim-time freshness, RTR,
+quiescence, S4 fencing, S5 semantics, or the generic-execution separation except where
+strictly necessary to express AS92-F001's identity binding.
+
+## Local draft disposition
+
+The Builder's unpublished D-068 draft remains preserved locally, uncommitted and
+unpushed. Do not delete, stage, commit, import, execute further, or alter it.
+
+Use a clean worktree from the authoritative governed branch.
+
+## Authorized repository writes
+
+Only:
+
+- devos/changes/rfcs/ML-DEVOS-RFC-019.md;
+- devos/changes/rfcs/README.md if factual status/index wording requires it;
+- deterministic traceability outputs;
+- coordination/STATE.md and coordination/CURRENT_HANDOFF.md for the return gate.
+
+No executable S6 source.
+No devos/execution/ publication.
+No execution-driver implementation.
+No tests/execution-* implementation.
+No manifest entry or status change.
+No schema/runtime mutation.
+No S3/S4/S5 source/interface mutation.
+No ADR, closure record or Sentinel version change.
+
+## Return gate
+
+After correcting AS92-F001, publish a fresh CURRENT_HANDOFF and return:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 3
+MAX_REMEDIATION_CYCLES: 3
+
+for final independent re-review.
+
+If another blocker remains, route to Paulo. Do not open a fourth cycle.
 
 ## Hard boundaries
 
-No Builder remediation until Paulo decides.
 No safety-control bypass or permission expansion.
 No S6 executable implementation.
 No generic command-execution implementation.
@@ -80,4 +166,4 @@ No automatic stale-branch deletion.
 No L4/container/VM implementation.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by AS-092.
+No operative obligation is closed by D-070.
