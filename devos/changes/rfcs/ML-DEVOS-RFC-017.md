@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-017: S5 Capability & Permission Gateway
 
-Status: `DRAFT`
+Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-015 / D-065`
 
 Proposed change class: `ARCHITECTURE`
 

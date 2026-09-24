@@ -16,7 +16,7 @@ Every material change should retain, at minimum: the RFC (if any), the Architect
 
 ## Current Sentinel version
 
-**Sentinel's active governance-capability baseline is `v1.7.0`, as of `2026-09-21` (`D-051`, `ML-DEVOS-ADR-014`).** This is the version of the *S4 State Machine Kernel* added on top of the `v1.6.0` coordinated boundary (RFC-015 reserved-subsystem lifecycle + S3 Typed Task Contracts) — it is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before. See "S4 State Machine Kernel closure — v1.7.0 applied" below for the full record of this latest transition, and "Coordinated v1.6.0 release — RFC-015 + S3 Typed Task Contracts applied" for the immediately preceding one.
+**Sentinel's active governance-capability baseline is `v1.8.0`, as of `2026-09-24` (`D-065`, `ML-DEVOS-ADR-015`).** This is the version of the *S5 Capability & Permission Gateway V1*, added on top of `v1.7.0` (S4 State Machine Kernel) and the `v1.6.0` coordinated boundary (RFC-015 reserved-subsystem lifecycle + S3 Typed Task Contracts). It is distinct from, and does not alter, the frozen S0 architecture document `devos/architecture/ML-DEVOS-ARCH-001.md`, whose own title/identity as **MaisogLabs DevOS v1.2.0 — SENTINEL** remains its permanent, unedited historical name. Each Sentinel-capability version sits on top of the unchanged S0 baseline and the version(s) before it; none rewrites what came before. See "S5 Capability & Permission Gateway closure — v1.8.0 applied" below for the full record of this latest transition, and "S4 State Machine Kernel closure — v1.7.0 applied" for the immediately preceding one.
 
 `devos/governance/rules/core-rules.json` now records two provenance groups, both fully effective (per `RULE_RECORD_SCHEMA.md`'s "Status/version consistency" section):
 
@@ -143,6 +143,32 @@ This closure durably records, rather than silently rewrites, two implementation-
 This closure also durably reconciles the frozen `ML-DEVOS-ARCH-001` §10 lifecycle diagram with the `FAILED`/`ABANDONED` additive terminal states `D-050` already adopted for implementation — a narrow, explicitly governed addition to frozen content, not a change to the frozen architecture's identity, version, status, actor model, or source-of-truth rule.
 
 This update adds governance policy/capability only. It does not implement S5–S14, CI, rulesets, a Capability Gateway, sandbox, Orchestrator, executable Evidence Gate, credential broker, or telemetry pipeline. `manifest_version` remains exactly `"1"`, untouched by this transition.
+
+The frozen S0 architecture identity remains:
+
+`ML-DEVOS-ARCH-001 / v1.2.0`
+
+## S5 Capability & Permission Gateway closure — v1.8.0 applied
+
+`ML-DEVOS-RFC-017` (S5 Capability & Permission Gateway V1) is adopted as active, implemented architecture.
+
+The change followed:
+
+`ML-DEVOS-RFC-017 → ML-DEVOS-AS-077 → D-063 → implementation (d589a16) → ML-DEVOS-AS-082 → remediation (06b5bef) → ML-DEVOS-AS-083 → D-064 → ML-DEVOS-AS-084 (D.1 preflight) → D-065 → ML-DEVOS-ADR-015`
+
+Semantic impact: **MINOR**. S5 adds a backwards-compatible new Sentinel subsystem/capability: deterministic capability/permission decision machinery (a pure five-argument core, default deny, the canonical `ML-DEVOS-RFC-017` §4 denial vocabulary, policy-version pinning with live revocation override, trusted-time expiry, class-only credentials) and five bounded provider adapters. It does not change the actor model, the source-of-truth rule, the meaning of any existing `CORE-*` rule, or prior S3/S4 closure semantics.
+
+`v1.7.0 → v1.8.0`
+
+`devos/devos-manifest.json`'s `sentinel_capability_baseline` now names `ML-DEVOS-ADR-015` / `D-065` as the active baseline. `devos/capabilities/` moves to `status: IMPLEMENTED`, `closure_ref: ML-DEVOS-ADR-015`, `executable_runtime_present: false`. It is a repository-local decision library, and no active operational Sentinel runtime, orchestrator, or tool-call path invokes it as an enforcement service, per the same behavior-based test `ML-DEVOS-RFC-015` established.
+
+This closure durably records the two `ML-DEVOS-AS-082` implementation findings closed before acceptance:
+- `AS82-F001` — the ordinary-caller minter-acquisition bypass, closed by confining minters to the static gateway.
+- `AS82-F002` — POSIX-only shell canonicalization, made platform-aware for POSIX, Windows drive, and UNC paths.
+
+It also records the accepted in-process, non-cryptographic trusted-context residual limits and `ML-DEVOS-AS-083`'s non-blocking observations. Full detail is in `ML-DEVOS-ADR-015`.
+
+This update adds capability only. It does not wire S5 into S3/S4 or any runtime, and does not implement S6–S14, CI, rulesets, a sandbox, an Orchestrator, an executable Evidence Gate, a credential broker, or a telemetry pipeline. `manifest_version` remains exactly `"1"`, untouched by this transition.
 
 The frozen S0 architecture identity remains:
 

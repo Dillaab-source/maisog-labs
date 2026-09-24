@@ -1,131 +1,102 @@
-# Current Handoff — S5 Remediation Cycle 1 (AS82-F001, AS82-F002)
+# Current Handoff — S5 Closure Package (D-065) for D.2 Verification
 
 ```yaml
 schema_version: 1
-handoff_id: H-S5-REM1-0001
-cycle_id: SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_IMPLEMENTATION
-input_base_commit: f6fd5179d8a0d21e7ce0d2121dfc87f783735de3
-review_target_commit: f6fd5179d8a0d21e7ce0d2121dfc87f783735de3
-applicable_review_id: ML-DEVOS-AS-082
+handoff_id: H-S5-CLOSURE-0001
+cycle_id: SENTINEL_S5_CLOSURE
+input_base_commit: 2b0627ca5b5549b1478512016bc0f1bf5437e3fb
+review_target_commit: 2b0627ca5b5549b1478512016bc0f1bf5437e3fb
+applicable_review_id: ML-DEVOS-AS-084
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope, and flags live only in `coordination/STATE.md`. The Builder does not self-approve this remediation.
+This handoff is evidence, not authority. Routing, turn, scope, and flags live only in `coordination/STATE.md`. The Builder does not self-approve D.2; S5 is not closed in the governed workflow until the Architect passes D.2 Post-decision Closure Verification.
 
 ## Objective
 
-Remediation cycle 1 of 2, scope `SENTINEL_S5_CAPABILITY_PERMISSION_GATEWAY_REMEDIATION_CYCLE_1_ONLY`. It corrects exactly the two `ML-DEVOS-AS-082` blockers and nothing else:
+Execute exactly the S5 closure package authorized by `D-065` and preflighted by `ML-DEVOS-AS-084` (scope `SENTINEL_S5_D2_CLOSURE_IMPLEMENTATION_ONLY`). This is closure bookkeeping and adoption only: ADR-015, the index/status reconciliations, the manifest S5 root with the v1.8.0 baseline and one closure_history entry, the VERSIONING_POLICY v1.8.0 record, the narrow manifest-test update, and traceability regeneration. No S5 implementation source is changed.
 
-- `AS82-F001` — close the trusted-context minter-acquisition bypass.
-- `AS82-F002` — make shell resolution platform-aware.
-
-The non-cryptographic, in-process V1 trust model is preserved. There is no redesign, no new provider, and no S3/S4 wiring.
+Provenance of this turn: the package was built from scratch in this session, directly on the authoritative tip `2b0627c`. No working tree, test counts, or evidence from any other session were used. Every result below was observed in this session's Linux environment.
 
 ## Changed files
 
-**AS82-F001**
+Diff against base `2b0627ca5b5549b1478512016bc0f1bf5437e3fb`, all within the `D-065` / `ML-DEVOS-AS-084` §10 whitelist:
 
-- `devos/capabilities/trusted-context.mjs` — rewritten.
-  - The WeakMap brand, the (now unexported) `makeMinter`, and the only code that uses minters (`createGateway` plus the five statically imported adapter factories) live in this one module.
-  - `registerAdapters`, `isRegistrySealed`, and `RegistrySealedError` are removed.
-  - No module exports, returns, or accepts a callback for a minter. Each adapter gets a fresh minter for its own provider only, kept inside a closure that exposes only `request()`.
-  - `Reflect.apply`, `Object.freeze`, `Object.keys`, and `WeakMap.prototype.get`/`set` are captured at load, so late monkeypatching cannot intercept a genuine context.
-  - The header states the unchanged residual limits: pre-load intrinsic patching, loader hooks, source edits, and a lying host or adapter.
-- `devos/capabilities/adapters/index.mjs` — deleted. The registry moved into `trusted-context.mjs`.
-- `devos/capabilities/index.mjs` — `createGateway` and `GatewayConfigurationError` are now re-exported from `trusted-context.mjs`. The public surface is otherwise unchanged, and the raw `evaluate` is still not exported.
-
-**AS82-F002**
-
-- `devos/capabilities/canonical.mjs` — the `shell` contract is now platform-aware.
-  - POSIX `/…` is unchanged.
-  - Windows drive paths become `C:/…`, with the drive letter uppercased.
-  - UNC paths become `//server/share/…`.
-  - Output always uses `/`, with no `.`/`..` or empty segments.
-  - Drive-relative (`C:x`), rooted-without-drive (`\x`), relative, and share-less UNC paths are rejected.
-  - A backslash in a POSIX path is rejected (fail closed; it is not a separator there).
-- `devos/capabilities/adapters/shell.mjs` — resolution uses the host's native `path` and real `fs`.
-  - It walks segments from the realpath of the native root, applying `realpath` per existing component (OS symlink semantics).
-  - A dangling component → `null`. A not-yet-existing tail is appended literally.
-  - Windows roots must be `X:\` or `\\server\share\`.
-  - Roots and results are canonicalized to `/` form, and confinement is segment-aware (`isWithinRoot`, which also handles drive roots like `C:/`).
-  - The algorithm is exported as pure functions over injectable `pathImpl`/`fsImpl` (`resolveShellPath`, `toCanonicalShellPath`, `canonicalizeShellResource`, `canonicalRoots`). The adapter always uses native `path`/`fs`. These are path helpers, not a trust hook: nothing in them touches minters or brands.
-
-**Tests and docs**
-
-- `tests/capabilities-bypass.test.mjs` (new, 2 tests) — each scenario runs in a fresh child process with no production hook.
-  - Early-harvest: the hostile code imports the brand module first and exercises every export of every production module (call-with-capture) before any other code loads.
-  - Late-intrinsic-patch: it patches `WeakMap`/`Object.freeze`/`Object.keys`/`Reflect.apply` after load and uses a hostile host whose callbacks capture `this`/`arguments`.
-  - Both collect anything minter- or context-shaped, attempt a raw-core ALLOW under a maximally permissive loaded policy, and fail on any usable minter, any forged ALLOW, or any single leaked genuine context (checked with the exported verifiers).
-  - Both also assert that the legitimate gateway still produces ALLOW.
-- `tests/capabilities-shell-platform.test.mjs` (new, 11 tests) — pure Windows/UNC/POSIX canonical forms, plus the production resolver under `path.win32` over an in-memory Windows-semantics fs (case-insensitive, true-case realpath, symlinks, dangling links, and `\` resolving against the current drive). It covers:
-  - drive and UNC resolution, and forward-slash input;
-  - symlink and `link\..` OS semantics;
-  - escape, traversal, dangling, missing-drive, and non-absolute rejection;
-  - not-yet-existing tails;
-  - segment-aware confinement (`C:/repo` ⊄ `C:/repository`);
-  - that policies accept only canonical `/`-form Windows literals.
-- `tests/capabilities-core.test.mjs` — rewritten to drive decision semantics through the real adapter path with a configurable trusted host (the legitimate `createGateway` embedder API) instead of the removed minter release. It adds an assertion that the brand module exports no minting or registration surface. Still 21 tests.
-- `tests/capabilities-gateway.test.mjs` — the sealed-registry assertion is replaced with "no public minting/registration surface". Still 16 tests.
-- `devos/capabilities/README.md` — the brand, registry, and shell-platform descriptions are updated.
+- `devos/changes/adrs/ML-DEVOS-ADR-015.md` (new) — the S5 closure ADR. It records every provenance item `ML-DEVOS-AS-084` §6 requires:
+  - RFC-017, AS-077, D-063 / Trial #1;
+  - `d589a16`; AS-082 with AS82-F001/F002; `06b5bef`; AS-083; D-064; AS-084; D-065;
+  - the minter-bypass closure and the platform-aware shell remediation;
+  - Capability != Authority and the in-process, non-cryptographic residual limits;
+  - AS-083's non-blocking observations;
+  - no S3/S4 or runtime wiring;
+  - the AS-083 evidence classification;
+  - the manifest consequences and the v1.8.0 MINOR consequence;
+  - the CORE-022/WEB-REQ-009 debt;
+  - no frozen-architecture amendment.
+- `devos/changes/adrs/README.md` — adds the ADR-015 entry.
+- `devos/changes/rfcs/ML-DEVOS-RFC-017.md` — the banner only: `DRAFT` → `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-015 / D-065`. The body and design history are unchanged, following the RFC-016 precedent.
+- `devos/changes/rfcs/README.md` — the RFC-017 entry no longer says proposal-only or unimplemented. It records the closure chain and the implemented, unwired library.
+- `devos/capabilities/README.md` — the manifest now reads `IMPLEMENTED` with `closure_ref: ML-DEVOS-ADR-015` and `executable_runtime_present: false`. It records the acceptance and closure chain and the evidence classes. The non-authority and residual-trust limits are preserved, and it notes that closure completes only at D.2.
+- `devos/devos-manifest.json`:
+  - `devos/capabilities/` → `status: IMPLEMENTED`, `closure_ref: ML-DEVOS-ADR-015`, `executable_runtime_present: false`;
+  - `sentinel_capability_baseline` → `1.8.0` / `ACTIVE` / `ML-DEVOS-ADR-015` / `D-065` / `devos/changes/adrs/ML-DEVOS-ADR-015.md`;
+  - the descriptive `source_of_truth_precedence` baseline → `v1.8.0`;
+  - exactly one appended `closure_history` entry: `S5` / `2026-09-24` / `1.8.0` / `ML-DEVOS-ADR-015` / `D-065` / `ML-DEVOS-AS-083`, with the required note;
+  - `updated_at` → `2026-09-24`;
+  - `manifest_version` stays `"1"`, and the top-level `executable_runtime_present` stays `false`.
+- `devos/governance/specifications/VERSIONING_POLICY.md` — the current baseline becomes `v1.8.0` (`D-065`, `ML-DEVOS-ADR-015`), and a chronological "S5 Capability & Permission Gateway closure — v1.8.0 applied" record is appended with the full chain and the MINOR rationale.
+- `tests/devos-manifest.test.mjs` — narrow update: the live-state assertion now expects S3/ADR-013, S4/ADR-014 and S5/ADR-015 as the implemented roots, with every other root still not `IMPLEMENTED`; the comment and title are updated. The dynamic current-baseline consistency test is unchanged and passes at v1.8.0.
 - `devos/governance/traceability/{TRACEABILITY_INDEX.md,traceability-index.json}` — regenerated.
-- `coordination/STATE.md` (return gate) and `coordination/CURRENT_HANDOFF.md` (this file). The outgoing `H-S5-TRIAL1-0001` was already archived byte-identical by the AS-082 transition.
+- `coordination/STATE.md` (the D.2 return gate) and `coordination/CURRENT_HANDOFF.md` (this file). The outgoing `H-S5-REM1-0001` is already archived byte-identical under `coordination/archive/handoffs/`.
 
-Unchanged (`git diff f6fd517` is empty): `devos/contracts/`, `devos/state/`, `devos/devos-manifest.json` (the `devos/capabilities/` root is still `NOT_IMPLEMENTED`), `devos/governance/rules/`, and the frozen legacy handoff.
+Not changed, with an empty diff verified against the base:
+- `devos/capabilities/*.mjs`, `adapters/`, the schemas and examples (the S5 implementation);
+- `tests/capabilities-*.mjs`;
+- `devos/contracts/` (S3), `devos/state/` (S4), `devos/schemas/` (the manifest schema and validator), `devos/governance/rules/`;
+- `brain/`, including `DECISION_LOG.md` — D-065 was already recorded at the base, so nothing was added;
+- the frozen legacy handoff, and every product/runtime/deploy surface (`worker/`, `app/`, `lib/`, `wrangler.jsonc`, `package.json`).
 
 ## Tests and evidence
 
-All results are ACTOR_REPORTED. Commands were run on the candidate tree at base `f6fd517`.
+All results are ACTOR_REPORTED and fresh from this session, with dependencies from `npm ci` against the lockfile.
 
-- **Bypass reproduced before the fix.** Against the unremediated code, the early-harvest probe reported `{"minters":5,"bypass":5}` (5 genuine minters and 5 forged trusted direct-core ALLOWs), and the late-patch probe `{"bypass":1}`. After the fix both report `"minters":0,"bypass":0,"leaked":0`.
-  - Correction disclosed: the first draft of the early-harvest probe imported every module before exercising exports, so the real registry had already sealed and the probe falsely passed on vulnerable code. It was fixed to exercise each module immediately after importing it.
-- `node --test tests/capabilities-*.test.mjs` → 50 tests, 50 pass, 0 fail (21 core + 16 gateway + 2 bypass + 11 shell-platform). Exit `0`.
-- **Mutation check** (scratch copies, restored byte-identical). 15 regressions were reintroduced one at a time, and each made ≥1 test fail:
-  - F001: minter factory exported; registration surface reintroduced; uncaptured `WeakMap.set`; uncaptured `Object.freeze`; uncaptured `Object.keys`.
-  - F002: rooted-without-drive accepted; non-segment-aware confinement; lexical (no-symlink) resolution; dangling tolerated; forward slashes not handled on Windows; drive-letter case not canonical; POSIX backslash accepted.
-  - The first run left 3 survivors: two F001 intrinsic mutants, because the probe counted only full ALLOWs, and rooted-without-drive, because the fake fs didn't model the current drive. Both probes were strengthened, and all three are now killed.
-- `npm test` → 606 tests, 606 pass, 0 fail (593 before + 13 new). Exit `0`.
-- Validators, all exit `0`: `node devos/capabilities/validate-capability-policy.mjs`, `node devos/contracts/validate-task-contract.mjs`, `node devos/governance/registry/validate-rules.mjs`, `node devos/governance/registry/validate-waivers.mjs`. `node scripts/validate-claude-skills-bridge.mjs` → 4/4 OK.
-- Traceability:
-  - At base: 326 files / 2 errors / 14 warnings / 288 definitions, with pre-existing DRIFT (from the AS-082 publication).
-  - After `generate-traceability.mjs` (exit `0`), `validate-traceability.mjs` reports 327 files (+2 tests, −1 deleted module) / 2 errors — `CORE-022`, `WEB-REQ-009`, known debt, preserved, no new fingerprint — / 14 warnings / 288 definitions, `No drift`, exit `1` (the established convention).
+- **Before changes (base):** `node devos/schemas/validate-devos-manifest.mjs` → `PASS: 0 error(s)`, exit `0`; `node --test tests/devos-manifest.test.mjs` → 23/23.
+- **Focused manifest:** `node --test tests/devos-manifest.test.mjs` → 23 tests, 23 pass, 0 fail. Exit `0`.
+- **Manifest validator:** `node devos/schemas/validate-devos-manifest.mjs` → `OK — no structural or semantic issues found. PASS: 0 error(s) across 1 file(s).` Exit `0`.
+- **Guard check** (scratch copies, restored byte-identical). Each mutation made the manifest tests fail:
+  - an S5 `closure_ref` pointing at ADR-014 → 4 failures;
+  - the descriptive baseline left at v1.7.0 → 1 failure;
+  - a malformed `architect_sync` → 3 failures.
+
+  One mutation initially failed to apply because of a pattern typo, and its "0 failures" run was discarded and redone.
+- **Focused S5:** `node --test tests/capabilities-*.test.mjs` → 50 tests, 50 pass, 0 fail. Exit `0`. The S5 implementation and tests are unchanged, so this shows closure did not mutate or break the accepted implementation.
+- **Full suite:** `npm test` → 606 tests, 606 pass, 0 fail. Exit `0`.
+- **Other validators:** `validate-capability-policy.mjs`, `validate-task-contract.mjs`, `validate-rules.mjs`, and `validate-waivers.mjs` all exit `0`; `validate-claude-skills-bridge.mjs` → 4/4 OK.
+- **Traceability:**
+  - The committed index at base records 327 scanned files, matching AS-084 §9's baseline.
+  - A fresh validation of the untouched base `2b0627c` reports 331 files / **3** errors / 14 warnings / 292 definitions, with DRIFT. The third error is `missing-canonical-target ML-DEVOS-ADR-015`: D-065, AS-084 and STATE forward-reference the closure ADR before it exists.
+  - After this closure, `generate-traceability.mjs` exits `0`, and `validate-traceability.mjs` reports 332 files / **2** errors — exactly the D.1 fingerprint, `CORE-022` and `WEB-REQ-009`, preserved — / 14 warnings / 293 definitions, `No drift`, exit `1` (the established convention while any ERROR exists).
+  - The ADR-015 forward reference was resolved by creating the authorized ADR, not by suppression. No new error was introduced.
 
 ## Unresolved findings and limitations
 
-- **Residual in-process limits (unchanged V1 model, disclosed in the `trusted-context.mjs` header).**
-  - Code that patches intrinsics or installs Node loader hooks *before* the brand module loads, or edits source, is not stopped.
-  - A lying host or registered adapter is not stopped.
-  - The late-patch probe covers only patching after load.
-- **Coverage consequence of closing the bypass.** Three `evaluate()` branches are now reachable only by a holder of genuine brands, and no caller can be one:
-  - `UNKNOWN_PROVIDER`;
-  - the unloaded-policy guard at step (b);
-  - the non-canonical-resource guard.
-
-  They remain as defense in depth and are asserted by source inspection in `tests/capabilities-core.test.mjs`, not by execution. Consequently two earlier mutants ("accept unloaded policy", "core accepts non-canonical") can no longer be killed by execution. The core coverage guard now asserts 13 of 14 codes through the public path. The adapter still answers a foreign provider name with `MALFORMED_REQUEST` rather than `UNKNOWN_PROVIDER`: that is pre-existing behavior not in AS-082's scope, flagged for Architect disposition.
-- **Windows coverage is by construction, not by execution.** It comes from the production resolver under `path.win32` with a modeled filesystem. It was not executed on a real Windows host, so real NTFS junctions, 8.3 short names, and `\\?\` long-path prefixes are not exercised; `\\?\` and device paths are rejected by the canonical grammar, fail closed.
-- **POSIX filenames containing `\`** are now rejected as a deliberate fail-closed consequence.
-- **Obligations.** `OBL-002` was closed by AS-082. `OBL-009`–`OBL-021` are carried forward unchanged; this transition changes no inventory row.
+- **Evidence classification.** Everything above is Builder command execution (`ACTOR_REPORTED`), unchanged from the AS-083 classification. No `RUNTIME_OBSERVED` evidence exists or is claimed.
+- **Runtime flag.** `executable_runtime_present: false` is intentional: S5 is not wired into any runtime, S3, S4, or tool path. A `DENY` is advisory at any caller that ignores it until a separately authorized integration exists.
+- **Residual trust limits carried unchanged** (in ADR-015): pre-load intrinsic/loader/source compromise, and a lying host or adapter.
+- **AS-083 non-blocking observations carried as recorded:** raw-core branches reachable only by holders of genuine brands, and `MALFORMED_REQUEST` versus `UNKNOWN_PROVIDER` at the adapter boundary.
+- **Obligations carried forward unchanged:** `OBL-010`, `OBL-011`, `OBL-012`, `OBL-015`, and the other open rows. This closure changes no inventory row.
 
 ## Governing references
 
-- Findings: `ML-DEVOS-AS-082` (`AS82-F001`, `AS82-F002`).
-- Design: `ML-DEVOS-RFC-017` §3, §9, approved in `ML-DEVOS-AS-077`.
-- Authority: `D-063`.
-- Protocol: `brain/protocols/CONTEXT_BOOTSTRAP.md`.
+- Authority: `D-065` (closure), `D-064` (preflight), `D-063` (implementation).
+- Reviews: `ML-DEVOS-AS-084` (D.1 preflight, applicable), `ML-DEVOS-AS-083` (technical acceptance), `ML-DEVOS-AS-082`, `ML-DEVOS-AS-077`.
+- Design: `ML-DEVOS-RFC-017`. Lifecycle: `ML-DEVOS-RFC-015` (D.1/D.2).
 - Obligations: `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Evidence locations
 
-- The commit diff against `f6fd5179d8a0d21e7ce0d2121dfc87f783735de3`.
-- `tests/capabilities-bypass.test.mjs` and `tests/capabilities-shell-platform.test.mjs`.
-- `devos/capabilities/trusted-context.mjs` (header), `devos/capabilities/adapters/shell.mjs`, and `devos/capabilities/canonical.mjs`.
-
-**OBL-009 Bootstrap trial measurements (this Builder session; bytes measured at `f6fd517`):**
-
-- **Bootstrap packet:** STATE 3,411 B plus the AS-082 findings section (full review 9,638 B), with no other governance reads.
-- **Code context:** carried from this session's prior turn. Before relying on it, I verified by `git diff d589a16 f6fd517 -- devos tests` (no code drift) instead of re-reading the files.
-- **Legacy/history reads:** 0 of the frozen handoff; 1 `git show --stat` of the routing commit.
-- **Wrong-turn attempts, false blocking, scope violations:** 0.
-- **Rework:** one false-passing probe corrected; three mutation survivors closed by strengthening tests.
+- The commit diff against `2b0627ca5b5549b1478512016bc0f1bf5437e3fb`.
+- `devos/changes/adrs/ML-DEVOS-ADR-015.md`, `devos/devos-manifest.json`, `devos/governance/specifications/VERSIONING_POLICY.md`, `tests/devos-manifest.test.mjs`, and `devos/governance/traceability/TRACEABILITY_INDEX.md`.
 
 ## Next action
 
-The Architect reviews Remediation Cycle 1 independently under the next unused immutable Sync ID after `ML-DEVOS-AS-082`. If that routing deselects `H-S5-REM1-0001`, archive it in the same commit. One autonomous remediation cycle remains within `MAX_REMEDIATION_CYCLES: 2`. No further Builder action is authorized.
+The Architect performs D.2 Post-decision Closure Verification under the next unused immutable Sync ID after `ML-DEVOS-AS-084`, and archives `H-S5-CLOSURE-0001` if its routing deselects this handoff. No later phase (S6+, CP-4+, Model Router) is implied or authorized. No further Builder action is authorized.

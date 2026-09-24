@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S5_CLOSURE
-TURN: CLAUDE
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: SENTINEL_S5_D2_CLOSURE_IMPLEMENTATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: SENTINEL_S5_D2_CLOSURE_VERIFICATION_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S5-CLOSURE-0001
+REVIEW_TARGET_COMMIT: 2b0627ca5b5549b1478512016bc0f1bf5437e3fb
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-084
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -37,7 +37,11 @@ Authorized closure target:
 
 This is closure bookkeeping/adoption authority only. It does not authorize later-phase implementation or S5 implementation-source changes.
 
-## Builder closure turn
+## D.2 return — Architect verification only
+
+The Builder has executed the D-065 closure package and returns the turn for mandatory D.2 Post-decision Closure Verification. Evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S5-CLOSURE-0001`) only. The Architect verifies under the next unused immutable Sync ID after `ML-DEVOS-AS-084`. S5 is not treated as fully closed until D.2 passes. No further Builder action is authorized.
+
+## Builder closure turn (as authorized)
 
 Use LEAN / DELTA-ONLY reads.
 
@@ -63,12 +67,6 @@ Required checks:
 - traceability regeneration/validation with the D.1 baseline fingerprint preserved and no new unexpected ERROR;
 - diff check proving no S5 implementation source, S3/S4 source/interface, manifest schema/validator, later-phase implementation, remote/deploy/main surface was changed.
 
-On completion, publish a new CURRENT_HANDOFF and return:
-
-`TURN: ARCHITECT`
-`STATUS: READY_FOR_ARCHITECT`
-
-for mandatory D.2 post-decision closure verification.
 
 ## Hard boundaries
 

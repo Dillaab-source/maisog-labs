@@ -1,12 +1,14 @@
 # devos/capabilities/ — S5 Capability & Permission Gateway V1
 
-`MANIFEST STATUS: NOT_IMPLEMENTED` — unchanged. `devos/devos-manifest.json` still records this root as `NOT_IMPLEMENTED`, `executable_runtime_present: false`. The V1 implementation below exists and awaits independent Architect review. Moving the manifest to `IMPLEMENTED` is a later, separately authorized closure act (ADR + Decision + D.1/D.2 closure checks, per `ML-DEVOS-RFC-015`), not part of this cycle.
+`MANIFEST STATUS: IMPLEMENTED` — `closure_ref: ML-DEVOS-ADR-015`, `executable_runtime_present: false`. Adopted at Sentinel `v1.8.0` by `ML-DEVOS-ADR-015` / `D-065`, following `ML-DEVOS-AS-083`'s independent technical acceptance and `ML-DEVOS-AS-084`'s D.1 closure preflight. The governed closure completes only when the Architect passes D.2 Post-decision Closure Verification (`ML-DEVOS-RFC-015`).
+
+`executable_runtime_present: false` is a behavior-based statement, not a claim that the code is untested. This is an implemented, repository-local decision library, but no active operational Sentinel runtime, orchestrator, CI path, or tool-call wrapper invokes it as an enforcement service. Closure does not wire it into S3, S4, or any tool-execution path.
 
 Canonical owning phase: **S5 — Capability & Permission Gateway**. Known consuming phase(s): none declared.
 
 ## Implementation truth
 
-Design `ML-DEVOS-RFC-017`, approved in `ML-DEVOS-AS-077`. Implementation authorized by `D-063` as Context Bootstrap V0 Trial #1. The Builder evidence for this cycle is `ACTOR_REPORTED` until independently reviewed.
+Design `ML-DEVOS-RFC-017`, approved in `ML-DEVOS-AS-077`. Implemented under `D-063` as Context Bootstrap V0 Trial #1 (`d589a16`), remediated per `ML-DEVOS-AS-082` (`06b5bef`), technically accepted by `ML-DEVOS-AS-083`, and closed by `ML-DEVOS-ADR-015` / `D-065`. Evidence classes follow `ML-DEVOS-AS-083`: the Builder's command execution is `ACTOR_REPORTED`, and the Architect's source, diff, security, and boundary review is `INDEPENDENTLY_INSPECTED`. No `RUNTIME_OBSERVED` evidence is claimed.
 
 - `index.mjs` — the public entry. It exports `createGateway` plus the envelope, validator and vocabulary helpers. It does **not** export the raw `evaluate()` core.
 - `adapters/` — the five static V1 adapters (`shell`, `github`, `cloudflare`, `mcp`, `browser`). An adapter's `request(requestIntent)` is the only caller-facing decision surface.
