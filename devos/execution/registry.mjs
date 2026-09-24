@@ -71,7 +71,19 @@ export class Registry {
     return this.readJson(path.join(this.taskDir(taskId, "instances"), `${instanceId}.json`));
   }
 
+  // AS95-F001 guards (defence in depth behind the task lock): a write must
+  // carry the version it read (compare-and-set) and must be a legal
+  // transition, so a stale record can never overwrite a newer one and a
+  // terminal state can never be resurrected. Either failure is fail-closed.
   putInstance(record) {
+    const current = this.getInstance(record.task_id, record.instance_id);
+    if (current) {
+      if ((record.version ?? 0) !== (current.version ?? 0)) fail("ISOLATION_UNPROVABLE", `stale write to instance ${record.instance_id} rejected (read version ${record.version ?? 0}, current ${current.version ?? 0})`);
+      if (!(INSTANCE_NEXT[current.state] ?? []).includes(record.state)) fail("ISOLATION_UNPROVABLE", `illegal instance transition ${current.state} -> ${record.state}`);
+    } else if (record.state !== "CREATING" || record.version !== undefined) {
+      fail("ISOLATION_UNPROVABLE", "a new instance record must start in CREATING");
+    }
+    record.version = (current?.version ?? 0) + 1;
     this.writeJson(this.taskDir(record.task_id, "instances"), `${record.instance_id}.json`, record);
   }
 
@@ -106,6 +118,10 @@ export class Registry {
   }
 
   putRtrStatus(taskId, transferId, status) {
+    const current = this.getRtrStatus(taskId, transferId);
+    const allowed = current ? RTR_NEXT[current.status] ?? [] : ["PENDING"];
+    if (!allowed.includes(status.status)) fail("ISOLATION_UNPROVABLE", `illegal RTR transition ${current?.status ?? "(none)"} -> ${status.status}`);
+    if (current?.status === "COMMITTED" && current.post_revision !== status.post_revision) fail("ISOLATION_UNPROVABLE", "a COMMITTED record cannot change its post revision");
     this.writeJson(this.taskDir(taskId, "rtr"), `${transferId}.status.json`, status);
   }
 
@@ -165,7 +181,14 @@ export class Registry {
   }
 
   putPermitStatus(taskId, permitId, status) {
-    this.writeJson(this.taskDir(taskId, "permits"), `${permitId}.status.json`, status);
+    const current = this.getPermitStatus(taskId, permitId);
+    if (current) {
+      if ((status.version ?? 0) !== (current.version ?? 0)) fail("ISOLATION_UNPROVABLE", `stale write to permit ${permitId} rejected (version CAS)`);
+      if (!(PERMIT_NEXT[current.state] ?? []).includes(status.state)) fail("ISOLATION_UNPROVABLE", `illegal permit transition ${current.state} -> ${status.state}`);
+    } else if (!["ISSUED", "REVOKED", "EXPIRED_UNCLAIMED"].includes(status.state) || status.version !== undefined) {
+      fail("ISOLATION_UNPROVABLE", `a permit status cannot start as ${status.state}`);
+    }
+    this.writeJson(this.taskDir(taskId, "permits"), `${permitId}.status.json`, { ...status, version: (current?.version ?? 0) + 1 });
   }
 
   getPermitStatus(taskId, permitId) {
@@ -184,6 +207,27 @@ export class Registry {
     return path.join(this.taskDir(taskId, kind), `${sha256(key)}.json`);
   }
 }
+
+// Legal lifecycle transitions (same-state rewrites carry non-state updates).
+// Terminal: CLEANED (instance); REPORTED, EXPIRED_UNCLAIMED, REVOKED (permit);
+// COMMITTED (idempotent) and ABORTED (RTR). QUARANTINED only moves to CLEANED.
+const INSTANCE_NEXT = Object.freeze({
+  CREATING: ["CREATING", "READY", "QUARANTINED"],
+  READY: ["READY", "ATTACHED", "QUIESCED", "QUARANTINED"],
+  ATTACHED: ["ATTACHED", "QUIESCED", "QUARANTINED"],
+  QUIESCED: ["QUIESCED", "ATTACHED", "COMPLETED", "QUARANTINED"],
+  COMPLETED: ["COMPLETED", "CLEANED", "QUARANTINED"],
+  QUARANTINED: ["QUARANTINED", "CLEANED"],
+  CLEANED: [],
+});
+const PERMIT_NEXT = Object.freeze({
+  ISSUED: ["CLAIMED", "EXPIRED_UNCLAIMED", "REVOKED"],
+  CLAIMED: ["REPORTED"],
+  REPORTED: [],
+  EXPIRED_UNCLAIMED: [],
+  REVOKED: [],
+});
+const RTR_NEXT = Object.freeze({ PENDING: ["COMMITTED", "ABORTED"], COMMITTED: ["COMMITTED"], ABORTED: [] });
 
 // A binding is valid only if it is complete and self-consistent: its permit
 // body hashes to its permit_digest and names the same permit, instance and

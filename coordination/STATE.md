@@ -1,18 +1,18 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS095_FINAL_REMEDIATION_CYCLE_2_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-CORE-IMPL-REM2-0001
+REVIEW_TARGET_COMMIT: 8e9982f6cb2925ff0364436addc7b026f834ac60
 APPLICABLE_REVIEW_ID: ML-DEVOS-AS-095
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
@@ -29,6 +29,10 @@ ML-DEVOS-AS-095 closes AS94-F001/F002/F003/F004 and authorizes the final ordinar
 remediation cycle (2 of 2) for AS95-F001 and AS95-F002 only.
 
 S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
+
+## Architect re-review return — AS-095 final remediation cycle 2 of 2
+
+The Builder has corrected `AS95-F001`: one per-task linearization discipline for every permit, instance and RTR lifecycle mutation (locked and re-read), with registry version compare-and-set and transition tables so that terminal states are monotonic, and read paths that never write. It has corrected `AS95-F002`: quiesce checks current S4 owner, revision, lease and role state under the lock before any mutation. It returns the turn for independent re-review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-095`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-IMPL-REM2-0001`) only. The manifest is unchanged, S6 is not closed, and no real execution driver, live remote transport or credential was introduced. The ordinary remediation budget is exhausted; any further blocker routes to Paulo. No further Builder action is authorized.
 
 ## Authorized remediation
 

@@ -12,6 +12,7 @@ A repository-local library that proves *where* and *under what conditions* gover
 - **Dedicated-clone workspaces** (`host.mjs`) under a host-configured `workspace_root` outside every Git tree. It creates non-existent paths safely (§9.1), deletes without following links, and quarantines rather than cleaning into compliance (`paths.mjs`).
 - **Environment and credential boundaries.** The environment is built from an allowlist with a deny-set backstop. Instance Git and npm config carries no credentials, and credential files are scanned for by name (`environment.mjs`).
 - **Registry and hash-chained journal** (`registry.mjs`, `journal.mjs`) under the host state directory.
+- **One linearization discipline** (`AS95-F001`). Every mutation of permit status, instance records and RTR status runs under the per-task S6 lock, after re-reading the authoritative state. External effects (clone, push, S4 transition) run outside the lock, and their outcomes are committed under it. Behind the lock, the registry enforces version compare-and-set and legal-transition tables, so a stale write fails closed and a terminal state (`REVOKED`, `EXPIRED_UNCLAIMED`, `REPORTED`, `QUARANTINED`, `CLEANED`) is never resurrected. Journal appends take a leaf append lock. Quiesce, like claim, re-checks current S4 fencing under the lock before it changes anything (`AS95-F002`).
 - **Result Transfer Record and publication** (`rtr.mjs`, `host.mjs`):
   - a write-ahead immutable body;
   - a non-circular `prepublication_provenance_digest`;

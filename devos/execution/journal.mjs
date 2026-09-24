@@ -40,6 +40,9 @@ export function replayJournal(lines, identityDigest) {
   return { head, entries };
 }
 
+const APPEND_LOCK_WAIT_MS = 2000;
+const SLEEP = new Int32Array(new SharedArrayBuffer(4));
+
 export class Journal {
   constructor(filePath, identityDigest, clock) {
     this.filePath = filePath;
@@ -61,12 +64,35 @@ export class Journal {
     return this.replay().head;
   }
 
-  // Fixed member order: seq, type, at, data, prev_head.
+  // Fixed member order: seq, type, at, data, prev_head. Appends are serialized
+  // by a leaf append lock (never held while acquiring anything else), so two
+  // writers can never both extend the same head (AS95-F001). A held append
+  // lock is waited on briefly, then fails closed; it is never stolen.
   append(type, data = {}) {
+    fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
+    const lock = `${this.filePath}.lock`;
+    const deadline = Date.now() + APPEND_LOCK_WAIT_MS;
+    for (;;) {
+      try {
+        fs.closeSync(fs.openSync(lock, "wx", 0o600));
+        break;
+      } catch (err) {
+        if (err.code !== "EEXIST") throw err;
+        if (Date.now() >= deadline) fail("ISOLATION_UNPROVABLE", "journal append lock is held (no automatic stealing)");
+        Atomics.wait(SLEEP, 0, 0, 5);
+      }
+    }
+    try {
+      return this.appendHeld(type, data);
+    } finally {
+      fs.rmSync(lock, { force: true });
+    }
+  }
+
+  appendHeld(type, data) {
     const { head, entries } = this.replay();
     const entry = { seq: entries.length, type, at: new Date(this.clock()).toISOString(), data, prev_head: head };
     const bytes = JSON.stringify(entry);
-    fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
     const fd = fs.openSync(this.filePath, "a", 0o600);
     try {
       fs.writeSync(fd, `${bytes}\n`);

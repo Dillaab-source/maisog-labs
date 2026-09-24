@@ -18,6 +18,7 @@
 // MAY / CAN / ISOLATED stay separate: governance authority is consumed by
 // reference, S5 decisions are consumed verbatim (S5 is not argv-aware), and
 // isolation is this library's own proof. Isolation != Authority.
+import { AsyncLocalStorage } from "node:async_hooks";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -48,7 +49,7 @@ import { Registry } from "./registry.mjs";
 import { buildPublicationPayload, buildRtrBody, storedEvidenceRef, transferIdOf, verifyAdjacency } from "./rtr.mjs";
 import { createTransport } from "./transport.mjs";
 import {
-  EVIDENCE_CLASS, ExecutionError, HEX40, ISOLATION_LEVEL, NON_AUTHORITY_DISCLAIMER, ROLES, ROLE_STATE, fail, selectReason,
+  EVIDENCE_CLASS, ExecutionError, HEX40, ISOLATION_LEVEL, NON_AUTHORITY_DISCLAIMER, ROLES, fail, selectReason,
 } from "./vocabulary.mjs";
 
 const CONSEQUENCE_FLAGS = [
@@ -106,7 +107,10 @@ export function createExecutionHost(config) {
   const windows = process.platform === "win32";
   const pathOpts = { windows };
   const clock = () => cfg.clock();
-  const step = async (name, ctx) => cfg.faults?.onStep?.(name, ctx);
+  // Test fault hooks are external observers: they run OUTSIDE any lock scope,
+  // so an operation a hook starts competes for the task lock like any other.
+  const lockScope = new AsyncLocalStorage();
+  const step = async (name, ctx) => lockScope.exit(() => cfg.faults?.onStep?.(name, ctx));
   const registry = new Registry(cfg.hostStateDir);
   const slug = cfg.project.replaceAll("/", "__");
   const bootEnv = () => ({ PATH: cfg.toolchainPath.join(windows ? ";" : ":"), GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: windows ? "NUL" : "/dev/null", GIT_TERMINAL_PROMPT: "0", HOME: cfg.hostStateDir });
@@ -182,10 +186,38 @@ export function createExecutionHost(config) {
   }
 
   const treeSnapshot = (repo, env) => sha256(`${headSha(repo, env) ?? ""}\n${statusEntries(repo, env).join("\0")}`);
-  const save = (record) => {
-    registry.putInstance(record);
-    return record;
-  };
+  // ------------------------------------------------------------ linearization (AS95-F001)
+  // ONE rule orders every competing lifecycle mutation: any write of permit
+  // status, instance record or RTR status happens inside `locked(taskId, fn)`
+  // -- the per-task S6 registry lock -- after re-reading the authoritative
+  // record/status under that lock. Public operations take the lock exactly
+  // once; private helpers named *Locked assert that the current async chain
+  // holds it. Re-acquiring is a programming error that fails closed instead of
+  // deadlocking. Behind the lock, the registry enforces version compare-and-set
+  // and legal-transition tables, so a stale or out-of-order write is refused
+  // rather than resurrecting a terminal state. External effects (clone, push,
+  // S4 transition) run outside the lock; their outcomes are committed under it.
+  //
+  //   create      CREATING record / READY / failure-quarantine  -> locked, re-read
+  //   validate    stale flag                                     -> locked, re-read
+  //   attach      READY|QUIESCED -> ATTACHED (+ S4 fencing)       -> locked
+  //   adoptRenewal checkpoint                                    -> locked
+  //   requestPermit binding + derived artifacts                  -> locked
+  //   claimPermit ISSUED -> CLAIMED | EXPIRED | REVOKED          -> locked
+  //   recordReport CLAIMED -> REPORTED, instance evidence        -> locked
+  //   quiesce     S4 fencing, revoke ISSUED, -> QUIESCED          -> locked
+  //   complete    pushed_sha, RTR PENDING                        -> locked
+  //   publish     RTR ABORTED|COMMITTED, -> COMPLETED            -> locked
+  //   finish / cleanup / recover (per instance)                  -> locked
+  function locked(taskId, fn) {
+    if (lockScope.getStore()?.has(taskId)) fail("ISOLATION_UNPROVABLE", `nested acquisition of the S6 task lock for ${taskId}`);
+    const held = new Set([...(lockScope.getStore() ?? []), taskId]);
+    return registry.withTaskLock(taskId, () => lockScope.run(held, fn), { waitMs: cfg.lockWaitMs });
+  }
+
+  function assertLocked(taskId) {
+    if (!lockScope.getStore()?.has(taskId)) fail("ISOLATION_UNPROVABLE", `S6 task lock for ${taskId} is not held by this operation`);
+  }
 
   function loadRecord(instanceId) {
     const r = registry.findInstance(instanceId);
@@ -193,29 +225,46 @@ export function createExecutionHost(config) {
     return r;
   }
 
-  function markStale(record, reason) {
-    if (record.stale) return;
-    record.stale = true;
-    record.stale_reason = reason;
-    save(record);
-    try {
-      journalOf(record).append("STALE", { reason });
-    } catch {
-      // the stale flag stands on its own
-    }
+  // Re-read under the lock: the only record a locked transition may write.
+  function freshLocked(instanceId) {
+    const r = loadRecord(instanceId);
+    assertLocked(r.task_id);
+    return r;
   }
 
-  function quarantine(record, reason) {
+  function saveLocked(record) {
+    assertLocked(record.task_id);
+    registry.putInstance(record);
+    return record;
+  }
+
+  function markStaleLocked(record, reason) {
+    if (record.stale || !LIVE_STATES.has(record.state)) return;
+    record.stale = true;
+    record.stale_reason = reason;
+    saveLocked(record);
+    journalOf(record).append("STALE", { reason });
+  }
+
+  // Terminal for execution: an already QUARANTINED (or CLEANED) record is never
+  // rewritten, so the first quarantine reason stands.
+  function quarantineLocked(record, reason) {
+    if (record.state === "QUARANTINED" || record.state === "CLEANED") return;
     record.state = "QUARANTINED";
     record.quarantine_reason = reason;
-    save(record);
-    try {
-      journalOf(record).append("QUARANTINE", { reason });
-    } catch {
-      // the quarantine flag stands on its own
-    }
-    revokeIssued(record, "QUARANTINE");
+    saveLocked(record);
+    journalOf(record).append("QUARANTINE", { reason });
+    revokeIssuedLocked(record, "QUARANTINE");
   }
+
+  // Current S4 fencing for a mutating step: owner, revision, lease and the
+  // role's S4 state (fencingFailures covers all four; RFC-019 §8; AS95-F002).
+  async function currentFencing(record) {
+    const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
+    return fencingFailures(record.identity, record.checkpoint, observed, clock());
+  }
+
+  const STALE_CODES = ["OWNER_MISMATCH", "FENCING_REVISION_MISMATCH", "INSTANCE_STALE"];
 
   // ------------------------------------------------------------ permit status
   // Permits are enumerated from their request bindings -- the single source of
@@ -227,15 +276,13 @@ export function createExecutionHost(config) {
       .map((b) => ({ permit_id: b.permit_id, binding: b, status: statusOf(record.task_id, b) }));
   }
 
-  // Lazy expiry: an ISSUED permit past its claim deadline is EXPIRED_UNCLAIMED.
-  // Time NEVER moves a CLAIMED permit anywhere (AS90-F001).
+  // Lazy expiry: an ISSUED permit past its claim deadline READS as
+  // EXPIRED_UNCLAIMED. This is a pure derivation (no write); the transition is
+  // persisted only by locked paths (AS95-F001). Time NEVER moves a CLAIMED
+  // permit anywhere (AS90-F001).
   function currentPermitStatus(taskId, permitId) {
     const s = registry.getPermitStatus(taskId, permitId);
-    if (s && s.state === "ISSUED" && clock() >= s.claim_deadline_ms) {
-      const next = { ...s, state: "EXPIRED_UNCLAIMED", updated_at: new Date(clock()).toISOString() };
-      registry.putPermitStatus(taskId, permitId, next);
-      return next;
-    }
+    if (s && s.state === "ISSUED" && clock() >= s.claim_deadline_ms) return { ...s, state: "EXPIRED_UNCLAIMED", expired_derived: true };
     return s;
   }
 
@@ -255,7 +302,7 @@ export function createExecutionHost(config) {
       return s;
     }
     const derived = initialStatus(binding);
-    return clock() >= derived.claim_deadline_ms ? { ...derived, state: "EXPIRED_UNCLAIMED" } : derived;
+    return clock() >= derived.claim_deadline_ms ? { ...derived, state: "EXPIRED_UNCLAIMED", expired_derived: true } : derived;
   }
 
   const journalHasPermit = (record, permitId) => journalOf(record).replay().entries
@@ -267,7 +314,8 @@ export function createExecutionHost(config) {
   // Derives (idempotently) every artifact from the binding: body, initial
   // status, PERMIT_ISSUED journal entry. Caller holds the task lock. Each
   // durable sub-step is a fault-injection point.
-  async function materialize(record, b) {
+  async function materializeLocked(record, b) {
+    assertLocked(record.task_id);
     registry.writePermitBody(record.task_id, b.permit_id, b.permit_body);
     await step("permit-after-body", { permitId: b.permit_id });
     if (registry.getPermitStatus(record.task_id, b.permit_id) === null) registry.putPermitStatus(record.task_id, b.permit_id, initialStatus(b));
@@ -278,15 +326,22 @@ export function createExecutionHost(config) {
     await step("permit-after-journal", { permitId: b.permit_id });
   }
 
-  function revokeIssued(record, reason) {
-    for (const { permit_id: id, binding, status } of permitsOf(record)) {
-      if (status.state === "ISSUED") {
-        registry.putPermitStatus(record.task_id, id, { ...initialStatus(binding), ...status, state: "REVOKED", revocation_reason: reason, updated_at: new Date(clock()).toISOString() });
-        try {
-          journalOf(record).append("PERMIT_REVOKED", { permit_id: id, reason });
-        } catch {
-          // revocation stands on its own
-        }
+  // Writes a permit status transition under the lock from the status just
+  // read (its version is the CAS token).
+  function putStatusLocked(record, binding, read, next) {
+    assertLocked(record.task_id);
+    const { expired_derived: _d, ...base } = read;
+    registry.putPermitStatus(record.task_id, binding.permit_id, { ...(read.version === undefined ? initialStatus(binding) : {}), ...base, ...next, updated_at: new Date(clock()).toISOString() });
+  }
+
+  function revokeIssuedLocked(record, reason) {
+    for (const { permit_id: id, binding } of permitsOf(record)) {
+      const status = statusOf(record.task_id, binding);
+      if (status.state === "EXPIRED_UNCLAIMED" && status.expired_derived) {
+        putStatusLocked(record, binding, status, { state: "EXPIRED_UNCLAIMED" });
+      } else if (status.state === "ISSUED") {
+        putStatusLocked(record, binding, status, { state: "REVOKED", revocation_reason: reason });
+        journalOf(record).append("PERMIT_REVOKED", { permit_id: id, reason });
       }
     }
   }
@@ -378,10 +433,12 @@ export function createExecutionHost(config) {
         tree_snapshot: null, pushed_sha: null, stale: false, stale_reason: null, quarantine_reason: null,
         qa_source_transfer_id: qaBody?.transfer_id ?? null,
       };
-      save(record);
       const journal = journalOf(record);
-      journal.append("CREATE_BEGIN", { identity_digest: record.identity_digest, platform_profile: identity.platform_profile });
-      for (const d of pending) journal.append("S5_DECISION", d);
+      await locked(taskId, async () => {
+        saveLocked(record);
+        journal.append("CREATE_BEGIN", { identity_digest: record.identity_digest, platform_profile: identity.platform_profile });
+        for (const d of pending) journal.append("S5_DECISION", d);
+      });
       await step("after-create-begin", { record });
 
       const t = transportFor(journal);
@@ -402,22 +459,33 @@ export function createExecutionHost(config) {
         ...(statusEntries(p.repo, env).length ? ["DIRTY_WORKTREE"] : []),
         ...(scanCredentialFiles(inst.native, { tracked }).length ? ["SECRET_MATERIAL_DETECTED"] : []),
       ], "post-clone verification");
-      record.tree_snapshot = treeSnapshot(p.repo, env);
-      record.state = "READY";
-      save(record);
-      journal.append("READY", { base_sha: baseSha, task_branch: taskBranch, tree_snapshot: record.tree_snapshot });
-      if (idempotencyKey !== null) {
-        const kf = registry.keyFile(taskId, "create-keys", idempotencyKey);
-        registry.writeJson(path.dirname(kf), path.basename(kf), { binding: bindingKey, instance_id: instanceId });
-      }
-      return record;
+      const snapshot = treeSnapshot(p.repo, env);
+      return await locked(taskId, async () => {
+        // Recovery may have quarantined a slow CREATING instance meanwhile.
+        const fresh = freshLocked(instanceId);
+        if (fresh.state !== "CREATING") fail("INSTANCE_STALE", `instance became ${fresh.state} during creation`);
+        fresh.tree_snapshot = snapshot;
+        fresh.state = "READY";
+        saveLocked(fresh);
+        journal.append("READY", { base_sha: baseSha, task_branch: taskBranch, tree_snapshot: snapshot });
+        if (idempotencyKey !== null) {
+          const kf = registry.keyFile(taskId, "create-keys", idempotencyKey);
+          registry.writeJson(path.dirname(kf), path.basename(kf), { binding: bindingKey, instance_id: instanceId });
+        }
+        return fresh;
+      });
     } catch (err) {
       const code = err instanceof ExecutionError ? err.code : "ISOLATION_UNPROVABLE";
       if (chain || record) {
-        attempts.count += 1;
-        attempts.last_code = code;
-        registry.writeJson(path.dirname(attemptsFile), path.basename(attemptsFile), attempts);
-        if (record) quarantine(record, code);
+        try {
+          await locked(taskId, async () => {
+            const now = registry.readJson(attemptsFile) ?? { count: 0, last_code: null };
+            registry.writeJson(path.dirname(attemptsFile), path.basename(attemptsFile), { count: now.count + 1, last_code: code });
+            if (record && registry.getInstance(taskId, instanceId)) quarantineLocked(freshLocked(instanceId), code);
+          });
+        } catch {
+          // lock unavailable: a CREATING record is quarantined by recover()
+        }
       }
       if (err instanceof ExecutionError) throw err;
       throw new ExecutionError("ISOLATION_UNPROVABLE", String(err.message));
@@ -472,7 +540,13 @@ export function createExecutionHost(config) {
       push(e instanceof ExecutionError ? e.code : "ISOLATION_UNPROVABLE");
     }
     const reason = selectReason(codes);
-    if (reason && ["OWNER_MISMATCH", "FENCING_REVISION_MISMATCH", "INSTANCE_STALE"].includes(reason) && LIVE_STATES.has(record.state)) markStale(record, reason);
+    if (reason && STALE_CODES.includes(reason) && LIVE_STATES.has(record.state) && !record.stale) {
+      try {
+        await locked(record.task_id, async () => markStaleLocked(freshLocked(instanceId), reason));
+      } catch {
+        // lock unavailable: the failed validation still fails closed
+      }
+    }
     return reason ? { outcome: "FAILED", reason, codes: [...new Set(codes)] } : { outcome: "PROVEN", reason: null, codes: [] };
   }
 
@@ -484,28 +558,42 @@ export function createExecutionHost(config) {
 
   // =================================================================== attach
   async function attach(instanceId, { actorId } = {}) {
-    const record = await requireProven(instanceId);
-    if (actorId !== record.identity.owner) fail("OWNER_MISMATCH", "only the identity owner may attach");
-    if (!["READY", "QUIESCED"].includes(record.state)) fail("INSTANCE_STALE", `cannot attach from ${record.state}`);
-    record.state = "ATTACHED";
-    save(record);
-    journalOf(record).append("ATTACH", { actor: actorId });
-    return record;
+    const pre = await requireProven(instanceId);
+    return locked(pre.task_id, async () => {
+      const record = freshLocked(instanceId);
+      if (actorId !== record.identity.owner) fail("OWNER_MISMATCH", "only the identity owner may attach");
+      if (record.stale || !["READY", "QUIESCED"].includes(record.state)) fail("INSTANCE_STALE", `cannot attach from ${record.state}`);
+      if (hasPendingPublication(record)) fail("INSTANCE_STALE", "a publication for this instance is in progress");
+      failWith(await currentFencing(record), "S4 fencing at attach");
+      record.state = "ATTACHED";
+      saveLocked(record);
+      journalOf(record).append("ATTACH", { actor: actorId });
+      return record;
+    });
+  }
+
+  function hasPendingPublication(record) {
+    return registry.listRtr(record.task_id).some((r) => r.status?.status === "PENDING"
+      && JSON.parse(registry.readRtrBody(record.task_id, r.transfer_id) ?? "{}").builder_identity_digest === record.identity_digest);
   }
 
   // ===================================================== renew (checkpoint)
   async function adoptRenewal(instanceId, { result, adoptedFrom = "renew" } = {}) {
-    const record = loadRecord(instanceId);
-    const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
-    try {
-      record.checkpoint = adoptS4Result(record.checkpoint, record.identity, result, adoptedFrom, observed);
-    } catch (e) {
-      if (e instanceof ExecutionError && e.code === "INSTANCE_STALE") markStale(record, e.detail);
-      throw e;
-    }
-    save(record);
-    journalOf(record).append("CHECKPOINT", { current_revision: record.checkpoint.current_revision, adopted_from: adoptedFrom });
-    return record.checkpoint;
+    const pre = loadRecord(instanceId);
+    return locked(pre.task_id, async () => {
+      const record = freshLocked(instanceId);
+      if (!LIVE_STATES.has(record.state)) fail("INSTANCE_STALE", `cannot adopt a checkpoint in ${record.state}`);
+      const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
+      try {
+        record.checkpoint = adoptS4Result(record.checkpoint, record.identity, result, adoptedFrom, observed);
+      } catch (e) {
+        if (e instanceof ExecutionError && e.code === "INSTANCE_STALE") markStaleLocked(freshLocked(instanceId), e.detail);
+        throw e;
+      }
+      saveLocked(record);
+      journalOf(record).append("CHECKPOINT", { current_revision: record.checkpoint.current_revision, adopted_from: adoptedFrom });
+      return record.checkpoint;
+    });
   }
 
   // ============================================================ permits (§13.1)
@@ -533,9 +621,7 @@ export function createExecutionHost(config) {
   async function replayBinding(record, binding, want) {
     if (!sameBinding(binding, want)) fail("MALFORMED_REQUEST", "request_id reused with a different binding");
     if (binding.instance_id !== record.instance_id) fail("ISOLATION_UNPROVABLE", "binding names another instance");
-    if (!isMaterialized(record, binding)) {
-      await registry.withTaskLock(record.task_id, () => materialize(record, binding), { waitMs: cfg.lockWaitMs });
-    }
+    if (!isMaterialized(record, binding)) await locked(record.task_id, () => materializeLocked(record, binding));
     return { replay: true, ...permitView(record, binding) };
   }
 
@@ -564,9 +650,13 @@ export function createExecutionHost(config) {
       throw e;
     }
     let raced = null;
-    const minted = await registry.withTaskLock(record.task_id, async () => {
+    const minted = await locked(record.task_id, async () => {
       raced = registry.readBinding(record.task_id, record.instance_id, request.request_id);
       if (raced) return null;
+      // Re-read: a quiesce/quarantine/renewal may have landed since validation.
+      const fresh = freshLocked(record.instance_id);
+      if (fresh.stale || fresh.state !== "ATTACHED") fail("INSTANCE_STALE", `instance is ${fresh.state}, not ATTACHED`);
+      if (request.checkpoint_revision !== fresh.checkpoint.current_revision) fail("FENCING_REVISION_MISMATCH", "the fencing checkpoint moved before issuance");
       const permitId = newId128();
       const now = clock();
       const bytes = buildPermitBody({
@@ -581,9 +671,9 @@ export function createExecutionHost(config) {
       await step("permit-before-binding", { permitId });
       registry.writeBinding(record.task_id, record.instance_id, request.request_id, binding); // the commit point
       await step("permit-after-binding", { permitId });
-      await materialize(record, binding);
+      await materializeLocked(record, binding);
       return binding;
-    }, { waitMs: cfg.lockWaitMs });
+    });
     if (raced) return replayBinding(record, raced, want);
     return { replay: false, ...permitView(record, minted) };
   }
@@ -598,25 +688,25 @@ export function createExecutionHost(config) {
   async function claimPermit({ permitId, request } = {}) {
     validateRequest(request);
     const pre = loadRecord(request.instance_id);
-    return registry.withTaskLock(pre.task_id, async () => {
-      const record = loadRecord(request.instance_id);
+    return locked(pre.task_id, async () => {
+      await step("claim-locked", { permitId });
+      const record = freshLocked(request.instance_id);
       const binding = registry.readBinding(record.task_id, record.instance_id, request.request_id);
       if (!binding || binding.permit_id !== permitId) fail("ISOLATION_UNPROVABLE", "no request binding names this permit (orphan or unknown permit)");
-      if (!isMaterialized(record, binding)) await materialize(record, binding);
+      if (!isMaterialized(record, binding)) await materializeLocked(record, binding);
       const status = statusOf(record.task_id, binding);
       const permit = parsePermitBody(binding.permit_body, binding.permit_digest);
+      if (status.state === "EXPIRED_UNCLAIMED" && status.expired_derived) putStatusLocked(record, binding, status, { state: "EXPIRED_UNCLAIMED" });
       if (status.state !== "ISSUED") fail("ISOLATION_UNPROVABLE", `permit is ${status.state}, not ISSUED`);
       if (permit.request_id !== request.request_id || permit.argv_digest !== argvDigest(request.argv)) fail("ISOLATION_UNPROVABLE", "claim does not match the permitted request");
       if (record.stale || record.state !== "ATTACHED") fail("INSTANCE_STALE", "instance is not attached");
       const journal = journalOf(record);
       const revoke = (reason, code, detail) => {
-        registry.putPermitStatus(record.task_id, permitId, { ...status, state: "REVOKED", revocation_reason: reason, updated_at: new Date(clock()).toISOString() });
+        putStatusLocked(record, binding, status, { state: "REVOKED", revocation_reason: reason });
         journal.append("CLAIM_REFUSED", { permit_id: permitId, permit_digest: binding.permit_digest, reason, code, detail });
       };
-      const observed = await getState({ dir: cfg.s4Dir, taskId: record.task_id });
-      const f = fencingFailures(record.identity, record.checkpoint, observed, clock());
+      const f = await currentFencing(record);
       if (permit.checkpoint_revision !== record.checkpoint.current_revision) f.push("FENCING_REVISION_MISMATCH");
-      if (observed && observed.state !== ROLE_STATE[record.identity.role]) f.push("INSTANCE_STALE");
       if (f.length) {
         const code = selectReason(f);
         revoke("STALE", code, "S4 fencing at claim");
@@ -631,59 +721,82 @@ export function createExecutionHost(config) {
         journal.append("CLAIM_S5_CHECK", { permit_id: permitId, permit_digest: binding.permit_digest, outcome: "DENIED", code: err.code, detail: err.detail ?? String(err.message) });
         throw err;
       }
-      registry.putPermitStatus(record.task_id, permitId, { ...status, state: "CLAIMED", claimed_at: new Date(clock()).toISOString(), updated_at: new Date(clock()).toISOString() });
+      putStatusLocked(record, binding, status, { state: "CLAIMED", claimed_at: new Date(clock()).toISOString() });
       journal.append("CLAIM_S5_CHECK", { permit_id: permitId, permit_digest: binding.permit_digest, outcome: "ALLOW", ...check });
       journal.append("PERMIT_CLAIMED", { permit_id: permitId, permit_digest: binding.permit_digest });
       return { permit, cwd: pathsFor(record).repo, environment: envFor(pathsFor(record)) };
-    }, { waitMs: cfg.lockWaitMs });
+    });
   }
 
+  // CLAIMED -> REPORTED under the lock, from freshly re-read state. The report
+  // is recorded as evidence even after quarantine, but only an ATTACHED
+  // instance absorbs it (process groups, tree snapshot); a QUARANTINED record
+  // is never rewritten (late-report rule, AS90-F001 / AS95-F001).
   async function recordReport(report) {
     validateReport(report);
-    const record = loadRecord(report.instance_id);
-    const status = registry.getPermitStatus(record.task_id, report.permit_id);
-    if (!status || status.instance_id !== record.instance_id) fail("ISOLATION_UNPROVABLE", "report for an unknown permit");
-    const permit = parsePermitBody(registry.readPermitBody(record.task_id, report.permit_id), status.permit_digest);
-    const binding = registry.readBinding(record.task_id, record.instance_id, permit.request_id);
-    if (!binding || binding.permit_id !== report.permit_id || binding.permit_digest !== status.permit_digest) fail("ISOLATION_UNPROVABLE", "report for a permit no request binding names (orphan)");
-    if (status.state !== "CLAIMED") fail("ISOLATION_UNPROVABLE", `report for a permit that is ${status.state}, not CLAIMED`);
-    if (report.argv_digest !== permit.argv_digest || report.environment_digest !== permit.environment_digest) fail("ISOLATION_UNPROVABLE", "report digests do not match the permit");
-    const summary = reportEvidence(report); // every RFC-019 report field, durably (AS94-F004)
-    registry.putPermitStatus(record.task_id, report.permit_id, { ...status, state: "REPORTED", report: summary, updated_at: new Date(clock()).toISOString() });
-    const journal = journalOf(record);
-    if (record.state === "QUARANTINED") {
-      journal.append("LATE_REPORT", { permit_id: report.permit_id, ...summary }); // evidence only; never un-quarantines
-      return { recorded: true, quarantined: true };
-    }
-    record.reported_pgids = [...new Set([...record.reported_pgids, ...report.process_groups])];
-    const p = pathsFor(record);
-    record.tree_snapshot = treeSnapshot(p.repo, envFor(p));
-    save(record);
-    journal.append("REPORT", { permit_id: report.permit_id, permit_digest: status.permit_digest, ...summary, tree_snapshot: record.tree_snapshot });
-    return { recorded: true, quarantined: false };
+    const pre = loadRecord(report.instance_id);
+    return locked(pre.task_id, async () => {
+      await step("report-locked", { permitId: report.permit_id });
+      const record = freshLocked(report.instance_id);
+      const status = registry.getPermitStatus(record.task_id, report.permit_id);
+      if (!status || status.instance_id !== record.instance_id) fail("ISOLATION_UNPROVABLE", "report for an unknown permit");
+      const permit = parsePermitBody(registry.readPermitBody(record.task_id, report.permit_id), status.permit_digest);
+      const binding = registry.readBinding(record.task_id, record.instance_id, permit.request_id);
+      if (!binding || binding.permit_id !== report.permit_id || binding.permit_digest !== status.permit_digest) fail("ISOLATION_UNPROVABLE", "report for a permit no request binding names (orphan)");
+      if (status.state !== "CLAIMED") fail("ISOLATION_UNPROVABLE", `report for a permit that is ${status.state}, not CLAIMED`);
+      if (report.argv_digest !== permit.argv_digest || report.environment_digest !== permit.environment_digest) fail("ISOLATION_UNPROVABLE", "report digests do not match the permit");
+      const summary = reportEvidence(report); // every RFC-019 report field, durably (AS94-F004)
+      putStatusLocked(record, binding, status, { state: "REPORTED", report: summary });
+      const journal = journalOf(record);
+      if (record.state !== "ATTACHED") {
+        journal.append("LATE_REPORT", { permit_id: report.permit_id, instance_state: record.state, ...summary }); // evidence only
+        return { recorded: true, quarantined: record.state === "QUARANTINED" };
+      }
+      record.reported_pgids = [...new Set([...record.reported_pgids, ...report.process_groups])];
+      const p = pathsFor(record);
+      record.tree_snapshot = treeSnapshot(p.repo, envFor(p));
+      saveLocked(record);
+      journal.append("REPORT", { permit_id: report.permit_id, permit_digest: status.permit_digest, ...summary, tree_snapshot: record.tree_snapshot });
+      return { recorded: true, quarantined: false };
+    });
   }
 
   // ================================================================== quiesce
+  // One locked transaction (AS95-F001/F002): re-read the instance, check the
+  // CURRENT S4 owner/revision/lease/role state BEFORE touching anything, then
+  // revoke ISSUED permits, require no execution-uncertain CLAIMED permit, prove
+  // the reported groups gone, and commit QUIESCED.
   async function quiesce(instanceId) {
-    const record = loadRecord(instanceId);
-    if (!["ATTACHED", "READY"].includes(record.state)) fail("INSTANCE_STALE", `cannot quiesce from ${record.state}`);
-    revokeIssued(record, "QUIESCE");
-    const claimed = permitsOf(record).filter((p) => currentPermitStatus(record.task_id, p.permit_id)?.state === "CLAIMED");
-    if (claimed.length) {
-      journalOf(record).append("QUIESCE_FAILED", { claimed_unreported: claimed.map((p) => p.permit_id) });
-      fail("QUIESCE_UNPROVEN", "a claimed permit has no verified report (execution uncertain)");
-    }
-    const q = await proveGroupsEmpty(record.reported_pgids, { inspector: inspector(), deadlineMs: cfg.quiesceDeadlineMs ?? 2000 });
-    if (!q.proven) {
-      journalOf(record).append("QUIESCE_FAILED", { survivors: q.survivors });
-      fail("QUIESCE_UNPROVEN", `reported process groups still alive: ${q.survivors.join(", ")}`);
-    }
-    const p = pathsFor(record);
-    record.tree_snapshot = treeSnapshot(p.repo, envFor(p));
-    record.state = "QUIESCED";
-    save(record);
-    journalOf(record).append("QUIESCE", { tree_snapshot: record.tree_snapshot, proven_groups: record.reported_pgids });
-    return record;
+    const pre = loadRecord(instanceId);
+    return locked(pre.task_id, async () => {
+      await step("quiesce-locked", { instanceId });
+      const record = freshLocked(instanceId);
+      if (record.stale || !["ATTACHED", "READY"].includes(record.state)) fail("INSTANCE_STALE", `cannot quiesce from ${record.state}`);
+      const f = await currentFencing(record);
+      if (f.length) {
+        const code = selectReason(f);
+        if (STALE_CODES.includes(code)) markStaleLocked(record, code);
+        journalOf(record).append("QUIESCE_REFUSED", { codes: [...new Set(f)] });
+        fail(code, `S4 fencing at quiesce: ${[...new Set(f)].join(", ")}`);
+      }
+      revokeIssuedLocked(record, "QUIESCE");
+      const claimed = permitsOf(record).filter((p) => currentPermitStatus(record.task_id, p.permit_id)?.state === "CLAIMED");
+      if (claimed.length) {
+        journalOf(record).append("QUIESCE_FAILED", { claimed_unreported: claimed.map((p) => p.permit_id) });
+        fail("QUIESCE_UNPROVEN", "a claimed permit has no verified report (execution uncertain)");
+      }
+      const q = await proveGroupsEmpty(record.reported_pgids, { inspector: inspector(), deadlineMs: cfg.quiesceDeadlineMs ?? 2000 });
+      if (!q.proven) {
+        journalOf(record).append("QUIESCE_FAILED", { survivors: q.survivors });
+        fail("QUIESCE_UNPROVEN", `reported process groups still alive: ${q.survivors.join(", ")}`);
+      }
+      const p = pathsFor(record);
+      record.tree_snapshot = treeSnapshot(p.repo, envFor(p));
+      record.state = "QUIESCED";
+      saveLocked(record);
+      journalOf(record).append("QUIESCE", { tree_snapshot: record.tree_snapshot, proven_groups: record.reported_pgids });
+      return record;
+    });
   }
 
   // ========================================================= publication core
@@ -700,9 +813,11 @@ export function createExecutionHost(config) {
       });
     } catch (err) {
       const code = kernelCode(err);
-      registry.putRtrStatus(record.task_id, transferId, { status: "ABORTED", post_revision: null, rtr_digest: sha256(bodyBytes), reason: err.code ?? String(err.message) });
-      journal.append("RTR_ABORTED", { transfer_id: transferId, reason: err.code ?? "error", remote_ref: evidenceRef.remote_ref, disposition: "STALE_UNPUBLISHED" });
-      markStale(record, code);
+      await locked(record.task_id, async () => {
+        registry.putRtrStatus(record.task_id, transferId, { status: "ABORTED", post_revision: null, rtr_digest: sha256(bodyBytes), reason: err.code ?? String(err.message) });
+        journal.append("RTR_ABORTED", { transfer_id: transferId, reason: err.code ?? "error", remote_ref: evidenceRef.remote_ref, disposition: "STALE_UNPUBLISHED" });
+        markStaleLocked(freshLocked(record.instance_id), code);
+      });
       fail(code, `S4 rejected the publication transition: ${err.code ?? err.message}`);
     }
     await step("after-transition", { record, transferId });
@@ -711,10 +826,17 @@ export function createExecutionHost(config) {
     const ok = result.revision === post && result.state === "READY_FOR_QA" && result.owner === null
       && observed && (observed.revision === post ? observed.state === "READY_FOR_QA" && observed.owner === null : observed.revision > post);
     if (!ok) fail("RESULT_TRANSFER_UNPROVEN", "publication transition could not be proven against S4");
-    registry.putRtrStatus(record.task_id, transferId, { status: "COMMITTED", post_revision: post, rtr_digest: sha256(bodyBytes), reason: null });
-    journal.append("RTR_COMMITTED", { transfer_id: transferId, post_revision: post });
-    record.state = "COMPLETED";
-    save(record);
+    await locked(record.task_id, async () => {
+      registry.putRtrStatus(record.task_id, transferId, { status: "COMMITTED", post_revision: post, rtr_digest: sha256(bodyBytes), reason: null });
+      journal.append("RTR_COMMITTED", { transfer_id: transferId, post_revision: post });
+      // S4 now holds the publication. Only a QUIESCED instance moves to
+      // COMPLETED; a QUARANTINED one is never rewritten.
+      const fresh = freshLocked(record.instance_id);
+      if (fresh.state === "QUIESCED") {
+        fresh.state = "COMPLETED";
+        saveLocked(fresh);
+      }
+    });
     return { transfer_id: transferId, post_revision: post, result_commit_sha: body.result_commit_sha };
   }
 
@@ -751,17 +873,26 @@ export function createExecutionHost(config) {
 
     const ref = `refs/heads/${record.identity.task_branch}`;
     t.push(p.repo, { ref, taskBranch: record.identity.task_branch, newSha: head, expectedOld: record.pushed_sha }, env);
-    record.pushed_sha = head;
-    save(record);
-    journal.append("PUSH_VERIFIED", { ref, sha: head });
+    await locked(record.task_id, async () => {
+      const fresh = freshLocked(instanceId);
+      if (fresh.state !== "QUIESCED") fail("QUIESCE_UNPROVEN", `instance became ${fresh.state} during completion`);
+      fresh.pushed_sha = head;
+      saveLocked(fresh);
+      journal.append("PUSH_VERIFIED", { ref, sha: head });
+    });
     await step("after-push", { record });
 
     const tree = treeOf(p.repo, head, env);
     const preRevision = record.checkpoint.current_revision;
     const transferId = transferIdOf(record.identity_digest, head, preRevision);
-    const bodyBytes = await registry.withTaskLock(record.task_id, async () => {
+    const bodyBytes = await locked(record.task_id, async () => {
       const existing = registry.readRtrBody(record.task_id, transferId);
       if (existing) return existing; // crash-retry of the same transfer: reuse the stored bytes
+      // Re-read under the lock: still QUIESCED, nothing claimed, tree unchanged.
+      const fresh = freshLocked(instanceId);
+      if (fresh.state !== "QUIESCED") fail("QUIESCE_UNPROVEN", `instance became ${fresh.state} during completion`);
+      if (permitsOf(fresh).some((x) => x.status.state === "CLAIMED")) fail("QUIESCE_UNPROVEN", "a claimed permit appeared during completion");
+      if (treeSnapshot(p.repo, env) !== fresh.tree_snapshot) fail("DIRTY_WORKTREE", "the worktree changed during completion");
       for (const r of registry.listRtr(record.task_id)) {
         if (r.status?.status === "PENDING" && JSON.parse(registry.readRtrBody(record.task_id, r.transfer_id)).pre_revision === preRevision) {
           fail("RESULT_TRANSFER_UNPROVEN", "another PENDING record exists for this revision");
@@ -786,46 +917,52 @@ export function createExecutionHost(config) {
 
   // A QA instance (or a Builder abandoning) ends here: no S4 mutation, no push.
   async function finishWithoutPublication(instanceId) {
-    const record = loadRecord(instanceId);
-    if (record.state !== "QUIESCED") fail("QUIESCE_UNPROVEN", "finish requires a quiesced instance");
-    record.state = "COMPLETED";
-    save(record);
-    journalOf(record).append("FINISHED_WITHOUT_PUBLICATION", {});
-    return record;
+    const pre = loadRecord(instanceId);
+    return locked(pre.task_id, async () => {
+      const record = freshLocked(instanceId);
+      if (record.state !== "QUIESCED") fail("QUIESCE_UNPROVEN", "finish requires a quiesced instance");
+      record.state = "COMPLETED";
+      saveLocked(record);
+      journalOf(record).append("FINISHED_WITHOUT_PUBLICATION", {});
+      return record;
+    });
   }
 
   // ================================================================== cleanup
   async function cleanup(instanceId) {
-    const record = loadRecord(instanceId);
-    if (!["COMPLETED", "QUARANTINED"].includes(record.state)) fail("INSTANCE_STALE", `cleanup requires COMPLETED or QUARANTINED, not ${record.state}`);
-    revokeIssued(record, "CLEANUP");
-    if (permitsOf(record).some((p) => currentPermitStatus(record.task_id, p.permit_id)?.state === "CLAIMED")) {
-      fail("QUIESCE_UNPROVEN", "cannot clean up while a claimed permit is execution-uncertain");
-    }
-    const q = await proveGroupsEmpty(record.reported_pgids, { inspector: inspector(), deadlineMs: cfg.quiesceDeadlineMs ?? 2000 });
-    if (!q.proven) fail("QUIESCE_UNPROVEN", "cannot clean up while reported process groups are alive");
-    const inst = instEntry(record);
-    try {
-      verifyChain(record.chain.slice(0, record.chain.indexOf(inst) + 1), pathOpts);
-    } catch {
-      quarantine(record, "CLEANUP_CONTAMINATION_RISK");
-      fail("CLEANUP_CONTAMINATION_RISK", "instance directory was substituted; nothing was deleted");
-    }
-    let result;
-    try {
-      result = removeTreeNoFollow(inst.native, { fsImpl: cfg.cleanupFs ?? fs, windows });
-    } catch (e) {
-      result = { ok: false, residue: [String(e.message)] };
-    }
-    if (!result.ok) {
-      quarantine(record, "CLEANUP_CONTAMINATION_RISK");
-      journalOf(record).append("CLEANUP_FAILED", { residue: result.residue.length });
-      fail("CLEANUP_CONTAMINATION_RISK", `cleanup left ${result.residue.length} entries`);
-    }
-    record.state = "CLEANED";
-    save(record);
-    journalOf(record).append("CLEANED", {});
-    return record;
+    const pre = loadRecord(instanceId);
+    return locked(pre.task_id, async () => {
+      const record = freshLocked(instanceId);
+      if (!["COMPLETED", "QUARANTINED"].includes(record.state)) fail("INSTANCE_STALE", `cleanup requires COMPLETED or QUARANTINED, not ${record.state}`);
+      revokeIssuedLocked(record, "CLEANUP");
+      if (permitsOf(record).some((p) => currentPermitStatus(record.task_id, p.permit_id)?.state === "CLAIMED")) {
+        fail("QUIESCE_UNPROVEN", "cannot clean up while a claimed permit is execution-uncertain");
+      }
+      const q = await proveGroupsEmpty(record.reported_pgids, { inspector: inspector(), deadlineMs: cfg.quiesceDeadlineMs ?? 2000 });
+      if (!q.proven) fail("QUIESCE_UNPROVEN", "cannot clean up while reported process groups are alive");
+      const inst = instEntry(record);
+      try {
+        verifyChain(record.chain.slice(0, record.chain.indexOf(inst) + 1), pathOpts);
+      } catch {
+        quarantineLocked(record, "CLEANUP_CONTAMINATION_RISK");
+        fail("CLEANUP_CONTAMINATION_RISK", "instance directory was substituted; nothing was deleted");
+      }
+      let result;
+      try {
+        result = removeTreeNoFollow(inst.native, { fsImpl: cfg.cleanupFs ?? fs, windows });
+      } catch (e) {
+        result = { ok: false, residue: [String(e.message)] };
+      }
+      if (!result.ok) {
+        quarantineLocked(record, "CLEANUP_CONTAMINATION_RISK");
+        journalOf(record).append("CLEANUP_FAILED", { residue: result.residue.length });
+        fail("CLEANUP_CONTAMINATION_RISK", `cleanup left ${result.residue.length} entries`);
+      }
+      record.state = "CLEANED";
+      saveLocked(record);
+      journalOf(record).append("CLEANED", {});
+      return record;
+    });
   }
 
   // ================================================================= recovery
@@ -847,7 +984,7 @@ export function createExecutionHost(config) {
   }
 
   async function recover() {
-    const report = { pending: [], stale: [], quarantined: [], orphans: [], orphan_permits: [] };
+    const report = { pending: [], stale: [], quarantined: [], orphans: [], orphan_permits: [], skipped: [] };
     for (const taskId of registry.listTasks()) {
       // Permit files no binding names are reported, never adopted (AS94-F002).
       const bound = new Set(registry.listBindings(taskId).map((b) => b.permit_id));
@@ -857,29 +994,38 @@ export function createExecutionHost(config) {
       for (const { transfer_id: id, status } of registry.listRtr(taskId)) {
         if (status?.status === "PENDING") report.pending.push(await resolvePending(taskId, id));
       }
-      for (const record of registry.listInstances(taskId)) {
-        if (!record?.identity || !LIVE_STATES.has(record.state)) continue;
-        const inst = instEntry(record);
-        if (record.state === "CREATING" || !inst || !fs.existsSync(inst.native)) {
-          quarantine(record, record.state === "CREATING" ? "INCOMPLETE_CREATE" : "MISSING_DIRECTORY");
-          report.quarantined.push(record.instance_id);
-          continue;
-        }
-        // AS90-F001: a claimed permit with no verified report is execution-
-        // uncertain; recovery never infers termination from elapsed time.
-        if (permitsOf(record).some((p) => currentPermitStatus(taskId, p.permit_id)?.state === "CLAIMED")) {
-          quarantine(record, "QUIESCE_UNPROVEN");
-          report.quarantined.push(record.instance_id);
-          continue;
-        }
-        const observed = await getState({ dir: cfg.s4Dir, taskId });
-        const f = fencingFailures(record.identity, record.checkpoint, observed, clock()).filter((c) => c !== "LEASE_EXPIRED");
-        if (f.length || record.stale) {
-          markStale(record, selectReason(f) ?? record.stale_reason);
-          quarantine(record, "INSTANCE_STALE");
-          report.stale.push(record.instance_id);
-        } else {
-          revokeIssued(record, "STALE");
+      for (const listed of registry.listInstances(taskId)) {
+        if (!listed?.identity || !LIVE_STATES.has(listed.state)) continue;
+        try {
+          await locked(taskId, async () => {
+            await step("recover-locked", { instanceId: listed.instance_id });
+            const record = freshLocked(listed.instance_id); // re-read under the lock
+            if (!LIVE_STATES.has(record.state)) return;
+            const inst = instEntry(record);
+            if (record.state === "CREATING" || !inst || !fs.existsSync(inst.native)) {
+              quarantineLocked(record, record.state === "CREATING" ? "INCOMPLETE_CREATE" : "MISSING_DIRECTORY");
+              report.quarantined.push(record.instance_id);
+              return;
+            }
+            // AS90-F001: a claimed permit with no verified report is execution-
+            // uncertain; recovery never infers termination from elapsed time.
+            if (permitsOf(record).some((p) => currentPermitStatus(taskId, p.permit_id)?.state === "CLAIMED")) {
+              quarantineLocked(record, "QUIESCE_UNPROVEN");
+              report.quarantined.push(record.instance_id);
+              return;
+            }
+            const observed = await getState({ dir: cfg.s4Dir, taskId });
+            const f = fencingFailures(record.identity, record.checkpoint, observed, clock()).filter((c) => c !== "LEASE_EXPIRED");
+            if (f.length || record.stale) {
+              markStaleLocked(record, selectReason(f) ?? record.stale_reason);
+              quarantineLocked(record, "INSTANCE_STALE");
+              report.stale.push(record.instance_id);
+            } else {
+              revokeIssuedLocked(record, "STALE");
+            }
+          });
+        } catch (e) {
+          report.skipped.push({ instance_id: listed.instance_id, code: e instanceof ExecutionError ? e.code : "ISOLATION_UNPROVABLE" });
         }
       }
     }
