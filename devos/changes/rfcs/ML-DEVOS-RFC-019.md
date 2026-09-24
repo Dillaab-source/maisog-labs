@@ -9,6 +9,8 @@ Sentinel phase:
 
 Authority chain: `D-066` (Paulo) authorizes S6 discovery, architecture proposal, and audit only, following S5's D.2 closure at Sentinel `v1.8.0` (`ML-DEVOS-ADR-015`, `D-065`, `ML-DEVOS-AS-085`). This RFC is the input to the S6 Architect Sync. It grants no authority and authorizes no implementation. No executable S6 file, directory, reserved root, manifest change, closure ADR, or version change is created by, or implied by, this RFC. Every artifact named below is a planned deliverable of a future, separately authorized implementation cycle.
 
+**Amendment remediation cycle 2 (`ML-DEVOS-AS-091`, final).** This changed only what `AS91-F001` requires. S6 now re-checks S5 at claim: immediately before `ISSUED → CLAIMED`, it calls the public S5 `shell` adapter again with the permit's exact pinned canonical request intent, so the check gets fresh trusted time and the live revocation list. Claim proceeds only on a fresh, binding-matching `ALLOW`. Anything else makes the permit terminally non-executable (`REVOKED`, reason `CAPABILITY_INVALIDATED`). Claim is the mandatory freshness boundary: exact replay still needs no S5 call, and no polling happens after claim. Changed: §13.1 flow step 3 and a new *Claim-time S5 recheck* subsection; the permit-lifecycle `REVOKED` row; request-binding replay wording; the S5-binding bullets and reason-code mapping; the §8 `shell` bullet; the §8.1 row; §18 item 14; summary decision 10; residual risk 14. `AS90-F001`–`F003` stay as closed, and the `D-069` separation is unchanged. S5 is unchanged, and argv stays in S6.
+
 **Amendment remediation cycle 1 (`ML-DEVOS-AS-090`).** This changed only §13.1 and its direct dependents (§8 `shell` bullet, §8.1 table row, §13 *permit*/*record*/*quiesce* rows, §15 crash recovery, §18 item 14, summary decision 10, residual risk 13, and the precision of the `D-069` note's permit sentence). The changes:
 - `AS90-F001`: an explicit permit lifecycle. A claimed permit never becomes quiescence-safe by expiry, and a claimed permit with no verified report blocks quiesce and completion and is quarantined on recovery.
 - `AS90-F002`: an immutable `(instance_id, request_id)` binding. One logical request can mint at most one permit; exact replay returns the stored permit, and conflicting reuse fails closed.
@@ -358,7 +360,7 @@ An action proceeds only if all three hold **and** S4 fencing holds. Any single f
 **S5 — CapabilityDecision (consumed, S5 unchanged):**
 - S5 is a decision library over five bounded provider adapters. It is not an interceptor for every operation. S6 asks for an S5 decision exactly where §8.1's table says one is required (`AS86-F004`), through the public adapter `request(requestIntent)`:
   - `github` for every remote Git call: fetch, the remote-ref read that verifies a push, and push;
-  - `shell` for every actor- or tool-chosen command, including dependency install. S6 core requests this decision when it issues the Execution Permit (§13.1), with `cwd` canonicalized by S5's own platform-aware shell contract.
+  - `shell` for every actor- or tool-chosen command, including dependency install. S6 core requests this decision when it issues the Execution Permit, and again, mandatorily, immediately before the permit is claimed, with the same pinned canonical intent (§13.1, `AS91-F001`). `cwd` is canonicalized by S5's own platform-aware shell contract.
     - S5 V1 is not argv-aware: its `ALLOW` gates the shell-execution capability at S5's canonical request axes (project, provider, action, resource, environment, policy version, trusted subject). It is not an approval of command content. The exact command is bound by S6's `argv_digest` (§13.1).
     - S6 core never executes the command; the execution driver does, only under that permit.
 - S6's fixed internal bookkeeping and isolation mechanics are not S5 actions (§8.1): directory creation and deletion, verification reads, journal and registry writes, and fixed local Git inspection. Their authority is the S6 implementation decision and their review evidence. S5 is not claimed to cover them.
@@ -400,7 +402,7 @@ A transport attempt outside this scope, or with no recorded authorization refere
 | Operation | S5 decision? | Why |
 |---|---|---|
 | Remote Git fetch (base resolution, QA fetch by SHA), remote-ref read, push | **Yes**: `github`, per call | A real remote call; S5 answers CAN for it under the pinned policy. |
-| Any actor- or tool-chosen command in the instance (build, test, install, `git commit` by the actor) | **Yes**: `shell`, per request, at Execution Permit issuance (§13.1) | S5 answers CAN for `shell.exec` at the instance's canonical `repo/` under the pinned policy. It is not argv-aware. S6 core binds that exact canonical S5 request intent and decision, together with its own `argv_digest`, into one immutable permit, and only the execution driver runs the command. |
+| Any actor- or tool-chosen command in the instance (build, test, install, `git commit` by the actor) | **Yes**: `shell`, per request, at Execution Permit issuance **and again at claim** (§13.1) | S5 answers CAN for `shell.exec` at the instance's canonical `repo/` under the pinned policy. It is not argv-aware. S6 core binds that exact canonical S5 request intent and decision, together with its own `argv_digest`, into one immutable permit, and only the execution driver runs the command. |
 | S6 host internals: canonicalization, `mkdir`/exclusive create, no-follow deletion, `lstat`/`realpath` verification, journal/registry/RTR writes, environment and config construction, Execution Permit issuance and Execution Report verification, read-only process-group liveness inspection, and fixed-argv local Git inspection (`status`, `rev-parse`, `merge-base`, `cat-file`) | **No** | Trusted, fixed mechanism steps with no actor choice and no remote effect. Authority comes from the S6 implementation decision; assurance comes from review and tests (§18). S6 does not claim S5 covers them. |
 | S4 `getState` and the publication `transition` | **No** | S4 is not an S5 provider. S4 fencing governs these calls, and the implementation decision must authorize them (§8, wiring disclosure). |
 
@@ -591,9 +593,10 @@ These are *environment* states, not task states. None of them is an S4 state or 
    - the permit is known and its body still hashes to `permit_digest`;
    - its status is `ISSUED` and trusted time is before `claim_deadline`;
    - `argv_digest` recomputed from the request matches;
-   - S4 fencing still holds.
+   - S4 fencing still holds;
+   - **last, and immediately before the state change,** a fresh S5 `shell` `ALLOW` under the *Claim-time S5 recheck* below.
 
-   S6 then marks the permit `CLAIMED` (journaled with `permit_digest`). A second claim of the same permit fails.
+   Only if every check passes does S6 mark the permit `CLAIMED`, under the per-task registry lock, journaled with `permit_digest` and the claim-time S5 check. A second claim of the same permit fails.
 4. **Execute (driver only).** The driver runs exactly `argv` with no shell, exactly the permitted environment, and exactly the permitted `cwd`, in a new process group or Job Object. It must not add or change arguments, environment, working directory or credentials.
 5. **Report.** The driver returns an Execution Report. S6 core verifies that the permit is `CLAIMED`, that its body still hashes to `permit_digest`, and that `argv_digest` and `environment_digest` match the permit. It registers the reported process groups for quiescence, recomputes the tree snapshot, and journals the report. The report is `ACTOR_REPORTED` evidence from the driver. It never upgrades anything, and a report that cannot be verified is `ISOLATION_UNPROVABLE`.
 6. **Quiesce.** The driver terminates the process groups it started. S6 core revokes every still-`ISSUED` permit. It then proves every reported group empty by read-only inspection: `/proc` on Linux, signal-0 probing on other POSIX, and Job Object state on Windows where an implementation can read it. S6 core never spawns anything and never signals arbitrary processes.
@@ -605,7 +608,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 |---|---|---|
 | `ISSUED` | The permit is created. | Outstanding. Quiesce revokes it first, so it can never be claimed after a quiescence snapshot. |
 | `EXPIRED_UNCLAIMED` | Trusted time passes `claim_deadline` while the permit is still `ISSUED`. It is terminal and can never be claimed. | Harmless: no execution can have started through it. |
-| `REVOKED` | Quiesce, cleanup, quarantine or staleness revokes an `ISSUED` permit. It is terminal. | Harmless, for the same reason. |
+| `REVOKED` | An `ISSUED` permit is revoked. The status part records one reason: `QUIESCE`, `CLEANUP`, `QUARANTINE`, `STALE` or `CAPABILITY_INVALIDATED` (the claim-time S5 recheck did not yield a fresh, binding-matching `ALLOW`; `AS91-F001`). It is terminal. | Harmless, for the same reason. |
 | `CLAIMED` | The driver claims it (step 3). **Time never moves a permit out of this state.** `claim_deadline` bounds claiming only, not execution. | **Execution-uncertain.** Blocks quiesce and completion (`QUIESCE_UNPROVEN`) until a verified report arrives. |
 | `REPORTED` | A verified report arrives (step 5). | Its reported groups must be proven empty at quiesce. |
 
@@ -617,7 +620,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 
 **Request binding and idempotency (`AS90-F002`).** This is S6's own rule. It is not delegated to S4 transition idempotency.
 - **One immutable binding.** Each `(instance_id, request_id)` has at most one binding record. It holds `checkpoint_revision`, `argv_digest`, `cwd` and `environment_digest`, plus the `permit_id`. It is created by exclusive create, under the per-task registry lock, in the same step that creates the permit. `permit_id` is a 128-bit random value generated once at that moment and then only ever read back.
-- **Exact replay.** The same `(instance_id, request_id)` with an identical binding returns the stored permit and its current lifecycle state, plus the report reference if any. It never mints a second permit and makes no new S5 call.
+- **Exact replay.** The same `(instance_id, request_id)` with an identical binding returns the stored permit and its current lifecycle state, plus the report reference if any. It never mints a second permit and makes no new S5 call. Replay has no execution effect; the mandatory S5 freshness check happens at claim (`AS91-F001`).
 - **Conflicting reuse.** The same `(instance_id, request_id)` with any different binding field is `MALFORMED_REQUEST`, fail closed. Nothing is minted.
 - **After a terminal or uncertain state.** Once the permit is `EXPIRED_UNCLAIMED`, `REVOKED`, `CLAIMED` or `REPORTED`, a replay returns that state. A new execution attempt always requires a **new** `request_id`.
 - **Before a binding exists.** A request that fails validation, fencing or S5 creates no binding, so a retry with the same `request_id` is evaluated afresh. Minting happens only on a verified `ALLOW`, so one `request_id` can still never mint more than one permit.
@@ -626,7 +629,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 **The S5 binding (`AS90-F003`).** S5 is unchanged.
 - **What S5 answers.** S5 V1 evaluates `project`, `provider`, `action`, `resource`, `environment` and `policy_version` from the request intent, with the trusted subject and evaluation contexts. It never receives or evaluates argv. A `shell` `ALLOW` therefore means only "the shell-execution capability is available to this subject at this canonical resource under this pinned policy". It is **not** an approval of the specific command.
 - **What S6 binds.** The exact command is bound by S6's `argv_digest`. Whether a particular command is appropriate is a governance (MAY) and task-scope question, not a CAN answer. If command-content-aware capability policy is ever wanted, it is a future, separately governed S5 architecture change. `D-069` does not authorize it, and this RFC does not assume it.
-- **Where S6 gets the decision.** S6 core obtains the decision only from its own call to the public S5 adapter at permit issuance. It never accepts a decision, request intent or presented snapshot supplied by the caller or the driver.
+- **Where S6 gets the decision.** S6 core obtains decisions only from its own calls to the public S5 adapter, at permit issuance and at the claim-time recheck. It never accepts a decision, request intent or presented snapshot supplied by the caller or the driver.
 - **Verification before a permit.** S6 verifies that the adapter's returned canonical `presented.request_intent` has:
   - `provider: "shell"` and `action: "shell.exec"`;
   - `resource` equal to the instance's canonical `repo/`;
@@ -635,6 +638,17 @@ These are *environment* states, not task states. None of them is an S4 state or 
   It also checks that `decision.outcome` is `ALLOW` and that `decision.policy_version` equals the intent's. Any mismatch is `CAPABILITY_DENIED`.
 - **What the permit stores.** The verified `s5_request_intent` verbatim, its digest, the presented-snapshot digest, and the decision fields, all inside the immutable body that `permit_digest` covers, next to `argv_digest`. So the permit proves which `shell.exec` resource, context and policy the `ALLOW` evaluated, and which exact argv S6 bound to it.
 - **Preserved through claim and report.** Every claim and report verification re-checks `permit_digest`. The association between the S5 CAN decision, the permit and the argv digest therefore cannot be altered or substituted after issuance.
+
+**Claim-time S5 recheck (`AS91-F001`).** The issuance-time `ALLOW` is necessary but never sufficient to execute. S5's contract pins the policy version per attempt, but revocation is live and descriptor expiry is checked against trusted evaluation time, never cached. So claim, the last point before any execution, is S6's mandatory S5 freshness boundary.
+- **The call.** Immediately before `ISSUED → CLAIMED`, S6 calls the public S5 `shell` adapter's `request()` again with the permit's stored `s5_request_intent` axes exactly: `project`, `provider`, `action`, `resource`, `environment`, and the pinned `policy_version`. The adapter supplies fresh trusted time and fetches the current live revocation list itself. No S5 interface changes, and argv is not added.
+- **The pin holds.** `policy_version` stays the permit's pinned version. Ordinary policy supersession, meaning a newer version published without revoking this descriptor, therefore does not invalidate an unexpired attempt pinned to the older version, matching RFC-017 §6.
+- **Claim proceeds only on a fresh `ALLOW` that matches the stored binding:**
+  - the fresh `presented.request_intent` equals the stored `s5_request_intent` exactly;
+  - the fresh `decision.descriptor_id` and `decision.policy_version` equal the stored ones (policies are immutable per version, so an honest re-evaluation matches);
+  - the presented subject snapshot's `actor_role` and `actor_id` equal those recorded at issuance.
+- **Every other outcome prevents claim and execution.** This covers `DENY` for any reason (including `REVOKED`, `EXPIRED` and `POLICY_VERSION_MISMATCH`), a trusted-source failure (`TrustedSourceUnavailableError`: clock, identity or revocation source unavailable), and any binding mismatch. Each is `CAPABILITY_DENIED`. The permit moves to the terminal `REVOKED` state with reason `CAPABILITY_INVALIDATED`, so it can never be claimed. A new attempt needs a new `request_id` and a new permit.
+- **Journaled separately.** The claim-time check is journaled as its own entry: the fresh decision fields, the fresh presented-intent digest, the outcome and trusted time, all bound to `permit_digest`. It is never written into the immutable permit body, which is not rewritten.
+- **What it does not require.** After a successful claim, the driver's execution is the same already-admitted attempt. This finding requires no continuous S5 polling while a command runs. A revocation after claim does not interrupt the running command (Residual risks 14). Later S5-gated actions for the task (for example, the `github` push at completion) evaluate S5 afresh on their own.
 
 **What each side may not do.**
 - The driver is **not** a source of MAY: it acts only on permits, and permits carry no authority.
@@ -650,7 +664,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 **Reason codes.** No new code is added.
 - A malformed request, or conflicting reuse of a `request_id`, is `MALFORMED_REQUEST`.
 - A permit for a stale checkpoint is `FENCING_REVISION_MISMATCH`, or `INSTANCE_STALE`.
-- An S5 deny, or an `ALLOW` whose presented intent does not match the expected canonical axes, is `CAPABILITY_DENIED`.
+- An S5 deny, or an `ALLOW` whose presented intent does not match the expected canonical axes, is `CAPABILITY_DENIED`, at issuance and equally at the claim-time recheck. At claim, a trusted-source failure is also `CAPABILITY_DENIED`, and the permit becomes `REVOKED` (`CAPABILITY_INVALIDATED`).
 - A claimed-but-unreported permit at quiesce or completion is `QUIESCE_UNPROVEN`.
 - Each of the following is `ISOLATION_UNPROVABLE`: an unknown permit, an expired-unclaimed or revoked permit presented for claim, a replayed claim, a report for a permit that is not `CLAIMED`, a `permit_digest` mismatch, and an argv or environment digest mismatch.
 - No available driver is `ISOLATION_CAPABILITY_MISSING`.
@@ -856,6 +870,13 @@ A future implementation's tests MUST:
       - An `ALLOW` obtained for a different action, a different resource, another instance's `repo/`, a different policy version, environment or project cannot be substituted into a permit: each is `CAPABILITY_DENIED`, and no permit is created.
       - A permit whose stored `s5_request_intent` or `argv_digest` is altered after issuance fails claim and report verification (`permit_digest` mismatch → `ISOLATION_UNPROVABLE`).
       - A caller- or driver-supplied decision object is never accepted.
+    - **Claim-time S5 recheck (`AS91-F001`):**
+      - *Issue `ALLOW` → live revocation of the descriptor → claim* is blocked (`CAPABILITY_DENIED`, the permit becomes `REVOKED`/`CAPABILITY_INVALIDATED`). The fake driver never receives a claimable permit, so nothing executes.
+      - *Issue `ALLOW` → trusted time advanced past the descriptor's expiry → claim* is blocked the same way.
+      - *Ordinary policy supersession without revocation* (a newer policy version is published and the pinned version stays loaded) → claim of the pinned, unexpired attempt succeeds.
+      - *Exact replay of an `ISSUED` permit* mints nothing, makes no S5 call and executes nothing. The next claim still performs the fresh S5 check; instrument the test gateway's call count.
+      - *Claim-time binding mismatch*: a fresh presented intent, descriptor, policy version or subject that differs from the stored binding blocks the claim.
+      - *Claim-time trusted-source unavailable*: the clock, identity or revocation source throws. The claim fails closed (`CAPABILITY_DENIED`) and the permit becomes `REVOKED`.
 
 ### 19. Canonical home
 
@@ -918,7 +939,7 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 7. The canonical home is `devos/execution/`, to be reserved only by a separate `ARCHITECTURE`-class authorization.
 8. There are 30 deterministic, ordered reason codes. Nothing is auto-cleaned into compliance, and nothing orphaned is adopted.
 9. Paths that do not exist yet are created under §9.1: a verified existing ancestor, validated literal tails, exclusive per-segment creation, and immediate identity revalidation.
-10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use Execution Permit and returns a verified Execution Report. The permit binds the canonical S5 `shell.exec` request intent and decision (not argv-aware) to S6's exact `argv_digest`. One `request_id` can mint at most one permit, and a claimed permit never becomes quiescence-safe by expiry. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
+10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use Execution Permit and returns a verified Execution Report. The permit binds the canonical S5 `shell.exec` request intent and decision (not argv-aware) to S6's exact `argv_digest`. One `request_id` can mint at most one permit. Claim requires a fresh S5 `ALLOW` at the permit's pinned intent, which honours live revocation and descriptor expiry. A claimed permit never becomes quiescence-safe by expiry. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
 
 ## Scope
 
@@ -1026,6 +1047,7 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 11. **The execution driver is trusted to report honestly.** A lying or compromised driver can misreport argv, environment or process groups, just as a lying S5 adapter can misreport. S6 core verifies digests, single use and binding, but cannot see inside the driver.
 12. **Unpermitted execution is detected, not prevented.** A process started outside the driver is detected only through its effects: an unexplained working-tree change is `DIRTY_WORKTREE`. Unreported process groups cannot be proven absent in general, and a same-user process can leave its group (L3).
 13. **S5 `shell` capability is not argv-aware.** An `ALLOW` for `shell.exec` at an instance's `repo/` permits any command there as far as CAN is concerned. The exact command is bound and audited by S6's `argv_digest`, and its appropriateness rests on governance (MAY) and task scope, not on S5. Command-content-aware capability would be a separately governed S5 change (§13.1).
+14. **Revocation after claim does not interrupt a running command.** The claim-time recheck (§13.1) is the last S5 evaluation for that permit. A descriptor revoked or expired while an already-claimed command runs takes effect at the next S5-gated action, not mid-command. This matches the in-flight semantics RFC-017 accepted; no continuous polling is specified.
 
 ## Unresolved questions
 

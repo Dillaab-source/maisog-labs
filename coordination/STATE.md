@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_AS091_FINAL_REMEDIATION_CYCLE_2_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-EXECBOUNDARY-REM2-0001
+REVIEW_TARGET_COMMIT: f8c41720fb9514014b0b2a5b55422c37c5a53ccc
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-091
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -30,7 +30,11 @@ cycle (2 of 2) for AS91-F001 only.
 
 D-068 executable implementation remains suspended.
 
-## Authorized remediation
+## Architect final re-review return — AS-091 remediation cycle 2 (final)
+
+The Builder has corrected `AS91-F001` in `ML-DEVOS-RFC-019` §13.1 (claim-time S5 recheck; design only). It returns the turn for final independent re-review, under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-091`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-EXECBOUNDARY-REM2-0001`) only. `D-068` remains suspended. No S6 implementation, driver, root, manifest or S5 runtime use is authorized. No further Builder action is authorized. The Builder's local `D-068` draft remains preserved, uncommitted and unpushed.
+
+## Authorized remediation (as authorized)
 
 Correct only AS91-F001:
 
