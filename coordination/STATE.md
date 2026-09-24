@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S5_CLOSURE_PREFLIGHT
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S5_D1_PREDECISION_CLOSURE_PREFLIGHT_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: SENTINEL_S5_D1_PREFLIGHT_PASS_AWAITING_CLOSURE_DECISION
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
@@ -24,37 +24,34 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-`D-064` authorizes only the Architect's S5 D.1 Pre-decision Closure Preflight.
+`D-064` authorized the S5 D.1 pre-decision closure preflight only.
 
-S5 Capability & Permission Gateway V1 implementation was technically accepted by `ML-DEVOS-AS-083`.
+`ML-DEVOS-AS-084` returns PASS and defines the bounded candidate closure package:
 
-The Architect may inspect and publish the bounded closure proposal/preflight only. No final closure mutation is authorized yet.
+- S5 `devos/capabilities/` → `IMPLEMENTED`;
+- candidate closure ADR `ML-DEVOS-ADR-015`;
+- candidate closure Decision `D-065`;
+- candidate Sentinel capability transition `v1.7.0 → v1.8.0` MINOR;
+- `executable_runtime_present: false`;
+- no runtime integration or later-phase authority.
 
-## Required D.1 review
+No closure mutation is authorized until Paulo separately approves the AS-084 package.
 
-The Architect must verify the exact live repository state and produce the existing RFC-015 D.1 closure-preflight findings for S5, including:
+## Next action — Paulo closure decision only
 
-- exact closure base SHA;
-- current RFC-017 status and stale/current surfaces;
-- current `devos/capabilities/` manifest state;
-- proposed manifest `IMPLEMENTED` + ADR-keyed `closure_ref`;
-- proposed closure-history entry;
-- proposed ADR provenance;
-- explicit version disposition against the active Sentinel baseline/version policy;
-- pre-closure traceability ERROR fingerprint;
-- bounded closure diff;
-- confirmation that no S6+ or other later authority is implied.
+Paulo may approve, reject, or request changes to the exact S5 closure package defined in ML-DEVOS-AS-084.
 
-After the D.1 review, route back to Paulo for the actual closure decision.
+If approved, a new owner Decision D-065 must durably record the exact closure/version package and then route a bounded Builder closure turn.
+
+D.2 post-decision verification remains mandatory before S5 is treated as fully closed in the governed workflow.
 
 ## Hard boundaries
 
-No manifest mutation.
-No closure ADR creation.
-No RFC-017 final closure mutation.
-No closure-history append.
-No Sentinel version change.
-No D.2 closure implementation.
+No manifest mutation yet.
+No closure ADR creation yet.
+No RFC-017 final closure mutation yet.
+No closure-history append yet.
+No Sentinel version change yet.
 No S3/S4 integration or wiring.
 No S6+.
 No CP-4+.
