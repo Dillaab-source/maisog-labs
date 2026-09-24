@@ -1,60 +1,57 @@
-# Current Handoff — S6 Execution-Boundary Amendment, Final Remediation Cycle 2 (AS-091)
+# Current Handoff — S6 Execution-Boundary Amendment, Exceptional Micro-Remediation (AS92-F001, D-070)
 
 ```yaml
 schema_version: 1
-handoff_id: H-S6-EXECBOUNDARY-REM2-0001
+handoff_id: H-S6-EXECBOUNDARY-REM3-0001
 cycle_id: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT
-input_base_commit: f8c41720fb9514014b0b2a5b55422c37c5a53ccc
-review_target_commit: f8c41720fb9514014b0b2a5b55422c37c5a53ccc
-applicable_review_id: ML-DEVOS-AS-091
+input_base_commit: 23df1033b32c181ba2fb1085db7fae93026447a2
+review_target_commit: 23df1033b32c181ba2fb1085db7fae93026447a2
+applicable_review_id: ML-DEVOS-AS-092
 ```
 
 This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve this remediation. `D-068` stays suspended.
 
 ## Objective
 
-Correct only `AS91-F001` in the `D-069` amendment of `ML-DEVOS-RFC-019` (scope `SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_AS091_FINAL_REMEDIATION_CYCLE_2_ONLY`, final cycle 2 of 2). This is design only. An `ISSUED` Execution Permit must not become claimable on the issuance-time S5 `ALLOW` alone.
+Correct only `AS92-F001` in the `D-069` amendment of `ML-DEVOS-RFC-019`, under `D-070`'s single exceptional micro-remediation (scope `SENTINEL_S6_EXECUTION_BOUNDARY_AS92_F001_EXCEPTIONAL_MICRO_REMEDIATION_D070_ONLY`, cycle 3 of 3). This is design only. The S5 subject must be bound to the S6 Execution Identity's owner and role.
 
 Provenance:
-- Bootstrapped fresh in this session from the authoritative tip `f8c4172` (STATE `TURN: CLAUDE` / `STATUS: AUTHORIZED`). Reads: STATE, `ML-DEVOS-AS-091`, RFC-019 §13.1.
-- Work was done in a clean worktree from `f8c4172`. The Builder's preserved `D-068` draft stays untracked, uncommitted and unpushed in the primary checkout. It was not imported, altered or executed.
+- Bootstrapped fresh in this session from the authoritative tip `23df103` (STATE `TURN: CLAUDE` / `STATUS: AUTHORIZED`). Reads: STATE (`D-070` scope), `ML-DEVOS-AS-092` `AS92-F001`, RFC-019 §13.1.
+- Work was done in a clean worktree from `23df103`. The Builder's preserved `D-068` draft stays untracked, uncommitted and unpushed in the primary checkout. It was not imported, altered or executed.
 - No permission was expanded, and no safety control was worked around.
 
 ## Changed files
 
-Diff against base `f8c41720fb9514014b0b2a5b55422c37c5a53ccc`:
+Diff against base `23df1033b32c181ba2fb1085db7fae93026447a2`:
 
-- `devos/changes/rfcs/ML-DEVOS-RFC-019.md`:
-  - **New §13.1 subsection, *Claim-time S5 recheck*.** Immediately before `ISSUED → CLAIMED`, S6 calls the public S5 `shell` adapter again with the permit's stored `s5_request_intent` axes exactly, including the pinned `policy_version`. The adapter supplies fresh trusted time and the live revocation list.
-    - Claim proceeds only on a fresh `ALLOW` whose presented intent equals the stored intent, whose `descriptor_id` and `policy_version` equal the stored ones, and whose subject `actor_role`/`actor_id` equal those at issuance.
-    - Any `DENY` (including `REVOKED`, `EXPIRED`, `POLICY_VERSION_MISMATCH`), trusted-source failure, or binding mismatch is `CAPABILITY_DENIED`. The permit becomes terminal `REVOKED` with reason `CAPABILITY_INVALIDATED`.
-    - The check is journaled as its own entry, bound to `permit_digest`. The immutable permit body is never rewritten.
-    - Ordinary policy supersession does not invalidate the pinned attempt (RFC-017 §6).
-    - No polling happens after claim.
-  - **Consequential updates:**
-    - flow step 3 (the fresh S5 check comes last, immediately before the state change, under the per-task lock);
-    - the permit-lifecycle `REVOKED` row (now with recorded reasons, including `CAPABILITY_INVALIDATED`);
-    - the exact-replay wording (replay has no execution effect; claim is the freshness boundary);
-    - the S5-binding "where S6 gets the decision" bullet and the reason-code mapping;
-    - the §8 `shell` bullet and the §8.1 row (issuance *and* claim);
-    - §18 item 14 (six claim-time recheck tests: revoke → blocked; expiry → blocked; supersession → allowed; replay then claim → fresh check; binding mismatch → blocked; trusted-source unavailable → fail closed);
-    - summary decision 10; residual risk 14 (revocation after claim does not interrupt a running command); and the cycle-2 note.
+- `devos/changes/rfcs/ML-DEVOS-RFC-019.md` (§13.1 and directly dependent text only):
+  - **Canonical V1 role mapping:** S6 `BUILDER` → S5 `Builder`, S6 `QA` → S5 `QA`. The mapping is fixed and total; anything else fails closed.
+  - ***Verification before a permit*.** After the public S5 adapter returns, and before accepting its `ALLOW`:
+    - `presented.subject_context.actor_id == ExecutionIdentity.owner`;
+    - `presented.subject_context.actor_role == canonicalRole(ExecutionIdentity.role)`.
+
+    A mismatch is `CAPABILITY_DENIED`, with no request binding and no permit.
+  - **Permit record.** The immutable body gains `s5_subject_binding` (`actor_id`, `actor_role`), two non-secret fields stored in the clear for field-level comparison. It does not rely only on `s5_presented_digest`. *What the permit stores* is updated to match.
+  - **Claim-time recheck.** The fresh `actor_id`/`actor_role` are compared directly against **both** the Execution Identity (owner, mapped role) **and** the stored `s5_subject_binding`. Drift is `CAPABILITY_DENIED` and prevents execution. The `AS91-F001` revocation and expiry freshness semantics are unchanged.
+  - **What stays S5's.** `credential_class`, `credential_available`, `attestation_ref` and trusted time remain S5-owned fresh trusted context: not copied, not treated as identity, no S5 field added, no secrets.
+  - **Also updated:** the reason-code mapping (subject mismatch → `CAPABILITY_DENIED`, still 30 codes); §18 item 14, with seven new design tests (wrong `actor_id` and wrong `actor_role` at issuance → denied, no permit; correct `BUILDER`→`Builder` and `QA`→`QA` → issued; claim-time `actor_id` and `actor_role` drift → denied; `AS91-F001` intact); summary decision 10; and the cycle-3 note.
 - `devos/governance/traceability/{TRACEABILITY_INDEX.md,traceability-index.json}` — regenerated.
-- `coordination/STATE.md` (return gate) and `coordination/CURRENT_HANDOFF.md` (this file). The outgoing `H-S6-EXECBOUNDARY-REM1-0001` was already archived byte-identical by the Architect.
+- `coordination/STATE.md` (return gate) and `coordination/CURRENT_HANDOFF.md` (this file). The outgoing `H-S6-EXECBOUNDARY-REM2-0001` was already archived byte-identical by the Architect.
 
-`devos/changes/rfcs/README.md` was **not** changed: its entry stays factually accurate.
+`devos/changes/rfcs/README.md` was not changed; it stays accurate.
 
-Not changed:
-- `AS90-F001`–`F003` remain as closed; the `D-069` separation is unchanged.
-- No executable S6 source, `devos/execution/`, driver, or `tests/execution-*`.
-- No manifest, schema or runtime file; no S3/S4/S5 source or interface (no argv added to S5); no ADR, closure or version change.
+Not reopened or changed:
+- `AS90-F001`–`F003`, `AS91-F001`, the `D-069` separation, the permit lifecycle, request idempotency, the RTR, quiescence, S4 fencing, and S5 semantics.
+- No executable S6 source, driver, `devos/execution/`, `tests/execution-*`, manifest, schema or runtime file.
+- No S3/S4/S5 source or interface, and no ADR, closure or version change.
 
 ## Tests and evidence
 
 All results are `ACTOR_REPORTED`, fresh from this session, in the clean worktree.
 
-- **Traceability, base `f8c4172`:** 354 files / 2 errors (`CORE-022`, `WEB-REQ-009`) / 14 warnings / 305 definitions, `DRIFT`.
-- **Traceability, after:** `generate-traceability.mjs` exits `0`. `validate-traceability.mjs` reports 354 files / **2** errors (`CORE-022`, `WEB-REQ-009` — known debt, preserved and not suppressed) / 14 warnings (identical to the base) / 305 definitions, `No drift`, exit `1` (the convention while any ERROR exists).
+- **Traceability, base `23df103`:** 357 files / 2 errors (`CORE-022`, `WEB-REQ-009`) / 15 warnings / 307 definitions, `DRIFT`.
+- **Traceability, after:** `generate-traceability.mjs` exits `0`. `validate-traceability.mjs` reports 357 files / **2** errors (`CORE-022`, `WEB-REQ-009` — known debt, preserved and not suppressed) / **14** warnings / 307 definitions, `No drift`, exit `1` (the convention while any ERROR exists).
+  - The only warning change is that `orphan-no-inbound-reference D-070` cleared, because RFC-019 now cites `D-070`. No warning was added.
 - **Full suite:** `npm test` → 606 tests, 606 pass, 0 fail.
 - **Validators:**
   - manifest → `PASS: 0 error(s)`;
@@ -66,32 +63,32 @@ All results are `ACTOR_REPORTED`, fresh from this session, in the clean worktree
 - **`git diff --check`:** clean.
 - **No executable content:** the diff is Markdown plus regenerated traceability only.
 
-The new claim-time tests are design-level requirements; none is executed here.
+The new identity-binding tests are design-level requirements; none is executed here.
 
 ## Unresolved findings and limitations
 
-- **Final cycle.** This was the final remediation cycle (2 of 2). Per `ML-DEVOS-AS-091`, a further blocker routes to Paulo rather than opening a third cycle.
-- **Claim-check race window.** There is a small window between the fresh S5 `ALLOW` and the `CLAIMED` write under the per-task lock. A revocation landing inside it takes effect at the next S5-gated action, consistent with RFC-017's in-flight semantics.
-- **Residual risk 14:** a revocation after claim does not interrupt an already-running command.
-- **Open questions 7 and 8 are unchanged:** where a real driver lives, and whether S6 core's fixed internal Git subprocess calls are acceptable under the runtime's safety controls.
+- **No cycles remain.** This was the final authorized cycle (3 of 3, `D-070`). Per `D-070`, any further blocker routes to Paulo, and no fourth cycle is opened.
+- **Role mapping is V1 only.** It covers exactly `BUILDER` and `QA`. Any future S6 role would need an explicit, separately reviewed mapping extension.
+- **Trusted subject assumption.** The binding trusts the S5 host's attested subject, exactly as S5 does; this is residual risk 8/11 territory. It makes S6 reject a trusted-but-wrong subject; it does not authenticate identity beyond S5's trust model.
+- **Open questions 7 and 8 are unchanged.**
 - **Obligations:** all `coordination/OPERATIVE_OBLIGATIONS.md` rows are carried forward unchanged, including `OBL-010`, `OBL-011`, `OBL-012`, `OBL-015`, `OBL-017` and `OBL-018`. None is closed.
 
 ## Governing references
 
-- Authority: `D-069`; `D-068` (suspended); `D-066`.
-- Reviews: `ML-DEVOS-AS-091` (`AS91-F001`, live review), `ML-DEVOS-AS-090`, `ML-DEVOS-AS-089`.
-- Design: `ML-DEVOS-RFC-019`. S5 semantics: `ML-DEVOS-RFC-017` §6, `ML-DEVOS-ADR-015` (unchanged).
+- Authority: `D-070` (exceptional micro-remediation); `D-069`; `D-068` (suspended); `D-066`.
+- Reviews: `ML-DEVOS-AS-092` (`AS92-F001`, live review), `ML-DEVOS-AS-091`, `ML-DEVOS-AS-090`, `ML-DEVOS-AS-089`.
+- Design: `ML-DEVOS-RFC-019`. S5: `ML-DEVOS-RFC-017`, `ML-DEVOS-ADR-015` (unchanged). S4: `ML-DEVOS-ADR-014`.
 - Protocol: `ML-DEVOS-RFC-018`.
 - Obligations: `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Evidence locations
 
-- The commit diff against `f8c41720fb9514014b0b2a5b55422c37c5a53ccc`.
-- RFC-019 §13.1, *Claim-time S5 recheck*, and §18 item 14.
+- The commit diff against `23df1033b32c181ba2fb1085db7fae93026447a2`.
+- RFC-019 §13.1: the permit record, *Verification before a permit* (subject binding), and the claim-time recheck; §18 item 14.
 - `devos/governance/traceability/TRACEABILITY_INDEX.md`.
 
 ## Next action
 
-The Architect performs the final re-review of `AS91-F001` under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-091`, and archives `H-S6-EXECBOUNDARY-REM2-0001` if its routing deselects this handoff.
+The Architect performs the final independent re-review of `AS92-F001` under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-092`, and archives `H-S6-EXECBOUNDARY-REM3-0001` if its routing deselects this handoff. Any further blocker routes to Paulo.
 
-`D-068` does not resume. Any executable S6 work needs an Architect-approved design and a fresh Paulo decision. No further Builder action is authorized.
+`D-068` does not resume. Executable S6 work needs an Architect-approved design and a fresh Paulo decision. No further Builder action is authorized.

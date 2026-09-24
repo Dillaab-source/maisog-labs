@@ -9,6 +9,13 @@ Sentinel phase:
 
 Authority chain: `D-066` (Paulo) authorizes S6 discovery, architecture proposal, and audit only, following S5's D.2 closure at Sentinel `v1.8.0` (`ML-DEVOS-ADR-015`, `D-065`, `ML-DEVOS-AS-085`). This RFC is the input to the S6 Architect Sync. It grants no authority and authorizes no implementation. No executable S6 file, directory, reserved root, manifest change, closure ADR, or version change is created by, or implied by, this RFC. Every artifact named below is a planned deliverable of a future, separately authorized implementation cycle.
 
+**Exceptional micro-remediation (cycle 3 of 3; `D-070`, `ML-DEVOS-AS-092`).** This changed only what `AS92-F001` requires.
+- **Subject bound to the S6 identity.** The S5 subject is now bound to the S6 Execution Identity through one canonical V1 role mapping (S6 `BUILDER` → S5 `Builder`, S6 `QA` → S5 `QA`). At permit issuance, the adapter's presented `subject_context.actor_id` must equal `ExecutionIdentity.owner`, and `actor_role` must equal the mapped role. Otherwise the result is `CAPABILITY_DENIED`, with no permit and no binding.
+- **Stored inspectably.** The two non-secret fields are stored as `s5_subject_binding` in the immutable permit body.
+- **Checked again at claim.** The claim-time recheck compares the fresh subject directly against the Execution Identity and that stored binding.
+- **Changed places:** the §13.1 permit record, *Verification before a permit*, *What the permit stores*, the claim-time recheck bullet, the reason-code mapping, §18 item 14, and summary decision 10.
+- **Unchanged:** `AS90-F001`–`F003`, `AS91-F001` and the `D-069` separation. S5 is unchanged; credential class, availability, attestation and trusted time stay S5-owned fresh trusted context.
+
 **Amendment remediation cycle 2 (`ML-DEVOS-AS-091`, final).** This changed only what `AS91-F001` requires. S6 now re-checks S5 at claim: immediately before `ISSUED → CLAIMED`, it calls the public S5 `shell` adapter again with the permit's exact pinned canonical request intent, so the check gets fresh trusted time and the live revocation list. Claim proceeds only on a fresh, binding-matching `ALLOW`. Anything else makes the permit terminally non-executable (`REVOKED`, reason `CAPABILITY_INVALIDATED`). Claim is the mandatory freshness boundary: exact replay still needs no S5 call, and no polling happens after claim. Changed: §13.1 flow step 3 and a new *Claim-time S5 recheck* subsection; the permit-lifecycle `REVOKED` row; request-binding replay wording; the S5-binding bullets and reason-code mapping; the §8 `shell` bullet; the §8.1 row; §18 item 14; summary decision 10; residual risk 14. `AS90-F001`–`F003` stay as closed, and the `D-069` separation is unchanged. S5 is unchanged, and argv stays in S6.
 
 **Amendment remediation cycle 1 (`ML-DEVOS-AS-090`).** This changed only §13.1 and its direct dependents (§8 `shell` bullet, §8.1 table row, §13 *permit*/*record*/*quiesce* rows, §15 crash recovery, §18 item 14, summary decision 10, residual risk 13, and the precision of the `D-069` note's permit sentence). The changes:
@@ -573,7 +580,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 | Record | Produced by | Contents |
 |---|---|---|
 | **Execution Request** | The instance owner, through its caller. It is never produced by the driver. | `instance_id`; `request_id` (the caller's idempotency key); `argv` (non-empty string array, no shell, no environment overrides); `checkpoint_revision` the owner believes current. |
-| **Execution Permit** | S6 core. | An **immutable body**, written once, whose SHA-256 is `permit_digest`:<br>`permit_id`; `instance_id`; `request_id`; `identity_digest`; `checkpoint_revision`; `argv_digest` (SHA-256 of the canonical argv JSON); canonical `cwd` (the instance `repo/`); `environment_digest`;<br>`s5_request_intent` (the canonical `presented.request_intent` the S5 adapter evaluated, verbatim) and `s5_request_intent_digest`; `s5_presented_digest` (canonical digest over the adapter's presented request intent, subject-context snapshot and evaluation-context snapshot);<br>`s5_decision` (`outcome`, `denial_reason`, `descriptor_id`, `policy_version`, `non_authority_disclaimer`, verbatim); `s5_consequence_tier`;<br>`issued_at`; `claim_deadline`; `single_use: true`.<br>A separate **status part** carries the permit lifecycle state (below). |
+| **Execution Permit** | S6 core. | An **immutable body**, written once, whose SHA-256 is `permit_digest`:<br>`permit_id`; `instance_id`; `request_id`; `identity_digest`; `checkpoint_revision`; `argv_digest` (SHA-256 of the canonical argv JSON); canonical `cwd` (the instance `repo/`); `environment_digest`;<br>`s5_request_intent` (the canonical `presented.request_intent` the S5 adapter evaluated, verbatim) and `s5_request_intent_digest`; `s5_presented_digest` (canonical digest over the adapter's presented request intent, subject-context snapshot and evaluation-context snapshot); `s5_subject_binding` (`actor_id`, `actor_role`: the two non-secret subject fields verified at issuance, stored in the clear for field-level comparison; `AS92-F001`);<br>`s5_decision` (`outcome`, `denial_reason`, `descriptor_id`, `policy_version`, `non_authority_disclaimer`, verbatim); `s5_consequence_tier`;<br>`issued_at`; `claim_deadline`; `single_use: true`.<br>A separate **status part** carries the permit lifecycle state (below). |
 | **Execution Report** | The execution driver. | `permit_id`; `argv_digest` and `environment_digest` as actually used; `process_groups` started; `started_at` and `ended_at`; `exit_code` and `signal`; stdout and stderr digests (never raw secrets); `terminated: true/false`. |
 
 **Flow.**
@@ -635,8 +642,17 @@ These are *environment* states, not task states. None of them is an S4 state or 
   - `resource` equal to the instance's canonical `repo/`;
   - `project`, `environment` and `policy_version` equal to the host's configured values.
 
-  It also checks that `decision.outcome` is `ALLOW` and that `decision.policy_version` equals the intent's. Any mismatch is `CAPABILITY_DENIED`.
-- **What the permit stores.** The verified `s5_request_intent` verbatim, its digest, the presented-snapshot digest, and the decision fields, all inside the immutable body that `permit_digest` covers, next to `argv_digest`. So the permit proves which `shell.exec` resource, context and policy the `ALLOW` evaluated, and which exact argv S6 bound to it.
+  It also checks that `decision.outcome` is `ALLOW` and that `decision.policy_version` equals the intent's.
+
+  **Subject binding (`AS92-F001`).** It also checks that the adapter's trusted presented `subject_context` is the actor who owns this execution instance:
+  - `subject_context.actor_id == ExecutionIdentity.owner`;
+  - `subject_context.actor_role == canonicalRole(ExecutionIdentity.role)`.
+
+  The canonical V1 mapping is fixed and total: `BUILDER` → `Builder`, `QA` → `QA`. Any other S6 role or S5 role does not map, and fails closed.
+
+  Any mismatch is `CAPABILITY_DENIED`, and no request binding and no permit are created. So CAN is always evaluated for the S4 owner of the instance, never for a different trusted subject.
+- **What stays S5's.** The subject's `credential_class`, `credential_available` and `attestation_ref`, and the trusted evaluation time, remain S5-owned fresh trusted context. S6 does not copy them into the permit (beyond the opaque `s5_presented_digest`), does not treat them as identity, and adds no S5 field. No secret value is involved.
+- **What the permit stores.** The verified `s5_request_intent` verbatim, its digest, the presented-snapshot digest, the verified `s5_subject_binding` (`actor_id`, `actor_role`), and the decision fields. All of these sit inside the immutable body that `permit_digest` covers, next to `argv_digest` and `identity_digest`. So the permit proves which `shell.exec` resource, context, policy and subject the `ALLOW` evaluated, that the subject was the instance owner in the mapped role, and which exact argv S6 bound to it.
 - **Preserved through claim and report.** Every claim and report verification re-checks `permit_digest`. The association between the S5 CAN decision, the permit and the argv digest therefore cannot be altered or substituted after issuance.
 
 **Claim-time S5 recheck (`AS91-F001`).** The issuance-time `ALLOW` is necessary but never sufficient to execute. S5's contract pins the policy version per attempt, but revocation is live and descriptor expiry is checked against trusted evaluation time, never cached. So claim, the last point before any execution, is S6's mandatory S5 freshness boundary.
@@ -645,7 +661,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 - **Claim proceeds only on a fresh `ALLOW` that matches the stored binding:**
   - the fresh `presented.request_intent` equals the stored `s5_request_intent` exactly;
   - the fresh `decision.descriptor_id` and `decision.policy_version` equal the stored ones (policies are immutable per version, so an honest re-evaluation matches);
-  - the presented subject snapshot's `actor_role` and `actor_id` equal those recorded at issuance.
+  - the fresh presented `subject_context.actor_id` equals **both** `ExecutionIdentity.owner` and the stored `s5_subject_binding.actor_id`, and the fresh `actor_role` equals **both** `canonicalRole(ExecutionIdentity.role)` and the stored `s5_subject_binding.actor_role`. These are direct field comparisons, not a digest comparison, because the evaluation time legitimately differs between issuance and claim (`AS92-F001`). Identity drift or any mismatch is `CAPABILITY_DENIED`.
 - **Every other outcome prevents claim and execution.** This covers `DENY` for any reason (including `REVOKED`, `EXPIRED` and `POLICY_VERSION_MISMATCH`), a trusted-source failure (`TrustedSourceUnavailableError`: clock, identity or revocation source unavailable), and any binding mismatch. Each is `CAPABILITY_DENIED`. The permit moves to the terminal `REVOKED` state with reason `CAPABILITY_INVALIDATED`, so it can never be claimed. A new attempt needs a new `request_id` and a new permit.
 - **Journaled separately.** The claim-time check is journaled as its own entry: the fresh decision fields, the fresh presented-intent digest, the outcome and trusted time, all bound to `permit_digest`. It is never written into the immutable permit body, which is not rewritten.
 - **What it does not require.** After a successful claim, the driver's execution is the same already-admitted attempt. This finding requires no continuous S5 polling while a command runs. A revocation after claim does not interrupt the running command (Residual risks 14). Later S5-gated actions for the task (for example, the `github` push at completion) evaluate S5 afresh on their own.
@@ -664,7 +680,7 @@ These are *environment* states, not task states. None of them is an S4 state or 
 **Reason codes.** No new code is added.
 - A malformed request, or conflicting reuse of a `request_id`, is `MALFORMED_REQUEST`.
 - A permit for a stale checkpoint is `FENCING_REVISION_MISMATCH`, or `INSTANCE_STALE`.
-- An S5 deny, or an `ALLOW` whose presented intent does not match the expected canonical axes, is `CAPABILITY_DENIED`, at issuance and equally at the claim-time recheck. At claim, a trusted-source failure is also `CAPABILITY_DENIED`, and the permit becomes `REVOKED` (`CAPABILITY_INVALIDATED`).
+- An S5 deny, or an `ALLOW` whose presented intent does not match the expected canonical axes, or whose presented subject is not the instance owner in the mapped role (`AS92-F001`), is `CAPABILITY_DENIED`. This applies at issuance and equally at the claim-time recheck. At claim, a trusted-source failure is also `CAPABILITY_DENIED`, and the permit becomes `REVOKED` (`CAPABILITY_INVALIDATED`).
 - A claimed-but-unreported permit at quiesce or completion is `QUIESCE_UNPROVEN`.
 - Each of the following is `ISOLATION_UNPROVABLE`: an unknown permit, an expired-unclaimed or revoked permit presented for claim, a replayed claim, a report for a permit that is not `CLAIMED`, a `permit_digest` mismatch, and an argv or environment digest mismatch.
 - No available driver is `ISOLATION_CAPABILITY_MISSING`.
@@ -877,6 +893,14 @@ A future implementation's tests MUST:
       - *Exact replay of an `ISSUED` permit* mints nothing, makes no S5 call and executes nothing. The next claim still performs the fresh S5 check; instrument the test gateway's call count.
       - *Claim-time binding mismatch*: a fresh presented intent, descriptor, policy version or subject that differs from the stored binding blocks the claim.
       - *Claim-time trusted-source unavailable*: the clock, identity or revocation source throws. The claim fails closed (`CAPABILITY_DENIED`) and the permit becomes `REVOKED`.
+    - **S5 subject ↔ S6 identity binding (`AS92-F001`):**
+      - *Wrong `actor_id` at issuance*: the test S5 host's trusted subject is an actor other than the instance owner, and S5 `ALLOW`s it. The result is `CAPABILITY_DENIED`, with no permit and no request binding created.
+      - *Wrong `actor_role` at issuance*: the owner's `actor_id` with a role other than the mapped role (for example `QA` for a `BUILDER` instance). The result is `CAPABILITY_DENIED`, with no permit and no binding.
+      - *Correct `BUILDER` → `Builder` mapping*: a permit is issued when all other gates pass, and `s5_subject_binding` holds the owner and `Builder`.
+      - *Correct `QA` → `QA` mapping*: a permit is issued for a QA instance when all other gates pass, and `s5_subject_binding` holds the QA owner and `QA`.
+      - *Claim-time `actor_id` drift*: the fresh subject has a different `actor_id` from the owner and the stored binding. The claim is blocked (`CAPABILITY_DENIED`, the permit becomes `REVOKED`/`CAPABILITY_INVALIDATED`).
+      - *Claim-time `actor_role` drift*: the fresh subject has a different role. The claim is blocked the same way.
+      - *`AS91-F001` intact*: with a correct subject, live revocation and descriptor expiry before claim still block the claim, and ordinary supersession still allows it.
 
 ### 19. Canonical home
 
@@ -939,7 +963,7 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 7. The canonical home is `devos/execution/`, to be reserved only by a separate `ARCHITECTURE`-class authorization.
 8. There are 30 deterministic, ordered reason codes. Nothing is auto-cleaned into compliance, and nothing orphaned is adopted.
 9. Paths that do not exist yet are created under §9.1: a verified existing ancestor, validated literal tails, exclusive per-segment creation, and immediate identity revalidation.
-10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use Execution Permit and returns a verified Execution Report. The permit binds the canonical S5 `shell.exec` request intent and decision (not argv-aware) to S6's exact `argv_digest`. One `request_id` can mint at most one permit. Claim requires a fresh S5 `ALLOW` at the permit's pinned intent, which honours live revocation and descriptor expiry. A claimed permit never becomes quiescence-safe by expiry. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
+10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use Execution Permit and returns a verified Execution Report. The permit binds the canonical S5 `shell.exec` request intent and decision (not argv-aware) to S6's exact `argv_digest`. One `request_id` can mint at most one permit. Claim requires a fresh S5 `ALLOW` at the permit's pinned intent, which honours live revocation and descriptor expiry. At issuance and at claim alike, the S5 subject must be the instance's S4 owner in the mapped role (`BUILDER` → `Builder`, `QA` → `QA`). A claimed permit never becomes quiescence-safe by expiry. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
 
 ## Scope
 
