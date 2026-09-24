@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S5_CLOSURE
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: SENTINEL_S5_CLOSED_AWAITING_NEXT_DIRECTION
+CYCLE_ID: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S6_ISOLATED_EXECUTION_PROPOSAL_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
@@ -24,32 +24,60 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-`ML-DEVOS-AS-085` passes S5 D.2 Post-decision Closure Verification under `D-065`.
+`D-066` authorizes the next sequential Sentinel phase, **S6 — Isolated Execution**, for discovery, architecture proposal, and audit only.
 
-S5 Capability & Permission Gateway V1 is now fully closed in the governed workflow.
+Allocate:
+`ML-DEVOS-RFC-019`
 
-Active Sentinel capability baseline:
-`v1.8.0 / ML-DEVOS-ADR-015 / D-065`
+Roadmap target:
+task-scoped branch/worktree/sandbox isolation for Builder and QA work.
 
-Reserved root:
-`devos/capabilities/ / IMPLEMENTED / closure_ref ML-DEVOS-ADR-015 / executable_runtime_present false`
+This is **proposal-only authority**. No executable S6 behavior is authorized.
 
-## Next action — Paulo direction only
+## Builder design turn
 
-No later Sentinel phase starts automatically.
+Use LEAN / DELTA-ONLY reads.
 
-Paulo may choose the next independently governed direction. Any S6+, S7+, Context Plane CP-4+, Model Router, S5 runtime wiring, remote resource, deployment, production-write, protected/main-merge, or PR #10 merge work requires its own applicable authority.
+Prepare RFC-019 as an ARCHITECTURE-class proposal covering:
 
-## Carried obligations
+- task/repository/base-ref/branch/worktree/sandbox identity;
+- isolation threat model and explicit V1 non-goals;
+- clean-base/freshness and stale-worktree handling;
+- writable/read-only/path/symlink/escape boundaries;
+- process/environment/dependency/cache/secret isolation expectations;
+- concurrent-task collision and cross-task contamination prevention;
+- create/claim/use/renew/cleanup/recovery lifecycle;
+- idempotency, retries, crash/orphan recovery, rollback/cleanup;
+- Windows/POSIX portability;
+- deterministic failure modes;
+- evidence/provenance and failure-injection/mutation test plan;
+- composition with S3 scope, S4 ownership/leases/fencing, S5 capability decisions, and independent QA;
+- an explicit canonical-home recommendation, noting that no dedicated S6 manifest root currently exists.
 
-`coordination/OPERATIVE_OBLIGATIONS.md` remains authoritative for unresolved carry-forward obligations, including OBL-010, OBL-011, OBL-012, OBL-015, OBL-017, OBL-018, and all other OPEN/DEFERRED rows.
+Do not implement the design.
+
+Authorized proposal surfaces:
+
+- devos/changes/rfcs/ML-DEVOS-RFC-019.md
+- devos/changes/rfcs/README.md
+- deterministic traceability outputs if changed
+- normal Context Bootstrap coordination/handoff evidence required to return for review
+
+On completion, publish a new CURRENT_HANDOFF and return:
+
+`TURN: ARCHITECT`
+`STATUS: READY_FOR_ARCHITECT`
+`ARCHITECT_ACTION_REQUIRED: YES`
+
+for independent architecture review after ML-DEVOS-AS-085.
 
 ## Hard boundaries
 
-No S3/S4 integration or wiring.
-No S5 runtime integration.
-No S6+.
-No S7+ implementation.
+No S6 executable implementation.
+No executable S6 root or manifest-status change.
+No S3/S4/S5 implementation/interface mutation.
+No S5 runtime wiring.
+No S7+.
 No CP-4+.
 No Model Router implementation.
 No dynamic plugin discovery.
@@ -62,3 +90,5 @@ No protected/main merge.
 No PR #10 merge or auto-merge.
 
 All remote/deploy/main/mutation flags remain NO.
+
+Known traceability debt CORE-022 and WEB-REQ-009 remains visible unless separately and legitimately resolved.
