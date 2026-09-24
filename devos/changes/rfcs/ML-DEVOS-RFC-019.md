@@ -2,6 +2,8 @@
 
 Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3 (`ML-DEVOS-AS-086`, `ML-DEVOS-AS-087`, `ML-DEVOS-AS-088`/`D-067`). Amended under `D-069` (execution-boundary amendment) and resubmitted for independent Architect review of the amendment. The `D-068` implementation authority is suspended, and the amendment does not resume it.
 
+**Implementation status (`D-071`; factual, not closure).** The amended design was approved by `ML-DEVOS-AS-093`. `D-071` then authorized one bounded S6-core implementation cycle against it, with no generic executor and no real execution driver. That in-progress implementation lives in `devos/execution/`, registered in the DevOS manifest as the S6 root with `status: NOT_IMPLEMENTED`, `executable_runtime_present: false` and no `closure_ref`. This RFC stays `DRAFT`, Sentinel stays `v1.8.0`, and all Builder implementation evidence is `ACTOR_REPORTED` pending independent Architect review. Closure is separately gated (`ML-DEVOS-RFC-015` D.1/D.2).
+
 Proposed change class: `ARCHITECTURE`
 
 Sentinel phase:

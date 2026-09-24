@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "devos/execution/execution-permit.schema.json",
+  "title": "S6 Execution Permit immutable body (ML-DEVOS-RFC-019 \u00a713.1)",
+  "description": "Written once; permit_digest = SHA-256 of the exact bytes. The permit lifecycle state lives in a separate status part. s5_request_intent is the canonical S5 presented intent (S5 is not argv-aware); s5_subject_binding holds the two non-secret subject fields verified against the S6 owner and mapped role (AS92-F001).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "permit_id",
+    "instance_id",
+    "request_id",
+    "identity_digest",
+    "checkpoint_revision",
+    "argv_digest",
+    "cwd",
+    "environment_digest",
+    "s5_request_intent",
+    "s5_request_intent_digest",
+    "s5_presented_digest",
+    "s5_subject_binding",
+    "s5_decision",
+    "s5_consequence_tier",
+    "issued_at",
+    "claim_deadline",
+    "single_use"
+  ],
+  "properties": {
+    "permit_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "identity_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "checkpoint_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "argv_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "cwd": {
+      "type": "string"
+    },
+    "environment_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "s5_request_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "provider",
+        "action",
+        "resource",
+        "environment",
+        "policy_version"
+      ],
+      "properties": {
+        "project": {
+          "type": "string"
+        },
+        "provider": {
+          "const": "shell"
+        },
+        "action": {
+          "const": "shell.exec"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "policy_version": {
+          "type": "string"
+        }
+      }
+    },
+    "s5_request_intent_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "s5_presented_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "s5_subject_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_id",
+        "actor_role"
+      ],
+      "properties": {
+        "actor_id": {
+          "type": "string"
+        },
+        "actor_role": {
+          "enum": [
+            "Builder",
+            "QA"
+          ]
+        }
+      }
+    },
+    "s5_decision": {
+      "type": "object"
+    },
+    "s5_consequence_tier": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "issued_at": {
+      "type": "string"
+    },
+    "claim_deadline": {
+      "type": "string"
+    },
+    "single_use": {
+      "const": true
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "devos/execution/execution-identity.schema.json",
+  "title": "S6 Execution Identity (ML-DEVOS-RFC-019 \u00a73)",
+  "description": "Immutable for the life of an execution instance; its canonical-JSON SHA-256 is the identity digest. It contains no mutable revision: the S4-derived Fencing Checkpoint (\u00a73.1) is kept separately.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "repository",
+    "task_id",
+    "contract_ref",
+    "contract_digest",
+    "role",
+    "owner",
+    "anchor_revision",
+    "base_ref",
+    "base_sha",
+    "task_branch",
+    "instance_id",
+    "workspace_path",
+    "platform_profile",
+    "isolation_level"
+  ],
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*$"
+    },
+    "contract_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "role": {
+      "enum": [
+        "BUILDER",
+        "QA"
+      ]
+    },
+    "owner": {
+      "type": "string",
+      "minLength": 1
+    },
+    "anchor_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "base_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "task_branch": {
+      "type": "string",
+      "pattern": "^sentinel/s6/[A-Z][A-Z0-9_-]*/(builder|qa)/[0-9a-f]{32}$"
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "workspace_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "platform_profile": {
+      "type": "object"
+    },
+    "isolation_level": {
+      "const": "L3"
+    }
+  }
+}

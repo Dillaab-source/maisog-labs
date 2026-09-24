@@ -59,6 +59,16 @@
       "executable_runtime_present": false
     },
     {
+      "path": "devos/execution/",
+      "owning_phase": "S6",
+      "consuming_phases": [
+        "S7",
+        "S8"
+      ],
+      "status": "NOT_IMPLEMENTED",
+      "executable_runtime_present": false
+    },
+    {
       "path": "devos/evidence/",
       "owning_phase": "S7",
       "consuming_phases": [

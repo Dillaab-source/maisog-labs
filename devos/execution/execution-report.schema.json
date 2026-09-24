@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "devos/execution/execution-report.schema.json",
+  "title": "S6 Execution Report (ML-DEVOS-RFC-019 \u00a713.1)",
+  "description": "Produced by an execution driver (none is implemented in V1 core). ACTOR_REPORTED evidence; verified against the claimed permit's digests.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "permit_id",
+    "instance_id",
+    "argv_digest",
+    "environment_digest",
+    "process_groups",
+    "terminated"
+  ],
+  "properties": {
+    "permit_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "argv_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "environment_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "process_groups": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 2
+      }
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "ended_at": {
+      "type": "string"
+    },
+    "exit_code": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "signal": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stdout_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stderr_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "terminated": {
+      "type": "boolean"
+    }
+  }
+}
