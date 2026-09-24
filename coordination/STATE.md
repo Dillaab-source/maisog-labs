@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS094_REMEDIATION_CYCLE_1_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S6_CORE_IMPLEMENTATION_AS095_FINAL_REMEDIATION_CYCLE_2_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-CORE-IMPL-REM1-0001
-REVIEW_TARGET_COMMIT: a91c509ce3e16aef02e76f873f8893159a3eda71
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-094
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-095
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -25,30 +25,38 @@ MAIN_MERGE_AUTHORIZED: NO
 ## Authority
 
 D-071 remains the owner implementation authority.
-ML-DEVOS-AS-094 returns four bounded implementation findings for remediation cycle 1
-of 2.
+ML-DEVOS-AS-095 closes AS94-F001/F002/F003/F004 and authorizes the final ordinary
+remediation cycle (2 of 2) for AS95-F001 and AS95-F002 only.
 
 S6 remains NOT_IMPLEMENTED and Sentinel remains v1.8.0.
-
-## Architect re-review return — AS-094 remediation cycle 1 of 2
-
-The Builder has corrected `AS94-F001` (all final claim checks under the S6 task lock, S5 recheck last), `AS94-F002` (the atomically published request binding is the only permit commit point; derived artifacts are rebuilt after a crash; orphans are never permits), `AS94-F003` (closed named Git and fixture operations; no argv-taking execution export) and `AS94-F004` (complete, validated, durably recorded Execution Report). It returns the turn for independent re-review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-094`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-IMPL-REM1-0001`) only. The manifest is unchanged, S6 is not closed, and no real execution driver, live remote transport or credential was introduced. No further Builder action is authorized.
 
 ## Authorized remediation
 
 Correct only:
 
-- AS94-F001 — move final claim fencing + fresh S5 recheck into the claim
-  linearization lock immediately before ISSUED -> CLAIMED, with deterministic race
-  tests.
-- AS94-F002 — make request-binding + permit minting crash-recoverable so a crash at any
-  sub-step can never let the same request_id mint a second permit.
-- AS94-F003 — remove generic argv-taking Git/process helpers from S6 core and test
-  fixtures; replace with closed fixed operations / structured parameters.
-- AS94-F004 — implement the complete RFC-019 Execution Report contract in schema,
-  runtime validation and durable report/journal evidence.
+- AS95-F001 — make all competing permit/instance lifecycle mutations honor one
+  per-task linearization discipline (shared task lock or equally strong CAS), so
+  terminal permit/instance states cannot be resurrected by stale writes.
+- AS95-F002 — quiesce must re-read current S4 state and pass the existing
+  owner/revision/lease/role-state fencing checks before committing its environment
+  transition.
 
-Preserve every implementation property AS-094 marked accepted.
+Preserve all AS94 corrections and all previously accepted S6 properties.
+
+## Required focused tests
+
+At minimum:
+
+- claim vs quiesce ordering;
+- claim vs permit expiry/replay at the deadline;
+- claim vs quarantine/recovery revocation;
+- report vs quarantine/recovery, proving a late report cannot un-quarantine;
+- simultaneous report/quiesce behavior;
+- quiesce after owner change;
+- quiesce after revision advance;
+- quiesce after lease expiry;
+- quiesce after S4 role-state change;
+- mutation tests that remove the shared serialization/fencing and are killed.
 
 ## Authorized repository writes
 
@@ -58,31 +66,11 @@ Only:
 - tests/execution-*.test.mjs;
 - narrowly necessary tests/fixtures/execution/**;
 - deterministic traceability outputs if needed;
-- ML-DEVOS-RFC-019.md and devos/changes/rfcs/README.md only for factual remediation
-  status/provenance notes, with no design change;
+- ML-DEVOS-RFC-019.md / devos/execution/README.md only for factual remediation notes;
 - coordination/STATE.md and coordination/CURRENT_HANDOFF.md.
 
-Do not change devos/devos-manifest.json. Its S6 entry remains NOT_IMPLEMENTED with
-executable_runtime_present false and no closure_ref.
-
+Do not change the S6 manifest entry.
 No S3/S4/S5 source/interface/schema/policy mutation.
-
-## Required evidence
-
-Return exact test/validator exit codes and new focused evidence for all four findings,
-including:
-
-- claim race with local task-lock contention + S4 mutation;
-- claim race with live S5 revocation/expiry change;
-- permit-creation crash/fault injection at every durable sub-step and same-permit replay;
-- source-level proof that no S6-core or fixture export accepts arbitrary command/argv for
-  execution;
-- complete Execution Report positive/negative contract tests;
-- full S6 focused suites, mutation suite, npm test, standard validators,
-  git diff --check and traceability.
-
-Platform claims remain actual-run only; otherwise state NOT RUN.
-Builder evidence remains ACTOR_REPORTED pending Architect review.
 
 ## Return gate
 
@@ -93,8 +81,20 @@ STATUS: READY_FOR_ARCHITECT
 ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
+
+If another blocker remains, the ordinary remediation budget is exhausted and the matter
+routes to Paulo. Do not open a third cycle without explicit owner authority.
+
+## Post-S6 / pre-S7 direction
+
+AS-095 records a non-binding recommendation for a short pre-S7 readiness checkpoint
+after S6 technical acceptance/closure. That future checkpoint requires separate owner
+authority and should convert S6 lessons into S7 design inputs (boundary matrix,
+linearization map, crash matrix, dangerous-primitive checks, evidence completeness,
+input integrity, and invariant-derived falsification tests) without delaying S7 with an
+open-ended governance project.
 
 ## Hard boundaries
 
@@ -121,4 +121,4 @@ No automatic stale-branch deletion.
 No L4/container/VM implementation.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by AS-094.
+No operative obligation is closed by AS-095.
