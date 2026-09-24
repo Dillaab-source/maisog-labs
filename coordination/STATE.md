@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_ISOLATED_EXECUTION_DESIGN
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_ISOLATED_EXECUTION_PROPOSAL_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-RFC019-0001
+REVIEW_TARGET_COMMIT: 2691812326f6c3cf2cdbdfd2129bf823f465e864
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-085
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -34,7 +34,11 @@ task-scoped branch/worktree/sandbox isolation for Builder and QA work.
 
 This is **proposal-only authority**. No executable S6 behavior is authorized.
 
-## Builder design turn
+## Architect review return — proposal review only
+
+The Builder has filed `ML-DEVOS-RFC-019` (`DRAFT`, `ARCHITECTURE`-class) under `D-066` and returns the turn for independent S6 architecture review, under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-085`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-RFC019-0001`) only. No S6 implementation, `devos/execution/` root reservation, manifest change or S5 runtime use is authorized. No further Builder action is authorized.
+
+## Builder design turn (as authorized)
 
 Use LEAN / DELTA-ONLY reads.
 
