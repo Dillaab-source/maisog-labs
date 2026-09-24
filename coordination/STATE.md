@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_D069_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: SENTINEL_S6_EXECUTION_BOUNDARY_DESIGN_AMENDMENT_AS090_REMEDIATION_CYCLE_1_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-EXECBOUNDARY-0001
-REVIEW_TARGET_COMMIT: e8bdb4241173b9b1f59c3b0d596a500bb79cc40c
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-089
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -24,60 +24,48 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-069 suspends further executable S6 implementation under D-068 and authorizes one
-bounded architecture/design amendment to ML-DEVOS-RFC-019 only.
+D-069 remains the owner authorization for the S6 execution-boundary design amendment.
+ML-DEVOS-AS-090 independently accepts the amendment direction but returns three bounded
+design findings for remediation cycle 1 of 2.
 
-The trigger is the Builder-reported provider/runtime safety block on the RFC-019
-generic actor/tool command-running surface. The block must not be bypassed or weakened.
+D-068 executable implementation remains suspended.
 
-## Architect review return — D-069 amendment
+## Authorized remediation
 
-The Builder has made the bounded `D-069` execution-boundary amendment to `ML-DEVOS-RFC-019` (design only; new §13.1). It returns the turn for independent architecture review of the amended boundary, under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-089`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-EXECBOUNDARY-0001`) only. `D-068` remains suspended. No S6 implementation, generic command execution, root, manifest or S5 runtime use is authorized. No further Builder action is authorized. The Builder's local `D-068` draft remains preserved, uncommitted and unpushed.
+Correct only:
 
-## Required design correction (as authorized)
+- AS90-F001 — a claimed-but-unreported permit must never become quiescence-safe merely
+  because its time window expires. Unclaimed expiry may be harmless; claimed execution
+  uncertainty must block quiesce/completion and fail closed.
+- AS90-F002 — define request_id idempotency so one logical request cannot mint multiple
+  permits. Exact replay returns the existing permit/result binding; conflicting reuse
+  fails closed.
+- AS90-F003 — preserve the real S5 CAN semantics. Current S5 is not argv-aware. Bind the
+  permit/journal to the exact canonical S5 request intent/envelope used for ALLOW while
+  keeping argv exactness in S6's argv_digest. Do not change S5.
 
-Amend RFC-019 so that S6 core owns execution identity, dedicated-clone/workspace
-isolation, environment construction/validation, S4-derived fencing, path confinement,
-journal/RTR/provenance, cleanliness/scope validation, quiescence requirements,
-completion/publication control, and independent-QA reconstruction.
-
-S6 core MUST NOT expose a generic run(arbitraryCommand) / raw actor-command spawn()
-primitive.
-
-Actual actor/tool-chosen command execution must become a distinct execution-driver
-boundary. The amended design must specify:
-
-- how the driver receives a separately authorized execution request;
-- how the applicable S5 shell decision remains the CAN gate for actor/tool commands;
-- how execution is restricted to an S6-proven workspace/environment;
-- how process/result/provenance evidence returns to S6;
-- how process supervision/quiescence responsibilities compose across that boundary;
-- how S6 core is tested with fixed deterministic commands, injected/fake drivers, or
-  other bounded local fixtures without a generic arbitrary-command execution API;
-- what later implementation authority would be required for a real execution driver.
-
-No S3, S4 or S5 implementation/interface semantics may be changed.
+The accepted D-069 separation itself must not be reopened.
 
 ## Local draft disposition
 
-The existing Builder local S6 draft remains uncommitted and unpushed evidence/work
-product. Do not delete it. Do not stage, commit, push, execute further blocked paths,
-or alter it merely to bypass the safety control.
+The Builder's unpublished D-068 draft remains preserved locally, uncommitted and
+unpushed. Do not delete, stage, commit, import, execute further, or alter it as part of
+this remediation.
 
-If a clean worktree is needed for this documentation-only amendment, use the
-authoritative governed tip and do not import the blocked draft.
+Use a clean worktree from the authoritative governed branch for the design remediation.
 
 ## Authorized repository writes
 
 Only:
 
 - devos/changes/rfcs/ML-DEVOS-RFC-019.md;
-- devos/changes/rfcs/README.md if factual proposal/status indexing requires it;
-- deterministic traceability outputs if required by the RFC delta;
+- devos/changes/rfcs/README.md if factual status/index wording requires it;
+- deterministic traceability outputs;
 - coordination/STATE.md and coordination/CURRENT_HANDOFF.md for the return gate.
 
 No executable S6 source.
 No devos/execution/ publication.
+No execution-driver implementation.
 No tests/execution-* implementation.
 No manifest entry or status change.
 No schema/runtime mutation.
@@ -86,25 +74,24 @@ No ADR, closure record or Sentinel version change.
 
 ## Return gate
 
-After the bounded RFC amendment, publish a fresh CURRENT_HANDOFF and return:
+After correcting AS90-F001/F002/F003, publish a fresh CURRENT_HANDOFF and return:
 
 TURN: ARCHITECT
 STATUS: READY_FOR_ARCHITECT
 ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 1
+MAX_REMEDIATION_CYCLES: 2
 
-for independent architecture review of the amended execution boundary.
-
-D-068 may not resume automatically after the RFC edit. Any resumed executable S6
-implementation requires an Architect-approved amended design and a fresh explicit
-Paulo implementation decision.
+for independent re-review.
 
 ## Hard boundaries
 
 No safety-control bypass or permission expansion.
 No S6 executable implementation.
 No generic command-execution implementation.
+No real execution-driver implementation.
 No S6 closure or IMPLEMENTED manifest status.
 No closure_ref / closure ADR / closure-history entry / Sentinel version bump.
 No manifest/root change.
@@ -126,4 +113,4 @@ No automatic stale-branch deletion.
 No L4/container/VM implementation.
 
 All remote/deploy/main/mutation flags remain NO.
-No operative obligation is closed by D-069.
+No operative obligation is closed by AS-090.
