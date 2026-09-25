@@ -1444,3 +1444,48 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   - `CURRENT_DIRECTIVE: NONE` with cleared selector fields;
   - `TURN: ARCHITECT`.
 - **No deployment is authorized.**
+
+### D-083 — Authorize WEB release-readiness / release-scope review after AS-112 (planning and inspection only)
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-112` accepted Spatial Design Controls V2A and routed the repository to Paulo at `2cdbf4468d500163f84ab9a06c5232b6614f34b8`.
+- **Owner authorization:** Paulo supplied it in the Builder session, and the Builder recorded it here as publisher. The operative terms are quoted verbatim. This entry proves provenance, not authority beyond Paulo's words.
+- **Decision (verbatim):** "Authorize a bounded MaisogLabs WEB RELEASE READINESS / RELEASE-SCOPE REVIEW after AS-112. This is a planning and inspection gate only." "Decision: AUTHORIZED FOR RELEASE-READINESS / RELEASE-SCOPE REVIEW ONLY."
+- **Stated state:**
+  - governance tip `2cdbf4468d500163f84ab9a06c5232b6614f34b8`;
+  - main tip `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`;
+  - `PROTOCOL_VERSION: 2`.
+- **Objective:** determine the safest bounded release path for the accepted current website state.
+  - Compare `main` against `governance/maisoglabs-v0.1`.
+  - Classify the accumulated diff into:
+    1. public website / admin / product release changes;
+    2. supporting tests/docs;
+    3. governance / Context Bootstrap / Protocol V2 records;
+    4. SENTINEL / S6 / DevOS implementation or research artifacts;
+    5. evidence/archive files;
+    6. anything that should not be in a production-facing release merge.
+  - Answer the key question without assuming either outcome: a direct `governance/maisoglabs-v0.1 -> main` merge, or a bounded website-release branch.
+- **Required inspection:**
+  - PR #12 / WEB-REL-001, D-054–D-057, OBL-017, OBL-018, AS-112, and Website Redesign V1 and V2A acceptance;
+  - a fresh SENTINEL sync;
+  - SU bounded contradiction on:
+    - S6 or experimental capability inclusion;
+    - missing accepted website changes;
+    - governance/history dependencies;
+    - release-branch divergence and maintenance;
+    - unintended Cloudflare/build/deployment effects;
+    - the merge ≠ deploy assumption.
+- **Required output:**
+  - the exact main and governance SHAs;
+  - the release candidate scope, with included and excluded files/categories;
+  - whether a fresh release PR is required;
+  - the required CI/build checks;
+  - the merge-gate, deployment-gate and runtime-verification requirements;
+  - rollback considerations;
+  - any unresolved blocker.
+- **Not authorized:**
+  - merge, main merge authority or deployment;
+  - production mutation, remote D1/R2 mutation or Cloudflare production mutation;
+  - product/runtime implementation changes;
+  - V2B.
+- **Held positions:** PR #10 remains DO NOT MERGE. S6 remains parked at `ML-DEVOS-AS-103`. O1/O2 remain open. D-068 remains suspended and untouched.
+- **Protocol:** use Protocol V2. If implementation or release mutation is required after planning, stop and return to Paulo for a separate explicit decision.
