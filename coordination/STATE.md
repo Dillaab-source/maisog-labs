@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_CANONICAL_DIRECTIVE_PROTOCOL_STAGE_B_ACTIVATION
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: AS111_RFC020_STAGE_B_CLOSED_PAULO_FIRST_V2_TASK_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2A_IMPLEMENTATION
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D082_SPATIAL_DESIGN_CONTROLS_V2A_ADMIN_UX_ALIGNMENT_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 1
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
 CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-SPATIAL-DESIGN-V2A-0001
+DIRECTIVE_ISSUE_PARENT: 030ba0e095cf117aeda260ce4d75745378fe032e
+DIRECTIVE_AUTHORITY_REF: D-082
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-107
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,55 +29,45 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-ML-DEVOS-AS-111 is the controlling review. It verified the RFC-020 Stage B Protocol V2 activation (D-080, D-081).
+D-082 is the Product / Risk Owner authorization for Spatial Design Controls V2A — Admin UX Alignment, the first real Protocol V2 Builder task.
 
-RFC-020 Stage B is closed.
+ML-DEVOS-AS-107 and `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md` are the controlling reviewed plan.
 
-## Live protocol
+ML-DEVOS-AS-111 verified Protocol V2.
 
-`PROTOCOL_VERSION: 2` is live and verified.
+## Selected directive
 
-`CURRENT_DIRECTIVE: NONE`, and the directive selector values are empty. No real directive has been issued.
+`DIR-SPATIAL-DESIGN-V2A-0001` in `coordination/CURRENT_DIRECTIVE.md` is transport, not authority.
 
-`H-RFC020-STAGE-B-REM1-0001` is archived byte-exactly under `coordination/archive/handoffs/`.
+Effective scope is the intersection of this STATE, D-082, ML-DEVOS-AS-107, the V2A plan and the directive.
 
-## Paulo gate
+## Builder scope
 
-Paulo may separately choose and authorize the first real Protocol V2 Builder task.
+Only:
+- `app/admin/DesignControls.js`;
+- directly necessary V2-focused test file(s);
+- `docs/product/DESIGN_REFERENCE_WORKFLOW.md`;
+- `docs/product/UI_UX_SPEC.md`;
+- the Protocol V2 coordination/directive/handoff/archive/evidence records.
 
-Protocol V2 verification authorizes no implementation by itself.
+`MUTATION_AUTHORIZED` stays NO: it governs remote/product data mutation, which is not part of this admin-UI source change.
 
 ## Hard boundaries
 
-No real CURRENT_DIRECTIVE selection without a separate owner decision.
-No V2A implementation.
-No product/admin/site/runtime mutation.
-No media mutation.
-No D1/R2 mutation.
-No migration.
-No deployment.
-No public cutover.
-No S6/S7 work.
-No D-068 mutation.
-No protected/main merge.
-No PR #10 merge or auto-merge.
+No DesignRuntime, `components/site/**`, Worker, D1, migration or API-shape change.
+No new theme field, arbitrary input, new preview endpoint, iframe/editor runtime or drag/drop.
+No Research visibility/order management.
+No media, Brand identity or content editing.
+No V2B, S6/S7 or D-068 work.
+No deployment, public cutover, remote D1/R2 mutation, protected/main merge, or PR #10 merge.
 
-All action-specific flags remain NO.
-
-## Website / S6 boundaries
-
-Website Redesign V1 remains accepted.
-
-Spatial Design Controls V2A remains Architect-approved under ML-DEVOS-AS-107 and deferred.
-
-S6 remains parked at ML-DEVOS-AS-103.
-
-O1 and O2 remain open.
-
-D-068 remains suspended and untouched/untracked.
+S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-TURN: PAULO
-
-No Builder action begins automatically.
+The Builder publishes one Protocol V2 return commit:
+- the implementation and evidence;
+- CURRENT_HANDOFF;
+- the directive archived;
+- `CURRENT_DIRECTIVE: NONE`;
+- `TURN: ARCHITECT`.

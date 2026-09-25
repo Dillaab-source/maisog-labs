@@ -1392,3 +1392,55 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Owner authorization (verbatim, given in the Builder session):** "Authorize exceptional RFC-020 Stage B status-consistency micro-remediation. Scope is limited strictly to correcting stale current-status wording introduced or left inconsistent by the D-080 Protocol V2 activation, principally the top-level status/authority wording in brain/protocols/CONTEXT_BOOTSTRAP.md. Inspect RFC-020's live status header only to determine whether it is intended as mutable current status; update it only if required for consistency with the already-active D-080 Stage B state. Do not change protocol behavior, checker logic, tests, directive mechanics, product/runtime code, V2A, S6/S7, D-068, deployment, D1/R2, migrations, protected/main, or any unrelated file. Preserve PROTOCOL_VERSION: 2 and CURRENT_DIRECTIVE: NONE. Publish the smallest atomic remediation, record evidence, route back to TURN: ARCHITECT, and stop. No first real V2 directive is authorized by this remediation."
 - **Recording provenance:** Paulo supplied the text in chat. The Builder recorded it verbatim in the same atomic remediation commit, as publisher. This entry proves provenance, not authority beyond Paulo's words.
 - **Exceptional routing:** the remediation is published while live `TURN` is `ARCHITECT`, on this owner authorization, and routes back to `TURN: ARCHITECT`.
+
+### D-082 — Authorize Spatial Design Controls V2A — Admin UX Alignment (first Protocol V2 Builder task)
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-111` verified the Protocol V2 activation and routed the repository to Paulo (`TURN: PAULO`) at `030ba0e095cf117aeda260ce4d75745378fe032e`.
+- **Owner authorization:** Paulo supplied it in the Builder session, not as an exact-byte package, and the Builder recorded it in this entry as publisher. Its operative terms are quoted verbatim below. This entry proves provenance, not authority beyond Paulo's words.
+- **Decision (verbatim):** "Authorize SPATIAL DESIGN CONTROLS V2A — ADMIN UX ALIGNMENT as the first real Protocol V2 Builder task." "This authorization is limited to the V2A implementation scope already approved by ML-DEVOS-AS-107." "Decision: AUTHORIZED."
+- **Controlling chain:** `ML-DEVOS-AS-107`, `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`, `ML-DEVOS-AS-111`, `ML-DEVOS-RFC-020`.
+- **Authorized implementation paths:**
+  - `app/admin/DesignControls.js`
+  - directly necessary V2-focused test file(s)
+  - `docs/product/DESIGN_REFERENCE_WORKFLOW.md`
+  - `docs/product/UI_UX_SPEC.md`
+  - normal coordination, directive, handoff, archive and evidence files required by Protocol V2
+- **Objective:** Align the existing Design Controls admin UX with the accepted spatial website model without creating new backend capability.
+  - Preserve backend identifiers `home`, `process`, `projects`, `about`, and present them as Entry, Systems, Projects, Contact.
+  - Preserve the existing bounded theme fields, enum values, numeric ranges, APIs, validation, stale-write protection, draft/publish semantics and public-runtime mappings.
+- **Spatial Preview shortcuts,** using the existing authenticated preview mechanism:
+  - Entry `/?design-preview=1`
+  - Systems `/?design-preview=1#systems`
+  - Projects `/?design-preview=1#projects`
+  - Research `/?design-preview=1#research`
+  - Contact `/?design-preview=1#contact`
+  - Journal `/journal?design-preview=1`
+- **Research:** preview-only, not added to the managed visibility/order contract.
+- **Order controls:**
+  - Entry order is not exposed as a meaningful editable navigation-order control.
+  - Systems, Projects and Contact may continue using the existing bounded order mechanism.
+- **Lifecycle wording:** clearly distinguish Draft, Preview, Publish and Deployment. Publish means activation of design settings only; it does not authorize code deployment or content publication.
+- **Hard boundaries (not modified or authorized):**
+  - **Code:** `app/DesignRuntime.js`, `components/site/**`, Worker code, D1 code or schema, migrations, API shape, public-site source.
+  - **Content and identity:** media, Brand identity, factual/content editing.
+  - **New inputs or fields:** new theme fields; arbitrary CSS/HTML/JavaScript/selectors/URLs/remote assets; custom fonts; custom classes; arbitrary colors; XY/free-form positioning.
+  - **New structure:** component definitions, route definitions, drag/drop as a new capability, a new preview endpoint, an iframe/editor runtime.
+  - **Other work:** V2B, S6/S7, D-068.
+  - **Release actions:** deployment, public cutover, remote D1/R2 mutation, protected/main merge, PR #10 merge or auto-merge.
+- **Held positions:** S6 remains parked at `ML-DEVOS-AS-103`. O1 and O2 remain open. D-068 remains suspended and untouched.
+- **Protocol V2:** this is the first real Protocol V2 Builder task.
+  - Its directive is issued only after a fresh SENTINEL sync and SU contradiction check.
+  - The directive is not authority. Effective scope is the intersection of STATE, this decision, `ML-DEVOS-AS-107`, the approved V2A plan and the directive.
+- **Required validation:**
+  - focused V2A tests, full `npm test`, `npm run build`, `git diff --check` and applicable repository validators;
+  - exact changed-file scope;
+  - desktop and narrow/mobile admin evidence, and fixed Spatial Preview link evidence;
+  - verification that no arbitrary-input capability was introduced;
+  - confirmation that Worker, D1, DesignRuntime and migrations are unchanged.
+- **Return:** one normal Protocol V2 Builder return commit carries:
+  - the implementation and evidence;
+  - `CURRENT_HANDOFF`;
+  - the outgoing directive archived byte-for-byte with provenance;
+  - `CURRENT_DIRECTIVE: NONE` with cleared selector fields;
+  - `TURN: ARCHITECT`.
+- **No deployment is authorized.**
