@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_INTEGRITY_HARDENING_RFC
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: D073_AS100_F001_RFC019_FINAL_DESIGN_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-INTEGRITY-RFC-REM2-0001
+REVIEW_TARGET_COMMIT: 2ce699928219cacc438b55c7c890691e01a38d44
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-100
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -35,6 +35,17 @@ This is remediation cycle 2 of the live maximum of 2.
 S6 implementation remains paused.
 
 No executable S6 or S7 mutation is authorized.
+
+## Architect review return — AS100-F001 final RFC-019 design remediation (cycle 2 of 2, design only)
+
+The Builder has corrected RFC-019 for `AS100-F001` only:
+- the historical permit status is separate from a per-claim execution-uncertainty reservation and per-group liveness obligations, each `OPEN` until closed by one named resolution (§13.1);
+- unresolved influence is a `CLAIMED` permit whose reservation is `OPEN`, not every historical `CLAIMED` permit (§13.4);
+- a verified late report closes the claim reservation and registers the liveness obligations in one transaction (§13.1 step 5);
+- audited operator resolution names one exact target, is `ACTOR_REPORTED`, closes only that target, and never restores, un-quarantines or publishes (§13.1);
+- the reference model represents the six facts independently, I12 is clarified, I13 (exact-target resolution) is added, Q5 is rewritten with Q5a/Q5b, and Mutants A, B and C must fail (§13.6, §18).
+
+It returns the turn for the final independent design gate under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-100`. The evidence and the requirement map (ACTOR_REPORTED) are in `coordination/CURRENT_HANDOFF.md` (`H-S6-INTEGRITY-RFC-REM2-0001`) only. No executable S6 or S7 file changed; S6 implementation remains paused. No further Builder action is authorized.
 
 ## Final remediation objective
 
