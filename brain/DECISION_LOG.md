@@ -1369,3 +1369,19 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **S6 isolation:** S6 remains parked at ML-DEVOS-AS-103. O1/O2 remain open. The real execution driver remains unauthorized. The suspended D-068 local draft remains untracked and must not be touched, staged, committed, imported or pushed.
 - **Deployment boundary:** No deployment, public cutover, remote D1/R2 mutation, protected/main merge or PR #10 merge is authorized.
 - **Scope expansion:** If Stage A appears to require a product/runtime file or a protocol semantic not present in RFC-020, stop and return the gap; do not silently widen implementation.
+
+### D-080 — Authorize RFC-020 Stage B atomic Context Bootstrap V2 activation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-110` accepted RFC-020 Stage A and routed the repository to Paulo (`TURN: PAULO`) for the Stage B activation decision at `783b03253536a0fdada54fc10571d503915f5c6a`.
+- **Owner authorization (verbatim, given in the Builder session):** "I, Paulo T. Maisog, Product/Risk Owner, authorize RFC-020 Stage B — atomic Protocol V2 activation against the currently reviewed Stage A handoff established by ML-DEVOS-AS-110. Scope is limited strictly to the Stage B atomic activation defined by RFC-020 and its approved transition contract. Authorized: Protocol V2 activation and only the state/evidence updates required to complete that atomic transition. Not authorized: unrelated remediation, scope expansion, Stage C or later work, new protocol features, opportunistic refactoring, or any action outside RFC-020 Stage B. After the atomic transition, verify the resulting repository state, protocol version, required invariants/checksums, and governance evidence; publish the bounded handoff record; then STOP and return TURN to Architect/Paulo as prescribed by the protocol. Decision: AUTHORIZED."
+- **Recording provenance:** Paulo supplied the text above in chat, not as an exact-byte package. The Builder recorded it verbatim in this entry, in the same atomic activation commit, as the publisher. This entry proves provenance, not authority beyond Paulo's words.
+- **Transition contract:** `ML-DEVOS-RFC-020` §21 Stage B and the `ML-DEVOS-AS-110` "Stage B recommendation". One atomic governed commit:
+  - changes `PROTOCOL_VERSION: 1 -> 2`;
+  - adds the V2 directive selector fields to live STATE, with `CURRENT_DIRECTIVE: NONE` and empty values;
+  - updates active bootstrap wording/status to V2 where required;
+  - contains no product/admin/site/runtime change;
+  - routes to a non-Builder gate;
+  - is published with `--protocol-cutover 1->2 --session-protocol 1`.
+- **Routing:** `TURN: ARCHITECT` to independently verify the activation, with the bounded Builder activation record selected as `CURRENT_HANDOFF`. The first real V2 directive may be issued only after that verification.
+- **Not authorized:** the first real directive, Spatial Design Controls V2A, Stage C or later work, new protocol features, checker/test changes, product/admin/site/runtime/media/D1/R2/migration/deployment work, S6/S7 work, D-068 mutation, protected/main merge, and PR #10 merge.
+- **Rollback:** only by forward recovery under a separate owner decision (RFC-020 §22), never by a branch rewind.

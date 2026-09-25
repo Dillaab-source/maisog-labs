@@ -4,7 +4,7 @@ You are the implementer for the MaisogLabs website governance pilot.
 
 ## Required first read
 
-This is the **live Protocol V1** startup set (`PROTOCOL_VERSION: 1`). Keep using it while STATE reads `PROTOCOL_VERSION: 1`.
+This is the full (Protocol V1) orientation read set. Since `D-080` live STATE reads `PROTOCOL_VERSION: 2`, and an ordinary Builder turn uses the Protocol V2 Builder startup set below instead.
 
 Read this file completely before doing anything else:
 
@@ -26,7 +26,7 @@ Also read:
 
 ## Protocol V2 Builder startup
 
-**Inactive until a separate owner Stage B activation decision.** Use this set only when live STATE reads `PROTOCOL_VERSION: 2`. A mismatch with the version you bootstrapped on means stop and re-read (`ML-DEVOS-RFC-020`; Context Bootstrap protocol §10, retrieved only when needed).
+**Active since D-080 (Stage B).** Use this set when live STATE reads `PROTOCOL_VERSION: 2`. A mismatch with the version you bootstrapped on means stop and re-read (`ML-DEVOS-RFC-020`; Context Bootstrap protocol §10, retrieved only when needed).
 
 For an ordinary V2 Builder turn, read at one exact commit:
 
@@ -44,9 +44,9 @@ Before re-deriving a repeatable governance procedure from scattered files, check
 
 ## Agent communication protocol
 
-GitHub is the asynchronous communication bus between you and the Architect. The protocol is Context Bootstrap V0 (`brain/protocols/CONTEXT_BOOTSTRAP.md`, `PROTOCOL_VERSION: 1`).
+GitHub is the asynchronous communication bus between you and the Architect. The protocol is Context Bootstrap (`brain/protocols/CONTEXT_BOOTSTRAP.md`), live at `PROTOCOL_VERSION: 2` since `D-080`.
 
-You write, as Builder: `coordination/CURRENT_HANDOFF.md` (plus the STATE return gate, archive entries, and obligation index in the same commit). Under Protocol V2 only (not active), the same return commit also sets `CURRENT_DIRECTIVE: NONE` and archives the outgoing directive (`coordination/archive/directives/`). Under V1, `coordination/CURRENT_DIRECTIVE.md` is inert scaffolding and never an instruction.
+You write, as Builder: `coordination/CURRENT_HANDOFF.md` (plus the STATE return gate, archive entries, and obligation index in the same commit). Under Protocol V2 (active), the same return commit also sets `CURRENT_DIRECTIVE: NONE` and archives the outgoing directive (`coordination/archive/directives/`). `coordination/CURRENT_DIRECTIVE.md` is an instruction packet only while STATE selects it.
 
 The Architect writes: `coordination/ARCHITECT_REVIEW.md`, under a new immutable `ML-DEVOS-AS-NNN` per revision.
 

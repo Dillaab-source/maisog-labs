@@ -1,6 +1,6 @@
 # Directive Archive (Protocol V2)
 
-This is the immutable byte-exact archive of every outgoing `coordination/CURRENT_DIRECTIVE.md` (`ML-DEVOS-RFC-020` §16). It was added as Stage A scaffolding under `D-079`. Protocol V2 is **not active**, so no directive has been published or archived yet.
+This is the immutable byte-exact archive of every outgoing `coordination/CURRENT_DIRECTIVE.md` (`ML-DEVOS-RFC-020` §16). It was added as Stage A scaffolding under `D-079`. Protocol V2 is active since `D-080`; no directive has been published or archived yet.
 
 **Entries:**
 - `<directive_id>.md`: the exact outgoing bytes.

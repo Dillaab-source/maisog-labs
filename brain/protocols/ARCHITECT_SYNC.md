@@ -85,7 +85,7 @@ A `CHANGE REVIEW` may return:
 - Every governed read uses one exact commit; every governed write is one candidate commit parented on the exact tip, published with exact-old-value compare-and-swap.
 - The Builder (`TURN: CLAUDE` is the role token) makes governed writes only when `TURN: CLAUDE` and `IMPLEMENTER_ACTION_REQUIRED: YES`, and hands off by publishing `CURRENT_HANDOFF.md` together with the matching STATE selector tuple and `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT` in one commit.
 - The Architect reviews independently and publishes the review under a **new immutable `ML-DEVOS-AS-NNN`** (never reusing an ID with changed bytes; `AS79-R001`), with its byte-identical archive in `devos/changes/architect-syncs/`, in one commit that sets the state to one of `CHANGES_REQUESTED` (`TURN: CLAUDE`), `ARCHITECT_APPROVED` (`TURN: PAULO` when a gate applies), `PAULO_DECISION_REQUIRED` (`TURN: PAULO`), or `BLOCKED`. When that routing stops selecting the Builder's handoff (`CURRENT_HANDOFF: NONE`, selectors empty), the same commit archives the handoff's exact bytes under `coordination/archive/handoffs/`.
-- Under Protocol V2 only (`ML-DEVOS-RFC-020`, implemented but **not active** while `PROTOCOL_VERSION: 1`):
+- Under Protocol V2 (`ML-DEVOS-RFC-020`, **active** since `D-080`):
   - a routing back to the Builder also publishes a new `coordination/CURRENT_DIRECTIVE.md` under a new `DIR-` ID, with the matching STATE directive selector, in the same commit;
   - the directive is preceded by a fresh SENTINEL sync and an SU contradiction check (default `BOUNDED_CONTRADICTION`; `ESCALATED_RESEARCH` on the RFC-020 §12 triggers);
   - a `BLOCKED` disposition never routes to the Builder;

@@ -5,9 +5,9 @@ Status: `ACTIVE — PROTOCOL_VERSION 1`. Activated by the `D-062` Stage B atomic
 Authority: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062` (Stage A accepted in `ML-DEVOS-AS-079`/`ML-DEVOS-AS-080`). RFC-018 is the governing text; where this summary and the RFC differ, the RFC wins.
 
 **Protocol V2 (`ML-DEVOS-RFC-020`, reviewed in `ML-DEVOS-AS-108`):**
-- Status: **implemented and tested, NOT ACTIVE.** `D-079` (Stage A) added dual-version checker support and the `CURRENT_DIRECTIVE` scaffolding described in §10.
-- Everything in §§1–9 is the live V1 protocol and is unchanged.
-- V2 becomes live only through a separate owner Stage B activation decision (§10.6).
+- Status: **ACTIVE since the `D-080` Stage B atomic activation (`PROTOCOL_VERSION: 2`).** `D-079` (Stage A, accepted in `ML-DEVOS-AS-110`) added dual-version checker support and the `CURRENT_DIRECTIVE` mechanism described in §10.
+- §§1–9 remain in force as the kernel that V2 extends; §10 adds the directive selector. Where they differ for a live turn, §10 and RFC-020 win.
+- The first real directive is issued only after the activation has been independently verified.
 
 ## 1. Kernel invariants
 
@@ -133,9 +133,9 @@ Measured with `node scripts/check-context-bootstrap.mjs --baseline --commit 93a6
 
 Not captured by this checker: orientation time, how many history reads a session actually made, and recovery of active obligations. These are per-session behaviors, not repository facts, and belong in the post-cutover pilot record (`OBL-009`).
 
-## 10. Protocol V2 — CURRENT_DIRECTIVE (`ML-DEVOS-RFC-020`; implemented, NOT ACTIVE)
+## 10. Protocol V2 — CURRENT_DIRECTIVE (`ML-DEVOS-RFC-020`; ACTIVE since `D-080`)
 
-While STATE reads `PROTOCOL_VERSION: 1`, nothing here applies to a live turn and `coordination/CURRENT_DIRECTIVE.md` is inert scaffolding. RFC-020 is the governing text, and the checker codes are defined in `scripts/check-context-bootstrap.mjs`.
+Live STATE reads `PROTOCOL_VERSION: 2`. `coordination/CURRENT_DIRECTIVE.md` is an instruction packet only while STATE selects it (`CURRENT_DIRECTIVE: ACTIVE`); with `CURRENT_DIRECTIVE: NONE` it is inert. RFC-020 is the governing text, and the checker codes are defined in `scripts/check-context-bootstrap.mjs`.
 
 **Packets.**
 - `CURRENT_DIRECTIVE` carries Owner/Architect → Builder execution transport.

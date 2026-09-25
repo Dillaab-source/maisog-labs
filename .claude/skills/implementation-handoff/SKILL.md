@@ -32,7 +32,7 @@ This Skill packages an already-defined reporting format. It never grants impleme
 2. Mint a new immutable `handoff_id` (`H-...`); never reuse one.
 3. Write `coordination/CURRENT_HANDOFF.md`: the ```yaml header (`schema_version`, `handoff_id`, `cycle_id`, `input_base_commit`, `review_target_commit` = the exact tip this commit will sit on, `applicable_review_id` = the live review's `ML-DEVOS-AS-NNN`) and every required section, stating every known limitation or unresolved question explicitly. Record evidence here only; `coordination/IMPLEMENTER_HANDOFF.md` is frozen and is never written.
 4. In the same candidate commit: archive the outgoing handoff's exact bytes to `coordination/archive/handoffs/<handoff_id>.md` with provenance if not already archived; carry every unresolved `coordination/OPERATIVE_OBLIGATIONS.md` row forward unchanged or close it with a citation; set STATE's selector fields to the matching tuple and its return-gate fields (`TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, etc., per the authorizing brief).
-4a. **Protocol V2 only** (`ML-DEVOS-RFC-020`; not active while `PROTOCOL_VERSION: 1`). The same return commit also:
+4a. **Protocol V2 only** (`ML-DEVOS-RFC-020`; active since `D-080`). The same return commit also:
    - sets `CURRENT_DIRECTIVE: NONE` with empty directive selector values;
    - archives the outgoing `coordination/CURRENT_DIRECTIVE.md` byte-for-byte with `archiveDirective()` (entry, `.provenance.json` and index row under `coordination/archive/directives/`).
 
