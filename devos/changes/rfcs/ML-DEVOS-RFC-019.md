@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-019: Sentinel S6 Isolated Execution
 
-Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3 (`ML-DEVOS-AS-086`, `ML-DEVOS-AS-087`, `ML-DEVOS-AS-088`/`D-067`). Amended under `D-069` (execution-boundary amendment, approved by `ML-DEVOS-AS-093`). Amended again under `D-073` (integrity-hardening amendment, below) and resubmitted for independent Architect review of that amendment. The `D-068` implementation authority is suspended, and no amendment resumes it.
+Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3 (`ML-DEVOS-AS-086`, `ML-DEVOS-AS-087`, `ML-DEVOS-AS-088`/`D-067`). Amended under `D-069` (execution-boundary amendment, approved by `ML-DEVOS-AS-093`). Amended again under `D-073` (integrity-hardening amendment, below). `ML-DEVOS-AS-099` returned one design finding (`AS99-F001`), whose remediation (below) is resubmitted for independent Architect review. The `D-068` implementation authority is suspended, and no amendment resumes it.
 
 **Implementation status (`D-071`; factual, not closure).** The amended design was approved by `ML-DEVOS-AS-093`. `D-071` then authorized one bounded S6-core implementation cycle against it, with no generic executor and no real execution driver. That in-progress implementation lives in `devos/execution/`, registered in the DevOS manifest as the S6 root with `status: NOT_IMPLEMENTED`, `executable_runtime_present: false` and no `closure_ref`. This RFC stays `DRAFT`, Sentinel stays `v1.8.0`, and all Builder implementation evidence is `ACTOR_REPORTED` pending independent Architect review. Closure is separately gated (`ML-DEVOS-RFC-015` D.1/D.2). `ML-DEVOS-AS-094` returned four implementation findings (claim-lock placement, crash-atomic permit minting, argv-taking helpers, the incomplete Execution Report). Remediation cycle 1 corrects the implementation to match this design; the design itself is unchanged. `ML-DEVOS-AS-095` closed those and returned two more (a shared linearization for all lifecycle mutations; S4 fencing at quiesce). Remediation cycle 2 (the final ordinary cycle) implements them, again without a design change. `ML-DEVOS-AS-096` found that an unresolved `PENDING` publication did not reserve the local instance lifecycle. The exceptional micro-remediation authorized by `D-072` enforces the existing write-ahead `PENDING` record as that reservation, again without a design change. `ML-DEVOS-AS-097` then found that an unprovable `PENDING` record could drop out of that reservation (`AS97-F001`). `ML-DEVOS-AS-098` classified that and the related findings as one design gap. Under `D-073`, implementation is paused, and the implementation at `1bf18ef` predates the transaction model of §13.2–§13.4. A hardened implementation needs a fresh Paulo decision after this amendment is reviewed.
 
@@ -17,6 +17,13 @@ Status: `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Reme
 - **Store alternatives and an exit condition** (§20.1; *Integrity-hardening exit condition*).
 
 Changed sections: §2 (T10), §3.1, §7.1 (fields, steps 2 and 5), §7.1.2 (steps 3–4), new §7.1.3, §8 (S4), §9 (layout), §13 (table, concurrency), §13.1 (steps 2, 3, 5; request binding; recovery), new §13.2–§13.6, §14 (rows 13, 19, 30; no new code), §15, §17, §18 (items 2, 3, 9, 12, 14, new 15 and 16), new §20.1, the summary, the exit condition, rollout, residual risks and unresolved questions. S3, S4 and S5 are unchanged. The `D-069` execution-driver separation, and every accepted `AS90`–`AS96` property, are preserved.
+
+**Integrity-hardening remediation cycle 1 (`ML-DEVOS-AS-099`, `AS99-F001`).** The amendment above let a `QUARANTINED` instance release the task's active-environment slot whenever it held no `PENDING` publication. A permit that was `CLAIMED` but never reported therefore stopped reserving the slot at recovery quarantine, although its execution was explicitly unproven. This cycle changes only that rule:
+- **ACTIVE is defined by unresolved external influence, not by lifecycle state alone.** `ACTIVE = lifecycle_can_progress OR unresolved_external_influence` (§13.4). `QUARANTINED` is a lifecycle classification, not evidence that execution stopped, so becoming `QUARANTINED` never by itself releases the slot.
+- **Unresolved external influence** covers a `CLAIMED`, unreported permit, a registered liveness obligation not yet proven terminated, and every open reservation of §13.3. It is not publication-specific.
+- **Execution uncertainty clears only by proof or by audited operator resolution.** Proof means: a verified late report registers the liveness obligations, then the new closed *resolve* operation proves every registered process group terminated. Neither path restores, un-quarantines or makes the instance publishable. Elapsed time is never proof.
+- **Changed places:** §13 (*record* and *cleanup* rows), §13.1 (quarantine and late-report semantics), §13.3 (reservations and the slot), §13.4, §13.5, §13.6 (model scope, I1, new I11–I12, required sequences), §14 row 19 (wording; no new code), §15, §18 items 12, 14, 15 and 16, summary decision 13, residual risk 18, and the Architect Sync requirement.
+- **Unchanged:** every other `D-073` decision; the `D-069` separation; `AS90`–`AS98` properties. S3, S4 and S5 are unchanged, and nothing executable changes.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -591,11 +598,11 @@ These are *environment* states, not task states. None of them is an S4 state or 
 | **validate** | — (pure verification, repeatable at any time) | Recompute every identity field from live facts; tree, config and environment checks; S4 checks. Returns `PROVEN` or the first failing reason (§14). |
 | **attach** | `validate` → `PROVEN`; caller is the identity `owner`; S4 revision equals the checkpoint's `current_revision`. | → `ATTACHED`. |
 | **permit** | `ATTACHED`; S4 checks; a well-formed Execution Request from the owner, not conflicting with an existing `(instance_id, request_id)` binding; S5 `shell` `ALLOW` at the verified canonical request intent. | Exact replay returns the stored permit. Otherwise S6 creates the one request binding and one single-use Execution Permit, bound to the argv digest, workspace, environment digest, checkpoint revision and canonical S5 request intent and decision, and journals it (§13.1). S6 core runs nothing. |
-| **record** | A complete driver Execution Report (§13.1) for a `CLAIMED` permit whose digests match. Permit expiry does not end a claimed permit. | Write the report body blob, then commit in **one transaction** `CLAIMED → REPORTED`, the report reference and fields, every reported process group as a liveness obligation, the recomputed tree snapshot and the `REPORT` entry (§13.1 step 5). |
+| **record** | A complete driver Execution Report (§13.1) for a `CLAIMED` permit whose digests match. Permit expiry does not end a claimed permit. | Write the report body blob, then commit in **one transaction** `CLAIMED → REPORTED`, the report reference and fields, every reported process group as a liveness obligation, the recomputed tree snapshot and the `REPORT` entry (§13.1 step 5). For a `QUARANTINED` instance the same transaction carries `LATE_REPORT`, and the instance's lifecycle state and publishability are unchanged (§13.1 *Recovery*). |
 | **renew** | The owner performed S4 `renew` and hands over its result. | The checkpoint advances only under §3.1's gap-free rule (journaled); otherwise `INSTANCE_STALE`. The identity does not change. |
 | **quiesce** | S4 fencing at the commit (§8); no open reservation that blocks quiesce (§13.3); no permit is `CLAIMED` without a verified report; every `REPORTED` permit's groups are terminated by the driver. | Under the writer lock: check S4 before any change, prove every registered liveness obligation empty by read-only inspection (`QUIESCE_UNPROVEN` otherwise, including any claimed-but-unreported permit), and snapshot tree state. Then commit in one transaction the revocation of every still-`ISSUED` permit and → `QUIESCED`. |
 | **complete** | `QUIESCED`; `validate` → `PROVEN`; freshness (§4.3); scope (§5); transport within §8.1; S5 `ALLOW` for push. | Follows §7.1 steps 1–5 as two prepare → effect → reconcile sequences (§13.3): (1) prepare the push intent, push `task_branch` with an explicit lease (remote ref absent, or equal to this instance's last pushed SHA), and reconcile it by reading the remote ref; (2) prepare the publication: write the RTR body blob, then commit the RTR as `PENDING` with its journal entry; (3) the host issues S4 `transition` as the owner's agent with `expectedRevision = checkpoint.current_revision`, `idempotencyKey = transfer_id`, and the stored §7.1.1 `evidenceRef` (`evidenceClass: "ACTOR_REPORTED"`); (4) commit `COMMITTED` and `COMPLETED` together only after the `getState()` proof, or `ABORTED` on a definitive refusal. Only a committed record after a successful S4 transition means *published*. |
-| **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; no open reservation that blocks cleanup (§13.3); path rules (§9). | Prepare a cleanup intent with the proven root identity. Outside the lock, run no-follow deletion of the instance root. Reconcile by observation, and commit `CLEANED`. The task store and its journals are retained. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
+| **cleanup** | `COMPLETED` or `QUARANTINED`; quiesced; no open reservation that blocks cleanup (§13.3); no unresolved external influence other than the cleanup intent itself (§13.4); path rules (§9). | Prepare a cleanup intent with the proven root identity. Outside the lock, run no-follow deletion of the instance root. Reconcile by observation, and commit `CLEANED`. The task store and its journals are retained. Any failure → `QUARANTINED` + `CLEANUP_CONTAMINATION_RISK` when the residue could be reused or reached. |
 
 **Concurrency.**
 - *Same task:* at most one ACTIVE environment, enforced by S6's own slot (§13.4), whatever the role. S4 fencing additionally makes an instance created under an older revision fail every S4 check (`INSTANCE_STALE`).
@@ -660,13 +667,19 @@ These are *environment* states, not task states. None of them is an S4 state or 
 | `ISSUED` | The permit is created. | Outstanding. Quiesce revokes it in the same transaction that commits `QUIESCED`, so it can never be claimed after a quiescence snapshot. |
 | `EXPIRED_UNCLAIMED` | Trusted time passes `claim_deadline` while the permit is still `ISSUED`. It is terminal and can never be claimed. | Harmless: no execution can have started through it. |
 | `REVOKED` | An `ISSUED` permit is revoked. The permit's status records one reason: `QUIESCE`, `CLEANUP`, `QUARANTINE`, `STALE` or `CAPABILITY_INVALIDATED` (the claim-time S5 recheck did not yield a fresh, binding-matching `ALLOW`; `AS91-F001`). It is terminal. | Harmless, for the same reason. |
-| `CLAIMED` | The driver claims it (step 3). **Time never moves a permit out of this state.** `claim_deadline` bounds claiming only, not execution. | **Execution-uncertain.** Blocks quiesce and completion (`QUIESCE_UNPROVEN`) until a verified report arrives. |
-| `REPORTED` | A verified report arrives (step 5). | Its reported groups must be proven empty at quiesce. |
+| `CLAIMED` | The driver claims it (step 3). **Time never moves a permit out of this state.** `claim_deadline` bounds claiming only, not execution. | **Execution-uncertain.** Blocks quiesce and completion (`QUIESCE_UNPROVEN`) until a verified report arrives. Holds the task's active-environment slot, including after quarantine (§13.4). |
+| `REPORTED` | A verified report arrives (step 5, or a late report). | Its reported groups must be proven empty at quiesce, or by *resolve* for a quarantined instance. Until then they hold the slot. |
 
 - **Claimed then driver crash.** The permit stays `CLAIMED`, with no known process groups. S6 cannot prove that no process started under it is still running, so quiesce and completion fail `QUIESCE_UNPROVEN`. S6 never infers safety from elapsed time.
 - **Claimed then expiry.** Nothing changes: the permit remains `CLAIMED` and execution-uncertain.
 - **Late report.** If the host is still running (no recovery has happened), a late report is verified normally. The permit becomes `REPORTED`, and quiesce can then prove its groups.
-- **Recovery.** A host restart with a `CLAIMED`, unreported permit does not resurrect or infer anything. The instance is quarantined (`QUARANTINED`, reason `QUIESCE_UNPROVEN`: execution uncertain). A report arriving after that is committed as evidence only: the permit becomes `REPORTED` with a `LATE_REPORT` entry, and the terminal instance record is neither restored nor rewritten. Completion from that instance is impossible, and the owner must create a new instance.
+- **Recovery (`AS99-F001`).** A host restart with a `CLAIMED`, unreported permit does not resurrect or infer anything. The instance is quarantined (`QUARANTINED`, reason `QUIESCE_UNPROVEN`: execution uncertain), and the permit stays `CLAIMED`. Quarantine does not end execution uncertainty. The instance therefore **keeps the task's active-environment slot** (§13.4), and a create for the task fails with `WORKTREE_COLLISION` until the uncertainty is cleared below.
+- **Late report after quarantine.** A verified report arriving after quarantine commits through the same single transaction as step 5: `CLAIMED → REPORTED`, the report reference and fields, every reported process group registered as a liveness obligation, the tree snapshot, and a `LATE_REPORT` entry. It is liveness evidence only. It never restores or un-quarantines the instance, never rewrites its terminal record, and never makes it publishable: completion from that instance stays impossible. The slot stays held, because the reported groups are not yet proven terminated.
+- **Clearing execution uncertainty.** A quarantined instance's execution uncertainty clears only through the closed *resolve* operation, by one of two paths. Each commits in one transaction, under the writer lock, and changes no lifecycle state:
+  - *Proof.* Every permit of the instance is terminal (no `ISSUED` or `CLAIMED` permit remains), and read-only inspection (step 6) proves every registered liveness obligation empty. The transaction discharges the obligations and records `EXECUTION_RESOLVED`.
+  - *Audited operator resolution.* When no report arrives, or liveness cannot be proven, only an explicit, authorized operator action clears the uncertainty. It records `OPERATOR_RESOLUTION` with the operator identity, the reason, and a reference to the operator's evidence. S6 records it as operator-attested (`ACTOR_REPORTED`), never as proof. It clears execution uncertainty only: every other open reservation still resolves by its own reconciliation (§13.3).
+
+  Elapsed time, permit expiry, a host restart and quarantine are never proof of termination. If neither path completes, the slot stays held indefinitely. That is the intended fail-closed cost (Residual risks 18). The transaction that clears the last unresolved influence of a non-progressing instance also releases the slot (§13.4).
 - **Unclaimed expiry.** It needs no special handling beyond becoming `EXPIRED_UNCLAIMED`.
 
 **Request binding and idempotency (`AS90-F002`).** This is S6's own rule. It is not delegated to S4 transition idempotency.
@@ -798,7 +811,7 @@ A prepared intent with no committed outcome is an **open reservation** on its in
 
 | Effect | Prepared intent (committed first) | Reconciliation | Outcome |
 |---|---|---|---|
-| **Workspace create / clone** | The active-environment slot, the create binding, the new `instance_id` and its `CREATING` record, in one transaction (§13.4). | Re-verify the §9.1 creation chain, `HEAD == base_sha`, a clean tree, the config allowlist and the pre-use scan. | Verified → `READY`. A crash or a failed check → `QUARANTINED` (`INCOMPLETE_CREATE` or the failing code), with the slot released in the same transaction. A second environment is never minted silently. |
+| **Workspace create / clone** | The active-environment slot, the create binding, the new `instance_id` and its `CREATING` record, in one transaction (§13.4). | Re-verify the §9.1 creation chain, `HEAD == base_sha`, a clean tree, the config allowlist and the pre-use scan. | Verified → `READY`. A crash or a failed check → `QUARANTINED` (`INCOMPLETE_CREATE` or the failing code). That quarantine is the create reservation's outcome. A `CREATING` instance can never have held a permit, push or publication, so it leaves no other unresolved influence and the slot is released in the same transaction (§13.4). A second environment is never minted silently. |
 | **Git push** | `{ ref, expected_remote_sha or null, target_sha }` for the instance's own task branch (§8.1). | Read the remote ref (S5 `github`). Equal to `target_sha`: the push already happened. Equal to `expected_remote_sha`: an exact retry of the same push is allowed. Anything else: conflict. | Done → `pushed_sha = target_sha`, journaled `PUSH_VERIFIED`. Conflict → `BRANCH_COLLISION`, and the branch is `STALE_UNPUBLISHED`. |
 | **S4 publication** | The RTR as `PENDING` (§7.1): the body blob first, then the metadata, status and `RTR_PENDING` entry in one transaction. The idempotency key is `transfer_id`, and the `evidenceRef` bytes are stored. | Re-issue the identical S4 `transition` from the stored bytes. A success whose `getState()` proof holds → commit. A definitive S4 refusal → abort. Anything else (S4 lock contention, an unreadable S4 record, an I/O error) → still `PENDING`. | `COMMITTED`, which also moves the instance to `COMPLETED` if it is still `QUIESCED`; or `ABORTED`, which marks the instance stale and leaves the branch `STALE_UNPUBLISHED`. A quarantined instance is never restored. |
 | **Cleanup** | A cleanup intent carrying the proven identity of the instance root: its canonical path and recorded component identities (§9.1). | Observe the exact proven root. Absent, with the parent chain still verified: done. Residue, a substituted component or an ambiguous path state: failure. | `CLEANED`, or `QUARANTINED` with `CLEANUP_CONTAMINATION_RISK`. |
@@ -810,9 +823,12 @@ A prepared intent with no committed outcome is an **open reservation** on its in
 |---|---|---|
 | `PENDING` RTR (publication; `D-072`) | Finish without publication, cleanup, checkpoint adoption, quiesce → `RESULT_TRANSFER_UNPROVEN`. Attach → `INSTANCE_STALE`. | Resuming the same publication (same `transfer_id`, stored bytes); recovery; quarantine; stale marking; validation; read-only views. |
 | Prepared push | A second push, publication and cleanup until the push is reconciled → `ISOLATION_UNPROVABLE`. | Reconciliation; finish without publication (the branch then becomes `STALE_UNPUBLISHED`); quarantine. |
-| `CLAIMED` permit | Quiesce, complete, cleanup → `QUIESCE_UNPROVEN`. | The report; recovery quarantine (the claim stays execution-uncertain). |
+| `CLAIMED` permit | Quiesce, complete, cleanup → `QUIESCE_UNPROVEN`. | The report (a late report after quarantine included); recovery quarantine (the claim stays execution-uncertain); audited operator resolution (§13.1). |
+| Unproven liveness obligation (a `REPORTED` permit's groups on a quarantined instance) | Cleanup → `QUIESCE_UNPROVEN`. | *Resolve* by read-only liveness proof; audited operator resolution (§13.1). |
 | Prepared cleanup | Everything except reconciliation and quarantine → `ISOLATION_UNPROVABLE`. | Reconciliation; quarantine. |
 | `CREATING` | Attach, permits, quiesce, complete: refused by state. | Create reconciliation; recovery quarantine. |
+
+**Reservations and the active slot (`AS99-F001`).** Every row of the table above is **unresolved external influence**: an open reservation, a `CLAIMED` permit with no verified report, or an unproven liveness obligation. Each may still change execution, publication, workspace or remote state, or another externally observable S6 outcome. While an instance holds any of them, it stays ACTIVE and keeps the task's active-environment slot (§13.4), whatever its lifecycle state, `QUARANTINED` included. The rule does not depend on which reservation it is. Quarantine can block further local transitions, but it resolves no reservation. Each reservation clears only through its own outcome commit: reconciliation, a verified report followed by a liveness proof, or the audited operator resolution of §13.1 for execution uncertainty.
 
 **Definitive S4 refusals.** For publication, only these S4 errors abort an RTR: `NOT_CURRENT_OWNER`, `REVISION_CONFLICT`, `IDEMPOTENCY_CONFLICT`, `ILLEGAL_TRANSITION` and `TASK_NOT_FOUND`. S4 reaches each of them after reading its record under its own lock, and it checks idempotency first, so an already-applied transfer replays its result rather than being refused. An S4 error that is not on this list leaves the reservation open. A future S4 code is therefore never read as a refusal by default.
 
@@ -822,15 +838,28 @@ Earlier text implied that S4 single ownership alone keeps a task to one S6 insta
 
 **At most one ACTIVE S6 environment exists for a task at a time.**
 
-- **ACTIVE** means an instance that can still influence execution or publication:
-  - every instance in `CREATING`, `READY`, `ATTACHED` or `QUIESCED`;
-  - any instance, including a `QUARANTINED` one, that holds an unresolved `PENDING` publication reservation (§13.3).
+- **ACTIVE (`AS99-F001`).** An instance is ACTIVE when it can still influence execution, publication, its workspace or the remote, or another externally observable S6 outcome:
+
+  `ACTIVE = lifecycle_can_progress OR unresolved_external_influence`
+
+  - `lifecycle_can_progress`: the instance is in `CREATING`, `READY`, `ATTACHED` or `QUIESCED`.
+  - `unresolved_external_influence`: whatever the lifecycle state, `QUARANTINED` and `COMPLETED` included, the instance holds at least one of:
+    - a `CLAIMED` permit with no verified Execution Report (execution-uncertain, §13.1);
+    - a registered liveness obligation not yet proven terminated;
+    - an open reservation of §13.3 (a `PENDING` publication, a prepared push, a prepared cleanup, or an unreconciled create).
+
+  The two terms are separate task-store facts. `QUARANTINED` is a lifecycle classification, not evidence that external execution stopped, so it never makes an instance non-ACTIVE by itself.
 - **The slot.** The task store holds one `active_instance_id` slot. The create transaction's first committed facts are the slot, the create binding and the new instance's `CREATING` record, together (§13.3). Nothing is created on disk before that commit.
 - **Retry and concurrency.**
   - Creates with the same logical key `(task_id, role, owner, anchor_revision, caller idempotency key)` replay the same instance and its current outcome.
-  - A create with any other key while the slot is held fails with `WORKTREE_COLLISION`.
+  - A create with any other key while the slot is held fails with `WORKTREE_COLLISION`. That includes a slot still held by a `QUARANTINED` instance with unresolved external influence.
   - Concurrent creates serialize on the task store, and exactly one of them commits the slot.
-- **Release.** The slot is released in the same transaction that makes its instance non-ACTIVE: `COMPLETED` with no open reservation, `QUARANTINED` with no `PENDING` publication, or `CLEANED`.
+- **Release.** The slot is released only in the transaction that makes its instance non-ACTIVE: the lifecycle can no longer progress **and** no unresolved external influence remains. Concretely:
+  - `COMPLETED` with no open reservation. Completion already requires `QUIESCED`, so every permit is terminal and every liveness obligation proven;
+  - `QUARANTINED`, in the transaction that clears the instance's last unresolved influence. That is the quarantine itself only when the instance holds none (for example an `INCOMPLETE_CREATE`). Otherwise it is a later reconciliation, a *resolve* liveness proof after a verified late report, or an audited operator resolution (§13.1);
+  - `CLEANED`, whose cleanup already required no unresolved influence.
+
+  Entering `QUARANTINED` never releases the slot by itself. Nor do elapsed time, permit expiry or a host restart.
 - **History stays.** Terminal and quarantined instances remain in the store and in provenance. A new instance created under a later, legitimate S4 authority does not remove them.
 - **Roles.** The invariant is per task, not per role. A QA instance can be created only after the Builder instance has become non-ACTIVE. The publication path guarantees that: `COMMITTED` moves a `QUIESCED` Builder instance to `COMPLETED`.
 
@@ -839,7 +868,7 @@ S4 fencing remains necessary for every step (§8). It is no longer described as 
 #### 13.5 Public surface (`ML-DEVOS-AS-098` F)
 
 The production S6 host exposes only:
-- the closed lifecycle operations (create, validate, attach, checkpoint adoption, permit request, claim, report, quiesce, complete, finish without publication, cleanup, recover), each of which runs its own transactions (§13.2);
+- the closed lifecycle operations (create, validate, attach, checkpoint adoption, permit request, claim, report, quiesce, complete, finish without publication, cleanup, recover, and *resolve* for a quarantined instance's execution uncertainty, §13.1), each of which runs its own transactions (§13.2);
 - bounded read-only views: provenance (§17), and status views that return copies.
 
 It exposes no mutable store or registry object, no raw read-modify-write primitive, no journal append, and no fault-injection hook. Raw mutation stays module-private behind the transaction API. This is the same capability-minimization rule that removed the argv-taking Git helpers (§13.1): an object that can write S6 state is a capability, and S6 does not hand it out.
@@ -852,13 +881,15 @@ Before the hardened implementation, a small pure reference model is kept beside 
 - legal instance, permit and RTR transitions;
 - prepared external-effect intents and their reconciliation;
 - the active-environment slot;
-- the publication reservation.
+- the publication reservation;
+- unresolved external influence (`AS99-F001`): claimed-but-unreported permits, unproven liveness obligations and open reservations. These are modelled as per-instance facts **independent of lifecycle state**, and the model derives ACTIVE from them by the §13.4 formula. It never defines `QUARANTINED` as inactive, so it cannot hide a slot released while influence remains;
+- the late report, *resolve* (liveness proof), audited operator resolution, and the advance of trusted time as explicit steps. No time step changes any fact.
 
 It checks these invariants after every modelled step, including every modelled crash:
 
 | # | Invariant |
 |---|---|
-| I1 | At most one ACTIVE environment per task (§13.4). |
+| I1 | At most one ACTIVE environment per task, with ACTIVE as defined in §13.4. |
 | I2 | Terminal states are monotonic. Permits: `EXPIRED_UNCLAIMED`, `REVOKED`, `REPORTED`. RTR: `COMMITTED`, `ABORTED`. Instance: `CLEANED`, and `QUARANTINED` moves only to `CLEANED`. |
 | I3 | A `REPORTED` permit's process groups are registered in the same committed state. |
 | I4 | While an RTR is `PENDING`, its instance records no finish without publication, cleanup or checkpoint change. `COMMITTED` only follows an S4 success for that `transfer_id`; `ABORTED` only follows a definitive S4 refusal (§13.3). |
@@ -868,8 +899,22 @@ It checks these invariants after every modelled step, including every modelled c
 | I8 | One `request_id` mints at most one permit; one create key mints at most one instance. |
 | I9 | A `QUIESCED` instance has no `ISSUED` or `CLAIMED` permit at that version. |
 | I10 | A `PENDING` RTR that cannot be attributed blocks the task, and never counts as unrelated (§7.1.3). |
+| I11 | No task commits a new S6 environment (a create slot) while any prior environment of that task retains unresolved external influence capable of affecting execution or publication. This holds even when the prior environment is `QUARANTINED`. |
+| I12 | Execution uncertainty (a `CLAIMED` permit, or an unproven liveness obligation) clears only in a committed *resolve* liveness proof after a verified report, or in a committed audited operator resolution. A late report never changes a `QUARANTINED` instance's lifecycle state or makes it publishable. |
 
 Tests generate every bounded sequence of operations and crash points over a small world: one task, two instances, two permits and one publication. They check the invariants after each step. They also replay selected sequences against the implementation and require the same outcomes (§18 item 16).
+
+The generated space MUST include these named sequences with these outcomes (`AS99-F001`):
+
+| Sequence | Required outcome |
+|---|---|
+| **Q1** `ATTACHED` → claim (`CLAIMED`) → crash before report → recovery (`QUARANTINED`, `QUIESCE_UNPROVEN`) → trusted time advances past `claim_deadline` → second create (another key) | **SECOND CREATE BLOCKED** (`WORKTREE_COLLISION`); the slot stays with the first instance. |
+| **Q2** Q1 up to recovery → verified late report (`REPORTED`, obligations registered, `LATE_REPORT`) → second create | Blocked: the groups are not yet proven terminated. The first instance stays `QUARANTINED` and not publishable. |
+| **Q3** Q2 → *resolve*: every reported group proven terminated (`EXECUTION_RESOLVED`), no other reservation → slot released → second create | The later valid create **succeeds**. The first instance stays `QUARANTINED`, never publishable. |
+| **Q4** Q2 → *resolve* with a group still alive, or any other open reservation remaining | Resolution fails, or the slot stays held; a second create is blocked. |
+| **Q5** Q1 with no late report and no liveness proof | The slot stays held for every sequence length; only an audited operator resolution (`OPERATOR_RESOLUTION`) releases it, and only if no other reservation remains. |
+
+A model or implementation mutant that releases `active_instance_id` merely because an instance becomes `QUARANTINED` MUST violate I1 or I11 in Q1, and so fail.
 
 A formal TLA+ model is not required. It becomes the next step only if this bounded model cannot be reviewed or exhausted within the repository.
 
@@ -897,7 +942,7 @@ Every S6 operation returns either `PROVEN`/success, or exactly **one** reason co
 | 16 | `BASE_UNAVAILABLE` | Base or result commit cannot be fetched or verified. |
 | 17 | `BASE_SHA_MISMATCH` | Wrong base SHA; `HEAD` ≠ `base_sha`; result not a descendant. |
 | 18 | `BASE_ADVANCED` | Freshness failed at publication. |
-| 19 | `WORKTREE_COLLISION` | Instance directory already exists; or the task's active-environment slot is held by an instance created under a different create key (§13.4). |
+| 19 | `WORKTREE_COLLISION` | Instance directory already exists; or the task's active-environment slot is held by an instance created under a different create key (§13.4), including a `QUARANTINED` instance that still holds it through unresolved external influence. |
 | 20 | `BRANCH_COLLISION` | `task_branch` exists locally or remotely; push lease rejected. |
 | 21 | `PATH_ESCAPE` | Canonical path outside the instance root. |
 | 22 | `UNRESOLVED_LINK` | Unresolved symlink or junction (dangling, loop, or denied). |
@@ -917,12 +962,13 @@ The order puts input validity and platform first, then identity and authority-ad
 - **Create idempotency (§13.4):** `create` is keyed by `(task_id, role, owner, anchor_revision, caller idempotency key)`. The key's binding and the active-environment slot commit first, in one transaction. A replay returns the same `instance_id` and its current outcome; a `READY`/`ATTACHED` instance is returned only if it re-validates. A replay with different bindings is `MALFORMED_REQUEST`. A different key while the slot is held is `WORKTREE_COLLISION`.
 - **Push idempotency (§13.3):** the push is a prepared intent with exact expected and target SHAs. Reconciliation by reading the remote ref decides success (remote equals the target), an exact retry (remote equals the expected value) or a conflict (anything else). A timeout alone decides nothing.
 - **S4 idempotency:** `transition` idempotency is S4's own ledger. S6 passes the `transfer_id` key through and never re-implements it. Only a definitive S4 refusal aborts (§13.3).
-- **Retries are environment retries, not task retries.** At most **2** creation attempts per `(task_id, role, owner, anchor_revision)`. Each failed attempt's directory is quarantined, never reused, and its slot is released in the quarantining transaction. After that, S6 returns the last reason code. It never consumes or changes S4 retry counters, and never transitions the task. Whether the task fails or retries is the caller's S4 decision.
+- **Retries are environment retries, not task retries.** At most **2** creation attempts per `(task_id, role, owner, anchor_revision)`. Each failed attempt's directory is quarantined, never reused, and its slot is released in the quarantining transaction: a failed create never held a permit, push or publication, so it leaves no unresolved influence (§13.4). After that, S6 returns the last reason code. It never consumes or changes S4 retry counters, and never transitions the task. Whether the task fails or retries is the caller's S4 decision.
 - **Crash recovery.** On host start, S6 reads each task store and scans `workspace_root`, in this order. Every step commits through §13.2.
   1. *Task store.* An envelope or blob that cannot be read or verified blocks that task with `ISOLATION_UNPROVABLE`. Nothing is repaired by inference.
   2. *`PENDING` Result Transfer Records.* Prove attribution first (§7.1.3); an unattributable record blocks the whole task. Otherwise resolve by re-issuing the identical S4 `transition` with the same `idempotencyKey` (§7.1 step 5). It commits on S4's replayed success, aborts only on a definitive refusal, and otherwise stays `PENDING`. It is never promoted by inference.
   3. *Prepared intents* (§13.3). Reconcile each push and cleanup intent by observation, and commit its outcome.
-  4. *Execution Permit `CLAIMED` with no verified report (§13.1, `AS90-F001`).* The instance is quarantined with reason `QUIESCE_UNPROVEN` (execution uncertain). Time elapsed is never evidence of termination, and a later report does not un-quarantine it. The recovering instance's `ISSUED` permits are revoked in the same transaction.
+  4. *Execution Permit `CLAIMED` with no verified report (§13.1, `AS90-F001`, `AS99-F001`).* The instance is quarantined with reason `QUIESCE_UNPROVEN` (execution uncertain). The recovering instance's `ISSUED` permits are revoked in the same transaction. The `CLAIMED` permit stays `CLAIMED`, and the instance **keeps the active-environment slot**: this transaction never releases it (§13.4). Time elapsed is never evidence of termination. A later verified report registers liveness obligations but does not un-quarantine the instance or make it publishable. The slot is released only after *resolve* proves every registered group terminated with no other reservation remaining, or after an audited operator resolution (§13.1).
+     - *Quarantined instance with unproven liveness obligations* (for example after a late report). Recovery may attempt *resolve*'s read-only liveness proof. On success it commits `EXECUTION_RESOLVED`, and releases the slot if no other unresolved influence remains. On failure it changes nothing. Recovery never clears uncertainty by inference.
   5. *`CREATING` instance.* Quarantine it (`INCOMPLETE_CREATE`) and release the slot in the same transaction. It is never adopted.
   6. *`READY`/`ATTACHED`/`QUIESCED` instance.* Re-check S4 against the Fencing Checkpoint. If the instance is not current, it is `INSTANCE_STALE`: quiesce, then quarantine. If current, it stays as recorded, and resumes only through an explicit `attach` by the same owner that re-validates.
   7. *Orphans.* A directory with no task-store record, or a record whose directory is missing, → `QUARANTINED`, reported. A blob no committed transaction references is orphan evidence, reported. None is ever adopted, even if its contents look correct, because it cannot be proven.
@@ -1056,7 +1102,8 @@ A future implementation's tests MUST:
     - the write-ahead record and its commit proof;
     - the §9.1 per-step revalidation and the transport ref restriction;
     - the transaction boundary (§13.2): splitting a transaction, dropping its journal entry, or referencing a blob before it is verified;
-    - the version compare-and-set, the active-environment slot, each open-reservation guard (§13.3), atomic report registration, and fail-closed attribution.
+    - the version compare-and-set, the active-environment slot, each open-reservation guard (§13.3), atomic report registration, and fail-closed attribution;
+    - the unresolved-influence slot rule (§13.4, `AS99-F001`). A mutant that releases `active_instance_id` merely because an instance becomes `QUARANTINED` MUST fail a test and the reference model (§13.6 Q1). So MUST a mutant that clears execution uncertainty on a late report alone, on permit expiry or on elapsed time.
 
     Surviving mutants are findings.
 13. **Platform matrix:** POSIX and Windows runs, including non-privileged Windows. Results are recorded per platform. A platform not actually run is reported as not run, never as passing.
@@ -1070,6 +1117,7 @@ A future implementation's tests MUST:
     - An outstanding permit, or a fixed fixture child still alive in a reported group, blocks quiesce (`QUIESCE_UNPROVEN`).
     - **Permit lifecycle (`AS90-F001`):**
       - *Claimed then driver crash* (the fake driver claims and never reports): quiesce and completion fail `QUIESCE_UNPROVEN`, and host recovery quarantines the instance with reason `QUIESCE_UNPROVEN`. A later report does not un-quarantine it.
+      - *Claimed, crash, quarantine, then create (`AS99-F001`)*: the quarantined instance keeps the active-environment slot, and a second create is `WORKTREE_COLLISION`, also after trusted time passes `claim_deadline`. A verified late report registers the groups but still leaves the create blocked and the instance unpublishable. Only *resolve*, after the fixed fixture child is proven terminated with no other reservation, or an audited operator resolution, releases the slot. After that a later valid create succeeds.
       - *Claimed then expiry* (trusted time advanced past `claim_deadline`): still `CLAIMED`, and still blocks.
       - *Unclaimed expiry*: becomes `EXPIRED_UNCLAIMED`, does not block quiesce, and can never be claimed.
       - An `ISSUED` permit is revoked by quiesce, and a claim after that fails.
@@ -1105,31 +1153,34 @@ A future implementation's tests MUST:
 
     | Operation | Local commit points | External effect | Reconciliation | Forbidden outcomes |
     |---|---|---|---|---|
-    | create | (1) slot + binding + `CREATING`; (2) `READY` or quarantine + slot release | directories, clone, checkout, config | re-verify the creation chain, base, tree and config | two ACTIVE environments; an adopted half-created directory; a held slot for a quarantined instance |
+    | create | (1) slot + binding + `CREATING`; (2) `READY` or quarantine + slot release | directories, clone, checkout, config | re-verify the creation chain, base, tree and config | two ACTIVE environments; an adopted half-created directory; a slot still held after an incomplete create is quarantined (it holds no other influence) |
     | validate (stale mark) | stale flag + `STALE` entry | — | — | a state change without its entry |
     | attach | → `ATTACHED` + entry, after S4 fencing | — | — | attach while a publication is `PENDING` |
     | checkpoint adoption | checkpoint + `CHECKPOINT` entry | — | — | a gap accepted; a checkpoint change while a publication is `PENDING` |
     | permit issuance | binding + `ISSUED` + entry (after the body blob) | — | — | two permits for one `request_id`; a binding without its permit |
     | claim | → `CLAIMED` (or → `REVOKED`/`EXPIRED_UNCLAIMED`) + entries | — | — | `CLAIMED` after S4 or S5 changed, or after quiesce revoked the permit |
-    | report | → `REPORTED` + liveness obligations + snapshot + entry (after the report blob) | — | — | `REPORTED` without its process groups; a late report changing a quarantined instance |
+    | report | → `REPORTED` + liveness obligations + snapshot + entry (after the report blob); `LATE_REPORT` for a quarantined instance | — | — | `REPORTED` without its process groups; a late report changing a quarantined instance's lifecycle state or publishability; a late report releasing the slot |
     | quiesce | revocations + → `QUIESCED` + entry, after S4 fencing | — | — | `QUIESCED` after S4 moved; `QUIESCED` with an `ISSUED` or `CLAIMED` permit |
     | push | (1) push intent; (2) outcome + `pushed_sha` | remote push with lease | remote-ref observation | an outcome decided by timeout; a lost `pushed_sha` after a successful push |
     | publication | (1) RTR `PENDING` + entry (after the body blob); (2) `COMMITTED` + `COMPLETED`, or `ABORTED` + stale | S4 `transition` | S4 idempotent replay + `getState` proof | `ABORTED` while S4 committed; two S4 transitions; a restored quarantined instance |
     | finish without publication | → `COMPLETED` + entry | — | — | finish while a publication is `PENDING` |
     | cleanup | (1) cleanup intent; (2) `CLEANED` or quarantine | no-follow deletion | proven-root absence | `CLEANED` with residue; deletion outside the root; cleanup while a publication is `PENDING` |
-    | recovery / quarantine | one transaction per recovered instance | resolves open effects | per effect (§13.3) | inference without observation; adoption of an orphan |
+    | recovery / quarantine | one transaction per recovered instance | resolves open effects | per effect (§13.3) | inference without observation; adoption of an orphan; a slot released because the instance became `QUARANTINED` while unresolved influence remains |
+    | resolve (proof) | obligations discharged + `EXECUTION_RESOLVED` (+ slot release if no other influence remains) | — | read-only liveness inspection | uncertainty cleared with a `CLAIMED` permit or a live group; a restored or publishable instance; a slot released with another reservation open |
+    | resolve (operator) | `OPERATOR_RESOLUTION` (+ slot release if no other influence remains) | — | — | resolution without the audited record; resolution treated as proof; any other reservation cleared by it |
     | concurrent duplicate create | one slot commit wins | — | — | two ACTIVE environments |
+    | claim → crash before report → recovery quarantine → slot-release decision → new or concurrent create (`AS99-F001`) | (1) `CLAIMED`; (2) `QUARANTINED` with the slot held; (3) a later resolve, if any | the driver's execution (unobserved) | late report + liveness proof, or operator resolution | **a new ACTIVE environment while the earlier claimed execution remains unresolved**; a slot release at the quarantine commit; a release on time or expiry alone |
 
-    The matrix also carries every race already found: claim versus quiesce, expiry, replay and recovery; report versus quiesce and recovery; and publication versus finish, cleanup, renewal and a concurrent resolver. At every persistence and effect boundary the tests include:
+    The matrix also carries every race already found: claim versus quiesce, expiry, replay and recovery; report versus quiesce and recovery; and publication versus finish, cleanup, renewal and a concurrent resolver. It adds a create racing recovery quarantine, a late report and *resolve* (`AS99-F001`). At every persistence and effect boundary the tests include:
     - an injected exception;
     - a real process SIGKILL, where executable;
     - restart and recovery;
-    - an invariant check (§13.6 I1–I10);
+    - an invariant check (§13.6 I1–I12);
     - a forbidden-outcome assertion;
     - a mutation that removes the controlling guard, which must fail a test.
 
     Process-crash results are reported as process-crash evidence only. Any stronger OS-crash or power-loss durability claim needs the backend and platform settings that provide it, and evidence from that platform (§13.2).
-16. **Reference state model (§13.6).** Bounded exhaustive generation over the model's small world checks I1–I10 after every step and every modelled crash. Selected generated sequences are replayed against the implementation, and must produce the same outcomes.
+16. **Reference state model (§13.6).** Bounded exhaustive generation over the model's small world checks I1–I12 after every step and every modelled crash. Selected generated sequences are replayed against the implementation, and must produce the same outcomes. The named sequences Q1–Q5 (§13.6) are mandatory members of both the generated set and the replayed set. Q1 must end with the second create blocked, and Q3 with the later valid create succeeding. The model run MUST also show that the *release-on-quarantine* mutant (§13.6) violates I1 or I11 in Q1.
 
 ### 19. Canonical home
 
@@ -1204,7 +1255,7 @@ The current manifest has no S6 reserved root. `devos/schemas/` lists S6 only as 
 10. S6 core exposes no generic command-execution primitive (`D-069`). Actor- and tool-chosen commands run only in a separately authorized execution driver. The driver acts on a single-use Execution Permit and returns a verified Execution Report. The permit binds the canonical S5 `shell.exec` request intent and decision (not argv-aware) to S6's exact `argv_digest`. One `request_id` can mint at most one permit. Claim requires a fresh S5 `ALLOW` at the permit's pinned intent, which honours live revocation and descriptor expiry. At issuance and at claim alike, the S5 subject must be the instance's S4 owner in the mapped role (`BUILDER` → `Builder`, `QA` → `QA`). A claimed permit never becomes quiescence-safe by expiry. S6 core proves quiescence and never spawns actor or tool processes (§13.1).
 11. Every mutable S6 fact for a task lives in one S6 task store. Each logical local transition commits atomically, together with the journal evidence that justifies it. Immutable bodies are content-addressed blobs, written and verified before they are referenced (§13.2). SQLite is an alternative, not a requirement (§20.1).
 12. Every external effect is prepare → effect → reconcile → commit outcome. The task lock is never held across an external effect. An open reservation blocks incompatible local transitions, and a timeout decides nothing (§13.3).
-13. At most one ACTIVE S6 environment exists per task. S6 owns that invariant through a slot committed first at create; S4 ownership is necessary but not sufficient (§13.4).
+13. At most one ACTIVE S6 environment exists per task. S6 owns that invariant through a slot committed first at create; S4 ownership is necessary but not sufficient (§13.4). `ACTIVE = lifecycle_can_progress OR unresolved_external_influence`. A quarantined instance with a `CLAIMED`, unreported permit, an unproven liveness obligation or any open reservation keeps the slot. Execution uncertainty clears only by a liveness proof after a verified report, or by audited operator resolution, never by time (`AS99-F001`).
 14. The production surface is closed operations and read-only views; no mutable store is exposed (§13.5). Isolation Provenance is a deterministic projection of committed history. S7 owns evidence storage, packets, sufficiency and gating (§17).
 15. Caller-presented S4 results are trusted control-plane input, cross-checked with public `getState` (§3.1). The design is checked by a bounded reference state model and a persistence-point crash matrix (§13.6, §18 items 15–16).
 
@@ -1327,7 +1378,7 @@ A future S6 implementation closure would plausibly be `MINOR`: a new backwards-c
 
 ## Architect Sync requirement
 
-Yes. `ARCHITECTURE` class (`CHANGE_GOVERNANCE_POLICY.md` §1). This RFC was the input to the Architect Sync after `ML-DEVOS-AS-085`. The `D-073` integrity-hardening amendment is the input to the next unused immutable Architect Sync after `ML-DEVOS-AS-098`.
+Yes. `ARCHITECTURE` class (`CHANGE_GOVERNANCE_POLICY.md` §1). This RFC was the input to the Architect Sync after `ML-DEVOS-AS-085`. The `D-073` integrity-hardening amendment was reviewed in `ML-DEVOS-AS-099`. Its `AS99-F001` remediation is the input to the next unused immutable Architect Sync after `ML-DEVOS-AS-099`.
 
 ## Paulo decision requirement
 
@@ -1352,7 +1403,7 @@ Yes. Design acceptance and implementation authorization are separate Paulo gates
 15. **Envelope rewrite cost.** The minimal V1 store rewrites the whole task envelope on each commit (§13.2). That is accepted for V1 task sizes; a measured bound that is exceeded sends the design back for a backend decision.
 16. **Durability is proven only for process crashes** unless a backend and platform demonstrably provide more (§13.2). Power-loss durability is not claimed.
 17. **S4 results are trusted control-plane input.** A compromised control-plane caller can present forged `claim`/`renew` results. S6's `getState` cross-check narrows this but does not authenticate the caller (§3.1).
-18. **Fail-closed blocks need an operator.** An unattributable `PENDING` record, an unreadable task store or a stale lock blocks the task until an explicit, audited operator resolution (§7.1.3, §15).
+18. **Fail-closed blocks need an operator.** An unattributable `PENDING` record, an unreadable task store or a stale lock blocks the task until an explicit, audited operator resolution (§7.1.3, §15). So does a claimed execution whose driver never reports, or whose reported groups cannot be proven terminated: the quarantined instance keeps the task's active-environment slot, and no new environment can be created for the task until *resolve* succeeds or an operator resolves it (§13.1, §13.4). Operator resolution is operator-attested, not proof. A dishonest operator can release a slot while execution continues (`AS99-F001`).
 19. **The reference model is bounded.** It exhausts a small world, not every possible state. Escalation to a formal model is available but not pre-emptive (§13.6).
 
 ## Unresolved questions
