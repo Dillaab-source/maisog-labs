@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_INTEGRITY_HARDENING_RFC
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D073_AS100_F001_RFC019_FINAL_DESIGN_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: D073_S6_RFC019_FINAL_DESIGN_ACCEPTED_PAULO_IMPLEMENTATION_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-INTEGRITY-RFC-REM2-0001
-REVIEW_TARGET_COMMIT: 2ce699928219cacc438b55c7c890691e01a38d44
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-100
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -24,145 +24,95 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-073 authorizes architecture/design amendment work only.
+`ML-DEVOS-AS-101` is the controlling Architect review.
 
-`ML-DEVOS-AS-100` is the controlling Architect review.
+The D-073 RFC-019 integrity-hardening design is Architect-approved.
 
-Only AS100-F001 final RFC-019 design remediation is authorized.
+AS99-F001 and AS100-F001 are closed at design level.
 
-This is remediation cycle 2 of the live maximum of 2.
+Architecture hardening has reached the RFC-019 anti-bloat exit condition.
 
-S6 implementation remains paused.
+No implementation authority is granted by AS-101.
 
-No executable S6 or S7 mutation is authorized.
+Only Paulo may decide whether to authorize the next bounded S6-core hardening implementation.
 
-## Architect review return — AS100-F001 final RFC-019 design remediation (cycle 2 of 2, design only)
+## Paulo decision required
 
-The Builder has corrected RFC-019 for `AS100-F001` only:
-- the historical permit status is separate from a per-claim execution-uncertainty reservation and per-group liveness obligations, each `OPEN` until closed by one named resolution (§13.1);
-- unresolved influence is a `CLAIMED` permit whose reservation is `OPEN`, not every historical `CLAIMED` permit (§13.4);
-- a verified late report closes the claim reservation and registers the liveness obligations in one transaction (§13.1 step 5);
-- audited operator resolution names one exact target, is `ACTOR_REPORTED`, closes only that target, and never restores, un-quarantines or publishes (§13.1);
-- the reference model represents the six facts independently, I12 is clarified, I13 (exact-target resolution) is added, Q5 is rewritten with Q5a/Q5b, and Mutants A, B and C must fail (§13.6, §18).
+Paulo must decide whether to authorize one bounded S6-core hardening implementation against the AS-101-accepted RFC-019 design.
 
-It returns the turn for the final independent design gate under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-100`. The evidence and the requirement map (ACTOR_REPORTED) are in `coordination/CURRENT_HANDOFF.md` (`H-S6-INTEGRITY-RFC-REM2-0001`) only. No executable S6 or S7 file changed; S6 implementation remains paused. No further Builder action is authorized.
+If authorized, the new owner decision must create a fresh implementation cycle and explicitly define the Builder's write scope.
 
-## Final remediation objective
+The recommended implementation scope is:
 
-Separate the historical Execution Permit lifecycle from the execution-uncertainty reservation produced by a claimed execution whose termination remains unresolved.
+- authoritative tracked `devos/execution/**`;
+- directly necessary S6-focused tests / fixtures;
+- directly necessary consistency changes authorized by the owner decision;
+- accepted transaction / reservation / reference-model hardening;
+- fake-driver / fixture execution only.
 
-A historical `CLAIMED` permit keeps the task slot only while its exact execution-uncertainty reservation remains open.
+The implementation must begin by treating the local transaction substrate as a proof gate.
 
-The Builder must preserve historical permit truth while introducing the minimum bounded design fact required to distinguish:
+If the preferred envelope backend cannot demonstrate the required atomic semantics for the supported target platform/profile, stop and route a separate backend decision.
 
-- claim history; from
-- unresolved execution influence.
+Do not silently substitute a different persistence architecture.
 
-An audited operator resolution must target the exact claim reservation, remain operator-attested rather than proof, and leave unrelated reservations untouched.
+## SU pre-implementation disposition
 
-A verified late report must atomically move the claim into the reported/liveness-obligation path without creating a committed safety gap.
+SU found no new architecture-class blocker.
 
-## Required active-slot invariant
+Do not open another architecture-hardening round merely because implementation is substantial.
 
-Task-slot release remains permitted only when:
+Required implementation discipline, if Paulo authorizes:
 
-`lifecycle_can_progress == false`
+1. prove or fail closed on the transaction substrate;
+2. implement the bounded reference model and I1-I13/Q1-Q5b obligations early;
+3. harden the authoritative tracked S6 core against the accepted design;
+4. exercise the crash/interleaving matrix and Mutants A-C;
+5. keep the public mutation surface closed;
+6. preserve the S6/S7 boundary;
+7. use only fake-driver / fixed-fixture execution.
 
-and:
+## Existing S6 implementation
 
-`unresolved_external_influence == empty`
+The existing tracked S6 implementation predates the accepted D-073 hardened design.
 
-`QUARANTINED` alone never releases the slot.
+It is not approved by this design gate.
 
-Elapsed time alone never resolves execution uncertainty.
+Any future authorization is to harden that authoritative tracked implementation against RFC-019.
 
-A historical `CLAIMED` permit whose execution-uncertainty reservation has been explicitly resolved does not by historical status alone continue to reserve the slot.
-
-## Required Q5 coverage
-
-The model must cover:
-
-`CLAIMED`
-→ claim execution uncertainty `OPEN`
-→ crash before report
-→ `QUARANTINED / QUIESCE_UNPROVEN`
-→ no report
-→ time advances
-→ uncertainty still `OPEN`
-→ second create blocked
-
-Then:
-
-→ audited operator resolution targeting the exact claim
-→ exact claim uncertainty reservation closed
-→ historical permit remains `CLAIMED`
-→ no other unresolved influence remains
-→ task slot released
-→ later valid create succeeds.
-
-If any unrelated reservation remains, slot release remains forbidden.
-
-## Required falsification
-
-Preserve:
-
-- release-on-quarantine mutant must fail.
-
-Add:
-
-- an operator-resolution record that does not actually close the exact claim reservation must not release the slot and must fail Q5;
-- resolving claim A must not clear claim B or any unrelated reservation.
-
-## Authorized writes
-
-Only directly necessary design/governance files:
-
-- `devos/changes/rfcs/ML-DEVOS-RFC-019.md`;
-- `devos/changes/rfcs/README.md` only if a factual update is required;
-- deterministic traceability outputs if required;
-- `coordination/STATE.md`;
-- `coordination/CURRENT_HANDOFF.md`;
-- required rolling-record archives.
-
-No `devos/execution/**`.
-
-No executable test/source mutation.
-
-No suspended D-068 import.
-
-## Return gate
-
-After the bounded AS100-F001 remediation:
-
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 2
-MAX_REMEDIATION_CYCLES: 2
-
-The Builder must return a fresh bounded CURRENT_HANDOFF for independent Architect review.
-
-If AS100-F001 remains unresolved after this cycle, no autonomous third remediation is authorized.
-
-Route to Paulo for a decision instead.
+A suspended or untracked local D-068 draft is not authoritative and must not be imported merely because it exists locally.
 
 ## Hard boundaries
 
-No S6 implementation.
+Until Paulo publishes a new explicit decision:
+
+No S6 implementation mutation.
 No real execution driver.
+No generic executor.
 No S3/S4/S5 implementation mutation.
-No manifest closure/version mutation.
 No S7+.
+No S8/S9.
 No CP-4+.
 No Model Router.
 No dynamic plugin discovery.
 No remote D1/R2.
 No deployment.
+No manifest closure/version promotion.
 No protected/main merge.
 No PR #10 merge.
 
-All remote/deploy/main/mutation flags remain NO.
+All mutation, remote-resource, deployment and main-merge flags remain NO.
 
-AS-100 does not authorize S6 implementation.
+## Next transition
+
+If Paulo authorizes the recommended bounded S6-core hardening implementation, publish a new owner decision and only then route:
+
+`TURN: CLAUDE`
+
+with:
+
+`IMPLEMENTER_ACTION_REQUIRED: YES`
+
+and the exact new implementation scope.
+
+If Paulo does not authorize it, no Builder work begins.
