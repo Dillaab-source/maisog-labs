@@ -15,9 +15,10 @@
 //   - four validated numeric CSS custom properties on `<html>`, each
 //     derived from a bounds-checked integer (never a raw server-provided
 //     CSS value/string);
-//   - `style.order`/`style.display` on exactly the four `[data-section]`
-//     elements app/page.js already renders (never a server-provided
-//     selector — the four ids are a fixed, hardcoded list).
+//   - `style.order`/`style.display` on the `[data-section]` elements for
+//     exactly the four fixed managed ids (never a server-provided selector —
+//     the four ids are a fixed, hardcoded list; see applySections below for
+//     the Website Redesign V1 route-trigger/surface mapping).
 // It never injects a server-returned CSS string, never creates a <style>
 // element from arbitrary text, never uses dangerouslySetInnerHTML, never
 // evaluates code, and never loads a remote font/asset. If the fetch fails,
@@ -47,6 +48,7 @@
 // application code path, no new attribute, no new CSS capability.
 import { useEffect } from "react";
 import { computeOverlayLayers } from "../lib/design/overlay.mjs";
+import { DESIGN_APPLIED_EVENT, managedTriggerSlots } from "../components/site/routes.mjs";
 
 const DESIGN_PREVIEW_QUERY_PARAM = "design-preview";
 
@@ -116,20 +118,35 @@ function applyTheme(root, theme) {
   setBoundedNumberProperty(root, "--design-radius-scale", theme.radiusScalePct, { min: 80, max: 120, transform: v => v / 100 });
 }
 
+// Website Redesign V1 (D-076 / ML-DEVOS-AS-104 plan §19): the same four
+// fixed managed IDs now mark every element that presents that section --
+// its spatial route trigger(s) and its route surface (home -> Entry content,
+// projects -> Projects, process -> Systems, about -> Contact; Research is
+// unmanaged). Visibility hides every marked element, trigger and surface
+// alike. Published order only permutes the managed route triggers among
+// their own default slots (components/site/routes.mjs managedTriggerSlots);
+// surfaces never receive an order. The selector is still built only from
+// the hardcoded MANAGED_SECTION_IDS list.
 function applySections(sections) {
   if (!sections || typeof sections !== "object") return;
+  const slots = managedTriggerSlots(sections);
   for (const id of MANAGED_SECTION_IDS) {
-    const element = document.querySelector(`[data-section="${id}"]`);
-    if (!element) continue; // e.g. /journal has no managed sections at all
     const entry = sections[id];
-    if (!entry || typeof entry !== "object") continue;
-    if (Number.isSafeInteger(entry.order) && entry.order >= 0 && entry.order <= 20) {
-      element.style.order = String(entry.order);
-    }
-    if (typeof entry.visible === "boolean") {
-      element.style.display = entry.visible ? "" : "none";
+    for (const element of document.querySelectorAll(`[data-section="${id}"]`)) {
+      if (element.hasAttribute("data-section-trigger") && Object.hasOwn(slots, id)) {
+        element.style.order = String(slots[id]);
+      }
+      if (entry && typeof entry === "object" && typeof entry.visible === "boolean") {
+        element.style.display = entry.visible ? "" : "none";
+      }
     }
   }
+}
+
+// Lets the public spatial shell re-check its open route (a hidden managed
+// route fails safe to Entry) and its motion mode. Carries no data.
+function announceApplied() {
+  window.dispatchEvent(new Event(DESIGN_APPLIED_EVENT));
 }
 
 function fetchJson(url) {
@@ -145,6 +162,7 @@ function applyPublished(root, cancelledRef) {
     if (cancelledRef.cancelled) return;
     applyTheme(root, data?.theme);
     applySections(data?.sections);
+    announceApplied();
   });
 }
 
@@ -164,6 +182,7 @@ export default function DesignRuntime() {
           if (cancelledRef.cancelled) return;
           applyTheme(root, data?.theme);
           applySections(data?.sections);
+          announceApplied();
         })
         .catch(() => {
           // Not authenticated for preview (401), or any other failure:

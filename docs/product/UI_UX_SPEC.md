@@ -8,28 +8,33 @@ Owns experience/design rules. Does not restate Brand V3 — it references it (`A
 
 - `brand/V3/README.md` — core identity, brand balance, color palette, typography.
 - `brand/V3/guidelines/V3_DIRECTION.md` — implementation rules for the V3 direction.
-- `brand/V3/DESIGN_MAP.md` — approved landing-page composition (background, header, hero, floating-system, project, process-dock layout, non-negotiables).
+- `brand/V3/DESIGN_MAP.md` — the active Website Redesign V1 spatial composition (`D-076` / `ML-DEVOS-AS-104`) and the superseded V3.1 placement map (provenance only).
 - `brand/V3/design-tokens/design-tokens.json`, `brand/V3/design-tokens/brand-colors.css` — machine-readable tokens.
 - `brand/V3/logos/` — canonical SVG masters. **Do not redesign or substitute the orbital logo** without an intentional, separately approved brand redesign.
 
 Anything this spec says about visual identity is subordinate to those files. If this spec and Brand V3 ever conflict, Brand V3 wins (source-of-truth precedence, `PRD.md`).
 
-## Interaction principles — current, `CURRENTLY IMPLEMENTED`
+## Interaction principles — Website Redesign V1, `IMPLEMENTED` (Builder-reported, pending Architect review)
 
-- Single-page, anchor-navigated experience: header nav and foundation dock link to in-page sections (`#home`, `#projects`, `#process`, `#about`) — the only navigation targets `lib/content/schema.mjs`'s `href()` validator allows, plus `mailto:` contact links.
-- `ProjectRail` (`components/ProjectRail.js`) is the only client-interactive component; the rest of the page is statically rendered server output.
-- A skip-link (`Skip to content` → `#main-content`) is present for keyboard/screen-reader users (`app/page.js`).
+Governed by `D-076`, `ML-DEVOS-AS-104` and `docs/product/WEBSITE_REDESIGN_V1_PLAN.md`; evidence in `docs/product/evidence/website-redesign-v1/` (`ACTOR_REPORTED`).
 
-## Responsive / mobile — current, `CURRENTLY IMPLEMENTED` (code exists), not independently `VERIFIED`
+- One spatial environment: Entry (no hash) plus four work surfaces addressed by `#systems`, `#projects`, `#research`, `#contact` (`components/site/SpatialShell.js`, `components/site/routes.mjs`). Unknown hashes stay on Entry; legacy `#process` / `#about` resolve to Systems / Contact.
+- Route triggers are plain hash links, so browser Back / Forward work; Escape and the wordmark return to Entry.
+- Focus moves to the opened surface's heading and returns to the closed route's trigger (the `MENU` control on narrow screens).
+- Systems and Projects selectors are button groups with `aria-pressed`, arrow-key / Home / End selection and a roving tab stop.
+- Narrow screens (≤ 760px): compact wordmark + one `MENU` control opening a vertical list of the four destinations (≥ 44px targets); Escape closes it and restores focus.
+- WEB-INC-007: managed ids `home` → Entry content, `projects` → Projects, `process` → Systems, `about` → Contact (fixed in `app/DesignRuntime.js`); a hidden managed route hides its triggers and surface, and a direct hash to it falls back to Entry; published order only permutes the managed route triggers. Research is unmanaged.
 
-Responsive behavior is owned by `app/globals.css` (`WEB-REQ-003`). No automated mobile/visual regression test exists yet (`TEST-WEB-003: NOT IMPLEMENTED`, `brain/TEST_LEDGER.md`); status is implementer-reported code inspection only, matching `brain/GOVERNANCE_MAP.md`.
+## Responsive / mobile — Website Redesign V1
 
-## Accessibility — current, `CURRENTLY IMPLEMENTED` (partial, not comprehensively audited)
+Desktop and narrow compositions are defined separately in `app/globals.css`. Browser evidence (desktop 1440×900, mobile 390×844) is Builder-captured, not independently `VERIFIED`; there is still no automated visual-regression suite in CI (`TEST-WEB-003`).
 
-- Skip link to main content.
-- `aria-hidden="true"` applied to decorative-only elements (cosmic background, blueprint grid/frame, coordinate labels, contact signal).
-- `aria-label`s on the primary navigation, the foundation dock, and the header brand link.
-- No automated accessibility (e.g. axe/Lighthouse) test currently exists in `tests/` — this is a known gap, not a claimed pass.
+## Accessibility — Website Redesign V1 (partial, not comprehensively audited)
+
+- Skip link to the Entry content; semantic `nav` landmarks with labels; `aria-current` on the active route; surface headings (`h2`) labelled regions.
+- Decorative environment, trajectories and the Systems diagram are `aria-hidden`; the diagram's information is also stated in text.
+- Entry is `inert` / `aria-hidden` while a surface is open.
+- No hover-only information. No automated accessibility (axe/Lighthouse) test exists — a known gap, not a claimed pass.
 
 ## Reduced motion
 
@@ -41,8 +46,8 @@ These states are tracked against existing requirement IDs rather than invented f
 
 | State | Current | Target |
 |---|---|---|
-| Empty (no featured projects) | `CURRENTLY IMPLEMENTED` — `projectSection.emptyMessage` is rendered when the published, featured project list is empty (`data/site.js`, `lib/content/schema.mjs` `projectSection` field, `app/page.js`) | Unchanged |
-| Loading | `NOT APPLICABLE today` — the public page is fully static/server-rendered with no client data fetch that needs a loading state | `PROPOSED TARGET` — a future admin dashboard/editor will need explicit loading states for save/publish operations (`ADM-REQ-010`, `015`) |
+| Empty (no featured projects) | `CURRENTLY IMPLEMENTED` — `projectSection.emptyMessage` is rendered when the published, featured project list is empty (`data/site.js`, `lib/content/schema.mjs` `projectSection` field, `components/site/ProjectsSurface.js`); the Research surface shows an explicit empty state for zero published Journal entries and an error state with retry | Unchanged |
+| Loading | `IMPLEMENTED` (Website Redesign V1) — the homepage Research surface shows an explicit loading state while it fetches `GET /api/journal` (also `/journal`) | `PROPOSED TARGET` — a future admin dashboard/editor will need explicit loading states for save/publish operations (`ADM-REQ-010`, `015`) |
 | Error (invalid content) | `CURRENTLY IMPLEMENTED` at build time — `validateContent()` throws and fails the build (`lib/content/schema.mjs`, `tests/content.test.mjs`); there is no runtime/user-facing error UI because there is no runtime write path | `PROPOSED TARGET` — a future admin surface must show inline validation errors without a build (`ADM-REQ-011`, `WEB-SEC-004`) |
 | Success | `NOT IMPLEMENTED` — no save/publish action exists to confirm | `PROPOSED TARGET` — explicit save/publish confirmation (`ADM-REQ-015`) |
 | Write failure | `NOT IMPLEMENTED` — no write path exists | `PROPOSED TARGET` — a failed write must never appear successful (`ADM-REQ-016`, `WEB-SEC-012`) |

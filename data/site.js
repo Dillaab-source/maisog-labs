@@ -132,3 +132,32 @@ export const siteContent = {
     emptyMessage: "New work is taking shape. Check back soon.",
   },
 };
+
+// Website Redesign V1 (D-076 / ML-DEVOS-AS-104) spatial copy. Deliberately a
+// separate, local-static-only document: it is NOT part of `siteContent`, so
+// the legacy content document (and its D1 migration parity, worker/d1/*) is
+// unchanged and no D1 schema is implied. Validated fail-closed by
+// lib/content/schema.mjs validateSpatialContent before rendering. Discipline
+// text restates already-published copy (services, foundations, process,
+// about, projects); `terms` are matched exactly against published project
+// categories/stack tags to derive Systems relationships
+// (components/site/routes.mjs) -- nothing is inferred.
+export const spatialContent = {
+  entryDescriptor:
+    "MaisogLabs is Paulo Maisog's independent technology lab, building practical AI automation, research systems, software, and security-focused experiments.",
+  destinations: [
+    { route: "systems", text: "How the lab's disciplines connect" },
+    { route: "projects", text: "Published lab projects" },
+    { route: "research", text: "Notes from the lab journal" },
+    { route: "contact", text: "Start a conversation" },
+  ],
+  disciplines: [
+    { id: "discipline-ai", label: "AI", text: "Human-centered AI experiences designed around real user needs and clear boundaries.", terms: ["AI", "LLM", "AI AUTOMATION"] },
+    { id: "discipline-automation", label: "Automation", text: "Connected workflows that reduce repetitive work.", terms: ["Automation", "AI AUTOMATION"] },
+    { id: "discipline-research", label: "Research", text: "Hands-on labs, notes, and practical experiments, documented honestly.", terms: ["Research"] },
+    { id: "discipline-security", label: "Security", text: "Practical systems built with reliability and security in mind.", terms: ["Security", "CYBERSECURITY"] },
+    { id: "discipline-systems", label: "Systems", text: "Connect the right tools into a dependable system.", terms: ["SYSTEMS"] },
+    { id: "discipline-architecture", label: "Architecture", text: "Identity and structure: start with the real problem and the people living with it.", terms: [] },
+  ],
+  contactStatement: "Humanity orbits higher.",
+};

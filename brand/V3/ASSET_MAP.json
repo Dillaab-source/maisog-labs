@@ -1,13 +1,13 @@
 {
   "brand": "Maisog Labs",
-  "version": "V3.1",
-  "sourceOfTruth": "Approved V3.1 cinematic landing reference supplied by Paulo",
+  "version": "V3 (Website Redesign V1 spatial composition)",
+  "sourceOfTruth": "brand/V3/DESIGN_MAP.md (active spatial composition, D-076 / ML-DEVOS-AS-104); the V3.1 cinematic landing reference is superseded for the website",
   "rules": [
     "Do not redesign the orbital logo.",
     "Do not substitute helmet, compass, planet, shield, brain, robot, or badge marks.",
-    "Match approved composition before adding new visual ideas.",
+    "Match the approved spatial composition (brand/V3/DESIGN_MAP.md) before adding new visual ideas.",
     "Rebuild UI as live HTML/CSS; do not bake UI text into the background image.",
-    "Preserve Earth-left / classical-architecture-right environment composition."
+    "The Earth-left / classical-architecture-right V3.1 placement is superseded for the website (D-076)."
   ],
   "assets": [
     {
@@ -15,7 +15,14 @@
       "path": "brand/V3/logos/maisog-labs-primary-dark.svg",
       "role": "PRIMARY_LOGO",
       "background": "light",
-      "tags": ["canonical", "wordmark", "orbit", "star", "tagline", "light-background"],
+      "tags": [
+        "canonical",
+        "wordmark",
+        "orbit",
+        "star",
+        "tagline",
+        "light-background"
+      ],
       "usage": "Brand guides, documents, light sections."
     },
     {
@@ -23,13 +30,76 @@
       "path": "brand/V3/logos/maisog-labs-icon-dark.svg",
       "role": "ICON",
       "background": "light",
-      "tags": ["canonical", "orbit", "star", "favicon", "mark"],
+      "tags": [
+        "canonical",
+        "orbit",
+        "star",
+        "favicon",
+        "mark"
+      ],
       "usage": "Favicon, compact mark, app icon."
+    },
+    {
+      "id": "logo-primary-dark-bg",
+      "path": "public/brand/maisog-labs-primary-on-dark.svg",
+      "role": "PRIMARY_LOGO",
+      "background": "dark",
+      "tags": [
+        "canonical",
+        "wordmark",
+        "orbit",
+        "star",
+        "tagline",
+        "dark-background"
+      ],
+      "usage": "Website Entry lockup and static fallback."
+    },
+    {
+      "id": "logo-icon-dark-bg",
+      "path": "public/brand/maisog-labs-icon-on-dark.svg",
+      "role": "ICON",
+      "background": "dark",
+      "tags": [
+        "canonical",
+        "orbit",
+        "star",
+        "mark"
+      ],
+      "usage": "Website header compact mark."
+    },
+    {
+      "id": "website-entry-plate",
+      "path": "public/images/maisog-v4-cosmic-background.webp",
+      "role": "ENVIRONMENT_PLATE_FALLBACK",
+      "background": "dark",
+      "tags": [
+        "environment",
+        "fallback",
+        "media-gap"
+      ],
+      "usage": "Current Entry environment. Static fallback while the approved plate-hero-v4.png is unavailable (MEDIA_GAP)."
+    },
+    {
+      "id": "website-entry-plate-v4",
+      "path": null,
+      "role": "ENVIRONMENT_PLATE",
+      "status": "MEDIA_GAP \u2014 approved (D-076) but source bytes not supplied to the implementation cycle",
+      "source": "plate-hero-v4.png (Claude design)",
+      "usage": "Approved Entry environment plate once supplied under public/images/website-redesign-v1/."
+    },
+    {
+      "id": "website-logo-mark-motion",
+      "path": null,
+      "role": "MARK_MOTION",
+      "status": "MEDIA_GAP \u2014 approved (D-076) but source bytes not supplied to the implementation cycle",
+      "source": "logo-mark.mp4 + poster (Claude design)",
+      "usage": "Optional Entry mark motion with still poster; muted, inline, reduced-motion static, paused behind surfaces/hidden page."
     }
   ],
   "websitePlacement": {
-    "header": "Small canonical orbital logo at top-left.",
-    "hero": "Large canonical orbital wordmark centered in hero.",
-    "footer": "Compact logo or wordmark only; do not invent a new lockup."
+    "header": "Compact canonical orbital icon + MAISOG LABS wordmark at top-left; returns to Entry.",
+    "entry": "Canonical primary lockup (with IDEAS INTO SYSTEMS.) centered on Entry above the plain first-visit descriptor.",
+    "surfaces": "No logo repetition inside work surfaces.",
+    "footer": "No separate footer; restrained legal line in Contact."
   }
 }
