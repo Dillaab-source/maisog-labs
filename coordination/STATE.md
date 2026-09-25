@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2A_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D082_SPATIAL_DESIGN_CONTROLS_V2A_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: AS112_SPATIAL_DESIGN_CONTROLS_V2A_ACCEPTED_PAULO_NEXT_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-SPATIAL-DESIGN-V2A-0001
-REVIEW_TARGET_COMMIT: 29733fc14dc1f6203e69e4da09889a27a940c9b9
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-111
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,37 +29,39 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-082 is the Product / Risk Owner authorization for Spatial Design Controls V2A — Admin UX Alignment, the first real Protocol V2 Builder task.
+ML-DEVOS-AS-112 is the controlling review. It accepted the Spatial Design Controls V2A implementation (D-082, DIR-SPATIAL-DESIGN-V2A-0001), without requiring remediation.
 
-ML-DEVOS-AS-107 and `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md` are the controlling reviewed plan.
+## Status
 
-ML-DEVOS-AS-111 verified Protocol V2.
+Spatial Design Controls V2A is accepted. Deployment is not authorized.
 
-## Builder return
+The first real Protocol V2 issue → execute → archive → handoff lifecycle is accepted.
 
-`H-SPATIAL-DESIGN-V2A-0001` in `coordination/CURRENT_HANDOFF.md` is the bounded V2A implementation record. It is evidence, not authority.
+`H-SPATIAL-DESIGN-V2A-0001` and `DIR-SPATIAL-DESIGN-V2A-0001` are archived byte-exactly.
 
-`DIR-SPATIAL-DESIGN-V2A-0001` is deselected and archived byte-exactly under `coordination/archive/directives/`.
+## Paulo gate
 
-## Architect gate
+Paulo decides the next step. Nothing begins automatically.
 
-The Architect independently reviews the V2A return against D-082, ML-DEVOS-AS-107 and the V2A plan, with its own SENTINEL sync.
+V2A acceptance authorizes no deployment, public cutover, remote mutation, protected/main merge or PR #10 merge.
 
 ## Hard boundaries
 
-No DesignRuntime, `components/site/**`, Worker, D1, migration or API-shape change.
-No new theme field, arbitrary input, new preview endpoint, iframe/editor runtime or drag/drop.
-No Research visibility/order management.
-No media, Brand identity or content editing.
-No V2B, S6/S7 or D-068 work.
-No deployment, public cutover, remote D1/R2 mutation, protected/main merge, or PR #10 merge.
+No deployment.
+No public cutover.
+No remote D1/R2 mutation.
+No protected/main merge.
+No PR #10 merge or auto-merge.
+No automatic V2B.
+No S6/S7 resumption.
+No D-068 mutation.
 
-S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
+S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open. D-068 remains suspended and untouched/untracked.
+
+All action-specific flags remain NO.
 
 ## Next transition
 
-TURN: ARCHITECT
-
-The Architect publishes a review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-111.
+TURN: PAULO
 
 No Builder action begins automatically.
