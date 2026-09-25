@@ -31,7 +31,7 @@ Desktop and narrow compositions are defined separately in `app/globals.css`. Bro
 
 ## Accessibility — Website Redesign V1 (partial, not comprehensively audited)
 
-- Skip link to the Entry content; semantic `nav` landmarks with labels; `aria-current` on the active route; surface headings (`h2`) labelled regions.
+- Route-aware skip link: on Entry it targets the Entry main landmark (`#main-content`); on an open surface it moves focus to that surface's own heading (`surface-<route>-title`), never to the inert Entry (`AS105-F002`). Semantic `nav` landmarks with labels; `aria-current` on the active route; surface headings (`h2`) labelled regions.
 - Decorative environment, trajectories and the Systems diagram are `aria-hidden`; the diagram's information is also stated in text.
 - Entry is `inert` / `aria-hidden` while a surface is open.
 - No hover-only information. No automated accessibility (axe/Lighthouse) test exists — a known gap, not a claimed pass.

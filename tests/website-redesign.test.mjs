@@ -153,3 +153,32 @@ test("page markup: managed ids are the fixed four; Research is unmanaged", () =>
   assert.match(shell, /route\.section \? \{ "data-section": route\.section \}/);
   assert.ok(!/data-section="(?!home")/.test(shell), "no other literal managed id");
 });
+
+// AS105-F002: the skip link must follow the current route and never target the
+// inert/aria-hidden Entry landmark while a surface is open. SpatialShell.js is
+// a JSX client component, so its fixed, dependency-free `skipTargetFor` is
+// extracted from source and exercised against the real route vocabulary.
+test("skip link: target derives only from the fixed current route; never hidden Entry when a surface is open", () => {
+  const shell = read("components/site/SpatialShell.js");
+  const match = shell.match(/function skipTargetFor\(route\) \{\n([\s\S]*?)\n\}/);
+  assert.ok(match, "skipTargetFor is defined in SpatialShell.js");
+  const skipTargetFor = new Function("ROUTE_IDS", "route", match[1]).bind(null, ROUTES.map(r => r.id));
+
+  assert.equal(skipTargetFor(null), "main-content", "Entry skips to the Entry main landmark");
+  for (const hash of ["", "#home", "#nonsense", "#main-content"]) assert.equal(skipTargetFor(resolveHash(hash).route), "main-content", hash);
+  for (const route of ROUTES) {
+    const target = skipTargetFor(resolveHash(`#${route.id}`).route);
+    assert.equal(target, `surface-${route.id}-title`, route.id);
+    assert.notEqual(target, "main-content", `${route.id}: never the inert Entry`);
+  }
+  for (const hostile of ["admin", "surface-systems", "main-content", "../x", "systems\"><img", "__proto__", "constructor", undefined, 7]) {
+    assert.equal(skipTargetFor(hostile), "main-content", `non-route ${String(hostile)} falls back to Entry`);
+  }
+
+  // The rendered link uses the helper; each surface heading carries the same fixed id and is focusable.
+  assert.match(shell, /className="skip-link" href=\{`#\$\{skipTargetFor\(route\)\}`\} onClick=\{onSkip\}/);
+  assert.match(shell, /<h2 id=\{`surface-\$\{id\}-title`\} className="surface-title" tabIndex=\{-1\}>/);
+  assert.match(shell, /<main id="main-content"/);
+  // On an open surface the handler focuses the heading without changing the hash.
+  assert.match(shell, /const onSkip = event => \{\n    if \(!route\) return;\n    const target = document\.getElementById\(skipTargetFor\(route\)\);\n    if \(!target\) return;\n    event\.preventDefault\(\);\n    target\.focus\(\);/);
+});

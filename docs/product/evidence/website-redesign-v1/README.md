@@ -9,26 +9,15 @@ Evidence class: **`ACTOR_REPORTED`** (Builder-generated). It stays that way unti
 
 ## How it was captured
 
-- **Site:** the actual local implementation, `npm run build` (Next.js static export, `out/`).
-- **Server:** a minimal static file server inside `capture-harness.mjs`.
-- **Browser:** Chromium 141.0.7390.37 (pre-installed) driven by the environment's globally installed Playwright 1.56.1. No repository dependency was added.
-- **Runtime:** Node v22.22.2 on Linux.
+- **Screenshots:** actual local implementation screenshots of `npm run build` (Next.js static export). No reference or mockup image is included.
+- **Browser:** Chromium 141.0.7390.37 driven by the environment's globally installed Playwright 1.56.1, through a Builder-local harness. No repository dependency was added.
+- **Harness not committed:** per `AS105-F001`, the harness source and its machine-generated result JSON are **not committed**. They are local, untracked Builder validation tooling only.
 - **Viewports:**
   - desktop: 1440×900, DPR 1;
-  - mobile: 390×844, DPR 2, `isMobile`, `hasTouch`.
-- **Output:** the screenshots are JPEG (quality 82).
-
-`/api/design` and `/api/journal` are Worker routes that do not exist in a static export, so the harness intercepts them in the browser:
-
-- `/api/design`:
-  - 404 by default, which is the WEB-INC-007 fail-safe baseline;
-  - explicit fixed payloads for the WEB-INC-007 cases.
-- `/api/journal`:
-  - **labelled local fixtures**, for example "[Local fixture] Newer test entry", used only to exercise the loading, empty, error and success states;
-  - the live production API was not reachable from this environment (proxy 403);
-  - these fixtures are **not** published content and are not shipped anywhere.
-
-No reference or mockup image is included here. Every screenshot is of the implemented site.
+  - mobile: 390×844, DPR 2, touch.
+- **Output:** JPEG screenshots (quality 82).
+- **Research:** the Research screenshots use **labelled local fixture** Journal entries ("[Local fixture] …"). The harness intercepted `/api/journal` in the browser because a static export has no Worker and the live API was not reachable from this environment (proxy 403). The fixtures are not published content and are not shipped anywhere.
+- **Design API:** `/api/design` was intercepted the same way. It returns 404 by default (the WEB-INC-007 fail-safe baseline), with fixed payloads for the WEB-INC-007 cases.
 
 ## Screenshots (`screenshots/`)
 
@@ -46,9 +35,9 @@ No reference or mockup image is included here. Every screenshot is of the implem
 | Mobile | Research (fixture success state) | `mobile-05-research.jpg` |
 | Mobile | Contact | `mobile-06-contact.jpg` |
 
-## Interaction, motion and WEB-INC-007 results
+## Interaction, motion and WEB-INC-007 results (`ACTOR_REPORTED`)
 
-`interaction-motion-results.json` records every check with its detail. The last run passed **72/72**:
+These are Builder-reported summary counts. The detailed per-check results are carried in the Builder handoffs `H-WEB-REDESIGN-V1-IMPL-0001` and `H-WEB-REDESIGN-V1-REM1-0001`, not in a committed file.
 
 | Area | Checks | Pass |
 |---|---|---|
@@ -56,30 +45,17 @@ No reference or mockup image is included here. Every screenshot is of the implem
 | Keyboard: Tab order, Enter on a route, Systems ArrowDown/End, Projects ArrowRight/Home | 6 | 6 |
 | Focus: entry into the surface heading, return to the route trigger (desktop) or `MENU` (mobile) | 2 | 2 |
 | Mobile: nav replaced by `MENU`; menu contents, focus and 44px targets; Escape; breakpoint close | 4 | 4 |
+| Skip link (`AS105-F002`): Entry desktop, open surface desktop (`#systems`), open surface mobile (`#contact`), Entry mobile. Each reaches visible content that is not inert or `aria-hidden` | 4 | 4 |
 | WEB-INC-007: hidden managed route hides all triggers and the surface; direct hash to it fails safe to Entry; order permutes triggers only; surfaces get no order | 4 | 4 |
-| Journal: loading, empty, error (+ retry), success (newest-first API order, plain-text body, `/journal?slug=` link) | 4 | 4 |
+| Journal: loading, empty, error (+ retry), success | 4 | 4 |
 | Motion: calm, WEB-INC-007 `minimal`, `off`, `always-reduced`, and `prefers-reduced-motion` | 31 | 31 |
 | Visual: no horizontal overflow on any desktop or mobile surface | 9 | 9 |
 | Runtime: no page or console errors (desktop, mobile) | 2 | 2 |
 | Regression: `/journal` still lists entries | 1 | 1 |
 
-The motion checks cover, for each mode:
+The last run passed 76/76 checks.
 
-- the resolved `data-motion` value;
-- whether Entry ambient animation is running;
-- whether pointer parallax is on or off;
-- the surface transition;
-- that ambient motion and parallax stop while a surface is open;
-- that ambient motion and parallax stop when the document is hidden;
-- that they resume on a visible Entry (calm only);
-- that no `<video>` element ships.
-
-Hidden-document behaviour was **simulated**: the harness overrode `document.visibilityState` and dispatched `visibilitychange`, because headless Chromium does not change page visibility. The harness is re-runnable:
-
-```
-npm run build
-node docs/product/evidence/website-redesign-v1/capture-harness.mjs "$PWD/out" /tmp/shots /tmp/results.json
-```
+Hidden-document behaviour was **simulated** by overriding `document.visibilityState` and dispatching `visibilitychange`, because headless Chromium does not change page visibility.
 
 ## MEDIA_GAP
 

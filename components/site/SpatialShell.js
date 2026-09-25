@@ -22,10 +22,18 @@ import ContactSurface from "./ContactSurface";
 import ProjectsSurface from "./ProjectsSurface";
 import ResearchSurface from "./ResearchSurface";
 import SystemsSurface from "./SystemsSurface";
-import { DESIGN_APPLIED_EVENT, ROUTES, motionMode, resolveHash } from "./routes.mjs";
+import { DESIGN_APPLIED_EVENT, ROUTES, ROUTE_IDS, motionMode, resolveHash } from "./routes.mjs";
 
 const routeById = Object.fromEntries(ROUTES.map(route => [route.id, route]));
 const visible = element => Boolean(element) && element.getClientRects().length > 0;
+
+// AS105-F002: the skip-link destination follows the current route. Entry ->
+// the Entry main landmark; an open surface -> that surface's own heading (the
+// Entry landmark is then inert/aria-hidden). Only the fixed route vocabulary
+// can produce an id; anything else resolves to Entry.
+function skipTargetFor(route) {
+  return ROUTE_IDS.includes(route) ? `surface-${route}-title` : "main-content";
+}
 
 function sectionAttributes(route) {
   return route.section ? { "data-section": route.section } : {};
@@ -208,6 +216,16 @@ export default function SpatialShell({ content, graph }) {
   }, [parallax]);
 
   const closeMenu = () => setMenuOpen(false);
+  // On an open surface the skip link moves focus to that surface's heading
+  // without changing the hash (which would otherwise mean Entry). On Entry
+  // the native in-page link to #main-content is kept.
+  const onSkip = event => {
+    if (!route) return;
+    const target = document.getElementById(skipTargetFor(route));
+    if (!target) return;
+    event.preventDefault();
+    target.focus();
+  };
   const onWordmark = event => {
     event.preventDefault();
     setMenuOpen(false);
@@ -241,7 +259,7 @@ export default function SpatialShell({ content, graph }) {
       data-doc-hidden={docHidden ? "true" : "false"}
       data-menu-open={menuOpen ? "true" : "false"}
     >
-      <a className="skip-link" href="#main-content">Skip to content</a>
+      <a className="skip-link" href={`#${skipTargetFor(route)}`} onClick={onSkip}>Skip to content</a>
       <div className="spatial-backdrop" ref={backdrop} aria-hidden="true">
         <div className="cinematic-background" />
         <svg className="entry-trajectory" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
