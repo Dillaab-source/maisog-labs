@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2_PLANNING
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: D077_SPATIAL_DESIGN_CONTROLS_V2_PLAN_ACCEPTED_PAULO_IMPLEMENTATION_DECISION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS_CANONICAL_DIRECTIVE_PROTOCOL_PLANNING
+TURN: ARCHITECT
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D078_CANONICAL_DIRECTIVE_PROTOCOL_PLANNING_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
@@ -24,102 +24,164 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-077 is the completed Spatial Design Controls V2 planning authorization.
+D-078 is the controlling Product / Risk Owner planning authorization.
 
-ML-DEVOS-AS-107 is the controlling Architect planning review.
+ML-DEVOS-AS-107 remains the accepted Spatial Design Controls V2 planning review.
 
 ML-DEVOS-AS-106 remains the accepted Website Redesign V1 implementation review.
 
-## Planning result
+## Current objective
 
-Spatial Design Controls V2 planning is complete.
+Perform one bounded architecture/governance planning cycle for a repository-native canonical directive transport between Owner/Architect and Builder.
 
-The approved proposal is:
+The planned surface is provisionally:
 
-`docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`
+`coordination/CURRENT_DIRECTIVE.md`
 
-Recommended first implementation increment:
+The planning cycle must determine its exact schema, binding, lifecycle, archival, protocol-version and checker requirements.
 
-`SPATIAL DESIGN CONTROLS V2A — ADMIN UX ALIGNMENT`
+No directive/protocol implementation is authorized yet.
 
-## Architecture decision
+## Core invariant
 
-Preserve:
+A directive is context/transport, not authority.
 
-`CODE-OWNED SPATIAL CANVAS + BOUNDED ADMIN PRESENTATION CONTROLS + CONTENT-OWNED FACTS + OWNER-GATED PUBLICATION`
+It may reference authority.
 
-Do not build an unrestricted visual/page builder.
+It may not grant, widen, replace or contradict authority.
 
-## V2A result
+STATE, owner decisions, Architect Syncs, governing RFC/specifications and action-specific authorization flags retain their existing authority roles unless a later owner-approved protocol change explicitly modifies the model.
 
-The current WEB-INC-007 storage/API/runtime substrate is sufficient.
+## Coordination model under study
 
-Recommended V2A is an admin UX alignment only.
+Current:
 
-Primary changes proposed:
+- STATE -> authoritative turn/routing flags
+- ARCHITECT_REVIEW -> current Architect review
+- CURRENT_HANDOFF -> Builder-to-Architect evidence/report
+- OPERATIVE_OBLIGATIONS -> unresolved carry-forward obligations
 
-- admin labels use Entry / Systems / Projects / Contact;
-- backend IDs remain home / process / projects / about;
-- existing controls are grouped spatially;
-- existing enum values get human-friendly display labels;
-- Entry order is not presented as navigation ordering;
-- Systems / Projects / Contact retain existing bounded relative order;
-- Research remains unmanaged but previewable;
-- direct spatial preview shortcuts are added;
-- Draft / Publish scope is made explicit;
-- raw preview JSON becomes secondary technical information.
+Proposed additional transport:
 
-## No backend expansion proposed
+- CURRENT_DIRECTIVE -> Owner/Architect-to-Builder exact instruction packet
 
-V2A requires no D1 schema change, migration, new table, Worker change, API change, public projection change, DesignRuntime change, or dependency.
+The planning cycle must test whether this is the smallest safe model.
 
-## Research
+## Required SENTINEL behavior
 
-Research remains a fixed spatial destination.
+Every governed directive/handoff cycle should include a fresh SENTINEL sync appropriate to the turn.
 
-No Research visibility/order mutation is proposed for V2A.
+At minimum evaluate:
 
-## Proposed implementation paths
+- exact authoritative tip;
+- current STATE and authority chain;
+- current turn;
+- action-specific flags;
+- directive/handoff identity coherence;
+- applicable obligations;
+- protected boundaries;
+- capability expansion;
+- contradictory repository evidence;
+- stale-session/protocol-version risk.
 
-A future owner decision may authorize only:
+SENTINEL findings do not themselves grant authority.
 
-- app/admin/DesignControls.js
-- directly necessary V2-focused tests
-- docs/product/DESIGN_REFERENCE_WORKFLOW.md
-- docs/product/UI_UX_SPEC.md
-- normal governed coordination/evidence records
+## Required SU behavior
 
-No implementation authority exists yet.
+Every governed directive/handoff cycle should include an SU advisory contradiction/falsification pass.
 
-## Explicitly excluded
+Default mode:
 
-Do not modify from the current planning state:
+`BOUNDED_CONTRADICTION`
 
-- app/admin/**
-- app/DesignRuntime.js
-- components/site/**
+Escalate only when predefined triggers justify deeper research/evaluation.
+
+Candidate escalation triggers to evaluate include:
+
+- architecture/protocol change;
+- security/capability widening;
+- high-consequence external action;
+- unresolved authority/evidence contradiction;
+- meaningful uncertainty;
+- insufficient repository evidence;
+- need for current external evidence.
+
+SU never grants authority.
+
+## Planning questions
+
+Determine:
+
+1. whether the protocol should remain Version 1 or cut over to a new protocol version;
+2. the exact directive header/schema;
+3. STATE selector fields required to identify a current directive;
+4. how source/base commit and target role bind to the exact snapshot;
+5. how a directive references applicable owner/review authority without becoming authority;
+6. how directives are archived and indexed;
+7. how duplicate IDs or changed bytes fail closed;
+8. how outgoing directives are preserved;
+9. how Builder completion deselects/archives a directive while publishing CURRENT_HANDOFF;
+10. how Architect remediation directives are published;
+11. how Paulo-originated directives are represented;
+12. how the checker validates directive mechanics;
+13. how stale sessions react to a protocol-version change;
+14. how skills/bootstrap/read order change;
+15. how generated Claude skill bridges are regenerated;
+16. how rollback/fallback works;
+17. how token reduction is measured;
+18. how SENTINEL and SU results are represented without granting authority;
+19. how unresolved contradictions force STOP rather than execution.
+
+## Token-efficiency requirement
+
+The directive should be delta-based.
+
+It should reference exact governing artifacts rather than restating large project history.
+
+The planning proposal should identify the minimum startup/read set required for a normal Builder turn under the new mechanism and compare it with the current Context Bootstrap model where practical.
+
+## V2A disposition
+
+Spatial Design Controls V2A remains Architect-approved under ML-DEVOS-AS-107.
+
+Its owner implementation decision is deferred while this protocol planning cycle is active.
+
+D-078 does not alter the AS-107 technical plan.
+
+## Authorized planning writes
+
+Only directly necessary future planning/review artifacts and normal coordination records may be proposed under D-078.
+
+No protocol implementation write is authorized by this STATE.
+
+## No implementation authority
+
+Do not create or implement CURRENT_DIRECTIVE yet.
+
+Do not modify:
+
+- brain/protocols/**
+- scripts/check-context-bootstrap.mjs
+- tests/context-bootstrap.test.mjs
+- coordination protocol implementation files
+- canonical or generated skills
+- CLAUDE.md
+- AGENTS.md
+- app/**
+- components/**
 - worker/**
-- worker/d1/**
 - migrations/**
-- public website implementation
-- D1 data
-- R2
-- media
-- content
-- production design state
+- public/**
+- D1/R2 resources
 - deployment configuration
 
-until a separate owner implementation decision exists.
+except for later exact planning artifacts/Architect review/STATE transition separately published under the D-078 Architect planning turn.
 
-## Website Redesign V1
+## Website / S6 boundaries
 
 Website Redesign V1 remains accepted.
 
-Its MEDIA_GAP remains a separate release/visual matter.
-
-V2 planning does not reopen the Website Redesign implementation.
-
-## S6 parked boundary
+The Website MEDIA_GAP remains separate.
 
 S6 remains parked at ML-DEVOS-AS-103.
 
@@ -127,36 +189,42 @@ O1 and O2 remain open.
 
 The real execution driver remains unauthorized.
 
-D-068 remains untouched.
+D-068 remains untouched and untracked.
 
 ## Hard boundaries
 
-No V2 implementation.
-No website mutation.
-No admin mutation.
-No DesignRuntime mutation.
-No Worker/D1 mutation.
-No migration.
+Planning only.
+No CURRENT_DIRECTIVE implementation.
+No protocol-version mutation.
+No checker implementation.
+No skill mutation.
+No product/admin/site mutation.
 No media mutation.
+No D1/R2 mutation.
+No migration.
 No deployment.
 No public cutover.
-No arbitrary CSS/HTML/JS.
-No free-form visual builder.
-No new route/component generator.
-No S6/S7 work.
 No protected/main merge.
 No PR #10 merge or auto-merge.
+No S6/S7 work.
 
 All action-specific flags remain NO.
 
-## Next transition
+## Return gate
+
+When the canonical directive protocol proposal is complete:
+
+route to:
 
 TURN: PAULO
 
-Paulo must decide whether to authorize:
+with:
 
-`SPATIAL DESIGN CONTROLS V2A — ADMIN UX ALIGNMENT`
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
+CURRENT_HANDOFF: NONE
 
-under the exact scope proposed by ML-DEVOS-AS-107.
+The Architect must state the exact future implementation/cutover scope.
 
-No Builder implementation begins automatically.
+No Builder protocol implementation begins automatically.
