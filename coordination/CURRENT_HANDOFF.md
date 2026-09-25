@@ -1,152 +1,101 @@
-# Current Handoff — Spatial Design Controls V2A — Admin UX Alignment (D-082)
+# Current Handoff — WEB Release Readiness / Release-Scope Review (D-083)
 
 ```yaml
 schema_version: 1
-handoff_id: H-SPATIAL-DESIGN-V2A-0001
-cycle_id: MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2A_IMPLEMENTATION
-input_base_commit: 29733fc14dc1f6203e69e4da09889a27a940c9b9
-review_target_commit: 29733fc14dc1f6203e69e4da09889a27a940c9b9
-applicable_review_id: ML-DEVOS-AS-111
+handoff_id: H-WEB-RELEASE-READINESS-0001
+cycle_id: MAISOGLABS_WEB_RELEASE_READINESS_REVIEW
+input_base_commit: 0a35d7731c962a929f89c9d603d573c4f7960079
+review_target_commit: 0a35d7731c962a929f89c9d603d573c4f7960079
+applicable_review_id: ML-DEVOS-AS-112
 ```
 
-This is the first real Protocol V2 Builder return. It is evidence, not authority: routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve, and every result here is `ACTOR_REPORTED`.
-
-`applicable_review_id` names the live review (`ML-DEVOS-AS-111`), as the handoff checker requires. The V2A architecture review is `ML-DEVOS-AS-107`, which is the directive's review.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve, and every result here is `ACTOR_REPORTED`.
 
 ## Objective
 
-Implement `SPATIAL DESIGN CONTROLS V2A — ADMIN UX ALIGNMENT` under:
-- `D-082`;
-- `DIR-SPATIAL-DESIGN-V2A-0001`;
-- `ML-DEVOS-AS-107` and the V2A plan.
+Deliver the D-083 release-readiness / release-scope recommendation under `DIR-WEB-RELEASE-READINESS-0001`. This is planning and inspection only.
 
-**Base:** `29733fc14dc1f6203e69e4da09889a27a940c9b9`, the directive-issue commit, reached by a fresh `--session-protocol 2` bootstrap (exit 0).
+The deliverable is `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
 
-**Result:** the commit that publishes this handoff, whose sole parent is the base. It carries:
-- the implementation, the tests, the docs and the evidence;
-- this handoff;
-- the byte-exact directive archive;
-- STATE set to `CURRENT_DIRECTIVE: NONE` and `TURN: ARCHITECT`.
+- **Base:** `0a35d7731c962a929f89c9d603d573c4f7960079`, the directive-issue commit, reached by a fresh `--session-protocol 2` bootstrap (exit 0).
+- **Result:** the commit that publishes this handoff, whose sole parent is the base.
 
-The suspended D-068 local draft was not touched.
+**Not done:**
+- no merge;
+- no PR or branch creation;
+- no deploy or preview trigger;
+- no Cloudflare/D1/R2 action;
+- no product/runtime/test/config change;
+- no V2B, S6 or D-068 work.
 
-## What changed (presentation only)
+## Summary of findings
 
-`app/admin/DesignControls.js` now uses static, source-controlled metadata. Nothing is read from D1 or caller input.
-
-- **Managed surfaces:**
-  - shown in spatial order: Entry (`home`), Systems (`process`), Projects (`projects`), Contact (`about`);
-  - requests still use the backend ids.
-- **Entry:**
-  - titled "Entry content" with Visible only, plus the text "Entry is the base spatial state, so it has no navigation order";
-  - no order input;
-  - its stored `order` is submitted unchanged.
-- **Systems, Projects and Contact:**
-  - the existing 0–20 input is relabelled "Navigation order";
-  - it carries the plan §7 help text.
-- **Theme:**
-  - regrouped into fieldsets: Atmosphere, Surfaces, Typography, Motion, Collections;
-  - relabelled per plan §9;
-  - friendly option labels per plan §10, while every `<option value>` stays the raw server enum;
-  - the Motion group states that the OS reduced-motion setting is always honoured;
-  - the Collections group states that Journal layout does not show, hide or move Research.
-- **Buttons are scope-explicit:**
-  - `Save Theme Draft` / `Publish Theme`;
-  - `Save <Surface> Draft` / `Publish <Surface>`.
-- **Plain-language status:**
-  - lifecycle labels: Published, Draft, Published + Draft, No published setting;
-  - a persistent "How changes go live" note defines Draft, Preview, Publish and Deployment, including "Publish activates these design settings. It does not deploy code or publish website content."
-- **Spatial Preview:**
-  - six fixed shortcuts, exactly as listed in `D-082`;
-  - Research is labelled "preview only; fixed destination".
-- **Raw preview JSON:** moved into a collapsed "Technical preview data" `<details>`. The endpoint is unchanged.
-- **Accessibility and layout:**
-  - `id`/`htmlFor` labels throughout, and `role="status"` live messages;
-  - an `auto-fit` grid collapses to one column on narrow screens;
-  - buttons and rows wrap, and targets are at least 2.25–2.5rem;
-  - raw JSON wraps, so it causes no horizontal overflow.
-- **Contrast:** admin text colours inherit, because the site's global dark theme also applies to `/admin`. The first capture showed a light note box and `#555` hint text that were unreadable on the dark background. I corrected both before the final capture.
+- **Exact SHAs:**
+  - `main` = `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`, the PR #12 merge;
+  - accepted governance content = `2cdbf4468d500163f84ab9a06c5232b6614f34b8`;
+  - review base = `0a35d77`.
+- **Ancestry:** `main`'s tree equals governance ancestor `3262dba`. Governance is a strict superset, 127 commits ahead, so a merge is conflict-free by construction.
+- **Diff:** 261 files, classified into 13 website source build inputs, 3 brand docs, 6 supporting tests/docs, 24 governance/Protocol V2, 91 S5/S6/DevOS, 21 website evidence and 103 governance archives.
+- **Unchanged:** `worker/**`, `migrations/**`, `wrangler.jsonc`, `package*.json`, workflows, `next.config.mjs` and `public/**`.
+- **Production reach:**
+  - The Worker import graph (18 modules plus `jose`) reaches no `devos/**`.
+  - The static `out/` (40 files) contains no devos, execution, sentinel, coordination or brain paths.
+  - Only the 13 website source files can change production.
+  - The V2A admin is inert in production (Access placeholders; D1 is `remote: false`).
+- **Recommendation:** Option A, a fresh direct governance→main release PR (WEB-REL-002) pinned to an exact head, with separate gates for PR open, merge, production promotion and runtime verification.
+  - The owner must acknowledge that S5/S6 repository content on `main` grants no authority and is not executed.
+  - Option B, a selective branch, is the documented fallback, with its costs.
+- **Open items:**
+  - Cloudflare build-configuration re-verification before merge, because it is external state last verified in AS-074;
+  - owner disposition of the MEDIA_GAP before promotion;
+  - legacy PR #7 is open, non-draft, and targets `main`; it must not be merged.
 
 ## Changed files
 
-Diff against the base:
-- `app/admin/DesignControls.js`
-- `tests/spatial-design-controls-v2.test.mjs` (new, 10 tests)
-- `docs/product/DESIGN_REFERENCE_WORKFLOW.md`: section-control vocabulary, Spatial Preview shortcuts, and the Publish ≠ deployment note.
-- `docs/product/UI_UX_SPEC.md`: a new "Spatial Design Controls V2A — admin vocabulary" subsection.
-- `docs/product/evidence/spatial-design-controls-v2a/README.md` and `screenshots/` (8 JPEGs).
+- `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md` (new).
 - `coordination/CURRENT_HANDOFF.md`, `coordination/STATE.md`.
-- `coordination/archive/directives/DIR-SPATIAL-DESIGN-V2A-0001.md`, its `.provenance.json`, and the index row in `coordination/archive/directives/README.md`.
+- `coordination/archive/directives/DIR-WEB-RELEASE-READINESS-0001.md`, its `.provenance.json`, and the index row.
 
-`coordination/CURRENT_DIRECTIVE.md` is left byte-identical to its archive and is inert under `CURRENT_DIRECTIVE: NONE`.
+`coordination/CURRENT_DIRECTIVE.md` stays byte-identical to its archive and is inert under `NONE`.
 
 ## Tests and evidence
 
 | Command | Result | Exit |
 |---|---|---|
-| `node --test tests/spatial-design-controls-v2.test.mjs` | 10/10 | 0 |
-| `npm test` | 919 tests, 919 pass, 0 fail (909 before + 10 new) | 0 |
-| `npm run build` | compiled; static routes `/`, `/admin`, `/journal`, `/_not-found` | 0 |
+| `git diff --name-status 882ad25 2cdbf44` | 261 paths, classified in the artifact §2 | 0 |
+| `git diff 3262dba 882ad25` | empty (main tree = governance ancestor) | 0 |
+| Worker import-graph walk from `worker/index.mjs` (at `2cdbf44`) | 18 modules, 0 `devos/**` | — |
+| `npm test` at `0a35d77` | 919/919 | 0 |
+| `npm run build` at `0a35d77`, then an `out/` scan | 40 files, 0 governance/DevOS paths | 0 |
+| GitHub Actions `ci` on the governance branch | success on `2cdbf44` (run 164) and `0a35d77` (run 165) | — |
+| Open PRs | #10 (draft, handoff channel, not into main), #7, #6, #2, #1 (legacy, into main); no governance→main PR | — |
 | `git diff --check` | clean | 0 |
-| rules / waivers / skills-bridge / capability-policy / task-contract / devos-manifest / project-registry / task-state validators | all pass | 0 each |
-| `validate-traceability.mjs` | the same 2 pre-existing ERRORs as the base (`CORE-022`, `WEB-REQ-009`); one base warning (the D-082 orphan) resolved by the new doc references | 1 |
-| `git diff <base> -- worker app/DesignRuntime.js components/site migrations wrangler.jsonc package.json package-lock.json` | empty | 0 |
-| `check-context-bootstrap --publish --check-only --session-protocol 2` on this candidate | recorded at publication | — |
-
-Platform: Linux x86_64, Node v22.22.2.
-
-**Focused tests:** the suite evaluates the component's plain-JS metadata slice, which is asserted to contain no JSX, and checks it against the server's own allowlists in `worker/d1/validate.mjs`. It covers:
-- **Vocabulary and scope:**
-  - the exact id→label mapping, in spatial order;
-  - the section-id set equals the server's;
-  - Research is preview-only;
-  - the theme groups cover exactly the 15 payload keys, once each.
-- **Controls:**
-  - Entry has no order control, and its stored order passes through;
-  - the order range 0–20 matches `sectionDesignOrder`;
-  - every server enum value has a friendly label, and the options submit the raw value.
-- **Preview:** the six fixed same-origin preview paths.
-- **Capability boundary:**
-  - no arbitrary-input capability (input types limited to range, number, checkbox and button; no textarea, contenteditable, iframe, `dangerouslySetInnerHTML` or drag/drop);
-  - `fetch`/`submitJson` targets limited to the four existing design endpoints plus status and preview.
-- **Wording:** the Draft/Preview/Publish/Deployment definitions, the scope-explicit buttons, the lifecycle labels, and the collapsed technical disclosure.
-
-**Browser evidence:** `docs/product/evidence/spatial-design-controls-v2a/README.md` (desktop 1440×900 and mobile 390×844, with fixture admin API responses). It records:
-- only bounded native controls;
-- zero unlabelled controls;
-- order inputs only for Systems, Projects and Contact;
-- the Entry draft submitted `order: 7` unchanged under backend id `home`;
-- theme payload keys and values unchanged;
-- no mobile horizontal overflow (390 = 390);
-- each of the six shortcuts opening its intended surface, with the existing authenticated preview fetch.
+| `check-context-bootstrap --publish --check-only --session-protocol 2` | recorded at publication | — |
 
 ## Unresolved findings and limitations
 
-- **Evidence limits:**
-  - The admin UI evidence uses fixture responses for `/admin/api/*`, because Access and the Worker are not available to a static export. The real authenticated preview behaviour stays with the existing, unchanged `app/DesignRuntime.js` and Worker tests.
-  - No automated accessibility audit (axe/Lighthouse) was run.
-- **Source-assertion tests:** the focused tests assert on source text for the JSX portion, since the repository has no JSX test runtime and no dependency was added. Rendered behaviour is covered by the browser harness, which is not committed (`AS105-F001` precedent).
-- **Build output:** `npm run build` regenerated `out/`, which is untracked, as before.
-- **Stale comment:** the `scripts/check-context-bootstrap.mjs` header-comment debt (AS-111, non-blocking) is unchanged.
-- **Traceability:** the debt is unchanged and was not regenerated.
-- **Obligations:** every `coordination/OPERATIVE_OBLIGATIONS.md` row is carried forward unchanged.
-- **Not done:** V2B, Research management, new fields, deployment.
+- **Cloudflare:** the Workers Builds configuration (production `npx wrangler versions upload`) and the active Version ID `a28ee2e9-…` are Architect-recorded external state from `ML-DEVOS-AS-074`. The Builder cannot re-verify them from the repository.
+- **Runtime notes:** the production runtime conclusions about the admin and `/api/design` are inferred from source and configuration, not observed in production.
+- **Evidence scope:** the S5/S6 non-reachability evidence is an import-graph walk and a build-output scan. It is not a Wrangler bundle metafile; `wrangler deploy --dry-run` was deliberately not run, to avoid any Cloudflare contact.
+- **Worktree hiccup:** during inspection I briefly checked out a different local branch in this worktree and then restored it. No commit, branch or remote changed.
+- **Unchanged:** traceability debt; every `OPERATIVE_OBLIGATIONS.md` row is carried forward, with OBL-017 and OBL-018 OPEN and respected.
 
 ## Evidence locations
 
-- The commit diff against `29733fc14dc1f6203e69e4da09889a27a940c9b9`.
-- `tests/spatial-design-controls-v2.test.mjs`.
-- `docs/product/evidence/spatial-design-controls-v2a/`.
-- `coordination/archive/directives/DIR-SPATIAL-DESIGN-V2A-0001.*`.
+- `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
+- `ML-DEVOS-AS-073` and `ML-DEVOS-AS-074` (GC-F001, D-057 decoupling).
+- `D-054`–`D-057`, `ML-DEVOS-AS-106`, `ML-DEVOS-AS-112`.
 
 ## Governing references
 
-- **Authority:** `D-082`.
-- **Directive:** `DIR-SPATIAL-DESIGN-V2A-0001` (archived).
-- **Architecture:** `ML-DEVOS-AS-107`, `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`.
-- **Protocol:** `ML-DEVOS-AS-111`, `ML-DEVOS-RFC-020`, `brain/protocols/CONTEXT_BOOTSTRAP.md` §10.
+- **Authority:** `D-083`.
+- **Directive:** `DIR-WEB-RELEASE-READINESS-0001` (archived).
+- **Review:** `ML-DEVOS-AS-112`.
+- **Protocol:** `ML-DEVOS-RFC-020`, `brain/protocols/CONTEXT_BOOTSTRAP.md` §10.
 - **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Next action
 
-The Architect independently reviews this V2A return under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-111`, performing its own SENTINEL sync. No deployment is authorized, and no further Builder action is authorized.
+The Architect independently reviews the release-scope recommendation under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-112`.
+
+Any PR, merge, promotion or verification step then needs a separate Paulo decision. No Builder action is authorized.

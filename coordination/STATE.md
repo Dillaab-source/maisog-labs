@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RELEASE_READINESS_REVIEW
-TURN: CLAUDE
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: D083_WEB_RELEASE_READINESS_RELEASE_SCOPE_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D083_WEB_RELEASE_SCOPE_REVIEW_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-WEB-RELEASE-READINESS-0001
-DIRECTIVE_ISSUE_PARENT: 2cdbf4468d500163f84ab9a06c5232b6614f34b8
-DIRECTIVE_AUTHORITY_REF: D-083
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-112
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-WEB-RELEASE-READINESS-0001
+REVIEW_TARGET_COMMIT: 0a35d7731c962a929f89c9d603d573c4f7960079
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-112
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,19 +29,21 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-083 authorizes a WEB release-readiness / release-scope review, as planning and inspection only.
+D-083 authorizes the WEB release-readiness / release-scope review, as planning and inspection only.
 
-ML-DEVOS-AS-112, which accepted V2A, is the controlling review.
+ML-DEVOS-AS-112 is the controlling review.
 
-## Selected directive
+## Builder return
 
-The live directive is `DIR-WEB-RELEASE-READINESS-0001` in `coordination/CURRENT_DIRECTIVE.md`. It is transport, not authority.
+`H-WEB-RELEASE-READINESS-0001` is the bounded review record. It is evidence, not authority. The deliverable is `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
 
-## Builder scope
+`DIR-WEB-RELEASE-READINESS-0001` is deselected and archived byte-exactly.
 
-- Read-only inspection of `main` and `governance/maisoglabs-v0.1`.
-- One planning artifact, `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
-- The Protocol V2 return records.
+## Architect gate
+
+The Architect independently reviews the release-scope recommendation, with its own SENTINEL sync.
+
+Any release PR, merge, production promotion or runtime verification then needs a separate Paulo decision.
 
 ## Hard boundaries
 
@@ -57,9 +59,8 @@ If release requires implementation or mutation, stop and return to Paulo.
 
 ## Next transition
 
-The Builder publishes one Protocol V2 return commit:
-- the artifact;
-- CURRENT_HANDOFF;
-- the directive archived;
-- `CURRENT_DIRECTIVE: NONE`;
-- `TURN: ARCHITECT`.
+TURN: ARCHITECT
+
+The Architect publishes a review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-112.
+
+No Builder action begins automatically.
