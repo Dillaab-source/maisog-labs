@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_CANONICAL_DIRECTIVE_PROTOCOL_STAGE_B_ACTIVATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D081_RFC020_STAGE_B_V2_ACTIVATION_VERIFICATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: AS111_RFC020_STAGE_B_CLOSED_PAULO_FIRST_V2_TASK_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-RFC020-STAGE-B-REM1-0001
-REVIEW_TARGET_COMMIT: 08458a289a922e5ef77aaee448879e00b5660f2f
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-110
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,43 +29,28 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-080 is the Product / Risk Owner authorization for RFC-020 Stage B atomic Protocol V2 activation.
+ML-DEVOS-AS-111 is the controlling review. It verified the RFC-020 Stage B Protocol V2 activation (D-080, D-081).
 
-ML-DEVOS-RFC-020 §21 and ML-DEVOS-AS-110 ("Stage B recommendation") define the transition contract.
-
-ML-DEVOS-AS-110 is the controlling review; it accepted Stage A.
-
-D-081 authorizes the exceptional Stage B status-consistency micro-remediation published with this STATE.
+RFC-020 Stage B is closed.
 
 ## Live protocol
 
-`PROTOCOL_VERSION: 2` is live since the D-080 activation commit `08458a289a922e5ef77aaee448879e00b5660f2f`.
+`PROTOCOL_VERSION: 2` is live and verified.
 
-`CURRENT_DIRECTIVE: NONE`. The directive selector values are empty, and `coordination/CURRENT_DIRECTIVE.md` is not an instruction.
+`CURRENT_DIRECTIVE: NONE`, and the directive selector values are empty. No real directive has been issued.
 
-No real directive has been issued.
+`H-RFC020-STAGE-B-REM1-0001` is archived byte-exactly under `coordination/archive/handoffs/`.
 
-## Selected handoff
+## Paulo gate
 
-`H-RFC020-STAGE-B-REM1-0001` is the bounded status-consistency remediation record. It is evidence, not authority.
+Paulo may separately choose and authorize the first real Protocol V2 Builder task.
 
-The activation record `H-RFC020-STAGE-B-ACTIVATION-0001` is archived byte-exactly under `coordination/archive/handoffs/`.
-
-## Architect gate
-
-The Architect independently verifies the Stage B activation:
-- the atomic commit shape;
-- the V2 STATE invariants;
-- the activation wording;
-- the absence of product/runtime change.
-
-Only after that verification may a first real V2 directive be issued, under a separate transition.
+Protocol V2 verification authorizes no implementation by itself.
 
 ## Hard boundaries
 
-No real CURRENT_DIRECTIVE selection until activation is verified.
+No real CURRENT_DIRECTIVE selection without a separate owner decision.
 No V2A implementation.
-No Stage C or later work.
 No product/admin/site/runtime mutation.
 No media mutation.
 No D1/R2 mutation.
@@ -93,8 +78,6 @@ D-068 remains suspended and untouched/untracked.
 
 ## Next transition
 
-TURN: ARCHITECT
-
-The Architect publishes a review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-110.
+TURN: PAULO
 
 No Builder action begins automatically.
