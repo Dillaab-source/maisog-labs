@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_HARDENING_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D074_AS102_F001_S6_EXPIRY_JOURNAL_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: D074_S6_HARDENED_CORE_ACCEPTED_PAULO_NEXT_GATE_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-CORE-HARDEN-REM1-0001
-REVIEW_TARGET_COMMIT: 37a4ff9140680b98d84e438604a0d69e89dabccf
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-102
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -24,90 +24,61 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-074 remains the owner implementation authority.
+`ML-DEVOS-AS-103` is the controlling Architect review.
 
-`ML-DEVOS-AS-102` is the controlling Architect implementation review.
+D-074 hardened-core implementation is Architect-approved.
 
-Only AS102-F001 expiry-journal remediation is authorized.
+AS102-F001 is closed.
 
-This is remediation cycle 1 of 2.
+The D-074 implementation/remediation cycle is complete.
 
-## Architect review return — AS102-F001 expiry-journal remediation (cycle 1 of 2)
+No implementation authority is active.
 
-The Builder has corrected AS102-F001 only: every lazy `ISSUED -> EXPIRED_UNCLAIMED` transition now commits a `PERMIT_EXPIRED` journal entry for that exact permit in the same task-store transaction (§13.6 I5). `CLAIMED` permits never expire and reservations are unchanged. Focused tests E1-E3 and mutant M49 (E4) are added.
+## Accepted result
 
-It returns the turn for independent review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-102`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-HARDEN-REM1-0001`) only. Carry-forward O1 (Linux-only platform evidence) and O2 (unattributable PENDING operator recovery) are unchanged. No real execution driver or generic executor exists. No further Builder action is authorized.
+The hardened S6 core is accepted at its current boundary.
 
-## Builder objective
+This does not close S6.
 
-Correct the runtime/model I5 mismatch for lazy unclaimed permit expiry.
+The S6 manifest/root status remains NOT_IMPLEMENTED with executable_runtime_present false and no closure_ref.
 
-An `ISSUED -> EXPIRED_UNCLAIMED` transition must commit its justifying journal evidence in the same TaskStore transaction.
+Sentinel remains v1.8.0.
 
-Preserve all accepted D-074 hardening behavior.
+## Carry-forward
 
-## Required correction
+The following remain unresolved future S6 integrated-stage / closure concerns:
 
-For every permit transitioned by lazy expiry:
+1. O1 — hardened TaskStore atomicity evidence currently exists only for the tested Linux profile; macOS and Windows remain NOT RUN/refused.
+2. O2 — an unattributable PENDING publication fails closed correctly, but the exceptional audited operator-recovery transition remains incomplete.
+3. A real execution driver remains unimplemented and unauthorized. It requires separate reviewed design and explicit Paulo implementation authority.
 
-- keep the historical terminal state `EXPIRED_UNCLAIMED`;
-- append an explicit expiry journal event for that exact permit;
-- commit state and evidence atomically;
-- do not expire `CLAIMED` permits;
-- do not alter execution-uncertainty reservations;
-- do not create a separately mutable evidence file.
+None of these are waived by AS-103.
 
-Add focused runtime/model and falsification coverage.
+## Paulo decision required
 
-## Authorized writes
+Paulo chooses the next project/governance gate.
 
-Only directly necessary:
+If continuing S6, open a new separately bounded owner-authorized cycle.
 
-- `devos/execution/host.mjs`;
-- directly necessary S6 helper code;
-- directly necessary `tests/execution-*.test.mjs`;
-- narrowly necessary fixed execution fixtures;
-- factual S6 README text if necessary;
-- deterministic traceability outputs if required;
-- `coordination/STATE.md`;
-- `coordination/CURRENT_HANDOFF.md`.
+Do not revive D-074 as standing implementation authority.
 
-## Carry-forward — do not modify
+If S6 is parked, its accepted hardened core and unresolved carry-forward items remain exactly as recorded.
 
-The following remain explicit carry-forward concerns, not this remediation's scope:
-
-1. Linux is the only transaction-store platform with supplied runtime atomicity evidence; macOS and Windows remain NOT RUN / refused.
-2. The explicit exceptional operator recovery semantics for an unattributable PENDING publication remain incomplete.
-
-Do not silently solve, suppress or redefine either item in AS102-F001 remediation.
-
-## Return gate
-
-After the bounded remediation:
-
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
-MAX_REMEDIATION_CYCLES: 2
-
-Return a fresh bounded handoff.
+An unrelated bounded project cycle, including website design, may be opened separately without claiming S6 closure.
 
 ## Hard boundaries
 
-No architecture redesign.
-No platform-scope rewrite.
-No PENDING-operator-recovery redesign.
+No S6 closure.
 No real execution driver.
 No generic executor.
-No S3/S4/S5 implementation mutation.
-No S7+.
+No S7+ implementation.
 No S8/S9.
 No CP-4+.
 No Model Router.
 No dynamic plugin discovery.
+No S3/S4/S5 implementation mutation.
+No platform-scope rewrite.
+No O2 recovery implementation.
 No remote D1/R2.
 No production deployment.
 No manifest closure/version promotion.
@@ -116,4 +87,8 @@ No PR #10 merge or auto-merge.
 
 All action-specific flags remain NO.
 
-The suspended D-068 local draft remains untouched.
+## Next transition
+
+Any further work requires a fresh explicit Paulo decision with a new exact scope and routing transition.
+
+No Builder action is currently authorized.
