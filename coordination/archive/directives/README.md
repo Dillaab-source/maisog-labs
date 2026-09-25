@@ -15,3 +15,4 @@ This is the immutable byte-exact archive of every outgoing `coordination/CURRENT
 
 | ID | Cycle | Publication commit | Source blob |
 |---|---|---|---|
+| DIR-SPATIAL-DESIGN-V2A-0001 | MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2A_IMPLEMENTATION | 29733fc14dc1f6203e69e4da09889a27a940c9b9 | 6ef6ed735757cd466fe60e366d77a67784e28db2 |

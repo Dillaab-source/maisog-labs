@@ -57,6 +57,17 @@ These states are tracked against existing requirement IDs rather than invented f
 
 The `DESIGN-001`…`014` catalog is now concretely designed by `ML-DEVOS-RFC-010` for `WEB-INC-007`. Controls are fixed presets/enums plus bounded numeric ranges only; arbitrary CSS/JS/HTML, arbitrary colors, selectors, font/image URLs, and R2 object keys remain prohibited. Section visibility/order continue to use `sections`/`section_revisions`; theme values use `theme_settings`/`theme_settings_revisions`. Public presentation follows only published theme/section revisions through the bounded public `GET /api/design` projection, with the existing V3 + UI-PATCH-001 presentation as the fail-safe fallback. Brand V3 non-negotiables remain in force. Implementation is still pending until the authorized Builder turn completes and passes Architect review.
 
+### Spatial Design Controls V2A — admin vocabulary (`D-082`, `ML-DEVOS-AS-107`; IMPLEMENTED, Builder-reported, pending Architect review)
+
+`app/admin/DesignControls.js` presents the unchanged WEB-INC-007 controls in the spatial site's language (`docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`). Presentation only: no API, Worker, D1, DesignRuntime or public-site change.
+
+- Managed surfaces are shown in spatial order as Entry (`home`), Systems (`process`), Projects (`projects`), Contact (`about`); the backend ids are what is submitted.
+- Entry has Visible only (it is the base spatial state); Systems/Projects/Contact keep the bounded 0–20 order input, labelled "Navigation order". Research is not managed.
+- Theme controls are grouped as Atmosphere, Surfaces, Typography, Motion, Collections, with friendly option labels; every option still submits its exact server enum value.
+- Buttons are scope-explicit (`Save Theme Draft` / `Publish Theme`, `Save Systems Draft` / `Publish Systems`, …), and a persistent note distinguishes Draft, Preview, Publish and Deployment: Publish activates design settings only and never deploys code or publishes content.
+- Spatial Preview offers fixed shortcuts: Entry `/?design-preview=1`, Systems `#systems`, Projects `#projects`, Research `#research` (preview only; fixed destination), Contact `#contact`, Journal `/journal?design-preview=1`. Raw preview JSON sits in a collapsed "Technical preview data" disclosure.
+- Native labelled controls in fieldsets, status messages in a polite live region, and a single-column layout at narrow widths.
+
 ### Screenshot-reference workflow
 
 WEB-INC-007 must also support the operating workflow in `docs/product/DESIGN_REFERENCE_WORKFLOW.md`: Paulo may provide a UI screenshot to ChatGPT, the Architect maps visual traits into the approved design-control vocabulary, and Claude applies that plan through the authenticated design controls/APIs. The system must expose deterministic controls and explicit Draft → Preview → Publish steps. Unsupported traits are reported as gaps; they are not silently converted into arbitrary CSS/JS or source-code edits.

@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2A_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: D082_SPATIAL_DESIGN_CONTROLS_V2A_ADMIN_UX_ALIGNMENT_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D082_SPATIAL_DESIGN_CONTROLS_V2A_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-SPATIAL-DESIGN-V2A-0001
-DIRECTIVE_ISSUE_PARENT: 030ba0e095cf117aeda260ce4d75745378fe032e
-DIRECTIVE_AUTHORITY_REF: D-082
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-107
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-SPATIAL-DESIGN-V2A-0001
+REVIEW_TARGET_COMMIT: 29733fc14dc1f6203e69e4da09889a27a940c9b9
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-111
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -35,22 +35,15 @@ ML-DEVOS-AS-107 and `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md` are the co
 
 ML-DEVOS-AS-111 verified Protocol V2.
 
-## Selected directive
+## Builder return
 
-`DIR-SPATIAL-DESIGN-V2A-0001` in `coordination/CURRENT_DIRECTIVE.md` is transport, not authority.
+`H-SPATIAL-DESIGN-V2A-0001` in `coordination/CURRENT_HANDOFF.md` is the bounded V2A implementation record. It is evidence, not authority.
 
-Effective scope is the intersection of this STATE, D-082, ML-DEVOS-AS-107, the V2A plan and the directive.
+`DIR-SPATIAL-DESIGN-V2A-0001` is deselected and archived byte-exactly under `coordination/archive/directives/`.
 
-## Builder scope
+## Architect gate
 
-Only:
-- `app/admin/DesignControls.js`;
-- directly necessary V2-focused test file(s);
-- `docs/product/DESIGN_REFERENCE_WORKFLOW.md`;
-- `docs/product/UI_UX_SPEC.md`;
-- the Protocol V2 coordination/directive/handoff/archive/evidence records.
-
-`MUTATION_AUTHORIZED` stays NO: it governs remote/product data mutation, which is not part of this admin-UI source change.
+The Architect independently reviews the V2A return against D-082, ML-DEVOS-AS-107 and the V2A plan, with its own SENTINEL sync.
 
 ## Hard boundaries
 
@@ -65,9 +58,8 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-The Builder publishes one Protocol V2 return commit:
-- the implementation and evidence;
-- CURRENT_HANDOFF;
-- the directive archived;
-- `CURRENT_DIRECTIVE: NONE`;
-- `TURN: ARCHITECT`.
+TURN: ARCHITECT
+
+The Architect publishes a review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-111.
+
+No Builder action begins automatically.
