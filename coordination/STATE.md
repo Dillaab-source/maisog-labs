@@ -1,11 +1,12 @@
 # MaisogLabs Agent Coordination State
+
 CYCLE_ID: MAISOGLABS_SPATIAL_DESIGN_CONTROLS_V2_PLANNING
-TURN: ARCHITECT
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: D077_SPATIAL_DESIGN_CONTROLS_V2_PLANNING_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: D077_SPATIAL_DESIGN_CONTROLS_V2_PLAN_ACCEPTED_PAULO_IMPLEMENTATION_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
@@ -20,188 +21,142 @@ REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
+
 ## Authority
-D-077 is the controlling Product / Risk Owner planning authorization.
-ML-DEVOS-AS-106 is the accepted Website Redesign V1 implementation review.
-Website Redesign V1 remains accepted and is not reopened by this planning cycle.
-## Current objective
-Perform one bounded Spatial Design Controls V2 architecture/design planning cycle.
-The objective is to make the admin design system naturally control the accepted spatial website while preserving a code-owned structural canvas and bounded validated admin controls.
-This is planning only.
-No V2 implementation is authorized.
-## Current architecture
-Public spatial composition:
-- Entry
-- Systems
-- Projects
-- Research
-- Contact
-Existing WEB-INC-007 managed section IDs:
-- home
-- projects
-- process
-- about
-Current presentation mapping:
-- home -> Entry
-- projects -> Projects
-- process -> Systems
-- about -> Contact
-Research remains outside the managed four-section contract.
-## Architecture principle
-Preserve four responsibility planes:
-1. CODE-OWNED STRUCTURE
-2. ADMIN-EDITABLE PRESENTATION
-3. CONTENT-OWNED FACTS
-4. OWNER-GATED PUBLICATION
-The planning cycle must make each proposed capability belong to exactly one primary plane and identify cross-plane effects.
-## V2 planning questions
-Determine:
-- whether admin-facing labels can match Entry / Systems / Projects / Contact while fixed backend IDs remain unchanged;
-- whether any current WEB-INC-007 controls need spatially clearer grouping/naming;
-- whether the existing Preview experience adequately previews the real spatial canvas;
-- whether any additional bounded preset/range is genuinely needed;
-- whether Research needs any design-control integration;
-- whether any proposal requires schema/API/storage change;
-- whether any proposal unnecessarily widens security/capability scope.
-## Existing controls
-Audit at minimum:
-- hero background preset;
-- card style preset;
-- layout density preset;
-- typography preset;
-- heading scale preset;
-- panel/glass preset;
-- animation preset;
-- reduced-motion mode;
-- project rail mode;
-- Journal card mode;
-- accent preset;
-- overlay intensity;
-- panel opacity;
-- border intensity;
-- radius scale;
-- managed section visibility;
-- managed section order;
-- Draft;
-- Preview;
-- Publish;
-- revision/conflict behavior.
-## Design-control boundary
-Do not propose unrestricted:
-- CSS;
-- HTML;
-- JavaScript;
-- selectors;
-- class names;
-- asset URLs;
-- font URLs;
-- colors outside approved bounded vocabulary;
-- XY coordinates;
-- drag/drop structural mutation;
-- arbitrary component creation;
-- arbitrary route creation.
-A richer visual-builder capability, if ever justified, is a separate future governance subject.
-## Research boundary
-Research is not automatically added to the managed-section contract.
-The Architect must provide evidence of a real user/product need before recommending expansion.
-## Reference workflow
+
+D-077 is the completed Spatial Design Controls V2 planning authorization.
+
+ML-DEVOS-AS-107 is the controlling Architect planning review.
+
+ML-DEVOS-AS-106 remains the accepted Website Redesign V1 implementation review.
+
+## Planning result
+
+Spatial Design Controls V2 planning is complete.
+
+The approved proposal is:
+
+`docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`
+
+Recommended first implementation increment:
+
+`SPATIAL DESIGN CONTROLS V2A — ADMIN UX ALIGNMENT`
+
+## Architecture decision
+
 Preserve:
-REFERENCE
--> ANALYZE
--> MAP
--> DRAFT
--> PREVIEW
--> REVIEW
--> PUBLISH
-Use:
-- DIRECT MATCH
-- APPROXIMATION
-- GAP
-for design-reference mapping.
-A GAP is not implementation authority.
-## Design Panel
-Review with at minimum:
-1. Product / Admin UX
-2. Frontend Architecture
-3. Design Systems
-4. Security / Capability Boundary
-5. Accessibility / Responsive
-6. Independent Critic
-7. Layperson / Admin User
-SU may advise/falsify but grants no authority.
-## Required output
-Produce a coherent Spatial Design Controls V2 planning proposal covering:
-- current-state audit;
-- ownership model;
-- existing-control mapping;
-- admin vocabulary/alias design;
-- proposed V2 control catalog;
-- Research disposition;
-- preview workflow;
-- Draft/Preview/Publish workflow;
-- data/API/storage impact;
-- security/capability boundaries;
-- responsive/accessibility requirements;
-- dependency/migration assessment;
-- phased implementation recommendation;
-- test/evidence requirements;
-- unresolved choices;
-- exact bounded future implementation scope.
-## Authorized planning writes
-Only directly necessary:
-- `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md` or equivalent planning artifact;
-- `coordination/ARCHITECT_REVIEW.md`;
-- `devos/changes/architect-syncs/**` for the resulting Architect planning review;
-- normal coordination/archive/state artifacts required for the planning transition.
-No production source mutation.
-## No implementation authority
-Do not modify:
+
+`CODE-OWNED SPATIAL CANVAS + BOUNDED ADMIN PRESENTATION CONTROLS + CONTENT-OWNED FACTS + OWNER-GATED PUBLICATION`
+
+Do not build an unrestricted visual/page builder.
+
+## V2A result
+
+The current WEB-INC-007 storage/API/runtime substrate is sufficient.
+
+Recommended V2A is an admin UX alignment only.
+
+Primary changes proposed:
+
+- admin labels use Entry / Systems / Projects / Contact;
+- backend IDs remain home / process / projects / about;
+- existing controls are grouped spatially;
+- existing enum values get human-friendly display labels;
+- Entry order is not presented as navigation ordering;
+- Systems / Projects / Contact retain existing bounded relative order;
+- Research remains unmanaged but previewable;
+- direct spatial preview shortcuts are added;
+- Draft / Publish scope is made explicit;
+- raw preview JSON becomes secondary technical information.
+
+## No backend expansion proposed
+
+V2A requires no D1 schema change, migration, new table, Worker change, API change, public projection change, DesignRuntime change, or dependency.
+
+## Research
+
+Research remains a fixed spatial destination.
+
+No Research visibility/order mutation is proposed for V2A.
+
+## Proposed implementation paths
+
+A future owner decision may authorize only:
+
+- app/admin/DesignControls.js
+- directly necessary V2-focused tests
+- docs/product/DESIGN_REFERENCE_WORKFLOW.md
+- docs/product/UI_UX_SPEC.md
+- normal governed coordination/evidence records
+
+No implementation authority exists yet.
+
+## Explicitly excluded
+
+Do not modify from the current planning state:
+
 - app/admin/**
 - app/DesignRuntime.js
-- public website implementation
+- components/site/**
 - worker/**
+- worker/d1/**
 - migrations/**
-- D1 schema/data
+- public website implementation
+- D1 data
 - R2
-- production design settings
-- production content
 - media
+- content
+- production design state
 - deployment configuration
-No V2 code implementation is authorized.
+
+until a separate owner implementation decision exists.
+
 ## Website Redesign V1
-The accepted Website Redesign V1 remains intact.
-Do not reopen its implementation findings.
-The existing MEDIA_GAP remains separate from this planning cycle.
+
+Website Redesign V1 remains accepted.
+
+Its MEDIA_GAP remains a separate release/visual matter.
+
+V2 planning does not reopen the Website Redesign implementation.
+
 ## S6 parked boundary
+
 S6 remains parked at ML-DEVOS-AS-103.
+
 O1 and O2 remain open.
+
 The real execution driver remains unauthorized.
+
 D-068 remains untouched.
-No S6/S7 authority is active.
-## Return gate
-When the V2 planning proposal is coherent:
-route to:
-TURN: PAULO
-with:
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_HANDOFF: NONE
-The Architect must state the exact bounded implementation scope proposed for a future owner decision.
-No Builder implementation begins from D-077 alone.
+
 ## Hard boundaries
+
 No V2 implementation.
 No website mutation.
-No admin/runtime mutation.
-No D1/R2 mutation.
+No admin mutation.
+No DesignRuntime mutation.
+No Worker/D1 mutation.
 No migration.
+No media mutation.
 No deployment.
 No public cutover.
-No free-form visual builder.
 No arbitrary CSS/HTML/JS.
+No free-form visual builder.
 No new route/component generator.
-No logo redesign.
 No S6/S7 work.
 No protected/main merge.
 No PR #10 merge or auto-merge.
+
 All action-specific flags remain NO.
+
+## Next transition
+
+TURN: PAULO
+
+Paulo must decide whether to authorize:
+
+`SPATIAL DESIGN CONTROLS V2A — ADMIN UX ALIGNMENT`
+
+under the exact scope proposed by ML-DEVOS-AS-107.
+
+No Builder implementation begins automatically.
