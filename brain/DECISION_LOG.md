@@ -1489,3 +1489,34 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   - V2B.
 - **Held positions:** PR #10 remains DO NOT MERGE. S6 remains parked at `ML-DEVOS-AS-103`. O1/O2 remain open. D-068 remains suspended and untouched.
 - **Protocol:** use Protocol V2. If implementation or release mutation is required after planning, stop and return to Paulo for a separate explicit decision.
+
+### D-084 — Authorize WEB-REL-002 Gate B: release PR review only
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-113` accepted the WEB-REL-002 direct governance→main release shape and routed the repository to Paulo at `7e2bbe2148e2112b58979401308216cceb631091`. Main was `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`.
+- **Owner authorization:** Paulo supplied it in the Builder session, and the Builder recorded it here as publisher. The operative terms are quoted verbatim. This entry proves provenance, not authority beyond Paulo's words.
+- **Decision (verbatim):** "Authorize Gate B only for WEB-REL-002. Open exactly one fresh pull request: governance/maisoglabs-v0.1 → main." "Decision: AUTHORIZED — WEB-REL-002 GATE B RELEASE PR REVIEW ONLY."
+- **Allowed:**
+  - recording this decision;
+  - the Protocol V2 directive/coordination transition;
+  - opening the WEB-REL-002 release PR;
+  - automatic non-production Cloudflare PR previews (D-055);
+  - GitHub CI / `test-and-build`;
+  - read-only inspection of the final PR diff, checks, mergeability and main-protection state.
+- **S5/S6 acknowledgement (verbatim):** "I acknowledge that the direct governance→main release shape includes repository-only S5/S6 and DevOS history. Their presence in the repository or eventual presence on main does NOT: activate S6; authorize S6 execution; authorize a real execution driver; authorize remote transport; grant deployment or production authority; make S5/S6 part of the website runtime merely by being stored in the repository." S6 remains parked at `ML-DEVOS-AS-103`. O1/O2 remain open. D-068 remains suspended and untouched.
+- **Gate B requirements:**
+  - a fresh V2 bootstrap;
+  - this decision and a bounded directive;
+  - one fresh PR;
+  - recorded: the PR number, exact base SHA, initial and final head SHAs, full release diff, mergeability, unresolved conversations, and main-protection/ruleset state;
+  - `test-and-build` (`npm ci`, `npm test`, `npm run build`) green on the exact final PR head, re-checked if bookkeeping advances the head;
+  - confirmation that the PR still represents the AS-113 shape, that PR #7 is not folded in, and that PR #10 remains DO NOT MERGE;
+  - a return to the Architect for independent Gate B review.
+- **Not authorized:**
+  - merging the PR (`MAIN_MERGE_AUTHORIZED` remains NO);
+  - deployment, Cloudflare production promotion, or production rollback;
+  - remote D1/R2, Access or DNS/domain mutation;
+  - production-data writes or public D1 cutover;
+  - V2B, S6/S7 resumption, or D-068 mutation;
+  - merging PR #7, or merging/auto-merging PR #10;
+  - force-pushing main.
+- **Gate C:** remains a separate Paulo decision. Before any Gate C merge, the Cloudflare production-build configuration and the current active production Version ID must be freshly verified.
