@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_INTEGRITY_HARDENING_RFC
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D073_AS99_F001_RFC019_DESIGN_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: CHANGES_REQUESTED
+AUTHORIZED_SCOPE: D073_AS100_F001_RFC019_FINAL_DESIGN_REMEDIATION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-S6-INTEGRITY-RFC-REM1-0001
-REVIEW_TARGET_COMMIT: 05cd039ca30c03a0f6aab953ef3677a8a3d11b68
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-099
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -25,61 +25,133 @@ MAIN_MERGE_AUTHORIZED: NO
 ## Authority
 
 D-073 authorizes architecture/design amendment work only.
-`ML-DEVOS-AS-099` is the controlling Architect review.
 
-Only AS99-F001 RFC-019 design remediation is authorized. The Builder may correct the
-active S6 task-slot reservation rule and the directly necessary RFC-019 design
-cross-references, reference model, crash matrix, and acceptance language.
+`ML-DEVOS-AS-100` is the controlling Architect review.
 
-S6 implementation remains paused. No executable S6 or S7 mutation is authorized.
+Only AS100-F001 final RFC-019 design remediation is authorized.
 
-## Architect review return — AS99-F001 RFC-019 design remediation (cycle 1, design only)
+This is remediation cycle 2 of the live maximum of 2.
 
-The Builder has corrected RFC-019 for `AS99-F001` only:
-- `ACTIVE = lifecycle_can_progress OR unresolved_external_influence` (§13.4);
-- a `QUARANTINED` instance with a `CLAIMED`, unreported permit, an unproven liveness obligation or any open reservation keeps the task's active-environment slot (§13.1, §13.3, §15);
-- a late verified report registers liveness only, and never restores, un-quarantines or makes the instance publishable;
-- execution uncertainty clears only by the closed *resolve* liveness proof or an audited operator resolution, never by elapsed time (§13.1, §13.5);
-- the reference model gains I11–I12 and the mandatory sequences Q1–Q5 (§13.6), and the crash matrix and mutation requirements cover claim → crash → quarantine → second create (§18 items 12, 14, 15, 16).
+S6 implementation remains paused.
 
-It returns the turn for independent Architect review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-099`. The evidence and the requirement map (ACTOR_REPORTED) are in `coordination/CURRENT_HANDOFF.md` (`H-S6-INTEGRITY-RFC-REM1-0001`) only. No executable S6 or S7 file changed; S6 implementation remains paused. No further Builder action is authorized.
+No executable S6 or S7 mutation is authorized.
 
-## AS99-F001 remediation objective
+## Final remediation objective
 
-Correct RFC-019 so unresolved execution continues reserving the active S6 task slot.
+Separate the historical Execution Permit lifecycle from the execution-uncertainty reservation produced by a claimed execution whose termination remains unresolved.
 
-The design must ensure that a quarantined instance with a `CLAIMED`, unreported
-execution blocks a second S6 create until execution termination is proven and no other
-reservation remains, or until an explicit audited operator-resolution path clears the
-uncertainty. Elapsed time alone is not proof of termination.
+A historical `CLAIMED` permit keeps the task slot only while its exact execution-uncertainty reservation remains open.
 
-A late verified report may establish liveness obligations, but it must not restore,
-un-quarantine, or make the instance publishable.
+The Builder must preserve historical permit truth while introducing the minimum bounded design fact required to distinguish:
 
-The reference model and crash matrix must cover:
+- claim history; from
+- unresolved execution influence.
 
-`CLAIMED` → crash before report → recovery quarantine → second create attempt
+An audited operator resolution must target the exact claim reservation, remain operator-attested rather than proof, and leave unrelated reservations untouched.
 
-Expected: `SECOND CREATE BLOCKED`.
+A verified late report must atomically move the claim into the reported/liveness-obligation path without creating a committed safety gap.
 
-They must also cover successful release after verified late report, liveness proof, and
-confirmed process termination. A mutant that releases `active_instance_id` merely
-because the instance becomes `QUARANTINED` must fail.
+## Required active-slot invariant
+
+Task-slot release remains permitted only when:
+
+`lifecycle_can_progress == false`
+
+and:
+
+`unresolved_external_influence == empty`
+
+`QUARANTINED` alone never releases the slot.
+
+Elapsed time alone never resolves execution uncertainty.
+
+A historical `CLAIMED` permit whose execution-uncertainty reservation has been explicitly resolved does not by historical status alone continue to reserve the slot.
+
+## Required Q5 coverage
+
+The model must cover:
+
+`CLAIMED`
+→ claim execution uncertainty `OPEN`
+→ crash before report
+→ `QUARANTINED / QUIESCE_UNPROVEN`
+→ no report
+→ time advances
+→ uncertainty still `OPEN`
+→ second create blocked
+
+Then:
+
+→ audited operator resolution targeting the exact claim
+→ exact claim uncertainty reservation closed
+→ historical permit remains `CLAIMED`
+→ no other unresolved influence remains
+→ task slot released
+→ later valid create succeeds.
+
+If any unrelated reservation remains, slot release remains forbidden.
+
+## Required falsification
+
+Preserve:
+
+- release-on-quarantine mutant must fail.
+
+Add:
+
+- an operator-resolution record that does not actually close the exact claim reservation must not release the slot and must fail Q5;
+- resolving claim A must not clear claim B or any unrelated reservation.
 
 ## Authorized writes
 
-Only the RFC-019 design and directly necessary RFC index, deterministic traceability,
-STATE, CURRENT_HANDOFF, and required rolling-record archive files for this bounded
-remediation turn.
+Only directly necessary design/governance files:
 
-Do not modify `devos/execution/**`, executable tests or fixtures for suspended D-068,
-S3/S4/S5 implementation, S7+, the manifest closure/version, production/deployment
-resources, PR #10, or `main`.
+- `devos/changes/rfcs/ML-DEVOS-RFC-019.md`;
+- `devos/changes/rfcs/README.md` only if a factual update is required;
+- deterministic traceability outputs if required;
+- `coordination/STATE.md`;
+- `coordination/CURRENT_HANDOFF.md`;
+- required rolling-record archives.
+
+No `devos/execution/**`.
+
+No executable test/source mutation.
+
+No suspended D-068 import.
 
 ## Return gate
 
-The Builder returns a new bounded handoff for independent Architect review after the
-AS99-F001-only RFC-019 design correction and required validation.
+After the bounded AS100-F001 remediation:
 
-All mutation, remote-resource, deployment, and main-merge flags remain `NO`.
-No operative obligation is closed by this transition.
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 2
+MAX_REMEDIATION_CYCLES: 2
+
+The Builder must return a fresh bounded CURRENT_HANDOFF for independent Architect review.
+
+If AS100-F001 remains unresolved after this cycle, no autonomous third remediation is authorized.
+
+Route to Paulo for a decision instead.
+
+## Hard boundaries
+
+No S6 implementation.
+No real execution driver.
+No S3/S4/S5 implementation mutation.
+No manifest closure/version mutation.
+No S7+.
+No CP-4+.
+No Model Router.
+No dynamic plugin discovery.
+No remote D1/R2.
+No deployment.
+No protected/main merge.
+No PR #10 merge.
+
+All remote/deploy/main/mutation flags remain NO.
+
+AS-100 does not authorize S6 implementation.
