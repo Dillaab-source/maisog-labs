@@ -104,7 +104,7 @@ Rollback is a new forward-recovery commit parented on the fresh tip, never a rev
   - it supports `PROTOCOL_VERSION` 1 and 2;
   - it refuses directive selector fields in a V1 STATE;
   - under V2 it runs the §10 directive checks;
-  - it refuses any undeclared change of `PROTOCOL_VERSION` (`PROTOCOL_CUTOVER_UNDECLARED`). A cutover is published with `--protocol-cutover <from>-><to>`, and only under its own owner decision.
+  - it refuses any undeclared change of `PROTOCOL_VERSION` (`PROTOCOL_CUTOVER_UNDECLARED`). A cutover is published with `--protocol-cutover <from>-><to> --session-protocol <from>` (both mandatory, `AS109-F001`), and only under its own owner decision.
 - Exit codes: `0` pass, `1` fail closed, `2` usage.
 
 `tests/context-bootstrap.test.mjs` exercises these checks, including an end-to-end activation published through `--publish`. `tests/context-bootstrap-v2.test.mjs` covers the RFC-020 §24 V2 cases with synthetic fixtures and hermetic repositories.
@@ -160,7 +160,7 @@ While STATE reads `PROTOCOL_VERSION: 1`, nothing here applies to a live turn and
 - `authority_ref` must exist as a `### D-NNN` heading, and the review as the live review or an immutable archive. This is existence only; legitimacy is not proven.
 - `BLOCKED` never routes to the Builder. The SENTINEL/SU fields are checked for vocabulary only.
 
-**Required body sections:** `Objective`, `Preconditions`, `Governing references`, `Exact execution scope`, `SENTINEL Sync`, `SU Contradiction Check`, `Instructions`, `Validation and evidence`, `Stop conditions`, `Next action`. Directives are delta-based. About 8 KiB is guidance (`DIRECTIVE_BYTE_BUDGET`), not a limit.
+**Required body sections**, each exactly once as a real level-2 heading outside any fenced code block (`MISSING_DIRECTIVE_SECTION`, `DUPLICATE_DIRECTIVE_SECTION`; `AS109-F002`): `Objective`, `Preconditions`, `Governing references`, `Exact execution scope`, `SENTINEL Sync`, `SU Contradiction Check`, `Instructions`, `Validation and evidence`, `Stop conditions`, `Next action`. Directives are delta-based. About 8 KiB is guidance (`DIRECTIVE_BYTE_BUDGET`), not a limit.
 
 **Lifecycle.**
 - **Issue:** one commit publishes the directive, `TURN: CLAUDE` and the selector.
@@ -175,9 +175,10 @@ While STATE reads `PROTOCOL_VERSION: 1`, nothing here applies to a live turn and
 - Neither SENTINEL nor SU is authority.
 
 **Activation and rollback.**
-- Stage B needs a separate owner decision and one atomic commit: `PROTOCOL_VERSION 1 -> 2`, the selector added with `CURRENT_DIRECTIVE: NONE`, a non-Builder gate, published with `--protocol-cutover 1->2`.
+- Stage B needs a separate owner decision and one atomic commit: `PROTOCOL_VERSION 1 -> 2`, the selector added with `CURRENT_DIRECTIVE: NONE`, a non-Builder gate, published with `--protocol-cutover 1->2 --session-protocol 1`.
+- Every actual version change requires both the matching `--protocol-cutover <from>-><to>` and `--session-protocol <from>` (the parent's protocol; `AS109-F001`). A missing session value fails (`PROTOCOL_CUTOVER_SESSION_REQUIRED`), and a mismatched one fails (`STALE_SESSION_PROTOCOL`).
 - An undeclared version change is refused.
 - A session on the other version stops (`STALE_SESSION_PROTOCOL`).
-- Rollback is forward recovery under its own owner decision (`--protocol-cutover 2->1`), archives any selected directive first, and preserves V2 history.
+- Rollback is forward recovery under its own owner decision (`--protocol-cutover 2->1 --session-protocol 2`), archives any selected directive first, and preserves V2 history.
 
 **Startup reads.** Under V1, the `CLAUDE.md` "Required first read" set stays in force. The future ordinary V2 Builder set is declared in `CLAUDE.md` ("Protocol V2 Builder startup"): STATE, the selected directive, the obligations index and a checker run, then just-in-time retrieval. `--baseline` measures it against RFC-020's 85,625-byte planning baseline.

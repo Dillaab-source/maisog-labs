@@ -410,10 +410,40 @@ export function checkDirectiveSelector(stateFields) {
   return pass('DIRECTIVE_SELECTED', { directiveId: stateFields.DIRECTIVE_ID });
 }
 
+// AS109-F002: directive structure must be unambiguous. Level-2 headings are
+// collected in document order, skipping everything inside fenced code blocks
+// (``` or ~~~, CommonMark-style: a fence closes on the same character with at
+// least the opening length). The CURRENT_HANDOFF check keeps its own
+// unchanged parser (V1 non-regression).
+export function directiveHeadings(text) {
+  const headings = [];
+  let fence = null;
+  for (const line of String(text ?? '').split('\n')) {
+    const f = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+    if (fence) {
+      if (f && f[1][0] === fence[0] && f[1].length >= fence.length && /^ {0,3}(`+|~+)[ \t]*$/.test(line)) fence = null;
+      continue;
+    }
+    if (f) {
+      fence = f[1];
+      continue;
+    }
+    const h = /^##[ \t]+(.+?)[ \t]*$/.exec(line);
+    if (h) headings.push(h[1]);
+  }
+  return headings;
+}
+
+// Each required section exactly once, as a real level-2 heading outside any fence.
 export function checkDirectiveSections(directiveText) {
-  const headings = headingsOf(directiveText);
-  const missing = REQUIRED_DIRECTIVE_SECTIONS.filter((s) => !headings.has(s));
+  const counts = new Map();
+  for (const h of directiveHeadings(directiveText)) counts.set(h, (counts.get(h) ?? 0) + 1);
+  const missing = REQUIRED_DIRECTIVE_SECTIONS.filter((s) => !counts.has(s));
   if (missing.length) return fail('MISSING_DIRECTIVE_SECTION', missing.join(', '));
+  const duplicated = REQUIRED_DIRECTIVE_SECTIONS.filter((s) => counts.get(s) > 1);
+  if (duplicated.length) {
+    return fail('DUPLICATE_DIRECTIVE_SECTION', duplicated.map((s) => `${s} x${counts.get(s)}`).join(', '));
+  }
   return pass('DIRECTIVE_SECTIONS_PRESENT');
 }
 
@@ -507,6 +537,20 @@ export function checkProtocolTransition(before, after, { declaredCutover } = {})
     if (after.TURN === 'CLAUDE') return fail('V2_ACTIVATION_ROUTES_TO_BUILDER', 'V2 activation must route to a non-Builder gate (TURN: PAULO or ARCHITECT)');
   }
   return pass('PROTOCOL_CUTOVER_DECLARED', { from: Number(from), to: Number(to) });
+}
+
+// AS109-F001: every actual PROTOCOL_VERSION change (1 -> 2 activation or
+// 2 -> 1 forward-recovery rollback) must carry the publishing session's
+// protocol, and it must equal the parent's version: the session bootstrapped
+// on the protocol being replaced. Absent evidence fails closed.
+export function checkCutoverSession(before, sessionProtocolVersion) {
+  if (sessionProtocolVersion === undefined || sessionProtocolVersion === '') {
+    return fail('PROTOCOL_CUTOVER_SESSION_REQUIRED',
+      `a PROTOCOL_VERSION change requires --session-protocol ${before.PROTOCOL_VERSION ?? '<parent version>'} (the parent's protocol)`);
+  }
+  const bound = checkProtocolVersion(before, { sessionProtocolVersion });
+  if (!bound.ok) return bound;
+  return pass('PROTOCOL_CUTOVER_SESSION_BOUND', { version: Number(before.PROTOCOL_VERSION) });
 }
 
 export function directiveArchivePath(directiveId) {
@@ -1348,14 +1392,15 @@ function runPublish(git, opts) {
     checks.push(fail('AMBIGUOUS_STATE', err.message));
     return { ...report, parent, checks, ok: false };
   }
-  // A declared cutover is published by a session bootstrapped on the parent's
-  // protocol; every other transition keeps before == after.
-  const cutover = opts.protocolCutover !== undefined && before.PROTOCOL_VERSION !== undefined;
-  const pv = checkProtocolVersion(after, { sessionProtocolVersion: cutover ? undefined : opts.sessionProtocolVersion });
+  // An actual version change is published by a session bootstrapped on the
+  // parent's protocol: its session evidence is mandatory and bound to the
+  // parent (AS109-F001). Every other transition keeps before == after and
+  // binds an optional session value to the candidate as before.
+  const versionChanges = before.PROTOCOL_VERSION !== undefined && after.PROTOCOL_VERSION !== undefined
+    && before.PROTOCOL_VERSION !== after.PROTOCOL_VERSION;
+  const pv = checkProtocolVersion(after, { sessionProtocolVersion: versionChanges ? undefined : opts.sessionProtocolVersion });
   checks.push(pv.ok && !pv.active ? fail('PROTOCOL_NOT_ACTIVE', 'governed V0 publication requires PROTOCOL_VERSION in the candidate STATE') : pv);
-  if (cutover && opts.sessionProtocolVersion !== undefined) {
-    checks.push(checkProtocolVersion(before, { sessionProtocolVersion: opts.sessionProtocolVersion }));
-  }
+  if (versionChanges) checks.push(checkCutoverSession(before, opts.sessionProtocolVersion));
   if (pv.ok && pv.active) {
     if (after.CURRENT_HANDOFF === 'ACTIVE' && changedFiles.includes(PATHS.currentHandoff)) {
       const handoff = read('after', PATHS.currentHandoff);
@@ -1440,7 +1485,7 @@ const HELP = `usage: node scripts/check-context-bootstrap.mjs [--status] [--comm
          [--branch ${AUTHORITATIVE_BRANCH}] [--expected-repo ${EXPECTED_REPOSITORY}] [--session-protocol <n>]
        node scripts/check-context-bootstrap.mjs --baseline [--commit <sha>]
        node scripts/check-context-bootstrap.mjs --publish --candidate <sha> [--check-only] [--transition-id <id>] [--remote origin] [--branch ...]
-         [--session-protocol <n>] [--protocol-cutover <from>-><to>  (only under an owner cutover decision)]
+         [--session-protocol <n>] [--protocol-cutover <from>-><to> --session-protocol <from>  (both required for a version change; owner cutover decision only)]
 Exit: 0 all checks pass; 1 a check failed (fail closed); 2 usage error.`;
 
 export function main(argv = process.argv.slice(2), { cwd = process.cwd(), stdout = process.stdout } = {}) {

@@ -25,12 +25,15 @@ import {
   SUPPORTED_PROTOCOL_VERSIONS,
   archiveDirective,
   archiveHandoff,
+  checkCutoverSession,
   checkDirectiveBinding,
+  checkDirectiveSections,
   checkDirectiveSelector,
   checkDirectiveTransition,
   checkProtocolTransition,
   checkProtocolVersion,
   directiveArchivePath,
+  directiveHeadings,
   directiveProvenancePath,
   gitBlobId,
   main,
@@ -721,4 +724,123 @@ test('§24.25 the real repository declares a V2 Builder startup set meeting the 
   for (const f of [PATHS.state, PATHS.review, PATHS.obligations, 'brain/protocols/CONTEXT_BOOTSTRAP.md']) assert.ok(v1.includes(f), f);
   assert.ok(v2.reduction_vs_rfc020_baseline_with_budget_sized_directive >= 0.5,
     `V2 startup ${v2.bytes_with_budget_sized_directive} bytes vs baseline ${RFC020_PLANNING_BASELINE_BYTES}`);
+});
+
+// ------------------------------------------------ AS109-F001 cutover session
+
+test('AS109-F001: checkCutoverSession requires the parent protocol as session evidence', () => {
+  const v1 = { PROTOCOL_VERSION: '1' };
+  const v2 = { PROTOCOL_VERSION: '2' };
+  assert.equal(checkCutoverSession(v1, undefined).code, 'PROTOCOL_CUTOVER_SESSION_REQUIRED');
+  assert.equal(checkCutoverSession(v1, '').code, 'PROTOCOL_CUTOVER_SESSION_REQUIRED');
+  assert.equal(checkCutoverSession(v1, '2').code, 'STALE_SESSION_PROTOCOL');
+  assert.equal(checkCutoverSession(v2, '1').code, 'STALE_SESSION_PROTOCOL');
+  assert.equal(checkCutoverSession(v1, '1').code, 'PROTOCOL_CUTOVER_SESSION_BOUND');
+  assert.equal(checkCutoverSession(v2, '2').code, 'PROTOCOL_CUTOVER_SESSION_BOUND');
+});
+
+// Paulo gate at `version`, with or without the V2 directive selector.
+function pauloGate(version) {
+  return architectState({
+    version,
+    extra: { TURN: 'PAULO', STATUS: 'GATE', ARCHITECT_ACTION_REQUIRED: 'NO', PAULO_DECISION_REQUIRED: 'YES' },
+  });
+}
+
+function cutoverRepo(t, fromVersion) {
+  const env = setupRemote(t, {
+    [PATHS.state]: stateText(pauloGate(fromVersion)),
+    [PATHS.review]: reviewText(AS_X),
+    [`${PATHS.syncArchiveDir}/${AS_X}.md`]: reviewText(AS_X),
+    [PATHS.obligations]: INVENTORY,
+    [PATHS.decisionLog]: DECISION_LOG,
+    [PATHS.legacyHandoff]: '# frozen legacy\n',
+  });
+  env.legacyBlob = ok(env.c.git(['rev-parse', `HEAD:${PATHS.legacyHandoff}`]));
+  const parent = resolveRemoteTip(env.c.git, 'origin', BRANCH);
+  const toVersion = fromVersion === '1' ? '2' : '1';
+  const cand = buildCandidate(env.c, parent, { [PATHS.state]: stateText(pauloGate(toVersion)) });
+  return { env, parent, cand, label: `${fromVersion}->${toVersion}`, fromVersion, toVersion };
+}
+
+for (const fromVersion of ['1', '2']) {
+  test(`AS109-F001: declared ${fromVersion}->${fromVersion === '1' ? '2' : '1'} with no session protocol fails before any push`, (t) => {
+    const { env, parent, cand, label } = cutoverRepo(t, fromVersion);
+    const pub = publish(env, cand, ['--protocol-cutover', label]); // a real publish attempt, not --check-only
+    assert.equal(pub.code, 1);
+    assert.equal(pub.report.publication, 'NOT_ATTEMPTED');
+    assert.ok(pub.report.checks.some((x) => x.code === 'PROTOCOL_CUTOVER_SESSION_REQUIRED'), failures(pub));
+    assert.equal(resolveRemoteTip(env.c.git, 'origin', BRANCH), parent, 'nothing was pushed');
+  });
+
+  test(`AS109-F001: ${fromVersion}->${fromVersion === '1' ? '2' : '1'} with the target version as session protocol fails (stale session)`, (t) => {
+    const { env, parent, cand, label, toVersion } = cutoverRepo(t, fromVersion);
+    const pub = publish(env, cand, ['--protocol-cutover', label, '--session-protocol', toVersion]);
+    assert.equal(pub.code, 1);
+    assert.equal(pub.report.publication, 'NOT_ATTEMPTED');
+    assert.ok(pub.report.checks.some((x) => x.code === 'STALE_SESSION_PROTOCOL'), failures(pub));
+    assert.equal(resolveRemoteTip(env.c.git, 'origin', BRANCH), parent);
+  });
+
+  test(`AS109-F001: ${fromVersion}->${fromVersion === '1' ? '2' : '1'} with the parent protocol as session and the correct declaration passes and publishes`, (t) => {
+    const { env, cand, label } = cutoverRepo(t, fromVersion);
+    const dry = publish(env, cand, ['--check-only', '--protocol-cutover', label, '--session-protocol', fromVersion]);
+    assert.equal(dry.code, 0, failures(dry));
+    const codes = dry.report.checks.map((x) => x.code);
+    for (const want of ['PROTOCOL_CUTOVER_SESSION_BOUND', 'PROTOCOL_CUTOVER_DECLARED']) assert.ok(codes.includes(want), want);
+    const pub = publish(env, cand, ['--protocol-cutover', label, '--session-protocol', fromVersion]);
+    assert.equal(pub.code, 0, failures(pub));
+    assert.equal(pub.report.publication.code, 'PUBLISHED');
+    assert.equal(resolveRemoteTip(env.c.git, 'origin', BRANCH), cand);
+  });
+}
+
+test('AS109-F001: an undeclared version change fails even with correct session evidence', (t) => {
+  const { env, cand } = cutoverRepo(t, '1');
+  const pub = publish(env, cand, ['--check-only', '--session-protocol', '1']);
+  assert.equal(pub.code, 1);
+  assert.ok(pub.report.checks.some((x) => x.code === 'PROTOCOL_CUTOVER_UNDECLARED'), failures(pub));
+});
+
+// ------------------------------------------------ AS109-F002 directive sections
+
+const sectionsDoc = (extra = '', sections = REQUIRED_DIRECTIVE_SECTIONS) => directiveText(directiveHeader(), { sections }) + extra;
+
+test('AS109-F002: all ten unique real headings outside fences pass', () => {
+  assert.equal(checkDirectiveSections(sectionsDoc()).code, 'DIRECTIVE_SECTIONS_PRESENT');
+  assert.equal(bind(builderState(), sectionsDoc()).code, 'DIRECTIVE_BOUND');
+  // Non-required extra headings and fenced examples of required headings are harmless.
+  const extra = '\n## Notes\n\n```markdown\n## Instructions\n## Stop conditions\n```\n';
+  assert.equal(checkDirectiveSections(sectionsDoc(extra)).code, 'DIRECTIVE_SECTIONS_PRESENT');
+});
+
+for (const dup of ['Instructions', 'Stop conditions']) {
+  test(`AS109-F002: a duplicate real "## ${dup}" section fails`, () => {
+    const r = checkDirectiveSections(sectionsDoc(`\n## ${dup}\n\nconflicting content\n`));
+    assert.equal(r.code, 'DUPLICATE_DIRECTIVE_SECTION');
+    assert.match(r.detail, new RegExp(`${dup} x2`));
+    assert.equal(bind(builderState(), sectionsDoc(`\n## ${dup}\n\nconflicting content\n`)).code, 'DUPLICATE_DIRECTIVE_SECTION');
+  });
+}
+
+test('AS109-F002: a required heading that appears only inside a fenced block does not satisfy the requirement', () => {
+  for (const fence of ['```', '````', '~~~']) {
+    for (const missing of ['Instructions', 'Stop conditions', 'Objective']) {
+      const real = REQUIRED_DIRECTIVE_SECTIONS.filter((s) => s !== missing);
+      const doc = sectionsDoc(`\n${fence}text\n## ${missing}\n\npretend section\n${fence}\n`, real);
+      const r = checkDirectiveSections(doc);
+      assert.equal(r.code, 'MISSING_DIRECTIVE_SECTION', `${fence} ${missing}`);
+      assert.match(r.detail, new RegExp(missing));
+    }
+  }
+  // A shorter or different fence marker does not close the block early.
+  const nested = sectionsDoc('\n````text\n```\n## Instructions\n```\n````\n', REQUIRED_DIRECTIVE_SECTIONS.filter((s) => s !== 'Instructions'));
+  assert.equal(checkDirectiveSections(nested).code, 'MISSING_DIRECTIVE_SECTION');
+  const mixed = sectionsDoc('\n~~~\n```\n## Instructions\n~~~\n', REQUIRED_DIRECTIVE_SECTIONS.filter((s) => s !== 'Instructions'));
+  assert.equal(checkDirectiveSections(mixed).code, 'MISSING_DIRECTIVE_SECTION');
+});
+
+test('AS109-F002: directiveHeadings keeps document order, skips fences, and ignores level-3 headings', () => {
+  const doc = '# Title\n\n## A\n\n```yaml\n## not-a-heading\n```\n\n### C\n\n## B\n';
+  assert.deepEqual(directiveHeadings(doc), ['A', 'B']);
 });
