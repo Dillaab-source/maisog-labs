@@ -12,7 +12,7 @@ import path from "node:path";
 
 import { createGateway } from "../../../devos/capabilities/index.mjs";
 import { claim, createTask, getState, transition } from "../../../devos/state/kernel.mjs";
-import { createExecutionHost } from "../../../devos/execution/index.mjs";
+import { createTestExecutionHost } from "../../../devos/execution/testing.mjs";
 
 export const PROJECT = "Dillaab-source/maisog-labs";
 export const REPOSITORY = "github.com/Dillaab-source/maisog-labs";
@@ -236,9 +236,25 @@ export async function makeWorld({ taskId = "S6TEST-TASK", contractOverrides = {}
   });
   return {
     dirs, env, baseSha, taskId, contractRef, contractPath, anchor, builder, builderTrust, hostConfig,
-    host: (over) => createExecutionHost(hostConfig(over)),
+    // Test-only construction (§13.5): faults and store hooks never reach the
+    // production createExecutionHost().
+    host: ({ faults = null, storeHooks = null, ...over } = {}) => createTestExecutionHost(hostConfig(over), { faults, storeHooks }),
     s4: { claim, getState, transition },
   };
+}
+
+// The per-task S6 task store (§13.2): one envelope, one lock, one blob dir.
+export function taskLockPath(world) {
+  return path.join(world.dirs.state, "tasks", world.taskId, "lock");
+}
+
+export function envelopeOf(world) {
+  return JSON.parse(fs.readFileSync(path.join(world.dirs.state, "tasks", world.taskId, "envelope.json"), "utf8"));
+}
+
+// The instance's committed journal entries, from the task store.
+export function journalOf(world, rec) {
+  return (envelopeOf(world).state.journal[rec.instance_id] ?? []).map((l) => JSON.parse(l));
 }
 
 export function cleanupWorld(world) {

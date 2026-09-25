@@ -11,7 +11,8 @@ import * as S6 from "../devos/execution/index.mjs";
 import { REASON_CODES, canonicalS5Role, rankOf, selectReason } from "../devos/execution/vocabulary.mjs";
 import { adoptS4Result, buildExecutionIdentity, fencingFailures, identityDigest, initialCheckpoint, taskBranchName, IDENTITY_FIELDS } from "../devos/execution/identity.mjs";
 import { createDirChain, createFileExclusive, isWithin, removeTreeNoFollow, segmentProblem, toCanonical, verifiedBase, verifyChain } from "../devos/execution/paths.mjs";
-import { Journal, genesisHead, replayJournal } from "../devos/execution/journal.mjs";
+import { genesisHead, replayJournal } from "../devos/execution/journal.mjs";
+import { appendJournal, journalHead, replay } from "../devos/execution/state.mjs";
 import { PAYLOAD_MEMBERS, buildPublicationPayload, buildRtrBody, storedEvidenceRef, transferIdOf, verifyAdjacency } from "../devos/execution/rtr.mjs";
 import { buildInstanceEnvironment, environmentFailures, instancePaths, localConfigFailures, scanCredentialFiles } from "../devos/execution/environment.mjs";
 import { pushRefProblem, remoteProblem } from "../devos/execution/transport.mjs";
@@ -52,6 +53,41 @@ test("S6 core exposes no command-execution primitive (D-069, §13.1, §18 item 1
   assert.doesNotMatch(fs.readFileSync(path.join(EXEC, "index.mjs"), "utf8"), /git\.mjs/, "the git runner is not public");
   // No S6 core module sends signals to processes.
   for (const f of files) assert.doesNotMatch(fs.readFileSync(path.join(EXEC, f), "utf8"), /process\.kill\([^)]*"SIG/, `${f} must not signal processes`);
+});
+
+// §13.5 / §18 item 14 (D-074): the production surface is closed operations
+// and read-only views. No mutable store, registry, journal append or
+// fault-injection hook is exported or returned.
+test("production surface exposes no mutable store, registry, journal append or fault hook (§13.5, §18 item 14)", () => {
+  const indexSrc = fs.readFileSync(path.join(EXEC, "index.mjs"), "utf8");
+  for (const internal of ["store.mjs", "state.mjs", "testing.mjs", "model.mjs", "journal.mjs"]) {
+    assert.doesNotMatch(indexSrc, new RegExp(internal.replace(".", "\\.")), `index.mjs must not expose ${internal}`);
+  }
+  for (const k of Object.keys(S6)) assert.doesNotMatch(k, /store|registry|journal|fault|hook|testing|buildExecutionHost/i, `public export ${k}`);
+  const dir = tmp();
+  try {
+    const cfg = {
+      workspaceRoot: path.join(dir, "ws"), hostStateDir: path.join(dir, "state"), project: "Dillaab-source/maisog-labs",
+      repository: "github.com/Dillaab-source/maisog-labs", remote: path.join(dir, "remote.git"), baseRef: "refs/heads/main",
+      s4Dir: path.join(dir, "s4"), policyVersion: "p.1", resolveContract: () => "{}", toolchainPath: ["/usr/bin"],
+    };
+    for (const hook of [{ faults: { onStep() {} } }, { storeHooks() {} }]) {
+      assert.equal(code(() => S6.createExecutionHost({ ...cfg, ...hook })), "MALFORMED_REQUEST", "fault injection is not production configuration");
+    }
+    const host = S6.createExecutionHost(cfg);
+    assert.ok(Object.isFrozen(host));
+    assert.deepEqual(Object.keys(host).sort(), [
+      "adoptRenewal", "attach", "claimPermit", "cleanup", "complete", "createInstance", "finishWithoutPublication", "instanceStatus",
+      "platformProfile", "provenance", "quiesce", "recordReport", "recover", "requestPermit", "resolveExecution", "resolveExecutionByOperator",
+      "validateInstance",
+    ]);
+    for (const [k, v] of Object.entries(host)) assert.equal(typeof v, "function", `${k} is an operation, not an object`);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  // The store's own platform gate: replace-atomicity is relied on only where proven.
+  const storeSrc = fs.readFileSync(path.join(EXEC, "store.mjs"), "utf8");
+  assert.match(storeSrc, /STORE_PROVEN_PLATFORMS = Object\.freeze\(\["linux"\]\)/);
 });
 
 // AS94-F003: no S6-core or fixture export accepts an argv/command that it then
@@ -324,10 +360,23 @@ test("deletion never follows links; a TOCTOU directory swap aborts; the outside 
 });
 
 // ------------------------------------------------------------- journal
+// The journal lives in the task-store draft (§13.2); these helpers drive the
+// same state.mjs functions the host uses inside its transactions.
+function memJournal() {
+  const st = { journal: {} };
+  const rec = { instance_id: ID, identity_digest: H64 };
+  return {
+    append: (type, data = {}) => appendJournal(st, rec, type, data, 0),
+    replay: () => replay(st, rec),
+    head: () => journalHead(st, rec),
+    lines: () => [...(st.journal[ID] ?? [])],
+  };
+}
+
 test("journal: genesis, chain replay, middle-entry tamper detected (§7.1.2)", () => {
   const dir = tmp();
   try {
-    const j = new Journal(path.join(dir, "j.jsonl"), H64, () => 0);
+    const j = memJournal();
     j.append("A", { n: 1 });
     j.append("B", { n: 2 });
     j.append("C", { n: 3 });
@@ -343,7 +392,7 @@ test("journal: genesis, chain replay, middle-entry tamper detected (§7.1.2)", (
 
 // ------------------------------------------------------------- RTR / payload
 function builtRecord(dir, { interleave = false } = {}) {
-  const j = new Journal(path.join(dir, "j.jsonl"), H64, () => 0);
+  const j = memJournal();
   for (const t of ["CREATE", "QUIESCE", "PUSH_VERIFIED"]) j.append(t);
   const transferId = transferIdOf(H64, H40, 5);
   const prepub = j.head();

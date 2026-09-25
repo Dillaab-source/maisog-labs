@@ -13,7 +13,7 @@ import path from "node:path";
 
 import { claim, release, renew } from "../devos/state/kernel.mjs";
 import { FIXED_OPERATIONS, fakeDriver } from "./fixtures/execution/drivers.mjs";
-import { cleanupWorld, makeWorld } from "./fixtures/execution/harness.mjs";
+import { cleanupWorld, journalOf, makeWorld, taskLockPath } from "./fixtures/execution/harness.mjs";
 
 const codeOf = async (p) => {
   try {
@@ -25,7 +25,7 @@ const codeOf = async (p) => {
 };
 const ARGV = [...FIXED_OPERATIONS.WRITE_FEATURE.argv];
 const req = (rec, rid) => ({ instance_id: rec.instance_id, request_id: rid, argv: [...ARGV], checkpoint_revision: rec.checkpoint.current_revision });
-const journal = (w, rec) => fs.readFileSync(path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+const journal = (w, rec) => journalOf(w, rec);
 const types = (w, rec) => journal(w, rec).map((e) => e.type);
 
 // A host whose hook, on reaching `at` (inside that operation's locked
@@ -40,7 +40,7 @@ function interleave(w, at, extra = {}) {
         if (name === at && box.competitor && !box.fired) {
           box.fired = true;
           // Proof the competitor starts while the S6 task lock is really held.
-          box.lockHeldAtStart = fs.existsSync(path.join(w.dirs.state, "registry", w.taskId, "lock"));
+          box.lockHeldAtStart = fs.existsSync(taskLockPath(w));
           box.started = box.competitor().then(() => "NO_ERROR", (e) => e.code ?? `UNCODED:${e.message}`);
         }
       },
@@ -75,8 +75,8 @@ test("claim holds the lock, quiesce competes: claim wins, quiesce then fails QUI
   assert.equal(claimed, "NO_ERROR");
   assert.equal(await box.started, "QUIESCE_UNPROVEN");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  assert.equal(host.registry.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "ATTACHED");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "ATTACHED");
 }));
 
 test("quiesce holds the lock, claim competes: quiesce revokes first, the claim then fails; REVOKED is never resurrected to CLAIMED (AS95-F001)", () => withWorld(async (w) => {
@@ -89,7 +89,7 @@ test("quiesce holds the lock, claim competes: quiesce revokes first, the claim t
   assert.equal(q.state, "QUIESCED");
   assert.equal(await box.started, "ISOLATION_UNPROVABLE");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  const s = host.registry.getPermitStatus(w.taskId, p.permit_id);
+  const s = host.inspect.getPermitStatus(w.taskId, p.permit_id);
   assert.equal(s.state, "REVOKED");
   assert.equal(s.revocation_reason, "QUIESCE");
   assert.ok(!types(w, rec).includes("PERMIT_CLAIMED"));
@@ -104,7 +104,7 @@ test("with no lock wait, simultaneous claim and quiesce serialize by failing clo
   assert.equal(await codeOf(host.claimPermit({ permitId: p.permit_id, request: r })), "NO_ERROR");
   assert.equal(await box.started, "ISOLATION_UNPROVABLE", "the competitor found the lock held and failed closed");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "ATTACHED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "ATTACHED");
 }));
 
 // ---------------------------------------------------------------- claim vs expiry / replay
@@ -117,9 +117,9 @@ test("expiry at the claim deadline: replay reads EXPIRED without writing; the lo
   offset = 61 * 1000;
   const replay = await host.requestPermit(r);
   assert.equal(replay.state, "EXPIRED_UNCLAIMED", "a replay past the deadline reads as expired");
-  assert.equal(host.registry.getPermitStatus(w.taskId, p.permit_id).state, "ISSUED", "a read path never writes permit state");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "ISSUED", "a read path never writes permit state");
   assert.equal(await codeOf(host.claimPermit({ permitId: p.permit_id, request: r })), "ISOLATION_UNPROVABLE");
-  assert.equal(host.registry.getPermitStatus(w.taskId, p.permit_id).state, "EXPIRED_UNCLAIMED", "the locked claim persisted the expiry");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "EXPIRED_UNCLAIMED", "the locked claim persisted the expiry");
   offset = 0;
   assert.equal(await codeOf(host.claimPermit({ permitId: p.permit_id, request: r })), "ISOLATION_UNPROVABLE", "terminal: a clock step back cannot revive it");
   // Claimed just before the deadline: time never moves a CLAIMED permit.
@@ -141,10 +141,10 @@ test("claim holds the lock, recovery competes: recovery then quarantines on the 
   assert.equal(await codeOf(host.claimPermit({ permitId: p.permit_id, request: r })), "NO_ERROR");
   assert.equal(await box.started, "NO_ERROR");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  const inst = host.registry.findInstance(rec.instance_id);
+  const inst = host.inspect.findInstance(rec.instance_id);
   assert.equal(inst.state, "QUARANTINED");
   assert.equal(inst.quarantine_reason, "QUIESCE_UNPROVEN");
-  assert.equal(host.registry.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
 }));
 
 test("recovery holds the lock and quarantines a stale instance, claim competes: the revoked permit is never claimed (AS95-F001)", () => withWorld(async (w) => {
@@ -159,10 +159,10 @@ test("recovery holds the lock and quarantines a stale instance, claim competes: 
   assert.deepEqual(report.stale, [rec.instance_id]);
   assert.equal(await box.started, "ISOLATION_UNPROVABLE");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  const s = base.registry.getPermitStatus(w.taskId, p.permit_id);
+  const s = base.inspect.getPermitStatus(w.taskId, p.permit_id);
   assert.equal(s.state, "REVOKED");
   assert.equal(s.revocation_reason, "QUARANTINE");
-  assert.equal(base.registry.findInstance(rec.instance_id).state, "QUARANTINED");
+  assert.equal(base.inspect.findInstance(rec.instance_id).state, "QUARANTINED");
 }));
 
 // ---------------------------------------------------------------- report vs quarantine / recovery
@@ -173,17 +173,17 @@ test("recovery holds the lock and quarantines, a report competes: the report is 
   const r = req(rec, "rq-1");
   const p = await base.requestPermit(r);
   await d.claim(p.permit_id, r);
-  const before = base.registry.findInstance(rec.instance_id);
+  const before = base.inspect.findInstance(rec.instance_id);
   const { host: recovering, box } = interleave(w, "recover-locked");
   box.competitor = () => d.report(p.permit, r, { process_groups: [424242], exit_code: null, signal: "SIGTERM" });
   await recovering.recover();
   assert.equal(await box.started, "NO_ERROR");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  const after = base.registry.findInstance(rec.instance_id);
+  const after = base.inspect.findInstance(rec.instance_id);
   assert.equal(after.state, "QUARANTINED");
   assert.equal(after.quarantine_reason, "QUIESCE_UNPROVEN");
   assert.deepEqual(after.reported_pgids, before.reported_pgids, "a late report never updates the quarantined record");
-  assert.equal(base.registry.getPermitStatus(w.taskId, p.permit_id).state, "REPORTED");
+  assert.equal(base.inspect.getPermitStatus(w.taskId, p.permit_id).state, "REPORTED");
   assert.ok(types(w, rec).includes("LATE_REPORT"));
   assert.ok(!types(w, rec).includes("REPORT"));
 }));
@@ -199,8 +199,8 @@ test("a report holds the lock, recovery competes: the report lands first, recove
   assert.deepEqual(await d.report(p.permit, r), { recorded: true, quarantined: false });
   assert.equal(await box.started, "NO_ERROR");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "ATTACHED");
-  assert.equal(host.registry.getPermitStatus(w.taskId, p.permit_id).state, "REPORTED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "ATTACHED");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "REPORTED");
 }));
 
 // ---------------------------------------------------------------- quiesce vs report
@@ -215,7 +215,7 @@ test("a report holds the lock, quiesce competes: quiesce then succeeds on the re
   await d.report(p.permit, r);
   assert.equal(await box.started, "NO_ERROR");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "QUIESCED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "QUIESCED");
 }));
 
 test("quiesce holds the lock, a report competes: quiesce fails on the CLAIMED permit, then the report lands normally (AS95-F001)", () => withWorld(async (w) => {
@@ -229,43 +229,47 @@ test("quiesce holds the lock, a report competes: quiesce fails on the CLAIMED pe
   assert.equal(await codeOf(host.quiesce(rec.instance_id)), "QUIESCE_UNPROVEN");
   assert.equal(await box.started, "NO_ERROR");
   assert.equal(box.lockHeldAtStart, true, "the competitor started while the lock was held");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "ATTACHED");
-  assert.equal(host.registry.getPermitStatus(w.taskId, p.permit_id).state, "REPORTED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "ATTACHED");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "REPORTED");
   assert.equal((await host.quiesce(rec.instance_id)).state, "QUIESCED");
 }));
 
-// ---------------------------------------------------------------- registry guards
+// ---------------------------------------------------------------- task-store guards
+// The task store is the only place S6 state is written (§13.2). A write built
+// from a stale snapshot is refused by the version compare-and-set, and the
+// transition tables refuse illegal or terminal-state-reversing changes, so no
+// stale view can resurrect a terminal state (AS95-F001).
 test("stale or illegal writes are refused by version CAS and transition tables; terminal states are monotonic (AS95-F001)", () => withWorld(async (w) => {
   const host = w.host();
   const rec = await attachedWith(w, host);
   const r = req(rec, "g-1");
   const p = await host.requestPermit(r);
-  const staleRecord = host.registry.findInstance(rec.instance_id);
-  const staleStatus = host.registry.getPermitStatus(w.taskId, p.permit_id);
+  const staleVersion = host.inspect.version(w.taskId);
+  const staleState = host.inspect.snapshot(w.taskId);
   await host.quiesce(rec.instance_id); // revokes the permit, QUIESCED
-  // A stale pre-quiesce status (ISSUED) cannot overwrite REVOKED with CLAIMED.
-  assert.throws(() => host.registry.putPermitStatus(w.taskId, p.permit_id, { ...staleStatus, state: "CLAIMED" }), (e) => e.code === "ISOLATION_UNPROVABLE");
-  // Even with the current version, REVOKED -> CLAIMED is illegal.
-  const now = host.registry.getPermitStatus(w.taskId, p.permit_id);
-  assert.throws(() => host.registry.putPermitStatus(w.taskId, p.permit_id, { ...now, state: "CLAIMED" }), (e) => e.code === "ISOLATION_UNPROVABLE");
-  // A stale ATTACHED record cannot overwrite the newer QUIESCED record, even
-  // though QUIESCED -> ATTACHED is itself a legal transition (CAS alone).
-  assert.throws(() => host.registry.putInstance({ ...staleRecord }), (e) => e.code === "ISOLATION_UNPROVABLE" && /stale write/.test(e.message));
-  // Version CAS alone: CLAIMED -> REPORTED is a legal transition, but a write
-  // built from the pre-claim status (stale version) is still refused.
-  await host.attach(rec.instance_id, { actorId: w.builder });
-  const r2 = req(host.registry.findInstance(rec.instance_id), "g-2");
-  const p2 = await host.requestPermit(r2);
-  const preClaim = host.registry.getPermitStatus(w.taskId, p2.permit_id);
-  await host.claimPermit({ permitId: p2.permit_id, request: r2 });
-  assert.throws(() => host.registry.putPermitStatus(w.taskId, p2.permit_id, { ...preClaim, state: "REPORTED" }), (e) => e.code === "ISOLATION_UNPROVABLE" && /version CAS/.test(e.message));
-  await fakeDriver(host).report(p2.permit, r2);
-  await host.quiesce(rec.instance_id);
-  // COMPLETED can never go back to ATTACHED.
+  // A snapshot taken before quiesce can never be committed over the newer state.
+  await host.inspect.store.withLock(w.taskId, async () => {
+    assert.throws(() => host.inspect.store.commit(w.taskId, staleVersion, staleState), (e) => e.code === "ISOLATION_UNPROVABLE" && /compare-and-set/.test(e.message));
+  });
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "QUIESCED");
+  assert.equal(host.inspect.getPermitStatus(w.taskId, p.permit_id).state, "REVOKED");
+  // Even on the current state, the transition tables refuse illegal moves.
+  const { setLife, setPermitState, setRtrStatus, closeClaimReservation, closeObligation } = await import("../devos/execution/state.mjs");
+  const permit = host.inspect.getPermitStatus(w.taskId, p.permit_id);
+  assert.throws(() => setPermitState(permit, "CLAIMED"), (e) => e.code === "ISOLATION_UNPROVABLE", "REVOKED -> CLAIMED");
+  assert.throws(() => setPermitState({ state: "CLAIMED" }, "ISSUED"), (e) => e.code === "ISOLATION_UNPROVABLE", "history is never rewritten");
+  assert.throws(() => setLife({ state: "QUARANTINED" }, "ATTACHED"), (e) => e.code === "ISOLATION_UNPROVABLE", "QUARANTINED only moves to CLEANED");
+  assert.throws(() => setLife({ state: "CLEANED" }, "QUARANTINED"), (e) => e.code === "ISOLATION_UNPROVABLE");
+  assert.throws(() => setLife({ state: "COMPLETED" }, "ATTACHED"), (e) => e.code === "ISOLATION_UNPROVABLE");
+  assert.throws(() => setRtrStatus({ status: "ABORTED" }, "COMMITTED"), (e) => e.code === "ISOLATION_UNPROVABLE");
+  // Closed execution-uncertainty reservations never reopen (§13.1, I2, I12).
+  assert.throws(() => closeClaimReservation({ claim_reservation: "OPERATOR_RESOLVED" }, "SUPERSEDED_BY_REPORT"), (e) => e.code === "ISOLATION_UNPROVABLE");
+  assert.throws(() => closeClaimReservation({ claim_reservation: "OPEN" }, "OPEN"), (e) => e.code === "ISOLATION_UNPROVABLE");
+  assert.throws(() => closeObligation({ state: "PROOF_RESOLVED" }, "OPERATOR_RESOLVED"), (e) => e.code === "ISOLATION_UNPROVABLE");
+  // COMPLETED can never go back to ATTACHED through the host either.
   await w.host().finishWithoutPublication(rec.instance_id);
-  const done = host.registry.findInstance(rec.instance_id);
-  assert.throws(() => host.registry.putInstance({ ...done, state: "ATTACHED" }), (e) => e.code === "ISOLATION_UNPROVABLE");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "COMPLETED");
+  assert.equal(await codeOf(host.attach(rec.instance_id, { actorId: w.builder })), "INSTANCE_STALE");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "COMPLETED");
 }));
 
 // ---------------------------------------------------------------- AS95-F002 quiesce fencing
@@ -277,9 +281,9 @@ async function quiesceAfter(mutate, hostOver = {}) {
     const p = await host.requestPermit(r);
     await mutate(w, rec, hostOver);
     const code = await codeOf(host.quiesce(rec.instance_id));
-    const inst = host.registry.findInstance(rec.instance_id);
+    const inst = host.inspect.findInstance(rec.instance_id);
     return {
-      code, state: inst.state, stale: inst.stale, permit: host.registry.getPermitStatus(w.taskId, p.permit_id).state,
+      code, state: inst.state, stale: inst.stale, permit: host.inspect.getPermitStatus(w.taskId, p.permit_id).state,
       journal: types(w, rec),
     };
   });
@@ -339,19 +343,18 @@ test("quiesce with only the S4 role state changed (synthetic S4 record) fails IN
 });
 
 // ---------------------------------------------------------------- source-level discipline
-test("every lifecycle write in the host goes through a lock-asserting helper (AS95-F001)", () => {
+test("every S6 state write in the host goes through the one transaction wrapper (AS95-F001, §13.2)", () => {
   const src = fs.readFileSync(new URL("../devos/execution/host.mjs", import.meta.url), "utf8");
-  const writes = [...src.matchAll(/registry\.(putInstance|putPermitStatus|putRtrStatus)\(/g)];
-  assert.ok(writes.length > 0);
-  for (const m of writes) {
-    // Find the enclosing function/arrow: every write must be preceded (within
-    // its own function) by assertLocked or sit inside a locked(...) section.
-    const before = src.slice(0, m.index);
-    const fnStart = Math.max(before.lastIndexOf("\n  function "), before.lastIndexOf("\n  async function "));
-    const body = before.slice(fnStart);
-    assert.ok(/assertLocked\(|locked\(/.test(body), `registry.${m[1]} at offset ${m.index} is not inside a locked section`);
+  // Exactly one place opens a task-store transaction, and it is tx().
+  const opens = [...src.matchAll(/store\.transact\(/g)];
+  assert.equal(opens.length, 1, "exactly one place opens a task-store transaction");
+  assert.match(src.slice(src.lastIndexOf("function ", opens[0].index), opens[0].index), /^function tx\(/, "and it is tx()");
+  // Nothing bypasses it: no raw commit, lock or envelope/journal file write.
+  for (const forbidden of [/store\.commit\(/, /store\.withLock\(/, /\bRegistry\b/, /\bJournal\b/, /writeFileSync\(/, /appendFileSync\(/, /renameSync\(/]) {
+    assert.doesNotMatch(src, forbidden, `host.mjs must not use ${forbidden}`);
   }
-  const lockCalls = [...src.matchAll(/registry\.withTaskLock\(/g)];
-  assert.equal(lockCalls.length, 1, "exactly one place takes the registry lock");
-  assert.match(src.slice(src.lastIndexOf("function ", lockCalls[0].index), lockCalls[0].index), /^function locked\(/, "and it is locked()");
+  // The journal, permit, RTR, slot and intent mutators only exist in state.mjs
+  // and operate on a transaction draft (`st`).
+  const state = fs.readFileSync(new URL("../devos/execution/state.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(state, /from "node:fs"/, "state.mjs never touches the filesystem");
 });

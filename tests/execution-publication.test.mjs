@@ -13,7 +13,7 @@ import path from "node:path";
 
 import { renew } from "../devos/state/kernel.mjs";
 import { fakeDriver, runFixed } from "./fixtures/execution/drivers.mjs";
-import { cleanupWorld, makeWorld, remoteRefSha } from "./fixtures/execution/harness.mjs";
+import { cleanupWorld, journalOf, makeWorld, remoteRefSha, taskLockPath } from "./fixtures/execution/harness.mjs";
 
 const SLUG = "Dillaab-source__maisog-labs";
 const codeOf = async (p) => {
@@ -26,9 +26,9 @@ const codeOf = async (p) => {
 };
 const s4History = (w) => JSON.parse(fs.readFileSync(path.join(w.dirs.s4, `${w.taskId}.json`), "utf8")).history;
 const readyForQa = (w) => s4History(w).filter((e) => e.type === "transition" && e.to === "READY_FOR_QA");
-const types = (w, rec) => fs.readFileSync(path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l).type);
-const taskLock = (w) => path.join(w.dirs.state, "registry", w.taskId, "lock");
-const rtrs = (h, w) => h.registry.listRtr(w.taskId);
+const types = (w, rec) => journalOf(w, rec).map((e) => e.type);
+const taskLock = (w) => taskLockPath(w);
+const rtrs = (h, w) => h.inspect.listRtr(w.taskId);
 
 async function withWorld(fn) {
   const w = await makeWorld();
@@ -86,8 +86,8 @@ test("PENDING exists (lock released) -> competing finishWithoutPublication is re
   const out = await host.complete(rec.instance_id, { actorId: w.builder });
   assert.equal(box.lockHeld, false, "the competitor ran in the unlocked external-effect window");
   assert.equal(await box.started, "RESULT_TRANSFER_UNPROVEN");
-  assert.equal(host.registry.getRtrStatus(w.taskId, out.transfer_id).status, "COMMITTED");
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "COMPLETED");
+  assert.equal(host.inspect.getRtrStatus(w.taskId, out.transfer_id).status, "COMMITTED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "COMPLETED");
   assert.equal(readyForQa(w).length, 1);
   assert.ok(!types(w, rec).includes("FINISHED_WITHOUT_PUBLICATION"), "no contradictory local evidence");
 }));
@@ -111,7 +111,7 @@ test("before PENDING (after the push): a competing finish wins; complete then re
   assert.equal(await box.started, "NO_ERROR");
   assert.equal(rtrs(host, w).length, 0, "no publication record was written");
   assert.equal(readyForQa(w).length, 0);
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "COMPLETED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "COMPLETED");
   assert.ok(remoteRefSha(w, `refs/heads/${rec.identity.task_branch}`), "the pushed branch is stale, unpublished transport residue");
 }));
 
@@ -120,7 +120,7 @@ test("classification while a PENDING reservation exists: blocked, allowed and un
   const rec = await pendingLeftBehind(w);
   const h = w.host();
   const id = rec.instance_id;
-  const before = JSON.stringify(h.registry.findInstance(id));
+  const before = JSON.stringify(h.inspect.findInstance(id));
   // BLOCKED: fail closed without changing anything.
   assert.equal(await codeOf(h.finishWithoutPublication(id)), "RESULT_TRANSFER_UNPROVEN");
   assert.equal(await codeOf(h.cleanup(id)), "RESULT_TRANSFER_UNPROVEN");
@@ -135,7 +135,7 @@ test("classification while a PENDING reservation exists: blocked, allowed and un
   assert.equal(replay.replay, true);
   assert.equal(await codeOf(h.claimPermit({ permitId: replay.permit_id, request: earlier })), "ISOLATION_UNPROVABLE");
   assert.equal(await codeOf(fakeDriver(h).report(replay.permit, earlier)), "ISOLATION_UNPROVABLE");
-  assert.equal(JSON.stringify(h.registry.findInstance(id)), before, "no refused operation changed the instance");
+  assert.equal(JSON.stringify(h.inspect.findInstance(id)), before, "no refused operation changed the instance");
   // ALLOWED: validation (observation only).
   assert.equal((await h.validateInstance(id)).outcome, "PROVEN");
   // ALLOWED: complete() resumes THE SAME reservation (same transfer id).
@@ -158,7 +158,7 @@ test("ABORTED via recover(): definitive S4 refusal -> ABORTED, reservation relea
   assert.deepEqual(report.pending.map((p) => [p.outcome, p.code]), [["ABORTED", "FENCING_REVISION_MISMATCH"]]);
   const [r] = rtrs(h, w);
   assert.equal(r.status.status, "ABORTED");
-  const inst = h.registry.findInstance(rec.instance_id);
+  const inst = h.inspect.findInstance(rec.instance_id);
   assert.equal(inst.state, "QUARANTINED");
   assert.equal(inst.quarantine_reason, "INSTANCE_STALE");
   assert.equal((await w.s4.getState({ dir: w.dirs.s4, taskId: w.taskId })).state, "BUILDING");
@@ -173,7 +173,7 @@ test("ABORTED via complete(): the stale instance may only finish without publica
   const h = w.host({ faults: { onStep: (name) => (name === "after-pending" ? renew({ dir: w.dirs.s4, taskId: w.taskId, actorId: w.builder, expectedRevision: rec.checkpoint.current_revision, newLeaseDurationMs: 600000 }) : undefined) } });
   assert.equal(await codeOf(h.complete(rec.instance_id, { actorId: w.builder })), "FENCING_REVISION_MISMATCH");
   assert.equal(rtrs(h, w)[0].status.status, "ABORTED");
-  const inst = h.registry.findInstance(rec.instance_id);
+  const inst = h.inspect.findInstance(rec.instance_id);
   assert.equal(inst.state, "QUIESCED");
   assert.equal(inst.stale, true);
   assert.ok(types(w, rec).includes("RTR_ABORTED"));
@@ -199,7 +199,7 @@ test("a transient S4 failure (S4 lock held) never writes ABORTED: the RTR stays 
   const second = await h.recover();
   assert.deepEqual(second.pending.map((p) => p.outcome), ["COMMITTED"]);
   assert.equal(readyForQa(w).length, 1);
-  assert.equal(h.registry.findInstance(rec.instance_id).state, "COMPLETED");
+  assert.equal(h.inspect.findInstance(rec.instance_id).state, "COMPLETED");
 }));
 
 // ---------------------------------------------------------------- quarantine is never reversed
@@ -219,7 +219,7 @@ test("a quarantined instance is never restored when its PENDING publication late
   fs.renameSync(`${instDir}.moved`, instDir);
   const second = await h.recover();
   assert.deepEqual(second.pending.map((p) => p.outcome), ["COMMITTED"], "S4 accepted the publication; the RTR commits");
-  const inst = h.registry.findInstance(rec.instance_id);
+  const inst = h.inspect.findInstance(rec.instance_id);
   assert.equal(inst.state, "QUARANTINED", "quarantine is not silently reversed");
   assert.equal(inst.quarantine_reason, "MISSING_DIRECTORY");
   assert.equal(readyForQa(w).length, 1);
@@ -239,7 +239,7 @@ test("COMMITTED replay/recovery is idempotent: repeated recover and complete nev
   assert.equal(await codeOf(h.complete(rec.instance_id, { actorId: w.builder })), "QUIESCE_UNPROVEN");
   assert.deepEqual(rtrs(h, w)[0].status, committed, "COMMITTED record unchanged");
   assert.equal(readyForQa(w).length, 1);
-  assert.equal(h.registry.findInstance(rec.instance_id).state, "COMPLETED");
+  assert.equal(h.inspect.findInstance(rec.instance_id).state, "COMPLETED");
 }));
 
 test("concurrent resolvers of one PENDING record (in-flight publisher + recover) converge: one transition, COMMITTED, never ABORTED (AS96-F001)", () => withWorld(async (w) => {
@@ -255,5 +255,5 @@ test("concurrent resolvers of one PENDING record (in-flight publisher + recover)
   assert.equal(r.status.status, "COMMITTED");
   assert.equal(readyForQa(w).length, 1);
   assert.ok(!types(w, rec).includes("RTR_ABORTED"));
-  assert.equal(host.registry.findInstance(rec.instance_id).state, "COMPLETED");
+  assert.equal(host.inspect.findInstance(rec.instance_id).state, "COMPLETED");
 }));

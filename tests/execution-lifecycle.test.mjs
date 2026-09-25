@@ -31,7 +31,9 @@ const codeOf = async (p) => {
 const instRoot = (w, rec) => path.join(w.dirs.workspace, SLUG, w.taskId, rec.instance_id);
 const repoOf = (w, rec) => path.join(instRoot(w, rec), "repo");
 const s4Record = (w) => JSON.parse(fs.readFileSync(path.join(w.dirs.s4, `${w.taskId}.json`), "utf8"));
-const journalEntries = (w, rec) => fs.readFileSync(path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+// The journal lives in the per-task S6 task store (§13.2).
+const envelopeFile = (w) => path.join(w.dirs.state, "tasks", w.taskId, "envelope.json");
+const journalEntries = (w, rec) => JSON.parse(fs.readFileSync(envelopeFile(w), "utf8")).state.journal[rec.instance_id].map((l) => JSON.parse(l));
 
 async function withWorld(opts, fn) {
   const w = await makeWorld(opts);
@@ -76,7 +78,7 @@ test("Builder happy path: publication replays the stored ACTOR_REPORTED evidence
   assert.equal(s4.revision, rec.checkpoint.current_revision + 1);
   assert.equal(out.post_revision, s4.revision);
 
-  const bodyBytes = h.registry.readRtrBody(w.taskId, out.transfer_id);
+  const bodyBytes = h.inspect.readRtrBody(w.taskId, out.transfer_id);
   const body = JSON.parse(bodyBytes);
   const last = s4Record(w).history.at(-1);
   assert.equal(last.type, "transition");
@@ -86,7 +88,7 @@ test("Builder happy path: publication replays the stored ACTOR_REPORTED evidence
   assert.equal(last.evidenceRef.evidenceClass, "ACTOR_REPORTED");
   assert.equal(last.evidenceRef.result_commit_sha, out.result_commit_sha);
   assert.equal(last.evidenceRef.base_sha, w.baseSha);
-  assert.equal(h.registry.getRtrStatus(w.taskId, out.transfer_id).status, "COMMITTED");
+  assert.equal(h.inspect.getRtrStatus(w.taskId, out.transfer_id).status, "COMMITTED");
 
   // Non-circular: the prepublication digest is the journal head immediately
   // before RTR_PENDING, and nothing was interleaved.
@@ -186,12 +188,12 @@ test("QA source proof: gapped chain, self-review, altered record body all fail c
   assert.equal(await codeOf(hq.createInstance({ role: "QA", qaChain: [{ ...chain[0], revision: chain[0].revision - 1 }, chain[1]] })), "RESULT_TRANSFER_UNPROVEN");
   assert.equal(await codeOf(hq.createInstance({ role: "QA", qaChain: [{ ...chain[0], owner: "qa-2" }, chain[1]] })), "RESULT_TRANSFER_UNPROVEN", "a chain with a foreign mutation");
   assert.equal(await codeOf(hq.createInstance({ role: "QA", qaChain: [chain[0], { ...chain[1], revision: chain[1].revision + 1 }] })), "FENCING_REVISION_MISMATCH");
-  const bodyFile = path.join(w.dirs.state, "registry", w.taskId, "rtr", `${out.transfer_id}.body.json`);
+  const bodyFile = path.join(w.dirs.state, "tasks", w.taskId, "blobs", h.inspect.getRtrStatus(w.taskId, out.transfer_id).rtr_digest);
   const bytes = fs.readFileSync(bodyFile, "utf8");
   fs.writeFileSync(bodyFile, bytes.replace(out.result_commit_sha, "0".repeat(40)));
   assert.equal(await codeOf(hq.createInstance({ role: "QA", qaChain: chain })), "RESULT_TRANSFER_UNPROVEN");
   fs.writeFileSync(bodyFile, bytes);
-  assert.equal(h.registry.readRtrBody(w.taskId, out.transfer_id), bytes);
+  assert.equal(h.inspect.readRtrBody(w.taskId, out.transfer_id), bytes);
 }));
 
 test("QA independence: the Builder that produced the result cannot QA it", () => withWorld({}, async (w) => {
@@ -213,7 +215,7 @@ test("fencing checkpoint: gap-free renewal adoption; permits bind the current re
   const r2 = await renew({ dir: w.dirs.s4, taskId: w.taskId, actorId: w.builder, expectedRevision: cp.current_revision, newLeaseDurationMs: 600000 });
   const r3 = await renew({ dir: w.dirs.s4, taskId: w.taskId, actorId: w.builder, expectedRevision: r2.revision, newLeaseDurationMs: 600000 });
   assert.equal(await codeOf(h.adoptRenewal(rec.instance_id, { result: r3 })), "INSTANCE_STALE");
-  assert.equal(h.registry.findInstance(rec.instance_id).stale, true);
+  assert.equal(h.inspect.findInstance(rec.instance_id).stale, true);
   assert.equal((await h.validateInstance(rec.instance_id)).reason, "FENCING_REVISION_MISMATCH");
 }));
 
@@ -235,11 +237,11 @@ test("a publication transition rejected by S4 aborts the record: ABORTED / STALE
   const s4 = await w.s4.getState({ dir: w.dirs.s4, taskId: w.taskId });
   assert.equal(s4.state, "BUILDING", "S4 never moved to READY_FOR_QA");
   assert.equal(code, "FENCING_REVISION_MISMATCH");
-  const [r] = h.registry.listRtr(w.taskId);
+  const [r] = h.inspect.listRtr(w.taskId);
   assert.equal(r.status.status, "ABORTED");
   const aborted = journalEntries(w, rec).find((e) => e.type === "RTR_ABORTED");
   assert.equal(aborted.data.disposition, "STALE_UNPUBLISHED");
-  assert.equal(h.registry.findInstance(rec.instance_id).stale, true);
+  assert.equal(h.inspect.findInstance(rec.instance_id).stale, true);
 }));
 
 // =========================================================================== precedence
@@ -371,18 +373,17 @@ const MATRIX = {
     try {
       return await h.cleanup(rec.instance_id);
     } finally {
-      assert.equal(h.registry.findInstance(rec.instance_id).state, "QUARANTINED");
+      assert.equal(h.inspect.findInstance(rec.instance_id).state, "QUARANTINED");
       assert.equal(fs.readFileSync(path.join(w.dirs.outside, "SENTINEL.txt"), "utf8"), "must survive\n");
     }
   },
   ISOLATION_UNPROVABLE: async (w) => {
     const { h, rec } = await created(w);
-    const f = path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`);
-    const lines = fs.readFileSync(f, "utf8").split("\n");
-    const e = JSON.parse(lines[1]);
-    e.data = { tampered: true };
-    lines[1] = JSON.stringify(e);
-    fs.writeFileSync(f, lines.join("\n"));
+    await h.inspect.corrupt(w.taskId, (d) => {
+      const e = JSON.parse(d.journal[rec.instance_id][1]);
+      e.data = { tampered: true };
+      d.journal[rec.instance_id][1] = JSON.stringify(e);
+    });
     return h.attach(rec.instance_id, { actorId: w.builder });
   },
 };
@@ -419,7 +420,7 @@ test("transport: a denied push is CAPABILITY_DENIED and leaves S4 and the remote
   assert.equal(await codeOf(h.complete(rec.instance_id, { actorId: w.builder })), "CAPABILITY_DENIED");
   assert.equal(remoteRefSha(w, `refs/heads/${rec.identity.task_branch}`), null);
   assert.equal((await w.s4.getState({ dir: w.dirs.s4, taskId: w.taskId })).state, "BUILDING");
-  assert.equal(h.registry.listRtr(w.taskId).length, 0);
+  assert.equal(h.inspect.listRtr(w.taskId).length, 0);
 }));
 
 test("a quarantined instance cannot be attached, permitted, or completed; only cleaned up", () => withWorld({}, async (w) => {
@@ -429,7 +430,7 @@ test("a quarantined instance cannot be attached, permitted, or completed; only c
   await renew({ dir: w.dirs.s4, taskId: w.taskId, actorId: w.builder, expectedRevision: rec.checkpoint.current_revision, newLeaseDurationMs: 600000 });
   const report = await restarted.recover();
   assert.deepEqual(report.stale, [rec.instance_id]);
-  assert.equal(restarted.registry.findInstance(rec.instance_id).state, "QUARANTINED");
+  assert.equal(restarted.inspect.findInstance(rec.instance_id).state, "QUARANTINED");
   assert.equal(await codeOf(restarted.attach(rec.instance_id, { actorId: w.builder })), "FENCING_REVISION_MISMATCH");
   assert.equal(await codeOf(restarted.complete(rec.instance_id, { actorId: w.builder })), "QUIESCE_UNPROVEN");
   assert.equal((await restarted.cleanup(rec.instance_id)).state, "CLEANED");

@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_HARDENING_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: AUTHORIZED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: SENTINEL_S6_CORE_HARDENING_IMPLEMENTATION_D074_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-CORE-HARDEN-0001
+REVIEW_TARGET_COMMIT: 3f0fdafa62b4c58b42ef6da3e425c1afdfbcddaa
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-101
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -30,6 +30,17 @@ D-068 remains suspended.
 D-071 and D-072 do not supply the authority for this cycle.
 
 No real execution driver is authorized.
+
+## Architect review return — D-074 bounded S6-core hardening implementation
+
+The Builder has completed the bounded D-074 implementation against the AS-101-accepted RFC-019:
+- the transaction-substrate gate was passed first: a per-task crash-atomic envelope plus content-addressed blobs, proven under real SIGKILL on Linux (ext4); darwin and win32 are NOT RUN and refused by the store;
+- the multi-file registry is replaced by one task store with one transaction wrapper; prepare -> effect -> reconcile for create, push, publication and cleanup;
+- the one-ACTIVE-environment slot, claim execution-uncertainty reservations, liveness obligations, atomic late-report supersession and exact-target proof/operator resolution are implemented;
+- the public surface is closed operations and read-only views; fault injection is test-only construction;
+- the reference model (I1-I13, Q1-Q5b, Mutants A-C), runtime replay of Q1-Q5b, the persistence-point crash matrix and 48 mutants are in the tests.
+
+It returns the turn for independent implementation review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-101`. The evidence (ACTOR_REPORTED) and the implementation decisions to check are in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-HARDEN-0001`) only. No real execution driver or generic executor exists. S6 stays NOT_IMPLEMENTED at v1.8.0; no closure is requested. The suspended D-068 local draft was not imported. No further Builder action is authorized.
 
 ## Builder objective
 

@@ -11,7 +11,7 @@ import path from "node:path";
 import { claim, release, renew } from "../devos/state/kernel.mjs";
 import { argvDigest } from "../devos/execution/index.mjs";
 import { FIXED_OPERATIONS, fakeDriver } from "./fixtures/execution/drivers.mjs";
-import { POLICY_VERSION, cleanupWorld, gatewayFor, makeWorld, policyFor } from "./fixtures/execution/harness.mjs";
+import { POLICY_VERSION, cleanupWorld, gatewayFor, journalOf, makeWorld, policyFor, taskLockPath } from "./fixtures/execution/harness.mjs";
 
 const codeOf = async (p) => {
   try {
@@ -34,8 +34,7 @@ async function attachedWorld(opts = {}) {
 }
 
 function journalTypes(w, rec) {
-  const f = path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`);
-  return fs.readFileSync(f, "utf8").trim().split("\n").map((l) => JSON.parse(l).type);
+  return journalOf(w, rec).map((e) => e.type);
 }
 
 test("exact replay returns the same permit without an S5 call; conflicting replay fails; one request -> one permit", async () => {
@@ -52,7 +51,7 @@ test("exact replay returns the same permit without an S5 call; conflicting repla
     assert.equal(again.permit_id, first.permit_id);
     assert.equal(w.builderTrust.state.calls, callsBefore, "an exact replay makes no S5 call");
     assert.equal(await codeOf(h.requestPermit(req(rec, { argv: [...FIXED_OPERATIONS.WRITE_SECOND.argv] }))), "MALFORMED_REQUEST");
-    assert.equal(h.registry.listPermits(w.taskId).length, 1);
+    assert.equal(h.inspect.listPermits(w.taskId).length, 1);
     // A non-current checkpoint is refused before S5 is consulted.
     assert.equal(await codeOf(h.requestPermit(req(rec, { request_id: "req-2", checkpoint_revision: rec.checkpoint.current_revision + 1 }))), "FENCING_REVISION_MISMATCH");
     // Malformed requests (unknown field, empty argv, bad id) fail closed.
@@ -73,7 +72,7 @@ test("concurrent identical requests mint at most one permit (in-process race; lo
     assert.ok(ok.length >= 1);
     assert.equal(new Set(ok.map((r) => r.permit_id)).size, 1, "every successful caller sees the same permit");
     assert.ok(bad.every((c) => c === "ISOLATION_UNPROVABLE"), `losers fail closed: ${bad}`);
-    assert.equal(h.registry.listPermits(w.taskId).length, 1);
+    assert.equal(h.inspect.listPermits(w.taskId).length, 1);
   } finally {
     cleanupWorld(w);
   }
@@ -87,12 +86,12 @@ test("an ISSUED permit expires unclaimed; a CLAIMED permit never becomes safe by
     const a = await h.requestPermit(req(rec, { request_id: "exp-a" }));
     offset = 2000;
     assert.equal(await codeOf(d.claim(a.permit_id, req(rec, { request_id: "exp-a" }))), "ISOLATION_UNPROVABLE");
-    assert.equal(h.registry.getPermitStatus(w.taskId, a.permit_id).state, "EXPIRED_UNCLAIMED");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, a.permit_id).state, "EXPIRED_UNCLAIMED");
     const b = await h.requestPermit(req(rec, { request_id: "exp-b" }));
     await d.claim(b.permit_id, req(rec, { request_id: "exp-b" }));
     offset = 10 * 60 * 1000 - 1000; // far past the claim window, inside the S4 lease
     assert.equal(await codeOf(h.quiesce(rec.instance_id)), "QUIESCE_UNPROVEN");
-    assert.equal(h.registry.getPermitStatus(w.taskId, b.permit_id).state, "CLAIMED", "time never moves a claimed permit");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, b.permit_id).state, "CLAIMED", "time never moves a claimed permit");
     await d.report(b.permit, req(rec, { request_id: "exp-b" }));
     assert.equal((await h.quiesce(rec.instance_id)).state, "QUIESCED");
   } finally {
@@ -128,7 +127,7 @@ test("claim-time S5 recheck honours live revocation and trusted-source failure; 
     const a = await h.requestPermit(req(rec, { request_id: "rv" }));
     w.builderTrust.state.revoked = ["S6-B-EXEC"];
     assert.equal(await codeOf(d.claim(a.permit_id, req(rec, { request_id: "rv" }))), "CAPABILITY_DENIED");
-    const s = h.registry.getPermitStatus(w.taskId, a.permit_id);
+    const s = h.inspect.getPermitStatus(w.taskId, a.permit_id);
     assert.equal(s.state, "REVOKED");
     assert.equal(s.revocation_reason, "CAPABILITY_INVALIDATED");
     assert.equal(await codeOf(d.claim(a.permit_id, req(rec, { request_id: "rv" }))), "ISOLATION_UNPROVABLE");
@@ -142,7 +141,7 @@ test("claim-time S5 recheck honours live revocation and trusted-source failure; 
       w.builderTrust.state.failSource = src;
       assert.equal(await codeOf(d.claim(p.permit_id, req(rec, { request_id: `ts-${src}` }))), "CAPABILITY_DENIED", src);
       w.builderTrust.state.failSource = null;
-      assert.equal(h.registry.getPermitStatus(w.taskId, p.permit_id).revocation_reason, "CAPABILITY_INVALIDATED");
+      assert.equal(h.inspect.getPermitStatus(w.taskId, p.permit_id).revocation_reason, "CAPABILITY_INVALIDATED");
     }
     assert.ok(journalTypes(w, rec).includes("CLAIM_S5_CHECK"));
   } finally {
@@ -169,7 +168,7 @@ test("claim-time S5 recheck honours descriptor expiry and policy supersession un
     const superseded = w.host({ gateway: gatewayFor(w.dirs.workspace, w.builderTrust, { policies: [policyFor(root, { version: "s6-test.2" })] }) });
     assert.equal(b.permit.s5_request_intent.policy_version, POLICY_VERSION);
     assert.equal(await codeOf(fakeDriver(superseded).claim(b.permit_id, req(rec, { request_id: "sup" }))), "CAPABILITY_DENIED");
-    assert.equal(h.registry.getPermitStatus(w.taskId, b.permit_id).revocation_reason, "CAPABILITY_INVALIDATED");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, b.permit_id).revocation_reason, "CAPABILITY_INVALIDATED");
   } finally {
     cleanupWorld(w);
   }
@@ -229,7 +228,7 @@ test("a substituted or forged S5 ALLOW never mints or claims a permit (AS90-F003
     // At claim: a descriptor different from the one bound at issuance.
     const swapped = forged({ decision: { ...allow, descriptor_id: "S6-Q-EXEC" }, presented: presented() });
     assert.equal(await codeOf(fakeDriver(swapped).claim(good.permit_id, req(rec, { request_id: "genuine" }))), "CAPABILITY_DENIED");
-    assert.equal(h.registry.listPermits(w.taskId).length, 1, "no forged decision minted a permit");
+    assert.equal(h.inspect.listPermits(w.taskId).length, 1, "no forged decision minted a permit");
   } finally {
     cleanupWorld(w);
   }
@@ -268,11 +267,11 @@ test("reports must match a CLAIMED permit exactly; a late report after quarantin
     const restarted = w.host();
     const out = await restarted.recover();
     assert.deepEqual(out.quarantined, [rec.instance_id]);
-    const q = restarted.registry.findInstance(rec.instance_id);
+    const q = restarted.inspect.findInstance(rec.instance_id);
     assert.equal(q.state, "QUARANTINED");
     assert.equal(q.quarantine_reason, "QUIESCE_UNPROVEN");
     assert.deepEqual(await fakeDriver(restarted).report(c.permit, req(rec, { request_id: "crash" })), { recorded: true, quarantined: true });
-    assert.equal(restarted.registry.findInstance(rec.instance_id).state, "QUARANTINED", "a late report never un-quarantines");
+    assert.equal(restarted.inspect.findInstance(rec.instance_id).state, "QUARANTINED", "a late report never un-quarantines");
     assert.ok(journalTypes(w, rec).includes("LATE_REPORT"));
     assert.equal((await restarted.validateInstance(rec.instance_id)).reason, "INSTANCE_STALE");
   } finally {
@@ -310,7 +309,7 @@ test("permits are issued only to an ATTACHED instance; quiesce revokes ISSUED pe
     await h.attach(rec.instance_id, { actorId: w.builder });
     const p = await h.requestPermit(req(rec));
     await h.quiesce(rec.instance_id);
-    const s = h.registry.getPermitStatus(w.taskId, p.permit_id);
+    const s = h.inspect.getPermitStatus(w.taskId, p.permit_id);
     assert.equal(s.state, "REVOKED");
     assert.equal(s.revocation_reason, "QUIESCE");
     assert.equal(await codeOf(fakeDriver(h).claim(p.permit_id, req(rec))), "ISOLATION_UNPROVABLE");
@@ -329,7 +328,7 @@ test("a verified report is stored and journaled with every RFC-019 field; a reje
     // Contradictory / incomplete reports are refused and the permit stays CLAIMED.
     for (const over of [{ ended_at: null }, { exit_code: null }, { signal: "SIGKILL" }, { started_at: "2026-09-24T12:00:03Z" }, { stdout_digest: "nope" }]) {
       assert.equal(await codeOf(d.report(p.permit, r, over)), "ISOLATION_UNPROVABLE", JSON.stringify(over));
-      assert.equal(h.registry.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
+      assert.equal(h.inspect.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
     }
     const partial = d.reportFor(p.permit, r);
     delete partial.started_at;
@@ -337,12 +336,12 @@ test("a verified report is stored and journaled with every RFC-019 field; a reje
     assert.equal(await codeOf(h.quiesce(rec.instance_id)), "QUIESCE_UNPROVEN", "no verified report yet");
     const full = d.reportFor(p.permit, r, { exit_code: null, signal: "SIGTERM" });
     await h.recordReport(full);
-    const stored = h.registry.getPermitStatus(w.taskId, p.permit_id);
+    const stored = h.inspect.getPermitStatus(w.taskId, p.permit_id);
     assert.equal(stored.state, "REPORTED");
     for (const k of ["argv_digest", "environment_digest", "process_groups", "started_at", "ended_at", "exit_code", "signal", "stdout_digest", "stderr_digest", "terminated"]) {
       assert.deepEqual(stored.report[k], full[k], `stored ${k}`);
     }
-    const entry = fs.readFileSync(path.join(w.dirs.state, "journal", `${rec.instance_id}.jsonl`), "utf8").trim().split("\n").map((l) => JSON.parse(l)).find((e) => e.type === "REPORT");
+    const entry = journalOf(w, rec).find((e) => e.type === "REPORT");
     for (const k of ["started_at", "ended_at", "exit_code", "signal", "stdout_digest", "stderr_digest", "report_digest"]) assert.ok(Object.hasOwn(entry.data, k), `journaled ${k}`);
     assert.equal(entry.data.signal, "SIGTERM");
     assert.equal(entry.data.report_digest, stored.report.report_digest);
@@ -357,7 +356,7 @@ test("a verified report is stored and journaled with every RFC-019 field; a reje
 // Deterministic claim races: another S6 operation holds the per-task lock
 // while S4 or S5 changes; the claim is provably waiting on that lock when the
 // change happens. The stale earlier view must never become CLAIMED.
-const lockPath = (w) => path.join(w.dirs.state, "registry", w.taskId, "lock");
+const lockPath = (w) => taskLockPath(w);
 
 async function claimWhileLockHeld(w, h, rec, rid, mutate) {
   const d = fakeDriver(h);
@@ -378,7 +377,7 @@ test("claim race: S4 revision moves while the claim waits on the task lock -> ne
   try {
     const { p, code } = await claimWhileLockHeld(w, h, rec, "race-s4", () => renew({ dir: w.dirs.s4, taskId: w.taskId, actorId: w.builder, expectedRevision: rec.checkpoint.current_revision, newLeaseDurationMs: 600000 }));
     assert.equal(code, "FENCING_REVISION_MISMATCH");
-    const s = h.registry.getPermitStatus(w.taskId, p.permit_id);
+    const s = h.inspect.getPermitStatus(w.taskId, p.permit_id);
     assert.equal(s.state, "REVOKED");
     assert.equal(s.revocation_reason, "STALE");
     assert.ok(!journalTypes(w, rec).includes("PERMIT_CLAIMED"));
@@ -396,7 +395,7 @@ test("claim race: S4 ownership changes while the claim waits -> never CLAIMED (A
       await claim({ dir: w.dirs.s4, taskId: w.taskId, actorId: "builder-2", leaseDurationMs: 600000 });
     });
     assert.equal(code, "OWNER_MISMATCH");
-    assert.notEqual(h.registry.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
+    assert.notEqual(h.inspect.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
   } finally {
     cleanupWorld(w);
   }
@@ -410,7 +409,7 @@ test("claim race: S4 lease expires while the claim waits -> LEASE_EXPIRED, never
       offset = 3600 * 1000; // the host's trusted clock passes the S4 lease expiry
     });
     assert.equal(code, "LEASE_EXPIRED");
-    assert.equal(h.registry.getPermitStatus(w.taskId, p.permit_id).state, "REVOKED");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, p.permit_id).state, "REVOKED");
   } finally {
     cleanupWorld(w);
   }
@@ -423,7 +422,7 @@ test("claim race: live S5 revocation lands while the claim waits -> never CLAIME
       w.builderTrust.state.revoked = ["S6-B-EXEC"];
     });
     assert.equal(code, "CAPABILITY_DENIED");
-    const s = h.registry.getPermitStatus(w.taskId, p.permit_id);
+    const s = h.inspect.getPermitStatus(w.taskId, p.permit_id);
     assert.equal(s.state, "REVOKED");
     assert.equal(s.revocation_reason, "CAPABILITY_INVALIDATED");
   } finally {
@@ -442,7 +441,7 @@ test("claim race: S5 descriptor expiry passes while the claim waits -> never CLA
       w.builderTrust.state.nowIso = "2026-09-24T14:00:00Z";
     });
     assert.equal(code, "CAPABILITY_DENIED");
-    assert.equal(h.registry.getPermitStatus(w.taskId, p.permit_id).revocation_reason, "CAPABILITY_INVALIDATED");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, p.permit_id).revocation_reason, "CAPABILITY_INVALIDATED");
   } finally {
     cleanupWorld(w);
   }
@@ -453,7 +452,7 @@ test("claim race control: with no change during the wait the claim succeeds afte
   try {
     const { p, code } = await claimWhileLockHeld(w, h, rec, "race-none", () => undefined);
     assert.equal(code, "NO_ERROR");
-    assert.equal(h.registry.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, p.permit_id).state, "CLAIMED");
     const short = w.host({ lockWaitMs: 200 });
     const r = req(rec, { request_id: "never-released" });
     const q = await short.requestPermit(r);
@@ -461,7 +460,7 @@ test("claim race control: with no change during the wait the claim succeeds afte
     assert.equal(await codeOf(fakeDriver(short).claim(q.permit_id, r)), "ISOLATION_UNPROVABLE");
     assert.ok(fs.existsSync(lockPath(w)), "the lock is never stolen");
     fs.rmSync(lockPath(w));
-    assert.equal(short.registry.getPermitStatus(w.taskId, q.permit_id).state, "ISSUED");
+    assert.equal(short.inspect.getPermitStatus(w.taskId, q.permit_id).state, "ISSUED");
   } finally {
     cleanupWorld(w);
   }
@@ -475,7 +474,7 @@ test("a permit pinned to an older checkpoint cannot be claimed after renewal ado
     const r1 = await renew({ dir: w.dirs.s4, taskId: w.taskId, actorId: w.builder, expectedRevision: rec.checkpoint.current_revision, newLeaseDurationMs: 600000 });
     await h.adoptRenewal(rec.instance_id, { result: r1 });
     assert.equal(await codeOf(fakeDriver(h).claim(p.permit_id, r)), "FENCING_REVISION_MISMATCH");
-    assert.equal(h.registry.getPermitStatus(w.taskId, p.permit_id).revocation_reason, "STALE");
+    assert.equal(h.inspect.getPermitStatus(w.taskId, p.permit_id).revocation_reason, "STALE");
   } finally {
     cleanupWorld(w);
   }
