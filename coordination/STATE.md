@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEBSITE_REDESIGN_V1_PLANNING
-TURN: ARCHITECT
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: D075_WEBSITE_REDESIGN_V1_BRAND_COMPOSITION_PLANNING_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: D075_WEBSITE_REDESIGN_V1_PROPOSAL_ACCEPTED_PAULO_IMPLEMENTATION_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
@@ -24,180 +24,125 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-075 is the controlling owner decision.
+D-075 remains the controlling owner authorization for the completed planning cycle.
 
-S6 is parked at the ML-DEVOS-AS-103 accepted hardened-core boundary.
+ML-DEVOS-AS-104 is the controlling Architect design review.
 
-Parking S6 is not closure.
+## Planning result
 
-The S6 manifest/root state, Sentinel v1.8.0, O1, O2 and the separately governed real execution-driver boundary remain unchanged.
+Website Redesign V1 is Architect-approved as a design proposal.
 
-## Current objective
+The approved proposal is:
 
-Perform one bounded Architect / Design Panel planning cycle for a MaisogLabs public-website redesign.
+`docs/product/WEBSITE_REDESIGN_V1_PLAN.md`
 
-This is a BRAND / COMPOSITION CHANGE planning cycle.
+Primary direction:
 
-No website implementation is authorized.
+one persistent MaisogLabs cinematic environment with:
 
-## Design baseline
+- Entry;
+- Systems;
+- Projects;
+- Research;
+- Contact.
 
-Read and use as the current design baseline:
+The Claude v10 reference is accepted as primary design direction subject to AS-104 corrections and repository governance.
 
-- brand/V3/README.md
-- brand/V3/DESIGN_MAP.md
-- brand/V3/guidelines/V3_DIRECTION.md
-- brand/V3/DESIGN_GOVERNANCE.md
-- brand/V3/design-tokens/**
-- docs/product/DESIGN_REFERENCE_WORKFLOW.md
-- docs/product/UI_UX_SPEC.md where applicable
-- current app/page.js
-- current app/globals.css
-- directly relevant current components and public assets
-- current WEB-INC-007 runtime design-control implementation where necessary to classify DIRECT MATCH / APPROXIMATION / GAP
+## Implementation status
 
-Repository/live implementation truth outranks chat memory.
+Website Redesign V1 implementation is NOT AUTHORIZED.
 
-## Design Panel
+No Builder implementation turn exists.
 
-The Architect must synthesize at minimum:
+No public asset mutation is authorized.
 
-1. Brand / Art Direction
-2. Information Architecture / UX
-3. Interaction / Motion
-4. Frontend Feasibility
-5. Responsive / Accessibility
-6. Independent Critic
-7. Layperson / First-Time Visitor
+No production content mutation is authorized.
 
-The Independent Critic must challenge consensus rather than decorate it.
+No WEB-INC-007 production setting mutation is authorized.
 
-The First-Time Visitor must judge clarity without assuming prior MaisogLabs knowledge.
+## Paulo decision required
 
-## Required proposal
+Paulo must decide whether to authorize the bounded implementation scope defined by `docs/product/WEBSITE_REDESIGN_V1_PLAN.md`.
 
-Produce a Website Redesign V1 proposal covering:
+A future owner implementation decision must explicitly define:
 
-- first-visit narrative;
-- information hierarchy;
-- desktop composition;
-- mobile/narrow composition;
-- header/navigation;
-- hero;
-- projects;
-- process/about;
-- footer;
-- motion/interaction;
-- accessibility/readability;
-- asset map;
-- WEB-INC-007 DIRECT MATCH / APPROXIMATION / GAP mapping;
-- required source-code/component GAPs;
-- implementation risks;
-- acceptance criteria;
-- exact future implementation scope.
+- exact implementation scope;
+- allowed code paths;
+- whether approved new public media may be added;
+- whether any public content/schema changes are included;
+- test/evidence requirements;
+- return gate.
 
-## Brand boundaries
+## Approved implementation concept
 
-Preserve the canonical MaisogLabs orbital identity.
+The proposal recommends, but does not yet authorize:
 
-No logo redesign.
+- single-screen Entry / Systems / Projects / Research / Contact spatial composition;
+- bounded source/component implementation;
+- real Journal data in Research;
+- current repository-approved content as factual baseline;
+- mobile-specific route navigation;
+- WEB-INC-007 compatibility without D1 schema change;
+- approved cinematic plate and canonical-mark motion media;
+- corresponding Brand V3 composition documentation updates.
 
-No new typography family.
+## Content boundary
 
-No replacement brand identity.
+Prototype/reference content is not production truth.
 
-Target character remains:
+No fake or unapproved:
 
-cinematic + modern + calm + premium + engineered + soft-edged.
+- research entries;
+- dates;
+- project statuses;
+- project flow;
+- metrics;
+- stacks;
+- URLs;
+- contact addresses
 
-Technology/systems remain visually dominant.
-
-Classical architecture and space/exploration remain restrained supporting influences.
-
-Avoid generic SaaS, gaming HUD overload, neon cyberpunk and generic AI imagery.
-
-## Asset boundary
-
-New visuals may be proposed during planning.
-
-Each production visual must be an individual asset tied to an explicit section/purpose.
-
-Do not use collage sheets as production assets.
-
-Do not bake essential copy or UI into decorative imagery.
-
-Actual repository media mutation requires later implementation authority.
-
-## Authorized planning writes
-
-Only directly necessary:
-
-- new website-redesign planning/proposal artifacts under docs/product/;
-- coordination/ARCHITECT_REVIEW.md;
-- devos/changes/architect-syncs/ when the Architect publishes the planning verdict;
-- deterministic traceability outputs only if required by those governed planning artifacts;
-- normal coordination archive/state artifacts required for the Architect transition.
-
-Existing Brand V3 source files are read-only in this planning cycle.
-
-## No implementation authority
-
-Do not modify:
-
-- app/**;
-- components/**;
-- public/**;
-- worker/**;
-- migrations/**;
-- D1 data/schema;
-- R2;
-- authenticated design runtime/settings;
-- production content;
-- production website.
-
-Do not apply WEB-INC-007 settings to production.
-
-Do not create a source-code approximation of a GAP.
+may be promoted during implementation.
 
 ## S6 parked boundary
 
-Do not modify or reopen:
+S6 remains parked at ML-DEVOS-AS-103.
 
-- S6 core;
-- S6 manifest/root status;
-- O1;
-- O2;
-- real execution-driver work;
-- S7+;
-- Sentinel version or closure.
+Parking is not closure.
 
-D-074 is complete and supplies no standing authority.
+O1 remains open.
 
-## Return gate
+O2 remains open.
 
-When the Website Redesign V1 proposal is coherent:
+The real execution driver remains separately governed and unauthorized.
 
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED or PAULO_DECISION_REQUIRED as appropriate
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+Sentinel remains v1.8.0.
 
-The Architect transition must state the exact implementation scope proposed for a later owner decision.
-
-No Builder implementation begins from D-075 alone.
+No S6/S7 authority is active.
 
 ## Hard boundaries
 
 No website implementation.
+No media mutation.
+No production content mutation.
+No D1/R2 mutation.
+No migration.
+No Worker/auth change.
 No public publish.
 No production deployment.
-No D1/R2 mutation.
-No raw styling bypass.
-No arbitrary CSS/JS/HTML design field.
+No arbitrary CSS/JS/HTML control.
 No logo redesign.
 No S6/S7 work.
 No protected/main merge.
 No PR #10 merge or auto-merge.
 
 All action-specific flags remain NO.
+
+## Next transition
+
+Any Builder website implementation requires a new explicit Paulo owner decision.
+
+Until then:
+
+TURN: PAULO
+
+No Builder action is authorized.
