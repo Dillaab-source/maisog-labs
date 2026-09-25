@@ -246,9 +246,20 @@ export function buildExecutionHost(config, internals = null) {
 
   // ISSUED permits past their claim deadline become EXPIRED_UNCLAIMED in the
   // next transaction of their task (lazy expiry, now committed; AS90-F001).
+  // Each transition commits with its justifying PERMIT_EXPIRED entry in the
+  // owning instance's journal, in the same version (§13.6 I5; AS102-F001).
+  // Only ISSUED permits expire: time never moves a CLAIMED permit and never
+  // changes a reservation.
   function persistExpiries(st) {
     const now = clock();
-    for (const p of Object.values(st.permits)) if (effectivePermitState(p, now) === "EXPIRED_UNCLAIMED" && p.state === "ISSUED") setPermitState(p, "EXPIRED_UNCLAIMED");
+    for (const [permitId, p] of Object.entries(st.permits)) {
+      if (p.state !== "ISSUED" || effectivePermitState(p, now) !== "EXPIRED_UNCLAIMED") continue;
+      setPermitState(p, "EXPIRED_UNCLAIMED");
+      journal(st, st.instances[p.instance_id], "PERMIT_EXPIRED", {
+        permit_id: permitId, permit_digest: p.permit_digest, reason: "CLAIM_DEADLINE_PASSED",
+        claim_deadline: new Date(p.claim_deadline_ms).toISOString(),
+      });
+    }
   }
 
   // Read-only snapshot views (frozen copies).

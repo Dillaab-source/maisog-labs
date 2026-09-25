@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: SENTINEL_S6_CORE_HARDENING_IMPLEMENTATION
-TURN: CLAUDE
-STATUS: CHANGES_REQUESTED
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
 AUTHORIZED_SCOPE: D074_AS102_F001_S6_EXPIRY_JOURNAL_REMEDIATION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-S6-CORE-HARDEN-REM1-0001
+REVIEW_TARGET_COMMIT: 37a4ff9140680b98d84e438604a0d69e89dabccf
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-102
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -31,6 +31,12 @@ D-074 remains the owner implementation authority.
 Only AS102-F001 expiry-journal remediation is authorized.
 
 This is remediation cycle 1 of 2.
+
+## Architect review return — AS102-F001 expiry-journal remediation (cycle 1 of 2)
+
+The Builder has corrected AS102-F001 only: every lazy `ISSUED -> EXPIRED_UNCLAIMED` transition now commits a `PERMIT_EXPIRED` journal entry for that exact permit in the same task-store transaction (§13.6 I5). `CLAIMED` permits never expire and reservations are unchanged. Focused tests E1-E3 and mutant M49 (E4) are added.
+
+It returns the turn for independent review under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-102`. The evidence (ACTOR_REPORTED) is in `coordination/CURRENT_HANDOFF.md` (`H-S6-CORE-HARDEN-REM1-0001`) only. Carry-forward O1 (Linux-only platform evidence) and O2 (unattributable PENDING operator recovery) are unchanged. No real execution driver or generic executor exists. No further Builder action is authorized.
 
 ## Builder objective
 

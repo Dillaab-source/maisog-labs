@@ -37,8 +37,8 @@ const MUTANTS = [
   {
     id: "M03-claimed-permit-expires",
     file: "devos/execution/host.mjs",
-    from: "if (effectivePermitState(p, now) === \"EXPIRED_UNCLAIMED\" && p.state === \"ISSUED\") setPermitState(p, \"EXPIRED_UNCLAIMED\");",
-    to: "if ((p.state === \"ISSUED\" || p.state === \"CLAIMED\") && now >= p.claim_deadline_ms) p.state = \"EXPIRED_UNCLAIMED\";",
+    from: "      if (p.state !== \"ISSUED\" || effectivePermitState(p, now) !== \"EXPIRED_UNCLAIMED\") continue;\n      setPermitState(p, \"EXPIRED_UNCLAIMED\");",
+    to: "      if (![\"ISSUED\", \"CLAIMED\"].includes(p.state) || now < p.claim_deadline_ms) continue;\n      p.state = \"EXPIRED_UNCLAIMED\";",
     tests: "tests/execution-permits.test.mjs",
     pattern: "CLAIMED permit never becomes safe by expiry",
   },
@@ -405,6 +405,15 @@ const MUTANTS = [
     to: ";",
     tests: "tests/execution-store.test.mjs",
     pattern: "a corrupted, truncated or foreign envelope",
+  },
+  // ---- AS102-F001: lazy expiry must commit its justifying evidence (§13.6 I5)
+  {
+    id: "M49-expiry-without-journal-evidence",
+    file: "devos/execution/host.mjs",
+    from: "      journal(st, st.instances[p.instance_id], \"PERMIT_EXPIRED\", {\n        permit_id: permitId, permit_digest: p.permit_digest, reason: \"CLAIM_DEADLINE_PASSED\",\n        claim_deadline: new Date(p.claim_deadline_ms).toISOString(),\n      });\n",
+    to: "",
+    tests: "tests/execution-expiry.test.mjs",
+    pattern: "E1: an expired attempted claim",
   },
 ];
 
