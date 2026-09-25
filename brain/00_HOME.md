@@ -14,6 +14,8 @@ Context Bootstrap V0 (`D-062`): resolve `governance/maisoglabs-v0.1` to one exac
 4. `CLAUDE.md` or `AGENTS.md` — your provider entrypoint.
 5. `coordination/README.md` — the coordination-channel mechanics.
 
+This is the live Protocol V1 order. Protocol V2 (`ML-DEVOS-RFC-020`) is implemented but not active. Once a separate owner Stage B decision activates it, an ordinary Builder turn instead reads STATE, the `coordination/CURRENT_DIRECTIVE.md` that STATE selects and `coordination/OPERATIVE_OBLIGATIONS.md`, runs the checker, and retrieves the named governing artifacts just in time (`CLAUDE.md` "Protocol V2 Builder startup"; `protocols/CONTEXT_BOOTSTRAP.md` §10).
+
 ## Reference records (read when the task requires them)
 
 - `PROJECT_GOVERNANCE.md` — roles, baseline, current architecture/storage/admin status, restrictions, legacy branch inventory.

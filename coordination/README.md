@@ -20,6 +20,8 @@ Roles are governed positions, assigned by the applicable decision chain — not 
 | `CURRENT_HANDOFF.md` | Builder | The bounded current Builder→Architect evidence report, selected by STATE's identity tuple. Grants no authority. |
 | `OPERATIVE_OBLIGATIONS.md` | both, per transition | Carry-forward index of unresolved obligations; rows leave only by cited closure/supersession. |
 | `archive/handoffs/` | both, per transition | Immutable byte-exact copies of every outgoing CURRENT_HANDOFF, with provenance. |
+| `CURRENT_DIRECTIVE.md` | Owner/Architect (Protocol V2 only) | **Inactive scaffolding** while `PROTOCOL_VERSION: 1`. Under V2 (`ML-DEVOS-RFC-020`, not active): the Owner/Architect → Builder execution packet selected by STATE's directive selector. Transport, never authority. |
+| `archive/directives/` | both, per transition (Protocol V2 only) | Immutable byte-exact copies of every outgoing CURRENT_DIRECTIVE, with provenance and an index. Empty until V2 is active. |
 | `IMPLEMENTER_HANDOFF.md` | nobody | **Frozen** historical evidence (blob `43eddba31695a567412c431ae3d1e4c9372cabdd`). Not a startup read; never appended. Read only for a concrete historical question. |
 
 ## Communication cycle
@@ -51,6 +53,9 @@ Next authorized turn
 - Owner-requested **advisory**, read-only analysis is permitted on any turn. It writes nothing governed.
 - A resumed, compacted, or reconnected session re-bootstraps from a fresh exact snapshot before any governed write. A `PROTOCOL_VERSION` mismatch stops the session.
 - `node scripts/check-context-bootstrap.mjs --commit <sha>` checks a snapshot. `--publish --candidate <sha>` runs every transition check and publishes with the lease.
+- Protocol V2 (`ML-DEVOS-RFC-020`) is implemented and tested but **not active**:
+  - the checker refuses directive selector fields in a V1 STATE, and any undeclared `PROTOCOL_VERSION` change;
+  - once activated by a separate owner Stage B decision, a Builder turn is routed by an `ACTIVE` CURRENT_DIRECTIVE, and the Builder's return commit deselects and archives it (`brain/protocols/CONTEXT_BOOTSTRAP.md` §10).
 
 ## Important limitations
 

@@ -1,6 +1,12 @@
 # ML-DEVOS-RFC-020: Canonical Directive Transport / Context Bootstrap V2
 
-Status: `DRAFT — ARCHITECT-APPROVED PROPOSAL; IMPLEMENTATION NOT AUTHORIZED`
+Status: `ARCHITECT-APPROVED PROPOSAL (ML-DEVOS-AS-108) — STAGE A IMPLEMENTED UNDER D-079, PENDING ARCHITECT REVIEW; PROTOCOL V2 NOT ACTIVATED`
+
+Stage A implementation provenance (added under `D-079`):
+- Dual-version checker support, the inert `coordination/CURRENT_DIRECTIVE.md` scaffolding, the directive archive, tests, protocol documentation and Skills were implemented while live STATE remained `PROTOCOL_VERSION: 1`.
+- Stage A implementation evidence is Builder-reported and awaits independent Architect review.
+- Protocol V2 activation (Stage B, §21) still requires a separate Paulo decision.
+- The text below is the approved proposal, unchanged.
 
 Proposed change class: `ARCHITECTURE`
 

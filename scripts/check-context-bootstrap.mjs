@@ -7,6 +7,14 @@
 // present the V0 checks apply; without it the checker reports the legacy
 // protocol and never claims V0 is live.
 //
+// Dual-version support (ML-DEVOS-RFC-020 Stage A, ML-DEVOS-AS-108 -> D-079):
+// the checker also understands Protocol V2 (the CURRENT_DIRECTIVE
+// Owner/Architect -> Builder execution packet). V2 is implemented and
+// tested here but NOT active: the live repository stays PROTOCOL_VERSION 1
+// until a separate owner Stage B decision. Under V1 the directive selector
+// fields are refused outright, so CURRENT_DIRECTIVE can never become a live
+// V1 selector, and a 1 -> 2 cutover must be declared explicitly.
+//
 // The checker validates only mechanically knowable facts. It never proves
 // authority legitimacy, model identity, semantic review completeness,
 // external side-effect atomicity, or S5 capability (see NOT_PROVEN).
@@ -18,8 +26,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const SUPPORTED_PROTOCOL_VERSIONS = Object.freeze([1]);
+export const SUPPORTED_PROTOCOL_VERSIONS = Object.freeze([1, 2]);
 export const SUPPORTED_HANDOFF_SCHEMA_VERSIONS = Object.freeze([1]);
+export const SUPPORTED_DIRECTIVE_SCHEMA_VERSIONS = Object.freeze([1]);
 export const MAX_PUBLICATION_ATTEMPTS = 3;
 export const EXPECTED_REPOSITORY = 'Dillaab-source/maisog-labs';
 export const AUTHORITATIVE_BRANCH = 'governance/maisoglabs-v0.1';
@@ -35,6 +44,11 @@ export const PATHS = Object.freeze({
   obligations: 'coordination/OPERATIVE_OBLIGATIONS.md',
   handoffArchiveDir: 'coordination/archive/handoffs',
   syncArchiveDir: 'devos/changes/architect-syncs',
+  // RFC-020 (Protocol V2; inert scaffolding under live V1).
+  currentDirective: 'coordination/CURRENT_DIRECTIVE.md',
+  directiveArchiveDir: 'coordination/archive/directives',
+  directiveArchiveIndex: 'coordination/archive/directives/README.md',
+  decisionLog: 'brain/DECISION_LOG.md',
 });
 
 export const NOT_PROVEN = Object.freeze([
@@ -45,6 +59,7 @@ export const NOT_PROVEN = Object.freeze([
   'atomicity of any external side effect (Cloudflare, production, remote resources)',
   'S5 capability authorization',
   'that a participant did not bypass this checker by writing directly',
+  'quality, independence or completeness of any recorded SENTINEL sync or SU contradiction check (RFC-020 fields are shape/vocabulary only)',
 ]);
 
 // Identity tuple: CURRENT_HANDOFF header field -> STATE selector field.
@@ -100,6 +115,56 @@ const SHA_RE = /^[0-9a-f]{40}$/;
 const HANDOFF_ID_RE = /^H-[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 const SYNC_ID_RE = /^ML-DEVOS-AS-\d{3,}$/;
 
+// ------------------------------------------- RFC-020 Protocol V2 vocabulary
+
+// Directive identity tuple: CURRENT_DIRECTIVE header field -> STATE selector
+// field (RFC-020 §5, §7). target_turn is checked separately against TURN.
+export const DIRECTIVE_IDENTITY_FIELDS = Object.freeze({
+  directive_id: 'DIRECTIVE_ID',
+  cycle_id: 'CYCLE_ID',
+  issue_parent_commit: 'DIRECTIVE_ISSUE_PARENT',
+  authority_ref: 'DIRECTIVE_AUTHORITY_REF',
+  applicable_review_id: 'DIRECTIVE_APPLICABLE_REVIEW_ID',
+});
+// STATE selector fields that exist only under Protocol V2.
+export const DIRECTIVE_SELECTOR_FIELDS = Object.freeze([
+  'CURRENT_DIRECTIVE', 'DIRECTIVE_ID', 'DIRECTIVE_ISSUE_PARENT', 'DIRECTIVE_AUTHORITY_REF', 'DIRECTIVE_APPLICABLE_REVIEW_ID',
+]);
+// Positive allowlist of directive header keys (RFC-020 §6).
+export const DIRECTIVE_HEADER_FIELDS = Object.freeze([
+  'schema_version', 'directive_id', 'cycle_id', 'issue_parent_commit', 'target_turn',
+  'authority_ref', 'applicable_review_id', 'sentinel_disposition', 'su_mode', 'su_disposition',
+]);
+// Fixed vocabularies. They record provenance/status only; they grant nothing
+// and the checker cannot judge the reasoning behind them (RFC-020 §13).
+export const DIRECTIVE_VOCABULARY = Object.freeze({
+  target_turn: Object.freeze(['CLAUDE']),
+  sentinel_disposition: Object.freeze(['CLEAR', 'BLOCKED']),
+  su_mode: Object.freeze(['BOUNDED_CONTRADICTION', 'ESCALATED_RESEARCH']),
+  su_disposition: Object.freeze(['CLEAR', 'CLEAR_WITH_NOTES', 'BLOCKED']),
+});
+export const REQUIRED_DIRECTIVE_SECTIONS = Object.freeze([
+  'Objective',
+  'Preconditions',
+  'Governing references',
+  'Exact execution scope',
+  'SENTINEL Sync',
+  'SU Contradiction Check',
+  'Instructions',
+  'Validation and evidence',
+  'Stop conditions',
+  'Next action',
+]);
+// Guidance for a typical delta-based directive (RFC-020 §9, §19, T12). Not
+// enforced: it feeds the startup-read measurement only.
+export const DIRECTIVE_BYTE_BUDGET = 8192;
+// RFC-020 §19 planning baseline: CLAUDE.md mandatory first reads excluding
+// the conditional CURRENT_HANDOFF, at 1ea92e3798dfa2401dfcf95077f4d1fe896bccc8.
+export const RFC020_PLANNING_BASELINE_BYTES = 85625;
+
+const DIRECTIVE_ID_RE = /^DIR-[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+const DECISION_ID_RE = /^D-\d{3,}$/;
+
 const pass = (code, extra = {}) => ({ ok: true, code, ...extra });
 const fail = (code, detail, extra = {}) => ({ ok: false, code, detail, ...extra });
 
@@ -122,19 +187,34 @@ export function parseStateFields(text) {
   return fields;
 }
 
-// CURRENT_HANDOFF header: the first fenced ```yaml block, flat key: value.
-export function parseHandoffHeader(text) {
+// Rolling-packet header: the first fenced ```yaml block, flat key: value.
+// Shared by CURRENT_HANDOFF and (RFC-020) CURRENT_DIRECTIVE.
+function parseYamlHeader(text, label) {
   const m = /```yaml\n([\s\S]*?)\n```/.exec(String(text));
   if (!m) return null;
   const header = Object.create(null);
   for (const line of m[1].split('\n')) {
     if (!line.trim() || line.trim().startsWith('#')) continue;
     const kv = /^([a-z_]+):[ \t]*(.*?)[ \t]*$/.exec(line);
-    if (!kv) throw new Error(`MALFORMED_HANDOFF_HEADER: ${line}`);
-    if (kv[1] in header) throw new Error(`AMBIGUOUS_HANDOFF_HEADER: ${kv[1]} repeated`);
+    if (!kv) throw new Error(`MALFORMED_${label}_HEADER: ${line}`);
+    if (kv[1] in header) throw new Error(`AMBIGUOUS_${label}_HEADER: ${kv[1]} repeated`);
     header[kv[1]] = kv[2];
   }
   return header;
+}
+
+export function parseHandoffHeader(text) {
+  return parseYamlHeader(text, 'HANDOFF');
+}
+
+export function parseDirectiveHeader(text) {
+  return parseYamlHeader(text, 'DIRECTIVE');
+}
+
+// Level-2 headings of a rolling packet ("## Heading"), for required-section
+// checks shared by CURRENT_HANDOFF and CURRENT_DIRECTIVE.
+function headingsOf(text) {
+  return new Set([...String(text ?? '').matchAll(/^##\s+(.+?)\s*$/gm)].map((m) => m[1]));
 }
 
 export function parseReviewId(text) {
@@ -275,11 +355,304 @@ export function checkIdentityBinding(stateFields, handoffText, { transitionParen
 // carry-forward check below is what stops obligations disappearing.
 export function checkPacketReferences(handoffText) {
   const text = String(handoffText ?? '');
-  const headings = new Set([...text.matchAll(/^##\s+(.+?)\s*$/gm)].map((m) => m[1]));
+  const headings = headingsOf(text);
   const missing = REQUIRED_HANDOFF_SECTIONS.filter((s) => !headings.has(s));
   if (missing.length) return fail('MISSING_REQUIRED_SECTION', missing.join(', '));
   if (!text.includes(PATHS.obligations)) return fail('MISSING_OBLIGATION_REFERENCE', `packet does not reference ${PATHS.obligations}`);
   return pass('PACKET_REFERENCES_PRESENT');
+}
+
+// ------------------------------------ RFC-020 Protocol V2 directive checks
+
+const hasValue = (v) => v !== undefined && v !== '';
+
+// STATE directive-selector legality (RFC-020 §5, §18). Under V1 the selector
+// does not exist: any directive selector field in a V1 STATE is refused, so
+// CURRENT_DIRECTIVE can never act as a live V1 execution selector.
+export function checkDirectiveSelector(stateFields) {
+  const version = stateFields.PROTOCOL_VERSION;
+  const present = DIRECTIVE_SELECTOR_FIELDS.filter((k) => k in stateFields);
+  if (version !== '2') {
+    if (present.length) {
+      return fail('DIRECTIVE_SELECTOR_UNDER_V1',
+        `${present.join(', ')} present but PROTOCOL_VERSION is ${version ?? '∅'}; the directive selector exists only under Protocol V2`);
+    }
+    return pass('NO_DIRECTIVE_SELECTOR_V1');
+  }
+  const selector = stateFields.CURRENT_DIRECTIVE;
+  if (selector !== 'ACTIVE' && selector !== 'NONE') {
+    return fail('DIRECTIVE_SELECTOR_MISSING', 'Protocol V2 STATE must declare CURRENT_DIRECTIVE: ACTIVE or NONE');
+  }
+  const values = DIRECTIVE_SELECTOR_FIELDS.slice(1);
+  const builderTurn = stateFields.TURN === 'CLAUDE' && stateFields.IMPLEMENTER_ACTION_REQUIRED === 'YES';
+  if (selector === 'NONE') {
+    const stale = values.filter((k) => hasValue(stateFields[k]));
+    if (stale.length) return fail('STALE_DIRECTIVE_SELECTOR', `CURRENT_DIRECTIVE: NONE but ${stale.join(', ')} still set`);
+    if (builderTurn) {
+      return fail('BUILDER_TURN_WITHOUT_DIRECTIVE', 'a V2 Builder execution turn (TURN: CLAUDE, IMPLEMENTER_ACTION_REQUIRED: YES) requires CURRENT_DIRECTIVE: ACTIVE');
+    }
+    if (stateFields.TURN === 'PAULO' && stateFields.CURRENT_HANDOFF === 'ACTIVE') {
+      return fail('HANDOFF_SELECTED_ON_PAULO_TURN', 'a V2 Paulo decision turn requires CURRENT_HANDOFF: NONE');
+    }
+    return pass('NO_DIRECTIVE_STATE');
+  }
+  if (stateFields.TURN !== 'CLAUDE') {
+    return fail('DIRECTIVE_ON_NON_BUILDER_TURN', `CURRENT_DIRECTIVE: ACTIVE requires TURN: CLAUDE, found ${stateFields.TURN ?? '∅'}`);
+  }
+  if (stateFields.IMPLEMENTER_ACTION_REQUIRED !== 'YES') {
+    return fail('DIRECTIVE_WITHOUT_IMPLEMENTER_ACTION', `CURRENT_DIRECTIVE: ACTIVE requires IMPLEMENTER_ACTION_REQUIRED: YES, found ${stateFields.IMPLEMENTER_ACTION_REQUIRED ?? '∅'}`);
+  }
+  if (stateFields.CURRENT_HANDOFF === 'ACTIVE') {
+    return fail('DIRECTIVE_AND_HANDOFF_BOTH_SELECTED', 'normal V2 operation never selects CURRENT_DIRECTIVE and CURRENT_HANDOFF together');
+  }
+  const missing = values.filter((k) => !hasValue(stateFields[k]));
+  if (missing.length) return fail('DIRECTIVE_SELECTOR_INCOMPLETE', `CURRENT_DIRECTIVE: ACTIVE but ${missing.join(', ')} empty`);
+  return pass('DIRECTIVE_SELECTED', { directiveId: stateFields.DIRECTIVE_ID });
+}
+
+export function checkDirectiveSections(directiveText) {
+  const headings = headingsOf(directiveText);
+  const missing = REQUIRED_DIRECTIVE_SECTIONS.filter((s) => !headings.has(s));
+  if (missing.length) return fail('MISSING_DIRECTIVE_SECTION', missing.join(', '));
+  return pass('DIRECTIVE_SECTIONS_PRESENT');
+}
+
+// Mechanical field-for-field STATE <-> CURRENT_DIRECTIVE binding (RFC-020 §6-§9,
+// §11-§13). Options, when supplied:
+// - publicationParent: sole parent of the commit publishing these directive
+//   bytes (issue-parent binding);
+// - decisionLogText: decision log at the same snapshot (authority_ref must
+//   name an existing D-NNN heading; legitimacy is NOT proven);
+// - reviewExists(id): the Sync ID is the live review or an immutable archive.
+export function checkDirectiveBinding(stateFields, directiveText, { publicationParent, decisionLogText, reviewExists } = {}) {
+  if (stateFields.CURRENT_DIRECTIVE !== 'ACTIVE') return pass('NO_DIRECTIVE_SELECTED');
+  if (directiveText == null) return fail('DIRECTIVE_MISSING', `${PATHS.currentDirective} absent at this snapshot`);
+  let header;
+  try {
+    header = parseDirectiveHeader(directiveText);
+  } catch (err) {
+    return fail('MALFORMED_DIRECTIVE_HEADER', err.message);
+  }
+  if (!header) return fail('MALFORMED_DIRECTIVE_HEADER', 'no ```yaml directive header');
+  const unknown = Object.keys(header).filter((k) => !DIRECTIVE_HEADER_FIELDS.includes(k));
+  if (unknown.length) return fail('DIRECTIVE_HEADER_UNKNOWN_FIELD', unknown.join(', '));
+  const absent = DIRECTIVE_HEADER_FIELDS.filter((k) => !hasValue(header[k]));
+  if (absent.length) return fail('DIRECTIVE_HEADER_FIELD_MISSING', absent.join(', '));
+  if (!SUPPORTED_DIRECTIVE_SCHEMA_VERSIONS.includes(Number(header.schema_version))) {
+    return fail('UNSUPPORTED_DIRECTIVE_SCHEMA_VERSION', `schema_version ${JSON.stringify(header.schema_version)}`);
+  }
+  if (!DIRECTIVE_ID_RE.test(header.directive_id)) return fail('INVALID_DIRECTIVE_ID', header.directive_id);
+  const vocabCodes = {
+    target_turn: 'INVALID_TARGET_TURN',
+    sentinel_disposition: 'INVALID_SENTINEL_DISPOSITION',
+    su_mode: 'INVALID_SU_MODE',
+    su_disposition: 'INVALID_SU_DISPOSITION',
+  };
+  for (const [field, code] of Object.entries(vocabCodes)) {
+    if (!DIRECTIVE_VOCABULARY[field].includes(header[field])) {
+      return fail(code, `${field}=${header[field]} not in [${DIRECTIVE_VOCABULARY[field].join(', ')}]`);
+    }
+  }
+  const blocked = ['sentinel_disposition', 'su_disposition'].filter((k) => header[k] === 'BLOCKED');
+  if (blocked.length) return fail('DIRECTIVE_BLOCKED', `${blocked.join(', ')} BLOCKED; a blocked directive may not route to the Builder`);
+
+  const mismatched = [];
+  for (const [hKey, sKey] of Object.entries(DIRECTIVE_IDENTITY_FIELDS)) {
+    if (header[hKey] !== stateFields[sKey]) mismatched.push(`${hKey}(directive=${header[hKey]}, state=${stateFields[sKey] ?? '∅'})`);
+  }
+  if (mismatched.length) return fail('DIRECTIVE_IDENTITY_MISMATCH', mismatched.join('; '));
+  if (header.target_turn !== stateFields.TURN) {
+    return fail('DIRECTIVE_TARGET_TURN_MISMATCH', `target_turn ${header.target_turn} != TURN ${stateFields.TURN ?? '∅'}`);
+  }
+  if (!SHA_RE.test(header.issue_parent_commit)) return fail('DIRECTIVE_ISSUE_PARENT_NOT_EXACT', header.issue_parent_commit);
+  if (publicationParent !== undefined && header.issue_parent_commit !== publicationParent) {
+    return fail('DIRECTIVE_ISSUE_PARENT_MISMATCH',
+      `issue_parent_commit ${header.issue_parent_commit} != parent ${publicationParent} of the commit publishing the directive`);
+  }
+  if (!DECISION_ID_RE.test(header.authority_ref)) return fail('INVALID_AUTHORITY_REF', header.authority_ref);
+  if (decisionLogText !== undefined) {
+    const heading = new RegExp(`^### ${header.authority_ref}(?=\\s|$)`, 'm');
+    if (!heading.test(String(decisionLogText))) {
+      return fail('DIRECTIVE_AUTHORITY_NOT_FOUND', `${header.authority_ref} has no heading in ${PATHS.decisionLog} at this snapshot (existence only; legitimacy is not proven)`);
+    }
+  }
+  if (!SYNC_ID_RE.test(header.applicable_review_id)) return fail('INVALID_DIRECTIVE_REVIEW_ID', header.applicable_review_id);
+  if (reviewExists && !reviewExists(header.applicable_review_id)) {
+    return fail('DIRECTIVE_REVIEW_NOT_FOUND', `${header.applicable_review_id} is neither the live review nor an immutable archive at this snapshot`);
+  }
+  const sections = checkDirectiveSections(directiveText);
+  if (!sections.ok) return sections;
+  return pass('DIRECTIVE_BOUND', { directiveId: header.directive_id });
+}
+
+// PROTOCOL_VERSION transitions (RFC-020 §3, §21, §22). A change between two
+// defined versions is a protocol cutover: it must be declared explicitly by
+// the publisher (`--protocol-cutover <from>-><to>`, under its own owner
+// decision; the declaration is a procedural guard, not proof of authority),
+// and a 1 -> 2 activation must route to a non-Builder gate with no directive.
+export function checkProtocolTransition(before, after, { declaredCutover } = {}) {
+  const from = before.PROTOCOL_VERSION;
+  const to = after.PROTOCOL_VERSION;
+  if (from === undefined || from === to) {
+    if (declaredCutover) return fail('PROTOCOL_CUTOVER_NOT_PERFORMED', `declared ${declaredCutover} but PROTOCOL_VERSION is unchanged`);
+    return pass('PROTOCOL_UNCHANGED');
+  }
+  const label = `${from}->${to}`;
+  if (declaredCutover !== label) {
+    return fail('PROTOCOL_CUTOVER_UNDECLARED',
+      `candidate changes PROTOCOL_VERSION ${label}; a cutover requires its own owner decision and an explicit --protocol-cutover ${label}`);
+  }
+  if (to === '2') {
+    if (after.CURRENT_DIRECTIVE !== 'NONE') return fail('V2_ACTIVATION_WITH_DIRECTIVE', 'V2 activation must set CURRENT_DIRECTIVE: NONE');
+    if (after.TURN === 'CLAUDE') return fail('V2_ACTIVATION_ROUTES_TO_BUILDER', 'V2 activation must route to a non-Builder gate (TURN: PAULO or ARCHITECT)');
+  }
+  return pass('PROTOCOL_CUTOVER_DECLARED', { from: Number(from), to: Number(to) });
+}
+
+export function directiveArchivePath(directiveId) {
+  if (!DIRECTIVE_ID_RE.test(directiveId)) throw new Error(`INVALID_DIRECTIVE_ID: ${directiveId}`);
+  return `${PATHS.directiveArchiveDir}/${directiveId}.md`;
+}
+
+export function directiveProvenancePath(directiveId) {
+  return directiveArchivePath(directiveId).replace(/\.md$/, '.provenance.json');
+}
+
+const directiveIndexRow = (id, cycleId, publicationCommit, blob) => `| ${id} | ${cycleId} | ${publicationCommit} | ${blob} |`;
+
+// Deterministic, immutable, provenance-carrying directive archival
+// (RFC-020 §16). Writes <id>.md (exact bytes) and <id>.provenance.json, and
+// appends one row to the archive index. Identical existing bytes are a no-op;
+// different bytes fail closed.
+export function archiveDirective({ root, directiveId, bytes, publicationCommit, cycleId, fsImpl = fs }) {
+  let rel;
+  try {
+    rel = directiveArchivePath(directiveId);
+  } catch (err) {
+    return fail('INVALID_DIRECTIVE_ID', err.message);
+  }
+  if (!SHA_RE.test(String(publicationCommit))) return fail('PROVENANCE_MISSING', 'publicationCommit must be an exact commit');
+  if (!cycleId) return fail('PROVENANCE_MISSING', 'cycleId is required');
+  const buf = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+  const blob = gitBlobId(buf);
+  const target = path.join(root, rel);
+  const sidecar = path.join(root, directiveProvenancePath(directiveId));
+  const index = path.join(root, PATHS.directiveArchiveIndex);
+  const provenance = `${JSON.stringify({
+    directive_id: directiveId,
+    cycle_id: cycleId,
+    source_path: PATHS.currentDirective,
+    publication_commit: publicationCommit,
+    source_blob: blob,
+    archive_blob: blob,
+    sha256: createHash('sha256').update(buf).digest('hex'),
+  }, null, 2)}\n`;
+
+  let existing = null;
+  try {
+    existing = fsImpl.readFileSync(target);
+  } catch (err) {
+    if (err.code !== 'ENOENT') return fail('ARCHIVE_WRITE_FAILED', err.message);
+  }
+  if (existing) {
+    if (Buffer.compare(existing, buf) !== 0) {
+      return fail('ARCHIVE_ID_CONFLICT', `${rel} already exists with different bytes; archive entries are immutable`);
+    }
+    return pass('ALREADY_ARCHIVED', { path: rel, blob });
+  }
+  const created = [];
+  try {
+    fsImpl.mkdirSync(path.dirname(target), { recursive: true });
+    fsImpl.writeFileSync(target, buf, { flag: 'wx' });
+    created.push(target);
+    fsImpl.writeFileSync(sidecar, provenance, { flag: 'wx' });
+    created.push(sidecar);
+    let indexText = '';
+    try { indexText = fsImpl.readFileSync(index, 'utf8'); } catch (err) { if (err.code !== 'ENOENT') throw err; }
+    if (!indexText.includes(`| ${directiveId} |`)) {
+      const sep = indexText === '' || indexText.endsWith('\n') ? '' : '\n';
+      fsImpl.writeFileSync(index, `${indexText}${sep}${directiveIndexRow(directiveId, cycleId, publicationCommit, blob)}\n`);
+    }
+  } catch (err) {
+    for (const f of created) {
+      try { fsImpl.unlinkSync(f); } catch { /* leave for disclosure */ }
+    }
+    return fail('ARCHIVE_WRITE_FAILED', `${err.code ?? ''} ${err.message}`.trim());
+  }
+  return pass('ARCHIVED', { path: rel, blob });
+}
+
+// Directive half of a coordination transition (RFC-020 §14, §16, §17). Not
+// applicable while both sides are Protocol V1 (CURRENT_DIRECTIVE is inert
+// scaffolding). `resolvePublication()` returns the commit that published the
+// outgoing directive bytes, for the provenance check.
+export function checkDirectiveTransition({ read, changedFiles, resolvePublication }) {
+  const changed = new Set(changedFiles);
+  const b = parseStateFields(read('before', PATHS.state) ?? '');
+  const a = parseStateFields(read('after', PATHS.state) ?? '');
+  const bV2 = b.PROTOCOL_VERSION === '2';
+  const aV2 = a.PROTOCOL_VERSION === '2';
+  if (!bV2 && !aV2) return pass('DIRECTIVE_TRANSITION_NOT_APPLICABLE');
+
+  const directiveChanged = changed.has(PATHS.currentDirective);
+  const bActive = bV2 && b.CURRENT_DIRECTIVE === 'ACTIVE';
+  const aActive = aV2 && a.CURRENT_DIRECTIVE === 'ACTIVE';
+  const idChanged = (b.DIRECTIVE_ID ?? '') !== (a.DIRECTIVE_ID ?? '');
+  if (aActive && (idChanged || !bActive) && !directiveChanged) {
+    return fail('PARTIAL_DIRECTIVE_TRANSITION', 'STATE selects a new directive but CURRENT_DIRECTIVE is not in the same commit');
+  }
+  if (aV2 && directiveChanged && !changed.has(PATHS.state)) {
+    return fail('PARTIAL_DIRECTIVE_TRANSITION', 'CURRENT_DIRECTIVE changed without the STATE transition that selects it');
+  }
+  if (aActive && bActive && !idChanged && directiveChanged) {
+    return fail('DUPLICATE_ID_DIFFERENT_BYTES', `${a.DIRECTIVE_ID} rewritten in place; mint a new directive_id`);
+  }
+
+  const outgoing = read('before', PATHS.currentDirective);
+  const deselected = bActive && (!aActive || idChanged);
+  if (bActive && outgoing != null && (deselected || directiveChanged)) {
+    let outHeader;
+    try { outHeader = parseDirectiveHeader(outgoing); } catch { outHeader = null; }
+    const outId = outHeader?.directive_id;
+    if (!outId || !DIRECTIVE_ID_RE.test(outId)) return fail('OUTGOING_DIRECTIVE_UNIDENTIFIED', 'outgoing directive has no valid directive_id');
+    const archived = read('after', directiveArchivePath(outId));
+    if (archived == null || Buffer.compare(Buffer.from(archived), Buffer.from(outgoing)) !== 0) {
+      return fail('OUTGOING_DIRECTIVE_NOT_PRESERVED', `${directiveArchivePath(outId)} must hold the exact outgoing bytes`);
+    }
+    const provText = read('after', directiveProvenancePath(outId));
+    if (provText == null) return fail('DIRECTIVE_PROVENANCE_MISSING', directiveProvenancePath(outId));
+    let prov;
+    try { prov = JSON.parse(String(provText)); } catch (err) { return fail('DIRECTIVE_PROVENANCE_MISMATCH', `unparseable provenance: ${err.message}`); }
+    const expected = {
+      directive_id: outId,
+      cycle_id: outHeader.cycle_id,
+      source_blob: gitBlobId(Buffer.from(outgoing)),
+      archive_blob: gitBlobId(Buffer.from(archived)),
+    };
+    const publication = resolvePublication ? resolvePublication() : undefined;
+    if (publication !== undefined) expected.publication_commit = publication;
+    const wrong = Object.entries(expected).filter(([k, v]) => prov[k] !== v).map(([k, v]) => `${k}(provenance=${prov[k] ?? '∅'}, expected=${v ?? '∅'})`);
+    if (!SHA_RE.test(String(prov.publication_commit))) wrong.push(`publication_commit(${prov.publication_commit ?? '∅'} not exact)`);
+    if (wrong.length) return fail('DIRECTIVE_PROVENANCE_MISMATCH', wrong.join('; '));
+    const index = read('after', PATHS.directiveArchiveIndex);
+    if (index == null || !String(index).includes(`| ${outId} |`)) {
+      return fail('DIRECTIVE_ARCHIVE_INDEX_MISSING', `${PATHS.directiveArchiveIndex} has no row for ${outId}`);
+    }
+  }
+
+  if (aActive && directiveChanged) {
+    const incoming = read('after', PATHS.currentDirective);
+    let inHeader;
+    try { inHeader = incoming == null ? null : parseDirectiveHeader(incoming); } catch { inHeader = null; }
+    const inId = inHeader?.directive_id;
+    if (inId && DIRECTIVE_ID_RE.test(inId)) {
+      const prior = read('before', directiveArchivePath(inId));
+      if (prior != null && Buffer.compare(Buffer.from(prior), Buffer.from(incoming)) !== 0) {
+        return fail('DUPLICATE_ID_DIFFERENT_BYTES', `${inId} is already archived with different content; mint a new directive_id`);
+      }
+    }
+  }
+  return pass('DIRECTIVE_TRANSITION_COMPLETE');
 }
 
 // ------------------------------------------------ obligation carry-forward
@@ -635,6 +1008,33 @@ export function checkReviewTargetAtSnapshot(git, snapshot, stateFields) {
   return pass('REVIEW_TARGET_IS_PUBLICATION_PARENT', { publishing });
 }
 
+// RFC-020 §7: the selected directive's issue_parent_commit must be the sole
+// parent of the commit that published the current CURRENT_DIRECTIVE bytes.
+export function lastPublishingCommit(git, snapshot, relPath) {
+  const r = git(['log', '-1', '--format=%H', snapshot, '--', relPath]);
+  const sha = r.status === 0 ? r.stdout.trim() : '';
+  return SHA_RE.test(sha) ? sha : null;
+}
+
+export function checkDirectiveIssueParentAtSnapshot(git, snapshot, stateFields) {
+  if (stateFields.PROTOCOL_VERSION !== '2' || stateFields.CURRENT_DIRECTIVE !== 'ACTIVE') return pass('NO_DIRECTIVE_SELECTED');
+  const publishing = lastPublishingCommit(git, snapshot, PATHS.currentDirective);
+  if (!publishing) return fail('DIRECTIVE_PUBLICATION_UNKNOWN', 'cannot find the commit that published CURRENT_DIRECTIVE');
+  const parents = commitParents(git, publishing) ?? [];
+  if (parents.length !== 1 || parents[0] !== stateFields.DIRECTIVE_ISSUE_PARENT) {
+    return fail('DIRECTIVE_ISSUE_PARENT_MISMATCH',
+      `CURRENT_DIRECTIVE published by ${publishing} with parents [${parents.join(', ')}]; DIRECTIVE_ISSUE_PARENT is ${stateFields.DIRECTIVE_ISSUE_PARENT}`);
+  }
+  return pass('DIRECTIVE_ISSUE_PARENT_IS_PUBLICATION_PARENT', { publishing });
+}
+
+// A Sync ID "exists" when it is the live review or an immutable archive.
+function reviewExistsIn(read, id) {
+  const live = read(PATHS.review);
+  if (live != null && parseReviewId(live) === id) return true;
+  return read(syncArchivePath(id)) != null;
+}
+
 export function resolveRemoteTip(git, remote, branch) {
   const r = git(['ls-remote', '--heads', remote, `refs/heads/${branch}`]);
   if (r.status !== 0) return null;
@@ -809,6 +1209,27 @@ export function measureBaseline(git, commit) {
   const legacy = read(PATHS.legacyHandoff) ?? '';
   const union = measure([...claudeSet, ...homeSet]);
   const claudeMeasure = measure(claudeSet);
+  // RFC-020 §19: the declared future ordinary V2 Builder startup set, and the
+  // V1 set excluding the conditional CURRENT_HANDOFF (the RFC's basis).
+  const v2Set = ['CLAUDE.md', ...sectionTokens(claude, '## Protocol V2 Builder startup').map(resolve).filter(Boolean)];
+  const v1Unconditional = measure(claudeSet.filter((f) => f !== PATHS.currentHandoff));
+  let v2 = null;
+  if (v2Set.length > 1) {
+    const m = measure(v2Set);
+    const directiveRow = m.rows.find((r) => r.file === PATHS.currentDirective);
+    const atBudget = directiveRow ? m.bytes - directiveRow.bytes + DIRECTIVE_BYTE_BUDGET : null;
+    const reduction = (bytes) => +(1 - bytes / RFC020_PLANNING_BASELINE_BYTES).toFixed(3);
+    v2 = {
+      status: 'DECLARED_NOT_ACTIVE',
+      ...m,
+      directive_byte_budget: DIRECTIVE_BYTE_BUDGET,
+      bytes_with_budget_sized_directive: atBudget,
+      rfc020_planning_baseline_bytes: RFC020_PLANNING_BASELINE_BYTES,
+      reduction_vs_rfc020_baseline: reduction(m.bytes),
+      reduction_vs_rfc020_baseline_with_budget_sized_directive: atBudget == null ? null : reduction(atBudget),
+      reduction_vs_v1_unconditional_at_commit: v1Unconditional.bytes ? +(1 - m.bytes / v1Unconditional.bytes).toFixed(3) : null,
+    };
+  }
   const operativeReaders = [
     'AGENTS.md', 'CLAUDE.md', 'coordination/README.md', 'brain/00_HOME.md', 'brain/PROJECT_GOVERNANCE.md',
     'brain/ARCHITECT_HANDOFF.md', 'brain/protocols/ARCHITECT_SYNC.md',
@@ -831,6 +1252,8 @@ export function measureBaseline(git, commit) {
       mandatory_in: [claudeSet.includes(PATHS.legacyHandoff) && 'CLAUDE.md', homeSet.includes(PATHS.legacyHandoff) && 'brain/00_HOME.md'].filter(Boolean),
     },
     claude_md_mandatory: claudeMeasure,
+    claude_md_mandatory_excluding_conditional_handoff: { files: v1Unconditional.files, bytes: v1Unconditional.bytes, estimated_tokens: v1Unconditional.estimated_tokens },
+    v2_builder_startup: v2,
     home_read_order: measure(homeSet),
     union_mandatory: { files: union.files, bytes: union.bytes, estimated_tokens: union.estimated_tokens },
     repeated_reads: claudeSet.filter((f) => homeSet.includes(f)),
@@ -857,6 +1280,7 @@ function parseArgs(argv) {
     else if (a === '--transition-id') opts.transitionId = next();
     else if (a === '--check-only') opts.checkOnly = true;
     else if (a === '--frozen-legacy-blob') opts.frozenLegacyBlob = next();
+    else if (a === '--protocol-cutover') opts.protocolCutover = next();
     else if (a === '--help' || a === '-h') opts.mode = 'help';
     else throw new Error(`unknown argument ${a}`);
   }
@@ -873,6 +1297,15 @@ function activeSnapshotChecks(git, snapshot, fields, opts) {
     checkReviewTargetAtSnapshot(git, snapshot, fields),
   ];
   if (fields.CURRENT_HANDOFF === 'ACTIVE') checks.push(checkPacketReferences(handoff));
+  // RFC-020: directive selector (refused under V1) and, under V2, binding.
+  checks.push(checkDirectiveSelector(fields));
+  if (fields.PROTOCOL_VERSION === '2' && fields.CURRENT_DIRECTIVE === 'ACTIVE') {
+    checks.push(checkDirectiveBinding(fields, read(PATHS.currentDirective), {
+      decisionLogText: read(PATHS.decisionLog) ?? '',
+      reviewExists: (id) => reviewExistsIn(read, id),
+    }));
+    checks.push(checkDirectiveIssueParentAtSnapshot(git, snapshot, fields));
+  }
   const obligations = read(PATHS.obligations);
   checks.push(obligations == null ? fail('OBLIGATION_INVENTORY_MISSING', PATHS.obligations) : checkObligationInventory(obligations));
   checks.push(checkLegacyFrozen(blobAtCommit(git, snapshot, PATHS.legacyHandoff), opts.frozenLegacyBlob));
@@ -907,14 +1340,22 @@ function runPublish(git, opts) {
   const read = (w, p) => readAtCommit(git, w === 'before' ? parent : candidate, p);
   const changedFiles = git(['diff', '--name-only', parent, candidate]).stdout.split('\n').filter(Boolean);
   let after;
+  let before;
   try {
     after = parseStateFields(read('after', PATHS.state) ?? '');
+    before = parseStateFields(read('before', PATHS.state) ?? '');
   } catch (err) {
     checks.push(fail('AMBIGUOUS_STATE', err.message));
     return { ...report, parent, checks, ok: false };
   }
-  const pv = checkProtocolVersion(after, { sessionProtocolVersion: opts.sessionProtocolVersion });
+  // A declared cutover is published by a session bootstrapped on the parent's
+  // protocol; every other transition keeps before == after.
+  const cutover = opts.protocolCutover !== undefined && before.PROTOCOL_VERSION !== undefined;
+  const pv = checkProtocolVersion(after, { sessionProtocolVersion: cutover ? undefined : opts.sessionProtocolVersion });
   checks.push(pv.ok && !pv.active ? fail('PROTOCOL_NOT_ACTIVE', 'governed V0 publication requires PROTOCOL_VERSION in the candidate STATE') : pv);
+  if (cutover && opts.sessionProtocolVersion !== undefined) {
+    checks.push(checkProtocolVersion(before, { sessionProtocolVersion: opts.sessionProtocolVersion }));
+  }
   if (pv.ok && pv.active) {
     if (after.CURRENT_HANDOFF === 'ACTIVE' && changedFiles.includes(PATHS.currentHandoff)) {
       const handoff = read('after', PATHS.currentHandoff);
@@ -928,6 +1369,21 @@ function runPublish(git, opts) {
       checks.push(checkIdentityBinding(after, read('after', PATHS.currentHandoff), {}));
     }
     checks.push(checkTransitionCompleteness({ read, changedFiles }));
+    // RFC-020: protocol cutover guard, directive selector/binding/transition.
+    checks.push(checkProtocolTransition(before, after, { declaredCutover: opts.protocolCutover }));
+    checks.push(checkDirectiveSelector(after));
+    if (after.PROTOCOL_VERSION === '2' && after.CURRENT_DIRECTIVE === 'ACTIVE') {
+      const directiveChanged = changedFiles.includes(PATHS.currentDirective);
+      checks.push(checkDirectiveBinding(after, read('after', PATHS.currentDirective), {
+        publicationParent: directiveChanged ? parent : undefined,
+        decisionLogText: read('after', PATHS.decisionLog) ?? '',
+        reviewExists: (id) => reviewExistsIn((p) => read('after', p), id),
+      }));
+      if (!directiveChanged) checks.push(checkDirectiveIssueParentAtSnapshot(git, parent, after));
+    }
+    checks.push(checkDirectiveTransition({
+      read, changedFiles, resolvePublication: () => lastPublishingCommit(git, parent, PATHS.currentDirective) ?? undefined,
+    }));
     checks.push(checkLegacyAppend(after, changedFiles));
     checks.push(checkLegacyFrozen(blobAtCommit(git, candidate, PATHS.legacyHandoff), opts.frozenLegacyBlob));
     const beforeInv = read('before', PATHS.obligations);
@@ -984,6 +1440,7 @@ const HELP = `usage: node scripts/check-context-bootstrap.mjs [--status] [--comm
          [--branch ${AUTHORITATIVE_BRANCH}] [--expected-repo ${EXPECTED_REPOSITORY}] [--session-protocol <n>]
        node scripts/check-context-bootstrap.mjs --baseline [--commit <sha>]
        node scripts/check-context-bootstrap.mjs --publish --candidate <sha> [--check-only] [--transition-id <id>] [--remote origin] [--branch ...]
+         [--session-protocol <n>] [--protocol-cutover <from>-><to>  (only under an owner cutover decision)]
 Exit: 0 all checks pass; 1 a check failed (fail closed); 2 usage error.`;
 
 export function main(argv = process.argv.slice(2), { cwd = process.cwd(), stdout = process.stdout } = {}) {

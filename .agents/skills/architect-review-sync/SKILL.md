@@ -34,6 +34,12 @@ This Skill packages an already-defined review procedure. It never grants review 
 3. Select the applicable review mode and issue exactly one of that mode's defined verdicts.
 4. Mint the next unused `ML-DEVOS-AS-NNN`. Never republish an existing Sync ID with changed bytes; every published review revision is a new ID (`ML-DEVOS-AS-079` `AS79-R001`).
 5. Build one candidate commit parented on the exact tip containing the whole transition: the new `coordination/ARCHITECT_REVIEW.md`, its byte-identical archive `devos/changes/architect-syncs/ML-DEVOS-AS-<NNN>.md`, the updated STATE, and — when STATE stops selecting the Builder's handoff (e.g. `CURRENT_HANDOFF: NONE` with empty selector fields while routing back to the Builder) — the outgoing handoff's exact bytes at `coordination/archive/handoffs/<handoff_id>.md` plus its `.provenance.json`, unless already archived. Keep every unresolved `OPERATIVE_OBLIGATIONS.md` row or close it with a citation.
+5a. **Protocol V2 only** (`ML-DEVOS-RFC-020`; not active while `PROTOCOL_VERSION: 1`). When routing work back to the Builder, the same commit also publishes a new `coordination/CURRENT_DIRECTIVE.md` under a new `DIR-` ID, with:
+   - the matching STATE selector: `CURRENT_DIRECTIVE: ACTIVE`, `DIRECTIVE_ID`, `DIRECTIVE_ISSUE_PARENT` (the exact tip), `DIRECTIVE_AUTHORITY_REF` and `DIRECTIVE_APPLICABLE_REVIEW_ID`;
+   - the ten required sections;
+   - a fresh SENTINEL sync and an SU contradiction check recorded in the directive.
+
+   A `BLOCKED` disposition is never issued to the Builder. The directive is transport only; it never widens authority.
 6. Publish only with exact-old-value compare-and-swap on the branch ref. A provider that cannot do this is advisory/read-only and must not publish.
 
 ## Output

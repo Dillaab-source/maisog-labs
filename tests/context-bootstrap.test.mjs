@@ -264,7 +264,10 @@ test('unavailable freshness source blocks governed mutation', (t) => {
 // ------------------------------------------------- protocol version
 
 test('unsupported protocol and schema versions fail closed', () => {
-  assert.equal(checkProtocolVersion({ PROTOCOL_VERSION: '2' }).code, 'UNSUPPORTED_PROTOCOL_VERSION');
+  // RFC-020 Stage A (D-079): the checker is dual-version, so 2 is now a
+  // supported (but not live) version; the first unsupported value is 3.
+  assert.equal(checkProtocolVersion({ PROTOCOL_VERSION: '3' }).code, 'UNSUPPORTED_PROTOCOL_VERSION');
+  assert.equal(checkProtocolVersion({ PROTOCOL_VERSION: '2' }).code, 'PROTOCOL_VERSION_SUPPORTED');
   assert.equal(checkProtocolVersion({ PROTOCOL_VERSION: 'v1' }).code, 'UNSUPPORTED_PROTOCOL_VERSION');
   const st = v0State('H-1');
   const h = handoffText({ ...header('H-1'), schema_version: 9 }).replace('schema_version: 1\n', '');

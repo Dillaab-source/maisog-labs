@@ -4,6 +4,11 @@ Status: `ACTIVE — PROTOCOL_VERSION 1`. Activated by the `D-062` Stage B atomic
 
 Authority: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062` (Stage A accepted in `ML-DEVOS-AS-079`/`ML-DEVOS-AS-080`). RFC-018 is the governing text; where this summary and the RFC differ, the RFC wins.
 
+**Protocol V2 (`ML-DEVOS-RFC-020`, reviewed in `ML-DEVOS-AS-108`):**
+- Status: **implemented and tested, NOT ACTIVE.** `D-079` (Stage A) added dual-version checker support and the `CURRENT_DIRECTIVE` scaffolding described in §10.
+- Everything in §§1–9 is the live V1 protocol and is unchanged.
+- V2 becomes live only through a separate owner Stage B activation decision (§10.6).
+
 ## 1. Kernel invariants
 
 1. Repository state outranks conversation memory. A resumed, compacted, or reconnected session re-bootstraps before any governed mutation.
@@ -94,10 +99,15 @@ Rollback is a new forward-recovery commit parented on the fresh tip, never a rev
   - it requires a clean worktree and a single-parent candidate whose parent is the current tip;
   - it runs every transition check (identity binding, completeness and archives, legacy append/freeze, obligation carry-forward);
   - only then does it push with the exact-old-value lease, recording attempts against `MAX_PUBLICATION_ATTEMPTS`.
-- `--baseline` prints the measured startup-read baseline.
+- `--baseline` prints the measured startup-read baseline. It also prints the declared V2 Builder startup set (§10.7).
+- The checker is dual-version:
+  - it supports `PROTOCOL_VERSION` 1 and 2;
+  - it refuses directive selector fields in a V1 STATE;
+  - under V2 it runs the §10 directive checks;
+  - it refuses any undeclared change of `PROTOCOL_VERSION` (`PROTOCOL_CUTOVER_UNDECLARED`). A cutover is published with `--protocol-cutover <from>-><to>`, and only under its own owner decision.
 - Exit codes: `0` pass, `1` fail closed, `2` usage.
 
-`tests/context-bootstrap.test.mjs` exercises these checks, including an end-to-end activation published through `--publish`.
+`tests/context-bootstrap.test.mjs` exercises these checks, including an end-to-end activation published through `--publish`. `tests/context-bootstrap-v2.test.mjs` covers the RFC-020 §24 V2 cases with synthetic fixtures and hermetic repositories.
 
 The checker does not prove: legitimacy of recorded authority; that a committed authorization claim was actually granted; actor/model identity; semantic completeness of a review; external side-effect atomicity; S5 capability; that nobody bypassed it.
 
@@ -122,3 +132,52 @@ Measured with `node scripts/check-context-bootstrap.mjs --baseline --commit 93a6
 | Operative readers/writers referencing the legacy handoff | 10 (`CLAUDE.md`, `coordination/README.md`, `brain/00_HOME.md`, `brain/PROJECT_GOVERNANCE.md`, `brain/ARCHITECT_HANDOFF.md`, `brain/protocols/ARCHITECT_SYNC.md`, 2 canonical skills, 2 generated bridges) |
 
 Not captured by this checker: orientation time, how many history reads a session actually made, and recovery of active obligations. These are per-session behaviors, not repository facts, and belong in the post-cutover pilot record (`OBL-009`).
+
+## 10. Protocol V2 — CURRENT_DIRECTIVE (`ML-DEVOS-RFC-020`; implemented, NOT ACTIVE)
+
+While STATE reads `PROTOCOL_VERSION: 1`, nothing here applies to a live turn and `coordination/CURRENT_DIRECTIVE.md` is inert scaffolding. RFC-020 is the governing text, and the checker codes are defined in `scripts/check-context-bootstrap.mjs`.
+
+**Packets.**
+- `CURRENT_DIRECTIVE` carries Owner/Architect → Builder execution transport.
+- `CURRENT_HANDOFF` carries Builder → Architect evidence.
+- Neither is authority. Effective scope is the intersection of STATE, the referenced decision, the referenced review/specification and the directive. Anything outside it is a stop condition.
+
+**V2 STATE selector:** `CURRENT_DIRECTIVE: ACTIVE|NONE`, `DIRECTIVE_ID`, `DIRECTIVE_ISSUE_PARENT`, `DIRECTIVE_AUTHORITY_REF`, `DIRECTIVE_APPLICABLE_REVIEW_ID`.
+- `ACTIVE` only on a Builder execution turn (`TURN: CLAUDE`, `IMPLEMENTER_ACTION_REQUIRED: YES`), never together with an active handoff, and with all values set.
+- A V2 Builder turn without `ACTIVE` fails.
+- `NONE` requires empty values.
+- A Paulo turn selects no handoff.
+- A V1 STATE carrying any selector field is refused (`DIRECTIVE_SELECTOR_UNDER_V1`).
+
+**Directive header.** The first ```` ```yaml ```` block is a positive allowlist:
+- `schema_version`, `directive_id` (`DIR-…`), `cycle_id`, `issue_parent_commit`;
+- `target_turn` (`CLAUDE`), `authority_ref` (`D-NNN`), `applicable_review_id`;
+- `sentinel_disposition` (`CLEAR|BLOCKED`), `su_mode` (`BOUNDED_CONTRADICTION|ESCALATED_RESEARCH`), `su_disposition` (`CLEAR|CLEAR_WITH_NOTES|BLOCKED`).
+
+**Binding rules.**
+- The header binds field-for-field to the selector, and `target_turn` must equal `TURN`.
+- `issue_parent_commit` is the sole parent of the commit that first publishes those bytes.
+- `authority_ref` must exist as a `### D-NNN` heading, and the review as the live review or an immutable archive. This is existence only; legitimacy is not proven.
+- `BLOCKED` never routes to the Builder. The SENTINEL/SU fields are checked for vocabulary only.
+
+**Required body sections:** `Objective`, `Preconditions`, `Governing references`, `Exact execution scope`, `SENTINEL Sync`, `SU Contradiction Check`, `Instructions`, `Validation and evidence`, `Stop conditions`, `Next action`. Directives are delta-based. About 8 KiB is guidance (`DIRECTIVE_BYTE_BUDGET`), not a limit.
+
+**Lifecycle.**
+- **Issue:** one commit publishes the directive, `TURN: CLAUDE` and the selector.
+- **Builder return:** one commit publishes the work and CURRENT_HANDOFF, sets `TURN: ARCHITECT` and `CURRENT_DIRECTIVE: NONE`, and archives the directive.
+- **Remediation:** a new Sync ID and a new `DIR-` ID; the handoff is archived as in §6a.
+- **Archive:** each outgoing directive goes byte-for-byte to `coordination/archive/directives/<id>.md`, with `.provenance.json` and an index row (`archiveDirective()`).
+- **Immutable IDs:** never republished with changed bytes. Partial transitions are refused.
+
+**SENTINEL/SU.**
+- Each directive follows a fresh SENTINEL sync and an SU contradiction check. SU defaults to `BOUNDED_CONTRADICTION` and escalates on the RFC-020 §12 triggers.
+- The Builder's pre-return checks are `ACTOR_REPORTED`, and the Architect re-syncs independently.
+- Neither SENTINEL nor SU is authority.
+
+**Activation and rollback.**
+- Stage B needs a separate owner decision and one atomic commit: `PROTOCOL_VERSION 1 -> 2`, the selector added with `CURRENT_DIRECTIVE: NONE`, a non-Builder gate, published with `--protocol-cutover 1->2`.
+- An undeclared version change is refused.
+- A session on the other version stops (`STALE_SESSION_PROTOCOL`).
+- Rollback is forward recovery under its own owner decision (`--protocol-cutover 2->1`), archives any selected directive first, and preserves V2 history.
+
+**Startup reads.** Under V1, the `CLAUDE.md` "Required first read" set stays in force. The future ordinary V2 Builder set is declared in `CLAUDE.md` ("Protocol V2 Builder startup"): STATE, the selected directive, the obligations index and a checker run, then just-in-time retrieval. `--baseline` measures it against RFC-020's 85,625-byte planning baseline.

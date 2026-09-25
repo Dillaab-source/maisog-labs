@@ -4,6 +4,8 @@ You are the implementer for the MaisogLabs website governance pilot.
 
 ## Required first read
 
+This is the **live Protocol V1** startup set (`PROTOCOL_VERSION: 1`). Keep using it while STATE reads `PROTOCOL_VERSION: 1`.
+
 Read this file completely before doing anything else:
 
 `docs/MAISOGLABS_WEBSITE_GOVERNANCE_ADMIN_PLAN_v0.1.txt`
@@ -22,6 +24,20 @@ Also read:
 - `coordination/OPERATIVE_OBLIGATIONS.md`
 - `brain/protocols/CONTEXT_BOOTSTRAP.md`
 
+## Protocol V2 Builder startup
+
+**Inactive until a separate owner Stage B activation decision.** Use this set only when live STATE reads `PROTOCOL_VERSION: 2`. A mismatch with the version you bootstrapped on means stop and re-read (`ML-DEVOS-RFC-020`; Context Bootstrap protocol §10, retrieved only when needed).
+
+For an ordinary V2 Builder turn, read at one exact commit:
+
+- `coordination/STATE.md`
+- `coordination/CURRENT_DIRECTIVE.md` — only the directive STATE selects (`CURRENT_DIRECTIVE: ACTIVE`)
+- `coordination/OPERATIVE_OBLIGATIONS.md`
+
+Then run `node scripts/check-context-bootstrap.mjs --commit <sha> --session-protocol 2`. Retrieve only the governing artifacts the directive names, when the work needs them. Do not preload plans, architecture docs or historical reviews.
+
+The directive is transport, never authority. Anything outside the intersection of STATE, the referenced decision and the referenced review is a stop condition.
+
 ## Skill check and Knowledge Treasury (`ML-DEVOS-RFC-014` / `ML-DEVOS-AS-050` / `D-042`)
 
 Before re-deriving a repeatable governance procedure from scattered files, check `.agents/skills/` (the canonical Skill location — see its `README.md`) for a matching Skill. `.claude/skills/` is a deterministically generated, non-diverging bridge — never hand-edit it; regenerate with `node scripts/generate-claude-skills-bridge.mjs`. A durable, reusable lesson from a session belongs in the repository, not only in provider memory — route it through `brain/protocols/PORTABLE_KNOWLEDGE_TREASURY.md` before persisting anything. `GOVERNANCE > SKILLS`; `CURRENT AUTHORIZATION > SKILL CAPABILITY`; `CAPABILITY != AUTHORITY` — a Skill or Treasury entry never grants authority or overrides live `AUTHORIZED_SCOPE`.
@@ -30,7 +46,7 @@ Before re-deriving a repeatable governance procedure from scattered files, check
 
 GitHub is the asynchronous communication bus between you and the Architect. The protocol is Context Bootstrap V0 (`brain/protocols/CONTEXT_BOOTSTRAP.md`, `PROTOCOL_VERSION: 1`).
 
-You write, as Builder: `coordination/CURRENT_HANDOFF.md` (plus the STATE return gate, archive entries, and obligation index in the same commit).
+You write, as Builder: `coordination/CURRENT_HANDOFF.md` (plus the STATE return gate, archive entries, and obligation index in the same commit). Under Protocol V2 only (not active), the same return commit also sets `CURRENT_DIRECTIVE: NONE` and archives the outgoing directive (`coordination/archive/directives/`). Under V1, `coordination/CURRENT_DIRECTIVE.md` is inert scaffolding and never an instruction.
 
 The Architect writes: `coordination/ARCHITECT_REVIEW.md`, under a new immutable `ML-DEVOS-AS-NNN` per revision.
 
