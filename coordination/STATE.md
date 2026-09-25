@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: SENTINEL_S6_CORE_HARDENING_IMPLEMENTATION
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: D074_S6_HARDENED_CORE_ACCEPTED_PAULO_NEXT_GATE_DECISION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS_WEBSITE_REDESIGN_V1_PLANNING
+TURN: ARCHITECT
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D075_WEBSITE_REDESIGN_V1_BRAND_COMPOSITION_PLANNING_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
-CURRENT_REMEDIATION_CYCLE: 1
+PAULO_DECISION_REQUIRED: NO
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
 CURRENT_HANDOFF: NONE
@@ -24,71 +24,180 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-`ML-DEVOS-AS-103` is the controlling Architect review.
+D-075 is the controlling owner decision.
 
-D-074 hardened-core implementation is Architect-approved.
+S6 is parked at the ML-DEVOS-AS-103 accepted hardened-core boundary.
 
-AS102-F001 is closed.
+Parking S6 is not closure.
 
-The D-074 implementation/remediation cycle is complete.
+The S6 manifest/root state, Sentinel v1.8.0, O1, O2 and the separately governed real execution-driver boundary remain unchanged.
 
-No implementation authority is active.
+## Current objective
 
-## Accepted result
+Perform one bounded Architect / Design Panel planning cycle for a MaisogLabs public-website redesign.
 
-The hardened S6 core is accepted at its current boundary.
+This is a BRAND / COMPOSITION CHANGE planning cycle.
 
-This does not close S6.
+No website implementation is authorized.
 
-The S6 manifest/root status remains NOT_IMPLEMENTED with executable_runtime_present false and no closure_ref.
+## Design baseline
 
-Sentinel remains v1.8.0.
+Read and use as the current design baseline:
 
-## Carry-forward
+- brand/V3/README.md
+- brand/V3/DESIGN_MAP.md
+- brand/V3/guidelines/V3_DIRECTION.md
+- brand/V3/DESIGN_GOVERNANCE.md
+- brand/V3/design-tokens/**
+- docs/product/DESIGN_REFERENCE_WORKFLOW.md
+- docs/product/UI_UX_SPEC.md where applicable
+- current app/page.js
+- current app/globals.css
+- directly relevant current components and public assets
+- current WEB-INC-007 runtime design-control implementation where necessary to classify DIRECT MATCH / APPROXIMATION / GAP
 
-The following remain unresolved future S6 integrated-stage / closure concerns:
+Repository/live implementation truth outranks chat memory.
 
-1. O1 — hardened TaskStore atomicity evidence currently exists only for the tested Linux profile; macOS and Windows remain NOT RUN/refused.
-2. O2 — an unattributable PENDING publication fails closed correctly, but the exceptional audited operator-recovery transition remains incomplete.
-3. A real execution driver remains unimplemented and unauthorized. It requires separate reviewed design and explicit Paulo implementation authority.
+## Design Panel
 
-None of these are waived by AS-103.
+The Architect must synthesize at minimum:
 
-## Paulo decision required
+1. Brand / Art Direction
+2. Information Architecture / UX
+3. Interaction / Motion
+4. Frontend Feasibility
+5. Responsive / Accessibility
+6. Independent Critic
+7. Layperson / First-Time Visitor
 
-Paulo chooses the next project/governance gate.
+The Independent Critic must challenge consensus rather than decorate it.
 
-If continuing S6, open a new separately bounded owner-authorized cycle.
+The First-Time Visitor must judge clarity without assuming prior MaisogLabs knowledge.
 
-Do not revive D-074 as standing implementation authority.
+## Required proposal
 
-If S6 is parked, its accepted hardened core and unresolved carry-forward items remain exactly as recorded.
+Produce a Website Redesign V1 proposal covering:
 
-An unrelated bounded project cycle, including website design, may be opened separately without claiming S6 closure.
+- first-visit narrative;
+- information hierarchy;
+- desktop composition;
+- mobile/narrow composition;
+- header/navigation;
+- hero;
+- projects;
+- process/about;
+- footer;
+- motion/interaction;
+- accessibility/readability;
+- asset map;
+- WEB-INC-007 DIRECT MATCH / APPROXIMATION / GAP mapping;
+- required source-code/component GAPs;
+- implementation risks;
+- acceptance criteria;
+- exact future implementation scope.
+
+## Brand boundaries
+
+Preserve the canonical MaisogLabs orbital identity.
+
+No logo redesign.
+
+No new typography family.
+
+No replacement brand identity.
+
+Target character remains:
+
+cinematic + modern + calm + premium + engineered + soft-edged.
+
+Technology/systems remain visually dominant.
+
+Classical architecture and space/exploration remain restrained supporting influences.
+
+Avoid generic SaaS, gaming HUD overload, neon cyberpunk and generic AI imagery.
+
+## Asset boundary
+
+New visuals may be proposed during planning.
+
+Each production visual must be an individual asset tied to an explicit section/purpose.
+
+Do not use collage sheets as production assets.
+
+Do not bake essential copy or UI into decorative imagery.
+
+Actual repository media mutation requires later implementation authority.
+
+## Authorized planning writes
+
+Only directly necessary:
+
+- new website-redesign planning/proposal artifacts under docs/product/;
+- coordination/ARCHITECT_REVIEW.md;
+- devos/changes/architect-syncs/ when the Architect publishes the planning verdict;
+- deterministic traceability outputs only if required by those governed planning artifacts;
+- normal coordination archive/state artifacts required for the Architect transition.
+
+Existing Brand V3 source files are read-only in this planning cycle.
+
+## No implementation authority
+
+Do not modify:
+
+- app/**;
+- components/**;
+- public/**;
+- worker/**;
+- migrations/**;
+- D1 data/schema;
+- R2;
+- authenticated design runtime/settings;
+- production content;
+- production website.
+
+Do not apply WEB-INC-007 settings to production.
+
+Do not create a source-code approximation of a GAP.
+
+## S6 parked boundary
+
+Do not modify or reopen:
+
+- S6 core;
+- S6 manifest/root status;
+- O1;
+- O2;
+- real execution-driver work;
+- S7+;
+- Sentinel version or closure.
+
+D-074 is complete and supplies no standing authority.
+
+## Return gate
+
+When the Website Redesign V1 proposal is coherent:
+
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED or PAULO_DECISION_REQUIRED as appropriate
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
+
+The Architect transition must state the exact implementation scope proposed for a later owner decision.
+
+No Builder implementation begins from D-075 alone.
 
 ## Hard boundaries
 
-No S6 closure.
-No real execution driver.
-No generic executor.
-No S7+ implementation.
-No S8/S9.
-No CP-4+.
-No Model Router.
-No dynamic plugin discovery.
-No S3/S4/S5 implementation mutation.
-No platform-scope rewrite.
-No O2 recovery implementation.
-No remote D1/R2.
+No website implementation.
+No public publish.
 No production deployment.
-No manifest closure/version promotion.
+No D1/R2 mutation.
+No raw styling bypass.
+No arbitrary CSS/JS/HTML design field.
+No logo redesign.
+No S6/S7 work.
 No protected/main merge.
 No PR #10 merge or auto-merge.
 
 All action-specific flags remain NO.
-
-## Next transition
-
-Any further work requires a fresh explicit Paulo decision with a new exact scope and routing transition.
-
-No Builder action is currently authorized.
