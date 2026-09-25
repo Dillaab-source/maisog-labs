@@ -1317,3 +1317,55 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Expected planning artifact:** Produce a bounded protocol plan/RFC proposal for Canonical Directive / Agent Transport including current-state audit, threat/contradiction model, authority/context/capability separation, directive schema, STATE binding, lifecycle/archive rules, SENTINEL/SU rules, adaptive escalation, protocol-version/cutover analysis, checker/test plan, migration/rollback plan, token-cost considerations and exact future implementation scope.
 - **Return gate:** The Architect must route the completed D-078 proposal back to Paulo for a separate implementation/cutover decision. No Builder protocol implementation begins from D-078 alone.
 - **Evidence of Paulo authority:** After the Architect explained that the permanent solution should be a governed GitHub `CURRENT_DIRECTIVE.md` transport with mandatory SENTINEL sync and adaptive SU contradiction checks, and that it should be opened only after AS-107 was live, Paulo explicitly replied `Ok proceed`.
+### D-079 — Authorize RFC-020 Stage A dual-version Canonical Directive protocol implementation
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-108` accepted `ML-DEVOS-RFC-020` and routed the repository to Paulo for the Stage A implementation decision.
+- **Decision:** Authorize one bounded Builder implementation cycle for `RFC-020 Stage A — Dual-version Canonical Directive protocol implementation`.
+- **Owner authorization:** Paulo explicitly stated: `Authorize RFC-020 Stage A dual-version implementation.`
+- **Implementation base:** The authorized cycle starts from the exact live tip at the owner transition's parent. The owner-transition publisher must fresh-bootstrap and bind the transition to that exact tip.
+- **Live protocol during Stage A:** `PROTOCOL_VERSION: 1` remains active throughout Stage A implementation and Builder handoff. Stage A must not activate Protocol V2.
+- **Primary objective:** Implement and test the repository-side V2 directive protocol machinery while preserving full V1 behavior, so the Architect can independently review V2 readiness before any separate activation decision.
+- **Architecture source:** Implement only the architecture approved in `ML-DEVOS-RFC-020` / `ML-DEVOS-AS-108`.
+- **New transport under construction:** `coordination/CURRENT_DIRECTIVE.md` may be added only as RFC-020 scaffolding/template/support. It is not an ACTIVE execution packet under live V1 and must not be selected by live STATE during Stage A.
+- **No live selector activation:** Do not add active V2 directive selector fields to the live Protocol V1 STATE. Do not route a live Builder turn through CURRENT_DIRECTIVE during Stage A.
+- **V1 non-regression requirement:** Existing Context Bootstrap V1 behavior, handoff/review routing, exact-tip publication, archive preservation, obligation carry-forward and stale-session checks must continue to function and pass their existing tests.
+- **Dual-version checker requirement:** Extend the Context Bootstrap checker to understand both V1 and V2 fixtures/semantics without changing the live repository protocol marker from 1.
+- **Directive mechanics to implement/test:** fixed header/schema; STATE-selector model for V2 fixtures; exact field binding; issue-parent binding; target-turn binding; fixed authority/review references; required sections; SENTINEL/SU fixed vocabularies; BLOCKED fail-closed behavior; immutable directive identity; outgoing directive archival/provenance; duplicate-ID changed-byte rejection; Builder-return directive deselection/archive plus CURRENT_HANDOFF selection; Architect-remediation handoff deselection plus new directive selection.
+- **SENTINEL semantics:** Implement only the mechanical/protocol representation required by RFC-020. A checker validates shape/coherence only; it must not claim to prove the quality of SENTINEL reasoning.
+- **SU semantics:** Implement only the fixed `BOUNDED_CONTRADICTION` / `ESCALATED_RESEARCH` representation and dispositions specified by RFC-020. SU remains advisory and grants no authority. The checker validates vocabulary and BLOCKED routing only.
+- **Protocol-version safety:** Add tests proving V1 snapshots remain valid and V2 stale-session/protocol-mismatch behavior fails closed. Do not perform the actual `1 -> 2` live cutover.
+- **Canonical Skills:** Update canonical `.agents/skills/**` first where directly required by RFC-020, then regenerate `.claude/skills/**` deterministically. Do not independently hand-edit generated bridge files.
+- **Bootstrap/read-order goal:** Refactor startup/orientation guidance only as necessary to support the dual-mode model and the future small V2 startup path. During live V1, do not remove safety-critical V1 reads in a way that breaks current sessions.
+- **Token-efficiency measurement:** Measure the post-Stage-A declared ordinary Builder startup/read set and compare it with RFC-020's `85,625 bytes` planning baseline. Record the actual result. The target is at least 50% reduction for the future ordinary V2 Builder path without removing safety-critical checks. Failure to hit the target is evidence to review, not authority to weaken safety.
+- **Implementation-detail freedom:** Claude may resolve RFC-020's listed implementation-detail questions only within the accepted architecture, including exact `DIR-` ID format, archive-index mechanics, parser-helper reuse, typical directive byte-budget guidance and whether a dedicated canonical directive Skill is simpler than extending existing Skills.
+- **Allowed implementation paths:** Directly necessary changes are authorized in:
+  - `brain/protocols/CONTEXT_BOOTSTRAP.md`
+  - `brain/protocols/ARCHITECT_SYNC.md`
+  - `coordination/README.md`
+  - `coordination/CURRENT_DIRECTIVE.md` scaffolding/template only
+  - `coordination/archive/directives/**`
+  - `scripts/check-context-bootstrap.mjs`
+  - `tests/context-bootstrap.test.mjs`
+  - directly necessary coordination/protocol test files
+  - `.agents/skills/project-orientation-state-recovery/**`
+  - `.agents/skills/implementation-handoff/**`
+  - `.agents/skills/architect-review-sync/**`
+  - one new canonical directive-related Skill only if justified by the implementation
+  - deterministically regenerated `.claude/skills/**` counterparts
+  - `CLAUDE.md`
+  - `AGENTS.md`
+  - `brain/00_HOME.md`
+  - `brain/PROJECT_GOVERNANCE.md` only if directly necessary to keep the protocol map accurate
+  - `devos/changes/rfcs/ML-DEVOS-RFC-020.md` only for Stage A implementation-status/provenance wording consistent with the still-unactivated design
+  - directly necessary governed coordination, handoff, archive, evidence and test-ledger records.
+- **Required Stage A tests:** Implement and run the complete RFC-020 §24 test set, including V1 non-regression, V2 directive selector/header mismatches, issue-parent/target/authority/review validation, duplicate ID rejection, required-section checks, SENTINEL/SU vocabulary and BLOCKED behavior, archive/provenance checks, Builder return/remediation transitions, stale-session mismatch, exact-tip publication preservation, deterministic skill-bridge generation and startup-read measurement.
+- **Validation:** Run at minimum the focused Context Bootstrap/protocol tests, full applicable repository tests, skill tests, `git diff --check`, applicable governance/manifest/task/rules/waiver validators, deterministic bridge generation/verification and any other directly necessary repository-native validation required by changed files. Run `npm run build` only if the changed documentation/config/bootstrap surfaces make it applicable; if not run, state why.
+- **Evidence classification:** Builder test/results are `ACTOR_REPORTED` until independently inspected/reproduced by the Architect. Do not self-upgrade Builder evidence to Architect-verified.
+- **Return gate:** On completion, publish one normal V1 Builder handoff through `coordination/CURRENT_HANDOFF.md`, routed to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, with `PROTOCOL_VERSION: 1`.
+- **Handoff requirements:** State exact base/result SHAs, changed files, tests/evidence, V1 non-regression evidence, V2 fixture evidence, directive archive/identity evidence, stale-session evidence, generated-bridge equivalence, startup-byte before/after measurement, unresolved implementation choices/limitations and explicit confirmation that V2 was not activated.
+- **No Stage B authority:** Stage A implementation and even later Architect acceptance do not authorize Protocol V2 activation. A separate Paulo Stage B activation decision is mandatory.
+- **Product isolation:** Do not modify website/admin/product/runtime implementation, content, media, D1/R2 resources, migrations or deployment configuration.
+- **V2A disposition:** Spatial Design Controls V2A remains Architect-approved under AS-107 but stays deferred during this protocol Stage A cycle.
+- **S6 isolation:** S6 remains parked at ML-DEVOS-AS-103. O1/O2 remain open. The real execution driver remains unauthorized. The suspended D-068 local draft remains untracked and must not be touched, staged, committed, imported or pushed.
+- **Deployment boundary:** No deployment, public cutover, remote D1/R2 mutation, protected/main merge or PR #10 merge is authorized.
+- **Scope expansion:** If Stage A appears to require a product/runtime file or a protocol semantic not present in RFC-020, stop and return the gap; do not silently widen implementation.
