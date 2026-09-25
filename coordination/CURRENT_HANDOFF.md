@@ -1,101 +1,129 @@
-# Current Handoff — WEB Release Readiness / Release-Scope Review (D-083)
+# Current Handoff — WEB-REL-002 Gate B: Release PR Review (D-084)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RELEASE-READINESS-0001
-cycle_id: MAISOGLABS_WEB_RELEASE_READINESS_REVIEW
-input_base_commit: 0a35d7731c962a929f89c9d603d573c4f7960079
-review_target_commit: 0a35d7731c962a929f89c9d603d573c4f7960079
-applicable_review_id: ML-DEVOS-AS-112
+handoff_id: H-WEB-REL-002-GATE-B-0001
+cycle_id: MAISOGLABS_WEB_REL_002_GATE_B
+input_base_commit: 4a41ebb493603ff5c2185cf25d0b4e0b3c04102e
+review_target_commit: 4a41ebb493603ff5c2185cf25d0b4e0b3c04102e
+applicable_review_id: ML-DEVOS-AS-113
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve, and every result here is `ACTOR_REPORTED`.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
+
+Every result is `ACTOR_REPORTED`. The GitHub data was read through the Builder's GitHub connector, and Cloudflare-originated check data is external content recorded as reported.
 
 ## Objective
 
-Deliver the D-083 release-readiness / release-scope recommendation under `DIR-WEB-RELEASE-READINESS-0001`. This is planning and inspection only.
+Execute WEB-REL-002 Gate B under `D-084` and `DIR-WEB-REL-002-GATE-B-0001`: open exactly one governance→main release PR and collect the review evidence.
 
-The deliverable is `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
-
-- **Base:** `0a35d7731c962a929f89c9d603d573c4f7960079`, the directive-issue commit, reached by a fresh `--session-protocol 2` bootstrap (exit 0).
+- **No merge.**
+- **Base:** `4a41ebb493603ff5c2185cf25d0b4e0b3c04102e`, the directive-issue commit, reached by a fresh `--session-protocol 2` bootstrap (exit 0).
 - **Result:** the commit that publishes this handoff, whose sole parent is the base.
 
-**Not done:**
-- no merge;
-- no PR or branch creation;
-- no deploy or preview trigger;
-- no Cloudflare/D1/R2 action;
-- no product/runtime/test/config change;
-- no V2B, S6 or D-068 work.
+## Gate B evidence
 
-## Summary of findings
+| Item | Value |
+|---|---|
+| PR | **#13**, `https://github.com/Dillaab-source/maisog-labs/pull/13`, **draft**, open, not merged |
+| Title | `WEB-REL-002: governance/maisoglabs-v0.1 → main (Gate B review only — DO NOT MERGE without Gate C)` |
+| Base | `main` @ `882ad253b5dbec06b209d1ee1a2a54b21b392e2e` (unchanged since AS-113) |
+| Initial head | `4a41ebb493603ff5c2185cf25d0b4e0b3c04102e` |
+| Final head | the commit that publishes this handoff (governance bookkeeping only; see "Final head" below) |
+| Size | 267 files, +39,715 / −941, 131 commits |
+| Mergeability | `mergeable_state: blocked` while checks ran, then `clean` after they completed (read at 23:10:26Z) |
+| Reviews / review threads | none / none (0 unresolved conversations) |
+| Comments | 1: the Cloudflare Workers bot preview comment |
 
-- **Exact SHAs:**
-  - `main` = `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`, the PR #12 merge;
-  - accepted governance content = `2cdbf4468d500163f84ab9a06c5232b6614f34b8`;
-  - review base = `0a35d77`.
-- **Ancestry:** `main`'s tree equals governance ancestor `3262dba`. Governance is a strict superset, 127 commits ahead, so a merge is conflict-free by construction.
-- **Diff:** 261 files, classified into 13 website source build inputs, 3 brand docs, 6 supporting tests/docs, 24 governance/Protocol V2, 91 S5/S6/DevOS, 21 website evidence and 103 governance archives.
-- **Unchanged:** `worker/**`, `migrations/**`, `wrangler.jsonc`, `package*.json`, workflows, `next.config.mjs` and `public/**`.
-- **Production reach:**
-  - The Worker import graph (18 modules plus `jose`) reaches no `devos/**`.
-  - The static `out/` (40 files) contains no devos, execution, sentinel, coordination or brain paths.
-  - Only the 13 website source files can change production.
-  - The V2A admin is inert in production (Access placeholders; D1 is `remote: false`).
-- **Recommendation:** Option A, a fresh direct governance→main release PR (WEB-REL-002) pinned to an exact head, with separate gates for PR open, merge, production promotion and runtime verification.
-  - The owner must acknowledge that S5/S6 repository content on `main` grants no authority and is not executed.
-  - Option B, a selective branch, is the documented fallback, with its costs.
-- **Open items:**
-  - Cloudflare build-configuration re-verification before merge, because it is external state last verified in AS-074;
-  - owner disposition of the MEDIA_GAP before promotion;
-  - legacy PR #7 is open, non-draft, and targets `main`; it must not be merged.
+**CI on the initial head `4a41ebb`** — all completed with conclusion success:
+
+| Check | Run / ID | Started → completed (UTC) |
+|---|---|---|
+| `test-and-build` (pull_request) | run `36199902615`, job `108284079807` | 23:09:56Z → 23:11:49Z |
+| `test-and-build` (push) | run `36199873591`, job `108283985092` | 23:09:29Z → 23:11:46Z |
+| `Workers Builds: maisog-labs` | check run `108284169500` | completed 23:10:19Z |
+
+The `test-and-build` job runs `npm ci`, `npm test` and `npm run build` (`.github/workflows/ci.yml`).
+
+**Cloudflare Workers Build details** (external data, as reported by the check run):
+- Build `11872da6-548b-46aa-a824-2ba41fc6cf45`;
+- Version ID `9ed1248e-bcf4-414b-9bac-c8814c7cfb2f`;
+- Commit Preview URL `https://9ed1248e-maisog-labs.paulomaisog284.workers.dev`;
+- Branch Preview Alias `https://governance-maisoglabs-v0-1-maisog-labs.paulomaisog284.workers.dev`.
+
+This is a non-production branch/commit preview, permitted under D-055. The bot's wording "Deployment successful" refers to that preview version. The Builder cannot observe whether the active production version changed, but nothing in Gate B promotes a version. The active production Version ID must be freshly verified at Gate C, as AS-113 requires.
+
+**Release diff against the AS-113 inventory:**
+- The PR's 267 files are the AS-113 261-file inventory plus exactly 6 governance/release records added since `2cdbf44`:
+  - `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`;
+  - `devos/changes/architect-syncs/ML-DEVOS-AS-113.md`;
+  - `coordination/archive/directives/DIR-WEB-RELEASE-READINESS-0001.{md,provenance.json}`;
+  - `coordination/archive/handoffs/H-WEB-RELEASE-READINESS-0001.{md,provenance.json}`.
+- No inventory file was removed.
+- `git diff 2cdbf44 4a41ebb` is empty over `app components data lib worker migrations wrangler.jsonc package.json package-lock.json .github public next.config.mjs`.
+- The production-facing 13-file surface is therefore byte-identical to the AS-112-accepted content.
+- The PR still represents the AS-113 direct governance→main shape.
+
+**PR #7 and PR #10:**
+- **PR #7** (head `codex/link-eternal-eggs-dashboard` @ `1433137…`, base `main`) is still open. It was not referenced, folded in or acted on, and PR #13's head is the governance branch only.
+- **PR #10** (draft, `[SENTINEL HANDOFF CHANNEL] DO NOT MERGE`, base `sentinel-handoff-base`) is untouched.
+
+**Main-protection / ruleset:**
+- The Builder's available GitHub tools cannot read repository rulesets, so the ruleset configuration is **not independently read** here.
+- Indirect evidence:
+  - `mergeable_state` was `blocked` while the required checks were pending, and became `clean` once `test-and-build` succeeded, which is consistent with a required-check rule;
+  - `main` has only advanced by a PR merge commit (PR #12).
+- The Architect must confirm the `main-protection` ruleset (PR required, `test-and-build` required, deletion and non-fast-forward blocked) directly.
+
+**Final head:**
+- Publishing this handoff pushes one more governance-only commit, which becomes PR #13's final head. It changes only `coordination/CURRENT_HANDOFF.md`, `coordination/STATE.md` and `coordination/archive/directives/**`.
+- CI for that commit cannot appear inside this file. The Builder reports the final-head CI result in its session report after publication.
+- The Architect must confirm `test-and-build` is green on the exact final head (D-084 requirement 7).
+
+**Local check:** `npm test` at `4a41ebb` gave 919/919 (exit 0).
 
 ## Changed files
 
-- `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md` (new).
-- `coordination/CURRENT_HANDOFF.md`, `coordination/STATE.md`.
-- `coordination/archive/directives/DIR-WEB-RELEASE-READINESS-0001.md`, its `.provenance.json`, and the index row.
+- `coordination/CURRENT_HANDOFF.md` and `coordination/STATE.md`.
+- `coordination/archive/directives/DIR-WEB-REL-002-GATE-B-0001.md`, its `.provenance.json`, and the index row.
 
 `coordination/CURRENT_DIRECTIVE.md` stays byte-identical to its archive and is inert under `NONE`.
 
+The only GitHub mutation was creating PR #13. There was no merge, no PR edit, no action on PR #7/#10, no deploy or promotion, and no D1/R2/Access/DNS action.
+
 ## Tests and evidence
 
-| Command | Result | Exit |
-|---|---|---|
-| `git diff --name-status 882ad25 2cdbf44` | 261 paths, classified in the artifact §2 | 0 |
-| `git diff 3262dba 882ad25` | empty (main tree = governance ancestor) | 0 |
-| Worker import-graph walk from `worker/index.mjs` (at `2cdbf44`) | 18 modules, 0 `devos/**` | — |
-| `npm test` at `0a35d77` | 919/919 | 0 |
-| `npm run build` at `0a35d77`, then an `out/` scan | 40 files, 0 governance/DevOS paths | 0 |
-| GitHub Actions `ci` on the governance branch | success on `2cdbf44` (run 164) and `0a35d77` (run 165) | — |
-| Open PRs | #10 (draft, handoff channel, not into main), #7, #6, #2, #1 (legacy, into main); no governance→main PR | — |
-| `git diff --check` | clean | 0 |
-| `check-context-bootstrap --publish --check-only --session-protocol 2` | recorded at publication | — |
+- CI (above): `test-and-build` success twice on `4a41ebb`, and Workers Builds (preview) success.
+- Local `npm test`: 919/919.
+- The release-diff reconciliation commands are recorded above.
+- `check-context-bootstrap --publish --check-only --session-protocol 2` on this candidate: recorded at publication.
 
 ## Unresolved findings and limitations
 
-- **Cloudflare:** the Workers Builds configuration (production `npx wrangler versions upload`) and the active Version ID `a28ee2e9-…` are Architect-recorded external state from `ML-DEVOS-AS-074`. The Builder cannot re-verify them from the repository.
-- **Runtime notes:** the production runtime conclusions about the admin and `/api/design` are inferred from source and configuration, not observed in production.
-- **Evidence scope:** the S5/S6 non-reachability evidence is an import-graph walk and a build-output scan. It is not a Wrangler bundle metafile; `wrangler deploy --dry-run` was deliberately not run, to avoid any Cloudflare contact.
-- **Worktree hiccup:** during inspection I briefly checked out a different local branch in this worktree and then restored it. No commit, branch or remote changed.
-- **Unchanged:** traceability debt; every `OPERATIVE_OBLIGATIONS.md` row is carried forward, with OBL-017 and OBL-018 OPEN and respected.
+- **Ruleset:** the ruleset configuration was not directly readable (see above).
+- **Cloudflare preview:** the preview build ran on the governance-branch push at 23:09:28Z, before the PR existed. This is consistent with AS-074 ("non-production branch builds and previews: enabled").
+- **Active production Version ID:** not observed. It is a Gate C precondition.
+- **Final-head CI:** pending at authoring; see "Final head".
+- **Obligations:** every `OPERATIVE_OBLIGATIONS.md` row is carried forward, with OBL-017 and OBL-018 OPEN and respected.
 
 ## Evidence locations
 
-- `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
-- `ML-DEVOS-AS-073` and `ML-DEVOS-AS-074` (GC-F001, D-057 decoupling).
-- `D-054`–`D-057`, `ML-DEVOS-AS-106`, `ML-DEVOS-AS-112`.
+- PR #13 (GitHub), its check runs and the bot comment.
+- `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`, `ML-DEVOS-AS-113`.
 
 ## Governing references
 
-- **Authority:** `D-083`.
-- **Directive:** `DIR-WEB-RELEASE-READINESS-0001` (archived).
-- **Review:** `ML-DEVOS-AS-112`.
-- **Protocol:** `ML-DEVOS-RFC-020`, `brain/protocols/CONTEXT_BOOTSTRAP.md` §10.
+- **Authority:** `D-084`.
+- **Directive:** `DIR-WEB-REL-002-GATE-B-0001` (archived).
+- **Review:** `ML-DEVOS-AS-113`.
+- **Precedent:** `D-054`–`D-057`, `ML-DEVOS-AS-074`.
 - **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Next action
 
-The Architect independently reviews the release-scope recommendation under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-112`.
+The Architect performs an independent Gate B review of PR #13 under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-113`, covering:
+- the final-head CI;
+- the ruleset;
+- the diff.
 
-Any PR, merge, promotion or verification step then needs a separate Paulo decision. No Builder action is authorized.
+Gate C (merge) remains a separate Paulo decision, preceded by a fresh Cloudflare production-build and active-Version-ID verification. No Builder action is authorized.

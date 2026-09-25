@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_REL_002_GATE_B
-TURN: CLAUDE
-STATUS: AUTHORIZED
-AUTHORIZED_SCOPE: D084_WEB_REL_002_GATE_B_RELEASE_PR_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D084_WEB_REL_002_GATE_B_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-WEB-REL-002-GATE-B-0001
-DIRECTIVE_ISSUE_PARENT: 7e2bbe2148e2112b58979401308216cceb631091
-DIRECTIVE_AUTHORITY_REF: D-084
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-113
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-WEB-REL-002-GATE-B-0001
+REVIEW_TARGET_COMMIT: 4a41ebb493603ff5c2185cf25d0b4e0b3c04102e
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-113
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -31,19 +31,25 @@ MAIN_MERGE_AUTHORIZED: NO
 
 D-084 authorizes WEB-REL-002 Gate B, release PR review only.
 
-ML-DEVOS-AS-113 accepted the direct governance→main release shape.
+ML-DEVOS-AS-113 is the controlling review.
 
-D-084 explicitly acknowledges that repository-only S5/S6/DevOS history is included. It grants no S6 activation, execution, driver, remote-transport, deployment or production authority.
+## Builder return
 
-## Selected directive
+WEB-REL-002 release PR: **#13** (draft), `governance/maisoglabs-v0.1 -> main`, base `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`.
 
-`DIR-WEB-REL-002-GATE-B-0001` is transport, not authority.
+`H-WEB-REL-002-GATE-B-0001` is the Gate B evidence record. It is evidence, not authority.
 
-## Builder scope
+`DIR-WEB-REL-002-GATE-B-0001` is deselected and archived byte-exactly.
 
-- Open one fresh `governance/maisoglabs-v0.1 -> main` PR.
-- Read-only inspection of its diff, checks, mergeability and protection.
-- The Protocol V2 return records.
+## Architect gate
+
+The Architect independently reviews PR #13 for Gate B:
+- the final-head `test-and-build`;
+- the full diff;
+- mergeability;
+- the main-protection/ruleset state.
+
+Gate C (merge) remains a separate Paulo decision. It requires a fresh verification of the Cloudflare production build and the active Version ID first.
 
 ## Hard boundaries
 
@@ -58,12 +64,10 @@ No force-push to main.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-Gate C is a separate Paulo decision. It requires a fresh verification of the Cloudflare production build and the active Version ID first.
-
 ## Next transition
 
-The Builder publishes one Protocol V2 return commit:
-- CURRENT_HANDOFF with the Gate B evidence;
-- the directive archived;
-- `CURRENT_DIRECTIVE: NONE`;
-- `TURN: ARCHITECT`.
+TURN: ARCHITECT
+
+The Architect publishes a review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-113.
+
+No Builder action begins automatically.
