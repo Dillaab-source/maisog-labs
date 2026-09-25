@@ -3,16 +3,16 @@
 CYCLE_ID: MAISOGLABS_CANONICAL_DIRECTIVE_PROTOCOL_STAGE_B_ACTIVATION
 TURN: ARCHITECT
 STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D080_RFC020_STAGE_B_V2_ACTIVATION_VERIFICATION_ONLY
+AUTHORIZED_SCOPE: D081_RFC020_STAGE_B_V2_ACTIVATION_VERIFICATION_ONLY
 ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
 CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-RFC020-STAGE-B-ACTIVATION-0001
-REVIEW_TARGET_COMMIT: 783b03253536a0fdada54fc10571d503915f5c6a
+HANDOFF_ID: H-RFC020-STAGE-B-REM1-0001
+REVIEW_TARGET_COMMIT: 08458a289a922e5ef77aaee448879e00b5660f2f
 APPLICABLE_REVIEW_ID: ML-DEVOS-AS-110
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
@@ -35,9 +35,11 @@ ML-DEVOS-RFC-020 §21 and ML-DEVOS-AS-110 ("Stage B recommendation") define the 
 
 ML-DEVOS-AS-110 is the controlling review; it accepted Stage A.
 
+D-081 authorizes the exceptional Stage B status-consistency micro-remediation published with this STATE.
+
 ## Live protocol
 
-`PROTOCOL_VERSION: 2` is live from the commit that publishes this STATE.
+`PROTOCOL_VERSION: 2` is live since the D-080 activation commit `08458a289a922e5ef77aaee448879e00b5660f2f`.
 
 `CURRENT_DIRECTIVE: NONE`. The directive selector values are empty, and `coordination/CURRENT_DIRECTIVE.md` is not an instruction.
 
@@ -45,7 +47,9 @@ No real directive has been issued.
 
 ## Selected handoff
 
-`H-RFC020-STAGE-B-ACTIVATION-0001` is the bounded Builder activation record. It is evidence, not authority.
+`H-RFC020-STAGE-B-REM1-0001` is the bounded status-consistency remediation record. It is evidence, not authority.
+
+The activation record `H-RFC020-STAGE-B-ACTIVATION-0001` is archived byte-exactly under `coordination/archive/handoffs/`.
 
 ## Architect gate
 

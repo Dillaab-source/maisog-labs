@@ -1,8 +1,12 @@
 # Context Bootstrap V0 — Repository Turn Protocol
 
-Status: `ACTIVE — PROTOCOL_VERSION 1`. Activated by the `D-062` Stage B atomic activation commit, whose parent is `487af93afa926f85755f0aa7ad9606ad31a92ed4` (routed by `ML-DEVOS-AS-080`). It is pending the Architect's final implementation review. `coordination/README.md`, `CLAUDE.md`, `AGENTS.md`, `brain/00_HOME.md`, `brain/protocols/ARCHITECT_SYNC.md`, and the three coordination Skills implement this protocol.
+Status: `ACTIVE — PROTOCOL_VERSION 2`. Protocol V2 was activated by the `D-080` Stage B atomic activation commit `08458a289a922e5ef77aaee448879e00b5660f2f` (parent `783b03253536a0fdada54fc10571d503915f5c6a`, routed by `ML-DEVOS-AS-110`). It is pending the Architect's independent activation verification. The V1 kernel (§§1–9) was activated earlier by the `D-062` Stage B commit, whose parent is `487af93afa926f85755f0aa7ad9606ad31a92ed4` (routed by `ML-DEVOS-AS-080`). `coordination/README.md`, `CLAUDE.md`, `AGENTS.md`, `brain/00_HOME.md`, `brain/protocols/ARCHITECT_SYNC.md`, and the three coordination Skills implement this protocol.
 
-Authority: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062` (Stage A accepted in `ML-DEVOS-AS-079`/`ML-DEVOS-AS-080`). RFC-018 is the governing text; where this summary and the RFC differ, the RFC wins.
+Authority:
+- V1 kernel: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062` (Stage A accepted in `ML-DEVOS-AS-079`/`ML-DEVOS-AS-080`).
+- V2 directive layer: `ML-DEVOS-RFC-020` (Architect-approved in `ML-DEVOS-AS-108`) → `D-079` (Stage A, accepted in `ML-DEVOS-AS-110`) → `D-080` (Stage B activation).
+
+The RFCs are the governing text; where this summary and an RFC differ, the RFC wins.
 
 **Protocol V2 (`ML-DEVOS-RFC-020`, reviewed in `ML-DEVOS-AS-108`):**
 - Status: **ACTIVE since the `D-080` Stage B atomic activation (`PROTOCOL_VERSION: 2`).** `D-079` (Stage A, accepted in `ML-DEVOS-AS-110`) added dual-version checker support and the `CURRENT_DIRECTIVE` mechanism described in §10.
