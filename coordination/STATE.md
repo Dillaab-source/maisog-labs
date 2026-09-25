@@ -1,21 +1,21 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_CANONICAL_DIRECTIVE_PROTOCOL_STAGE_A_IMPLEMENTATION
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D079_AS109_RFC020_STAGE_A_REMEDIATION_CYCLE_1_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: D079_RFC020_STAGE_A_ACCEPTED_PAULO_STAGE_B_ACTIVATION_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 1
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-RFC020-STAGE-A-REM1-0001
-REVIEW_TARGET_COMMIT: e76a197459aae57643cc5fade3a718ec35821978
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-109
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: YES
+MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
@@ -24,94 +24,91 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-079 remains the controlling Product / Risk Owner Stage A implementation authorization.
+D-079 is the completed Product / Risk Owner Stage A implementation authorization.
 
-ML-DEVOS-RFC-020 remains the accepted Canonical Directive / Context Bootstrap V2 architecture.
+ML-DEVOS-RFC-020 is the accepted Canonical Directive / Context Bootstrap V2 architecture.
 
-ML-DEVOS-AS-109 is the controlling Architect Stage A implementation review.
+ML-DEVOS-AS-110 is the controlling Stage A acceptance review.
 
-## Review result
+ML-DEVOS-AS-109 is the closed remediation review.
 
-Stage A is not yet accepted.
+## Stage A result
 
-Remediation Cycle 1 is authorized only for:
+RFC-020 Stage A is accepted.
 
-- AS109-F001 — protocol cutover must require explicit session-protocol binding to the parent protocol;
-- AS109-F002 — CURRENT_DIRECTIVE required-section validation must reject duplicates and fence-contained pseudo-sections.
+AS109-F001: CLOSED.
 
-No other Stage A expansion is authorized.
+AS109-F002: CLOSED.
 
-## AS109-F001 required result
+No Stage A implementation blocker remains.
 
-Any actual change of PROTOCOL_VERSION must require both:
+## Live protocol
 
-- the correct `--protocol-cutover <from>-><to>` declaration;
-- an explicit `--session-protocol <from>` matching the parent's live protocol.
+The repository remains:
 
-Missing or mismatched session-protocol evidence must fail closed before publication.
+`PROTOCOL_VERSION: 1`
 
-Cover both 1->2 activation and 2->1 forward-recovery rollback.
+Protocol V2 is implemented and tested as Stage A machinery but is not active.
 
-## AS109-F002 required result
+CURRENT_DIRECTIVE remains inert scaffolding under live V1.
 
-CURRENT_DIRECTIVE section validation must:
+No live directive selector exists.
 
-- ignore headings inside fenced code blocks;
-- require all ten required RFC-020 directive sections as real level-2 headings outside fences;
-- require each required section exactly once;
-- fail deterministically on duplicate required sections.
+## Stage B gate
 
-Preserve V1 handoff regression behavior.
+Paulo must now decide whether to authorize:
 
-## Authorized remediation files
+`RFC-020 STAGE B — ATOMIC CONTEXT BOOTSTRAP V2 ACTIVATION`
 
-Only directly necessary changes in:
+Stage B requires a separate owner decision.
 
-- scripts/check-context-bootstrap.mjs
-- tests/context-bootstrap-v2.test.mjs
-- tests/context-bootstrap.test.mjs if directly required
-- brain/protocols/CONTEXT_BOOTSTRAP.md if directly required for corrected command wording
-- devos/changes/rfcs/ML-DEVOS-RFC-020.md if directly required for truthful remediation-status wording
-- normal V1 handoff/STATE/archive evidence records required by the return transition
+AS-110 itself grants no activation authority.
 
-No other source/docs cleanup is authorized.
+## Recommended activation shape
 
-## Required validation
+If separately authorized:
 
-Run:
+- fresh-bootstrap from the exact live V1 tip;
+- publish one dedicated activation transition;
+- change `PROTOCOL_VERSION: 1 -> 2`;
+- add V2 directive selector fields;
+- set `CURRENT_DIRECTIVE: NONE`;
+- keep directive selector values empty;
+- route to a non-Builder gate;
+- use both:
+  - `--protocol-cutover 1->2`
+  - `--session-protocol 1`;
+- fresh-bootstrap as Protocol V2 after publication;
+- verify V2 before issuing the first real directive.
 
-- focused AS109-F001 tests;
-- focused AS109-F002 tests;
-- full RFC-020 V2 tests;
-- V1 Context Bootstrap regression tests;
-- skill tests if applicable;
-- full applicable repository tests;
-- git diff --check;
-- applicable repository validators.
+Do not combine activation with product/runtime work.
 
-Do not weaken existing tests.
+## V2A disposition
 
-Builder results remain ACTOR_REPORTED until Architect review.
+Spatial Design Controls V2A remains Architect-approved under ML-DEVOS-AS-107.
 
-## Return gate
+It remains deferred pending the Stage B protocol decision.
 
-When both findings are remediated, publish a new Protocol V1 Builder handoff and route:
+## Website / S6 boundaries
 
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-PROTOCOL_VERSION: 1
+Website Redesign V1 remains accepted.
 
-Select the new handoff through the existing V1 identity tuple.
+Website MEDIA_GAP remains separate.
+
+S6 remains parked at ML-DEVOS-AS-103.
+
+O1 and O2 remain open.
+
+The real execution driver remains unauthorized.
+
+D-068 remains suspended and untouched/untracked.
 
 ## Hard boundaries
 
-No Protocol V2 activation.
-No live CURRENT_DIRECTIVE selector.
-No Stage B.
-No Spatial Design Controls V2A implementation.
+No Protocol V2 activation without a separate Paulo decision.
+No live CURRENT_DIRECTIVE selection.
+No Stage B implementation.
+No V2A implementation.
 No product/admin/site/runtime mutation.
 No media mutation.
 No D1/R2 mutation.
@@ -119,8 +116,16 @@ No migration.
 No deployment.
 No public cutover.
 No S6/S7 work.
-No touching/staging/committing/pushing D-068.
+No D-068 mutation.
 No protected/main merge.
 No PR #10 merge or auto-merge.
 
-All non-repository / external action flags remain NO.
+All action-specific flags remain NO.
+
+## Next transition
+
+TURN: PAULO
+
+Paulo decides whether to authorize the dedicated RFC-020 Stage B atomic activation.
+
+No Builder action begins automatically.
