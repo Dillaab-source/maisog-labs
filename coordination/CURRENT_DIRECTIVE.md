@@ -1,70 +1,98 @@
-# Current Directive — Homepage Artifact Integration
-
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-HOMEPAGE-ARTIFACT-0001
-cycle_id: MAISOGLABS_WEB_HOMEPAGE_ARTIFACT
-issue_parent_commit: 3a8bb779ddb7ecf6daca2655f0844986c3b81aa8
+directive_id: DIR-WEB-D093-GATE-C-0001
+cycle_id: MAISOGLABS_WEB_D093_GATE_C
+issue_parent_commit: f2c13aa3dbc65b3829f1a8f64437a929392369a5
 target_turn: CLAUDE
-authority_ref: D-093
-applicable_review_id: ML-DEVOS-AS-119
+authority_ref: D-094
+applicable_review_id: ML-DEVOS-AS-120
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-093 and this directive.
-
 ## Objective
 
-Serve `publish/index.html` from `Maisog Labs Design System.zip` (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) byte-for-byte as the public homepage `/`, with its expected media resolving to the existing approved assets, while `/journal`, `/admin`, the Worker APIs and all bindings keep working; verify locally; obtain a non-production preview through the existing Workers Builds branch build.
+Perform D-094 Gate C only: create a fresh release PR from `governance/maisoglabs-v0.1` to `main`, validate its exact final head, merge it through the normal protected GitHub merge-commit path, observe the resulting Workers version upload, and prove production traffic did not move.
 
 ## Preconditions
 
-- Protocol V2 bootstrap from the tip publishing this directive; D-093, this directive and scope `D093_HOMEPAGE_ARTIFACT_PREVIEW_ONLY` selected together; `MUTATION_AUTHORIZED: YES`, every other action flag `NO`.
-- `main` remains `aebc881e8890c00090d714602591138a045bd3b0`.
+Freshly require:
+
+- Protocol V2 bootstrap/checker passes;
+- authoritative governance branch is the transition head produced from `f2c13aa3dbc65b3829f1a8f64437a929392369a5`;
+- `main` has not unexpectedly moved from the reviewed baseline;
+- working tree is clean;
+- `stash@{0}` is untouched;
+- canonical homepage artifact remains SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
+- Cloudflare production branch remains `main`;
+- Version command remains `npx wrangler versions upload`;
+- active production Version ID is freshly captured immediately before merge;
+- PR #7 is excluded;
+- PR #10 is not merged;
+- D-068 is untouched;
+- S6/S7 remain parked.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-093; live STATE.
-- **T1:** the uploaded ZIP and its single file; D-092 records (superseded for `/`); `coordination/OPERATIVE_OBLIGATIONS.md`.
-- **T2:** `app/**`, `public/**`, `wrangler.jsonc` and `worker/**` (read-only).
+- D-093.
+- D-094.
+- ML-DEVOS-AS-120.
+- Protocol V2 / RFC-020.
+- H-WEB-HOMEPAGE-ARTIFACT-0001 archived evidence.
 
 ## Exact execution scope
 
-Only the D-093 allowed surfaces. The artifact file is never edited.
+Allowed:
+
+- one fresh `governance/maisoglabs-v0.1 -> main` release PR;
+- PR metadata, diff, checks, review, protection and ruleset reads;
+- GitHub Linux CI;
+- normal protected merge commit;
+- read-only Cloudflare build, version and deployment observation;
+- Protocol V2 return publication.
+
+`MAIN_MERGE_AUTHORIZED: YES` applies only to that exact Gate C PR after all preconditions pass. No product or runtime code modification is authorized.
 
 ## SENTINEL Sync
 
-**Authority:** Paulo's explicit D-093 instruction. **Context:** the pending D-092 review and the Architect's reconciliation-analysis request are superseded; the D-092 handoff is archived. **Capability:** local repository mutation, local build/test/browser/workerd verification, and a branch push that triggers a non-production preview build. **Execution:** one pass, one Protocol V2 return. **Evidence:** artifact hash before and after build, media mapping hashes, acceptance checks, preview identity. Disposition `CLEAR`.
+`CLEAR` only for the bounded Gate C path. Authority, capability and execution remain separated. Main merge authority does not imply deployment authority.
 
 ## SU Contradiction Check
 
-Mode `BOUNDED_CONTRADICTION`, disposition `CLEAR_WITH_NOTES`:
-
-1. The artifact's hardcoded content contradicts D-088 facts; the owner instruction forbids editing it, so the contradiction is recorded, not resolved.
-2. The artifact executes in-browser Babel and development React bundled inside itself; this contradicts RFC-021 R2 for `/` and is recorded.
-3. The Builder cannot reach Cloudflare or the preview host; preview verification is owner-run.
-4. The artifact's media are not inside the ZIP; they must resolve to existing approved assets, and any mismatch must be reported.
+`CLEAR_WITH_NOTES`. Treat any SHA drift, artifact drift, CI failure, build-command ambiguity, active-production change or unexpected PR content as a stop condition.
 
 ## Instructions
 
-1. Place the artifact byte-identically at `public/index.html` and remove the Next.js homepage so the static export copies it to `out/index.html` unchanged.
-2. Serve the artifact's expected media paths with byte-identical copies of the approved V10 assets.
-3. Remove only the homepage code the artifact supersedes; keep `/journal` and `/admin` untouched.
-4. Verify the 15 acceptance checks, run the full suite and build, and check the Worker routes locally.
-5. Publish one Protocol V2 return; stop before production promotion.
+Create exactly one fresh PR from `governance/maisoglabs-v0.1` to `main`. Do not reuse PR #13.
+
+Record the PR number, exact base, exact final head, complete release diff, mergeability, unresolved review conversations, and protection/ruleset state. Require exact-final-head Linux `test-and-build` SUCCESS. If bookkeeping advances the governance head, the final new head must pass CI.
+
+Immediately before merge, re-read `main`, the PR head, the active production Version ID, the bounded release diff, and the applicable Cloudflare Version command evidence.
+
+Merge only through the normal GitHub PR path with merge method `merge`. No squash, rebase, auto-merge, force, bypass, or direct push to `main`.
+
+Wait for the resulting `main` Workers Build. Record its Build ID and uploaded Worker Version ID, then re-read the active production deployment. The post-merge active Version ID at 100% must equal the pre-merge active Version ID at 100%.
 
 ## Validation and evidence
 
-- Artifact SHA-256 equal in the ZIP, in `public/index.html`, and in `out/index.html` after build.
-- `npm test`, `npm run build`, `git diff --check` pass.
-- Browser checks for JavaScript execution, logo video playback and crossfade, Full/Calm/Still, orbit motion, panels, mobile, `/journal`, `/admin`, Worker APIs, no external runtime requests.
+Required success evidence:
+
+- exact-final-head Linux CI;
+- PR merge commit SHA;
+- `main` points to the expected merge;
+- Workers main build success;
+- new uploaded Worker version identified and inactive;
+- pre/post active production Version ID equality;
+- canonical artifact SHA remains approved;
+- no production promotion command was run.
 
 ## Stop conditions
 
-Stop on any need to edit the artifact, change a preserved surface, deploy, promote, merge, or mutate remote resources.
+Stop without repair if the governance or main identity unexpectedly moves; the artifact hash changes; final-head CI is not green; the PR contains unapproved runtime/product changes; the normal protection path cannot be used; Cloudflare configuration becomes ambiguous; production active Version changes unexpectedly; the build unexpectedly promotes traffic; any request would require `wrangler versions deploy`; or any D1/R2/Access/DNS/secret/environment mutation becomes necessary.
+
+No automatic rollback is authorized.
 
 ## Next action
 
-Claude/Builder performs the integration and returns `H-WEB-HOMEPAGE-ARTIFACT-0001` to the Architect with all action flags `NO`.
+On successful Gate C, publish the Builder return; archive and deselect this directive; reset action flags to `NO`; and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`. Gate D remains unauthorized.

@@ -117,4 +117,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 ## Rule
 
+- `ML-DEVOS-AS-120.md` — D-093 published Design System homepage artifact acceptance. Concluded `ARCHITECT_APPROVED — D-093 HOMEPAGE ARTIFACT ACCEPTED FOR GATE C`; binds Gate C to D-094 and the exact reviewed implementation/artifact while keeping production promotion separately gated.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).

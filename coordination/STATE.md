@@ -1,50 +1,44 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_HOMEPAGE_ARTIFACT
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D093_HOMEPAGE_ARTIFACT_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS_WEB_D093_GATE_C
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D094_D093_GATE_C_PROTECTED_MAIN_MERGE_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-HOMEPAGE-ARTIFACT-0001
-REVIEW_TARGET_COMMIT: c4703e66e27871ab47ac7f33a92e9c11a8e157ca
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-119
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-D093-GATE-C-0001
+DIRECTIVE_ISSUE_PARENT: f2c13aa3dbc65b3829f1a8f64437a929392369a5
+DIRECTIVE_AUTHORITY_REF: D-094
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-120
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: NO
+MAIN_MERGE_AUTHORIZED: YES
 
 ## Authority
 
-D-093 authorized serving the published Design System artifact byte-for-byte as the homepage, preview only. Rollback points: `3a8bb779ddb7ecf6daca2655f0844986c3b81aa8` (D-092 homepage) and branch `snapshot/pre-v10-clean-replacement` (`146f645`).
+D-093 controls the byte-identical homepage artifact. D-094 authorizes only the bounded Gate C protected merge path selected by `DIR-WEB-D093-GATE-C-0001`. The directive transports that authority and does not expand it.
 
-## Builder return
+## Builder action
 
-`H-WEB-HOMEPAGE-ARTIFACT-0001` is the return record. It is evidence, not authority. `DIR-WEB-HOMEPAGE-ARTIFACT-0001` is archived byte-for-byte and deselected. The push of the return commit triggers the existing Workers Builds non-production branch build; preview verification is owner-run.
-
-## Architect scope
-
-Independent review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-119, including the recorded D-088 content and RFC-021 R2 contradictions on `/`.
+Execute the selected directive against a fresh release PR and exact final head. Use the normal protected GitHub merge-commit path, observe the resulting Workers version upload, prove the active production Version remains unchanged at 100%, and return through Protocol V2.
 
 ## Hard boundaries
 
-No further implementation. No production promotion, traffic shift, rollback, main merge, D1/R2/Access/DNS/secret/environment action, destructive Cloudflare change, or production-data action.
+No production promotion, traffic shift, deployment, rollback, D1/R2/Access/DNS/secret/environment mutation, production-data write, product/runtime implementation, or Cloudflare configuration change.
 
-No PR #7 or PR #10 merge. No V2B, V10-B, API-DIAG/API-FIX. No S6/S7. No D-068.
+No S6/S7. No D-068. PR #7 is excluded. PR #10 remains DO NOT MERGE. No squash, rebase, auto-merge, direct push, force push, or protection bypass.
 
-S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open. The AS-116 production API incident remains open.
-
-All action-specific authorization flags are `NO`.
+Gate D remains separately Paulo-gated. All authority not expressly selected above remains withheld.

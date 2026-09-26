@@ -1664,3 +1664,16 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Preserved:** `worker/**`, `migrations/**`, `wrangler.jsonc`, `package*.json`, `app/admin/**`, `app/journal/**`, `app/layout.js`, `app/globals.css`, existing `public/**` files, `.github/**`, governance/SENTINEL/DevOS records, D1/R2 data and bindings, Access, DNS, secrets.
 - **Flags:** `MUTATION_AUTHORIZED: YES` for the allowed surfaces only; `MEDIA_MUTATION_AUTHORIZED: NO` (media are copied, not created or altered); `DEPLOY_AUTHORIZED: NO`. The governance-branch push produces the existing non-production Workers Builds preview version; production promotion, main merge, remote D1/R2, Access/DNS/secret changes, S6/S7 and D-068 remain unauthorized.
 - **Directive:** issue `DIR-WEB-HOMEPAGE-ARTIFACT-0001` with scope `D093_HOMEPAGE_ARTIFACT_PREVIEW_ONLY`, routed to Claude/Builder.
+
+### D-094 — Authorize D-093 homepage Gate C protected main merge without production promotion
+
+- **Decided by:** Paulo (Product / Risk Owner).
+- **Owner authorization provenance:** Paulo authorized the release sequence and explicitly selected the Architect-side publication route for the D-093 Gate C transition. The present owner request directs publication of this bounded decision and transition.
+- **Bound implementation candidate:** `f2c13aa3dbc65b3829f1a8f64437a929392369a5`.
+- **Bound canonical homepage artifact SHA-256:** `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- **Main baseline at authorization/review:** `aebc881e8890c00090d714602591138a045bd3b0`.
+- **Owner runtime evidence:** Paulo opened the non-production Workers preview in a normal browser and confirmed the shipped logo animation and site motion operate correctly.
+- **Fresh Cloudflare configuration evidence:** Paulo inspected the live Cloudflare dashboard read-only and confirmed production branch `main`, Version command `npx wrangler versions upload`, non-production branch builds enabled, and root directory `/`. No Cloudflare setting was changed.
+- **Authorized Gate C actions only:** record this decision; publish the Architect D-093 acceptance and bounded Gate C directive; create one fresh `governance/maisoglabs-v0.1 -> main` release PR; perform fresh read-only release-state checks; require exact-final-head Linux CI; merge through the normal protected GitHub PR path with a normal merge commit; observe the resulting main Workers Build/version upload; verify production traffic remains on the exact pre-merge active version; publish the Builder return.
+- **Not authorized:** `wrangler versions deploy`; production promotion or traffic shift; rollback; direct push to main; force push; squash/rebase/auto-merge; protection bypass; website/runtime or Design System artifact modification; Claude Design's later Research-scroll artifact; D1/R2/Access/DNS/domain/secrets/environment mutation; production-data writes; S6/S7; D-068; PR #7 merge; PR #10 merge.
+- **Gate D:** remains separately Paulo-gated.
