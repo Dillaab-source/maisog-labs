@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_REL_002_GATE_C
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D085_WEB_REL_002_GATE_C_COMPLETE_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: AS115_WEB_REL_002_GATE_C_PASS_PAULO_GATE_D_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-REL-002-GATE-C-0001
-REVIEW_TARGET_COMMIT: 7ee431258f0be71bd1590d194a059054922aad89
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-114
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,48 +29,51 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-085 authorized the now-completed bounded WEB-REL-002 Gate C operation.
-ML-DEVOS-AS-114 remains the controlling Gate B acceptance review.
+D-085 was the completed WEB-REL-002 Gate C owner authorization.
+
+ML-DEVOS-AS-115 is the controlling Gate C post-merge review.
 
 ## Gate C result
 
-PR #13 was moved from draft to ready and merged through the normal protected GitHub pull-request path, without auto-merge or ruleset bypass.
+Gate C passed. The source merge is complete.
 
-Final PR head:
-`7ee431258f0be71bd1590d194a059054922aad89`
+PR #13 is merged:
+- merge commit `aebc881e8890c00090d714602591138a045bd3b0`;
+- merged head `7ee431258f0be71bd1590d194a059054922aad89`;
+- original base `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`.
 
-Pre-merge main:
-`882ad253b5dbec06b209d1ee1a2a54b21b392e2e`
+The main Workers build uploaded Version `a667fc09-12d1-4fde-a75d-5d660729baa3`. It is inactive.
 
-Merge commit and post-merge main:
-`aebc881e8890c00090d714602591138a045bd3b0`
+The active production Version is reported unchanged: `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100%. This is ACTOR_REPORTED Cloudflare API evidence.
 
-Cloudflare production build command was freshly verified as:
-`npx wrangler versions upload`
+`H-WEB-REL-002-GATE-C-0001` is archived byte-exactly.
 
-The resulting main build uploaded inactive Worker Version:
-`a667fc09-12d1-4fde-a75d-5d660729baa3`
+## Gate D owner gate
 
-The active production Version remained unchanged before and after merge:
-`a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100% traffic.
+Gate D (production promotion) is NOT authorized.
 
-No production promotion occurred.
+Before any promotion, Paulo must explicitly:
+1. choose the exact uploaded Worker Version ID to promote;
+2. disposition the MEDIA_GAP;
+3. require a fresh production-state check immediately before promotion;
+4. authorize post-promotion runtime verification.
 
 ## Hard boundaries
 
-Gate D remains a separate Paulo decision.
-No deployment or production promotion.
-No Cloudflare production rollback.
-No D1/R2/Access/DNS mutation.
-No V2B.
-No S6/S7 resumption.
-No D-068 mutation.
-No PR #7 merge.
-PR #10 remains DO NOT MERGE.
-No force-push to main.
+No deploy or promotion of `a667fc09-12d1-4fde-a75d-5d660729baa3` or any other version.
+No rollback.
+No D1/R2 mutation. No Access or DNS/domain mutation.
+No production-data writes. No public D1 cutover.
+No V2B. No S6/S7 resumption. No D-068 mutation.
+No PR #7 merge. PR #10 remains DO NOT MERGE.
+No force-push.
 
-Every action-specific authorization flag is NO.
+S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open. D-068 remains suspended.
+
+All action-specific flags remain NO.
 
 ## Next transition
 
-The Architect independently reviews `H-WEB-REL-002-GATE-C-0001` and records the next immutable Architect Sync.
+TURN: PAULO
+
+No Builder action begins automatically.
