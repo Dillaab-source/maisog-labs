@@ -48,21 +48,14 @@
 // application code path, no new attribute, no new CSS capability.
 import { useEffect } from "react";
 import { computeOverlayLayers } from "../lib/design/overlay.mjs";
+import { normalizeV10Theme } from "../lib/design/v10-theme.mjs";
 import { DESIGN_APPLIED_EVENT, managedTriggerSlots } from "../components/site/routes.mjs";
 
 const DESIGN_PREVIEW_QUERY_PARAM = "design-preview";
 
-const HERO_BACKGROUND_PRESET_VALUES = ["cinematic-v3", "deep-night", "minimal-orbit"];
-const CARD_STYLE_PRESET_VALUES = ["soft-glass", "quiet-border", "solid-night"];
-const LAYOUT_DENSITY_PRESET_VALUES = ["compact", "comfortable", "spacious"];
-const TYPOGRAPHY_PRESET_VALUES = ["cinematic", "editorial", "system"];
-const HEADING_SCALE_PRESET_VALUES = ["compact", "standard", "display"];
-const PANEL_PRESET_VALUES = ["soft-glass", "clear-glass", "opaque-night"];
 const ANIMATION_PRESET_VALUES = ["calm", "minimal", "off"];
 const REDUCED_MOTION_MODE_VALUES = ["respect-system", "always-reduced"];
 const PROJECT_RAIL_MODE_VALUES = ["snap", "free-scroll"];
-const JOURNAL_CARD_MODE_VALUES = ["stack", "rail"];
-const ACCENT_PRESET_VALUES = ["cobalt", "teal", "violet"];
 const MANAGED_SECTION_IDS = ["home", "projects", "process", "about"];
 
 function setEnumAttribute(root, attribute, value, allowed) {
@@ -89,33 +82,20 @@ function setBoundedNumberProperty(root, property, value, { min, max, transform }
 // see that module's header comment for the full rationale.
 function applyOverlayIntensity(root, value) {
   const layers = computeOverlayLayers(value);
-  if (!layers) {
-    root.style.removeProperty("--design-overlay-opacity");
-    root.style.removeProperty("--design-overlay-boost");
-    return;
-  }
   root.style.setProperty("--design-overlay-opacity", String(layers.opacity));
   root.style.setProperty("--design-overlay-boost", String(layers.boost));
 }
 
 function applyTheme(root, theme) {
-  if (!theme || typeof theme !== "object") return;
-  setEnumAttribute(root, "data-hero-bg", theme.heroBackgroundPreset, HERO_BACKGROUND_PRESET_VALUES);
-  setEnumAttribute(root, "data-card-style", theme.cardStylePreset, CARD_STYLE_PRESET_VALUES);
-  setEnumAttribute(root, "data-density", theme.layoutDensityPreset, LAYOUT_DENSITY_PRESET_VALUES);
-  setEnumAttribute(root, "data-typography", theme.typographyPreset, TYPOGRAPHY_PRESET_VALUES);
-  setEnumAttribute(root, "data-heading-scale", theme.headingScalePreset, HEADING_SCALE_PRESET_VALUES);
-  setEnumAttribute(root, "data-panel", theme.panelPreset, PANEL_PRESET_VALUES);
-  setEnumAttribute(root, "data-animation", theme.animationPreset, ANIMATION_PRESET_VALUES);
-  setEnumAttribute(root, "data-reduced-motion-mode", theme.reducedMotionMode, REDUCED_MOTION_MODE_VALUES);
-  setEnumAttribute(root, "data-project-rail", theme.projectRailMode, PROJECT_RAIL_MODE_VALUES);
-  setEnumAttribute(root, "data-journal-cards", theme.journalCardMode, JOURNAL_CARD_MODE_VALUES);
-  setEnumAttribute(root, "data-accent", theme.accentPreset, ACCENT_PRESET_VALUES);
+  const effective = normalizeV10Theme(theme);
+  setEnumAttribute(root, "data-animation", effective.animationPreset, ANIMATION_PRESET_VALUES);
+  setEnumAttribute(root, "data-reduced-motion-mode", effective.reducedMotionMode, REDUCED_MOTION_MODE_VALUES);
+  setEnumAttribute(root, "data-project-rail", effective.projectRailMode, PROJECT_RAIL_MODE_VALUES);
 
-  applyOverlayIntensity(root, theme.overlayIntensity);
-  setBoundedNumberProperty(root, "--design-panel-alpha", theme.panelOpacityPct, { min: 55, max: 90, transform: v => v / 100 });
-  setBoundedNumberProperty(root, "--design-border-alpha", theme.borderIntensityPct, { min: 10, max: 45, transform: v => v / 100 });
-  setBoundedNumberProperty(root, "--design-radius-scale", theme.radiusScalePct, { min: 80, max: 120, transform: v => v / 100 });
+  applyOverlayIntensity(root, effective.overlayIntensity);
+  setBoundedNumberProperty(root, "--design-panel-alpha", effective.panelOpacityPct, { min: 80, max: 90, transform: v => v / 100 });
+  setBoundedNumberProperty(root, "--design-border-alpha", effective.borderIntensityPct, { min: 10, max: 25, transform: v => v / 100 });
+  setBoundedNumberProperty(root, "--design-radius-scale", effective.radiusScalePct, { min: 80, max: 120, transform: v => v / 100 });
 }
 
 // Website Redesign V1 (D-076 / ML-DEVOS-AS-104 plan §19): the same four

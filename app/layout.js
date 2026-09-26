@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./v10.css";
 import { getPublicContent } from "../lib/content/local.mjs";
 import DesignRuntime from "./DesignRuntime";
 
@@ -13,6 +14,9 @@ export async function generateMetadata() {
       title: site.name,
       description: seo.description,
       type: "website",
+    },
+    icons: {
+      icon: "/v10/assets/favicon.svg",
     },
   };
 }

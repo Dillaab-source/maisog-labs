@@ -13,14 +13,14 @@ export const DESIGN_APPLIED_EVENT = "maisog:design-applied";
 export const ROUTES = Object.freeze([
   Object.freeze({ id: "systems", index: "01", label: "Systems", section: "process", slot: 1 }),
   Object.freeze({ id: "projects", index: "02", label: "Projects", section: "projects", slot: 2 }),
-  Object.freeze({ id: "research", index: "03", label: "Research", section: null, slot: 3 }),
+  Object.freeze({ id: "journal", index: "03", label: "Research", section: null, slot: 3 }),
   Object.freeze({ id: "contact", index: "04", label: "Contact", section: "about", slot: 4 }),
 ]);
 
 export const ROUTE_IDS = Object.freeze(ROUTES.map(route => route.id));
 
 // Legacy long-scroll anchors that still resolve to their spatial surface.
-const LEGACY_ALIASES = Object.freeze({ process: "systems", about: "contact" });
+const LEGACY_ALIASES = Object.freeze({ process: "systems", about: "contact", research: "journal" });
 
 // Resolve a location.hash to a route. No hash, `#home`, or any hash that is
 // not a known route means Entry (`route: null`). `canonical` is set only when
@@ -84,7 +84,7 @@ export function disciplineGraph(disciplines, projects) {
 // the user's prefers-reduced-motion, WEB-INC-007 always-reduced, or the
 // published `off` animation preset.
 export function motionMode({ prefersReduced, reducedMotionMode, animation }) {
-  if (prefersReduced || reducedMotionMode === "always-reduced" || animation === "off") return "off";
-  if (animation === "minimal") return "minimal";
-  return "calm";
+  if (prefersReduced || reducedMotionMode === "always-reduced" || animation === "off") return "still";
+  if (animation === "minimal") return "calm";
+  return "full";
 }

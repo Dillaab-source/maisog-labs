@@ -2,8 +2,8 @@
 
 // Projects surface (plan §7): a typography-led explorer over the published,
 // featured repository projects only. Shows only approved fields (category,
-// title, summary, stack). No status, URL or system-flow figure is shown
-// because the published content carries none (plan §7, §20).
+// title, summary, stack); status and flow labels are fixed presentation copy,
+// never inferred project data (plan §7, §20).
 import { useState } from "react";
 import useListKeys from "./useListKeys";
 
@@ -35,13 +35,25 @@ export default function ProjectsSurface({ projects, emptyMessage, description })
         ))}
       </div>
       <article className={`project-detail tone-${project.accent}`} aria-live="polite">
-        <p className="project-count"><span className="visually-hidden">Project </span>{String(selected + 1).padStart(2, "0")} / {count}</p>
+        <div className="project-meta-line">
+          <p className="project-count"><span className="visually-hidden">Project </span>{String(selected + 1).padStart(2, "0")} / {count}</p>
+          <p className="project-status"><i aria-hidden="true" />Published profile</p>
+        </div>
         <p className="project-category">{project.category}</p>
         <h3>{project.title}</h3>
         <p className="project-summary">{project.summary}</p>
         <ul className="project-stack" aria-label="Tags">
           {project.stack.map(item => <li key={item}>{item}</li>)}
         </ul>
+        <div className="project-flow" aria-label={`System elements for ${project.title}`}>
+          <p>System elements</p>
+          <ol>
+            {project.stack.slice(0, 4).map((stage, index) => (
+              <li key={`${project.id}-${stage}`}><i aria-hidden="true" /><span>{String(index + 1).padStart(2, "0")}</span>{stage}</li>
+            ))}
+          </ol>
+          <p className="project-human"><i aria-hidden="true" />A person decides what continues.</p>
+        </div>
         <div className="project-step">
           <button type="button" onClick={() => step(-1)}><span aria-hidden="true">←</span> Previous</button>
           <button type="button" onClick={() => step(1)}>Next <span aria-hidden="true">→</span></button>

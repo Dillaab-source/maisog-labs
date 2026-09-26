@@ -33,7 +33,7 @@ test("stable ordering and empty collections", () => {
   source.projects.reverse();
   source.navigation = [];
   const result = projectPublishedContent(source);
-  assert.deepEqual(result.projects.map(item => item.order), [1,2,3,4]);
+  assert.deepEqual(result.projects.map(item => item.order), [1,2,3,4,5,6,7,8]);
   assert.deepEqual(result.navigation, []);
 });
 

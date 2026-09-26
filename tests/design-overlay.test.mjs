@@ -58,10 +58,10 @@ test("values at or below the baseline never engage the boost layer", () => {
   }
 });
 
-test("out-of-range and non-finite values return null (caller removes both custom properties)", () => {
-  assert.equal(computeOverlayLayers(OVERLAY_INTENSITY_MIN - 1), null);
-  assert.equal(computeOverlayLayers(OVERLAY_INTENSITY_MAX + 1), null);
-  assert.equal(computeOverlayLayers(Number.NaN), null);
-  assert.equal(computeOverlayLayers(undefined), null);
-  assert.equal(computeOverlayLayers("68"), null);
+test("AS118-F001: bounds clamp and invalid values fall back to the exact V10 point", () => {
+  assert.deepEqual(computeOverlayLayers(OVERLAY_INTENSITY_MIN - 1), computeOverlayLayers(OVERLAY_INTENSITY_MIN));
+  assert.deepEqual(computeOverlayLayers(OVERLAY_INTENSITY_MAX + 1), computeOverlayLayers(OVERLAY_INTENSITY_MAX));
+  for (const value of [Number.NaN, undefined, "68", null]) {
+    assert.deepEqual(computeOverlayLayers(value), { opacity: 1, boost: 0 });
+  }
 });

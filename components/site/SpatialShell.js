@@ -19,6 +19,7 @@
 // surface is open or the document is hidden.
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContactSurface from "./ContactSurface";
+import EntryStage from "./EntryStage";
 import ProjectsSurface from "./ProjectsSurface";
 import ResearchSurface from "./ResearchSurface";
 import SystemsSurface from "./SystemsSurface";
@@ -65,7 +66,7 @@ export default function SpatialShell({ content, graph }) {
   const { site, spatial, contact, about, footer } = content;
   const [route, setRoute] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [motion, setMotion] = useState("calm");
+  const [motion, setMotion] = useState("full");
   const [docHidden, setDocHidden] = useState(false);
   const [researchRequested, setResearchRequested] = useState(false);
   const previousRoute = useRef(null);
@@ -138,7 +139,7 @@ export default function SpatialShell({ content, graph }) {
   useEffect(() => {
     const before = previousRoute.current;
     previousRoute.current = route;
-    if (route === "research") setResearchRequested(true);
+    if (route === "journal") setResearchRequested(true);
     if (route && route !== before) {
       document.getElementById(`surface-${route}-title`)?.focus({ preventScroll: true });
     } else if (!route && before) {
@@ -181,7 +182,7 @@ export default function SpatialShell({ content, graph }) {
   // Pointer parallax: calm motion, hover-capable fine pointer, Entry visible
   // and document visible only. One rAF per pointer frame; fully torn down
   // (listener removed, frame cancelled, offset reset) otherwise.
-  const parallax = motion === "calm" && !route && !docHidden;
+  const parallax = motion === "full" && !route && !docHidden;
   useEffect(() => {
     const layer = backdrop.current;
     const host = shell.current;
@@ -270,8 +271,7 @@ export default function SpatialShell({ content, graph }) {
 
       <header className="spatial-header">
         <a className="spatial-wordmark" href="./" onClick={onWordmark} aria-label={`${site.name} — Entry`}>
-          <img src="/brand/maisog-labs-icon-on-dark.svg" alt="" width="40" height="40" />
-          <span>MAISOG <em>LABS</em></span>
+          <span>MAISOG<em>LABS</em></span>
         </a>
         <nav className="header-nav" aria-label="Primary">
           <RouteLinks current={route} destinations={spatial.destinations} className="header-route" />
@@ -295,15 +295,12 @@ export default function SpatialShell({ content, graph }) {
       <main id="main-content" className="entry" aria-hidden={route ? "true" : undefined} inert={route ? true : undefined}>
         <div className="entry-content" data-section="home">
           <p className="entry-meta"><span aria-hidden="true">00 / </span>Entry</p>
-          <h1 id="entry-title" className="entry-mark" tabIndex={-1}>
-            <img src="/brand/maisog-labs-primary-on-dark.svg" alt={`${site.name} — Ideas into systems.`} width="2400" height="1000" />
-          </h1>
-          <p className="entry-descriptor">{spatial.entryDescriptor}</p>
-          <nav className="entry-destinations" aria-label="Lab destinations">
-            <RouteLinks current={route} destinations={spatial.destinations} className="entry-route" withText />
-          </nav>
+          <EntryStage motion={motion} site={site} />
         </div>
-        <p className="entry-location" aria-hidden="true">{site.location.toUpperCase()} · {site.timezone}</p>
+        <div className="entry-footer">
+          <p className="entry-descriptor">{spatial.entryDescriptor}</p>
+          <p className="entry-mantra" aria-hidden="true"><span>Humanity</span><span>Orbits</span><span>Higher</span></p>
+        </div>
       </main>
 
       <section {...surfaceProps("systems")}>
@@ -316,8 +313,8 @@ export default function SpatialShell({ content, graph }) {
         <ProjectsSurface projects={content.projects} emptyMessage={content.projectSection.emptyMessage} description={content.projectSection.description} />
       </section>
 
-      <section {...surfaceProps("research")}>
-        {heading("research", "Notes from the lab")}
+      <section {...surfaceProps("journal")}>
+        {heading("journal", "Notes from the lab")}
         <ResearchSurface active={researchRequested} />
       </section>
 

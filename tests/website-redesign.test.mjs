@@ -17,7 +17,7 @@ const read = file => fs.readFileSync(new URL(`../${file}`, import.meta.url), "ut
 
 test("routes: four fixed destinations with the fixed WEB-INC-007 mapping (plan §19)", () => {
   assert.deepEqual(ROUTES.map(r => [r.id, r.section, r.slot]), [
-    ["systems", "process", 1], ["projects", "projects", 2], ["research", null, 3], ["contact", "about", 4],
+    ["systems", "process", 1], ["projects", "projects", 2], ["journal", null, 3], ["contact", "about", 4],
   ]);
 });
 
@@ -25,7 +25,8 @@ test("resolveHash: no/unknown hash is Entry; routes resolve; legacy anchors alia
   for (const hash of ["", "#", "#home", "#main-content", "#nope", "#Systems", "#systems/x", "#../contact", null]) {
     assert.deepEqual(resolveHash(hash), { route: null, canonical: null }, String(hash));
   }
-  for (const id of ["systems", "projects", "research", "contact"]) assert.deepEqual(resolveHash(`#${id}`), { route: id, canonical: null });
+  for (const id of ["systems", "projects", "journal", "contact"]) assert.deepEqual(resolveHash(`#${id}`), { route: id, canonical: null });
+  assert.deepEqual(resolveHash("#research"), { route: "journal", canonical: "#journal" });
   assert.deepEqual(resolveHash("#process"), { route: "systems", canonical: "#systems" });
   assert.deepEqual(resolveHash("#about"), { route: "contact", canonical: "#contact" });
 });
@@ -68,13 +69,13 @@ test("disciplineGraph: relationships derive only from published project category
   assert.ok(!withoutHub.edges.some(e => e.a === "discipline-ai" && e.b === "discipline-systems"));
 });
 
-test("motionMode: off wins; minimal; calm default", () => {
-  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: null, animation: null }), "calm");
-  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: "respect-system", animation: "calm" }), "calm");
-  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: null, animation: "minimal" }), "minimal");
-  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: null, animation: "off" }), "off");
-  assert.equal(motionMode({ prefersReduced: true, reducedMotionMode: null, animation: "calm" }), "off");
-  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: "always-reduced", animation: "minimal" }), "off");
+test("motionMode: persisted enums map to V10 Full, Calm and Still", () => {
+  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: null, animation: null }), "full");
+  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: "respect-system", animation: "calm" }), "full");
+  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: null, animation: "minimal" }), "calm");
+  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: null, animation: "off" }), "still");
+  assert.equal(motionMode({ prefersReduced: true, reducedMotionMode: null, animation: "calm" }), "still");
+  assert.equal(motionMode({ prefersReduced: false, reducedMotionMode: "always-reduced", animation: "minimal" }), "still");
 });
 
 test("content: spatial copy is a separate, validated, fail-closed local document", () => {
@@ -104,8 +105,8 @@ test("content: spatial copy is a separate, validated, fail-closed local document
 
 test("content integrity: approved Entry sentence and repository contact address", async () => {
   const content = { ...(await getPublicContent()), spatial: spatialContent };
-  assert.equal(content.spatial.entryDescriptor, "MaisogLabs is Paulo Maisog's independent technology lab, building practical AI automation, research systems, software, and security-focused experiments.");
-  assert.equal(content.contact.email, "hello@maisoglabs.com");
+  assert.equal(content.spatial.entryDescriptor, "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.");
+  assert.equal(content.contact.email, "paulo.maisog@maisoglabs.com");
   assert.equal(content.spatial.contactStatement, "Humanity orbits higher.");
   // Discipline copy restates already-published copy (plan §20: no new claims).
   const published = JSON.stringify([siteContent.services, siteContent.foundations, siteContent.process, siteContent.about, siteContent.projects]);
@@ -160,7 +161,7 @@ test("page markup: managed ids are the fixed four; Research is unmanaged", () =>
 // extracted from source and exercised against the real route vocabulary.
 test("skip link: target derives only from the fixed current route; never hidden Entry when a surface is open", () => {
   const shell = read("components/site/SpatialShell.js");
-  const match = shell.match(/function skipTargetFor\(route\) \{\n([\s\S]*?)\n\}/);
+  const match = shell.match(/function skipTargetFor\(route\) \{\r?\n([\s\S]*?)\r?\n\}/);
   assert.ok(match, "skipTargetFor is defined in SpatialShell.js");
   const skipTargetFor = new Function("ROUTE_IDS", "route", match[1]).bind(null, ROUTES.map(r => r.id));
 
@@ -180,5 +181,5 @@ test("skip link: target derives only from the fixed current route; never hidden 
   assert.match(shell, /<h2 id=\{`surface-\$\{id\}-title`\} className="surface-title" tabIndex=\{-1\}>/);
   assert.match(shell, /<main id="main-content"/);
   // On an open surface the handler focuses the heading without changing the hash.
-  assert.match(shell, /const onSkip = event => \{\n    if \(!route\) return;\n    const target = document\.getElementById\(skipTargetFor\(route\)\);\n    if \(!target\) return;\n    event\.preventDefault\(\);\n    target\.focus\(\);/);
+  assert.match(shell, /const onSkip = event => \{\r?\n    if \(!route\) return;\r?\n    const target = document\.getElementById\(skipTargetFor\(route\)\);\r?\n    if \(!target\) return;\r?\n    event\.preventDefault\(\);\r?\n    target\.focus\(\);/);
 });
