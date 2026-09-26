@@ -1,129 +1,127 @@
-# Current Handoff — WEB-REL-002 Gate B: Release PR Review (D-084)
+# Current Handoff — WEB-REL-002 Gate C: Protected Merge Without Promotion
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-REL-002-GATE-B-0001
-cycle_id: MAISOGLABS_WEB_REL_002_GATE_B
-input_base_commit: 4a41ebb493603ff5c2185cf25d0b4e0b3c04102e
-review_target_commit: 4a41ebb493603ff5c2185cf25d0b4e0b3c04102e
-applicable_review_id: ML-DEVOS-AS-113
+handoff_id: H-WEB-REL-002-GATE-C-0001
+cycle_id: MAISOGLABS_WEB_REL_002_GATE_C
+input_base_commit: 7ee431258f0be71bd1590d194a059054922aad89
+review_target_commit: 7ee431258f0be71bd1590d194a059054922aad89
+applicable_review_id: ML-DEVOS-AS-114
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
-
-Every result is `ACTOR_REPORTED`. The GitHub data was read through the Builder's GitHub connector, and Cloudflare-originated check data is external content recorded as reported.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. Every result is `ACTOR_REPORTED` from authenticated read-only GitHub and Cloudflare API evidence unless explicitly identified as a repository check.
 
 ## Objective
 
-Execute WEB-REL-002 Gate B under `D-084` and `DIR-WEB-REL-002-GATE-B-0001`: open exactly one governance→main release PR and collect the review evidence.
+Return the completed bounded WEB-REL-002 Gate C operation under `D-085` and `DIR-WEB-REL-002-GATE-C-0001` for independent Architect review.
 
-- **No merge.**
-- **Base:** `4a41ebb493603ff5c2185cf25d0b4e0b3c04102e`, the directive-issue commit, reached by a fresh `--session-protocol 2` bootstrap (exit 0).
-- **Result:** the commit that publishes this handoff, whose sole parent is the base.
-
-## Gate B evidence
-
-| Item | Value |
-|---|---|
-| PR | **#13**, `https://github.com/Dillaab-source/maisog-labs/pull/13`, **draft**, open, not merged |
-| Title | `WEB-REL-002: governance/maisoglabs-v0.1 → main (Gate B review only — DO NOT MERGE without Gate C)` |
-| Base | `main` @ `882ad253b5dbec06b209d1ee1a2a54b21b392e2e` (unchanged since AS-113) |
-| Initial head | `4a41ebb493603ff5c2185cf25d0b4e0b3c04102e` |
-| Final head | the commit that publishes this handoff (governance bookkeeping only; see "Final head" below) |
-| Size | 267 files, +39,715 / −941, 131 commits |
-| Mergeability | `mergeable_state: blocked` while checks ran, then `clean` after they completed (read at 23:10:26Z) |
-| Reviews / review threads | none / none (0 unresolved conversations) |
-| Comments | 1: the Cloudflare Workers bot preview comment |
-
-**CI on the initial head `4a41ebb`** — all completed with conclusion success:
-
-| Check | Run / ID | Started → completed (UTC) |
-|---|---|---|
-| `test-and-build` (pull_request) | run `36199902615`, job `108284079807` | 23:09:56Z → 23:11:49Z |
-| `test-and-build` (push) | run `36199873591`, job `108283985092` | 23:09:29Z → 23:11:46Z |
-| `Workers Builds: maisog-labs` | check run `108284169500` | completed 23:10:19Z |
-
-The `test-and-build` job runs `npm ci`, `npm test` and `npm run build` (`.github/workflows/ci.yml`).
-
-**Cloudflare Workers Build details** (external data, as reported by the check run):
-- Build `11872da6-548b-46aa-a824-2ba41fc6cf45`;
-- Version ID `9ed1248e-bcf4-414b-9bac-c8814c7cfb2f`;
-- Commit Preview URL `https://9ed1248e-maisog-labs.paulomaisog284.workers.dev`;
-- Branch Preview Alias `https://governance-maisoglabs-v0-1-maisog-labs.paulomaisog284.workers.dev`.
-
-This is a non-production branch/commit preview, permitted under D-055. The bot's wording "Deployment successful" refers to that preview version. The Builder cannot observe whether the active production version changed, but nothing in Gate B promotes a version. The active production Version ID must be freshly verified at Gate C, as AS-113 requires.
-
-**Release diff against the AS-113 inventory:**
-- The PR's 267 files are the AS-113 261-file inventory plus exactly 6 governance/release records added since `2cdbf44`:
-  - `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`;
-  - `devos/changes/architect-syncs/ML-DEVOS-AS-113.md`;
-  - `coordination/archive/directives/DIR-WEB-RELEASE-READINESS-0001.{md,provenance.json}`;
-  - `coordination/archive/handoffs/H-WEB-RELEASE-READINESS-0001.{md,provenance.json}`.
-- No inventory file was removed.
-- `git diff 2cdbf44 4a41ebb` is empty over `app components data lib worker migrations wrangler.jsonc package.json package-lock.json .github public next.config.mjs`.
-- The production-facing 13-file surface is therefore byte-identical to the AS-112-accepted content.
-- The PR still represents the AS-113 direct governance→main shape.
-
-**PR #7 and PR #10:**
-- **PR #7** (head `codex/link-eternal-eggs-dashboard` @ `1433137…`, base `main`) is still open. It was not referenced, folded in or acted on, and PR #13's head is the governance branch only.
-- **PR #10** (draft, `[SENTINEL HANDOFF CHANNEL] DO NOT MERGE`, base `sentinel-handoff-base`) is untouched.
-
-**Main-protection / ruleset:**
-- The Builder's available GitHub tools cannot read repository rulesets, so the ruleset configuration is **not independently read** here.
-- Indirect evidence:
-  - `mergeable_state` was `blocked` while the required checks were pending, and became `clean` once `test-and-build` succeeded, which is consistent with a required-check rule;
-  - `main` has only advanced by a PR merge commit (PR #12).
-- The Architect must confirm the `main-protection` ruleset (PR required, `test-and-build` required, deletion and non-fast-forward blocked) directly.
-
-**Final head:**
-- Publishing this handoff pushes one more governance-only commit, which becomes PR #13's final head. It changes only `coordination/CURRENT_HANDOFF.md`, `coordination/STATE.md` and `coordination/archive/directives/**`.
-- CI for that commit cannot appear inside this file. The Builder reports the final-head CI result in its session report after publication.
-- The Architect must confirm `test-and-build` is green on the exact final head (D-084 requirement 7).
-
-**Local check:** `npm test` at `4a41ebb` gave 919/919 (exit 0).
+PR #13 was moved from draft to ready and merged by a normal protected merge commit with an exact-head guard. The merge caused a Cloudflare Worker version upload but did not change active production traffic.
 
 ## Changed files
 
-- `coordination/CURRENT_HANDOFF.md` and `coordination/STATE.md`.
-- `coordination/archive/directives/DIR-WEB-REL-002-GATE-B-0001.md`, its `.provenance.json`, and the index row.
+This return commit changes only coordination records:
 
-`coordination/CURRENT_DIRECTIVE.md` stays byte-identical to its archive and is inert under `NONE`.
+- `coordination/STATE.md`;
+- `coordination/CURRENT_HANDOFF.md`;
+- `coordination/archive/directives/DIR-WEB-REL-002-GATE-C-0001.md`;
+- `coordination/archive/directives/DIR-WEB-REL-002-GATE-C-0001.provenance.json`;
+- `coordination/archive/directives/README.md`.
 
-The only GitHub mutation was creating PR #13. There was no merge, no PR edit, no action on PR #7/#10, no deploy or promotion, and no D1/R2/Access/DNS action.
+The outgoing directive is archived byte-for-byte with provenance. `CURRENT_DIRECTIVE` is deselected and every action-specific authorization flag is NO.
+
+External mutations within scope were limited to PR #13 draft-to-ready and its normal protected merge. No auto-merge, ruleset bypass, force push, production promotion, deploy, rollback, or Cloudflare configuration/data mutation occurred.
 
 ## Tests and evidence
 
-- CI (above): `test-and-build` success twice on `4a41ebb`, and Workers Builds (preview) success.
-- Local `npm test`: 919/919.
-- The release-diff reconciliation commands are recorded above.
-- `check-context-bootstrap --publish --check-only --session-protocol 2` on this candidate: recorded at publication.
+### Fresh pre-merge bindings
+
+| Item | Exact evidence |
+|---|---|
+| Pre-directive repository / PR tip | `7e911f3480eae7df9777140d4850398ba90a32ca` |
+| Gate C directive / final PR head | `7ee431258f0be71bd1590d194a059054922aad89` |
+| Pre-merge `main` | `882ad253b5dbec06b209d1ee1a2a54b21b392e2e` |
+| Controlling review | `ML-DEVOS-AS-114` |
+| PR state before ready transition | open, draft, unmerged |
+| Final-head mergeability | `mergeable: true`; `mergeable_state: clean` |
+| Changed files | 272 |
+| Reviews / unresolved threads | none / 0 |
+| Auto-merge | null / disabled |
+
+The final PR head had two successful `test-and-build` checks:
+
+| Check ID | Head | Started → completed (UTC) | Conclusion |
+|---|---|---|---|
+| `108317233203` | `7ee431258f0be71bd1590d194a059054922aad89` | 2026-09-26 02:12:59 → 02:15:12 | success |
+| `108317228351` | `7ee431258f0be71bd1590d194a059054922aad89` | 2026-09-26 02:12:57 → 02:14:41 | success |
+
+The active `main-protection` ruleset was freshly read before merge and re-read after merge: ruleset ID `23740878`, target `refs/heads/main`, pull request required, `test-and-build` required, deletion blocked, and non-fast-forward updates blocked. A pull-request bypass capability existed and was not used.
+
+The AS-114 reviewed release head was `6bcda7683ffe0d761ff02d497ed3ed2290c36816`. All later pre-merge changes were governance/coordination bookkeeping. No post-acceptance change entered `app/**`, `components/**`, `data/**`, `lib/**`, `worker/**`, `migrations/**`, `public/**`, `.github/workflows/**`, `wrangler.jsonc`, `package.json`, `package-lock.json`, or `next.config.mjs`.
+
+### Live Cloudflare configuration evidence
+
+Authenticated read-only Cloudflare API reads for Worker `maisog-labs`, script tag `e263291dd91d4697bcc772fff88fc8f7`, established:
+
+- connected GitHub repository `Dillaab-source/maisog-labs`;
+- production branch `main`;
+- production trigger includes `main` and all paths;
+- production build command `npm run build`;
+- production deploy command exactly `npx wrangler versions upload`;
+- separate non-production trigger includes all branches except `main` and also uses `npm run build` followed by `npx wrangler versions upload`;
+- previews are disabled;
+- no configured command promotes an uploaded version to active production.
+
+Chrome/browser automation was unavailable in this session, so the evidence was preserved through the authenticated Cloudflare API rather than a screenshot. No Cloudflare setting was changed.
+
+Immediately before merge, deployment `e51d40d4-a063-47c5-a46f-70beeee4c03e` served Version `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100%, created `2026-09-21T01:37:48.044696Z`.
+
+Relevant later uploaded but inactive versions before the protected merge were:
+
+- `84dd8596-3fa1-4d95-9968-b5436894b513`, version 728, created `2026-09-25T23:48:22.588573Z`;
+- `1fd945f4-ea8a-49e0-8fad-55450cac5720`, version 729, created `2026-09-26T02:13:34.340237Z` for governance-branch head `7ee431258f0be71bd1590d194a059054922aad89`.
+
+### Merge and post-merge evidence
+
+| Item | Exact evidence |
+|---|---|
+| PR | #13, merged `2026-09-26T02:15:55Z` |
+| Merged PR head | `7ee431258f0be71bd1590d194a059054922aad89` |
+| Merge method | normal merge commit |
+| Merge commit | `aebc881e8890c00090d714602591138a045bd3b0` |
+| Post-merge `main` | `aebc881e8890c00090d714602591138a045bd3b0` |
+| Cloudflare main build | `19ecd52a-b178-47dd-8d23-64b5590a61ef`, success |
+| GitHub Cloudflare check | `108317836882`, completed success at `2026-09-26T02:16:40Z` |
+| Uploaded main version | `a667fc09-12d1-4fde-a75d-5d660729baa3`, version 730, created `2026-09-26T02:16:32.836963Z`, alias `main` |
+| Post-merge active version | `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100% |
+
+The post-merge active Version ID exactly equals the pre-merge baseline. The newly uploaded `a667fc09-12d1-4fde-a75d-5d660729baa3` is inactive. The critical no-promotion invariant passed.
 
 ## Unresolved findings and limitations
 
-- **Ruleset:** the ruleset configuration was not directly readable (see above).
-- **Cloudflare preview:** the preview build ran on the governance-branch push at 23:09:28Z, before the PR existed. This is consistent with AS-074 ("non-production branch builds and previews: enabled").
-- **Active production Version ID:** not observed. It is a Gate C precondition.
-- **Final-head CI:** pending at authoring; see "Final head".
-- **Obligations:** every `OPERATIVE_OBLIGATIONS.md` row is carried forward, with OBL-017 and OBL-018 OPEN and respected.
-
-## Evidence locations
-
-- PR #13 (GitHub), its check runs and the bot comment.
-- `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`, `ML-DEVOS-AS-113`.
+- Gate D remains a separate Paulo decision; no production promotion is authorized.
+- S6 remains parked at `ML-DEVOS-AS-103`.
+- O1 and O2 remain open.
+- D-068 remains suspended and untouched.
+- PR #7 was not merged or folded into WEB-REL-002.
+- PR #10 remains DO NOT MERGE.
+- Repository presence of S5/S6 does not activate those systems or grant runtime authority.
+- All rows in `coordination/OPERATIVE_OBLIGATIONS.md` carry forward unchanged.
 
 ## Governing references
 
-- **Authority:** `D-084`.
-- **Directive:** `DIR-WEB-REL-002-GATE-B-0001` (archived).
-- **Review:** `ML-DEVOS-AS-113`.
-- **Precedent:** `D-054`–`D-057`, `ML-DEVOS-AS-074`.
-- **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`.
+- Owner authority: `D-085`.
+- Executed directive: `DIR-WEB-REL-002-GATE-C-0001` (archived with this return).
+- Controlling Gate B review: `ML-DEVOS-AS-114`.
+- Accepted release shape: `ML-DEVOS-AS-113` and `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
+- Protocol: `ML-DEVOS-RFC-020` and `brain/protocols/CONTEXT_BOOTSTRAP.md`.
+- Obligations: `coordination/OPERATIVE_OBLIGATIONS.md`.
+
+## Evidence locations
+
+- GitHub PR #13, its exact-head check runs, merge record, and merge commit `aebc881e8890c00090d714602591138a045bd3b0`.
+- Cloudflare Workers Builds API records for build `19ecd52a-b178-47dd-8d23-64b5590a61ef`, version `a667fc09-12d1-4fde-a75d-5d660729baa3`, and deployment `e51d40d4-a063-47c5-a46f-70beeee4c03e`.
+- `coordination/archive/directives/DIR-WEB-REL-002-GATE-C-0001.md` and its provenance sidecar.
 
 ## Next action
 
-The Architect performs an independent Gate B review of PR #13 under the next unused immutable Architect Sync ID after `ML-DEVOS-AS-113`, covering:
-- the final-head CI;
-- the ruleset;
-- the diff.
-
-Gate C (merge) remains a separate Paulo decision, preceded by a fresh Cloudflare production-build and active-Version-ID verification. No Builder action is authorized.
+The Architect independently reviews this Gate C return and publishes the next immutable Architect Sync. Gate D remains a separate Paulo decision. No Builder action begins automatically.
