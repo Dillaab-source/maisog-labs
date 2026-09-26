@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_V10_RFC021_ACCEPTANCE
-TURN: PAULO
-STATUS: RFC_ACCEPTED
-AUTHORIZED_SCOPE: D089_RFC021_ACCEPTED_PAULO_NEXT_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_WEB_V10_A
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D090_V10_A_PUBLIC_BASELINE_IMPLEMENTATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,52 +14,40 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
-MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-V10-A-0001
+DIRECTIVE_ISSUE_PARENT: 6dd90bd6d27c62a798a0a27ceb0074a147cb38f2
+DIRECTIVE_AUTHORITY_REF: D-090
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-118
+MEDIA_MUTATION_AUTHORIZED: YES
+MUTATION_AUTHORIZED: YES
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Accepted architecture
+## Authority
 
-D-089 accepts `ML-DEVOS-RFC-021 — V10 Canonical Visual Baseline` after independent review `ML-DEVOS-AS-118`.
+D-090 authorizes V10-A public visual-baseline implementation only, under accepted RFC-021 and controlling review ML-DEVOS-AS-118.
 
-V10 is the static, code-owned fail-safe baseline. The narrow RFC-010 supersession, preserved security/lifecycle invariants, D-088 content/routing/divergence decisions, and runtime-enforced ranges are now the governing architecture for future bounded V10 work.
+`DIR-WEB-V10-A-0001` is transport, not authority.
 
-`AS118-F001` remains a mandatory future implementation-acceptance requirement for the exact overlay mapping and tests.
+## Builder scope
 
-## Authority boundary
-
-RFC acceptance is not implementation authority.
-
-V10-A, V10-B, API-DIAG, API-FIX, media integration, and every production/resource action remain unauthorized. A new explicit Paulo decision and bounded Protocol V2 directive are required before any Builder implementation turn.
-
-## Preserved records
-
-`ML-DEVOS-AS-118` remains the controlling review for RFC-021 acceptance.
-
-`H-WEB-V10-RFC021-0001` and `DIR-WEB-V10-RFC021-0001` remain archived byte-for-byte with provenance.
+- Implement the public V10 static baseline on the exact allowlisted application/content/design surfaces.
+- Integrate fixed local V10 media and self-hosted fonts under `public/v10/**`, with source/license/hash records.
+- Implement the accepted routes, eight-project content, contact address, D1/D2 corrections, runtime clamps/mappings, focused tests, and local visual evidence.
+- Satisfy AS118-F001 in the bounded contract and tests.
 
 ## Hard boundaries
 
-No application, admin, Worker, migration, package, public runtime, or media change.
-No API diagnosis or fix. No D1, R2, Access, DNS/domain, secret, environment, or production-data action.
-No main merge, deployment, promotion, or rollback.
+No admin V10-B, API diagnosis/fix, Worker, migration, package, or lockfile change.
+No D1, R2, Access, DNS/domain, secret, environment, production-data, theme-publication, main-merge, deployment, promotion, or rollback action.
 No PR #7 or PR #10 merge. No V2B. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific flags remain NO.
-
 ## Next transition
 
-TURN: PAULO
-
-Paulo may separately authorize a bounded next V10 increment. No Builder action begins automatically.
+The Builder implements V10-A, validates it, publishes one Protocol V2 return with the outgoing directive archived byte-for-byte, clears the live directive selectors and all action flags, and routes to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
