@@ -1,127 +1,161 @@
-# Current Handoff — WEB-REL-002 Gate C: Protected Merge Without Promotion
+# Current Handoff — WEB-REL-002 Gate D: Promotion Succeeded, Runtime Verification Failed
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-REL-002-GATE-C-0001
-cycle_id: MAISOGLABS_WEB_REL_002_GATE_C
-input_base_commit: 7ee431258f0be71bd1590d194a059054922aad89
-review_target_commit: 7ee431258f0be71bd1590d194a059054922aad89
-applicable_review_id: ML-DEVOS-AS-114
+handoff_id: H-WEB-REL-002-GATE-D-0001
+cycle_id: MAISOGLABS_WEB_REL_002_GATE_D
+input_base_commit: 06a9ac674d462c6ad51d771d12a3b49da3ec3cae
+review_target_commit: 06a9ac674d462c6ad51d771d12a3b49da3ec3cae
+applicable_review_id: ML-DEVOS-AS-115
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. Every result is `ACTOR_REPORTED` from authenticated read-only GitHub and Cloudflare API evidence unless explicitly identified as a repository check.
+This handoff is evidence, not authority. Routing and capability flags live only in `coordination/STATE.md`. Every external result is `ACTOR_REPORTED` from authenticated Cloudflare API reads or read-only public runtime checks.
 
 ## Objective
 
-Return the completed bounded WEB-REL-002 Gate C operation under `D-085` and `DIR-WEB-REL-002-GATE-C-0001` for independent Architect review.
+Return the bounded WEB-REL-002 Gate D execution under `D-086` and `DIR-WEB-REL-002-GATE-D-0001`.
 
-PR #13 was moved from draft to ready and merged by a normal protected merge commit with an exact-head guard. The merge caused a Cloudflare Worker version upload but did not change active production traffic.
+The exact production promotion succeeded, but required runtime verification found a material production defect. The Builder stopped without rollback, hotfix, code change or resource mutation and returns the incident to the Architect.
 
 ## Changed files
 
-This return commit changes only coordination records:
+The Gate D directive issue commit `06a9ac674d462c6ad51d771d12a3b49da3ec3cae` changed only:
 
-- `coordination/STATE.md`;
+- `brain/DECISION_LOG.md`;
+- `coordination/CURRENT_DIRECTIVE.md`;
+- `coordination/STATE.md`.
+
+This return commit changes only:
+
 - `coordination/CURRENT_HANDOFF.md`;
-- `coordination/archive/directives/DIR-WEB-REL-002-GATE-C-0001.md`;
-- `coordination/archive/directives/DIR-WEB-REL-002-GATE-C-0001.provenance.json`;
+- `coordination/STATE.md`;
+- `coordination/archive/directives/DIR-WEB-REL-002-GATE-D-0001.md`;
+- `coordination/archive/directives/DIR-WEB-REL-002-GATE-D-0001.provenance.json`;
 - `coordination/archive/directives/README.md`.
 
-The outgoing directive is archived byte-for-byte with provenance. `CURRENT_DIRECTIVE` is deselected and every action-specific authorization flag is NO.
-
-External mutations within scope were limited to PR #13 draft-to-ready and its normal protected merge. No auto-merge, ruleset bypass, force push, production promotion, deploy, rollback, or Cloudflare configuration/data mutation occurred.
+The outgoing directive is archived byte-for-byte. `CURRENT_DIRECTIVE` is deselected, `DEPLOY_AUTHORIZED` is reset to NO, and every other action flag remains NO.
 
 ## Tests and evidence
 
-### Fresh pre-merge bindings
+### Pre-promotion identity and baseline
+
+Protocol V2 passed at:
+
+- issue parent `edd4bce5fa9fa07b28237b893c078ebbd234ba2b`;
+- published Gate D directive tip `06a9ac674d462c6ad51d771d12a3b49da3ec3cae`.
+
+Release identity was freshly verified:
 
 | Item | Exact evidence |
 |---|---|
-| Pre-directive repository / PR tip | `7e911f3480eae7df9777140d4850398ba90a32ca` |
-| Gate C directive / final PR head | `7ee431258f0be71bd1590d194a059054922aad89` |
-| Pre-merge `main` | `882ad253b5dbec06b209d1ee1a2a54b21b392e2e` |
-| Controlling review | `ML-DEVOS-AS-114` |
-| PR state before ready transition | open, draft, unmerged |
-| Final-head mergeability | `mergeable: true`; `mergeable_state: clean` |
-| Changed files | 272 |
-| Reviews / unresolved threads | none / 0 |
-| Auto-merge | null / disabled |
+| Main release | `aebc881e8890c00090d714602591138a045bd3b0` |
+| Successful main build | `19ecd52a-b178-47dd-8d23-64b5590a61ef` |
+| Target Worker Version | `a667fc09-12d1-4fde-a75d-5d660729baa3`, version 730 |
+| Target provenance | alias `main`, `version_upload`, created `2026-09-26T02:16:32.836963Z` |
+| Newer main release | none; later observed versions 731 and 732 were governance-branch uploads |
 
-The final PR head had two successful `test-and-build` checks:
+Immediately before promotion at `2026-09-26T03:44:36.494Z`:
 
-| Check ID | Head | Started → completed (UTC) | Conclusion |
-|---|---|---|---|
-| `108317233203` | `7ee431258f0be71bd1590d194a059054922aad89` | 2026-09-26 02:12:59 → 02:15:12 | success |
-| `108317228351` | `7ee431258f0be71bd1590d194a059054922aad89` | 2026-09-26 02:12:57 → 02:14:41 | success |
+| Item | Value |
+|---|---|
+| Active deployment | `e51d40d4-a063-47c5-a46f-70beeee4c03e` |
+| Previous active Version | `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` |
+| Traffic | 100% |
+| Target active | no |
+| Refreshed `origin/main` | `aebc881e8890c00090d714602591138a045bd3b0` |
 
-The active `main-protection` ruleset was freshly read before merge and re-read after merge: ruleset ID `23740878`, target `refs/heads/main`, pull request required, `test-and-build` required, deletion blocked, and non-fast-forward updates blocked. A pull-request bypass capability existed and was not used.
+### Production promotion result
 
-The AS-114 reviewed release head was `6bcda7683ffe0d761ff02d497ed3ed2290c36816`. All later pre-merge changes were governance/coordination bookkeeping. No post-acceptance change entered `app/**`, `components/**`, `data/**`, `lib/**`, `worker/**`, `migrations/**`, `public/**`, `.github/workflows/**`, `wrangler.jsonc`, `package.json`, `package-lock.json`, or `next.config.mjs`.
-
-### Live Cloudflare configuration evidence
-
-Authenticated read-only Cloudflare API reads for Worker `maisog-labs`, script tag `e263291dd91d4697bcc772fff88fc8f7`, established:
-
-- connected GitHub repository `Dillaab-source/maisog-labs`;
-- production branch `main`;
-- production trigger includes `main` and all paths;
-- production build command `npm run build`;
-- production deploy command exactly `npx wrangler versions upload`;
-- separate non-production trigger includes all branches except `main` and also uses `npm run build` followed by `npx wrangler versions upload`;
-- previews are disabled;
-- no configured command promotes an uploaded version to active production.
-
-Chrome/browser automation was unavailable in this session, so the evidence was preserved through the authenticated Cloudflare API rather than a screenshot. No Cloudflare setting was changed.
-
-Immediately before merge, deployment `e51d40d4-a063-47c5-a46f-70beeee4c03e` served Version `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100%, created `2026-09-21T01:37:48.044696Z`.
-
-Relevant later uploaded but inactive versions before the protected merge were:
-
-- `84dd8596-3fa1-4d95-9968-b5436894b513`, version 728, created `2026-09-25T23:48:22.588573Z`;
-- `1fd945f4-ea8a-49e0-8fad-55450cac5720`, version 729, created `2026-09-26T02:13:34.340237Z` for governance-branch head `7ee431258f0be71bd1590d194a059054922aad89`.
-
-### Merge and post-merge evidence
+One normal Cloudflare deployment API request was made without `force` and with exactly one allocation: target `a667fc09-12d1-4fde-a75d-5d660729baa3` at 100%.
 
 | Item | Exact evidence |
 |---|---|
-| PR | #13, merged `2026-09-26T02:15:55Z` |
-| Merged PR head | `7ee431258f0be71bd1590d194a059054922aad89` |
-| Merge method | normal merge commit |
-| Merge commit | `aebc881e8890c00090d714602591138a045bd3b0` |
-| Post-merge `main` | `aebc881e8890c00090d714602591138a045bd3b0` |
-| Cloudflare main build | `19ecd52a-b178-47dd-8d23-64b5590a61ef`, success |
-| GitHub Cloudflare check | `108317836882`, completed success at `2026-09-26T02:16:40Z` |
-| Uploaded main version | `a667fc09-12d1-4fde-a75d-5d660729baa3`, version 730, created `2026-09-26T02:16:32.836963Z`, alias `main` |
-| Post-merge active version | `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100% |
+| Request time | `2026-09-26T03:44:48.079Z` |
+| API result | success, HTTP 200 |
+| New deployment ID | `ba9a3ee0-81a6-43a2-81f9-3467ec876d79` |
+| Deployment created | `2026-09-26T03:44:49.060208Z` |
+| Immediate verification | `2026-09-26T03:44:49.456Z` |
+| Active Version | `a667fc09-12d1-4fde-a75d-5d660729baa3` |
+| Traffic | 100% |
 
-The post-merge active Version ID exactly equals the pre-merge baseline. The newly uploaded `a667fc09-12d1-4fde-a75d-5d660729baa3` is inactive. The critical no-promotion invariant passed.
+A final read at `2026-09-26T03:50:17.577Z` again found the same deployment, target Version and 100% traffic.
+
+### Runtime verification
+
+Read-only production checks ran against `https://maisoglabs.com` using installed Microsoft Edge in headless mode and direct GET probes. No form, admin, design or content mutation was attempted.
+
+| Surface | Result |
+|---|---|
+| Entry | PASS — HTTP 200, rendered spatial Entry |
+| Systems | PASS — navigation click opened `#systems` and focused its heading |
+| Projects | PASS — direct `#projects` rendered project content |
+| Research | **FAIL** — shell renders, but reports "The journal could not be loaded right now" |
+| Contact | PASS — direct `#contact` rendered contact surface and `mailto:hello@maisoglabs.com` |
+| Journal | **FAIL** — HTTP shell 200, but reports "The journal could not be loaded right now" |
+| 404 | PASS — unknown route returned HTTP 404 with noindex page |
+| Admin fail-closed | PASS — `/admin` and `/admin/api/dashboard` returned 302 to Cloudflare Access login; no bypass attempted |
+| Design API baseline | **MATERIAL FAIL** — `GET /api/design` returned HTTP 500, Cloudflare Worker Error 1101 / owner action required |
+| Journal API | **MATERIAL FAIL** — `GET /api/journal` returned HTTP 500, Cloudflare Worker Error 1101 / owner action required |
+
+Navigation/history/layout checks:
+
+- route links for Systems, Projects, Research and Contact were present;
+- direct hashes `#projects`, `#research` and `#contact` opened their expected surfaces;
+- Back changed `#projects` to `#systems` and Forward restored `#projects`;
+- desktop viewport 1440×1000 and mobile viewport 390×844 reported no horizontal overflow;
+- no broken images, browser runtime exceptions or network transport failures were observed;
+- `/s5` and `/s6` both returned 404, with no unintended public S5/S6 surface;
+- the only repeated application failures were the design and Journal API HTTP 500 responses;
+- a favicon request also returned 404, recorded as a non-material cosmetic observation.
+
+The Research implementation did attempt its real public Journal path; the production Journal API failed, so real data could not load.
+
+### Resource-boundary confirmation
+
+No unrelated Cloudflare/resource mutation occurred:
+
+- no rebuild or version upload;
+- no rollback or alternate-version promotion;
+- no D1, R2, Access, DNS/domain, route, secret or environment-variable mutation;
+- no production-data write;
+- no admin publishing or design mutation;
+- no repository product/runtime change and no main alteration;
+- no media generation, addition, substitution, upload or integration.
 
 ## Unresolved findings and limitations
 
-- Gate D remains a separate Paulo decision; no production promotion is authorized.
-- S6 remains parked at `ML-DEVOS-AS-103`.
-- O1 and O2 remain open.
-- D-068 remains suspended and untouched.
-- PR #7 was not merged or folded into WEB-REL-002.
-- PR #10 remains DO NOT MERGE.
-- Repository presence of S5/S6 does not activate those systems or grant runtime authority.
-- All rows in `coordination/OPERATIVE_OBLIGATIONS.md` carry forward unchanged.
+This Gate D runtime verification is **FAILED / MATERIAL PRODUCTION DEFECT**.
+
+Production currently serves `a667fc09-12d1-4fde-a75d-5d660729baa3` at 100%. No rollback is authorized or performed.
+
+Exact public failures:
+
+- `GET https://maisoglabs.com/api/design` → HTTP 500, Cloudflare Error 1101;
+- `GET https://maisoglabs.com/api/journal` → HTTP 500, Cloudflare Error 1101;
+- Research and Journal therefore expose their designed failure messages instead of live public data.
+
+Because the material stop condition fired, no further diagnostic mutation, code investigation, hotfix, repair or rollback was attempted. Root cause is not established by this handoff.
+
+The accepted MEDIA_GAP remains deferred and was not involved in these failures. `plate-hero-v4.png`, `logo-mark.mp4` and the logo-mark poster/fallback were not created or changed.
+
+S6 remains parked at `ML-DEVOS-AS-103`. O1/O2 remain open. D-068 remains suspended. PR #7 and PR #10 were untouched. All rows in `coordination/OPERATIVE_OBLIGATIONS.md` carry forward unchanged.
 
 ## Governing references
 
-- Owner authority: `D-085`.
-- Executed directive: `DIR-WEB-REL-002-GATE-C-0001` (archived with this return).
-- Controlling Gate B review: `ML-DEVOS-AS-114`.
-- Accepted release shape: `ML-DEVOS-AS-113` and `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
+- Owner authority: `D-086`.
+- Executed directive: `DIR-WEB-REL-002-GATE-D-0001`.
+- Controlling review: `ML-DEVOS-AS-115`.
+- Release merge: `aebc881e8890c00090d714602591138a045bd3b0`.
 - Protocol: `ML-DEVOS-RFC-020` and `brain/protocols/CONTEXT_BOOTSTRAP.md`.
 - Obligations: `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Evidence locations
 
-- GitHub PR #13, its exact-head check runs, merge record, and merge commit `aebc881e8890c00090d714602591138a045bd3b0`.
-- Cloudflare Workers Builds API records for build `19ecd52a-b178-47dd-8d23-64b5590a61ef`, version `a667fc09-12d1-4fde-a75d-5d660729baa3`, and deployment `e51d40d4-a063-47c5-a46f-70beeee4c03e`.
-- `coordination/archive/directives/DIR-WEB-REL-002-GATE-C-0001.md` and its provenance sidecar.
+- Cloudflare deployment `ba9a3ee0-81a6-43a2-81f9-3467ec876d79`.
+- Worker Version `a667fc09-12d1-4fde-a75d-5d660729baa3`.
+- Public runtime endpoints on `https://maisoglabs.com`.
+- Archived `coordination/archive/directives/DIR-WEB-REL-002-GATE-D-0001.md` and provenance sidecar.
 
 ## Next action
 
-The Architect independently reviews this Gate C return and publishes the next immutable Architect Sync. Gate D remains a separate Paulo decision. No Builder action begins automatically.
+The Architect independently reviews and classifies this Gate D production incident. Any rollback, old-version promotion, remediation, code change or renewed production action requires a separate Paulo decision. No Builder action begins automatically.
