@@ -1,0 +1,10 @@
+75a03186e299b4a0b810c39cffdfda96034d21cbf675f20a1d61fe936a4c7357  ./acceptance.json
+efe65c5ef3ddda380be59f55596846b791839ea683ce06aa658a742e447cbd44  ./full-desktop-contact.png
+82b1702faffe0ab08fc75dae618f2c0f8c2a027cbaaf5dee74eaf5c8cf3c63d5  ./full-desktop-entry.png
+cdb3354e45e647fa87e08e55637959d6313d080608e904332efcf3afdece518b  ./full-desktop-journal.png
+a1c53c25f7d0afc68f6a77ddad14b2f6434676aed9af507ccfe6bbf657df944c  ./full-desktop-projects.png
+f3fadc287c4e7022f93bdccf52d5441c565cccde8af389b8b40363eb6c6e284c  ./full-desktop-systems.png
+dafcf9342064f11e9e260b441d2319045b21becd4360a9567b80a87698e02e24  ./full-mobile-entry.png
+53ce009be7597ebd444eb94fb79029267ba2d4c15e7ae66a0b605c78fba11936  ./full-mobile-systems.png
+aaf9b0767bf983867af30997685721fb2c0c9d8758d110e7e2c0265a0a4cb3eb  ./harness/art-accept.mjs
+6263210a93106745ed4914efdb94cac993706aa744d3dbcf432a713709a65623  ./still-desktop-entry.png

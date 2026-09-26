@@ -184,35 +184,3 @@ export const siteContent = {
     emptyMessage: "New work is taking shape. Check back soon.",
   },
 };
-
-// V10 homepage presentation copy (D-092 controlled clean replacement; facts
-// per D-088). A separate local-static document, NOT part of `siteContent`,
-// so the legacy content document and its D1 migration parity (worker/d1/*)
-// are unchanged. Validated fail-closed by lib/content/schema.mjs
-// validateV10Content before rendering. Disciplines and the five V10 project
-// profiles are the V10 reference copy (design-references/claude-v10); the
-// three further owner-approved projects restate their published `siteContent`
-// summary and derive disciplines only from exact published stack/category
-// terms. No flow is invented for a project without one.
-export const v10Content = {
-  entryDescriptor:
-    "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.",
-  disciplines: [
-    { id: "ai", name: "AI", icon: "01-ai", caption: "Models and analysis", description: "Applies models to real tasks: evaluation, assistants and decision support that keep a person in the loop.", links: ["research", "automation"] },
-    { id: "automation", name: "Automation", icon: "02-automation", caption: "Turns research into tools", description: "Takes repetitive work off people’s hands while keeping every step visible and reversible.", links: ["ai", "systems"] },
-    { id: "research", name: "Research", icon: "04-research", caption: "Evidence and validation", description: "Evidence gathering, adversarial review, and validation used across MaisogLabs systems.", links: ["ai", "systems", "security"] },
-    { id: "security", name: "Security", icon: "03-security", caption: "Safe, responsible use", description: "Keeps systems safe to run: least-privilege defaults, threat-aware design and audit trails.", links: ["systems", "architecture"] },
-    { id: "systems", name: "Systems", icon: "05-systems", caption: "Infrastructure and data", description: "Keeps software running day to day: observable parts, clear boundaries, few surprises.", links: ["architecture", "automation", "security"] },
-    { id: "architecture", name: "Architecture", icon: "08-strategy", caption: "Structure and boundaries", description: "Defines how MaisogLabs systems are structured, separated, and allowed to interact.", links: ["systems", "security"] },
-  ],
-  projectProfiles: [
-    { slug: "sentinel-devos", kind: "AI operating system", status: "Active", tagline: "A research and operations system for intelligent work.", description: "Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment.", disciplines: ["ai", "research", "automation", "architecture"], flowSteps: ["Research and notes come in", "Organised into one knowledge base", "Workflows run automatically", "Person reviews the result"], humanStep: 3 },
-    { slug: "su", kind: "Research engine", status: "", tagline: "A research engine that ties every claim to its source.", description: "SU gathers evidence, runs adversarial review, and keeps a traceable link between each conclusion and the material behind it.", disciplines: ["research", "ai"], flowSteps: ["Sources collected", "Evidence extracted", "Adversarial review", "Conclusion linked to its sources"], humanStep: 3 },
-    { slug: "clinicflow", kind: "Clinic automation", status: "", tagline: "Booking and workflow automation for clinics.", description: "ClinicFlow moves appointments, reminders and intake through one automated pipeline, with every step visible to staff.", disciplines: ["automation", "systems", "security", "architecture"], flowSteps: ["Patient books", "Reminders sent", "Intake completed", "Staff see every step"], humanStep: 3 },
-    { slug: "maisog-kilat", kind: "Strategy validation", status: "", tagline: "Strategy research, testing and validation.", description: "Maisog Kilat is a research environment for developing strategies and testing them against real data before they are trusted.", disciplines: ["research", "ai", "systems", "architecture"], flowSteps: ["Strategy proposed", "Tested on real data", "Results measured", "Trusted or rejected"], humanStep: 3 },
-    { slug: "maisog-guild", kind: "Opportunity platform", status: "", tagline: "An opportunity and quest platform.", description: "Maisog Guild turns opportunities into structured quests that people can discover, take on and complete.", disciplines: ["systems", "automation"], flowSteps: ["Opportunity posted", "Structured into a quest", "Taken on by a person", "Completion confirmed"], humanStep: 3 },
-    { slug: "automation-hub", kind: "Systems", status: "", tagline: "Workflows, integrations, and reusable systems for real-world tasks.", description: "", disciplines: ["automation", "ai", "systems"], flowSteps: [], humanStep: -1 },
-    { slug: "cybersecurity-lab", kind: "Cybersecurity", status: "", tagline: "Hands-on labs, notes, and practical security experiments.", description: "", disciplines: ["security", "research"], flowSteps: [], humanStep: -1 },
-    { slug: "experimental-projects", kind: "Experiments", status: "", tagline: "A sandbox for useful ideas, prototypes, and what comes next.", description: "", disciplines: [], flowSteps: [], humanStep: -1 },
-  ],
-};

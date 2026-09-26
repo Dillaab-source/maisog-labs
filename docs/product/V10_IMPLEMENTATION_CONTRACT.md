@@ -1,5 +1,7 @@
 # MaisogLabs V10 homepage implementation contract
 
+> **Superseded for `/` by D-093:** the homepage is now the published Design System artifact (`HOMEPAGE_ARTIFACT_CONTRACT.md`). This file records the D-092 implementation.
+
 Status: Builder implementation contract under **D-092** (controlled clean replacement). Facts per **D-088**. It supersedes the D-090 V10-A contract that previously occupied this file (see Git history before `snapshot/pre-v10-clean-replacement`, commit `146f645`).
 
 ## Source of truth
