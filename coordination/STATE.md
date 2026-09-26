@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_V10_PLANNING
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D087_V10_PLANNING_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: ARCHITECT_APPROVED
+AUTHORIZED_SCOPE: AS117_V10_PLAN_PAULO_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-V10-PLAN-0001
-REVIEW_TARGET_COMMIT: 7ec56d117e215c300cf3f55ce328e7075a23286e
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-116
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,32 +27,25 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Authority and review
 
 D-087 authorized V10 visual-parity and admin-architecture planning only.
 
-ML-DEVOS-AS-116 is the controlling review. The known API incident is temporarily accepted.
+ML-DEVOS-AS-117 approves the plan for Paulo's decision, with a mandatory RFC-021 and implementation acceptance requirement: runtime mapping must clamp surface opacity to 80–90 and border intensity to 10–25, prevent stale/direct older-range values from drifting V10, and ignore removed controls.
 
-## Builder return
+Implementation remains unauthorized.
 
-`H-WEB-V10-PLAN-0001` is the planning record. It is evidence, not authority.
+## Archived Builder return
 
-The deliverable is `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`.
+`H-WEB-V10-PLAN-0001` is archived byte-for-byte with provenance under `coordination/archive/handoffs/`. It is evidence, not authority.
 
-`DIR-WEB-V10-PLAN-0001` is deselected and archived byte-exactly.
+The reviewed deliverable is `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`.
 
-## Architect gate
-
-The Architect reviews the V10 plan, with its own SENTINEL sync.
-
-The recommended next Paulo decisions are separate:
-- RFC-021 drafting;
-- read-only API-DIAG;
-- content questions Q1–Q3 and divergences D1/D2.
+`DIR-WEB-V10-PLAN-0001` remains deselected and archived byte-exactly.
 
 ## Known open incident
 
-`/api/design` and `/api/journal` return HTTP 500 / 1101 in production. This is temporarily accepted under AS-116 and is separate from V10.
+`/api/design` and `/api/journal` return HTTP 500 / 1101 in production. This is temporarily accepted under AS-116 and remains separate from V10.
 
 ## Hard boundaries
 
@@ -66,8 +59,6 @@ All action-specific flags remain NO.
 
 ## Next transition
 
-TURN: ARCHITECT
+TURN: PAULO
 
-The Architect publishes a review under the next unused immutable Architect Sync ID after ML-DEVOS-AS-116.
-
-No Builder action begins automatically.
+Paulo may decide whether to authorize a bounded RFC-021 drafting cycle and resolve the plan's owner questions. No Builder action begins automatically.
