@@ -1,77 +1,73 @@
-# Current Directive — V10-A Public Visual Baseline Implementation
+# Current Directive — V10-A Remediation Cycle 1
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-V10-A-0001
+directive_id: DIR-WEB-V10-A-REM1-0001
 cycle_id: MAISOGLABS_WEB_V10_A
-issue_parent_commit: 6dd90bd6d27c62a798a0a27ceb0074a147cb38f2
+issue_parent_commit: 3a4b75901032e4b3bdc798dd07572cdc692bb443
 target_turn: CLAUDE
-authority_ref: D-090
-applicable_review_id: ML-DEVOS-AS-118
+authority_ref: D-091
+applicable_review_id: ML-DEVOS-AS-119
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-090, accepted RFC-021, ML-DEVOS-AS-118, and this directive.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-091, D-090, accepted RFC-021, ML-DEVOS-AS-119, and this directive.
 
 ## Objective
 
-Implement V10-A: the public MaisogLabs V10 static, code-owned fail-safe baseline, with approved content and routing, fixed local assets, self-hosted fonts, bounded design-runtime mappings, responsive accessibility corrections, tests, and local visual-parity evidence.
+Complete V10-A remediation cycle 1 by correcting the exact-scope violation, removing non-authoritative Research thumbnails, filling the missing deterministic tests, and producing the complete local RFC-021 acceptance evidence required by AS-119.
 
 ## Preconditions
 
 - Bootstrap Protocol V2 from the exact tip that publishes this directive.
-- Confirm D-090, RFC-021, ML-DEVOS-AS-118, this directive ID, and scope `D090_V10_A_PUBLIC_BASELINE_IMPLEMENTATION_ONLY` are selected together.
+- Confirm D-091, D-090, RFC-021, ML-DEVOS-AS-119, this directive ID, and scope `D091_V10_A_REMEDIATION_CYCLE_1_ONLY` are selected together.
+- Confirm `CURRENT_REMEDIATION_CYCLE: 1`, `MUTATION_AUTHORIZED: YES`, and every other action-specific authorization flag is `NO`.
 - Confirm `main` remains `aebc881e8890c00090d714602591138a045bd3b0`.
-- Confirm only `MEDIA_MUTATION_AUTHORIZED` and bounded repository `MUTATION_AUTHORIZED` are YES; every remote, deploy, audit, and main-merge flag remains NO.
-- Stop on any stale tip, protocol mismatch, scope ambiguity, or missing governing record.
+- Stop on any stale tip, protocol mismatch, changed main baseline, scope ambiguity, or missing governing record.
 
 ## Governing references
 
-- **T0:** Protocol V2, D-090, accepted ML-DEVOS-RFC-021, and the hard boundaries in live STATE.
-- **T1:** ML-DEVOS-AS-118; D-088 and D-089; `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`; V10 HTML identity `6e47ffca9adb7e31522b046576b8d7800117dd38ee07c88167b8e7b5e3ed6dab`; main `aebc881e8890c00090d714602591138a045bd3b0`.
-- **T2:** `design-references/claude-v10/**`; preserved RFC-010 security/lifecycle invariants; current public content boundary; `coordination/OPERATIVE_OBLIGATIONS.md`.
-- **T3:** only for a named unresolved implementation question, with the reason and evidence classification recorded.
+- **T0:** Protocol V2; D-091; D-090; accepted `ML-DEVOS-RFC-021`; live STATE hard boundaries.
+- **T1:** `ML-DEVOS-AS-119`, findings AS119-F001 through AS119-F004; `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`; `coordination/OPERATIVE_OBLIGATIONS.md`.
+- **T2:** current V10 implementation and tests; `docs/product/V10_IMPLEMENTATION_CONTRACT.md`; `docs/product/V10_DIVERGENCE_REGISTER.md`; `docs/product/evidence/v10/**`; pinned V10 reference assets.
+- **T3:** only for a named unresolved corrective question, with the reason and evidence classification recorded.
 
 ## Exact execution scope
 
-**Allowed Builder surfaces:**
+Allowed Builder surfaces:
 
-- `app/layout.js`, `app/page.js`, `app/globals.css`, `app/DesignRuntime.js`;
-- `components/site/**`;
-- `data/site.js`;
-- `lib/content/schema.mjs`, `lib/design/**`;
-- `public/v10/**`;
-- V10-focused `tests/**` files;
-- V10 contract, divergence, asset-manifest, and local evidence files under `docs/product/**`;
-- normal Protocol V2 coordination, directive archive/provenance/index, and handoff evidence for the return.
+- `app/layout.js`: remove only the `app/v10.css` import and make directly required consolidation adjustments;
+- `app/globals.css`: receive the required V10 rules;
+- `app/v10.css`: deletion only;
+- `components/site/ResearchSurface.js`: remove fixed local plate imagery from Journal entries without adding replacement media or a serving route;
+- V10-focused files under `tests/**`, limited to closing AS119-F004's missing cases;
+- `docs/product/V10_IMPLEMENTATION_CONTRACT.md`, `docs/product/V10_DIVERGENCE_REGISTER.md`, and `docs/product/evidence/v10/**`, limited to the acceptance evidence required by AS-119;
+- normal Protocol V2 coordination, directive archive/provenance/index, and Builder handoff records for the return.
 
-**Required implementation:**
+Required corrections:
 
-- faithfully reproduce the approved V10 composition as the static fallback without `dc`, `support.js`, Babel, remote fonts, remote assets, or D1/API dependency;
-- use exactly the eight approved projects, ClinicFlow once, factual plain-language copy, and `paulo.maisog@maisoglabs.com`;
-- use canonical `#systems`, `#projects`, `#journal`, `#contact`; resolve `#research` to the same Journal surface; retain governed compatibility aliases;
-- record and implement D1 accessible compact/mobile navigation and D2 narrow Systems-label correction;
-- integrate only fixed allowlisted local media and self-hosted fonts with source/license/hash records, preserving reference bytes;
-- ignore removed presentation fields, apply only fixed mappings, clamp panel opacity to `80..90`, border intensity to `10..25`, radius scale to `80..120`, and map animation `calm -> Full`, `minimal -> Calm`, `off -> Still`, with reduced motion forcing Still;
-- lock AS118-F001's exact overlay mapping in the implementation contract and deterministic tests: range boundaries, monotonicity, invalid fallback, and exact V10 point.
+1. Move required V10 rules into `app/globals.css`, remove the import, and delete `app/v10.css`.
+2. Remove fixed Journal-entry plate thumbnails; do not create a backend, API, D1, R2, or public object-serving path.
+3. Add deterministic coverage for the complete F1 404/500/malformed/invalid matrix, all listed clamp inputs, every allowed and unknown ignored-field value, and monotonicity at each integer from 40 through 85.
+4. Complete the RFC-021 evidence matrix for Entry and every panel at 1440×900 and 390×844; Still and fixed-timestamp Full modes; pinned-reference side-by-side and per-pixel threshold comparison; divergence register; contrast and automated accessibility audit with zero serious/critical findings; and runtime-network assertion.
 
-**Not allowed:** admin V10-B; API-DIAG/API-FIX; Worker, migration, package or lockfile changes; remote resources; theme publication; main merge; deployment; production mutation; or any held item named in STATE.
+No other source, documentation, governance, test, workflow, dependency, or generated-output surface is authorized.
 
 ## SENTINEL Sync
 
-Fresh snapshot: `6dd90bd6d27c62a798a0a27ceb0074a147cb38f2`, confirmed as the authoritative remote tip before this directive transition. The mandatory `--session-protocol 2` bootstrap passed.
+Fresh snapshot: `3a4b75901032e4b3bdc798dd07572cdc692bb443`, confirmed as the authoritative remote tip before this directive transition. The mandatory Protocol V2 bootstrap passed.
 
-**Authority:** Paulo's D-090 authorizes only the bounded V10-A implementation. RFC-021 is accepted architecture; AS-118 is the controlling independent review and AS118-F001 is mandatory acceptance work.
+**Authority:** Paulo explicitly authorized AS-119 remediation cycle 1. D-091 records the authorization without widening D-090 beyond the named corrections.
 
-**Context:** The V10 artifact and repository references are source-controlled. The known production API incident remains separate and is neither a prerequisite nor part of this implementation.
+**Context:** AS-119 is the controlling independent review. The prior Builder handoff and directive are archived evidence, not current authority.
 
-**Capability:** local repository application/media/test/documentation writes on the allowlisted surfaces are available. Cloudflare, D1, R2, Access, DNS, domain, secret, environment, production, merge, deploy, promotion, rollback, and API-diagnosis capabilities are neither required nor authorized.
+**Capability:** only bounded local repository mutation and local validation/evidence capture are required. Remote resources, production systems, merge, deploy, API diagnosis, and service/data mutation are not authorized.
 
-**Execution:** one V10-A implementation and one Protocol V2 return. No admin or backend repair may be mixed into this cycle.
+**Execution:** one corrective implementation pass and one Protocol V2 return. No adjacent cleanup may be mixed into the cycle.
 
-**Evidence:** return exact base/result commits, changed files, hashes and licenses, test/build results, visual evidence at desktop and narrow widths, and an explicit local-only evidence classification.
+**Evidence:** return exact base/result commits, changed files, test/build results, screenshot/audit/network artifacts and hashes, comparison results, and explicit actor-reported versus independently reproducible classifications.
 
 Disposition: `CLEAR`.
 
@@ -79,42 +75,42 @@ Disposition: `CLEAR`.
 
 Mode: `BOUNDED_CONTRADICTION`. Disposition: `CLEAR_WITH_NOTES`.
 
-1. V10 must be the code-owned fallback even when `/api/design` fails; runtime settings may only adjust approved dimensions through fixed mappings.
-2. Prototype mechanics, placeholder copy, remote font declarations, and free-form paths are reference evidence, not runtime authority.
-3. The accepted eight-project list and owner email replace conflicting prototype content.
-4. RFC-010's security, positive-allowlist, revision, lifecycle, and published-only guarantees remain intact despite its visual-baseline supersession.
-5. D1/D2 are approved accessible corrections and must be disclosed rather than hidden as parity failures.
-6. V10-B and the API incident are separable work and remain unauthorized.
+1. D-090 did not originally list `app/v10.css`; D-091 prospectively authorizes its deletion only and does not retroactively redefine D-090.
+2. Research images must come from real Journal media, but no public media-serving route is authorized; therefore thumbnails are removed rather than substituted.
+3. Required visual evidence is broader than the existing three screenshots; all named views, modes, audits, and comparisons must be recorded.
+4. Focused checks passing does not substitute for the required full suite. Out-of-scope failures are preserved and escalated, not repaired under this directive.
+5. README/ARCHITECTURE/comment staleness is known but excluded from this cycle.
 
 ## Instructions
 
-1. Re-bootstrap and read D-090, RFC-021, AS-118, the V10 plan, obligations, current public implementation, and exact V10 source from one snapshot.
-2. Write the implementation contract first, including AS118-F001's exact overlay point and mapping.
-3. Integrate fixed local assets and fonts with a deterministic source/hash/license manifest.
-4. Implement the public composition, content, routing, responsive D1/D2 corrections, and bounded design-runtime mapping only on allowlisted surfaces.
-5. Add focused deterministic tests and run the full suite/build.
-6. Render and compare desktop and narrow/mobile views; record evidence and remaining deliberate divergences.
-7. Publish one Protocol V2 Builder return, archive/deselect this directive byte-for-byte with provenance, clear the live selectors and flags, and route to the Architect.
+1. Re-bootstrap and read D-091, D-090, RFC-021, AS-119, obligations, the V10 contract/divergence/evidence records, and the exact affected implementation/tests from one snapshot.
+2. Make only the exact corrective edits listed above; preserve current behavior outside those findings.
+3. Extend deterministic tests for every AS119-F004 gap without modifying unrelated failing suites or harnesses.
+4. Generate the complete local RFC-021 evidence matrix, using a fixed timestamp for Full mode and recording viewport, mode, route/panel, comparison method, threshold, result, and hashes.
+5. Run the focused checks, content/D1 compatibility checks, full suite, production build, diff check, hashes, accessibility audit, and runtime-network assertion.
+6. If a required check cannot pass without an unlisted edit, stop and record the exact blocker; do not broaden scope.
+7. Publish one Protocol V2 Builder return, archive/deselect this directive byte-for-byte with provenance, clear mutation flags and selectors, and route to the Architect.
 
 ## Validation and evidence
 
 - `git diff --check` passes.
-- Focused V10 tests and full `npm test` pass.
-- `npm run build` passes without remote runtime dependencies.
-- The V10 HTML hash, copied-source hashes, derivative lineage, and font licenses/sources are recorded and reproducible.
-- Tests prove eight unique projects, ClinicFlow once, exact email, canonical/alias routing, V10 fail-safe behavior, ignored fields, every clamp boundary/fallback, animation mappings, and AS118-F001.
-- Desktop and narrow/mobile screenshots are recorded as local `ACTOR_REPORTED` evidence with D1/D2 in the divergence register.
-- No unlisted surface or prohibited remote/production capability is touched.
+- Focused V10 checks and content/D1 compatibility checks pass.
+- `npm run build` passes.
+- Full `npm test` passes in the supported environment; if it does not, the return includes exact failures and proof that no unrelated repair was attempted.
+- Tests cover every AS119-F004 case explicitly.
+- The complete RFC-021 desktop/mobile, Still/fixed-Full, parity, divergence, accessibility, contrast, and network evidence is present and hash-verifiable.
+- No fixed substitute Journal imagery or new media/backend path is introduced.
+- No unlisted surface or prohibited local/remote capability is touched.
 - The Protocol V2 publish checker passes in check-only mode before compare-and-swap publication.
 
 ## Stop conditions
 
-Stop if admin, Worker, migration, package, API diagnosis/fix, remote resource, production, merge, or deploy work would be required; if an asset lacks a traceable source/license where required; if V10 cannot remain the static failure baseline; if a required decision is ambiguous; or if freshness/protocol/publication checks fail.
+Stop if correction requires an unlisted source, test, documentation, workflow, package, backend, API, Worker, migration, remote-resource, production, merge, or deploy change; if the required evidence cannot be produced locally; if main changes; or if freshness, protocol, or publication checks fail.
 
-Do not broaden scope to resolve an unrelated issue.
+Do not broaden scope to resolve full-suite failures outside the named V10 tests.
 
 ## Next action
 
-The Builder implements V10-A and returns through a newly minted handoff (expected `H-WEB-V10-A-0001`) with exact implementation and evidence. The return must set `CURRENT_DIRECTIVE: NONE`, clear directive selectors and all action flags, and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+Claude/Builder performs remediation cycle 1 and returns through a newly minted handoff, expected `H-WEB-V10-A-REM1-0001`, with exact implementation and evidence. The return sets `CURRENT_DIRECTIVE: NONE`, clears directive selectors and all action flags, and routes to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, with `CURRENT_REMEDIATION_CYCLE: 1` retained.
 
-Then stop. Architect acceptance, V10-B, API work, main merge, and deployment remain separate decisions.
+Then stop. Architect acceptance, further remediation, V10-B, API work, main merge, and deployment remain separate governed decisions.
