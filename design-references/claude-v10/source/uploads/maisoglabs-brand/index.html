@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maisog Labs Icon Framework</title>
+<meta name="description" content="Maisog Labs brand and icon framework — Ideas in Orbit.">
+<meta name="theme-color" content="#0A1433">
+<link rel="icon" href="svg/favicon/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="png/favicon/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="png/favicon/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Inter:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/brand.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ml-space); color: var(--ml-pure-white); font-family: var(--ml-font-body); line-height: 1.5; }
+  a { color: var(--ml-steel-blue); }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 600px) { .wrap { padding: 0 16px; } }
+
+  /* Hero */
+  .hero { position: relative; overflow: hidden; background: url(svg/backgrounds/hero-space.svg) center / cover no-repeat, var(--ml-deep-navy); border-bottom: 1px solid var(--ml-line); }
+  .hero .wrap { display: grid; grid-template-columns: minmax(200px, 400px) 1fr; gap: 40px; align-items: center; padding-top: 48px; padding-bottom: 80px; }
+  .hero video { width: 100%; }
+  .hero h1 { margin: 0; font-family: var(--ml-font-display); font-weight: 600; font-size: clamp(2rem, 5.2vw, 4.2rem); letter-spacing: .14em; line-height: 1.1; }
+  .hero h1 .ml-wordmark { letter-spacing: .14em; }
+  .hero h2 { margin: .25em 0 0; font-family: var(--ml-font-display); font-weight: 300; font-size: clamp(1.3rem, 3.4vw, 2.6rem); letter-spacing: .32em; }
+  .hero p { color: var(--ml-muted); margin: 1.4em 0; }
+  .hero .ml-tagline { font-size: .8rem; display: flex; align-items: center; gap: 1.2em; }
+  .hero .ml-tagline::before, .hero .ml-tagline::after { content: ""; height: 1px; width: 64px; background: var(--ml-steel-blue); opacity: .5; }
+  @media (max-width: 760px) { .hero .wrap { grid-template-columns: 1fr; text-align: center; } .hero video { max-width: 300px; margin: 0 auto; } .hero .ml-tagline { justify-content: center; } }
+
+  section { padding: 48px 0; border-bottom: 1px solid var(--ml-line); }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+  @media (max-width: 1000px) { .grid-3 { grid-template-columns: 1fr; } .grid-3 .panel { grid-column: auto !important; } }
+  .panel h3, section > .wrap > h3 { margin: 0 0 20px; }
+  .lede { color: var(--ml-muted); font-size: .9rem; margin: -8px 0 24px; }
+  .label { font-family: var(--ml-font-display); font-weight: 600; font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; }
+  .small { font-size: .8rem; color: var(--ml-muted); }
+
+  /* 01 principles */
+  .principles { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+  .principles li { display: flex; gap: 18px; align-items: flex-start; }
+  .principles img { width: 40px; height: 40px; }
+  .principles p { margin: 2px 0 0; }
+
+  /* 02 anatomy */
+  .anatomy { display: grid; grid-template-columns: 1fr minmax(160px, 220px) 1fr; gap: 16px; align-items: center; }
+  .anatomy img { width: 100%; }
+  .anatomy dl { margin: 0; display: grid; gap: 18px; }
+  .anatomy dd { margin: 4px 0 0; }
+
+  /* 03 marking */
+  .marking { border: 1px dashed var(--ml-line); padding: 20px; display: grid; grid-template-columns: 150px 1fr; gap: 20px; align-items: center; border-radius: var(--ml-radius); }
+  .marking dl { margin: 0; display: grid; gap: 12px; }
+  .marking dd { margin: 2px 0 0; }
+
+  /* 04 clear space */
+  .space { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .space figure { margin: 0; }
+  .space .box { aspect-ratio: 1; border: 1px dashed rgba(147,180,255,.35); display: grid; place-items: center; position: relative; }
+  .space .box img { width: 50%; }
+  .space .cs::before { content: ""; position: absolute; inset: 25%; border: 1px dashed rgba(147,180,255,.35); }
+  .space .ca::before, .space .ca::after { content: ""; position: absolute; background: rgba(147,180,255,.35); }
+  .space .ca::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+  .space .ca::after { top: 50%; left: 0; right: 0; height: 1px; }
+  .space .sa::before { content: ""; position: absolute; inset: 18%; border: 1px solid rgba(147,180,255,.5); }
+  .space figcaption { margin-top: 10px; }
+  @media (max-width: 480px) { .space { grid-template-columns: 1fr; } .space figure { max-width: 240px; } }
+
+  /* 05 variations */
+  .variations { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+  @media (max-width: 1100px) { .variations { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 520px) { .variations { grid-template-columns: repeat(2, 1fr); } }
+  .variations figure { margin: 0; text-align: center; }
+  .variations img { width: 100%; max-width: 140px; aspect-ratio: 1; margin: 0 auto; display: block; }
+  .variations figcaption { margin: 10px 0 4px; }
+
+  /* 06 colors */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 20px; }
+  .swatch { text-align: center; }
+  .swatch i { display: block; width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 12px; border: 1px solid var(--ml-line); }
+  .swatch code { display: block; color: var(--ml-muted); font-size: .8rem; margin: 2px 0 8px; }
+  .swatch button { all: unset; cursor: pointer; }
+  .swatch button:focus-visible { outline: 2px solid var(--ml-steel-blue); outline-offset: 4px; border-radius: 4px; }
+
+  /* 07 icons */
+  .icons { display: grid; grid-template-columns: repeat(8, 1fr); gap: 28px 20px; }
+  @media (max-width: 1100px) { .icons { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 520px) { .icons { grid-template-columns: repeat(2, 1fr); } }
+
+  /* 08 do / don't */
+  .dodont { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  @media (max-width: 1100px) { .dodont { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 520px) { .dodont { grid-template-columns: repeat(2, 1fr); } }
+  .dodont figure { margin: 0; border: 1px solid var(--ml-line); border-radius: var(--ml-radius); padding: 16px; background: var(--ml-navy-raised); }
+  .dodont .demo { height: 110px; display: grid; place-items: center; }
+  .dodont .demo img { height: 100px; }
+  .dodont figcaption { display: flex; gap: 10px; align-items: flex-start; font-size: .82rem; }
+  .dodont b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; flex: none; font-size: .75rem; }
+  .ok b { background: #16A34A; } .no b { background: #DC2626; }
+  .no .hue { filter: hue-rotate(95deg) saturate(1.6); }
+  .no .stretch { transform: scaleX(1.7) skewX(-8deg); }
+
+  /* 09 animated logo */
+  .motion { display: grid; grid-template-columns: 1fr 1.4fr; gap: 24px; }
+  @media (max-width: 800px) { .motion { grid-template-columns: 1fr; } }
+  .motion figure { margin: 0; border: 1px solid var(--ml-line); border-radius: var(--ml-radius); overflow: hidden; background: #040B21; }
+  .motion video { display: block; width: 100%; }
+  .motion figcaption { padding: 14px 16px; border-top: 1px solid var(--ml-line); }
+
+  /* downloads */
+  .dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .dl a { display: block; padding: 14px 16px; border: 1px solid var(--ml-line); border-radius: 10px; text-decoration: none; background: var(--ml-navy-raised); }
+  .dl a:hover { border-color: var(--ml-steel-blue); }
+  .dl span { display: block; color: var(--ml-muted); font-size: .8rem; }
+
+  footer { padding: 28px 0 40px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+  footer .ml-wordmark { font-size: 1.1rem; }
+
+  @media (max-width: 860px) {
+    .anatomy { grid-template-columns: 1fr; } .anatomy img { max-width: 220px; margin: 0 auto; }
+    .marking { grid-template-columns: 1fr; } .marking img { max-width: 150px; }
+  }
+  @media (prefers-reduced-motion: reduce) { video { animation: none; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <video class="ml-logo-video" src="video/logo-mark.mp4" poster="png/video/logo-mark-poster.png" autoplay muted loop playsinline aria-label="Maisog Labs animated mark"></video>
+    <div>
+      <h1><span class="ml-wordmark">MAISOG<b>LABS</b></span></h1>
+      <h2>ICON FRAMEWORK</h2>
+      <p>All icons must be properly marked and adhere to the brand system.</p>
+      <div class="ml-tagline">Ideas in orbit</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="wrap grid-3">
+      <div class="panel">
+        <h3 class="ml-eyebrow"><span>01</span>Core principles</h3>
+        <ul class="principles">
+          <li><img src="svg/ui/clarity-steel.svg" alt=""><div><div class="label">Clarity</div><p class="small">Clean, purposeful forms that communicate instantly.</p></div></li>
+          <li><img src="svg/ui/consistency-steel.svg" alt=""><div><div class="label">Consistency</div><p class="small">A unified visual language across all icons and touchpoints.</p></div></li>
+          <li><img src="svg/ui/recognizability-steel.svg" alt=""><div><div class="label">Recognizability</div><p class="small">Distinctive to Maisog Labs and true to the signature.</p></div></li>
+          <li><img src="svg/ui/scalability-steel.svg" alt=""><div><div class="label">Scalability</div><p class="small">Clear and legible at any size, from 16px to large formats.</p></div></li>
+          <li><img src="svg/ui/symbolism-steel.svg" alt=""><div><div class="label">Symbolism</div><p class="small">Represents progress, exploration, and a brighter tomorrow.</p></div></li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3 class="ml-eyebrow"><span>02</span>Icon anatomy</h3>
+        <div class="anatomy">
+          <dl>
+            <div><dt class="label">Orbital ring motif</dt><dd class="small">Symbolizes motion, progress, and boundless possibility.</dd></div>
+            <div><dt class="label">Signature-inspired geometry</dt><dd class="small">Derived from the Maisog Labs signature for a unified visual DNA.</dd></div>
+            <div><dt class="label">Circular construction</dt><dd class="small">Built on a circle grid for balance and harmony.</dd></div>
+          </dl>
+          <img src="svg/logo/hero.svg" alt="">
+          <dl>
+            <div><dt class="label">Glow treatment</dt><dd class="small">Subtle outer glow adds depth and premium presence.</dd></div>
+            <div><dt class="label">Balanced stroke weight</dt><dd class="small">Consistent line weights for clarity and elegance.</dd></div>
+            <div><dt class="label">Orbital element</dt><dd class="small">A planetary node adds motion, depth, and meaning.</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="ml-eyebrow"><span>03</span>Marking rules</h3>
+        <p class="lede">Every icon must be clearly labeled with a name and purpose. Use the standard format below for consistency across all touchpoints.</p>
+        <div class="marking">
+          <figure class="ml-icon">
+            <img src="svg/logo/seal.svg" alt="">
+            <figcaption><span>01</span>Orbit</figcaption>
+            <p>Represents progress, movement, and what's next.</p>
+          </figure>
+          <dl>
+            <div><dt class="label">01 · Section number</dt><dd class="small">For easy categorization.</dd></div>
+            <div><dt class="label">Icon name</dt><dd class="small">Clear, concise name.</dd></div>
+            <div><dt class="label">Purpose</dt><dd class="small">Brief description of use.</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap grid-3">
+      <div class="panel">
+        <h3 class="ml-eyebrow"><span>04</span>Clear space &amp; alignment</h3>
+        <p class="lede">Maintain proper spacing and centering to ensure clarity and visual impact in any context.</p>
+        <div class="space">
+          <figure><div class="box cs"><img src="svg/logo/mark.svg" alt=""></div><figcaption class="label">Clear space</figcaption><p class="small">Minimum 2× the core width on all sides.</p></figure>
+          <figure><div class="box ca"><img src="svg/logo/mark.svg" alt=""></div><figcaption class="label">Center alignment</figcaption><p class="small">Always center the icon within its container.</p></figure>
+          <figure><div class="box sa"><img src="svg/logo/mark.svg" alt=""></div><figcaption class="label">Safe area</figcaption><p class="small">Keep other elements, text and edges clear.</p></figure>
+        </div>
+      </div>
+
+      <div class="panel" style="grid-column: span 2; min-width: 0">
+        <h3 class="ml-eyebrow"><span>05</span>Approved variations</h3>
+        <p class="lede">Use these official variations for different applications.</p>
+        <div class="variations">
+          <figure><img src="svg/logo/seal.svg" alt=""><figcaption class="label">Seal</figcaption><p class="small">Official use, partnerships, premium applications.</p></figure>
+          <figure><img src="svg/logo/app-avatar.svg" alt=""><figcaption class="label">App avatar</figcaption><p class="small">Modern, bold, recognizable at any size.</p></figure>
+          <figure><img src="svg/favicon/favicon.svg" alt=""><figcaption class="label">Favicon</figcaption><p class="small">Distinctive even at 16px.</p></figure>
+          <figure><img src="svg/logo/outline-white.svg" alt=""><figcaption class="label">Outline icon</figcaption><p class="small">Minimal or monochrome use.</p></figure>
+          <figure><img src="svg/logo/hero.svg" alt=""><figcaption class="label">Glowing hero</figcaption><p class="small">Key visuals, campaigns, presentations.</p></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h3 class="ml-eyebrow"><span>06</span>Color system</h3>
+      <p class="lede">Use the core brand palette for all icons. Click a swatch to copy its hex.</p>
+      <div class="swatches">
+        <div class="swatch"><button data-hex="#0A1433"><i style="background:#0A1433"></i><span class="label">Deep Navy</span><code>#0A1433</code></button><p class="small">Foundation · Depth<br>Stability · Trust</p></div>
+        <div class="swatch"><button data-hex="#2563EB"><i style="background:#2563EB"></i><span class="label">Orbit Blue</span><code>#2563EB</code></button><p class="small">Primary accent · Innovation<br>Energy · Progress</p></div>
+        <div class="swatch"><button data-hex="#F8FAFF"><i style="background:#F8FAFF"></i><span class="label">Pure White</span><code>#F8FAFF</code></button><p class="small">Clarity · Focus<br>Balance · Purity</p></div>
+        <div class="swatch"><button data-hex="#93B4FF"><i style="background:#93B4FF"></i><span class="label">Steel Blue</span><code>#93B4FF</code></button><p class="small">Sophistication · Technology<br>Momentum · Possibility</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h3 class="ml-eyebrow"><span>07</span>Sample icon set</h3>
+      <p class="lede">Example icons following the framework. All icons are properly marked with name and purpose.</p>
+      <div class="icons">
+        <figure class="ml-icon"><img src="svg/icons/01-ai.svg" alt=""><figcaption><span>01</span>AI</figcaption><p>Artificial intelligence and human potential.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/02-automation.svg" alt=""><figcaption><span>02</span>Automation</figcaption><p>Systems that scale possibility beyond limits.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/03-security.svg" alt=""><figcaption><span>03</span>Security</figcaption><p>Protection for people, ideas, and the future.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/04-research.svg" alt=""><figcaption><span>04</span>Research</figcaption><p>Exploration, discovery, and new frontiers.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/05-systems.svg" alt=""><figcaption><span>05</span>Systems</figcaption><p>Connected solutions for a more intelligent world.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/06-orbit.svg" alt=""><figcaption><span>06</span>Orbit</figcaption><p>Progress, movement, and what's next.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/07-labs.svg" alt=""><figcaption><span>07</span>Labs</figcaption><p>Where ideas and technology orbit together.</p></figure>
+        <figure class="ml-icon"><img src="svg/icons/08-strategy.svg" alt=""><figcaption><span>08</span>Strategy</figcaption><p>Vision, planning, and a brighter tomorrow.</p></figure>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h3 class="ml-eyebrow"><span>08</span>Do / Don't</h3>
+      <p class="lede">Follow these guidelines to keep the brand consistent.</p>
+      <div class="dodont">
+        <figure class="ok"><div class="demo"><img src="svg/logo/mark.svg" alt=""></div><figcaption><b>✓</b>Do use the approved style and colors.</figcaption></figure>
+        <figure class="ok"><div class="demo"><img src="svg/logo/seal.svg" alt=""></div><figcaption><b>✓</b>Do keep clear space and proper labeling.</figcaption></figure>
+        <figure class="ok"><div class="demo"><img src="svg/logo/mark-flat.svg" alt=""></div><figcaption><b>✓</b>Do maintain consistent stroke weight.</figcaption></figure>
+        <figure class="no"><div class="demo"><img class="hue" src="svg/logo/mark.svg" alt=""></div><figcaption><b>✕</b>Don't change the colors.</figcaption></figure>
+        <figure class="no"><div class="demo"><img class="stretch" src="svg/logo/mark.svg" alt=""></div><figcaption><b>✕</b>Don't distort or stretch.</figcaption></figure>
+        <figure class="no"><div class="demo"><img src="svg/logo/glyph-only.svg" alt=""></div><figcaption><b>✕</b>Don't remove core elements (orbit or node).</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h3 class="ml-eyebrow"><span>09</span>Animated logo</h3>
+      <p class="lede">The master logo animations. Use on dark backgrounds with the <code>.ml-logo-video</code> class, which blends the video's background away.</p>
+      <div class="motion">
+        <figure><video src="video/logo-mark.mp4" poster="png/video/logo-mark-poster.png" controls muted loop playsinline preload="metadata"></video><figcaption><span class="label">Mark loop</span><p class="small">960×960 · 5s · loops. Hero sections, splash screens, social avatars.</p></figcaption></figure>
+        <figure><video src="video/logo-lockup.mp4" poster="png/video/logo-lockup-poster.png" controls muted playsinline preload="metadata"></video><figcaption><span class="label">Logo reveal</span><p class="small">1108×828 · 5s · plays once. Intros, presentations, video openers.</p></figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h3 class="ml-eyebrow"><span>10</span>Downloads</h3>
+      <p class="lede">SVG is the master format (sharp at any size). PNGs are exported at up to 2048px.</p>
+      <div class="dl">
+        <a href="svg/logo/mark.svg" download>Primary mark<span>SVG · transparent</span></a>
+        <a href="png/logo/mark-2048.png" download>Primary mark<span>PNG · 2048px</span></a>
+        <a href="video/logo-mark.mp4" download>Animated mark<span>MP4 · 960×960 loop</span></a>
+        <a href="video/logo-lockup.mp4" download>Animated logo reveal<span>MP4 · 1108×828</span></a>
+        <a href="png/video/logo-lockup-poster.png" download>Logo still<span>PNG · from the reveal video</span></a>
+        <a href="svg/wordmark/lockup-horizontal-dark-bg.svg" download>Horizontal lockup<span>SVG · for dark backgrounds</span></a>
+        <a href="svg/wordmark/lockup-horizontal-light-bg.svg" download>Horizontal lockup<span>SVG · for light backgrounds</span></a>
+        <a href="png/logo/app-avatar-1024.png" download>App avatar<span>PNG · 1024px</span></a>
+        <a href="svg/backgrounds/hero-space.svg" download>Hero background<span>SVG · 1920×1080, scales to any size</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="ml-wordmark">MAISOG<b>LABS</b></span>
+    <span class="ml-tagline" style="font-size:.75rem">Ideas in orbit</span>
+    <span class="small" style="letter-spacing:.2em">TRUST · INNOVATION · CLARITY · POSSIBILITY</span>
+  </div>
+</footer>
+
+<script>
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); });
+  }
+  document.querySelectorAll('.swatch button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var code = b.querySelector('code'), hex = b.dataset.hex;
+      try { navigator.clipboard.writeText(hex); code.textContent = 'Copied!'; setTimeout(function () { code.textContent = hex; }, 1200); } catch (e) {}
+    });
+  });
+</script>
+</body>
+</html>

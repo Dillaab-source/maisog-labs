@@ -1,6 +1,5 @@
 import "./globals.css";
 import { getPublicContent } from "../lib/content/local.mjs";
-import DesignRuntime from "./DesignRuntime";
 
 export async function generateMetadata() {
   const { seo, site } = await getPublicContent();
@@ -14,6 +13,9 @@ export async function generateMetadata() {
       description: seo.description,
       type: "website",
     },
+    icons: {
+      icon: "/v10/assets/favicon.svg",
+    },
   };
 }
 
@@ -22,7 +24,6 @@ export default async function RootLayout({ children }) {
   return (
     <html lang={meta.locale}>
       <body>
-        <DesignRuntime />
         {children}
       </body>
     </html>

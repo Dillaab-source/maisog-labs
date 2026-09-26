@@ -1,0 +1,175 @@
+{
+  "jsExecutes": {
+    "motion": "Full",
+    "root": true,
+    "bundleError": false,
+    "dsErrors": 0
+  },
+  "logoPlays": {
+    "before": [
+      {
+        "t": 2.41,
+        "paused": false,
+        "opacity": "1",
+        "dur": 5.04,
+        "src": "../../assets/video/logo-mark.mp4",
+        "ready": 4
+      },
+      {
+        "t": 0,
+        "paused": true,
+        "opacity": "0",
+        "dur": 5.04,
+        "src": "../../assets/video/logo-mark.mp4",
+        "ready": 4
+      }
+    ],
+    "after": [
+      {
+        "t": 3.92,
+        "paused": false,
+        "opacity": "1",
+        "dur": 5.04,
+        "src": "../../assets/video/logo-mark.mp4",
+        "ready": 4
+      },
+      {
+        "t": 0,
+        "paused": true,
+        "opacity": "0",
+        "dur": 5.04,
+        "src": "../../assets/video/logo-mark.mp4",
+        "ready": 4
+      }
+    ],
+    "pass": true
+  },
+  "crossfade": {
+    "samples": [
+      "1@3.92 | 0p@0",
+      "0.316676@4.93 | 0.683324@0.73",
+      "0p@0 | 1@1.74",
+      "0p@0 | 1@2.76",
+      "0p@0 | 1@3.77",
+      "0.499994@0.54 | 0.500006@4.79",
+      "1@1.55 | 0p@0"
+    ],
+    "pass": true
+  },
+  "orbitFull": {
+    "o1": [
+      -313.83881949969776,
+      79.50760217022146
+    ],
+    "o2": [
+      -399.14473025581106,
+      67.33531950739459
+    ],
+    "pass": true
+  },
+  "plateAnimation": 1,
+  "parallax": "translate(-1.33333px, -0.833333px)",
+  "panels": {
+    "systems": {
+      "hash": "#systems",
+      "visible": "visible",
+      "opacity": "1"
+    },
+    "projects": {
+      "hash": "#projects",
+      "visible": "visible",
+      "opacity": "1"
+    },
+    "journal": {
+      "hash": "#journal",
+      "visible": "visible",
+      "opacity": "1"
+    },
+    "contact": {
+      "hash": "#contact",
+      "visible": "visible",
+      "opacity": "1"
+    },
+    "escape": {
+      "hash": "",
+      "anyOpen": false
+    },
+    "systemsSelect": "AI",
+    "projectPager": {
+      "before": "Sentinel / DevOS",
+      "after": "SU"
+    },
+    "researchFilterBuild": 1,
+    "mailto": "mailto:maisog36@gmail.com"
+  },
+  "fullLog": {
+    "errors": [],
+    "warnings": [
+      "You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/"
+    ],
+    "requests": [
+      "/",
+      "/assets/icons/01-ai.svg",
+      "/assets/icons/02-automation.svg",
+      "/assets/icons/03-security.svg",
+      "/assets/icons/04-research.svg",
+      "/assets/icons/05-systems.svg",
+      "/assets/icons/08-strategy.svg",
+      "/assets/plates/plate-aqueduct-v4.png",
+      "/assets/plates/plate-hero-v4.png",
+      "/assets/video/logo-mark-poster.png",
+      "/assets/video/logo-mark.mp4"
+    ]
+  },
+  "external": [],
+  "calm": {
+    "motion": "Calm",
+    "orbitStatic": true,
+    "videos": 2,
+    "errors": []
+  },
+  "still": {
+    "motion": "Still",
+    "videos": 0,
+    "posterImg": true,
+    "animations": 0,
+    "errors": []
+  },
+  "mobile": {
+    "overflowX": false,
+    "navLinks": [
+      {
+        "t": "MAISOGLABS",
+        "right": 156,
+        "clipped": false
+      },
+      {
+        "t": "Systems",
+        "right": 250,
+        "clipped": false
+      },
+      {
+        "t": "Projects",
+        "right": 344,
+        "clipped": false
+      },
+      {
+        "t": "Research",
+        "right": 442,
+        "clipped": true
+      },
+      {
+        "t": "Contact",
+        "right": 528,
+        "clipped": true
+      }
+    ],
+    "errors": []
+  },
+  "journal": {
+    "status": 200,
+    "heading": "Journal",
+    "state": "The journal could not be loaded right now.",
+    "errors": []
+  }
+}

@@ -10,10 +10,10 @@ export const siteContent = {
     name: "Maisog Labs",
     location: "Mahaplag, Leyte · Philippines",
     timezone: "UTC+08",
-    tagline: "Human potential. AI possibilities.",
+    tagline: "Ideas in orbit",
   },
   seo: {
-    title: "Maisog Labs — Human potential. AI possibilities.",
+    title: "Maisog Labs — Ideas in orbit",
     description:
       "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
     canonicalUrl: "https://maisoglabs.com",
@@ -41,6 +41,32 @@ export const siteContent = {
   ],
   projects: [
     {
+      id: "project-sentinel-devos",
+      slug: "sentinel-devos",
+      category: "SYSTEMS",
+      title: "Sentinel/DevOS",
+      summary: "The governance and execution system used to coordinate this repository's authority, changes, evidence, and review.",
+      stack: ["Systems", "Governance", "Architecture", "Evidence"],
+      accent: "blue",
+      icon: "systems",
+      order: 1,
+      featured: true,
+      state: "published",
+    },
+    {
+      id: "project-su",
+      slug: "su",
+      category: "RESEARCH",
+      title: "SU",
+      summary: "An advisory evidence and contradiction-checking method used during governed technical decisions.",
+      stack: ["Research", "Evidence", "Review"],
+      accent: "violet",
+      icon: "lab",
+      order: 2,
+      featured: true,
+      state: "published",
+    },
+    {
       id: "project-clinicflow",
       slug: "clinicflow",
       category: "AI AUTOMATION",
@@ -49,7 +75,33 @@ export const siteContent = {
       stack: ["n8n", "LLM", "Webhooks", "Calendar"],
       accent: "gold",
       icon: "automation",
-      order: 1,
+      order: 3,
+      featured: true,
+      state: "published",
+    },
+    {
+      id: "project-maisog-kilat",
+      slug: "maisog-kilat",
+      category: "EXPERIMENTS",
+      title: "Maisog Kilat",
+      summary: "An owner-approved lab project. Further public details are held until a verified project source record is available.",
+      stack: ["Experiment", "Verification"],
+      accent: "blue",
+      icon: "lab",
+      order: 4,
+      featured: true,
+      state: "published",
+    },
+    {
+      id: "project-maisog-guild",
+      slug: "maisog-guild",
+      category: "EXPERIMENTS",
+      title: "Maisog Guild",
+      summary: "An owner-approved lab project. Further public details are held until a verified project source record is available.",
+      stack: ["Experiment", "Verification"],
+      accent: "violet",
+      icon: "lab",
+      order: 5,
       featured: true,
       state: "published",
     },
@@ -62,7 +114,7 @@ export const siteContent = {
       stack: ["APIs", "Automation", "AI", "n8n"],
       accent: "blue",
       icon: "systems",
-      order: 2,
+      order: 6,
       featured: true,
       state: "published",
     },
@@ -75,7 +127,7 @@ export const siteContent = {
       stack: ["Security", "Detection", "Research"],
       accent: "red",
       icon: "security",
-      order: 3,
+      order: 7,
       featured: true,
       state: "published",
     },
@@ -88,7 +140,7 @@ export const siteContent = {
       stack: ["Agents", "Integrations", "Web", "More"],
       accent: "violet",
       icon: "lab",
-      order: 4,
+      order: 8,
       featured: true,
       state: "published",
     },
@@ -118,7 +170,7 @@ export const siteContent = {
   },
   contact: {
     headerLabel: "Start a conversation",
-    email: "hello@maisoglabs.com",
+    email: "paulo.maisog@maisoglabs.com",
     callToAction: "Let’s build something useful",
   },
   footer: {
@@ -126,38 +178,9 @@ export const siteContent = {
     copyright: "© 2026 MAISOG LABS",
   },
   projectSection: {
-    kicker: "SELECTED SYSTEMS",
-    title: "Work in motion.",
-    description: "Practical experiments where people, automation, and resilient technology meet.",
+    kicker: "PROJECT ORBITS",
+    title: "From research to real-world impact.",
+    description: "Eight public project profiles across governance, research, automation, security, and experiments.",
     emptyMessage: "New work is taking shape. Check back soon.",
   },
-};
-
-// Website Redesign V1 (D-076 / ML-DEVOS-AS-104) spatial copy. Deliberately a
-// separate, local-static-only document: it is NOT part of `siteContent`, so
-// the legacy content document (and its D1 migration parity, worker/d1/*) is
-// unchanged and no D1 schema is implied. Validated fail-closed by
-// lib/content/schema.mjs validateSpatialContent before rendering. Discipline
-// text restates already-published copy (services, foundations, process,
-// about, projects); `terms` are matched exactly against published project
-// categories/stack tags to derive Systems relationships
-// (components/site/routes.mjs) -- nothing is inferred.
-export const spatialContent = {
-  entryDescriptor:
-    "MaisogLabs is Paulo Maisog's independent technology lab, building practical AI automation, research systems, software, and security-focused experiments.",
-  destinations: [
-    { route: "systems", text: "How the lab's disciplines connect" },
-    { route: "projects", text: "Published lab projects" },
-    { route: "research", text: "Notes from the lab journal" },
-    { route: "contact", text: "Start a conversation" },
-  ],
-  disciplines: [
-    { id: "discipline-ai", label: "AI", text: "Human-centered AI experiences designed around real user needs and clear boundaries.", terms: ["AI", "LLM", "AI AUTOMATION"] },
-    { id: "discipline-automation", label: "Automation", text: "Connected workflows that reduce repetitive work.", terms: ["Automation", "AI AUTOMATION"] },
-    { id: "discipline-research", label: "Research", text: "Hands-on labs, notes, and practical experiments, documented honestly.", terms: ["Research"] },
-    { id: "discipline-security", label: "Security", text: "Practical systems built with reliability and security in mind.", terms: ["Security", "CYBERSECURITY"] },
-    { id: "discipline-systems", label: "Systems", text: "Connect the right tools into a dependable system.", terms: ["SYSTEMS"] },
-    { id: "discipline-architecture", label: "Architecture", text: "Identity and structure: start with the real problem and the people living with it.", terms: [] },
-  ],
-  contactStatement: "Humanity orbits higher.",
 };

@@ -1,0 +1,599 @@
+{
+  "method": {
+    "channelTolerance": 32,
+    "passRatio": 0.01,
+    "fixedTime": "2026-09-26T00:00:00.000Z",
+    "fullTimestampMs": 3000
+  },
+  "parity": [
+    {
+      "view": "desktop-still-entry",
+      "candidate": "candidate-desktop-still-entry.png",
+      "candidateSha256": "8da4c8040bc43ab1929daa58cbd4abfdb8687a2f2f090464580b9a2eed9b5b63",
+      "referenceSha256": "dc7922b4e377dcd01070bff94c25454a919978b5287e10c3d019ba7339ab25d6",
+      "sideBySide": "desktop-still-entry.jpg",
+      "mismatchRatio": 0,
+      "pass": true
+    },
+    {
+      "view": "desktop-still-systems",
+      "candidate": "candidate-desktop-still-systems.png",
+      "candidateSha256": "5c48d0bf4dbde31c5776bfdba9eb24d9d419c12e44062efc5ffab6119a369c25",
+      "referenceSha256": "54e3d926f9dfc003659a7e653b87c5c56eb7aef561dd2700be4d82cc77448384",
+      "sideBySide": "desktop-still-systems.jpg",
+      "mismatchRatio": 0.007315,
+      "pass": true
+    },
+    {
+      "view": "desktop-still-projects",
+      "candidate": "candidate-desktop-still-projects.png",
+      "candidateSha256": "12d20548eae1fb65305f708477843f8759f09dd247e6f7e059409df8ecbc4e73",
+      "referenceSha256": "887f0d0effa3bb487f23c66cd55972fae794031e9f6d28131135fc1a58156f01",
+      "sideBySide": "desktop-still-projects.jpg",
+      "mismatchRatio": 0.00591,
+      "pass": true
+    },
+    {
+      "view": "desktop-still-journal",
+      "candidate": "candidate-desktop-still-journal.png",
+      "candidateSha256": "b3a995e22b8e983b0b43569b81074f3b697c3848fae475cb1e03b52f86f93d62",
+      "referenceSha256": "a65e31ec51eca864f1e6f99f7f423c1f752fc0dfb3e04833f0671fa3be00cb8e",
+      "sideBySide": "desktop-still-journal.jpg",
+      "mismatchRatio": 0.083938,
+      "pass": false
+    },
+    {
+      "view": "desktop-still-contact",
+      "candidate": "candidate-desktop-still-contact.png",
+      "candidateSha256": "42b2f177b8534c7adbc09d19c2a767f9a9467b54259191eabeb138e5cd96c378",
+      "referenceSha256": "88b27eb3d41b6d3b3d8faec8570b5efb2d688a231a6f611ac6680c6ca2bd67c0",
+      "sideBySide": "desktop-still-contact.jpg",
+      "mismatchRatio": 0.004086,
+      "pass": true
+    },
+    {
+      "view": "desktop-full-entry",
+      "candidate": "candidate-desktop-full-entry.png",
+      "candidateSha256": "8706b4c5e30503bac58eed6db08e23fb2a55ed86127c8ecb49212a68e5a65106",
+      "referenceSha256": "677061ca0403462d0c72ce43d6630f0ed6cb29002455eba9724b0c4121817fbc",
+      "sideBySide": "desktop-full-entry.jpg",
+      "mismatchRatio": 0.000204,
+      "pass": true
+    },
+    {
+      "view": "desktop-full-systems",
+      "candidate": "candidate-desktop-full-systems.png",
+      "candidateSha256": "04ec29e1b4d28777466c3f099f28de32feaab214d9d2f1673c16692e3593cad6",
+      "referenceSha256": "48fc83cceebae87041603c5e65f04bdfaee3dfe5032011c5453247aeb171f40e",
+      "sideBySide": "desktop-full-systems.jpg",
+      "mismatchRatio": 0.00577,
+      "pass": true
+    },
+    {
+      "view": "desktop-full-projects",
+      "candidate": "candidate-desktop-full-projects.png",
+      "candidateSha256": "b3c851cca5b95e6aede3ba5d347de15bee2005bddf4f78a14d37907c168a9b82",
+      "referenceSha256": "341fe7f3103180e18343fb2d4c3b9b0b72016ec161292587f3d65a60e7cfbd77",
+      "sideBySide": "desktop-full-projects.jpg",
+      "mismatchRatio": 0.004667,
+      "pass": true
+    },
+    {
+      "view": "desktop-full-journal",
+      "candidate": "candidate-desktop-full-journal.png",
+      "candidateSha256": "d09b05fa66f0476996835dcfd440a487b642936d4f5adcadfe588ff4a48c87cc",
+      "referenceSha256": "2909e1ad834153dab3a559667857a60d071e109f4abd26a81951eb6aedf4f689",
+      "sideBySide": "desktop-full-journal.jpg",
+      "mismatchRatio": 0.078557,
+      "pass": false
+    },
+    {
+      "view": "desktop-full-contact",
+      "candidate": "candidate-desktop-full-contact.png",
+      "candidateSha256": "74065265102f2c802d8cea9b8b436f5276f604e20dffd98d147d2b280a1c8ecb",
+      "referenceSha256": "aeaed1ba3704ec5aefee6bcc0a3bc8b0ec9b2fbf62aced948567578583b8d763",
+      "sideBySide": "desktop-full-contact.jpg",
+      "mismatchRatio": 0.003391,
+      "pass": true
+    },
+    {
+      "view": "mobile-still-entry",
+      "candidate": "candidate-mobile-still-entry.png",
+      "candidateSha256": "0c1bd54f8e34791bc0abe430da9e02a46c03738b024f11990bdcbb11285e608d",
+      "referenceSha256": "995f95ff6e1a8a3868a38a906eb1dad80f38fd1c0c036f2977dfd5f4abd5a107",
+      "sideBySide": "mobile-still-entry.jpg",
+      "mismatchRatio": 0.02205,
+      "pass": false
+    },
+    {
+      "view": "mobile-still-systems",
+      "candidate": "candidate-mobile-still-systems.png",
+      "candidateSha256": "c264d226372b30fc1d2c6521e62f7656f564833b6a4e91ef3425ed8fb1f3bb20",
+      "referenceSha256": "44e3d820b21a87c623f2502396b20c7208134949072fc118173ecbd804f94474",
+      "sideBySide": "mobile-still-systems.jpg",
+      "mismatchRatio": 0.018568,
+      "pass": false
+    },
+    {
+      "view": "mobile-still-projects",
+      "candidate": "candidate-mobile-still-projects.png",
+      "candidateSha256": "b8f08ad32ec310f5f05abb776c9bba80a6f91f6fa1c680c23055f54260f2678c",
+      "referenceSha256": "e9baeeeb3819eef5cb603fb88323abeaf670426dc4309f57adbb79fb56b20731",
+      "sideBySide": "mobile-still-projects.jpg",
+      "mismatchRatio": 0.009351,
+      "pass": true
+    },
+    {
+      "view": "mobile-still-journal",
+      "candidate": "candidate-mobile-still-journal.png",
+      "candidateSha256": "0a4f89d7729e37066f917aded2b862a09e88a0fe497fe979d55c8366f9331faf",
+      "referenceSha256": "047e00a0ea8abab06dccaebd8d6bd0553bef51d77d020e1399565526ddac434f",
+      "sideBySide": "mobile-still-journal.jpg",
+      "mismatchRatio": 0.129776,
+      "pass": false
+    },
+    {
+      "view": "mobile-still-contact",
+      "candidate": "candidate-mobile-still-contact.png",
+      "candidateSha256": "a256e5b158e0b9c5ae4d69275a46126e1931fe7edeb9f6074946dbdf6fda1751",
+      "referenceSha256": "30dc62d716d15a45ca8fd9eecb3f2c7ff25883eab07cedb8826f3010cb1510b5",
+      "sideBySide": "mobile-still-contact.jpg",
+      "mismatchRatio": 0.030019,
+      "pass": false
+    },
+    {
+      "view": "mobile-full-entry",
+      "candidate": "candidate-mobile-full-entry.png",
+      "candidateSha256": "8600875e4d25f8a0c60739b8fe497216c201bcc690d3759c59813f7dbe5b9686",
+      "referenceSha256": "84e4e49b24ba01357c67b32be263c136f07f845e9716bd3aecc2beddcf7cab8d",
+      "sideBySide": "mobile-full-entry.jpg",
+      "mismatchRatio": 0.021534,
+      "pass": false
+    },
+    {
+      "view": "mobile-full-systems",
+      "candidate": "candidate-mobile-full-systems.png",
+      "candidateSha256": "520eeb6f9e37eee3fdab6a82850f312c2a4adf3481e03986365b5aef39317260",
+      "referenceSha256": "6eb25520a5d115ae72ed0ea6e1330df919f733cc961d16558899462bb9a12af3",
+      "sideBySide": "mobile-full-systems.jpg",
+      "mismatchRatio": 0.017788,
+      "pass": false
+    },
+    {
+      "view": "mobile-full-projects",
+      "candidate": "candidate-mobile-full-projects.png",
+      "candidateSha256": "753ce8b67dc31fa5601a0dddc6860a951d7788bba24edb4c1a7d2d5e58b0088a",
+      "referenceSha256": "afe197b51fc483764b6b5a10d8f038abe891abd70a8218c0d83a25eb2e9cce39",
+      "sideBySide": "mobile-full-projects.jpg",
+      "mismatchRatio": 0.00854,
+      "pass": true
+    },
+    {
+      "view": "mobile-full-journal",
+      "candidate": "candidate-mobile-full-journal.png",
+      "candidateSha256": "011f6c780d38068759997f9a6fd214e8e6f9d6928fc3ae17386d82e5776813e6",
+      "referenceSha256": "d4332b93b6e71e4739cce2aae40a8c556d048dec94160f152696bdc5bf2304ab",
+      "sideBySide": "mobile-full-journal.jpg",
+      "mismatchRatio": 0.128925,
+      "pass": false
+    },
+    {
+      "view": "mobile-full-contact",
+      "candidate": "candidate-mobile-full-contact.png",
+      "candidateSha256": "275cfd22366cc6e76acd94f4f3583ddfe10aea19a960b56524d10386e57bee95",
+      "referenceSha256": "a1f8ecfef6aa48dfa177762bdc3646893587893ff87e4da2ab3c454cb54ae05e",
+      "sideBySide": "mobile-full-contact.jpg",
+      "mismatchRatio": 0.024602,
+      "pass": false
+    }
+  ],
+  "repeatability": [
+    {
+      "view": "desktop-still-entry",
+      "mismatchedPixels": 20347
+    },
+    {
+      "view": "desktop-still-systems",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "desktop-still-projects",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "desktop-still-journal",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "desktop-still-contact",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "desktop-full-entry",
+      "mismatchedPixels": 720
+    },
+    {
+      "view": "desktop-full-systems",
+      "mismatchedPixels": 268
+    },
+    {
+      "view": "desktop-full-projects",
+      "mismatchedPixels": 95
+    },
+    {
+      "view": "desktop-full-journal",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "desktop-full-contact",
+      "mismatchedPixels": 162
+    },
+    {
+      "view": "mobile-still-entry",
+      "mismatchedPixels": 37
+    },
+    {
+      "view": "mobile-still-systems",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "mobile-still-projects",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "mobile-still-journal",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "mobile-still-contact",
+      "mismatchedPixels": 0
+    },
+    {
+      "view": "mobile-full-entry",
+      "mismatchedPixels": 1629
+    },
+    {
+      "view": "mobile-full-systems",
+      "mismatchedPixels": 126
+    },
+    {
+      "view": "mobile-full-projects",
+      "mismatchedPixels": 195
+    },
+    {
+      "view": "mobile-full-journal",
+      "mismatchedPixels": 25
+    },
+    {
+      "view": "mobile-full-contact",
+      "mismatchedPixels": 429
+    }
+  ],
+  "candidateErrors": {},
+  "axe": [
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 15
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "systems",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 67
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 54
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "journal",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 21
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "contact",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 16
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 12
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "systems",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 59
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 51
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "journal",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 17
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "contact",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 13
+        },
+        {
+          "id": "video-caption",
+          "impact": "critical",
+          "nodes": 1
+        }
+      ],
+      "seriousOrCritical": 0
+    }
+  ],
+  "interactions": {
+    "desktop": {
+      "hash #systems": {
+        "hash": "#systems",
+        "focus": "systems",
+        "open": [
+          "systems"
+        ],
+        "pass": true
+      },
+      "hash #projects": {
+        "hash": "#projects",
+        "focus": "projects",
+        "open": [
+          "projects"
+        ],
+        "pass": true
+      },
+      "hash #journal": {
+        "hash": "#journal",
+        "focus": "journal",
+        "open": [
+          "journal"
+        ],
+        "pass": true
+      },
+      "hash #contact": {
+        "hash": "#contact",
+        "focus": "contact",
+        "open": [
+          "contact"
+        ],
+        "pass": true
+      },
+      "hash #research": {
+        "hash": "#journal",
+        "focus": "journal",
+        "open": [
+          "journal"
+        ],
+        "pass": true
+      },
+      "hash #process": {
+        "hash": "#systems",
+        "focus": "systems",
+        "open": [
+          "systems"
+        ],
+        "pass": true
+      },
+      "hash #about": {
+        "hash": "#contact",
+        "focus": "contact",
+        "open": [
+          "contact"
+        ],
+        "pass": true
+      },
+      "hash #unknown": {
+        "hash": "#unknown",
+        "focus": "BODY",
+        "open": [],
+        "pass": true
+      },
+      "escape": {
+        "hash": "",
+        "focus": "BODY",
+        "open": [],
+        "pass": true
+      },
+      "projectKeys": {
+        "first": "Sentinel/DevOS",
+        "second": "SU",
+        "last": "Experimental Projects",
+        "count": 8,
+        "pass": true
+      },
+      "projectCounter": {
+        "counter": "08 / 08",
+        "pass": true
+      },
+      "flowHiddenWithoutSource": {
+        "pass": true
+      },
+      "systemsSelect": {
+        "selected": "AI",
+        "pass": true
+      },
+      "mailto": "mailto:paulo.maisog@maisoglabs.com",
+      "mailtoPass": true,
+      "journalLinks": [
+        "/journal?slug=architecture-decisions",
+        "/journal?slug=research-to-tools",
+        "/journal?slug=human-judgment"
+      ],
+      "journalLinksPass": true
+    },
+    "mobileMenu": {
+      "buttonHeight": 44,
+      "expanded": "true",
+      "items": [
+        {
+          "text": "Systems",
+          "h": 44,
+          "clipped": false
+        },
+        {
+          "text": "Projects",
+          "h": 44,
+          "clipped": false
+        },
+        {
+          "text": "Research",
+          "h": 44,
+          "clipped": false
+        },
+        {
+          "text": "Contact",
+          "h": 44,
+          "clipped": false
+        }
+      ],
+      "closedByEscape": true,
+      "navigate": {
+        "hash": "#projects",
+        "menuClosed": true
+      },
+      "pass": true
+    },
+    "mobileSystemsLabels": {
+      "labels": 10,
+      "overlaps": []
+    },
+    "mobileNoHorizontalOverflow": true
+  },
+  "network": {
+    "distinctRequests": 23,
+    "externalRequests": [],
+    "apiPaths": [
+      "/api/journal"
+    ],
+    "outForbiddenMatches": [],
+    "pass": true
+  }
+}

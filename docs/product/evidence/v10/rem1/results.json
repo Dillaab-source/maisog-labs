@@ -1,0 +1,1057 @@
+{
+  "tolerance": {
+    "channelDelta": 32,
+    "passRatio": 0.01
+  },
+  "fixedTime": "2026-09-26T00:00:00.000Z",
+  "fullTimestampMs": 3000,
+  "parity": [
+    {
+      "view": "desktop-still-entry",
+      "candidate": "candidate-desktop-still-entry.png",
+      "candidateSha256": "bf3da3f978247098b122b5761cb9022fc6678e4d3ccfd3467020b4bbb267aee0",
+      "reference": "reference-desktop-still-entry.png",
+      "referenceSha256": "dc7922b4e377dcd01070bff94c25454a919978b5287e10c3d019ba7339ab25d6",
+      "sideBySide": "desktop-still-entry.jpg",
+      "sideBySideSha256": "8ba2653d0284f6da75f954d8f7915618d36b4c5600069473bd24e3ad2b7cc644",
+      "mismatchedPixels": 265947,
+      "mismatchRatio": 0.205206,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": ""
+    },
+    {
+      "view": "desktop-still-systems",
+      "candidate": "candidate-desktop-still-systems.png",
+      "candidateSha256": "18e630b17f91c0c4497d7657bc742f797f9f1f8f6f604e7efa0429031b490bce",
+      "reference": "reference-desktop-still-systems.png",
+      "referenceSha256": "54e3d926f9dfc003659a7e653b87c5c56eb7aef561dd2700be4d82cc77448384",
+      "sideBySide": "desktop-still-systems.jpg",
+      "sideBySideSha256": "5df47e21152e94131d8ff94e27675535d26ddc533b8e270a52436c6376eb7aa7",
+      "mismatchedPixels": 77677,
+      "mismatchRatio": 0.059936,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#systems"
+    },
+    {
+      "view": "desktop-still-projects",
+      "candidate": "candidate-desktop-still-projects.png",
+      "candidateSha256": "6671f3096192cfe8053d2f4c9e01e244f6206a6a5be022fef80e52169e4cd87c",
+      "reference": "reference-desktop-still-projects.png",
+      "referenceSha256": "887f0d0effa3bb487f23c66cd55972fae794031e9f6d28131135fc1a58156f01",
+      "sideBySide": "desktop-still-projects.jpg",
+      "sideBySideSha256": "8da9e59b7c75ca18fb819bc5997be2690225c2af59889fe726880ca9e79f4797",
+      "mismatchedPixels": 70314,
+      "mismatchRatio": 0.054255,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#projects"
+    },
+    {
+      "view": "desktop-still-journal",
+      "candidate": "candidate-desktop-still-journal.png",
+      "candidateSha256": "9b83ba20839b2f47dcb72addaac1a0e8edfc06551020da8710be4f5234f6230f",
+      "reference": "reference-desktop-still-journal.png",
+      "referenceSha256": "a65e31ec51eca864f1e6f99f7f423c1f752fc0dfb3e04833f0671fa3be00cb8e",
+      "sideBySide": "desktop-still-journal.jpg",
+      "sideBySideSha256": "a3c9e1b77358909fee080e283a66c56a1d99df459c06fed8b1ee9261bbefdb08",
+      "mismatchedPixels": 111715,
+      "mismatchRatio": 0.0862,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#journal"
+    },
+    {
+      "view": "desktop-still-contact",
+      "candidate": "candidate-desktop-still-contact.png",
+      "candidateSha256": "61eebecb4eafb60b1940276dedbb0a3e3d617effa19cf5072968e4c1746deb05",
+      "reference": "reference-desktop-still-contact.png",
+      "referenceSha256": "88b27eb3d41b6d3b3d8faec8570b5efb2d688a231a6f611ac6680c6ca2bd67c0",
+      "sideBySide": "desktop-still-contact.jpg",
+      "sideBySideSha256": "75fe044587e0fb5539f59d9c3d56f88ab2c7cd312554fdd97cb012121333079e",
+      "mismatchedPixels": 45976,
+      "mismatchRatio": 0.035475,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#contact"
+    },
+    {
+      "view": "desktop-full-entry",
+      "candidate": "candidate-desktop-full-entry.png",
+      "candidateSha256": "b31961bb8c7f89244edcf0b88c83255f4b4a889286a6111370209a2a19de1d50",
+      "reference": "reference-desktop-full-entry.png",
+      "referenceSha256": "e581e453f5c2e5679c2d0c2e6326d586a505f024058946cc4c5bb0027ec5597c",
+      "sideBySide": "desktop-full-entry.jpg",
+      "sideBySideSha256": "3673befffa5d20e12583bcb6ece26fd5d65c3a83c2afe954ba91908784573ef4",
+      "mismatchedPixels": 269266,
+      "mismatchRatio": 0.207767,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": ""
+    },
+    {
+      "view": "desktop-full-systems",
+      "candidate": "candidate-desktop-full-systems.png",
+      "candidateSha256": "18e630b17f91c0c4497d7657bc742f797f9f1f8f6f604e7efa0429031b490bce",
+      "reference": "reference-desktop-full-systems.png",
+      "referenceSha256": "9dbbb7d5da841b21ac911af6fdd70be0e9e5cbd9b639239002c7aaa74fb0b1b5",
+      "sideBySide": "desktop-full-systems.jpg",
+      "sideBySideSha256": "575bca482ea105a40d34fb7876ff82a4ac90570563d9c63136f1b682923664ac",
+      "mismatchedPixels": 71085,
+      "mismatchRatio": 0.05485,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#systems"
+    },
+    {
+      "view": "desktop-full-projects",
+      "candidate": "candidate-desktop-full-projects.png",
+      "candidateSha256": "6671f3096192cfe8053d2f4c9e01e244f6206a6a5be022fef80e52169e4cd87c",
+      "reference": "reference-desktop-full-projects.png",
+      "referenceSha256": "5e5b1e738e9acd123c4bf67773369bba2aa1eb3bf8cb89dadcea005ea1549f71",
+      "sideBySide": "desktop-full-projects.jpg",
+      "sideBySideSha256": "1a0bf39ecff16dec1f538ca8a18f2020dcfc0b7cb93e76cc9b3be2613573cc92",
+      "mismatchedPixels": 64732,
+      "mismatchRatio": 0.049948,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#projects"
+    },
+    {
+      "view": "desktop-full-journal",
+      "candidate": "candidate-desktop-full-journal.png",
+      "candidateSha256": "9b83ba20839b2f47dcb72addaac1a0e8edfc06551020da8710be4f5234f6230f",
+      "reference": "reference-desktop-full-journal.png",
+      "referenceSha256": "b0bf4aa6b8360dcb7751525a73f2d0210d83f32fd4a7f880cafed0b24131356d",
+      "sideBySide": "desktop-full-journal.jpg",
+      "sideBySideSha256": "b12c58a72d81f054c200ab9efa6deec9b65f9c2527c7e8bf624099d9a7ce4df3",
+      "mismatchedPixels": 107249,
+      "mismatchRatio": 0.082754,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#journal"
+    },
+    {
+      "view": "desktop-full-contact",
+      "candidate": "candidate-desktop-full-contact.png",
+      "candidateSha256": "61eebecb4eafb60b1940276dedbb0a3e3d617effa19cf5072968e4c1746deb05",
+      "reference": "reference-desktop-full-contact.png",
+      "referenceSha256": "c477921ff93f7fed9f2a47b4fc5b195c19c9be528b3654a414028bde0e14a745",
+      "sideBySide": "desktop-full-contact.jpg",
+      "sideBySideSha256": "f04abc54afafd3f3eb0efa86cc3468199efda5940ac5fb5fce29a37ecf9f17a7",
+      "mismatchedPixels": 44283,
+      "mismatchRatio": 0.034169,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#contact"
+    },
+    {
+      "view": "mobile-still-entry",
+      "candidate": "candidate-mobile-still-entry.png",
+      "candidateSha256": "4a4a2bc9c8b6788abf3a7e81dc36fb8b1c7e358cec9daed8c97b950f4f27685e",
+      "reference": "reference-mobile-still-entry.png",
+      "referenceSha256": "995f95ff6e1a8a3868a38a906eb1dad80f38fd1c0c036f2977dfd5f4abd5a107",
+      "sideBySide": "mobile-still-entry.jpg",
+      "sideBySideSha256": "acd5271be3af0bfe724b050e8139d20a23e7b359064241fab96ada4433ac52c4",
+      "mismatchedPixels": 80620,
+      "mismatchRatio": 0.244926,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": ""
+    },
+    {
+      "view": "mobile-still-systems",
+      "candidate": "candidate-mobile-still-systems.png",
+      "candidateSha256": "ec62a1838e645726fa27257c265a142625f129f642576e705293763599a78445",
+      "reference": "reference-mobile-still-systems.png",
+      "referenceSha256": "44e3d820b21a87c623f2502396b20c7208134949072fc118173ecbd804f94474",
+      "sideBySide": "mobile-still-systems.jpg",
+      "sideBySideSha256": "d3ca4119efa11915798b3493b6dad769be55eb6ab0570a7ae2477b65f622752d",
+      "mismatchedPixels": 39730,
+      "mismatchRatio": 0.120701,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#systems"
+    },
+    {
+      "view": "mobile-still-projects",
+      "candidate": "candidate-mobile-still-projects.png",
+      "candidateSha256": "fc3efa959a70a4134b8be515f2bd551e045d637fa287bc56286ea642a61064c6",
+      "reference": "reference-mobile-still-projects.png",
+      "referenceSha256": "e9baeeeb3819eef5cb603fb88323abeaf670426dc4309f57adbb79fb56b20731",
+      "sideBySide": "mobile-still-projects.jpg",
+      "sideBySideSha256": "93b12ae683e505adbda197602c919896909e5167db48a46aaa98254852502c3c",
+      "mismatchedPixels": 39129,
+      "mismatchRatio": 0.118875,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#projects"
+    },
+    {
+      "view": "mobile-still-journal",
+      "candidate": "candidate-mobile-still-journal.png",
+      "candidateSha256": "10ca0eac3a4d24b6029b3b1db465a309f62484e51605b71a510788258957e345",
+      "reference": "reference-mobile-still-journal.png",
+      "referenceSha256": "047e00a0ea8abab06dccaebd8d6bd0553bef51d77d020e1399565526ddac434f",
+      "sideBySide": "mobile-still-journal.jpg",
+      "sideBySideSha256": "690635afaeefafdfcd209670a7bb6fdb33b4cff9b1ec2d134f82f73875ebc74c",
+      "mismatchedPixels": 47748,
+      "mismatchRatio": 0.14506,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#journal"
+    },
+    {
+      "view": "mobile-still-contact",
+      "candidate": "candidate-mobile-still-contact.png",
+      "candidateSha256": "b516c3b78d9e167b41b16c22ecc39bdf596be70fa657aebd909cd0025a41febe",
+      "reference": "reference-mobile-still-contact.png",
+      "referenceSha256": "30dc62d716d15a45ca8fd9eecb3f2c7ff25883eab07cedb8826f3010cb1510b5",
+      "sideBySide": "mobile-still-contact.jpg",
+      "sideBySideSha256": "d11cb0961d2c8f5ad3d6546fa26bc4d42f413f31fd9954da9accb33f00933f54",
+      "mismatchedPixels": 25725,
+      "mismatchRatio": 0.078153,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#contact"
+    },
+    {
+      "view": "mobile-full-entry",
+      "candidate": "candidate-mobile-full-entry.png",
+      "candidateSha256": "e43b77f7deddd24a09850b5ba5322f8fc949e1ab09f807ad3bc0a5f6d442f6e6",
+      "reference": "reference-mobile-full-entry.png",
+      "referenceSha256": "f7a1aaeedb13350beabbe173d5452c80128654c952f50c77a72a5d047d35b2f4",
+      "sideBySide": "mobile-full-entry.jpg",
+      "sideBySideSha256": "8c03d05b3b20defe639dd0915d10ae7f2019ba5d8a0230d53da4747d09fac1f0",
+      "mismatchedPixels": 88482,
+      "mismatchRatio": 0.268812,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": ""
+    },
+    {
+      "view": "mobile-full-systems",
+      "candidate": "candidate-mobile-full-systems.png",
+      "candidateSha256": "ec62a1838e645726fa27257c265a142625f129f642576e705293763599a78445",
+      "reference": "reference-mobile-full-systems.png",
+      "referenceSha256": "cc1883e629e8525c0acf2022c3e0b4e98163d23ee1604bd6d822b8162ced01c0",
+      "sideBySide": "mobile-full-systems.jpg",
+      "sideBySideSha256": "fb926a86e529a47aab0c16d3662db07bd7d7d48c0be9cf9b5ce692a7fe4137f9",
+      "mismatchedPixels": 39579,
+      "mismatchRatio": 0.120242,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#systems"
+    },
+    {
+      "view": "mobile-full-projects",
+      "candidate": "candidate-mobile-full-projects.png",
+      "candidateSha256": "fc3efa959a70a4134b8be515f2bd551e045d637fa287bc56286ea642a61064c6",
+      "reference": "reference-mobile-full-projects.png",
+      "referenceSha256": "98948e02468c259203c343b48810959c38d8a122bc589fe4fab8d038b4882b7d",
+      "sideBySide": "mobile-full-projects.jpg",
+      "sideBySideSha256": "90309757026b38e0de4a5b70fe5c4a6a79599c39f8f4d4ceed66d719bf9042f3",
+      "mismatchedPixels": 39034,
+      "mismatchRatio": 0.118587,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#projects"
+    },
+    {
+      "view": "mobile-full-journal",
+      "candidate": "candidate-mobile-full-journal.png",
+      "candidateSha256": "10ca0eac3a4d24b6029b3b1db465a309f62484e51605b71a510788258957e345",
+      "reference": "reference-mobile-full-journal.png",
+      "referenceSha256": "0639abda035086c87918419ea669df6b473997b8434801911c01f4e6a286e728",
+      "sideBySide": "mobile-full-journal.jpg",
+      "sideBySideSha256": "9f56115e8f2897f3059d6417c000c70b75df4f5019c12422bee18a4b69b37094",
+      "mismatchedPixels": 47642,
+      "mismatchRatio": 0.144738,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#journal"
+    },
+    {
+      "view": "mobile-full-contact",
+      "candidate": "candidate-mobile-full-contact.png",
+      "candidateSha256": "b516c3b78d9e167b41b16c22ecc39bdf596be70fa657aebd909cd0025a41febe",
+      "reference": "reference-mobile-full-contact.png",
+      "referenceSha256": "902a640d207f0287503162cb806bdff209ddac165401d196f19ff6e4b128fbeb",
+      "sideBySide": "mobile-full-contact.jpg",
+      "sideBySideSha256": "f73b8e1abc20f58c22aefdf12c3029e6e2c96d7290b74052ff7c8fb4dcafd551",
+      "mismatchedPixels": 24040,
+      "mismatchRatio": 0.073034,
+      "pass": false,
+      "candidateOverflowX": false,
+      "candidateHash": "#contact"
+    }
+  ],
+  "consolidation": [
+    {
+      "view": "desktop-still-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-journal",
+      "mismatchedPixels": 271087,
+      "identical": false
+    },
+    {
+      "view": "desktop-still-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-journal",
+      "mismatchedPixels": 271087,
+      "identical": false
+    },
+    {
+      "view": "desktop-full-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-journal",
+      "mismatchedPixels": 138183,
+      "identical": false
+    },
+    {
+      "view": "mobile-still-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-journal",
+      "mismatchedPixels": 138183,
+      "identical": false
+    },
+    {
+      "view": "mobile-full-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    }
+  ],
+  "f1": [
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "network-failure",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "status-404",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "status-500",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "malformed-json",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "invalid-theme-string",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "invalid-theme-values",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "variant": "default-v10-theme",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "network-failure",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "status-404",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "status-500",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "malformed-json",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "invalid-theme-string",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "invalid-theme-values",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "variant": "default-v10-theme",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "network-failure",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "status-404",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "status-500",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "malformed-json",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "invalid-theme-string",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "invalid-theme-values",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "variant": "default-v10-theme",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "network-failure",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "status-404",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "status-500",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "malformed-json",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "invalid-theme-string",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "invalid-theme-values",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "variant": "default-v10-theme",
+      "mismatchedPixels": 0,
+      "identical": true
+    }
+  ],
+  "axe": [
+    {
+      "viewport": "desktop",
+      "view": "entry",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 9
+        }
+      ],
+      "passes": 20,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "systems",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 13
+        }
+      ],
+      "passes": 24,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "projects",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 30
+        }
+      ],
+      "passes": 25,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "journal",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 7
+        }
+      ],
+      "passes": 24,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "desktop",
+      "view": "contact",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 3,
+          "targets": [
+            ".contact-legal > span:nth-child(1)",
+            ".contact-legal > span:nth-child(2)",
+            ".contact-legal > span:nth-child(3)"
+          ],
+          "data": [
+            {
+              "fgColor": "#6d7687",
+              "bgColor": "#040a1d",
+              "contrastRatio": 4.3,
+              "fontSize": "7.0pt (9.28px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            {
+              "fgColor": "#6d7687",
+              "bgColor": "#040a1d",
+              "contrastRatio": 4.3,
+              "fontSize": "7.0pt (9.28px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            {
+              "fgColor": "#6d7687",
+              "bgColor": "#040a1d",
+              "contrastRatio": 4.3,
+              "fontSize": "7.0pt (9.28px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            }
+          ]
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 7
+        }
+      ],
+      "passes": 22,
+      "seriousOrCritical": 1
+    },
+    {
+      "viewport": "mobile",
+      "view": "entry",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ],
+      "passes": 22,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "systems",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 11
+        }
+      ],
+      "passes": 25,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "projects",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 17
+        }
+      ],
+      "passes": 25,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "journal",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ],
+      "passes": 25,
+      "seriousOrCritical": 0
+    },
+    {
+      "viewport": "mobile",
+      "view": "contact",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 3,
+          "targets": [
+            ".contact-legal > span:nth-child(1)",
+            ".contact-legal > span:nth-child(2)",
+            ".contact-legal > span:nth-child(3)"
+          ],
+          "data": [
+            {
+              "fgColor": "#6d7687",
+              "bgColor": "#040a1d",
+              "contrastRatio": 4.3,
+              "fontSize": "7.0pt (9.28px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            {
+              "fgColor": "#6d7687",
+              "bgColor": "#040a1d",
+              "contrastRatio": 4.3,
+              "fontSize": "7.0pt (9.28px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            },
+            {
+              "fgColor": "#6d7687",
+              "bgColor": "#040a1d",
+              "contrastRatio": 4.3,
+              "fontSize": "7.0pt (9.28px)",
+              "fontWeight": "normal",
+              "messageKey": null,
+              "expectedContrastRatio": "4.5:1"
+            }
+          ]
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ],
+      "passes": 22,
+      "seriousOrCritical": 1
+    }
+  ],
+  "network": {
+    "candidateRequestCount": 25,
+    "externalRequests": [],
+    "candidateOrigins": [
+      "http://127.0.0.1:<port>"
+    ],
+    "outStaticForbiddenMatches": [],
+    "pass": true
+  },
+  "a11y": {
+    "escape": {
+      "focusOnOpen": "surface-projects-title",
+      "afterEscape": {
+        "hash": "",
+        "active": "projects"
+      },
+      "pass": true
+    },
+    "d1": {
+      "menuButtonHeight": 44,
+      "routes": [
+        {
+          "text": "01SystemsHow the lab's disciplines connect",
+          "height": 63,
+          "clipped": false
+        },
+        {
+          "text": "02ProjectsPublished lab projects",
+          "height": 63,
+          "clipped": false
+        },
+        {
+          "text": "03ResearchNotes from the lab journal",
+          "height": 63,
+          "clipped": false
+        },
+        {
+          "text": "04ContactStart a conversation",
+          "height": 63,
+          "clipped": false
+        }
+      ],
+      "desktopNavHidden": true,
+      "pass": true
+    },
+    "d2": {
+      "labels": 6,
+      "overlaps": [],
+      "pass": true
+    },
+    "mobileNoHorizontalOverflow": true
+  },
+  "routing": {
+    "#systems": {
+      "hash": "#systems",
+      "active": "surface-systems-title",
+      "open": [
+        "surface-systems-title"
+      ],
+      "pass": true
+    },
+    "#research": {
+      "hash": "#journal",
+      "active": "surface-journal-title",
+      "open": [
+        "surface-journal-title"
+      ],
+      "pass": true
+    },
+    "#process": {
+      "hash": "#systems",
+      "active": "surface-systems-title",
+      "open": [
+        "surface-systems-title"
+      ],
+      "pass": true
+    },
+    "#about": {
+      "hash": "#contact",
+      "active": "surface-contact-title",
+      "open": [
+        "surface-contact-title"
+      ],
+      "pass": true
+    },
+    "#unknown": {
+      "hash": "#unknown",
+      "active": "A",
+      "open": [],
+      "pass": true
+    },
+    "inPageLinks": [
+      "#main-content",
+      "#systems",
+      "#projects",
+      "#journal",
+      "#contact"
+    ],
+    "noResearchLinks": true
+  },
+  "contrast": [
+    {
+      "selector": ".surface:not([hidden]) .surface-title",
+      "color": "rgb(248, 250, 255)",
+      "background": "rgb(3,9,26)",
+      "ratio": 19.02
+    },
+    {
+      "selector": ".surface:not([hidden]) .surface-kicker",
+      "color": "rgb(147, 180, 255)",
+      "background": "rgb(3,9,26)",
+      "ratio": 9.66
+    },
+    {
+      "selector": ".surface:not([hidden]) .selector:not([aria-pressed='true'])",
+      "color": "rgb(154, 168, 204)",
+      "background": "rgb(3,9,26)",
+      "ratio": 8.37
+    },
+    {
+      "selector": ".surface:not([hidden]) .selector[aria-pressed='true']",
+      "color": "rgb(248, 250, 255)",
+      "background": "rgb(3,9,26)",
+      "ratio": 19.02
+    },
+    {
+      "selector": ".surface:not([hidden]) .discipline-detail p",
+      "color": "rgba(243, 237, 224, 0.82)",
+      "background": "rgb(3,9,26)",
+      "ratio": 11.41
+    }
+  ],
+  "errors": {},
+  "repeatability": [
+    {
+      "view": "desktop-still-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-journal",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-still-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-journal",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "desktop-full-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-journal",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-still-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-entry",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-systems",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-projects",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-journal",
+      "mismatchedPixels": 0,
+      "identical": true
+    },
+    {
+      "view": "mobile-full-contact",
+      "mismatchedPixels": 0,
+      "identical": true
+    }
+  ]
+}

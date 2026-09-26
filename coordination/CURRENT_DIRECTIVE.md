@@ -1,130 +1,98 @@
-# Current Directive — WEB-REL-002 Gate C: Protected Merge Without Promotion
-
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-REL-002-GATE-C-0001
-cycle_id: MAISOGLABS_WEB_REL_002_GATE_C
-issue_parent_commit: 7e911f3480eae7df9777140d4850398ba90a32ca
+directive_id: DIR-WEB-D093-GATE-C-0001
+cycle_id: MAISOGLABS_WEB_D093_GATE_C
+issue_parent_commit: f2c13aa3dbc65b3829f1a8f64437a929392369a5
 target_turn: CLAUDE
-authority_ref: D-085
-applicable_review_id: ML-DEVOS-AS-114
+authority_ref: D-094
+applicable_review_id: ML-DEVOS-AS-120
 sentinel_disposition: CLEAR
-su_mode: ESCALATED_RESEARCH
+su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, `D-085`, `ML-DEVOS-AS-114`, the AS-113 release shape and this directive. Anything outside that intersection is a stop condition.
-
 ## Objective
 
-Execute WEB-REL-002 Gate C for PR #13: perform only the minimum draft-to-ready transition, then merge the freshly verified exact final head through the normal protected GitHub pull-request path using a merge commit. Verify that the merge may upload a Worker version but does not promote it.
+Perform D-094 Gate C only: create a fresh release PR from `governance/maisoglabs-v0.1` to `main`, validate its exact final head, merge it through the normal protected GitHub merge-commit path, observe the resulting Workers version upload, and prove production traffic did not move.
 
 ## Preconditions
 
-- Protocol V2 checker passes on exact authoritative tip `7e911f3480eae7df9777140d4850398ba90a32ca`.
-- PR #13 is open, draft and unmerged; pre-directive head is `7e911f3480eae7df9777140d4850398ba90a32ca`.
-- `main` is `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`.
-- Exact-head `test-and-build` is successful.
-- `main-protection` remains active on `refs/heads/main`, requires a pull request and `test-and-build`, and blocks deletion and non-fast-forward updates.
-- Fresh live Cloudflare evidence is exactly as recorded below.
-- Release-scope drift after AS-114 is governance-only; no protected product/runtime path changed.
+Freshly require:
+
+- Protocol V2 bootstrap/checker passes;
+- authoritative governance branch is the transition head produced from `f2c13aa3dbc65b3829f1a8f64437a929392369a5`;
+- `main` has not unexpectedly moved from the reviewed baseline;
+- working tree is clean;
+- `stash@{0}` is untouched;
+- canonical homepage artifact remains SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
+- Cloudflare production branch remains `main`;
+- Version command remains `npx wrangler versions upload`;
+- active production Version ID is freshly captured immediately before merge;
+- PR #7 is excluded;
+- PR #10 is not merged;
+- D-068 is untouched;
+- S6/S7 remain parked.
 
 ## Governing references
 
-- **Authority:** `D-085`.
-- **Gate B acceptance:** `ML-DEVOS-AS-114`.
-- **Release shape:** `ML-DEVOS-AS-113`, `docs/release/WEB_REL_002_RELEASE_SCOPE_REVIEW.md`.
-- **Protocol:** `ML-DEVOS-RFC-020`, `brain/protocols/CONTEXT_BOOTSTRAP.md` §10.
-- **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`, including OBL-017 and OBL-018.
+- D-093.
+- D-094.
+- ML-DEVOS-AS-120.
+- Protocol V2 / RFC-020.
+- H-WEB-HOMEPAGE-ARTIFACT-0001 archived evidence.
 
 ## Exact execution scope
 
-**Allowed:**
-- the Protocol V2 directive-issue and return commits on `governance/maisoglabs-v0.1`;
-- read-only GitHub and Cloudflare verification;
-- PR #13 transition from draft to ready for review;
-- one normal protected PR #13 merge, method `merge`, guarded by the freshly verified exact final head SHA;
-- observation of the resulting Cloudflare Workers build, uploaded inactive version and active deployment.
+Allowed:
 
-**Not allowed:**
-- no auto-merge, ruleset bypass, force push, squash or rebase merge;
-- no Worker version promotion, deployment, rollback or configuration mutation;
-- no D1, R2, Access, DNS, domain or production-data mutation;
-- no product/runtime implementation change;
-- no V2B, S6/S7 resumption or D-068 mutation;
-- no action on PR #7 or PR #10.
+- one fresh `governance/maisoglabs-v0.1 -> main` release PR;
+- PR metadata, diff, checks, review, protection and ruleset reads;
+- GitHub Linux CI;
+- normal protected merge commit;
+- read-only Cloudflare build, version and deployment observation;
+- Protocol V2 return publication.
+
+`MAIN_MERGE_AUTHORIZED: YES` applies only to that exact Gate C PR after all preconditions pass. No product or runtime code modification is authorized.
 
 ## SENTINEL Sync
 
-Fresh evidence at issue parent `7e911f3480eae7df9777140d4850398ba90a32ca`:
-
-- STATE: Protocol V2, `TURN: PAULO`, AS-114 controlling, no current directive or handoff, all action flags NO.
-- PR #13: open, draft, unmerged; head `7e911f3480eae7df9777140d4850398ba90a32ca`; base/main `882ad253b5dbec06b209d1ee1a2a54b21b392e2e`; `mergeable: true`; `mergeable_state: clean`; 272 changed files; no inline review threads; no reviews; auto-merge null.
-- CI: `test-and-build` completed successfully on exact head `7e911f3480eae7df9777140d4850398ba90a32ca`.
-- Protection: active `main-protection` ruleset, ID `23740878`, includes `refs/heads/main`, requires PR and `test-and-build`, blocks deletion and non-fast-forward updates. A pull-request bypass capability exists and must not be used.
-- Cloudflare Worker build configuration, read live through the authenticated Cloudflare API for script tag `e263291dd91d4697bcc772fff88fc8f7`: GitHub repository `Dillaab-source/maisog-labs`, production branch `main`; production trigger includes `main` and all paths; production build `npm run build`; production deploy command exactly `npx wrangler versions upload`; non-production trigger includes all branches except `main` and also uses `npx wrangler versions upload`; previews disabled. No configured command promotes traffic.
-- Pre-merge active deployment `e51d40d4-a063-47c5-a46f-70beeee4c03e`: Version `a28ee2e9-a9a0-4528-b89f-07e0c827be2b`, 100% traffic, created `2026-09-21T01:37:48.044696Z`.
-- Latest relevant inactive upload before merge: Version `84dd8596-3fa1-4d95-9968-b5436894b513` (number 728), created `2026-09-25T23:48:22.588573Z`, triggered by `version_upload` for alias `governance-maisoglabs-v0-1`.
-- Post-AS-114 delta `6bcda7683ffe0d761ff02d497ed3ed2290c36816..7e911f3480eae7df9777140d4850398ba90a32ca` is the AS-114/coordination publication only; none of `app/**`, `components/**`, `data/**`, `lib/**`, `worker/**`, `migrations/**`, `public/**`, `.github/workflows/**`, `wrangler.jsonc`, `package.json`, `package-lock.json`, or `next.config.mjs` changed.
-- PR #7 remains open and unmerged on its own branch. PR #10 remains open, draft and DO NOT MERGE. S6 remains parked at AS-103, O1/O2 remain open and D-068 remains suspended.
-
-Disposition: `CLEAR`.
+`CLEAR` only for the bounded Gate C path. Authority, capability and execution remain separated. Main merge authority does not imply deployment authority.
 
 ## SU Contradiction Check
 
-Mode `ESCALATED_RESEARCH` because this action merges into protected `main` and triggers the production-branch Worker build.
-
-Disposition `CLEAR_WITH_NOTES`:
-
-1. The directive-issue commit necessarily advances the PR head. Merge authority is not bound to the stale pre-directive head; it becomes effective only after the new exact head passes CI, mergeability, unchanged-main and release-scope rechecks.
-2. The Cloudflare production trigger will run after merge. Its exact deploy command is `npx wrangler versions upload`, which uploads a version without promoting active traffic.
-3. The GitHub identity can bypass in pull-request mode. This capability must not be used.
-4. If active production traffic changes after merge, classify a release-governance incident and stop without rollback or repair.
+`CLEAR_WITH_NOTES`. Treat any SHA drift, artifact drift, CI failure, build-command ambiguity, active-production change or unexpected PR content as a stop condition.
 
 ## Instructions
 
-1. Publish this directive as one Protocol V2 coordination commit parented on the issue parent.
-2. Re-bootstrap at the new exact PR head. Confirm the only delta from the issue parent is Gate C decision/directive/state bookkeeping.
-3. Mark PR #13 ready for review. Do not enable auto-merge or edit unrelated PR content.
-4. Re-read PR #13. Wait for `test-and-build` success on the new exact head; require clean mergeability, unchanged main, no new reviews/threads requiring disposition, auto-merge null, and unchanged release scope.
-5. Immediately before merge, freshly re-read the active Cloudflare production Version ID and require `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100%.
-6. Merge PR #13 using the normal protected PR path, method `merge`, with the expected exact-head guard. Do not use bypass. If the head or main changes, stop and re-verify.
-7. Record merged status, merged head, merge commit, new main, protection state, resulting Cloudflare build and uploaded Version ID.
-8. Freshly re-read the active production Version ID. It must still be `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100%.
-9. If the active Version ID changed, classify a release-governance incident and stop. Do not rollback, deploy, promote or repair.
-10. If successful, publish the Protocol V2 return required below.
+Create exactly one fresh PR from `governance/maisoglabs-v0.1` to `main`. Do not reuse PR #13.
+
+Record the PR number, exact base, exact final head, complete release diff, mergeability, unresolved review conversations, and protection/ruleset state. Require exact-final-head Linux `test-and-build` SUCCESS. If bookkeeping advances the governance head, the final new head must pass CI.
+
+Immediately before merge, re-read `main`, the PR head, the active production Version ID, the bounded release diff, and the applicable Cloudflare Version command evidence.
+
+Merge only through the normal GitHub PR path with merge method `merge`. No squash, rebase, auto-merge, force, bypass, or direct push to `main`.
+
+Wait for the resulting `main` Workers Build. Record its Build ID and uploaded Worker Version ID, then re-read the active production deployment. The post-merge active Version ID at 100% must equal the pre-merge active Version ID at 100%.
 
 ## Validation and evidence
 
-- GitHub PR, review-thread, review, check-run, workflow-run and ruleset API reads.
-- Cloudflare Workers Builds configuration/triggers API reads.
-- Cloudflare Worker deployments and versions API reads immediately before and after merge.
-- Exact Git diffs from AS-114 reviewed head, directive issue parent and final PR head.
-- Protocol V2 checker before both publications.
+Required success evidence:
+
+- exact-final-head Linux CI;
+- PR merge commit SHA;
+- `main` points to the expected merge;
+- Workers main build success;
+- new uploaded Worker version identified and inactive;
+- pre/post active production Version ID equality;
+- canonical artifact SHA remains approved;
+- no production promotion command was run.
 
 ## Stop conditions
 
-Stop if any of these occurs:
+Stop without repair if the governance or main identity unexpectedly moves; the artifact hash changes; final-head CI is not green; the PR contains unapproved runtime/product changes; the normal protection path cannot be used; Cloudflare configuration becomes ambiguous; production active Version changes unexpectedly; the build unexpectedly promotes traffic; any request would require `wrangler versions deploy`; or any D1/R2/Access/DNS/secret/environment mutation becomes necessary.
 
-- the live production deploy command differs from or is ambiguous relative to `npx wrangler versions upload`;
-- PR #13 head or main changes outside the bounded Gate C bookkeeping;
-- product/runtime release content changed after AS-114 acceptance;
-- exact-final-head `test-and-build` is not successful;
-- PR #13 is not cleanly mergeable through the normal protected path;
-- the merge would require bypass, auto-merge, force push, squash or rebase;
-- the pre-merge active Version ID changes;
-- post-merge active Version ID differs from the pre-merge baseline;
-- any forbidden production/resource action would be required;
-- stale tip, protocol mismatch or checker failure.
+No automatic rollback is authorized.
 
 ## Next action
 
-On successful merge and invariant verification, publish one Protocol V2 return commit containing:
-
-- a bounded `CURRENT_HANDOFF` with exact pre/post evidence;
-- this directive archived byte-for-byte with provenance and index entry;
-- `CURRENT_DIRECTIVE: NONE` and empty directive selectors;
-- `MAIN_MERGE_AUTHORIZED: NO` and every other action flag NO;
-- `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`, `PAULO_DECISION_REQUIRED: NO`.
-
-Then stop.
+On successful Gate C, publish the Builder return; archive and deselect this directive; reset action flags to `NO`; and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`. Gate D remains unauthorized.

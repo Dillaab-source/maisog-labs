@@ -1,0 +1,115 @@
+/* Maisog Labs brand tokens + utilities.
+   Include once:  <link rel="stylesheet" href="/maisoglabs-brand/css/brand.css">
+   Fonts:         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Inter:wght@400;500&display=swap"> */
+
+:root {
+  /* 06 · Color system */
+  --ml-deep-navy: #0A1433;   /* Foundation · Depth · Stability · Trust */
+  --ml-orbit-blue: #2563EB;  /* Primary accent · Innovation · Energy · Progress */
+  --ml-pure-white: #F8FAFF;  /* Clarity · Focus · Balance · Purity */
+  --ml-steel-blue: #93B4FF;  /* Sophistication · Technology · Momentum · Possibility */
+
+  /* Supporting shades */
+  --ml-space: #050B1F;
+  --ml-navy-raised: #0F1C45;
+  --ml-orbit-bright: #3B82F6;
+  --ml-line: rgba(147, 180, 255, 0.18);
+  --ml-muted: #9AA8CC;
+
+  /* Glow */
+  --ml-glow: 0 0 24px rgba(37, 99, 235, 0.55), 0 0 64px rgba(37, 99, 235, 0.25);
+  --ml-glow-filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.7)) drop-shadow(0 0 28px rgba(37, 99, 235, 0.35));
+
+  /* Type */
+  --ml-font-display: 'Montserrat', 'Segoe UI', system-ui, sans-serif;
+  --ml-font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --ml-tracking-wide: 0.28em;
+  --ml-tracking-xwide: 0.6em;
+
+  --ml-radius: 14px;
+}
+
+/* Wordmark as live HTML text: <span class="ml-wordmark">MAISOG<b>LABS</b></span> */
+.ml-wordmark {
+  font-family: var(--ml-font-display);
+  font-weight: 500;
+  letter-spacing: var(--ml-tracking-wide);
+  color: var(--ml-pure-white);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ml-wordmark b { font-weight: inherit; color: var(--ml-orbit-bright); }
+.ml-wordmark--light { color: var(--ml-deep-navy); }
+.ml-wordmark--light b { color: var(--ml-orbit-blue); }
+
+/* Animated logo videos (video/*.mp4) have a dark background baked in.
+   Screen blending drops that background onto any dark page; the mask feathers the square edges away.
+   <video class="ml-logo-video" src="…/video/logo-mark.mp4" poster="…/png/video/logo-mark-poster.png" autoplay muted loop playsinline></video> */
+.ml-logo-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+}
+.ml-logo-video--wide {
+  -webkit-mask-image: radial-gradient(farthest-side, #000 60%, transparent 100%);
+  mask-image: radial-gradient(farthest-side, #000 60%, transparent 100%);
+}
+
+/* Section eyebrow: "01 | CORE PRINCIPLES" */
+.ml-eyebrow {
+  font-family: var(--ml-font-display);
+  font-weight: 500;
+  font-size: 0.8rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ml-pure-white);
+}
+.ml-eyebrow span { color: var(--ml-orbit-bright); margin-right: 0.6em; }
+
+.ml-tagline {
+  font-family: var(--ml-font-display);
+  letter-spacing: var(--ml-tracking-xwide);
+  text-transform: uppercase;
+  color: var(--ml-steel-blue);
+}
+
+.ml-glow { filter: var(--ml-glow-filter); }
+
+/* Icon card: <figure class="ml-icon"><img src=".../01-ai.svg" alt=""><figcaption><span>01</span> AI</figcaption><p>…</p></figure> */
+.ml-icon { margin: 0; text-align: left; }
+.ml-icon img { display: block; width: 100%; max-width: 160px; aspect-ratio: 1; }
+.ml-icon figcaption {
+  font-family: var(--ml-font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ml-pure-white);
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--ml-line);
+}
+.ml-icon figcaption span { color: var(--ml-orbit-bright); margin-right: 0.8em; font-weight: 500; }
+.ml-icon p { font-size: 0.8rem; color: var(--ml-muted); margin: 8px 0 0; line-height: 1.45; }
+
+/* Inline single-colour UI icons (svg/ui/*.svg) inherit text colour when inlined */
+.ml-ui-icon { width: 1.75em; height: 1.75em; color: var(--ml-steel-blue); flex: none; }
+
+/* Clear space: 2x core width on all sides — wrap logos in this */
+.ml-clearspace { padding: 2em; display: inline-block; }
+
+.ml-btn {
+  display: inline-flex; align-items: center; gap: .6em;
+  padding: .85em 1.6em;
+  border-radius: 999px;
+  border: 1px solid var(--ml-steel-blue);
+  background: linear-gradient(180deg, var(--ml-orbit-bright), var(--ml-orbit-blue));
+  color: var(--ml-pure-white);
+  font-family: var(--ml-font-display);
+  font-size: .8rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: var(--ml-glow);
+}
+.ml-btn:hover { filter: brightness(1.1); }
