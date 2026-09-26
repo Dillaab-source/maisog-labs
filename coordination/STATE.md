@@ -1,26 +1,26 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_V10_A
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D091_V10_A_REMEDIATION_CYCLE_1_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS_WEB_V10_CLEAN
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D092_V10_CLEAN_REPLACEMENT_PREVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-V10-A-REM1-0001
-REVIEW_TARGET_COMMIT: 114d97905352b9a9424811c6905e59ef620c712c
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-119
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-V10-CLEAN-0001
+DIRECTIVE_ISSUE_PARENT: 146f645390fd24099426c3cb8ab8a511eafb12db
+DIRECTIVE_AUTHORITY_REF: D-092
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-119
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
@@ -29,24 +29,28 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-091 authorized AS-119 remediation cycle 1 only. D-090, accepted RFC-021, and ML-DEVOS-AS-119 remain controlling.
+D-092 records Paulo's explicit instruction to replace the public website presentation with V10 as a controlled clean replacement, with V10 layout/interactions and D-088 facts. It supersedes the pending Architect re-review of `H-WEB-V10-A-REM1-0001`, which is archived unreviewed as evidence.
 
-## Builder return
+Rollback point: branch `snapshot/pre-v10-clean-replacement` at `146f645390fd24099426c3cb8ab8a511eafb12db`.
 
-`H-WEB-V10-A-REM1-0001` is the return record. It is evidence, not authority. `DIR-WEB-V10-A-REM1-0001` is archived byte-for-byte and deselected.
+## Selected directive
 
-The handoff reports two unresolved acceptance failures that were not repaired because the fixes lie outside D-091's corrective scope: V10 pixel parity (0/20 views within threshold; residual differences R1–R6 recorded as not approved) and one serious contrast finding on Contact.
+`DIR-WEB-V10-CLEAN-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-092, D-088 and the directive.
 
-## Architect scope
+## Builder scope
 
-Independent re-review of remediation cycle 1 under the next unused immutable Architect Sync ID after ML-DEVOS-AS-119. `CURRENT_REMEDIATION_CYCLE` remains 1.
+Replace the public homepage presentation with a faithful V10 implementation, remove superseded frontend code and its obsolete tests, keep `/journal` and `/admin` working, verify locally, and push the return so the existing Workers Builds branch build produces a non-production preview version.
 
 ## Hard boundaries
 
-No further implementation. No V10-B, API diagnosis/fix, Worker, migration, package, lockfile, D1, R2, Access, DNS/domain, secret, environment, production-data, theme-publication, main-merge, deployment, promotion, or rollback action.
+No `worker/**`, `migrations/**`, `wrangler.jsonc`, `package*.json`, `app/admin/**` or `public/**` mutation. No production promotion, traffic shift, rollback, main merge, D1/R2/Access/DNS/secret/environment action, destructive Cloudflare change, D1 or production-data deletion, or governance-history rewrite.
 
-No PR #7 or PR #10 merge. No V2B. No S6/S7. No D-068.
+No PR #7 or PR #10 merge. No V2B, V10-B, API-DIAG/API-FIX. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific authorization flags are `NO`.
+Only bounded repository mutation is authorized. Every other action-specific flag is `NO`.
+
+## Next transition
+
+Claude/Builder performs the replacement, archives and deselects the directive, clears action flags, and routes `H-WEB-V10-CLEAN-0001` to the Architect. Production promotion is a separate owner decision.
