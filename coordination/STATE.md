@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_REL_002_GATE_D
-TURN: PAULO
-STATUS: INCIDENT_ACCEPTED_WITH_KNOWN_DEGRADATION
-AUTHORIZED_SCOPE: AS116_WEB_REL_002_KNOWN_API_DEGRADATION_PAULO_NEXT_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_WEB_V10_PLANNING
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D087_V10_VISUAL_PARITY_ADMIN_ARCHITECTURE_PLANNING_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,11 +14,11 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-V10-PLAN-0001
+DIRECTIVE_ISSUE_PARENT: 98a26e2d05f1056806994ea80716ed84960e3e39
+DIRECTIVE_AUTHORITY_REF: D-087
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-116
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,39 +29,40 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-ML-DEVOS-AS-116 is the controlling review: the WEB-REL-002 Gate D promotion is complete, and the known public data/API incident is temporarily accepted with no rollback.
+D-087 authorizes V10 visual-parity and admin-architecture planning only.
 
-## Production state (reported)
+ML-DEVOS-AS-116 is the controlling review: the Gate D promotion is complete, and the known API incident is temporarily accepted.
 
-- Active Version `a667fc09-12d1-4fde-a75d-5d660729baa3`, deployment `ba9a3ee0-81a6-43a2-81f9-3467ec876d79`, 100% traffic.
+## Selected directive
+
+`DIR-WEB-V10-PLAN-0001` is transport, not authority.
+
+## Builder scope
+
+- Read-only inspection of the repository and `design-references/claude-v10/**`.
+- Local read-only renders.
+- One plan artifact, `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`.
+- The Protocol V2 return records.
 
 ## Known open incident
 
-- `GET /api/design` and `GET /api/journal` return HTTP 500 / Worker Error 1101.
-- Research/Journal cannot load Journal data. DesignRuntime falls back.
-- The root cause is UNRESOLVED. It is consistent with an exception in the DB-backed runtime path; WEB-REL-002 changed no Worker, migration or wrangler files.
-- Disposition: KNOWN / OPEN / TEMPORARILY ACCEPTED. Paulo chose NO ROLLBACK.
-
-`H-WEB-REL-002-GATE-D-0001` is archived byte-exactly.
-
-## Paulo gate
-
-Paulo decides the next step. Nothing begins automatically.
+`/api/design` and `/api/journal` return HTTP 500 / 1101 in production. This is temporarily accepted under AS-116 and kept separate from the V10 planning.
 
 ## Hard boundaries
 
-No rollback. No promotion of any Version. No hotfix.
-No production, D1, R2, Access or DNS/domain mutation.
-No V2B. No S6/S7 resumption. No D-068 mutation.
-No PR #7 merge. PR #10 remains DO NOT MERGE.
-No force-push.
+No application, public-site, admin or Worker implementation.
+No D1 mutation or migration. No R2 mutation. No media integration into the repository.
+No Access, DNS/domain or environment/secret mutation.
+No main merge, deployment, promotion or rollback.
+No PR #7 or PR #10 merge. No V2B. No S6/S7. No D-068.
 
-S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open. D-068 remains suspended.
-
-All action-specific flags remain NO.
+S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-TURN: PAULO
-
-No Builder action begins automatically.
+The Builder publishes one Protocol V2 return:
+- the plan;
+- `H-WEB-V10-PLAN-0001`;
+- the directive archived;
+- `CURRENT_DIRECTIVE: NONE`;
+- `TURN: ARCHITECT`.

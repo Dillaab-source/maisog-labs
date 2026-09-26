@@ -1,118 +1,122 @@
-# Current Directive — WEB-REL-002 Gate D: Exact Production Promotion and Runtime Verification
+# Current Directive — MaisogLabs V10 Visual Parity + Admin Architecture Planning
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-REL-002-GATE-D-0001
-cycle_id: MAISOGLABS_WEB_REL_002_GATE_D
-issue_parent_commit: edd4bce5fa9fa07b28237b893c078ebbd234ba2b
+directive_id: DIR-WEB-V10-PLAN-0001
+cycle_id: MAISOGLABS_WEB_V10_PLANNING
+issue_parent_commit: 98a26e2d05f1056806994ea80716ed84960e3e39
 target_turn: CLAUDE
-authority_ref: D-086
-applicable_review_id: ML-DEVOS-AS-115
+authority_ref: D-087
+applicable_review_id: ML-DEVOS-AS-116
 sentinel_disposition: CLEAR
-su_mode: ESCALATED_RESEARCH
+su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, `D-086`, `ML-DEVOS-AS-115` and this directive.
+This directive is transport, not authority. Effective scope is the intersection of:
+- live STATE;
+- D-087;
+- ML-DEVOS-AS-116;
+- this directive.
+
+The Builder published it as mechanical publisher of Paulo's D-087.
 
 ## Objective
 
-Promote exactly Worker Version `a667fc09-12d1-4fde-a75d-5d660729baa3` to 100% production traffic for `maisog-labs`, immediately verify the active deployment, then perform bounded read-only production runtime verification.
+Produce `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`, a repository-grounded V10 visual-parity and admin-architecture plan with the 20 sections D-087 requires.
+
+This is planning only.
 
 ## Preconditions
 
-- Protocol V2 passes at exact issue parent `edd4bce5fa9fa07b28237b893c078ebbd234ba2b`.
-- `main` remains `aebc881e8890c00090d714602591138a045bd3b0`.
-- Successful main build `19ecd52a-b178-47dd-8d23-64b5590a61ef` produced target Version `a667fc09-12d1-4fde-a75d-5d660729baa3`.
-- No newer main release supersedes the target.
-- The target remains deployable and inactive.
-- Immediately before promotion, freshly read the active deployment and require it to be unchanged from the recorded baseline. Any unexpected production change is a stop condition.
+- A fresh Protocol V2 bootstrap of the tip that publishes this directive.
+- The V10 HTML hash equals `6e47ffca9adb7e31522b046576b8d7800117dd38ee07c88167b8e7b5e3ed6dab`.
+- `main` = `aebc881e8890c00090d714602591138a045bd3b0`.
+- D-068 stays untouched.
 
 ## Governing references
 
-- Owner authority: `D-086`.
-- Controlling review: `ML-DEVOS-AS-115`.
-- Release merge: `aebc881e8890c00090d714602591138a045bd3b0`.
-- Protocol: `ML-DEVOS-RFC-020` and `brain/protocols/CONTEXT_BOOTSTRAP.md`.
-- Obligations: `coordination/OPERATIVE_OBLIGATIONS.md`, especially OBL-017 and OBL-018.
+- **T0:** Protocol V2, D-087, and the hard boundaries.
+- **T1:** STATE, ML-DEVOS-AS-116, D-087, V10 artifact identity, and current main.
+- **T2 (only as needed):**
+  - ML-DEVOS-RFC-010;
+  - `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`;
+  - `app/DesignRuntime.js`, `app/admin/DesignControls.js`, `components/site/**`, `app/globals.css`;
+  - the content boundary (`data/site.js` → `lib/content/**`);
+  - the V10 package Design Panel skill;
+  - the V10 artifact.
+- **T3 history:** only for a named unresolved question, with the reason recorded.
 
 ## Exact execution scope
 
 **Allowed:**
+- read-only inspection of the repository and `design-references/claude-v10/**`;
+- local read-only rendering and screenshots (scratch only, not committed unless needed as plan evidence);
+- writing the single plan artifact;
+- the Protocol V2 return records.
 
-- decision/directive and return coordination commits on `governance/maisoglabs-v0.1`;
-- authenticated read-only GitHub, Cloudflare and public-runtime checks;
-- one normal Cloudflare deployment assigning 100% traffic to exactly `a667fc09-12d1-4fde-a75d-5d660729baa3`;
-- read-only verification of Entry, Systems, Projects, Research, Contact, Journal, 404, admin fail-closed, design API baseline, Journal API, navigation/history, desktop/mobile layout and absence of unintended public S5/S6 exposure.
-
-**Not allowed:**
-
-- rebuild, upload, code change, main alteration, or another version promotion;
-- rollback, hotfix or repair;
-- D1, R2, Access, DNS/domain, secret, environment-variable or production-data mutation;
-- admin publishing, design mutation, authentication bypass, public D1 cutover;
-- media generation, addition, substitution, upload or integration;
-- V2B, S6/S7 resumption, D-068 mutation, or action on PR #7/#10.
+**Not allowed:** anything D-087 lists as NOT authorized, which includes:
+- no changes to `app/`, `components/`, `lib/`, `data/`, `worker/`, `migrations/` or `public/`;
+- no media copied into runtime paths;
+- no Cloudflare, D1 or R2 access for mutation.
 
 ## SENTINEL Sync
 
-Fresh evidence before directive issue:
+Snapshot `98a26e2d05f1056806994ea80716ed84960e3e39`, from a fresh `--session-protocol 2` bootstrap (exit 0).
 
-- authoritative governance tip `edd4bce5fa9fa07b28237b893c078ebbd234ba2b`: `TURN: PAULO`, `STATUS: ARCHITECT_APPROVED`, Protocol V2, AS-115 controlling, no directive/handoff, every action flag NO;
-- `D-086` was unused;
-- fetched `origin/main` is exactly `aebc881e8890c00090d714602591138a045bd3b0`;
-- Workers build `19ecd52a-b178-47dd-8d23-64b5590a61ef` succeeded from branch `main` at that exact commit using `npx wrangler versions upload`;
-- target `a667fc09-12d1-4fde-a75d-5d660729baa3` is deployable Version 730, created `2026-09-26T02:16:32.836963Z`, alias `main`, triggered by `version_upload`;
-- later Versions 731 and 732 are governance-branch uploads, not newer main releases;
-- at `2026-09-26T03:16:25.206Z` active deployment `e51d40d4-a063-47c5-a46f-70beeee4c03e` served `a28ee2e9-a9a0-4528-b89f-07e0c827be2b` at 100%; the target was inactive.
+**Live state:**
+- `TURN: PAULO`, `STATUS: INCIDENT_ACCEPTED_WITH_KNOWN_DEGRADATION`;
+- scope `AS116_…_PAULO_NEXT_DECISION_ONLY`;
+- no directive or handoff, and all flags NO.
 
-MEDIA_GAP is accepted for this release. `plate-hero-v4.png`, `logo-mark.mp4` and the logo-mark poster/fallback are deferred. The existing static environment and canonical static SVG identity assets are accepted.
+**Repository checks:**
+- Commit `98a26e2` is an owner-authored direct push adding only `design-references/claude-v10/**` (204 files). It is outside the governed publisher, but it is owner-authored, reference-only, and runtime-inert.
+- `main` = `aebc881…`.
+- The production API incident (AS-116) is open and is kept separate.
 
-Disposition: `CLEAR`.
+Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
-Mode `ESCALATED_RESEARCH` because this directive changes production traffic.
+Mode `BOUNDED_CONTRADICTION`. The plan is documentation only, and primary evidence (the artifact, the repository and the accepted records) is expected to suffice. Disposition `CLEAR_WITH_NOTES`.
 
-Disposition `CLEAR_WITH_NOTES`:
-
-1. `DEPLOY_AUTHORIZED` is necessary but applies only to the exact one-version, 100% deployment named above.
-2. The promotion is not a rebuild or upload and must not change bindings, routes, secrets, data stores or configuration.
-3. Runtime checks are read-only. Admin must fail closed; no bypass or mutation is permitted.
-4. A material defect or wrong active version stops the cycle. No rollback or repair follows without a separate owner decision.
-5. Accepted MEDIA_GAP items remain deferred and cannot silently become implementation work.
+**Notes:**
+1. RFC-010's V3 fail-safe baseline conflicts with V10. The plan must name the governed mechanism and must not reinterpret RFC-010 silently.
+2. V2A's prohibition on public structural redesign means V10 is a new increment, not V2A.
+3. The ZIP hash is owner-reported, because only the extracted entries are in the repository. The HTML hash is verified.
+4. The Builder cannot reach production from this environment, so API diagnosis is planned only, never executed.
 
 ## Instructions
 
-1. Publish this directive as one Protocol V2 commit directly parented on the issue parent.
-2. Re-bootstrap on its exact tip and verify the delta is only decision/directive/state bookkeeping.
-3. Re-fetch `main` and re-read the build/version provenance. Require all bound identities unchanged.
-4. Immediately before promotion, re-read production deployment state and record deployment ID, active Version, traffic and observation timestamp. Require the target inactive.
-5. Create exactly one normal Cloudflare deployment with strategy `percentage` and one version allocation: target `a667fc09-12d1-4fde-a75d-5d660729baa3` at 100%. Do not set `force`.
-6. Immediately re-read deployment state. Require the target active at 100%; otherwise classify a release-governance incident and stop without rollback.
-7. Perform the authorized read-only runtime checks. Do not publish, mutate design, bypass authentication or write content.
-8. On any material defect, stop and record exact evidence. Do not repair.
-9. On success, publish the Protocol V2 return described below.
+1. Inspect V10: the HTML, its dependencies and asset hashes. Render it locally at desktop and mobile widths.
+2. Inspect the current site, and build the parity matrix and the admin-control matrix.
+3. Resolve the RFC-010 / V2A conflicts and recommend the smallest mechanism.
+4. Write the plan (20 sections). Run the SU ledger and the Design Panel passes.
+5. Return through `H-WEB-V10-PLAN-0001`.
 
 ## Validation and evidence
 
-- Exact Git remote SHAs and Cloudflare Workers Builds provenance.
-- Cloudflare version/deployment API reads immediately before and after promotion.
-- Returned deployment ID and timestamp.
-- Public HTTP/API status and bounded browser evidence for required surfaces, navigation/history and desktop/mobile layout.
-- Negative checks for admin fail-closed, unintended S5/S6 exposure and obvious unrelated resource side effects.
-- Protocol V2 checker before directive and return publications.
+- Hashes recorded.
+- `git diff` limited to the plan plus Protocol V2 records.
+- `git diff --check` clean.
+- A Context Bootstrap check-only run before publishing.
+- Screenshots classed as `ACTOR_REPORTED`.
 
 ## Stop conditions
 
-- governance/main/version/build identity drift or ambiguity;
-- unexpected active production change before promotion;
-- target no longer deployable or already active;
-- promotion requires force, rebuild, upload or unrelated mutation;
-- returned or freshly read active Version differs from the target at 100%;
-- material runtime defect;
-- any required forbidden action, stale tip, checker failure or publication conflict.
+Stop if any of these occurs:
+- the V10 hash mismatches;
+- implementation or production access would be needed;
+- the directive scope conflicts with D-087;
+- a stale tip or protocol mismatch.
 
 ## Next action
 
-On success, archive this directive byte-for-byte with provenance and publish `H-WEB-REL-002-GATE-D-0001` with exact promotion and runtime evidence. Deselect `CURRENT_DIRECTIVE`, clear its selectors, reset every action flag to NO, and route `TURN: ARCHITECT` / `STATUS: READY_FOR_ARCHITECT`. Then stop.
+The Builder plans, then publishes one Protocol V2 return commit containing:
+- the plan;
+- `H-WEB-V10-PLAN-0001`;
+- the directive archived;
+- `CURRENT_DIRECTIVE: NONE`;
+- `TURN: ARCHITECT`.
+
+Then it stops.

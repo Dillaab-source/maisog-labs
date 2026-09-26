@@ -1549,3 +1549,37 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Not authorized:** rebuild or version upload; any other version promotion; website/Worker code change; media mutation; D1/R2/Access/DNS/domain/secrets/environment-variable mutation; production-data writes; public D1 cutover; rollback; V2B; S6/S7 resumption; D-068 mutation; PR #7 or PR #10 merge; force push; main alteration.
 - **Held positions:** S6 remains parked at `ML-DEVOS-AS-103`. O1/O2 remain open. D-068 remains suspended.
 - **Return:** on success, archive/deselect the directive byte-for-byte, publish exact promotion and runtime evidence, reset every action flag to NO, and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+
+### D-087 — Authorize MaisogLabs V10 Visual Parity + Admin Architecture Planning
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-116` routed the repository to Paulo with the known Gate D API incident temporarily accepted.
+- **Owner authorization:** Paulo supplied it in the Builder session, and the Builder recorded it here as publisher. The operative terms are quoted verbatim. This entry proves provenance, not authority beyond Paulo's words.
+- **Decision (verbatim title):** "Authorize MaisogLabs V10 Visual Parity + Admin Architecture Planning". "THIS IS PLANNING ONLY."
+- **Source of truth (verbatim):** "V10 IS THE WEBSITE DESIGN TARGET."
+  - Package `Maisog Labs website design.zip`, SHA-256 `79f0a455967b808780cde89c2dcde821c7d7d99e7700ee60dc7aba4cb9c61c2a` (owner-reported; its 202 entries were committed by Paulo at `98a26e2d05f1056806994ea80716ed84960e3e39` under `design-references/claude-v10/`).
+  - Primary artifact `Maisog Labs Home v10.dc.html`, SHA-256 `6e47ffca9adb7e31522b046576b8d7800117dd38ee07c88167b8e7b5e3ed6dab`.
+  - Earlier versions are historical references only. The package `CLAUDE.md` and Design Panel files are design context, not governance authority.
+- **Authorized:**
+  - repository inspection and local V10 artifact inspection;
+  - local read-only rendering/screenshots and difference analysis;
+  - architecture planning and admin capability mapping;
+  - SU evidence analysis and SENTINEL execution planning;
+  - Design Panel review;
+  - planning/coordination documentation, limited to one primary artifact, `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`, plus Protocol V2 records.
+- **Required analysis:**
+  - resolve explicitly the conflict between RFC-010 (V3 composition / V3 + soft-geometry fail-safe baseline) and V10, and reconcile the V2A plan;
+  - formalize "CODE OWNS V10. ADMIN OPERATES V10. CONTENT PROVIDES FACTS. SENTINEL GOVERNS AUTHORITY/EXECUTION", with a fail-safe that remains V10 without D1;
+  - produce the exact V10 contract and asset hashes, a current→V10 parity matrix, an admin-control matrix and a deterministic visual-acceptance method;
+  - keep API-incident diagnosis a separate, read-only-first sub-plan;
+  - include a Design Panel review, with Independent Critic and Layperson passes;
+  - propose increments (candidates: V10-A, V10-B, API-DIAG, API-FIX, V10-RELEASE) as planning only.
+- **NOT authorized:**
+  - application implementation, public-site source modification, or admin implementation;
+  - Worker modification;
+  - D1 mutation or migration, or R2 mutation;
+  - media integration into the repository;
+  - Access, DNS/domain or environment/secret mutation;
+  - main merge, deployment, production promotion or rollback;
+  - a PR #7 or PR #10 merge;
+  - V2B implementation, S6/S7 or D-068.
+- **Return:** handoff `H-WEB-V10-PLAN-0001`, routed to the Architect, with all action flags NO.
