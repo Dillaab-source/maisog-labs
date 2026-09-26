@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D093_GATE_C
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D094_D093_GATE_C_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS121_D093_GATE_D_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D093-GATE-C-0001
-REVIEW_TARGET_COMMIT: 753493afb9ce71f856365eedf58bc699e2b5b7f5
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-120
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,24 +27,30 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-094 authorized D-093 Gate C only: one fresh protected release PR, a normal merge commit, observation of the resulting `main` version upload, and proof that production traffic did not move. ML-DEVOS-AS-120 accepted the D-093 artifact for Gate C.
+`ML-DEVOS-AS-121` accepts and closes D-093 Gate C: `GATE C: ACCEPTED / CLOSED` and `READY FOR PAULO GATE D DECISION: YES`. There are no blocking findings, and no remediation is required.
 
-## Builder return
+PR #14 merged into `main` as `7d22a96d10b5e24f5296795c2b049f77093386c3`. The `main` Workers Build `8abe1ba1-4b7d-45d3-84b8-97f2beea8cfe` uploaded the inactive Version `f473c170-b39c-4d7b-85ad-a99c5208d539`. Active production stayed at `a667fc09-12d1-4fde-a75d-5d660729baa3`, 100%, before and after the merge. That equality is `OWNER_REPORTED` and is not Architect-reproduced (`AS121-N001`).
 
-`H-WEB-D093-GATE-C-0001` is the return record. It is evidence, not authority. PR #14 merged into `main` as `7d22a96d10b5e24f5296795c2b049f77093386c3`. The `main` Workers Build `8abe1ba1-4b7d-45d3-84b8-97f2beea8cfe` uploaded inactive Version `f473c170-b39c-4d7b-85ad-a99c5208d539`. Active production remained `a667fc09-12d1-4fde-a75d-5d660729baa3` at 100% before and after (owner-read). `DIR-WEB-D093-GATE-C-0001` is archived byte-for-byte and deselected.
+`H-WEB-D093-GATE-C-0001` is archived byte-for-byte and deselected.
 
-## Architect scope
+## Paulo decision required
 
-Independent review of the Gate C return under the next unused immutable Architect Sync ID after ML-DEVOS-AS-120.
+Gate D is the separate Product/Risk Owner decision on whether to promote Version `f473c170-b39c-4d7b-85ad-a99c5208d539` to production. If so, Paulo sets its exact bounded operation.
+
+Gate D is NOT AUTHORIZED. `ML-DEVOS-AS-121` grants no authority to deploy. A Gate D execution directive may exist only after Paulo explicitly authorizes production promotion.
 
 ## Hard boundaries
 
-Gate D (production promotion) is not authorized and requires a separate explicit Paulo decision. No `wrangler versions deploy`, traffic shift, rollback, D1/R2/Access/DNS/secret/environment action, production-data write, or runtime change.
+No `wrangler versions deploy`, promotion, traffic shift, rollback, D1/R2/Access/DNS/secret/environment action, production-data write, or runtime change.
 
 No PR #7 or PR #10 merge. No S6/S7. No D-068.
 
-S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open. The AS-116 production API incident remains open.
+S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open. The AS-116 production Journal/API incident remains separate and open.
 
 All action-specific authorization flags are `NO`.
+
+## Next transition
+
+Paulo decides Gate D. Nothing follows automatically.
