@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs/devos/capabilities/subject-context.schema.json",
+  "title": "S5 trusted subjectContext (V1)",
+  "description": "ML-DEVOS-RFC-017 §3. TRUSTED. Shape only: a value matching this schema is still rejected by evaluate() unless it was minted by a registered adapter wrapper (module-private brand in trusted-context.mjs). Never constructed from request-caller fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "actor_role",
+    "actor_id",
+    "credential_class",
+    "credential_available",
+    "attested_by",
+    "attestation_ref"
+  ],
+  "properties": {
+    "actor_role": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unrecognized roles evaluate to UNKNOWN_ACTOR_ROLE."
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque identity, as S4 accepts a bare actor_id."
+    },
+    "credential_class": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "credential_available": {
+      "type": "boolean"
+    },
+    "attested_by": {
+      "enum": [
+        "shell",
+        "github",
+        "cloudflare",
+        "mcp",
+        "browser"
+      ]
+    },
+    "attestation_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$",
+      "description": "Opaque audit correlation string; never a secret."
+    }
+  }
+}

@@ -20,11 +20,13 @@ Governance applies prospectively from the legacy baseline SHA above. Commits on 
 
 ## Roles and authority
 
-| Role | Holder | Authority |
+| Role | Assigned holder | Authority |
 |---|---|---|
 | Product / Risk Owner | Paulo | Final product authority. Approves material scope, architecture decisions, accepted risk, and every gated phase transition. Only Paulo can authorize the next phase, deployment, or a `main` merge. |
-| Architect / Independent Reviewer | ChatGPT | Independently reviews architecture, implementation claims, tests, risks, and security against repository evidence. Writes `coordination/ARCHITECT_REVIEW.md`. Cannot authorize a new phase — only assess against the currently authorized one and recommend to Paulo. |
-| Implementer | Claude | Inspects repository reality before acting, implements only the currently authorized scope, writes/updates tests, maintains governance documents, writes `coordination/IMPLEMENTER_HANDOFF.md`. May report `IMPLEMENTATION COMPLETE`. **May not self-certify `ARCHITECT VERIFIED`.** |
+| Architect / Independent Reviewer | ChatGPT (current assignment) | Independently reviews architecture, implementation claims, tests, risks, and security against repository evidence. Writes `coordination/ARCHITECT_REVIEW.md`, minting a new immutable `ML-DEVOS-AS-NNN` per published revision. Cannot authorize a new phase — only assess against the currently authorized one and recommend to Paulo. |
+| Builder / Implementer | Claude (current default assignment; a decision may reassign it, as `D-059` did) | Inspects repository reality before acting, implements only the currently authorized scope, writes/updates tests, maintains governance documents, writes `coordination/CURRENT_HANDOFF.md` (`coordination/IMPLEMENTER_HANDOFF.md` is frozen pre-V0 history). May report `IMPLEMENTATION COMPLETE`. **May not self-certify `ARCHITECT VERIFIED`.** |
+
+Roles are governed positions: authority attaches to the role as assigned by the applicable decision, never to a provider or model name. `TURN: CLAUDE` in `coordination/STATE.md` denotes the Builder role.
 
 **Source of truth:** the repository, its committed tests, and runtime/deployment evidence. Agent statements alone — from any of the three roles — are not proof.
 

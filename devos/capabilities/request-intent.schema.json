@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs/devos/capabilities/request-intent.schema.json",
+  "title": "S5 untrusted requestIntent (V1)",
+  "description": "ML-DEVOS-RFC-017 §3. UNTRUSTED caller statement. Carries no time-bearing or subject field. resource is provider-native on input to an adapter and canonical when presented to evaluate(). contract_ref/task_id are opaque S3/S4 correlation references only; S5 never reads or re-validates S3/S4 artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "provider",
+    "action",
+    "resource",
+    "environment",
+    "policy_version"
+  ],
+  "properties": {
+    "project": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "const": "*"
+      }
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "resource": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+    },
+    "contract_ref": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    }
+  }
+}

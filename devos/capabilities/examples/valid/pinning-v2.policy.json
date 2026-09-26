@@ -1,0 +1,22 @@
+{
+  "policy_version": "2026-09-24.pin-2",
+  "descriptors": [
+    {
+      "descriptor_id": "GH-PUSH-FEATURE",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/feature/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "policy_version": "bad-10",
+  "descriptors": [
+    {
+      "descriptor_id": "GH-GOOD",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/feature/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    },
+    {
+      "descriptor_id": "x",
+      "actor_role": "Orchestrator",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/feature/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    }
+  ]
+}

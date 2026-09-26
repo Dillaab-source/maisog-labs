@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "devos/execution/publication-evidence-ref.schema.json",
+  "title": "S6 Builder publication evidenceRef (ML-DEVOS-RFC-019 \u00a77.1.1)",
+  "description": "The single payload passed as evidenceRef on the Builder BUILDING -> READY_FOR_QA S4 transition. Member ORDER is part of the contract (S4 binds idempotency to JSON.stringify); stored as exact bytes in the Result Transfer Record and reused byte-identically on replay. evidenceClass is always ACTOR_REPORTED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidenceClass",
+    "ref",
+    "s6_transfer_id",
+    "result_commit_sha",
+    "result_tree_sha",
+    "base_sha",
+    "identity_digest",
+    "prepublication_provenance_digest",
+    "remote_ref"
+  ],
+  "properties": {
+    "evidenceClass": {
+      "const": "ACTOR_REPORTED"
+    },
+    "ref": {
+      "type": "string",
+      "pattern": "^s6-rtr:[0-9a-f]{64}$"
+    },
+    "s6_transfer_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "result_commit_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "result_tree_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "identity_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "prepublication_provenance_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Journal head immediately BEFORE the RTR_PENDING entry (\u00a77.1.2); never a hash over this payload."
+    },
+    "remote_ref": {
+      "type": "string",
+      "pattern": "^refs/heads/sentinel/s6/[A-Z][A-Z0-9_-]*/builder/[0-9a-f]{32}$"
+    }
+  }
+}

@@ -1,8 +1,8 @@
 # Architect Handoff Format
 
-This is the reusable report format for a completed implementation/reconnaissance cycle (governance plan §17). The *live* handoff for the current cycle is written into `coordination/IMPLEMENTER_HANDOFF.md`; this document defines the required shape and field meanings so every cycle is comparable.
+This is the reusable report format for a completed implementation/reconnaissance cycle (governance plan §17). Since Bootstrap V0 (`D-062`) the *live* handoff is the bounded `coordination/CURRENT_HANDOFF.md`, whose identity header and required sections are defined in `brain/protocols/CONTEXT_BOOTSTRAP.md` §2; `coordination/IMPLEMENTER_HANDOFF.md` is frozen pre-V0 history and is never written. This document defines the field meanings those sections carry, so every cycle is comparable.
 
-After each meaningful implementation cycle, `coordination/IMPLEMENTER_HANDOFF.md` must record:
+Each CURRENT_HANDOFF must carry the following content, placed in its required sections (`Objective` ← CHANGE ID/OBJECTIVE; `Changed files` ← FILES CHANGED; `Tests and evidence` ← TESTS EXECUTED/RESULTS/EVIDENCE; `Unresolved findings and limitations` ← KNOWN LIMITATIONS/UNRESOLVED QUESTIONS; `Governing references` ← REQUIREMENTS/RISKS AFFECTED plus the governing RFC/review/decision; `Evidence locations`; `Next action` ← REQUESTED REVIEW SCOPE):
 
 ```
 CHANGE ID:
@@ -21,7 +21,7 @@ REQUESTED REVIEW SCOPE:
 
 ## Field meanings
 
-- **CHANGE ID** — a stable cycle identifier (e.g. `PHASE-0-RECON`, `PHASE-1-GOVERNANCE-BOOTSTRAP`). Matches `coordination/STATE.md`'s `CYCLE_ID`.
+- **CHANGE ID** — a stable cycle identifier (e.g. `PHASE-0-RECON`, `PHASE-1-GOVERNANCE-BOOTSTRAP`). Matches `coordination/STATE.md`'s `CYCLE_ID` and the handoff header's `cycle_id`.
 - **OBJECTIVE** — one or two sentences: what this cycle was authorized to do, per the currently authorized scope.
 - **FILES CHANGED** — an exact list. A handoff that claims "documentation only" must be checked against `git status`/`git diff` before it is written, not asserted from memory.
 - **REQUIREMENTS AFFECTED** — cite requirement IDs from the governance plan or `GOVERNANCE_MAP.md` where applicable; write "none" explicitly if a cycle is infrastructure/documentation-only.

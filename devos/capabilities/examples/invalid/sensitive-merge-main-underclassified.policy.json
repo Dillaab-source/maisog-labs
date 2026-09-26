@@ -1,0 +1,22 @@
+{
+  "policy_version": "bad-1",
+  "descriptors": [
+    {
+      "descriptor_id": "GH-MERGE",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "pr.merge",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/main"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    }
+  ]
+}

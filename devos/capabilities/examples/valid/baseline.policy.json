@@ -1,0 +1,175 @@
+{
+  "policy_version": "2026-09-24.1",
+  "descriptors": [
+    {
+      "descriptor_id": "GH-PUSH-FEATURE",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/feature/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": true,
+        "credential_class": "github_pat_scoped"
+      },
+      "consequence_tier": "low"
+    },
+    {
+      "descriptor_id": "GH-PUSH-RELEASE-X",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/release/x/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "medium"
+    },
+    {
+      "descriptor_id": "GH-PUSH-RELEASE",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/release/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "medium"
+    },
+    {
+      "descriptor_id": "GH-PUSH-EXACT",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/release/x/hotfix"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "medium"
+    },
+    {
+      "descriptor_id": "GH-READ-ANY",
+      "actor_role": "Builder",
+      "project": "*",
+      "provider": "github",
+      "action": "repo.read",
+      "resource_scope": [
+        "*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    },
+    {
+      "descriptor_id": "GH-PR-MERGE-MAIN",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "pr.merge",
+      "resource_scope": [
+        "dillaab-source/maisog-labs:refs/heads/main"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": true,
+        "credential_class": "github_pat_scoped"
+      },
+      "consequence_tier": "highest"
+    },
+    {
+      "descriptor_id": "SH-READ-REPO",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "shell",
+      "action": "fs.read",
+      "resource_scope": [
+        "/srv/repo/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    },
+    {
+      "descriptor_id": "CF-WORKER-DEPLOY-STAGING",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "cloudflare",
+      "action": "worker.deploy",
+      "resource_scope": [
+        "zone-7f3a%2Fedge"
+      ],
+      "environment": "staging",
+      "expiry": null,
+      "credential_requirement": {
+        "required": true,
+        "credential_class": "cloudflare_api_token"
+      },
+      "consequence_tier": "high"
+    },
+    {
+      "descriptor_id": "MCP-DOCS-READ",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "mcp",
+      "action": "resource.read",
+      "resource_scope": [
+        "file:///srv/docs/*"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    },
+    {
+      "descriptor_id": "BR-SITE-VISIT",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "browser",
+      "action": "page.visit",
+      "resource_scope": [
+        "https://maisoglabs.com/*"
+      ],
+      "environment": "local",
+      "expiry": "2026-12-31T00:00:00Z",
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    }
+  ]
+}

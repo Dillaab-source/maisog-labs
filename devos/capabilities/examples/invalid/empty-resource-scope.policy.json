@@ -1,0 +1,20 @@
+{
+  "policy_version": "bad-3",
+  "descriptors": [
+    {
+      "descriptor_id": "GH-EMPTY",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    }
+  ]
+}

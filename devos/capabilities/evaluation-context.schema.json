@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maisog-labs/devos/capabilities/evaluation-context.schema.json",
+  "title": "S5 trusted evaluationContext (V1)",
+  "description": "ML-DEVOS-RFC-017 §3 (corrects AS76-F001). TRUSTED, exactly one field. Minted only from a registered adapter wrapper's trusted clock read; evaluate() never reads a wall clock. Distinct from an AuditEnvelope's timestamp.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "time"
+  ],
+  "properties": {
+    "time": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?Z$"
+    }
+  }
+}

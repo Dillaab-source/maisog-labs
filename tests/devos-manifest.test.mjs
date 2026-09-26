@@ -113,9 +113,10 @@ test("source_of_truth_precedence's descriptive Sentinel capability baseline vers
   );
 });
 
-// Updated by the coordinated Sentinel v1.6.0 closure (D-046 / ML-DEVOS-ADR-013)
-// and again by the S4 closure (D-051 / ML-DEVOS-ADR-014): devos/contracts/
-// (S3) and devos/state/ (S4) are now the two reserved roots that have reached
+// Updated by the coordinated Sentinel v1.6.0 closure (D-046 / ML-DEVOS-ADR-013),
+// the S4 closure (D-051 / ML-DEVOS-ADR-014), and the S5 closure (D-065 /
+// ML-DEVOS-ADR-015): devos/contracts/ (S3), devos/state/ (S4), and
+// devos/capabilities/ (S5) are now the three reserved roots that have reached
 // IMPLEMENTED via the RFC-015 mechanism this same test file validates -- the
 // original version of this test (written during RFC-015's own bounded
 // implementation, before any closure was authorized) asserted the opposite
@@ -123,11 +124,12 @@ test("source_of_truth_precedence's descriptive Sentinel capability baseline vers
 // became obsolete by its own explicit, separately authorized closure act, not
 // a regression; this test is updated to match the new correct live state
 // rather than left failing.
-test("devos/contracts/ (S3) and devos/state/ (S4) are IMPLEMENTED with resolving closure_refs; every other root remains NOT_IMPLEMENTED/FOUNDATION_ACTIVE with no closure_ref", () => {
+test("devos/contracts/ (S3), devos/state/ (S4), and devos/capabilities/ (S5) are IMPLEMENTED with resolving closure_refs; every other root remains NOT_IMPLEMENTED/FOUNDATION_ACTIVE with no closure_ref", () => {
   const doc = loadManifest();
   const implementedRoots = [
     { path: "devos/contracts/", closure_ref: "ML-DEVOS-ADR-013" },
     { path: "devos/state/", closure_ref: "ML-DEVOS-ADR-014" },
+    { path: "devos/capabilities/", closure_ref: "ML-DEVOS-ADR-015" },
   ];
 
   for (const expected of implementedRoots) {
@@ -142,7 +144,7 @@ test("devos/contracts/ (S3) and devos/state/ (S4) are IMPLEMENTED with resolving
   const implementedPaths = new Set(implementedRoots.map((r) => r.path));
   for (const root of doc.reserved_subsystem_roots) {
     if (implementedPaths.has(root.path)) continue;
-    assert.notEqual(root.status, "IMPLEMENTED", `${root.path} must not be IMPLEMENTED -- only S3/S4 closed as of this release`);
+    assert.notEqual(root.status, "IMPLEMENTED", `${root.path} must not be IMPLEMENTED -- only S3/S4/S5 closed as of this release`);
     assert.ok(!Object.hasOwn(root, "closure_ref") || root.closure_ref === null, `${root.path} must not carry a non-null closure_ref`);
   }
 });

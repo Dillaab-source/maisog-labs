@@ -1,0 +1,22 @@
+{
+  "policy_version": "bad-4",
+  "descriptors": [
+    {
+      "descriptor_id": "GH-INFIX",
+      "actor_role": "Builder",
+      "project": "Dillaab-source/maisog-labs",
+      "provider": "github",
+      "action": "git.push",
+      "resource_scope": [
+        "dillaab-source/*/refs"
+      ],
+      "environment": "local",
+      "expiry": null,
+      "credential_requirement": {
+        "required": false,
+        "credential_class": null
+      },
+      "consequence_tier": "low"
+    }
+  ]
+}

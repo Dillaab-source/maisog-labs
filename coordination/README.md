@@ -1,101 +1,69 @@
 # MaisogLabs Agent Coordination Protocol
 
-This directory is the auditable communication channel between the Implementer (Claude) and the Architect / Independent Reviewer (ChatGPT).
+This directory is the auditable communication channel between the Builder / Implementer and the Architect / Independent Reviewer. Since the Bootstrap V0 activation (`D-062`, `ML-DEVOS-RFC-018`) it runs the **Context Bootstrap V0 turn protocol**, specified in `brain/protocols/CONTEXT_BOOTSTRAP.md`. Where this summary and that protocol differ, the protocol wins.
 
 ## Roles
 
+Roles are governed positions, assigned by the applicable decision chain — not by provider or model name.
+
 - **Paulo** — Product / Risk Owner. Final authority for product decisions, material scope, accepted risk, and stage authorization.
-- **Claude** — Implementer. Inspects repository reality, implements authorized work, executes tests, and writes implementation evidence.
-- **ChatGPT** — Architect / Independent Reviewer. Independently checks repository state, diffs, tests, evidence, requirements, and risks.
-- **Repository + tests + runtime/deployment evidence** — source of truth.
+- **Builder / Implementer** — inspects repository reality, implements authorized work, executes tests, writes the current handoff. Currently assigned to Claude by default (a decision may reassign it, as `D-059` once did); `TURN: CLAUDE` in STATE is the Builder-role token.
+- **Architect / Independent Reviewer** — independently checks repository state, diffs, tests, evidence, requirements, and risks; writes reviews. Currently assigned to ChatGPT.
+- **Repository + tests + runtime/deployment evidence** — the evidence of record. Committed text proves provenance, not authority; authority comes only from the applicable decision/review chain.
 
 ## Files
 
-### `IMPLEMENTER_HANDOFF.md`
-Owned for writing by Claude during an authorized implementation/reconnaissance cycle.
-
-Claude records:
-- cycle/change ID
-- commit / branch state
-- objective and review scope
-- files inspected or changed
-- requirements / risks affected
-- commands and tests executed
-- results and evidence
-- known limitations
-- unresolved questions
-- Paulo-level decisions required
-- requested Architect review mode
-
-### `ARCHITECT_REVIEW.md`
-Owned for writing by ChatGPT during Architect Sync.
-
-The Architect records:
-- exact reviewed commit / branch
-- review mode and scope
-- evidence inspected
-- findings
-- blockers
-- required remediation
-- Paulo decisions required
-- verdict
-
-Claude must read the latest Architect Review before starting remediation or the next authorized phase.
+| File | Owner | Role |
+|---|---|---|
+| `STATE.md` | whoever holds the turn, within their authorized transition | Live machine-readable routing: turn, scope, flags, `PROTOCOL_VERSION`, handoff/review selector fields. Read first, at one exact commit. |
+| `ARCHITECT_REVIEW.md` | Architect | The live review. Every published revision carries a new immutable `ML-DEVOS-AS-NNN`, archived byte-for-byte at `devos/changes/architect-syncs/`. |
+| `CURRENT_HANDOFF.md` | Builder | The bounded current Builder→Architect evidence report, selected by STATE's identity tuple. Grants no authority. |
+| `OPERATIVE_OBLIGATIONS.md` | both, per transition | Carry-forward index of unresolved obligations; rows leave only by cited closure/supersession. |
+| `archive/handoffs/` | both, per transition | Immutable byte-exact copies of every outgoing CURRENT_HANDOFF, with provenance. |
+| `CURRENT_DIRECTIVE.md` | Owner/Architect (Protocol V2 only) | Protocol V2 (`ML-DEVOS-RFC-020`) is active since `D-080`: the Owner/Architect → Builder execution packet selected by STATE's directive selector. Inert while `CURRENT_DIRECTIVE: NONE`. Transport, never authority. |
+| `archive/directives/` | both, per transition (Protocol V2 only) | Immutable byte-exact copies of every outgoing CURRENT_DIRECTIVE, with provenance and an index. Empty until the first directive is deselected. |
+| `IMPLEMENTER_HANDOFF.md` | nobody | **Frozen** historical evidence (blob `43eddba31695a567412c431ae3d1e4c9372cabdd`). Not a startup read; never appended. Read only for a concrete historical question. |
 
 ## Communication cycle
 
 ```text
-Paulo authorizes scope
+Paulo / decision chain authorizes scope (recorded in STATE)
         |
         v
-Claude inspects / implements
+Builder: resolve exact tip -> read STATE, review, handoff, obligations at that commit
         |
         v
-coordination/IMPLEMENTER_HANDOFF.md
+Builder implements; writes CURRENT_HANDOFF + STATE return gate (+ archives, obligations)
+in ONE commit parented on the exact tip; publishes with exact-old-value CAS
         |
         v
-Claude commits + pushes the handoff to the working branch
+Architect: resolve exact tip -> independent review
         |
         v
-Paulo invokes "MAISOGLABS ARCHITECT SYNC" in ChatGPT
+Architect writes ARCHITECT_REVIEW under a NEW Sync ID + archive + STATE routing
+(archiving any handoff it deselects) in ONE commit; publishes with CAS
         |
         v
-ChatGPT independently reads GitHub state + evidence
-        |
-        v
-coordination/ARCHITECT_REVIEW.md
-        |
-        v
-ChatGPT commits review to the same working branch
-        |
-        v
-Claude pulls branch and reads review
-        |
-        v
-Remediation / next authorized cycle
+Next authorized turn
 ```
+
+## Turn gating
+
+- Governed writes happen only on the actor's own turn (`TURN` plus the matching `*_ACTION_REQUIRED: YES`) and only within `AUTHORIZED_SCOPE`. `TURN` routes work; it does not authorize flagged actions (deploy, main merge, remote D1/R2, mutation).
+- Owner-requested **advisory**, read-only analysis is permitted on any turn. It writes nothing governed.
+- A resumed, compacted, or reconnected session re-bootstraps from a fresh exact snapshot before any governed write. A `PROTOCOL_VERSION` mismatch stops the session.
+- `node scripts/check-context-bootstrap.mjs --commit <sha>` checks a snapshot. `--publish --candidate <sha>` runs every transition check and publishes with the lease.
+- Protocol V2 (`ML-DEVOS-RFC-020`) is **active** since `D-080` (`PROTOCOL_VERSION: 2`):
+  - the checker refuses directive selector fields in a V1 STATE, and any undeclared `PROTOCOL_VERSION` change;
+  - a Builder turn is routed by an `ACTIVE` CURRENT_DIRECTIVE, and the Builder's return commit deselects and archives it (`brain/protocols/CONTEXT_BOOTSTRAP.md` §10).
 
 ## Important limitations
 
-This is asynchronous repository-mediated communication. Claude and ChatGPT do not have a persistent direct live channel to each other. Paulo remains the authorization authority between gated phases.
-
-## Write ownership
-
-To avoid agents overwriting one another:
-
-- Claude writes `coordination/IMPLEMENTER_HANDOFF.md`.
-- ChatGPT writes `coordination/ARCHITECT_REVIEW.md`.
-- Either agent may read both.
-- Protocol changes require explicit rationale and should not be made during an unrelated feature change.
+This is asynchronous repository-mediated communication. The roles do not share a persistent live channel. Paulo remains the authorization authority between gated phases. A provider that cannot perform exact-old-value compare-and-swap publication is advisory/read-only for governed writes.
 
 ## Commit discipline
 
-Communication-only commits should be clearly labeled, for example:
-
-- `docs(sync): publish phase 0 implementer handoff`
-- `docs(sync): record architect review for phase 0`
-
-Do not mix application implementation with an Architect review commit.
+Communication-only commits should be clearly labeled, for example `docs(sync): ...`. Do not mix application implementation with an Architect review commit. Protocol changes require explicit rationale and an authorizing decision.
 
 ## Review modes
 

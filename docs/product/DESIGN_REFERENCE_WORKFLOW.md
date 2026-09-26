@@ -95,11 +95,12 @@ The Architect's plan should provide a bounded mapping such as:
   - panel opacity
   - border intensity
   - radius scale
-- Section controls
-  - home visibility/order
-  - projects visibility/order
-  - process visibility/order
-  - about visibility/order
+- Section controls (admin label → backend id; Spatial Design Controls V2A, `D-082`)
+  - Entry (`home`) visibility only — Entry is the base spatial state and has no navigation order; its stored order is preserved unchanged
+  - Systems (`process`) visibility/navigation order
+  - Projects (`projects`) visibility/navigation order
+  - Contact (`about`) visibility/navigation order
+  - Research is a fixed destination: preview only, never a visibility/order setting
 - Direct matches
 - Approximations
 - Gaps
@@ -135,8 +136,10 @@ Claude may:
 
 - enter the mapped controls;
 - save a draft;
-- generate/use the authenticated preview;
+- generate/use the authenticated preview — the admin's fixed Spatial Preview shortcuts (Entry, Systems, Projects, Research, Contact, Journal) open the real site with `?design-preview=1`;
 - collect before/after evidence.
+
+Publish activates design settings only. It does not deploy code or publish website content; deployment is a separate, separately authorized operation.
 
 Claude must not treat a screenshot match as automatically approved for public publication.
 
