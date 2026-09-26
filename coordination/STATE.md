@@ -1,9 +1,9 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_V10_RFC021_DRAFT
+CYCLE_ID: MAISOGLABS_WEB_V10_RFC021_ACCEPTANCE
 TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: AS118_RFC021_PAULO_ACCEPTANCE_DECISION_ONLY
+STATUS: RFC_ACCEPTED
+AUTHORIZED_SCOPE: D089_RFC021_ACCEPTED_PAULO_NEXT_DECISION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: YES
@@ -27,23 +27,25 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority and review
+## Accepted architecture
 
-D-088 authorized RFC-021 drafting only.
+D-089 accepts `ML-DEVOS-RFC-021 — V10 Canonical Visual Baseline` after independent review `ML-DEVOS-AS-118`.
 
-ML-DEVOS-AS-118 independently approves RFC-021 as ready for Paulo's separate acceptance decision, with the recorded implementation-acceptance follow-up. It does not accept the RFC or authorize implementation.
+V10 is the static, code-owned fail-safe baseline. The narrow RFC-010 supersession, preserved security/lifecycle invariants, D-088 content/routing/divergence decisions, and runtime-enforced ranges are now the governing architecture for future bounded V10 work.
 
-## Archived Builder return
+`AS118-F001` remains a mandatory future implementation-acceptance requirement for the exact overlay mapping and tests.
 
-`H-WEB-V10-RFC021-0001` is archived byte-for-byte with provenance under `coordination/archive/handoffs/`. It is evidence, not authority.
+## Authority boundary
 
-`DIR-WEB-V10-RFC021-0001` remains deselected and archived byte-for-byte.
+RFC acceptance is not implementation authority.
 
-## Owner gate
+V10-A, V10-B, API-DIAG, API-FIX, media integration, and every production/resource action remain unauthorized. A new explicit Paulo decision and bounded Protocol V2 directive are required before any Builder implementation turn.
 
-Paulo may accept, reject, or request revision of `ML-DEVOS-RFC-021`.
+## Preserved records
 
-Any acceptance transition must remain documentation/governance-only unless Paulo separately authorizes a bounded implementation cycle. V10-A and V10-B remain unauthorized.
+`ML-DEVOS-AS-118` remains the controlling review for RFC-021 acceptance.
+
+`H-WEB-V10-RFC021-0001` and `DIR-WEB-V10-RFC021-0001` remain archived byte-for-byte with provenance.
 
 ## Hard boundaries
 
@@ -54,10 +56,10 @@ No PR #7 or PR #10 merge. No V2B. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific authorization flags remain NO.
+All action-specific flags remain NO.
 
 ## Next transition
 
 TURN: PAULO
 
-No Builder action begins automatically.
+Paulo may separately authorize a bounded next V10 increment. No Builder action begins automatically.

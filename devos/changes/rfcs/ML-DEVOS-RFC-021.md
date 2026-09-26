@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-021: V10 Canonical Visual Baseline
 
-Status: `DRAFT` — drafted under `D-088` for Architect review. It is not accepted, and it grants no implementation authority.
+Status: `ACCEPTED` — independently approved by `ML-DEVOS-AS-118` and accepted by Paulo under `D-089`. Acceptance grants no implementation authority.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -247,8 +247,6 @@ Builder evidence is `ACTOR_REPORTED` until it is independently reproduced.
 
 ## 14. Acceptance
 
-This RFC becomes `ACCEPTED` only after:
-- an independent Architect review;
-- a separate Paulo acceptance decision.
+This RFC is `ACCEPTED` through independent Architect review `ML-DEVOS-AS-118` and Paulo decision `D-089`.
 
 V10-A and V10-B implementation each require their own owner authorization after acceptance.
