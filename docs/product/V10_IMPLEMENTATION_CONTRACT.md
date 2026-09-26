@@ -44,7 +44,7 @@ The exact V10 overlay point is input **68**, producing `{ opacity: 1, boost: 0 }
 - Missing, string, null, `NaN`, and infinite input falls back to 68.
 - The combined layer weight is monotonic over every integer from 40 through 85.
 
-The deterministic implementation is `lib/design/overlay.mjs`; the tests are `tests/design-overlay.test.mjs` and `tests/v10-theme.test.mjs`.
+The deterministic implementation is `lib/design/overlay.mjs`; the tests are `tests/design-overlay.test.mjs`, `tests/v10-theme.test.mjs` and `tests/v10-runtime-matrix.test.mjs` (AS119-F004: the F1 404/500/malformed/invalid matrix, every listed clamp input, every allowed and unknown ignored-field value, and monotonicity at each integer from 40 through 85).
 
 ## Accessibility and responsive requirements
 

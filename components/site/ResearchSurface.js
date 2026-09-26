@@ -8,8 +8,6 @@
 // the first time the surface is opened, not on Entry.
 import { useCallback, useEffect, useState } from "react";
 
-const FIXED_NOTE_PLATES = ["/v10/assets/plate-hero-v4.png", "/v10/assets/plate-aqueduct-v4.png"];
-
 function formatPublishedAt(value) {
   try {
     return new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
@@ -81,10 +79,9 @@ export default function ResearchSurface({ active }) {
       {index.status === "success" && (
         <div className="research-columns">
           <ul className="research-list" aria-label="Journal entries">
-            {index.entries.map((entry, itemIndex) => (
+            {index.entries.map(entry => (
               <li key={entry.slug}>
                 <button type="button" className="research-entry" aria-pressed={slug === entry.slug} onClick={() => setSlug(entry.slug)}>
-                  <span className="research-thumb" aria-hidden="true" style={{ backgroundImage: `url(${FIXED_NOTE_PLATES[itemIndex % FIXED_NOTE_PLATES.length]})` }} />
                   <span className="research-copy">
                     <time dateTime={entry.publishedAt}>{formatPublishedAt(entry.publishedAt)}</time>
                     <span className="research-title">{entry.title}</span>

@@ -1,5 +1,4 @@
 import "./globals.css";
-import "./v10.css";
 import { getPublicContent } from "../lib/content/local.mjs";
 import DesignRuntime from "./DesignRuntime";
 
