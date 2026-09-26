@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_V10_A
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D090_V10_A_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS119_D090_V10_A_CORRECTIVE_SCOPE_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-V10-A-0001
-REVIEW_TARGET_COMMIT: 2986489cecf4b78f42953313686513cb06cdc69d
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-118
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,24 +27,29 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-090 authorized the completed V10-A public visual-baseline implementation under accepted RFC-021 and controlling review ML-DEVOS-AS-118.
+`ML-DEVOS-AS-119` returns `READY TO COMMIT: NO` for V10-A.
 
-## Builder return
+The implementation build, focused V10 checks, content/D1 compatibility, and asset hashes reproduce, but acceptance is blocked by an exact-scope violation and incomplete RFC-021 evidence and validation.
 
-`H-WEB-V10-A-0001` is the return record. It is evidence, not authority.
+## Paulo decision required
 
-The V10-A public static baseline, fixed local assets/fonts, contracts, tests, and local visual evidence are complete. `DIR-WEB-V10-A-0001` is archived byte-for-byte and deselected.
+D-090 did not authorize `app/v10.css`. Correcting that finding requires a bounded owner decision because the cleanup itself must delete the unlisted file.
 
-## Architect scope
+The recommended decision authorizes remediation cycle 1 only to:
 
-Independent review of the V10-A result under the next unused immutable Architect Sync ID after ML-DEVOS-AS-118.
+- move required V10 rules into the already-authorized `app/globals.css`, remove the import, and delete `app/v10.css`;
+- remove fixed Journal-entry imagery from `components/site/ResearchSurface.js`;
+- complete the missing RFC-021 tests and visual, accessibility, and network evidence on D-090's listed surfaces;
+- return through a new Protocol V2 directive and Builder handoff.
 
 ## Hard boundaries
 
-No further implementation, admin V10-B, API diagnosis/fix, Worker, migration, package, or lockfile change.
-No D1, R2, Access, DNS/domain, secret, environment, production-data, theme-publication, main-merge, deployment, promotion, or rollback action.
+No implementation or remediation until Paulo decides the corrective scope.
+
+No V10-B, API diagnosis/fix, Worker, migration, package, lockfile, D1, R2, Access, DNS/domain, secret, environment, production-data, theme-publication, main-merge, deployment, promotion, or rollback action.
+
 No PR #7 or PR #10 merge. No V2B. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
@@ -53,4 +58,4 @@ All action-specific authorization flags are NO.
 
 ## Next transition
 
-The Architect reviews `H-WEB-V10-A-0001`. Acceptance, remediation, V10-B, API work, main merge, and deployment remain separate governed decisions.
+Paulo decides whether to authorize the bounded corrective remediation proposed by `ML-DEVOS-AS-119`. If authorized, a new Protocol V2 directive routes remediation cycle 1 to the Builder. Nothing follows automatically.
