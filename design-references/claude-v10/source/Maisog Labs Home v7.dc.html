@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Maisog Labs — Ideas in Orbit</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&amp;family=Inter:wght@400;500&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#020918;color:#F8FAFF;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#93B4FF;text-decoration:none}
+a:hover{color:#F8FAFF}
+:focus-visible{outline:2px solid #93B4FF;outline-offset:4px;border-radius:2px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="background:#020918;min-height:100vh">
+
+<header ref="{{ heroRef }}" onMouseMove="{{ onMove }}" data-screen-label="00 Entry" style="position:relative;min-height:max(640px,100vh);overflow:hidden;background:#0A1433;display:flex;flex-direction:column">
+  <div ref="{{ bgRef }}" data-entry="0" style="position:absolute;inset:-14px;overflow:hidden;background:#0A1433;transition:transform .8s cubic-bezier(.2,.7,.2,1)">
+    <div ref="{{ pushRef }}" style="position:absolute;inset:0;background:#0A1433 url(assets/plate-hero-v4.png) center 78% / cover no-repeat;transform-origin:50% 82%;transform:scale(1.1)"></div>
+    <sc-if value="{{ hasPlateVideo }}" hint-placeholder-val="{{ false }}">
+      <video ref="{{ plateVideoRef }}" src="{{ plateVideo }}" poster="assets/plate-hero-v4.png" autoPlay="{{ true }}" muted="{{ true }}" playsInline="{{ true }}" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom;opacity:0;transition:opacity .25s linear"></video>
+    </sc-if>
+  </div>
+  <div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(9,20,56,.66) 0%,rgba(9,20,56,.4) 12%,rgba(9,20,56,0) 26%,rgba(9,20,56,0) 74%,rgba(9,20,56,.4) 88%,rgba(9,20,56,.66) 100%)"></div>
+  <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:20%;pointer-events:none;background:linear-gradient(180deg,rgba(5,11,31,.72),rgba(5,11,31,0))"></div>
+  <div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:16%;pointer-events:none;background:linear-gradient(180deg,rgba(5,11,31,0) 0%,rgba(5,11,31,.55) 55%,#050B1F 100%)"></div>
+  <div aria-hidden="true" style="position:absolute;left:0;bottom:0;width:55%;height:34%;pointer-events:none;background:radial-gradient(ellipse 75% 80% at 0% 85%, rgba(5,11,31,.72), rgba(5,11,31,0) 80%)"></div>
+  <nav style="position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:28px clamp(20px,4vw,56px)">
+    <a href="#" aria-label="Maisog Labs home" style="display:flex;align-items:center;gap:12px">
+      <span style="font-family:'Montserrat',sans-serif;font-weight:500;font-size:14px;letter-spacing:.28em;color:#F8FAFF;white-space:nowrap">MAISOG<span style="color:#3B82F6">LABS</span></span>
+    </a>
+    <div style="display:flex;align-items:center;gap:clamp(18px,3vw,40px);font-family:'Montserrat',sans-serif;font-weight:500;font-size:11px;letter-spacing:.24em;text-transform:uppercase">
+      <a href="#lab" style="color:#C9D5F5;padding:8px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:0% 1px;transition:background-size .3s ease,color .3s ease" style-hover="background-size:100% 1px;color:#F8FAFF">Lab</a>
+      <a href="#systems" style="color:#C9D5F5;padding:8px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:0% 1px;transition:background-size .3s ease,color .3s ease" style-hover="background-size:100% 1px;color:#F8FAFF">Systems</a>
+      <a href="#projects" style="color:#C9D5F5;padding:8px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:0% 1px;transition:background-size .3s ease,color .3s ease" style-hover="background-size:100% 1px;color:#F8FAFF">Projects</a>
+      <a href="#journal" style="color:#C9D5F5;padding:8px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:0% 1px;transition:background-size .3s ease,color .3s ease" style-hover="background-size:100% 1px;color:#F8FAFF">Journal</a>
+      <a href="#contact" style="color:#C9D5F5;padding:8px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:0% 1px;transition:background-size .3s ease,color .3s ease" style-hover="background-size:100% 1px;color:#F8FAFF">Contact</a>
+    </div>
+  </nav>
+  <span data-entry="4" style="position:absolute;z-index:4;left:clamp(20px,4vw,56px);top:clamp(92px,12vh,124px);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF"><span style="color:#3B82F6">00</span> / Entry</span>
+
+  <div ref="{{ heroInnerRef }}" style="position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 0 clamp(8px,3vh,32px)">
+    <div ref="{{ stageRef }}" style="position:relative;height:min(46vh,470px);aspect-ratio:1;max-width:80vw;transition:transform .8s cubic-bezier(.2,.7,.2,1)">
+      <sc-if value="{{ showArch }}" hint-placeholder-val="{{ true }}">
+        <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+          <g fill="none" stroke="#93B4FF" stroke-width="1" vector-effect="non-scaling-stroke">
+            <circle cx="300" cy="300" r="240" stroke-dasharray="2 7" opacity=".28"></circle>
+            <path d="M60 760 V300 A240 240 0 0 1 540 300 V760" opacity=".42"></path>
+            <path d="M120 760 V300 A180 180 0 0 1 480 300 V760" opacity=".6"></path>
+            <path d="M283 59 L317 59 L310 121 L290 121 Z" opacity=".5"></path>
+            <line x1="36" y1="300" x2="144" y2="300" opacity=".5"></line>
+            <line x1="36" y1="314" x2="144" y2="314" opacity=".3"></line>
+            <line x1="456" y1="300" x2="564" y2="300" opacity=".5"></line>
+            <line x1="456" y1="314" x2="564" y2="314" opacity=".3"></line>
+            <line x1="78" y1="336" x2="78" y2="760" opacity=".18"></line>
+            <line x1="90" y1="336" x2="90" y2="760" opacity=".18"></line>
+            <line x1="102" y1="336" x2="102" y2="760" opacity=".18"></line>
+            <line x1="498" y1="336" x2="498" y2="760" opacity=".18"></line>
+            <line x1="510" y1="336" x2="510" y2="760" opacity=".18"></line>
+            <line x1="522" y1="336" x2="522" y2="760" opacity=".18"></line>
+            <line x1="300" y1="20" x2="300" y2="48" opacity=".35"></line>
+          </g>
+        </svg>
+      </sc-if>
+      <div data-entry="2" style="position:absolute;inset:0">
+        <div aria-hidden="true" style="position:absolute;left:50%;top:50%;width:130%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;mix-blend-mode:screen;background:radial-gradient(closest-side,rgba(37,99,235,.26),rgba(37,99,235,.08) 55%,rgba(37,99,235,0))"></div>
+      <video ref="{{ videoRef }}" src="assets/logo-mark.mp4" poster="assets/logo-mark-poster.png" autoPlay="{{ true }}" muted="{{ true }}" preload="auto" playsInline="{{ true }}" aria-label="Maisog Labs animated mark" style="position:absolute;left:50%;top:50%;width:94%;aspect-ratio:1;transform:translate(-50%,-50%);mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);opacity:1;transition:opacity 1s linear"></video>
+      <video ref="{{ videoRef2 }}" src="assets/logo-mark.mp4" poster="assets/logo-mark-poster.png" muted="{{ true }}" preload="auto" playsInline="{{ true }}" aria-hidden="true" style="position:absolute;left:50%;top:50%;width:94%;aspect-ratio:1;transform:translate(-50%,-50%);mix-blend-mode:screen;-webkit-mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);opacity:0;transition:opacity 1s linear"></video>
+      </div>
+      <div ref="{{ orbitRef }}" style="position:absolute;left:50%;top:50%;width:190%;aspect-ratio:3/1;transform:translate(-50%,-50%);pointer-events:none;transition:transform .8s cubic-bezier(.2,.7,.2,1)">
+        <svg data-entry="1" viewBox="-600 -200 1200 400" aria-hidden="true" style="width:100%;height:100%;overflow:visible">
+          <ellipse cx="0" cy="0" rx="380" ry="150" transform="rotate(14)" fill="none" stroke="#93B4FF" stroke-dasharray="1 6" opacity=".35"></ellipse>
+          <g transform="rotate(-9)">
+            <ellipse cx="0" cy="0" rx="560" ry="96" fill="none" stroke="#3B82F6" stroke-width="1" opacity=".55"></ellipse>
+            <circle ref="{{ haloRef }}" cx="300" cy="80" r="16" fill="#2563EB" opacity=".28"></circle>
+            <circle ref="{{ nodeRef }}" cx="300" cy="80" r="4.5" fill="#F8FAFF"></circle>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <h1 data-entry="3" style="position:relative;z-index:3;margin:clamp(-28px,-2vh,-8px) 0 0;padding-left:.34em;text-align:center;font-family:'Montserrat',sans-serif;font-weight:300;font-size:clamp(28px,5.2vw,84px);line-height:1;letter-spacing:.34em;color:#F8FAFF;white-space:nowrap;text-shadow:0 0 32px rgba(5,11,31,.6)">MAISOG<span style="color:#3B82F6;font-weight:400">LABS</span></h1>
+    <div data-entry="3" style="position:relative;z-index:3;display:flex;align-items:center;justify-content:center;gap:18px;margin-top:clamp(14px,2vh,22px);font-family:'Montserrat',sans-serif;font-size:clamp(10px,1vw,13px);font-weight:500;letter-spacing:.62em;text-transform:uppercase;color:#C9D5F5;white-space:nowrap">
+      <span style="width:clamp(32px,6vw,88px);height:1px;background:#93B4FF;opacity:.55"></span>
+      <span style="padding-left:.62em">Ideas in orbit</span>
+      <span style="width:clamp(32px,6vw,88px);height:1px;background:#93B4FF;opacity:.55"></span>
+    </div>
+  </div>
+
+  <div data-entry="4" style="position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px 40px;padding:0 clamp(20px,4vw,56px) clamp(28px,4vh,48px)">
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;padding-left:20px;border-left:1px solid rgba(147,180,255,.4)">
+      <p style="margin:0;font-size:clamp(16px,1.25vw,18px);line-height:1.55;color:#E4EAFB;text-wrap:pretty">An independent technology laboratory building AI automation, research systems, and experimental software.</p>
+    </div>
+    <div aria-hidden="true" style="display:flex;flex-direction:column;gap:4px;padding-left:14px;border-left:1px solid rgba(147,180,255,.4);font-family:'Montserrat',sans-serif;font-weight:500;font-size:10.5px;line-height:1.5;letter-spacing:.32em;text-transform:uppercase;color:#C9D5F5"><span>Humanity</span><span>Orbits</span><span>Higher</span></div>
+  </div>
+</header>
+
+<section id="lab" data-screen-label="01 Foundation" style="position:relative;background:#050B1F;padding:clamp(88px,10vw,140px) clamp(20px,4vw,56px) 0">
+  <div style="max-width:1320px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">
+      <span style="white-space:nowrap"><span style="color:#3B82F6">01</span> / Foundation</span>
+      <span data-traj="Lab" aria-hidden="true" style="flex:1;min-width:32px;position:relative;height:1px;background:rgba(147,180,255,.14)"><span style="position:absolute;left:0;top:0;height:1px;width:{{ trLab.w }};background:linear-gradient(90deg,rgba(59,130,246,.15),#3B82F6);transition:width 1.6s cubic-bezier(.2,.7,.2,1)"></span><span style="position:absolute;left:{{ trLab.w }};top:50%;width:7px;height:7px;margin:-4px 0 0 -4px;border-radius:50%;border:1px solid #93B4FF;background:{{ trLab.bg }};box-shadow:{{ trLab.glow }};transition:left 1.6s cubic-bezier(.2,.7,.2,1),background .4s ease 1.2s,box-shadow .4s ease 1.2s"></span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:32px 80px;align-items:start;margin:clamp(40px,5vw,64px) 0 clamp(64px,8vw,112px)">
+      <h2 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:300;line-height:1.06;letter-spacing:.005em;color:#F8FAFF;text-wrap:balance;font-size:clamp(40px,5.4vw,78px)">Ancient foundations.<br><span style="color:#6EA8FF">A brighter tomorrow.</span></h2>
+      <div style="display:flex;flex-direction:column;gap:20px;padding-top:clamp(0px,.8vw,10px)">
+        <p style="margin:0;max-width:48ch;font-size:17px;line-height:1.65;color:#C9D5F5;text-wrap:pretty">MaisogLabs is the independent technology laboratory of Paulo Maisog. A body of work across intelligent systems, research, automation, and experimental software, built around clear architecture, evidence before claims, and accountable human judgment.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF"><span>Founded by Paulo Maisog</span><span aria-hidden="true" style="color:#56648C">/</span><span>Est. 2026</span></div>
+        <nav aria-label="About Paulo Maisog" style="display:flex;flex-wrap:wrap;gap:8px 28px;font-family:'Montserrat',sans-serif;font-size:14px">
+          <a href="#" style="color:#C9D5F5;padding:6px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:100% 1px;transition:color .3s ease" style-hover="color:#F8FAFF">About →</a>
+          <a href="#" style="color:#C9D5F5;padding:6px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:100% 1px;transition:color .3s ease" style-hover="color:#F8FAFF">Experience →</a>
+          <a href="#" style="color:#C9D5F5;padding:6px 0;background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:100% 1px;transition:color .3s ease" style-hover="color:#F8FAFF">Resume →</a>
+        </nav>
+      </div>
+    </div>
+    <h3 style="margin:0 0 20px;font-weight:400;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">Six principles the lab is built on</h3>
+    <ol data-traj="Pr" onMouseLeave="{{ prLeave }}" style="list-style:none;margin:0;padding:0 0 6px;display:grid;grid-template-columns:{{ prCols }};row-gap:28px">
+      <sc-for list="{{ principles }}" as="q" hint-placeholder-count="6">
+        <li style="position:relative;padding-top:14px">
+          <span aria-hidden="true" style="position:absolute;left:0;right:0;top:6px;height:1px;background:rgba(147,180,255,.16)"></span>
+          <span aria-hidden="true" style="position:absolute;left:0;top:6px;height:1px;width:{{ trPr.w }};background:#3B82F6;opacity:{{ q.segOp }};transition:width .5s linear {{ q.delay }},opacity .3s ease"></span>
+          <span aria-hidden="true" style="position:absolute;left:-3px;top:3px;width:7px;height:7px;border-radius:50%;border:1px solid #93B4FF;background:{{ q.nodeBg }};box-shadow:{{ q.nodeGlow }};transform:scale({{ q.nodeScale }});transition:background .35s ease {{ q.delay }},box-shadow .3s ease,transform .3s ease"></span>
+          <button onMouseEnter="{{ q.enter }}" onFocus="{{ q.enter }}" onClick="{{ q.enter }}" onBlur="{{ prLeave }}" style="all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;width:100%;min-height:128px;margin-top:8px;padding:6px 16px 8px;border-left:1px solid {{ q.divider }};cursor:default;transition:border-color .3s ease">
+            <span style="font-family:'Montserrat',sans-serif;font-weight:300;font-size:20px;line-height:1;color:#3B82F6">{{ q.num }}</span>
+            <span style="font-family:'Montserrat',sans-serif;font-weight:500;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:{{ q.titleColor }};transition:color .3s ease">{{ q.name }}</span>
+            <span style="font-size:14px;line-height:1.5;color:{{ q.descColor }};text-wrap:pretty;transition:color .3s ease">{{ q.desc }}</span>
+          </button>
+        </li>
+      </sc-for>
+    </ol>
+  </div>
+</section>
+
+<section aria-label="Aqueduct" data-screen-label="01b Aqueduct" style="position:relative;background:#050B1F;padding-top:clamp(24px,3vw,48px)">
+  <div ref="{{ bandRef }}" role="img" aria-label="A Roman aqueduct beneath a planetary horizon" style="position:relative;width:100%;aspect-ratio:21/9;min-height:min(60vh,480px);max-height:820px;overflow:hidden;background:#0A1433">
+    <div ref="{{ aqRef }}" style="position:absolute;inset:0;background:#0A1433 url(assets/plate-aqueduct-v4.png) 70% center / cover no-repeat;transform-origin:62% 62%"></div>
+    <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,#050B1F 0%,rgba(5,11,31,0) 14%,rgba(5,11,31,0) 84%,#050B1F 100%)"></div>
+  </div>
+</section>
+
+<section id="systems" data-screen-label="02 Systems" style="position:relative;background:#050B1F;padding:clamp(72px,9vw,128px) clamp(20px,4vw,56px) clamp(72px,9vw,128px)">
+  <div style="max-width:1320px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">
+      <span style="white-space:nowrap"><span style="color:#3B82F6">02</span> / Systems</span>
+      <span data-traj="Sys" aria-hidden="true" style="flex:1;min-width:32px;position:relative;height:1px;background:rgba(147,180,255,.14)"><span style="position:absolute;left:0;top:0;height:1px;width:{{ trSys.w }};background:linear-gradient(90deg,rgba(59,130,246,.15),#3B82F6);transition:width 1.6s cubic-bezier(.2,.7,.2,1)"></span><span style="position:absolute;left:{{ trSys.w }};top:50%;width:7px;height:7px;margin:-4px 0 0 -4px;border-radius:50%;border:1px solid #93B4FF;background:{{ trSys.bg }};box-shadow:{{ trSys.glow }};transition:left 1.6s cubic-bezier(.2,.7,.2,1),background .4s ease 1.2s,box-shadow .4s ease 1.2s"></span></span>
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7F8DB5">Ideas · Systems · Projects · A more intelligent world</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:clamp(32px,4vw,56px);align-items:flex-start;margin-top:clamp(40px,5vw,64px)">
+      <div style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:24px">
+        <h2 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:300;line-height:1.06;letter-spacing:.005em;color:#F8FAFF;text-wrap:balance;font-size:clamp(34px,3.6vw,52px)">Six disciplines,<br><span style="color:#6EA8FF">one working system.</span></h2>
+        <p style="margin:0;max-width:40ch;font-size:15px;line-height:1.6;color:#9AA8CC;text-wrap:pretty">Select a discipline to see what it connects to and which lab projects use it.</p>
+        <ol aria-label="Disciplines" style="list-style:none;margin:8px 0 0;padding:0;display:grid;grid-auto-flow:{{ selFlow }};grid-auto-columns:{{ selCols }};overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(147,180,255,.16)">
+          <sc-for list="{{ items }}" as="it" hint-placeholder-count="6">
+            <li style="border-bottom:1px solid rgba(147,180,255,.16)">
+              <button onClick="{{ it.select }}" aria-pressed="{{ it.isActive }}" style="all:unset;box-sizing:border-box;width:100%;min-height:48px;display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;padding:12px {{ selPad }} 12px 0;cursor:pointer;color:{{ it.color }};transition:color .25s ease" style-hover="color:#F8FAFF">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:{{ it.numColor }}">{{ it.num }}</span>
+                <span style="font-family:'Montserrat',sans-serif;font-size:15px;font-weight:{{ it.weight }};letter-spacing:.2em;text-transform:uppercase;white-space:nowrap">{{ it.name }}</span>
+                <span style="width:8px;height:8px;border-radius:50%;border:1px solid #93B4FF;background:{{ it.dotBg }};box-shadow:{{ it.dotGlow }};transition:all .3s ease"></span>
+              </button>
+            </li>
+          </sc-for>
+        </ol>
+      </div>
+
+      <div style="flex:1.7 1 420px;min-width:0;padding:4px 8px 8px">
+        <div role="group" aria-label="Relationship diagram for {{ activeName }}" style="position:relative;width:100%;max-width:540px;margin:0 auto;aspect-ratio:1">
+          <svg viewBox="0 0 100 100" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+            <g fill="none">
+              <circle cx="50" cy="50" r="46" stroke="#93B4FF" stroke-dasharray="1 4" opacity=".22" vector-effect="non-scaling-stroke"></circle>
+              <circle cx="50" cy="50" r="36" stroke="#93B4FF" opacity=".2" vector-effect="non-scaling-stroke"></circle>
+            <line x1="50" y1="50" x2="77" y2="12.8" stroke="#3B82F6" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" style="opacity:{{ po0 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="93.7" y2="64.2" stroke="#3B82F6" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" style="opacity:{{ po1 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="50" y2="96" stroke="#3B82F6" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" style="opacity:{{ po2 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="6.3" y2="64.2" stroke="#3B82F6" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" style="opacity:{{ po3 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="23" y2="12.8" stroke="#3B82F6" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" style="opacity:{{ po4 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="50" y2="14" stroke="#93B4FF" stroke-width="1.2" stroke-dasharray="{{ sd0 }}" vector-effect="non-scaling-stroke" style="opacity:{{ so0 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="84.2" y2="38.9" stroke="#93B4FF" stroke-width="1.2" stroke-dasharray="{{ sd1 }}" vector-effect="non-scaling-stroke" style="opacity:{{ so1 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="71.2" y2="79.1" stroke="#93B4FF" stroke-width="1.2" stroke-dasharray="{{ sd2 }}" vector-effect="non-scaling-stroke" style="opacity:{{ so2 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="28.8" y2="79.1" stroke="#93B4FF" stroke-width="1.2" stroke-dasharray="{{ sd3 }}" vector-effect="non-scaling-stroke" style="opacity:{{ so3 }};transition:opacity .5s ease"></line>
+            <line x1="50" y1="50" x2="15.8" y2="38.9" stroke="#93B4FF" stroke-width="1.2" stroke-dasharray="{{ sd4 }}" vector-effect="non-scaling-stroke" style="opacity:{{ so4 }};transition:opacity .5s ease"></line>
+            </g>
+          </svg>
+          <sc-for list="{{ pnodes }}" as="u" hint-placeholder-count="0">
+            <button onClick="{{ u.go }}" aria-label="Open project {{ u.name }}" tabIndex="{{ u.tab }}" style="all:unset;cursor:pointer;position:absolute;left:{{ u.x }}%;top:{{ u.y }}%;width:44px;height:44px;transform:translate(-50%,-50%);display:grid;place-items:center;z-index:6;opacity:{{ u.op }};pointer-events:{{ u.pe }};transition:opacity .45s ease">
+              <span style="width:9px;height:9px;transform:rotate(45deg);border:1px solid #F8FAFF;background:#050B1F;box-shadow:0 0 10px rgba(37,99,235,.7)"></span>
+              <span style="position:absolute;top:{{ u.lblTop }};bottom:{{ u.lblBot }};left:50%;transform:translateX({{ u.lblTx }});font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#E4EAFB;white-space:nowrap">{{ u.name }}</span>
+            </button>
+          </sc-for>
+          <sc-for list="{{ dnodes }}" as="d" hint-placeholder-count="0">
+            <button onClick="{{ d.select }}" aria-label="{{ d.label }}" aria-pressed="{{ d.pressed }}" style="all:unset;cursor:pointer;position:absolute;left:{{ d.x }}%;top:{{ d.y }}%;width:{{ d.size }}px;height:{{ d.size }}px;transform:translate(-50%,-50%);border-radius:50%;z-index:{{ d.z }};transition:left .7s cubic-bezier(.2,.7,.2,1),top .7s cubic-bezier(.2,.7,.2,1),width .5s ease,height .5s ease">
+              <span aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;border:1px solid {{ d.border }};background:radial-gradient(circle at 50% 38%,#0E1E4E,#050B1F 72%);box-shadow:{{ d.glow }};opacity:{{ d.op }};transition:border-color .4s ease,box-shadow .4s ease,opacity .4s ease"></span>
+              <span aria-hidden="true" style="position:absolute;inset:-8px;border-radius:50%;border:1px solid #3B82F6;opacity:{{ d.ringOp }};transform:scale({{ d.ringScale }});transition:{{ d.ringTr }}"></span>
+              <span aria-hidden="true" style="position:absolute;left:50%;top:{{ d.iconTop }};width:{{ d.iconW }};aspect-ratio:1;transform:translate(-50%,-50%);background:{{ d.iconBg }} center / contain no-repeat;opacity:{{ d.op }};transition:width .5s ease,top .5s ease,opacity .4s ease"></span>
+              <span style="position:absolute;left:50%;top:70%;transform:translateX(-50%);display:{{ d.inDisp }};font-family:'Montserrat',sans-serif;font-weight:500;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#F8FAFF;white-space:nowrap">{{ d.name }}</span>
+              <span style="position:absolute;left:50%;top:calc(100% + 8px);width:150px;transform:translateX(-50%);display:{{ d.outDisp }};flex-direction:column;align-items:center;gap:3px;text-align:center">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:500;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:{{ d.nameColor }};transition:color .4s ease">{{ d.name }}</span>
+                <span style="font-size:12px;line-height:1.35;color:{{ d.capColor }};transition:color .4s ease">{{ d.cap }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+        <div aria-hidden="true" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 22px;margin-top:56px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9AA8CC">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:18px;height:1px;background:#93B4FF"></span>Connected discipline</span>
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;transform:rotate(45deg);border:1px solid #F8FAFF"></span>Project using it</span>
+        </div>
+      </div>
+
+      <div aria-live="polite" style="flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:28px;padding-left:clamp(18px,2vw,28px);border-left:1px solid rgba(147,180,255,.16)">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7F8DB5">Selected discipline</span>
+          <h3 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:300;font-size:clamp(24px,2.4vw,32px);letter-spacing:.14em;text-transform:uppercase;color:#F8FAFF">{{ activeName }}</h3>
+          <p style="margin:0;font-size:15px;line-height:1.6;color:#C9D5F5;text-wrap:pretty">{{ activeDesc }}</p>
+        </div>
+        <div>
+          <span style="display:block;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">Connects to</span>
+          <ul style="list-style:none;margin:0;padding:0">
+            <sc-for list="{{ linked }}" as="l" hint-placeholder-count="2">
+              <li style="border-top:1px solid rgba(147,180,255,.12)"><button onClick="{{ l.select }}" style="all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:12px;align-items:baseline;padding:10px 0;cursor:pointer;transition:color .25s ease;color:#F8FAFF" style-hover="color:#93B4FF"><span style="font-size:14px">{{ l.name }}</span><span style="font-size:13px;color:#9AA8CC">{{ l.role }}</span><span aria-hidden="true" style="font-size:12px;color:#56648C"></span></button></li>
+            </sc-for>
+          </ul>
+        </div>
+        <div>
+          <span style="display:block;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">Used in projects</span>
+          <ul style="list-style:none;margin:0;padding:0">
+            <sc-for list="{{ usesList }}" as="u" hint-placeholder-count="3">
+              <li style="border-top:1px solid rgba(147,180,255,.12)"><button onClick="{{ u.go }}" style="all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) auto;gap:12px;align-items:baseline;padding:10px 0;cursor:pointer;transition:color .25s ease;color:#F8FAFF" style-hover="color:#93B4FF"><span style="font-size:14px">{{ u.name }}</span><span style="font-size:13px;color:#9AA8CC">{{ u.role }}</span><span aria-hidden="true" style="font-size:13px;color:#3B82F6">↓</span></button></li>
+            </sc-for>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects" data-screen-label="03 Projects" style="position:relative;background:#050B1F;padding:clamp(56px,7vw,96px) clamp(20px,4vw,56px) clamp(72px,9vw,128px)">
+  <div style="max-width:1320px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">
+      <span style="white-space:nowrap"><span style="color:#3B82F6">03</span> / Projects</span>
+      <span data-traj="Proj" aria-hidden="true" style="flex:1;min-width:32px;position:relative;height:1px;background:rgba(147,180,255,.14)"><span style="position:absolute;left:0;top:0;height:1px;width:{{ trProj.w }};background:linear-gradient(90deg,rgba(59,130,246,.15),#3B82F6);transition:width 1.6s cubic-bezier(.2,.7,.2,1)"></span><span style="position:absolute;left:{{ trProj.w }};top:50%;width:7px;height:7px;margin:-4px 0 0 -4px;border-radius:50%;border:1px solid #93B4FF;background:{{ trProj.bg }};box-shadow:{{ trProj.glow }};transition:left 1.6s cubic-bezier(.2,.7,.2,1),background .4s ease 1.2s,box-shadow .4s ease 1.2s"></span></span>
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7F8DB5">From research to real-world impact</span>
+    </div>
+    <div ref="{{ projWrapRef }}" style="position:relative;display:flex;flex-wrap:wrap;gap:clamp(28px,4vw,56px);margin-top:clamp(36px,4vw,56px);align-items:flex-start">
+      <ol ref="{{ projListRef }}" aria-label="Projects" style="flex:1 1 240px;min-width:0;list-style:none;margin:0;padding:0;display:grid;grid-auto-flow:{{ selFlow }};grid-auto-columns:{{ selCols }};overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(147,180,255,.16)">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="5">
+          <li style="border-bottom:1px solid rgba(147,180,255,.16)">
+            <button data-prow="" onClick="{{ p.select }}" aria-pressed="{{ p.isActive }}" style="all:unset;box-sizing:border-box;width:100%;min-height:52px;display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;padding:14px {{ selPad }} 14px 0;cursor:pointer;color:{{ p.color }};transition:color .25s ease" style-hover="color:#F8FAFF">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:{{ p.numColor }}">{{ p.num }}</span>
+              <span style="font-family:'Montserrat',sans-serif;font-weight:{{ p.weight }};font-size:15px;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap">{{ p.name }}</span>
+              <span style="width:8px;height:8px;border-radius:50%;border:1px solid #93B4FF;background:{{ p.dotBg }};box-shadow:{{ p.dotGlow }};transition:all .3s ease"></span>
+            </button>
+          </li>
+        </sc-for>
+      </ol>
+      <div ref="{{ projPanelRef }}" aria-live="polite" style="flex:2.6 1 520px;min-width:0;position:relative;padding-left:clamp(20px,2.4vw,36px);border-left:1px solid rgba(147,180,255,.16)">
+        <span aria-hidden="true" style="position:absolute;left:-1px;top:0;width:1px;height:{{ connSegH }}px;background:linear-gradient(180deg,rgba(59,130,246,0),#3B82F6);transition:height .5s cubic-bezier(.2,.7,.2,1);display:{{ connDisplay }}"></span>
+        <div style="opacity:{{ pOp }};transform:translateX({{ pTx }});transition:opacity .25s ease,transform .35s cubic-bezier(.2,.7,.2,1)">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:clamp(24px,2.4vw,32px);line-height:1;color:#3B82F6">{{ pNum }}</span>
+            <span aria-hidden="true" style="width:1px;height:24px;background:rgba(147,180,255,.3)"></span>
+            <h3 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:500;font-size:16px;letter-spacing:.2em;text-transform:uppercase;color:#F8FAFF">{{ pName }}</h3>
+            <sc-if value="{{ pHasStatus }}" hint-placeholder-val="{{ false }}">
+              <span style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-size:10.5px;color:#93B4FF"><span style="width:6px;height:6px;border-radius:50%;background:#6EA8FF;box-shadow:0 0 8px rgba(110,168,255,.9)"></span>{{ pStatus }}</span>
+            </sc-if>
+            <sc-if value="{{ pHasUrl }}" hint-placeholder-val="{{ false }}">
+              <a href="{{ pUrl }}" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF;padding:8px 0" style-hover="color:#F8FAFF">View project →</a>
+            </sc-if>
+          </div>
+          <p style="margin:18px 0 0;font-family:'Montserrat',sans-serif;font-size:17px;line-height:1.45;color:#6EA8FF;text-wrap:pretty">{{ pTag }}</p>
+          <p style="margin:10px 0 0;max-width:68ch;font-size:15px;line-height:1.6;color:#9AA8CC;text-wrap:pretty">{{ pDesc }}</p>
+          <ul aria-label="Disciplines" style="list-style:none;margin:18px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px">
+            <sc-for list="{{ pTags }}" as="t" hint-placeholder-count="3">
+              <li style="padding:5px 14px;border:1px solid rgba(147,180,255,.32);border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#C9D5F5">{{ t.name }}</li>
+            </sc-for>
+          </ul>
+          <figure style="margin:24px 0 0">
+            <div style="position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(147,180,255,.22);border-radius:6px;background:#081334;overflow:hidden">
+              <sc-for list="{{ projects }}" as="e" hint-placeholder-count="0">
+                <div style="position:absolute;inset:0;display:{{ e.display }}">
+                  <image-slot id="evidence-{{ e.key }}" shape="rect" placeholder="{{ e.artifact }}"></image-slot>
+                </div>
+              </sc-for>
+            </div>
+            <figcaption style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-size:10.5px;color:#7F8DB5">Fig. 03.{{ pNum }} — {{ pArtifactShort }}</figcaption>
+          </figure>
+        </div>
+      </div>
+      <span aria-hidden="true" style="position:absolute;top:{{ connY }}px;left:{{ connX1 }}px;width:{{ connW }}px;height:1px;background:#3B82F6;display:{{ connDisplay }};transition:top .5s cubic-bezier(.2,.7,.2,1)"></span>
+      <span aria-hidden="true" style="position:absolute;top:{{ connY }}px;left:{{ connX2 }}px;width:11px;height:11px;margin:-5px 0 0 -5.5px;border-radius:50%;background:#F8FAFF;box-shadow:0 0 10px rgba(37,99,235,.9), 0 0 28px rgba(37,99,235,.5);display:{{ connDisplay }};transition:top .5s cubic-bezier(.2,.7,.2,1)"></span>
+    </div>
+  </div>
+</section>
+
+<section id="journal" data-screen-label="04 Journal" style="position:relative;background:#050B1F;padding:clamp(56px,7vw,96px) clamp(20px,4vw,56px) clamp(80px,10vw,140px)">
+  <div style="max-width:1320px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">
+      <span style="white-space:nowrap"><span style="color:#3B82F6">04</span> / Journal</span>
+      <span data-traj="Jr" aria-hidden="true" style="flex:1;min-width:32px;position:relative;height:1px;background:rgba(147,180,255,.14)"><span style="position:absolute;left:0;top:0;height:1px;width:{{ trJr.w }};background:linear-gradient(90deg,rgba(59,130,246,.15),#3B82F6);transition:width 1.6s cubic-bezier(.2,.7,.2,1)"></span></span>
+      <div role="group" aria-label="Filter notes" style="display:flex;gap:4px 18px;flex-wrap:wrap">
+        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+          <button onClick="{{ f.pick }}" aria-pressed="{{ f.pressed }}" style="all:unset;cursor:pointer;padding:8px 0;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:{{ f.color }};background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:{{ f.line }} 1px;transition:color .25s ease,background-size .3s ease" style-hover="color:#F8FAFF">{{ f.name }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 40px;margin:clamp(36px,4vw,56px) 0 clamp(28px,3vw,40px)">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <h2 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:300;line-height:1.06;letter-spacing:.005em;color:#F8FAFF;text-wrap:balance;font-size:clamp(34px,3.8vw,54px)">Research Notes</h2>
+        <p style="margin:0;max-width:44ch;font-size:15px;line-height:1.6;color:#9AA8CC">Field notes, technical writeups, and lessons from the lab.</p>
+      </div>
+      <a href="#" style="font-family:'Montserrat',sans-serif;font-size:14px;color:#93B4FF;padding:8px 0" style-hover="color:#F8FAFF">More notes →</a>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:20px">
+      <sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+        <article onMouseEnter="{{ n.enter }}" onMouseLeave="{{ n.leave }}" style="display:{{ n.display }};flex-direction:column;border:1px solid {{ n.border }};border-radius:4px;overflow:hidden;background:#060E27;transition:border-color .3s ease">
+          <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:#0A1433">
+            <div style="position:absolute;inset:0;transform:{{ n.imgTx }};transition:transform .7s cubic-bezier(.2,.7,.2,1)">
+              <image-slot id="{{ n.id }}" shape="rect" src="{{ n.img }}" placeholder="Drop note image"></image-slot>
+            </div>
+          </div>
+          <a href="#" onFocus="{{ n.enter }}" onBlur="{{ n.leave }}" style="display:flex;flex-direction:column;gap:10px;flex:1;padding:18px 20px 20px;color:inherit">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:{{ n.metaColor }};transition:color .3s ease">{{ n.date }}</span>
+            <h3 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:400;font-size:18px;line-height:1.3;color:#F8FAFF;text-wrap:balance"><span style="background-image:linear-gradient(#3B82F6,#3B82F6);background-repeat:no-repeat;background-position:0 100%;background-size:{{ n.lineW }} 1px;padding-bottom:2px;transition:background-size .4s cubic-bezier(.2,.7,.2,1)">{{ n.title }}</span></h3>
+            <p style="margin:0;font-size:14px;line-height:1.55;color:#9AA8CC;text-wrap:pretty">{{ n.desc }}</p>
+            <span style="margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:{{ n.metaColor }};transition:color .3s ease"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.tags }}</span><span aria-hidden="true" style="color:#93B4FF;opacity:{{ n.arrowOp }};transform:{{ n.arrowTx }};transition:transform .3s ease,opacity .3s ease">→</span></span>
+          </a>
+        </article>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section id="contact" data-screen-label="05 Contact" style="position:relative;overflow:hidden;background:#020918;padding:clamp(88px,11vw,160px) clamp(20px,4vw,56px) clamp(200px,24vw,340px)">
+  <div aria-hidden="true" style="position:absolute;inset:0;background:#020918 url(assets/plate-contact.png) center 40% / cover no-repeat"></div>
+  <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,#020918 0%,rgba(2,9,24,.55) 22%,rgba(2,9,24,.62) 70%,#020918 100%),radial-gradient(ellipse 70% 60% at 50% 55%,rgba(2,9,24,.55),rgba(2,9,24,0) 80%)"></div>
+  <div style="position:relative;max-width:1320px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">
+      <span style="white-space:nowrap"><span style="color:#3B82F6">05</span> / Contact</span>
+      <span data-traj="Con" aria-hidden="true" style="flex:1;min-width:32px;position:relative;height:1px;background:rgba(147,180,255,.14)"><span style="position:absolute;left:0;top:0;height:1px;width:{{ trCon.w }};background:linear-gradient(90deg,rgba(59,130,246,.15),#3B82F6);transition:width 1.6s cubic-bezier(.2,.7,.2,1)"></span><span style="position:absolute;left:{{ trCon.w }};top:50%;width:7px;height:7px;margin:-4px 0 0 -4px;border-radius:50%;border:1px solid #93B4FF;background:{{ trCon.bg }};box-shadow:{{ trCon.glow }};transition:left 1.6s cubic-bezier(.2,.7,.2,1),background .4s ease 1.2s,box-shadow .4s ease 1.2s"></span></span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:40px 64px;align-items:center;margin-top:clamp(40px,5vw,72px)">
+      <h2 style="margin:0;font-family:'Montserrat',sans-serif;font-weight:300;line-height:1.06;letter-spacing:.005em;color:#F8FAFF;text-wrap:balance;font-size:clamp(44px,6vw,92px);line-height:1">Humanity<br>orbits higher.</h2>
+      <div data-traj="Final" style="display:flex;align-items:center">
+        <span aria-hidden="true" style="flex:1;min-width:40px;position:relative;height:1px;background:rgba(147,180,255,.12)">
+          <span style="position:absolute;left:0;top:0;height:1px;width:{{ trFinal.w }};background:linear-gradient(90deg,rgba(59,130,246,0),#6EA8FF);opacity:{{ cLine }};transition:width 1.6s cubic-bezier(.2,.7,.2,1) .15s,opacity .3s ease"></span>
+        </span>
+        <span aria-hidden="true" style="position:relative;flex:none;width:14px;height:14px;border-radius:50%;border:1px solid #93B4FF;background:{{ trFinal.bg }};box-shadow:{{ cGlow }};transform:scale({{ cScale }});transition:background .5s ease 1.6s,box-shadow .3s ease,transform .3s ease">
+          <span style="position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;border:1px solid rgba(59,130,246,.55);opacity:{{ cRing }};transition:opacity .6s ease"></span>
+        </span>
+        <div style="flex:none;display:flex;flex-direction:column;gap:8px;margin-left:clamp(20px,2.4vw,32px);max-width:min(360px,62vw)">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#93B4FF">Correspondence</span>
+          <a href="mailto:maisog36@gmail.com" onMouseEnter="{{ cIn }}" onMouseLeave="{{ cOut }}" onFocus="{{ cIn }}" onBlur="{{ cOut }}" style="display:flex;align-items:center;gap:10px;font-family:'Montserrat',sans-serif;font-weight:400;font-size:clamp(18px,2.2vw,30px);letter-spacing:.02em;color:#F8FAFF;padding:4px 0;overflow-wrap:anywhere"><span style="background-image:linear-gradient(90deg,#3B82F6,#93B4FF);background-repeat:no-repeat;background-position:0 100%;background-size:{{ cUnder }} 1px;padding-bottom:4px;transition:background-size .4s cubic-bezier(.2,.7,.2,1)">maisog36@gmail.com</span><span aria-hidden="true" style="font-size:.7em;color:#93B4FF;opacity:{{ cArrow }};transform:translateX({{ cArrowX }});transition:opacity .3s ease,transform .3s ease">→</span></a>
+          <p style="margin:0;font-size:14px;line-height:1.6;color:#9AA8CC;text-wrap:pretty">For work that expands what people can understand, create, and explore.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer style="background:#020918;padding:28px clamp(20px,4vw,56px) 36px">
+  <div style="max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:clamp(16px,3vw,32px)">
+    <a href="#" style="font-family:'Montserrat',sans-serif;font-weight:500;font-size:12px;letter-spacing:.28em;color:#F8FAFF;white-space:nowrap">MAISOG<span style="color:#3B82F6">LABS</span></a>
+    <span aria-hidden="true" style="flex:1;min-width:16px;height:1px;background:rgba(147,180,255,.16)"></span>
+    <span style="font-family:'Montserrat',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:.5em;text-transform:uppercase;color:#93B4FF;white-space:nowrap">Ideas in orbit</span>
+    <span aria-hidden="true" style="flex:1;min-width:16px;height:1px;background:rgba(147,180,255,.16)"></span>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#9AA8CC;white-space:nowrap">© 2026</span>
+  </div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;heroArch&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;plateVideo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Full&quot;,&quot;Calm&quot;,&quot;Still&quot;],&quot;default&quot;:&quot;Full&quot;,&quot;tsType&quot;:&quot;'Full'|'Calm'|'Still'&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  state = { active: 2, slotOf: [0, 1, -1, 2, 3, 4], ring: 'idle', project: 0, pOp: 1, seen: {}, conn: null, narrow: false, prHover: null, jf: 'All', jh: null, cHover: false };
+  projWrapRef = React.createRef(); projListRef = React.createRef(); projPanelRef = React.createRef();
+  bandRef = React.createRef(); aqRef = React.createRef(); plateVideoRef = React.createRef(); pushRef = React.createRef(); heroInnerRef = React.createRef();
+  heroRef = React.createRef(); bgRef = React.createRef(); stageRef = React.createRef();
+  orbitRef = React.createRef(); nodeRef = React.createRef(); haloRef = React.createRef(); videoRef = React.createRef(); videoRef2 = React.createRef(); cur = 0; xf = false;
+  SLOTS = [[50,14],[84.2,38.9],[71.2,79.1],[28.8,79.1],[15.8,38.9]];
+  PSLOTS = [[77,12.8],[93.7,64.2],[50,96],[6.3,64.2],[23,12.8]];
+  DISC = [
+    { name: 'AI', icon: '01-ai', cap: 'Models and analysis', desc: 'Applies models to real tasks: evaluation, assistants and decision support that keep a person in the loop.', links: [2, 1] },
+    { name: 'Automation', icon: '02-automation', cap: 'Turns research into tools', desc: 'Takes repetitive work off people’s hands while keeping every step visible and reversible.', links: [0, 4] },
+    { name: 'Research', icon: '04-research', cap: 'Evidence and validation', desc: 'Evidence gathering, adversarial review, and validation used across MaisogLabs systems.', links: [0, 4, 3] },
+    { name: 'Security', icon: '03-security', cap: 'Safe, responsible use', desc: 'Keeps systems safe to run: least-privilege defaults, threat-aware design and audit trails.', links: [4, 5] },
+    { name: 'Systems', icon: '05-systems', cap: 'Infrastructure and data', desc: 'Keeps software running day to day: observable parts, clear boundaries, few surprises.', links: [5, 1, 3] },
+    { name: 'Architecture', icon: '08-strategy', cap: 'Structure and boundaries', desc: 'Defines how MaisogLabs systems are structured, separated, and allowed to interact.', links: [4, 3] }
+  ];
+  PROJ = [
+    { name: 'Sentinel / DevOS', key: 'sentinel', kind: 'AI operating system', status: 'Active', url: '', tags: [0, 2, 1, 5], artifact: 'Drop a real Sentinel screenshot, architecture or traceability view', short: 'Working interface', tag: 'A research and operations system for intelligent work.', desc: 'Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment.' },
+    { name: 'SU', key: 'su', kind: 'Research engine', status: '', url: '', tags: [2, 0], artifact: 'Drop the SU evidence model, research workflow or source map', short: 'Evidence model', tag: 'A research engine that ties every claim to its source.', desc: 'SU gathers evidence, runs adversarial review, and keeps a traceable link between each conclusion and the material behind it.' },
+    { name: 'ClinicFlow', key: 'clinicflow', kind: 'Clinic automation', status: '', url: '', tags: [1, 4, 3, 5], artifact: 'Drop the ClinicFlow booking pipeline or interface', short: 'Booking pipeline', tag: 'Booking and workflow automation for clinics.', desc: 'ClinicFlow moves appointments, reminders and intake through one automated pipeline, with every step visible to staff.' },
+    { name: 'Maisog Kilat', key: 'kilat', kind: 'Strategy validation', status: '', url: '', tags: [2, 0, 4, 5], artifact: 'Drop Kilat research architecture or validation output', short: 'Validation output', tag: 'Strategy research, testing and validation.', desc: 'Maisog Kilat is a research environment for developing strategies and testing them against real data before they are trusted.' },
+    { name: 'Maisog Guild', key: 'guild', kind: 'Opportunity platform', status: '', url: '', tags: [4, 1], artifact: 'Drop the Guild quest / opportunity interface', short: 'Quest interface', tag: 'An opportunity and quest platform.', desc: 'Maisog Guild turns opportunities into structured quests that people can discover, take on and complete.' }
+  ];
+  PRIN = [['I', 'Clarity', 'Say plainly what a system does.'], ['II', 'Evidence', 'Claims follow tests, not the reverse.'], ['III', 'Architecture', 'Structure is decided before code.'], ['IV', 'Experiment', 'Build small to learn something real.'], ['V', 'Judgment', 'A person makes the final call.'], ['VI', 'Traceability', 'Every step can be followed back.']];
+  NOTES = [
+    { id: 'note-1', date: 'Mar 12, 2026', title: 'Architecture Decisions for AI Systems', desc: 'A practical framework for designing maintainable, auditable AI systems.', tags: 'Architecture · AI · Systems', cat: 'Build', img: 'assets/plate-hero-v4.png' },
+    { id: 'note-2', date: 'Feb 28, 2026', title: 'From Research to Real Tools', desc: 'Notes on turning research prototypes into reliable, useful software.', tags: 'Research · Automation · Execution', cat: 'Research', img: '' },
+    { id: 'note-3', date: 'Feb 10, 2026', title: 'The Role of Human Judgment', desc: 'Why human judgment remains essential in an age of increasingly capable AI systems.', tags: 'Philosophy · AI · Society', cat: 'Thoughts', img: 'assets/plate-aqueduct-v4.png' }
+  ];
+  selectProject(i) {
+    if (i === this.state.project) return;
+    clearTimeout(this.pt);
+    if (this.mode() === 'Still') { this.setState({ project: i }); return; }
+    this.setState({ pOp: 0 });
+    this.pt = setTimeout(() => this.setState({ project: i, pOp: 1 }), 200);
+  }
+  goProject(j) {
+    this.selectProject(j);
+    const el = document.getElementById('projects');
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY, behavior: this.reduced ? 'auto' : 'smooth' });
+  }
+
+  mode() { return this.reduced ? 'Still' : (this.props.motion ?? 'Full'); }
+
+  componentDidMount() {
+    if (window.matchMedia) { this.mq = window.matchMedia('(max-width: 699px)'); this.onMq = () => this.setState({ narrow: this.mq.matches }); this.onMq(); this.mq.addEventListener('change', this.onMq); }
+    this.reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.touch = window.matchMedia && window.matchMedia('(hover: none)').matches;
+    this.bindMedia(); this.syncVideo(); this.syncPush(); this.syncAq(); this.entry();
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    if ('IntersectionObserver' in window && this.bandRef.current) { this.aio = new IntersectionObserver(([en]) => { this.aqVis = en.isIntersecting; if (this._aq) { if (en.isIntersecting) this._aq.play(); else this._aq.pause(); } }); this.aio.observe(this.bandRef.current); }
+    if ('IntersectionObserver' in window) {
+      this.io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { const k = en.target.getAttribute('data-traj'); this.setState(s => ({ seen: { ...s.seen, [k]: true } })); this.io.unobserve(en.target); } }), { threshold: 0.4 });
+      document.querySelectorAll('[data-traj]').forEach(el => this.io.observe(el));
+    }
+    this.onResize = () => this.measureConn(); window.addEventListener('resize', this.onResize);
+    this.mt = setTimeout(() => this.measureConn(), 400);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.measureConn());
+    this.heroVis = true;
+    if ('IntersectionObserver' in window && this.heroRef.current) {
+      this.hio = new IntersectionObserver(([en]) => {
+        this.heroVis = en.isIntersecting;
+        const A = [this.videoRef.current, this.videoRef2.current, this.plateVideoRef.current];
+        if (!this.heroVis) A.forEach(v => v && v.pause());
+        else if (this.mode() !== 'Still') { this.playV(A[this.cur]); if (A[2]) this.playV(A[2]); }
+        if (this._push) this.heroVis && this.mode() === 'Full' ? this._push.play() : this._push.pause();
+      });
+      this.hio.observe(this.heroRef.current);
+    }
+    const t0 = performance.now();
+    const step = (t) => {
+      if (!this.heroVis) { this.raf = requestAnimationFrame(step); return; }
+      const th = this.mode() === 'Full' ? ((t - t0) / 48000) * Math.PI * 2 + 0.7 : 0.7;
+      const x = 560 * Math.cos(th), y = 96 * Math.sin(th);
+      [this.nodeRef.current, this.haloRef.current].forEach(el => { if (el) { el.setAttribute('cx', x); el.setAttribute('cy', y); } });
+      this.tickLogo();
+      this.raf = requestAnimationFrame(step);
+    };
+    this.raf = requestAnimationFrame(step);
+  }
+  componentDidUpdate(pp, ps) {
+    if (ps && ps.project !== this.state.project) this.measureConn();
+    this.bindMedia(); if (pp.motion !== this.props.motion) { this.syncPush(); this.syncAq(); this.scrollTick(); }
+    if (pp.motion !== this.props.motion) { this.syncVideo(); if (this.mode() !== 'Full') this.resetDepth(); }
+  }
+  componentWillUnmount() { window.removeEventListener('scroll', this.onScroll); if (this.aio) this.aio.disconnect(); clearTimeout(this.pt); cancelAnimationFrame(this.st); if (this.hio) this.hio.disconnect(); if (this.mq) this.mq.removeEventListener('change', this.onMq); if (this.io) this.io.disconnect(); window.removeEventListener('resize', this.onResize); clearTimeout(this.mt); clearTimeout(this.xt); this.unbindMedia(); cancelAnimationFrame(this.raf); cancelAnimationFrame(this.tw); clearTimeout(this.to1); clearTimeout(this.to2); }
+
+  playV(v) { if (!v) return; v.muted = true; const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+  tickLogo() {
+    const A = [this.videoRef.current, this.videoRef2.current];
+    if (!A[0] || !A[1] || this.mode() === 'Still') return;
+    const cur = A[this.cur], nxt = A[1 - this.cur];
+    if (!cur.duration) return;
+    if (cur.paused && !this.xf && this.heroVis !== false) this.playV(cur);
+    if (!this.xf && cur.duration - cur.currentTime < 1.0) {
+      this.xf = true;
+      try { nxt.currentTime = 0; } catch (e) {}
+      this.playV(nxt);
+      nxt.style.opacity = '1'; cur.style.opacity = '0';
+      this.cur = 1 - this.cur;
+      clearTimeout(this.xt);
+      this.xt = setTimeout(() => { cur.pause(); try { cur.currentTime = 0; } catch (e) {} this.xf = false; }, 1100);
+    }
+  }
+  plateTime = () => {
+    const v = this.plateVideoRef.current; if (!v || !v.duration) return;
+    const left = v.duration - v.currentTime, fade = 1.2;
+    v.style.opacity = String(Math.max(0, Math.min(1, left / fade, v.currentTime / fade)));
+  };
+  plateEnd = () => { const v = this.plateVideoRef.current; if (!v || this.mode() === 'Still') return; v.currentTime = 0; const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+  bindMedia() {
+    const v = this.videoRef.current;
+    if (v && !this._lb) {
+      this._lb = true; this._tick = () => this.tickLogo();
+      [v, this.videoRef2.current].forEach(x => { if (x) { x.loop = false; x.addEventListener('timeupdate', this._tick); x.addEventListener('ended', this._tick); } });
+    }
+    const pv = this.plateVideoRef && this.plateVideoRef.current;
+    if (pv !== this._pv) {
+      if (this._pv) { this._pv.removeEventListener('timeupdate', this.plateTime); this._pv.removeEventListener('ended', this.plateEnd); }
+      this._pv = pv;
+      if (pv) { pv.addEventListener('timeupdate', this.plateTime); pv.addEventListener('ended', this.plateEnd); pv.muted = true; const q = pv.play(); if (q && q.catch) q.catch(() => {}); }
+    }
+  }
+  unbindMedia() {
+    if (this._pv) { this._pv.removeEventListener('timeupdate', this.plateTime); this._pv.removeEventListener('ended', this.plateEnd); }
+  }
+  measureConn() {
+    const w = this.projWrapRef.current, l = this.projListRef.current, p = this.projPanelRef.current;
+    if (!w || !l || !p) return;
+    const rows = l.querySelectorAll('[data-prow]'); const b = rows[this.state.project];
+    const W = w.getBoundingClientRect(), L = l.getBoundingClientRect(), P = p.getBoundingClientRect();
+    if (!b || P.top - L.top > 40) { if (this.state.conn) this.setState({ conn: null }); return; }
+    const B = b.getBoundingClientRect();
+    const c = { y: Math.round(B.top + B.height / 2 - W.top), x1: Math.round(L.right - W.left), x2: Math.round(P.left - W.left), py: Math.round(B.top + B.height / 2 - P.top) };
+    const o = this.state.conn; if (!o || o.y !== c.y || o.x1 !== c.x1 || o.x2 !== c.x2) this.setState({ conn: c });
+  }
+  tr(k) {
+    const on = this.reduced || this.mode() === 'Still' || !!this.state.seen[k];
+    return { w: on ? '100%' : '0%', h: on ? 'calc(100% - 14px)' : '0px', bg: on ? '#F8FAFF' : '#050B1F', glow: on ? '0 0 10px rgba(37,99,235,.9), 0 0 28px rgba(37,99,235,.5)' : 'none', ring: on ? 1 : 0, arch: on ? 0.55 : 0.18, key: on ? '#93B4FF' : 'rgba(147,180,255,.25)' };
+  }
+  syncPush() {
+    const el = this.pushRef.current; if (!el || !el.animate) return;
+    if (this.mode() === 'Full') {
+      if (!this._push) this._push = el.animate([{ transform: 'scale(1.1)' }, { transform: 'scale(1.145)' }], { duration: 38000, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' });
+      else this._push.play();
+    } else if (this._push) { this._push.cancel(); this._push = null; }
+  }
+  syncVideo() {
+    const v = this.videoRef.current; if (!v) return;
+    v.muted = true; const pv = this.plateVideoRef.current; if (pv) { pv.muted = true; const q = pv.play(); if (q && q.catch) q.catch(() => {}); }
+    const v2 = this.videoRef2.current;
+    if (this.mode() === 'Still') {
+      clearTimeout(this.xt); this.xf = false; this.cur = 0;
+      [v, v2].forEach(x => { if (x) { x.pause(); try { x.currentTime = 0; } catch (e) {} } });
+      v.style.opacity = '1'; if (v2) v2.style.opacity = '0';
+    } else { const a = this.cur ? v2 : v; this.playV(a || v); }
+  }
+  resetDepth() {
+    if (this.bgRef.current) this.bgRef.current.style.transform = '';
+    if (this.stageRef.current) this.stageRef.current.style.transform = '';
+    if (this.orbitRef.current) this.orbitRef.current.style.transform = 'translate(-50%,-50%)';
+
+  }
+  onMove = (e) => {
+    if (this.mode() !== 'Full' || this.touch || !this.heroRef.current) return;
+    const r = this.heroRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - r.left) / r.width - 0.5) * 2, dy = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    if (this.bgRef.current) this.bgRef.current.style.transform = `translate(${-dx * 2}px,${-dy * 1.5}px)`;
+    if (this.orbitRef.current) this.orbitRef.current.style.transform = `translate(calc(-50% + ${dx * 7}px),calc(-50% + ${dy * 5}px))`;
+    if (this.stageRef.current) this.stageRef.current.style.transform = `translate(${dx * 4}px,${dy * 3}px)`;
+
+  };
+
+  entry() {
+    if (this.mode() === 'Still' || !Element.prototype.animate) return;
+    const D = [0, 350, 700, 1150, 1550];
+    document.querySelectorAll('[data-entry]').forEach(el => {
+      const k = +el.getAttribute('data-entry');
+      el.animate(k >= 3 ? [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }] : [{ opacity: 0 }, { opacity: 1 }], { duration: k === 0 ? 1200 : 1000, delay: D[k], easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
+    });
+  }
+  syncAq() {
+    const el = this.aqRef.current; if (!el || !el.animate) return;
+    if (this.mode() === 'Full') {
+      if (!this._aq) this._aq = el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }], { duration: 60000, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' });
+      if (this.aqVis === false) this._aq.pause();
+    } else if (this._aq) { this._aq.cancel(); this._aq = null; }
+  }
+  scrollTick = () => {
+    this.st = 0;
+    const el = this.heroInnerRef.current, hr = this.heroRef.current; if (!el || !hr) return;
+    if (this.mode() === 'Still') { el.style.transform = ''; el.style.opacity = ''; return; }
+    const p = Math.max(0, Math.min(1, window.scrollY / (hr.offsetHeight || 1)));
+    el.style.transform = 'translateY(' + (p * 56).toFixed(1) + 'px)'; el.style.opacity = String(1 - p * 0.45);
+  };
+  onScroll = () => { if (!this.st) this.st = requestAnimationFrame(this.scrollTick); };
+  prLeave = () => this.setState({ prHover: null });
+
+  select(i) {
+    const a = this.state.active; if (i === a) return;
+    const s = [...this.state.slotOf]; s[a] = s[i]; s[i] = -1;
+    clearTimeout(this.to2);
+    if (this.mode() === 'Still') { this.setState({ active: i, slotOf: s }); return; }
+    this.setState({ active: i, slotOf: s, ring: 'start' });
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ ring: 'go' })));
+    this.to2 = setTimeout(() => this.setState({ ring: 'idle' }), 900);
+  }
+
+  renderVals() {
+    const { active, ring, project, slotOf, prHover, jf, jh, cHover, narrow } = this.state;
+    const G = '0 0 10px rgba(37,99,235,.9), 0 0 28px rgba(37,99,235,.5)';
+    const D = this.DISC, P = this.PROJ, SL = this.SLOTS, PS = this.PSLOTS;
+    const links = D[active].links;
+    const uses = P.map((p, j) => p.tags.includes(active) ? j : -1).filter(j => j >= 0);
+    const items = D.map((d, i) => { const on = i === active; return { num: '0' + (i + 1), name: d.name, isActive: on, select: () => this.select(i), color: on ? '#F8FAFF' : '#9AA8CC', numColor: on ? '#3B82F6' : '#7F8DB5', weight: on ? 500 : 400, dotBg: on ? '#F8FAFF' : 'transparent', dotGlow: on ? G : 'none' }; });
+    const dnodes = D.map((d, i) => {
+      const on = i === active, lk = links.includes(i), pos = on ? [50, 50] : SL[slotOf[i]];
+      return {
+        name: d.name, cap: d.cap, iconBg: 'url(assets/icons/' + d.icon + '.svg)', select: () => this.select(i), label: on ? d.name + ', selected' : 'Select ' + d.name, pressed: on,
+        x: pos[0], y: pos[1], size: on ? 132 : 56, z: on ? 5 : 4,
+        border: on ? '#6EA8FF' : lk ? 'rgba(147,180,255,.75)' : 'rgba(147,180,255,.28)',
+        glow: on ? '0 0 0 1px rgba(59,130,246,.3), 0 0 44px rgba(37,99,235,.45)' : lk ? '0 0 16px rgba(37,99,235,.35)' : 'none',
+        op: on || lk ? 1 : 0.5, iconW: on ? '44%' : '66%', iconTop: on ? '40%' : '50%', inDisp: on ? 'block' : 'none', outDisp: on ? 'none' : 'flex',
+        nameColor: lk ? '#F8FAFF' : '#9AA8CC', capColor: lk ? '#C9D5F5' : '#7F8DB5',
+        ringOp: on && ring === 'start' ? 0.9 : 0, ringScale: on && ring === 'go' ? 1.35 : 0.92,
+        ringTr: on && ring === 'go' ? 'transform .7s cubic-bezier(.2,.7,.2,1), opacity .7s ease' : 'none'
+      };
+    });
+    const sv = {};
+    SL.forEach((p, k) => { const lk = links.includes(slotOf.indexOf(k)); sv['so' + k] = lk ? 0.8 : 0.2; sv['sd' + k] = lk ? 'none' : '1 3'; });
+    PS.forEach((p, j) => { sv['po' + j] = uses.includes(j) ? 0.6 : 0; });
+    const pnodes = P.map((p, j) => { const u = uses.includes(j), x = PS[j][0], y = PS[j][1]; return { name: p.name, x, y, op: u ? 1 : 0, pe: u ? 'auto' : 'none', tab: u ? 0 : -1, go: () => this.goProject(j), lblTop: y < 30 ? 'auto' : '32px', lblBot: y < 30 ? '32px' : 'auto', lblTx: x < 30 ? '-20%' : x > 70 ? '-80%' : '-50%' }; });
+    const linked = links.map(k => ({ name: D[k].name, role: D[k].cap, select: () => this.select(k) }));
+    const usesList = uses.map(j => ({ name: P[j].name, role: P[j].kind, go: () => this.goProject(j) }));
+    const trPr = this.tr('Pr'), lit = trPr.w === '100%';
+    const principles = this.PRIN.map(([num, name, desc], i) => { const hv = prHover === i; return {
+      num, name, desc, enter: () => this.setState({ prHover: i }), delay: (i * 0.22).toFixed(2) + 's',
+      nodeBg: lit ? '#F8FAFF' : '#050B1F', nodeGlow: hv ? '0 0 12px rgba(37,99,235,1), 0 0 32px rgba(37,99,235,.6)' : lit ? '0 0 6px rgba(37,99,235,.7)' : 'none', nodeScale: hv ? 1.6 : 1,
+      segOp: hv ? 1 : prHover === null ? 0.7 : 0.3, divider: hv ? 'rgba(147,180,255,.6)' : 'rgba(147,180,255,.16)',
+      titleColor: hv ? '#F8FAFF' : '#C9D5F5', descColor: hv ? '#E4EAFB' : '#8391BA' }; });
+    const projects = P.map((p, i) => { const on = i === project; return { num: '0' + (i + 1), name: p.name, key: p.key, artifact: p.artifact, display: on ? 'block' : 'none', isActive: on, select: () => this.selectProject(i), color: on ? '#F8FAFF' : '#9AA8CC', numColor: on ? '#3B82F6' : '#7F8DB5', weight: on ? 500 : 400, dotBg: on ? '#F8FAFF' : 'transparent', dotGlow: on ? G : 'none' }; });
+    const cp = P[project];
+    const notes = this.NOTES.map((n, i) => { const hv = jh === i; return { ...n, display: jf === 'All' || n.cat === jf ? 'flex' : 'none', enter: () => this.setState({ jh: i }), leave: () => this.setState({ jh: null }), imgTx: hv ? 'scale(1.04) translateY(-3px)' : 'scale(1)', metaColor: hv ? '#93B4FF' : '#7F8DB5', lineW: hv ? '100%' : '0%', arrowTx: hv ? 'translateX(4px)' : 'translateX(0)', arrowOp: hv ? 1 : 0.5, border: hv ? 'rgba(147,180,255,.4)' : 'rgba(147,180,255,.16)' }; });
+    const filters = ['All', 'Research', 'Build', 'Thoughts'].map(f => ({ name: f, pressed: jf === f, pick: () => this.setState({ jf: f }), color: jf === f ? '#F8FAFF' : '#7F8DB5', line: jf === f ? '100%' : '0%' }));
+    const trFinal = this.tr('Final'), c = this.state.conn;
+    return {
+      ...sv, items, dnodes, pnodes, linked, usesList, principles, projects, notes, filters,
+      activeName: D[active].name, activeDesc: D[active].desc,
+      selFlow: narrow ? 'column' : 'row', selCols: narrow ? 'max-content' : '100%', selPad: narrow ? '22px' : '4px',
+      prLeave: this.prLeave, prCols: narrow ? 'repeat(2,minmax(0,1fr))' : 'repeat(auto-fit,minmax(max(calc(100% / 6 - 1px),min(calc(100% / 3 - 1px),calc((900px - 100%) * 999))),1fr))',
+      heroRef: this.heroRef, bgRef: this.bgRef, stageRef: this.stageRef, orbitRef: this.orbitRef, heroInnerRef: this.heroInnerRef,
+      nodeRef: this.nodeRef, haloRef: this.haloRef, videoRef: this.videoRef, videoRef2: this.videoRef2, onMove: this.onMove,
+      showArch: this.props.heroArch ?? false,
+      bandRef: this.bandRef, aqRef: this.aqRef, plateVideoRef: this.plateVideoRef, pushRef: this.pushRef,
+      plateVideo: this.props.plateVideo || '', hasPlateVideo: !!this.props.plateVideo && this.mode() !== 'Still',
+      projWrapRef: this.projWrapRef, projListRef: this.projListRef, projPanelRef: this.projPanelRef,
+      trLab: this.tr('Lab'), trSys: this.tr('Sys'), trProj: this.tr('Proj'), trJr: this.tr('Jr'), trCon: this.tr('Con'), trPr, trFinal,
+      pNum: '0' + (project + 1), pName: cp.name, pTag: cp.tag, pDesc: cp.desc, pStatus: cp.status, pHasStatus: !!cp.status, pUrl: cp.url, pHasUrl: !!cp.url,
+      pArtifactShort: cp.short, pTags: cp.tags.map(k => ({ name: D[k].name })),
+      pOp: this.state.pOp, pTx: this.state.pOp ? '0px' : '10px',
+      cIn: () => this.setState({ cHover: true }), cOut: () => this.setState({ cHover: false }),
+      cGlow: cHover ? '0 0 14px rgba(37,99,235,1), 0 0 40px rgba(37,99,235,.6)' : trFinal.glow, cScale: cHover ? 1.25 : 1, cRing: cHover ? 1 : trFinal.ring * 0.6, cLine: cHover ? 1 : 0.7,
+      cUnder: cHover ? '100%' : '28%', cArrow: cHover ? 1 : 0, cArrowX: cHover ? '0px' : '-6px',
+      connDisplay: c ? 'block' : 'none', connY: c ? c.y : 0, connX1: c ? c.x1 : 0, connX2: c ? c.x2 : 0, connW: c ? Math.max(0, c.x2 - c.x1) : 0, connSegH: c ? c.py : 0
+    };
+  }
+}
+</script>
+</body>
+</html>
