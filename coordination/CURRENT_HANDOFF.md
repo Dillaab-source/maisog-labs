@@ -1,127 +1,192 @@
-# Current Handoff — MaisogLabs V10-A Remediation Cycle 1 (D-091 / AS-119)
+# Current Handoff — MaisogLabs V10 Controlled Clean Replacement (D-092)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-V10-A-REM1-0001
-cycle_id: MAISOGLABS_WEB_V10_A
-input_base_commit: 114d97905352b9a9424811c6905e59ef620c712c
-review_target_commit: 114d97905352b9a9424811c6905e59ef620c712c
+handoff_id: H-WEB-V10-CLEAN-0001
+cycle_id: MAISOGLABS_WEB_V10_CLEAN
+input_base_commit: 8dd34c8b09d0ad6ef15fbafc0096dc8c9bccfe64
+review_target_commit: 8dd34c8b09d0ad6ef15fbafc0096dc8c9bccfe64
 applicable_review_id: ML-DEVOS-AS-119
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve, and every result here is `ACTOR_REPORTED`.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve, and every result here is `ACTOR_REPORTED`. Nothing here is preview or production evidence: this session cannot reach Cloudflare or `*.workers.dev`.
 
 ## Objective
 
-Remediation cycle 1 under `DIR-WEB-V10-A-REM1-0001` (D-091): close AS119-F001 and AS119-F003, add the AS119-F004 deterministic tests, and produce the AS119-F002 / RFC-021 §13 evidence matrix. Return exact results, including failures.
+Replace the public homepage presentation with a faithful implementation of the V10 reference (SHA-256 `6e47ffca…6dab`) carrying the D-088 facts, preserve all backend/runtime infrastructure, verify locally, and obtain a non-production preview through the Workers Builds branch build (`DIR-WEB-V10-CLEAN-0001`, D-092).
 
-**Input/output SHAs:**
-- base `114d97905352b9a9424811c6905e59ef620c712c` (the D-091 directive issue; its parent is `3a4b75901032e4b3bdc798dd07572cdc692bb443`);
+**SHAs:**
+- rollback point: branch `snapshot/pre-v10-clean-replacement` → `146f645390fd24099426c3cb8ab8a511eafb12db` (created through the GitHub API; the session proxy refused a tag push);
+- base `8dd34c8b09d0ad6ef15fbafc0096dc8c9bccfe64` (D-092 + directive);
 - result: the commit publishing this handoff;
-- main `aebc881e8890c00090d714602591138a045bd3b0` (unchanged; checked with `git ls-remote` before work).
+- main `aebc881e8890c00090d714602591138a045bd3b0` (unchanged).
 
-**Summary:**
-- **Corrections done:** F001 and F003.
-- **Tests:** the F004 tests are added. Full `npm test` is green on Linux (936/936).
-- **Evidence:** the F002 matrix is complete.
-- **Still failing:** V10 pixel parity (0/20 views within threshold) and 2 serious axe `color-contrast` findings. Both are unresolved. Fixing either needs edits outside D-091's corrective scope, so per directive instruction 6 they are recorded, not repaired.
+## Approach
+
+V10 is a Claude Design `dc` file: one template with inline styles and `{{ }}` bindings plus one React class (`Component extends DCLogic`), rendered in the browser by `support.js` with CDN React and Babel. It makes no API calls; its projects, disciplines, notes and email are hardcoded.
+
+Rather than re-implement it by hand, a one-off converter turned the template into JSX with the dc runtime's exact semantics (whole-binding values, string joins, `cssToObj` style parsing, `style-hover` as `!important` hover classes, the runtime's whitespace rules), and V10's class became a React class component. Every edit against V10 is an exact, asserted replacement in `harness/v10assemble.py` and is marked `D-092` in the source.
 
 ## Changed files
 
-**Application (allowed surfaces only):**
-- `app/globals.css`: the former `app/v10.css` rules, byte-for-byte after its two-line header, appended last under a new header comment. This keeps the cascade order the import produced. The now-dead `.research-thumb` rule is removed. SHA-256 `e3727a08…c327`.
-- `app/layout.js`: removed only `import "./v10.css";`. SHA-256 `0ff78201…63d9`.
-- `app/v10.css`: deleted. Its blob at base had SHA-256 `752b3700…9987`.
-- `components/site/ResearchSurface.js`: removed `FIXED_NOTE_PLATES` and the per-entry `research-thumb` span. The now-unused `itemIndex` map argument is removed. No replacement media, route or fetch. SHA-256 `ff19eb3d…67bc`.
+**Replaced / added:**
+- `components/v10/V10Home.js` (new; 662 lines; SHA-256 `5c9a1958…a15d2706`): the V10 homepage.
+- `app/page.js`: renders `V10Home` from the governed content boundary plus `v10Content` (validated fail-closed).
+- `app/globals.css`: now V10's own style rules, hover classes, self-hosted Montserrat / Inter / IBM Plex Mono faces, and the D1/D2/N2 rules (1.4 KB built).
+- `app/layout.js`: `DesignRuntime` removed.
+- `app/journal/journal.css`: the previous `app/globals.css`, moved byte-for-byte (`git mv`) and imported by `app/journal/page.js` only.
+- `data/site.js`: `spatialContent` replaced by `v10Content` (entry descriptor, V10's six disciplines, eight project profiles). `siteContent` unchanged, so D1 migration parity is unchanged.
+- `lib/content/schema.mjs`: `validateSpatialContent` replaced by `validateV10Content`.
+- `tests/v10-home.test.mjs` (new, 12 tests).
 
-**Tests:**
-- `tests/v10-runtime-matrix.test.mjs` (new, 10 tests; SHA-256 `b356fd9f…c67d`).
+**Removed (superseded by V10):** `app/DesignRuntime.js`; `components/site/**` (9 files); `lib/design/overlay.mjs`, `lib/design/v10-theme.mjs`; their suites `tests/website-redesign.test.mjs`, `tests/v10-baseline.test.mjs`, `tests/v10-theme.test.mjs`, `tests/v10-runtime-matrix.test.mjs`, `tests/design-overlay.test.mjs`.
 
-**Docs and evidence:**
-- `docs/product/V10_IMPLEMENTATION_CONTRACT.md`: one sentence naming the new test file.
-- `docs/product/V10_DIVERGENCE_REGISTER.md`: added "Residual differences observed in remediation cycle 1 (not approved)", R1–R6.
-- `docs/product/evidence/v10/README.md`: added the remediation cycle 1 method and results.
-- `docs/product/evidence/v10/rem1/**` (new; 63 files, about 20 MB):
-  - `captures/` (20 candidate PNGs and 20 reference PNGs);
-  - `compare/` (20 side-by-side/diff JPEGs);
-  - `results.json` (SHA-256 `67ea1dc3…82ce`);
-  - `harness/rem1-evidence.mjs` (SHA-256 `fbc774af…8a9f35`);
-  - `SHA256SUMS` (SHA-256 `fe1d0736…03d2`), listing every other file.
+**Docs/evidence:** `docs/product/V10_IMPLEMENTATION_CONTRACT.md` (rewritten for D-092), `docs/product/V10_DIVERGENCE_REGISTER.md` (D-092 section added), `docs/product/evidence/v10/clean/**` (new, 12 MB, `SHA256SUMS`).
 
-**Coordination:**
-- `coordination/CURRENT_HANDOFF.md`, `coordination/STATE.md`.
-- `coordination/archive/directives/DIR-WEB-V10-A-REM1-0001.{md,provenance.json}` and the index row (blob `fd1e7c1ddd28d97270874a057a7dbcf3f6225088`; bytes compared identical to `114d979:coordination/CURRENT_DIRECTIVE.md`).
+**Coordination:** `CURRENT_HANDOFF.md`, `STATE.md`, `archive/directives/DIR-WEB-V10-CLEAN-0001.{md,provenance.json}` and the index row (blob `509c5f0a…`, compared byte-identical).
 
-**Untouched:** nothing in `worker/`, `migrations/`, `wrangler.jsonc`, `package*.json`, `lib/`, `data/`, `public/`, other components, README/ARCHITECTURE or workflows. No D1/R2/Access/DNS/secret/environment/production action, no API diagnosis, no theme publication, and no merge, deploy, promotion or rollback.
+## Preserved (untouched)
 
-## Finding closure map
+`worker/**`, `migrations/**`, `wrangler.jsonc`, `package.json`, `package-lock.json`, `app/admin/**`, `app/journal/JournalClient.js`, `public/**`, `.github/**`, `components/Logo.js`, and all governance/SENTINEL/DevOS records outside `coordination/`. `components/ProjectRail.js` and `components/BlueprintIcon.js` are unused legacy files outside D-092's surfaces and are left in place. No D1/R2/Access/DNS/secret/environment action; no production data touched.
 
-| Finding | Action | Evidence |
+## V10 dependencies discovered
+
+| V10 file | Class | Outcome |
 |---|---|---|
-| AS119-F001 | CSS consolidated into `app/globals.css`; import removed; `app/v10.css` deleted | Test "V10 rules live in app/globals.css"; pixel comparison of the pre- vs post-remediation build at tolerance 0: 16/20 views identical, and the 4 Research views differ only where the thumbnails were. Minified CSS bundle 48,571 → 43,025 bytes (the minifier merges the now-single file). |
-| AS119-F003 | Fixed plate thumbnails removed; no backend/media path added | Test "Research surface ships no fixed Journal-entry imagery"; `rem1/compare/*-journal.jpg` |
-| AS119-F004 | New deterministic tests | The F1 matrix (404, 400/401/403/502/503, 500, malformed JSON, network failure, never-settling request → nothing applied; 11 invalid payload shapes → exactly the default V10 state, which the test ties to the static CSS fallbacks); §7.2 panel 55/79/80/90/91/"x"/missing → 80/80/80/90/90/90/90 and border 9/10/25/26/45/"x"/missing → 10/10/25/25/25/16/16, both through `normalizeV10Theme` and through the runtime; §7.1 all 8 ignored fields × every allowed value from `worker/d1/validate.mjs` plus `"unknown-value"`, `""`, `7`, `null`; overlay strictly monotonic at every integer 40→85 and applied correctly by the runtime at each. Mutation spot-checks: removing the non-2xx guard fails the F1 test; widening the opacity clamp to 55 fails the §7.2 test (both reverted). |
-| AS119-F002 | Evidence matrix produced | `docs/product/evidence/v10/README.md` "Remediation cycle 1 evidence" and `rem1/` |
+| `Maisog Labs Home v10.dc.html` template | application source (markup, inline styles) | converted to JSX |
+| its `data-dc-script` class | interactive JavaScript | ported as a React class |
+| its `<style>` block | styles | `app/globals.css` |
+| Google Fonts (Montserrat, Inter, IBM Plex Mono) | fonts | self-hosted from `public/v10/fonts` |
+| `support.js` (dc runtime), CDN React 18.3.1 / ReactDOM / Babel 7.29.0 | runtime/build | not shipped; the app's React 19 renders the port |
+| `image-slot.js` | authoring widget (image drop slots) | not shipped |
+| `assets/plate-hero-v4.png`, `logo-mark.mp4`, `logo-mark-poster.png`, `favicon.svg`, `icons/01-ai, 02-automation, 03-security, 04-research, 05-systems, 08-strategy.svg` | static assets / animation | reused from `public/v10/**` (hashes unchanged) |
+| `assets/plate-aqueduct-v4.png` | note placeholder image | not used |
+| API/runtime assumptions | none (all content hardcoded) | real data only via `/api/journal` |
+| build configuration | none (browser-compiled) | existing Next.js static export |
 
-`DesignRuntime.js` is tested by evaluating its unmodified source with injected imports, a synchronous `useEffect` and a fake `<html>` root. This is the same slice-evaluation idiom `tests/spatial-design-controls-v2.test.mjs` uses. It is not a real DOM render; the in-browser F1 captures cover that.
+The earlier `components/site/**`, `DesignRuntime` and `lib/design/**` were not needed by V10.
+
+## Backend / API classification
+
+| Surface | Class | Handling |
+|---|---|---|
+| `GET /api/journal`, `/api/journal/:slug` | **A — required** (D-088 real Journal) | homepage calls the index once per Research open; `/journal` page unchanged; fails safe |
+| `GET /api/design` | **C — not used by V10** | no longer requested by any public page; Worker route kept unchanged (Worker is out of scope) |
+| `/admin` + `/admin/api/*` (dashboard, design, projects, journal, media) | **C — not used by V10** | preserved unchanged; admin design controls and `?design-preview=1` no longer affect the public homepage (V10-B would re-map them) |
+| D1 `DB` binding | A indirectly (Journal); C for design | untouched |
+| R2 `MEDIA` binding | C | untouched; no public media route exists, so Journal images are not shown |
+| Cloudflare Access vars | C | untouched |
+| `run_worker_first` list | unchanged | `/api/design` stays Worker-first; harmless |
 
 ## Tests and evidence
 
-- `node --test` focused V10/design/routing set (`v10-runtime-matrix`, `v10-theme`, `v10-baseline`, `design-overlay`, `website-redesign`, `worker-public-design`, `spatial-design-controls-v2`): **58/58 PASS**.
-- Content and D1 compatibility (`content`, `d1-migration`, `d1-audit`): **63/63 PASS**.
-- Full `npm test` (Linux, Node v22.22.2): **936/936 PASS, exit 0**. The AS-119 Windows-host failures (S6 isolation, empty-environment git fixtures, skill frontmatter) did not reproduce here. No unrelated file was changed.
+- `node --test tests/v10-home.test.mjs`: **12/12 PASS**.
+- Full `npm test` (Linux, Node v22.22.2): **913/913 PASS**, exit 0 (the count dropped from 936 because the five suites for deleted code were removed with it).
 - `npm run build`: **PASS**; static `/`, `/_not-found`, `/admin`, `/journal`.
-- `git diff --check`: clean. `sha256sum -c SHA256SUMS` in `rem1/`: OK.
-- **Browser evidence** (Playwright 1.56.1, Chromium; method in the evidence README):
-  - parity: **FAIL 0/20** at a 1.0% threshold with channel tolerance 32. Mismatch ranges 3.4%–26.9%.
-  - repeatability: 20/20 candidate re-captures pixel-identical.
-  - F1 in browser: **28/28** pixel-identical to the no-API baseline.
-  - axe: **2 serious** (Contact `.contact-legal`, 4.3:1 vs 4.5:1, both viewports), 0 critical. Plus unreviewed `incomplete` items: `color-contrast` over imagery on every view, and one `aria-prohibited-attr` on Projects.
-  - contrast (Systems): 8.37:1 to 19.02:1.
-  - keyboard/Escape/focus: PASS.
-  - D1 and D2: PASS.
-  - F3 routing: PASS.
-  - runtime network: **PASS**, 0 external requests, no forbidden runtime strings in `out/`.
+- `git diff --check`: clean. `sha256sum -c SHA256SUMS` in `clean/`: OK.
+- **Parity against the pinned V10 reference** (1.0% threshold, channel tolerance 32), in % of pixels differing:
+
+  | View | Desktop Still | Desktop Full | Mobile Still | Mobile Full |
+  |---|---|---|---|---|
+  | Entry | 0.00 | 0.02 | 2.21 | 2.15 |
+  | Systems | 0.73 | 0.58 | 1.86 | 1.78 |
+  | Projects | 0.59 | 0.47 | 0.94 | 0.85 |
+  | Research | 8.39 | 7.86 | 12.98 | 12.89 |
+  | Contact | 0.41 | 0.34 | 3.00 | 2.46 |
+
+  **9/20 within threshold**, including desktop Entry pixel-identical. The previous implementation measured 3.4–26.9% on every view.
+- **Repeatability:** Still ≤ 4 px. Full up to 2,432 px (video frame decode).
+- **Errors:** no page errors and no console errors or warnings in any candidate capture.
+- **axe:** **0 violations** (0 serious, 0 critical) on all 10 views. Only `incomplete` items remain.
+- **Routing, keyboard and interaction checks:** routing incl. aliases, Escape, focus, project roving keys, `08 / 08` counter, discipline select, mailto, Journal links, D1 menu (44px, Escape, navigate-and-close), D2 (0 overlapping visible labels): all PASS.
+- **Network:** no external requests; the only API path is `/api/journal`; no forbidden runtime strings in `out/`.
+- **Local Workers runtime** (`wrangler dev --local`, wrangler 4.131.1, local simulation only):
+  - `/` and `/journal` return 200; `/admin` returns 401; assets 200; unknown path 404.
+  - `/api/journal` and `/api/design` return **500** with `D1_ERROR: no such table: journal_entries` / `theme_settings` against the empty local D1.
+  - In the browser: no exception; Research shows "The journal could not be loaded right now."; `/api/design` is never requested.
+
+## Preview
+
+The push of this commit triggers the existing Workers Builds non-production branch build (`npx wrangler versions upload`, no promotion; D-055 / `ML-DEVOS-AS-074`).
+- **Stable branch alias:** `https://governance-maisoglabs-v0-1-maisog-labs.paulomaisog284.workers.dev` (from the check run on `146f645`).
+- **Version ID and per-version URL:** appear in the "Workers Builds: maisog-labs" check run on this commit.
+- **Verification:** this session cannot open either URL. Preview verification is Paulo's to run and record.
+
+## SU adversarial pass
+
+| Challenge | Finding |
+|---|---|
+| Missing V10 assets | none: every referenced asset/font exists (test) and loads (no 404 / console error); `plate-aqueduct` intentionally unused |
+| Old CSS contaminating V10 | none: the homepage loads only the 1.4 KB V10 stylesheet; the old stylesheet is route-scoped to `/journal` (its built chunk hash is unchanged) |
+| Hidden dependency on removed code | none found: build, 913 tests and a repo-wide search pass; admin only mentions `DesignRuntime` in comments |
+| Static preview vs Cloudflare runtime | local `wrangler dev` serves the same `out/` with the same `html_handling`/`run_worker_first`; routes and fail-safe behave the same. **Not proven on Cloudflare itself.** |
+| Broken routes | none locally (`/`, `/journal`, `/admin`, 404, redirects). The hash routes are client-side and were verified. |
+| Client-only interactions after deployment | verified on the built static output and under workerd; not on the preview host |
+| D1/env binding differences | **open risk:** production `/api/journal` has returned 500/1101 since Gate D (AS-116). The local runtime reproduces it exactly with a bound but unmigrated D1 (`no such table`), which now **strongly supports** that hypothesis. `wrangler.jsonc` carries no `database_id`, so how production's D1 is bound is **unresolved**. Until it is fixed, V10's Research panel shows its error line in preview and production. |
+| Mobile breakage | none found at 390×844: no horizontal overflow, D1/D2 pass; 2–3% residuals are attributed |
+| Animation failures | Full-mode captures show V10's entry, orbit, video crossfade and panel transitions; entry pre-render flash guarded (N2) with a fail-safe reveal |
+| Stale cache/assets | Next chunks are content-hashed; `/v10/*` asset names and hashes unchanged; HTML is served by the assets binding. A CDN edge cache of old HTML is possible until revalidation. **Not verifiable here.** |
+| Data loss | none possible from this change: no Worker, migration, binding or data operation |
+| Local-only features | none: no dev-only code path; the fixture Journal is harness-only |
 
 ## Unresolved findings and limitations
 
-1. **V10 parity not achieved (blocks RFC-021 §9 acceptance).** All 20 views exceed the threshold. The residual differences are structural, not only content-driven. They are recorded as R1–R6 in the divergence register (OPEN, not approved), covering:
-   - Entry lockup position and scale;
-   - the Systems heading, list, diagram and detail tables;
-   - the Projects list and detail with the "How it works" flow;
-   - the Research filters and cards;
-   - the two-column Contact layout;
-   - the panel header treatment.
+1. **Fidelity differences** (full list: `V10_DIVERGENCE_REGISTER.md`, D-092 section):
+   - C1–C6: eight projects and the 8-slot ring; approved spelling; three projects without flow or description; approved email; real Journal cards without images or tags; no filter row;
+   - D1 and D2 (approved);
+   - N1: hash aliases;
+   - N2: pre-render reveal guard;
+   - N3: fixed design-tool defaults;
+   - N4: `/journal` keeps its pre-V10 design;
+   - N5: `/api/design` no longer used.
 
-   Closing them needs changes to `components/site/{EntryStage,SystemsSurface,ProjectsSurface,ContactSurface,SpatialShell}.js` and `data/site.js`, which are outside D-091. Owner options: authorize a further bounded implementation cycle, approve some or all of R1–R6 as divergences, or both.
-2. **Serious contrast finding.** `.contact-legal` (`rgba(174,184,200,.62)`, defined in `app/globals.css` since Website Redesign V1 `c93d7de`, not introduced by V10-A) measures 4.3:1. Proposed patch, not applied: raise its alpha to at least 0.7 (or use `var(--muted)`). The rule is in an allowed file, but changing it is not one of D-091's listed corrections.
-3. **axe `incomplete` items** (text over the plate/gradients, and one `aria-prohibited-attr` on Projects) need manual review. They were not triaged.
-4. **Reference-harness limits.** V10 hardcodes its own content, so identical fixture content could not be supplied to both sides without modifying the reference. Content differences are part of the measured mismatch. Fonts on both sides are the same self-hosted files.
-5. `public/v10/assets/plate-aqueduct-v4.png` is no longer referenced by the runtime but stays in `public/` and the asset manifest (`public/` is outside D-091).
-6. `results.json` was produced by the harness before its only later edit: replacing a hardcoded scratch path with the `V10_UMD_DIR` variable. Measurement logic is unchanged.
+   The PROPOSED items need Architect review and owner approval.
+2. **Content provenance:** V10's copy for Sentinel/DevOS, SU, ClinicFlow, Maisog Kilat and Maisog Guild (taglines, descriptions, flows) is used as owner-supplied under D-092. D-090's V10-A had withheld Kilat/Guild details pending verified records (its D5). Paulo should confirm this copy.
+3. **Architecture:** removing the public `/api/design` layer supersedes RFC-021 §7 for the homepage. The Architect should decide whether this needs an RFC-021 amendment. Admin design controls now have no public effect.
+4. **Accessibility:** axe `incomplete` items (contrast over imagery, the decorative video's captions) are not manually triaged.
+5. **Preview/production verification** is owner-run; this session has no Cloudflare or `workers.dev` access.
+6. Unused `components/ProjectRail.js`, `components/BlueprintIcon.js` and `public/v10/assets/plate-aqueduct-v4.png` remain, because they are outside D-092's surfaces.
 7. **Carried forward:**
-   - the AS-116 production API incident remains open;
-   - README/ARCHITECTURE staleness is excluded;
-   - S6 stays parked at ML-DEVOS-AS-103, and O1 and O2 stay open;
-   - D-068 held; PR #7 and PR #10 unmerged.
+   - AS-116 production API incident open;
+   - S6 parked at ML-DEVOS-AS-103, O1 and O2 open;
+   - D-068 held;
+   - PR #7 and PR #10 unmerged.
+
+## Remaining production risks
+
+1. Research panel error line in production until the `/api/journal` D1 defect (AS-116) is fixed. This is now strongly supported as an unmigrated production D1; the fix is a separate owner-authorized remote D1 migration or binding action.
+2. Divergences C3, C5, C6 and N2–N5 are not yet owner-approved.
+3. Behaviour on the real Cloudflare edge (cache, headers, Access on `/admin`) is not verified by the Builder.
+4. `/journal` still shows the pre-V10 design, so the site has two visual languages until a V10 Journal page is designed.
+
+## Exact production promotion operation (not performed; not authorized)
+
+Governed path (D-057: merge and promotion are separate gates; same shape as Gate D):
+1. Separate owner decisions for (a) merging `governance/maisoglabs-v0.1` → `main` at an exact reviewed SHA and (b) production promotion.
+2. After the merge, Workers Builds runs `npx wrangler versions upload` for `main`. Record the new Version ID, whose provenance must be alias `main` / `version_upload`.
+3. From an authenticated session, re-read the active deployment, since the rollback target is whatever is active then (Gate D promoted `a667fc09-12d1-4fde-a75d-5d660729baa3`). Then promote exactly one allocation, without `force`:
+   `npx wrangler versions deploy <MAIN_VERSION_ID>@100% --yes`
+   (equivalently, the Cloudflare deployment API with that single 100% allocation).
+4. Verify production read-only: Entry, the four panels, aliases, 404, `/admin` → Access, `/journal`, and the Research state.
+5. **Rollback:** `npx wrangler versions deploy <PREVIOUS_ACTIVE_VERSION_ID>@100% --yes`.
+
+Promoting the governance-branch preview version directly (`versions deploy <PREVIEW_VERSION_ID>@100%`) is technically possible. It would bypass the main-merge gate, so it is not recommended.
 
 ## Evidence locations
 
-- `docs/product/evidence/v10/README.md` ("Remediation cycle 1 evidence").
-- `docs/product/evidence/v10/rem1/{captures,compare,results.json,SHA256SUMS,harness/}`.
-- `docs/product/V10_DIVERGENCE_REGISTER.md` (R1–R6).
-- `tests/v10-runtime-matrix.test.mjs`.
-- `coordination/archive/directives/DIR-WEB-V10-A-REM1-0001.md`.
+- `docs/product/evidence/v10/clean/` (README, `results.json`, captures, compares, harness, `SHA256SUMS`).
+- `docs/product/V10_DIVERGENCE_REGISTER.md`, `docs/product/V10_IMPLEMENTATION_CONTRACT.md`.
+- `tests/v10-home.test.mjs`.
+- `coordination/archive/directives/DIR-WEB-V10-CLEAN-0001.md`; rollback branch `snapshot/pre-v10-clean-replacement`.
 
 ## Governing references
 
-- **Authority:** D-091 (with D-090 and accepted ML-DEVOS-RFC-021).
-- **Directive:** DIR-WEB-V10-A-REM1-0001 (archived).
-- **Review:** ML-DEVOS-AS-119 (AS119-F001–F004).
+- **Authority:** D-092 (with D-088).
+- **Directive:** DIR-WEB-V10-CLEAN-0001 (archived).
+- **Review context:** ML-DEVOS-AS-119 (superseded re-review), ML-DEVOS-AS-116 (incident).
+- **Related:** ML-DEVOS-RFC-021, ML-DEVOS-RFC-010, D-057, D-055.
 - **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Next action
 
-The Architect independently re-reviews under the next unused immutable Architect Sync ID after ML-DEVOS-AS-119. `CURRENT_REMEDIATION_CYCLE` stays at 1 of 2.
-
-Parity (limitation 1) and contrast (limitation 2) likely need a Paulo scope decision before V10-A can be accepted. V10-B, API work, main merge and deployment remain separate.
+The Architect independently reviews this replacement under the next unused immutable Architect Sync ID after ML-DEVOS-AS-119, including the PROPOSED divergences and the RFC-021 §7 consequence. Paulo verifies the Workers Builds preview for this commit. Main merge, production promotion, the D1 fix and any rollback are separate owner decisions.

@@ -1,54 +1,36 @@
-# MaisogLabs V10-A implementation contract
+# MaisogLabs V10 homepage implementation contract
 
-Status: Builder implementation contract under D-090. Governing architecture: accepted `ML-DEVOS-RFC-021`. Controlling review: `ML-DEVOS-AS-118`.
+Status: Builder implementation contract under **D-092** (controlled clean replacement). Facts per **D-088**. It supersedes the D-090 V10-A contract that previously occupied this file (see Git history before `snapshot/pre-v10-clean-replacement`, commit `146f645`).
 
-## Static baseline
+## Source of truth
 
-The compiled public application is the V10 baseline. It uses repository components, CSS, local fonts, and the fixed asset allowlist in `public/v10/ASSET_MANIFEST.md`. It does not ship or call the Claude Design `dc` runtime, `support.js`, `image-slot.js`, Babel, CDN React, remote fonts, or remote media.
+`design-references/claude-v10/source/Maisog Labs Home v10.dc.html`, SHA-256 `6e47ffca9adb7e31522b046576b8d7800117dd38ee07c88167b8e7b5e3ed6dab`. Differences from it are listed in `V10_DIVERGENCE_REGISTER.md` (D-092 section).
 
-If `/api/design` is missing, returns an error, or returns malformed data, the runtime applies no caller-controlled presentation. The static result remains V10.
+## Structure
 
-## Content and routes
+- `components/v10/V10Home.js`: a client component. Its markup is generated from the V10 template by `docs/product/evidence/v10/clean/harness/v10conv.py` and keeps V10's inline styles verbatim (`css()` reproduces the dc runtime's style parsing); its class is V10's `Component` logic. Edits against V10 are made by `harness/v10assemble.py` as exact asserted replacements and marked `D-092` in the source.
+- `app/page.js`: a static server component. It reads the governed content boundary (`data/site.js` → `lib/content/local.mjs` → `lib/content/schema.mjs` → `lib/content/public.mjs`) plus `v10Content` (validated fail-closed by `validateV10Content`) and passes plain props.
+- `app/globals.css`: V10's own `<style>` rules, its two hover classes, self-hosted `@font-face` for Montserrat / Inter / IBM Plex Mono (`public/v10/fonts`, SIL OFL), and the D1/D2/N2 rules.
+- `app/journal/journal.css`: the pre-V10 stylesheet, loaded by `/journal` only.
+- Assets: `public/v10/assets/**` (hashed in `public/v10/ASSET_MANIFEST.md`), unchanged.
 
-- Projects, exactly once each and in owner-approved order: Sentinel/DevOS; SU; ClinicFlow; Maisog Kilat; Maisog Guild; Automation Hub; Cybersecurity Lab; Experimental Projects.
-- Contact: `paulo.maisog@maisoglabs.com`.
-- Canonical hashes: `#systems`, `#projects`, `#journal`, `#contact`.
-- Compatibility aliases: `#research` → `#journal`, `#process` → `#systems`, `#about` → `#contact`.
-- New public links use the canonical hashes.
+No dc runtime (`support.js`), `image-slot.js`, Babel, CDN React, remote font or remote asset is shipped.
 
-The project copy is fail-closed and plain-language. Where a project has no repository source record beyond its approved name, the public profile says that details await a verified source record instead of publishing prototype claims.
+## Runtime requests
 
-## Bounded design mapping
+The homepage makes one API request: `GET /api/journal`, the first time the Research panel opens (and again on reopening after an error). Failure, a non-2xx status or a malformed body shows "The journal could not be loaded right now." inside the V10 panel; the rest of the page is unaffected. It does not request `/api/design`.
 
-Only these persisted fields may affect the V10 public presentation:
+## Content
 
-| Input | Effective rule | V10 default |
-|---|---|---:|
-| `overlayIntensity` | finite values `round` then clamp to `40..85`; invalid values use 68 | 68 |
-| `panelOpacityPct` | finite values `round` then clamp to `80..90`; invalid values use 90 | 90 |
-| `borderIntensityPct` | finite values `round` then clamp to `10..25`; invalid values use 16 | 16 |
-| `radiusScalePct` | finite values `round` then clamp to `80..120`; invalid values use 100 | 100 |
-| `animationPreset` | `calm` → Full; `minimal` → Calm; `off` → Still; invalid → Full | Full |
-| `reducedMotionMode` | `always-reduced` forces Still; otherwise respect the user preference | respect system |
-| `projectRailMode` | `snap` or `free-scroll`; invalid → snap | snap |
+- Projects: the eight published projects, in order, from `siteContent.projects`; presentation fields from `v10Content.projectProfiles`.
+- Disciplines: V10's six, with V10's captions, descriptions and links, from `v10Content.disciplines`.
+- Contact: `siteContent.contact.email` (`paulo.maisog@maisoglabs.com`).
+- Research: published Journal entries (title, summary, published date).
 
-`heroBackgroundPreset`, `accentPreset`, `cardStylePreset`, `panelPreset`, `layoutDensityPreset`, `typographyPreset`, `headingScalePreset`, and `journalCardMode` are deliberately ignored.
+## Routes
 
-## AS118-F001 overlay lock
+Hash-routed single screen as in V10: `#systems`, `#projects`, `#journal`, `#contact`; aliases `#research`, `#process`, `#about`; any other hash is Entry; Escape and the wordmark return to Entry. `/journal` and `/admin` are unchanged pages.
 
-The exact V10 overlay point is input **68**, producing `{ opacity: 1, boost: 0 }`.
+## Tests
 
-- `40..68`: `opacity = normalized / 68`, `boost = 0`.
-- `68..85`: `opacity = 1`, `boost = (normalized - 68) / 17`.
-- Finite out-of-range input clamps to 40 or 85.
-- Missing, string, null, `NaN`, and infinite input falls back to 68.
-- The combined layer weight is monotonic over every integer from 40 through 85.
-
-The deterministic implementation is `lib/design/overlay.mjs`; the tests are `tests/design-overlay.test.mjs`, `tests/v10-theme.test.mjs` and `tests/v10-runtime-matrix.test.mjs` (AS119-F004: the F1 404/500/malformed/invalid matrix, every listed clamp input, every allowed and unknown ignored-field value, and monotonicity at each integer from 40 through 85).
-
-## Accessibility and responsive requirements
-
-- D1: at widths below 700px, the desktop links become a labelled, keyboard-operable Menu with 44px minimum targets; every destination remains reachable.
-- D2: the Systems diagram uses contained labels with smaller narrow-screen typography and a separate readable text column, preventing the V10 prototype's label collision.
-- Escape returns to Entry, focus moves to the active panel heading and back to its trigger, the skip link follows the active route, and Entry becomes inert while a panel is open.
-- `prefers-reduced-motion: reduce` and the stored reduced-motion override force Still. Still renders the logo poster and no autoplaying video elements.
+`tests/v10-home.test.mjs`: pinned reference hash, D-088 facts, fail-closed validator, page/layout wiring, runtime request surface, no remote/runtime dependencies, asset existence and hashes, routing aliases, Research data rules, D1/D2 presence, stylesheet scoping. Browser evidence: `docs/product/evidence/v10/clean/`.

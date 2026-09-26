@@ -22,3 +22,23 @@ Source: the per-pixel comparison in `docs/product/evidence/v10/rem1/` (0/20 view
 | R4 | Research | V10's filter row (All/Research/Build/Thoughts), "More notes" link and image cards are absent; the candidate shows a list with an inline reader. Thumbnails are removed deliberately (AS119-F003). Filters are covered by D3. | OPEN (thumbnails and filters covered by AS119-F003/D3) |
 | R5 | Contact | V10's two-column layout (heading left, "Correspondence" block right, connector line) is replaced by a single column with a blue heading, a tagline and a copy button. The email differs by design (D4). | OPEN |
 | R6 | All panels | The panel header shows a mono trail and an "Entry / Esc" close control in place of V10's progress rule; the panel title sits in a different row. | OPEN |
+
+## D-092 controlled clean replacement
+
+D-092 replaced the public homepage with a direct port of the V10 reference (`components/v10/V10Home.js`). Residual differences R1–R6 above describe the superseded V10-A implementation and no longer apply. Evidence: `docs/product/evidence/v10/clean/` (9/20 views within 1.0%; every remaining difference is listed here). Status column: **APPROVED** = covered by an owner decision; **PROPOSED** = introduced by this replacement and awaiting Architect review and owner approval.
+
+| ID | Difference from V10 | Reason | Status |
+|---|---|---|---|
+| C1 | Eight projects (V10 has five): Projects list, `08` counter, and an 8-slot outer project ring in the Systems diagram at the same radius, 45° apart (V10: 5 slots, 72° apart); spokes follow the slots. | D-088 project set | APPROVED (D-088); ring geometry PROPOSED |
+| C2 | Project names use the approved spelling (e.g. `Sentinel/DevOS`, not `Sentinel / DevOS`). | D-088 facts | APPROVED |
+| C3 | Automation Hub, Cybersecurity Lab and Experimental Projects show their published summary as the tagline, no description paragraph, disciplines only from exact published terms (Experimental Projects: none), and no "How it works" flow figure. | No sourced V10 copy or flow for them; nothing invented | PROPOSED |
+| C4 | Contact shows `paulo.maisog@maisoglabs.com` (V10: `maisog36@gmail.com`); it wraps at 390px. | D-088 | APPROVED |
+| C5 | Research lists real published entries from `/api/journal` with a loading / empty / error line; cards have no image frame, no tag line, and link to `/journal?slug=…`; "More notes" links to `/journal`. | D-088 real Journal; AS119-F003 (no fixed imagery); no public media route | APPROVED (D-088); layout of the missing image frame PROPOSED |
+| C6 | No category filter row (All / Research / Build / Thoughts). | Journal data has no category field | PROPOSED |
+| D1 | Below 700px the link row becomes a 44px Menu button with a four-item menu (44px targets, Escape closes). The nav row keeps V10's 84px height. | V10 clips navigation at 390px | APPROVED (D-088) |
+| D2 | Below 700px the Systems ring captions are hidden (names stay; the selected discipline's caption is in the detail column). | V10 captions overlap at 390px | APPROVED (D-088) |
+| N1 | Legacy hash aliases: `#research` → `#journal`, `#process` → `#systems`, `#about` → `#contact` (hash rewritten to the canonical form). | D-088 routing | APPROVED |
+| N2 | The static export pre-renders V10's markup, so the entry elements are hidden until the component mounts (with a 2.5 s CSS fail-safe reveal) to avoid a flash before V10's entry animation. Not applied with reduced motion or without scripting. | Static export vs V10's client-only render | PROPOSED |
+| N3 | The V10 design-tool props are fixed at their defaults: `motion` Full (reduced-motion still forces Still), `heroArch` off, no `plateVideo`. | No Tweaks panel on the public site | PROPOSED |
+| N4 | `/journal` keeps the pre-V10 page design. | V10 defines no Journal reading page | PROPOSED |
+| N5 | The public homepage no longer reads `/api/design`; admin design controls and `?design-preview=1` have no effect on it. | V10 has no design-variation layer | PROPOSED (D-092 architecture consequence) |

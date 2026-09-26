@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import Logo from "../../components/Logo";
 import JournalClient from "./JournalClient";
+// D-092: the pre-V10 site stylesheet, relocated so it loads on /journal only.
+import "./journal.css";
 import { getPublicContent } from "../../lib/content/local.mjs";
 
 // WEB-INC-006 (WEB-REQ-009 / ML-DEVOS-RFC-009 / ML-DEVOS-AS-028 / D-031):
