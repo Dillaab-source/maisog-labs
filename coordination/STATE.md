@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_V10_PLANNING
-TURN: PAULO
-STATUS: ARCHITECT_APPROVED
-AUTHORIZED_SCOPE: AS117_V10_PLAN_PAULO_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_WEB_V10_RFC021_DRAFT
+TURN: CLAUDE
+STATUS: AUTHORIZED
+AUTHORIZED_SCOPE: D088_V10_RFC021_DRAFT_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,11 +14,11 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-V10-RFC021-0001
+DIRECTIVE_ISSUE_PARENT: fb4f2121cff9eaee3c9fd27ef2a2ab50cd76e6a7
+DIRECTIVE_AUTHORITY_REF: D-088
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-117
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -27,38 +27,51 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority and review
+## Authority
 
-D-087 authorized V10 visual-parity and admin-architecture planning only.
+D-088 records Paulo's project-content, contact, Research-routing, mobile-divergence, and runtime-safeguard decisions and authorizes RFC-021 drafting only.
 
-ML-DEVOS-AS-117 approves the plan for Paulo's decision, with a mandatory RFC-021 and implementation acceptance requirement: runtime mapping must clamp surface opacity to 80–90 and border intensity to 10–25, prevent stale/direct older-range values from drifting V10, and ignore removed controls.
+ML-DEVOS-AS-117 is the controlling independent review.
 
-Implementation remains unauthorized.
+## Selected directive
 
-## Archived Builder return
+`DIR-WEB-V10-RFC021-0001` is transport, not authority.
 
-`H-WEB-V10-PLAN-0001` is archived byte-for-byte with provenance under `coordination/archive/handoffs/`. It is evidence, not authority.
+Effective scope is the intersection of this STATE, D-088, ML-DEVOS-AS-117, and the directive.
 
-The reviewed deliverable is `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`.
+## Builder scope
 
-`DIR-WEB-V10-PLAN-0001` remains deselected and archived byte-exactly.
+- Draft `devos/changes/rfcs/ML-DEVOS-RFC-021.md`.
+- Add the RFC index row in `devos/changes/rfcs/README.md`.
+- Publish the normal Protocol V2 coordination, directive archive, and handoff evidence required for the return.
 
-## Known open incident
+RFC-021 drafting is documentation and architecture only. It grants no V10-A or V10-B implementation authority.
 
-`/api/design` and `/api/journal` return HTTP 500 / 1101 in production. This is temporarily accepted under AS-116 and remains separate from V10.
+## Owner decisions to encode
+
+- Eight unique projects: Sentinel/DevOS, SU, ClinicFlow, Maisog Kilat, Maisog Guild, Automation Hub, Cybersecurity Lab, Experimental Projects. ClinicFlow appears once; copy remains factual, plain-language, and content-source-backed.
+- Contact: `paulo.maisog@maisoglabs.com`.
+- Canonical Research route: `#journal`; compatibility alias: `#research`; both resolve to one surface; new links use `#journal`.
+- D1 accessible compact/mobile navigation and D2 narrow-width Systems-label correction are approved divergences for the future register.
+- Runtime mapping clamps opacity to 80–90 and border intensity to 10–25, covers stale/direct older-range values, and ignores removed fields.
+
+## Required architecture boundary
+
+RFC-021 may supersede RFC-010 only where RFC-010 fixes the V3/soft-geometry visual baseline, composition, and default-parity target. RFC-010's authentication, positive allowlists, stale-write protection, immutable revisions, draft/preview/publish lifecycle, published-only public projection, and arbitrary-input prohibitions remain intact. V2A remains historical accepted work. V10 becomes the static fail-safe baseline.
+
+API-DIAG remains separate and unauthorized.
 
 ## Hard boundaries
 
-No implementation. No Worker, D1, R2, Access, DNS, env or secret mutation. No media integration.
-No main merge, deployment, promotion or rollback.
+No application, admin, Worker, migration, package, public runtime, or media change.
+No API diagnosis or fix. No D1, R2, Access, DNS/domain, secret, environment, or production-data action.
+No main merge, deployment, promotion, or rollback.
 No PR #7 or PR #10 merge. No V2B. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific flags remain NO.
+All action-specific authorization flags remain NO.
 
 ## Next transition
 
-TURN: PAULO
-
-Paulo may decide whether to authorize a bounded RFC-021 drafting cycle and resolve the plan's owner questions. No Builder action begins automatically.
+Claude drafts RFC-021, publishes one Protocol V2 evidence handoff, archives/deselects the directive byte-for-byte, and routes to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT` with all flags NO. Then stop.

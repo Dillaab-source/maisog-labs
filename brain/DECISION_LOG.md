@@ -1583,3 +1583,19 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   - a PR #7 or PR #10 merge;
   - V2B implementation, S6/S7 or D-068.
 - **Return:** handoff `H-WEB-V10-PLAN-0001`, routed to the Architect, with all action flags NO.
+
+### D-088 — Approve V10 content/routing decisions and authorize RFC-021 drafting only
+
+- **Decided by:** Paulo (Product / Risk Owner), after `ML-DEVOS-AS-117` approved the V10 plan for owner decision at governance tip `fb4f2121cff9eaee3c9fd27ef2a2ab50cd76e6a7`.
+- **Recording provenance:** Paulo supplied the decisions and bounded RFC authorization explicitly in the current session. The Builder records them here as mechanical publisher. This entry proves provenance, not authority beyond Paulo's words.
+- **Project content:** publish all eight unique projects: Sentinel/DevOS; SU; ClinicFlow; Maisog Kilat; Maisog Guild; Automation Hub; Cybersecurity Lab; Experimental Projects. ClinicFlow appears once. Eventual public copy must remain factual, plain-language, and content-source-backed; prototype copy is not approved merely because it appears in V10.
+- **Contact:** use `paulo.maisog@maisoglabs.com`.
+- **Research routing:** `#journal` is canonical; `#research` is a compatibility alias to the same Research/Journal surface; new links use `#journal`.
+- **Approved mobile divergences:** D1 replaces clipped narrow-screen navigation with an accessible compact/mobile navigation model; D2 fixes overlapping Systems diagram labels at narrow widths. Both must appear in the future divergence register.
+- **Runtime safeguard:** accept AS-117's requirement that runtime mapping, not only the admin UI, normalizes and clamps surface opacity to `80..90` and border intensity to `10..25`, prevents stale persisted or direct API values within RFC-010's older ranges from drifting canonical V10, and ignores removed-from-UI fields.
+- **Authorized scope:** draft `ML-DEVOS-RFC-021 — V10 Canonical Visual Baseline` and update its RFC index, plus the normal Protocol V2 coordination, directive-archive, and handoff evidence needed for return. This is documentation and architecture drafting only.
+- **Required RFC-021 relationship:** supersede RFC-010 only where RFC-010 fixes the V3/soft-geometry visual baseline, composition, and default-parity target. Preserve RFC-010's authentication, positive allowlists, stale-write protection, immutable revisions, draft/preview/publish lifecycle, public published-only projection, and prohibition on arbitrary CSS, HTML, JavaScript, URLs, and asset inputs. Preserve V2A as historical accepted work and establish V10 as the static fail-safe baseline.
+- **Required RFC-021 inputs:** incorporate the eight-project decision, contact email, `#journal`/`#research` routing, approved D1/D2 fixes, and runtime-enforced opacity/border ranges.
+- **Separate track:** API-DIAG remains separate and unauthorized by this decision.
+- **Not authorized:** RFC acceptance; V10-A or V10-B implementation; application, admin, Worker, migration, package, public runtime, media, or Cloudflare configuration changes; API diagnosis/fix; D1/R2/Access/DNS/domain/secret/environment mutation; main merge; deployment, promotion, rollback; PR #7 or PR #10 merge; V2B; S6/S7; D-068.
+- **Directive:** issue `DIR-WEB-V10-RFC021-0001` with scope `D088_V10_RFC021_DRAFT_ONLY`, routed to Claude. Every action-specific authorization flag remains NO.

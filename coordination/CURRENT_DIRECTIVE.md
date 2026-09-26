@@ -1,122 +1,126 @@
-# Current Directive — MaisogLabs V10 Visual Parity + Admin Architecture Planning
+# Current Directive — ML-DEVOS-RFC-021 V10 Canonical Visual Baseline Draft
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-V10-PLAN-0001
-cycle_id: MAISOGLABS_WEB_V10_PLANNING
-issue_parent_commit: 98a26e2d05f1056806994ea80716ed84960e3e39
+directive_id: DIR-WEB-V10-RFC021-0001
+cycle_id: MAISOGLABS_WEB_V10_RFC021_DRAFT
+issue_parent_commit: fb4f2121cff9eaee3c9fd27ef2a2ab50cd76e6a7
 target_turn: CLAUDE
-authority_ref: D-087
-applicable_review_id: ML-DEVOS-AS-116
+authority_ref: D-088
+applicable_review_id: ML-DEVOS-AS-117
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of:
-- live STATE;
-- D-087;
-- ML-DEVOS-AS-116;
-- this directive.
-
-The Builder published it as mechanical publisher of Paulo's D-087.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-088, ML-DEVOS-AS-117, and this directive.
 
 ## Objective
 
-Produce `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`, a repository-grounded V10 visual-parity and admin-architecture plan with the 20 sections D-087 requires.
+Draft `ML-DEVOS-RFC-021 — V10 Canonical Visual Baseline` as documentation and architecture only.
 
-This is planning only.
+The RFC must make V10 the static fail-safe visual baseline; encode Paulo's D-088 content, routing, divergence, and runtime-safeguard decisions; and define its narrow relationship to RFC-010 without authorizing implementation.
 
 ## Preconditions
 
-- A fresh Protocol V2 bootstrap of the tip that publishes this directive.
-- The V10 HTML hash equals `6e47ffca9adb7e31522b046576b8d7800117dd38ee07c88167b8e7b5e3ed6dab`.
-- `main` = `aebc881e8890c00090d714602591138a045bd3b0`.
-- D-068 stays untouched.
+- Bootstrap Protocol V2 from the exact tip that publishes this directive.
+- Confirm `D-088`, `ML-DEVOS-AS-117`, this directive ID, and scope `D088_V10_RFC021_DRAFT_ONLY` are selected together.
+- Confirm `main` remains `aebc881e8890c00090d714602591138a045bd3b0`.
+- Confirm every action-specific authorization flag is `NO`.
+- Stop on any stale tip, protocol mismatch, scope ambiguity, or missing governing record.
 
 ## Governing references
 
-- **T0:** Protocol V2, D-087, and the hard boundaries.
-- **T1:** STATE, ML-DEVOS-AS-116, D-087, V10 artifact identity, and current main.
-- **T2 (only as needed):**
-  - ML-DEVOS-RFC-010;
-  - `docs/product/SPATIAL_DESIGN_CONTROLS_V2_PLAN.md`;
-  - `app/DesignRuntime.js`, `app/admin/DesignControls.js`, `components/site/**`, `app/globals.css`;
-  - the content boundary (`data/site.js` → `lib/content/**`);
-  - the V10 package Design Panel skill;
-  - the V10 artifact.
-- **T3 history:** only for a named unresolved question, with the reason recorded.
+- **T0:** Protocol V2, D-088, and the hard boundaries in live STATE.
+- **T1:** ML-DEVOS-AS-117; `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`; V10 HTML identity `6e47ffca9adb7e31522b046576b8d7800117dd38ee07c88167b8e7b5e3ed6dab`; main `aebc881e8890c00090d714602591138a045bd3b0`.
+- **T2:** ML-DEVOS-RFC-010; accepted V2A records; `design-references/claude-v10/**`; `coordination/OPERATIVE_OBLIGATIONS.md`; RFC index conventions.
+- **T3:** only for a named unresolved drafting question, with the reason and evidence classification recorded.
 
 ## Exact execution scope
 
-**Allowed:**
-- read-only inspection of the repository and `design-references/claude-v10/**`;
-- local read-only rendering and screenshots (scratch only, not committed unless needed as plan evidence);
-- writing the single plan artifact;
-- the Protocol V2 return records.
+**Allowed future Builder change surfaces:**
 
-**Not allowed:** anything D-087 lists as NOT authorized, which includes:
-- no changes to `app/`, `components/`, `lib/`, `data/`, `worker/`, `migrations/` or `public/`;
-- no media copied into runtime paths;
-- no Cloudflare, D1 or R2 access for mutation.
+- `devos/changes/rfcs/ML-DEVOS-RFC-021.md`;
+- `devos/changes/rfcs/README.md`;
+- normal Protocol V2 coordination, directive archive/provenance/index, and handoff evidence required for the return.
+
+**Required RFC content:**
+
+- supersede RFC-010 only where it fixes the V3/soft-geometry visual baseline, composition, and default-parity target;
+- preserve RFC-010 authentication, positive allowlists, stale-write protection, immutable revisions, draft/preview/publish lifecycle, public published-only projection, and the prohibition on arbitrary CSS, HTML, JavaScript, URLs, and asset inputs;
+- preserve V2A as historical accepted work;
+- establish V10 as the static fail-safe baseline;
+- publish eight unique projects: Sentinel/DevOS, SU, ClinicFlow, Maisog Kilat, Maisog Guild, Automation Hub, Cybersecurity Lab, and Experimental Projects, with ClinicFlow once and eventual copy factual, plain-language, and content-source-backed;
+- use `paulo.maisog@maisoglabs.com`;
+- make `#journal` canonical and `#research` a compatibility alias to the same surface, with new links using `#journal`;
+- record approved divergence D1 (accessible compact/mobile navigation) and D2 (narrow-width Systems label collision fix) for the future divergence register;
+- require runtime normalization/clamping of surface opacity to `80..90` and border intensity to `10..25`, including stale persisted and direct API-shaped values, while removed-from-UI fields remain ignored;
+- keep API-DIAG separate and unauthorized;
+- grant no V10-A or V10-B implementation authority.
+
+**Not allowed:** any change outside the listed surfaces; application/admin/Worker/runtime code; migrations; packages; public assets or media; Cloudflare/resource access or mutation; implementation, merge, deployment, promotion, rollback, or API diagnosis.
 
 ## SENTINEL Sync
 
-Snapshot `98a26e2d05f1056806994ea80716ed84960e3e39`, from a fresh `--session-protocol 2` bootstrap (exit 0).
+Fresh snapshot: `fb4f2121cff9eaee3c9fd27ef2a2ab50cd76e6a7`, confirmed as the authoritative remote tip before this directive transition. The mandatory `--session-protocol 2` bootstrap passed.
 
-**Live state:**
-- `TURN: PAULO`, `STATUS: INCIDENT_ACCEPTED_WITH_KNOWN_DEGRADATION`;
-- scope `AS116_…_PAULO_NEXT_DECISION_ONLY`;
-- no directive or handoff, and all flags NO.
+**Authority:** D-088 authorizes RFC-021 drafting only. ML-DEVOS-AS-117 is the controlling independent review.
 
-**Repository checks:**
-- Commit `98a26e2` is an owner-authored direct push adding only `design-references/claude-v10/**` (204 files). It is outside the governed publisher, but it is owner-authored, reference-only, and runtime-inert.
-- `main` = `aebc881…`.
-- The production API incident (AS-116) is open and is kept separate.
+**Context:** AS-117 independently verified the 20-section plan, exact V10 HTML and listed asset hashes, directive archive identity, bounded planning diff, clean `git diff --check`, and unchanged main. Builder rendering observations remain `ACTOR_REPORTED`.
 
-Disposition `CLEAR`.
+**Capability:** documentation writes on the listed surfaces are available. Runtime, Cloudflare, D1, R2, Access, DNS, domain, secret, environment, media, merge, deploy, promotion, and rollback capabilities are neither required nor authorized.
+
+**Execution:** one RFC draft and one Protocol V2 return. No implementation may be mixed into this cycle.
+
+**Evidence:** the return must identify exact base/result commits, exact changed files, RFC-010 clauses preserved/superseded, D-088 requirements mapped, and validation results.
+
+Disposition: `CLEAR`.
 
 ## SU Contradiction Check
 
-Mode `BOUNDED_CONTRADICTION`. The plan is documentation only, and primary evidence (the artifact, the repository and the accepted records) is expected to suffice. Disposition `CLEAR_WITH_NOTES`.
+Mode: `BOUNDED_CONTRADICTION`. Disposition: `CLEAR_WITH_NOTES`.
 
-**Notes:**
-1. RFC-010's V3 fail-safe baseline conflicts with V10. The plan must name the governed mechanism and must not reinterpret RFC-010 silently.
-2. V2A's prohibition on public structural redesign means V10 is a new increment, not V2A.
-3. The ZIP hash is owner-reported, because only the extracted entries are in the repository. The HTML hash is verified.
-4. The Builder cannot reach production from this environment, so API diagnosis is planned only, never executed.
+1. RFC-010's accepted V3/soft-geometry baseline conflicts with Paulo's V10 target. Resolve this only by explicit, narrow supersession; do not rewrite or broadly invalidate RFC-010.
+2. V10 prototype mechanics and copy are not runtime or content authority. Preserve the no-arbitrary-input security model and use D-088's factual content decisions.
+3. RFC-010's older server ranges are wider than the accepted V10 visual range. RFC-021 must require runtime normalization/clamping so stale storage or direct API submission cannot drift V10.
+4. Removing controls from the UI is insufficient. Runtime mapping must ignore those persisted fields.
+5. D1/D2 are approved deliberate mobile corrections, not parity failures to conceal; require them in the future divergence register.
+6. API-DIAG and implementation are separable work and are not prerequisites for drafting this RFC.
 
 ## Instructions
 
-1. Inspect V10: the HTML, its dependencies and asset hashes. Render it locally at desktop and mobile widths.
-2. Inspect the current site, and build the parity matrix and the admin-control matrix.
-3. Resolve the RFC-010 / V2A conflicts and recommend the smallest mechanism.
-4. Write the plan (20 sections). Run the SU ledger and the Design Panel passes.
-5. Return through `H-WEB-V10-PLAN-0001`.
+1. Re-bootstrap and read D-088, AS-117, the plan, RFC-010, V2A references, and obligations from one exact snapshot.
+2. Draft only `devos/changes/rfcs/ML-DEVOS-RFC-021.md` and add its index row.
+3. Express supersession clause-by-clause and preserve every listed RFC-010 safety/lifecycle invariant.
+4. Encode all D-088 content, routing, D1/D2, and runtime-range decisions as normative requirements and future acceptance evidence.
+5. Keep API-DIAG, V10-A, and V10-B explicitly unauthorized.
+6. Publish one Protocol V2 return handoff, archive/deselect this directive byte-for-byte with provenance, and route to the Architect for independent RFC review.
 
 ## Validation and evidence
 
-- Hashes recorded.
-- `git diff` limited to the plan plus Protocol V2 records.
-- `git diff --check` clean.
-- A Context Bootstrap check-only run before publishing.
-- Screenshots classed as `ACTOR_REPORTED`.
+- `git diff --check` passes.
+- The diff contains only the two RFC files and required Protocol V2 return/archive records.
+- RFC-021 names every preserved RFC-010 invariant and every narrowly superseded visual-baseline clause.
+- All eight projects appear once; ClinicFlow appears once.
+- The email and both hash routes are exact.
+- D1/D2 and both runtime ranges are explicit and testable.
+- The handoff classifies Builder claims as `ACTOR_REPORTED`.
+- The Protocol V2 publish checker passes in check-only mode before compare-and-swap publication.
 
 ## Stop conditions
 
-Stop if any of these occurs:
-- the V10 hash mismatches;
-- implementation or production access would be needed;
-- the directive scope conflicts with D-087;
-- a stale tip or protocol mismatch.
+Stop if implementation, API diagnosis, media work, production/resource access, an unlisted file, or any mutation flag would be needed; if a required decision is ambiguous; if RFC-010 safety invariants cannot be preserved; or if freshness/protocol/publication checks fail.
+
+Do not broaden scope to resolve an unrelated issue.
 
 ## Next action
 
-The Builder plans, then publishes one Protocol V2 return commit containing:
-- the plan;
-- `H-WEB-V10-PLAN-0001`;
-- the directive archived;
-- `CURRENT_DIRECTIVE: NONE`;
-- `TURN: ARCHITECT`.
+Claude drafts RFC-021 and returns through a newly minted handoff (expected `H-WEB-V10-RFC021-0001`) with:
 
-Then it stops.
+- exact base/result evidence;
+- the directive archived byte-for-byte with provenance;
+- `CURRENT_DIRECTIVE: NONE` and cleared directive selectors;
+- `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`;
+- every action-specific authorization flag `NO`.
+
+Then stop. RFC acceptance and all implementation remain separate decisions.
