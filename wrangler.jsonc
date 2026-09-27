@@ -38,31 +38,43 @@
     "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_ACCESS_TEAM_DOMAIN",
     "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD"
   },
-  // WEB-INC-005 (ML-DEVOS-RFC-003 / ML-DEVOS-AS-013 / D-024): local-only D1
-  // revision substrate for current-content migration/parity/integrity testing.
-  // No `database_id` is set — it is not required by Wrangler's config schema,
-  // and omitting it avoids any placeholder that could resemble a real
-  // production D1 resource identifier. `remote: false` is explicit, not
-  // merely the default, so this binding can never target a production D1
-  // database under any invocation (AS13-F008). Every command exercising this
-  // binding is run with `--local` / local-only tooling only — see
-  // coordination/IMPLEMENTER_HANDOFF.md for the exact command log.
+  // WEB-INC-005 (ML-DEVOS-RFC-003 / ML-DEVOS-AS-013 / D-024) D1 revision
+  // substrate. D-098 (AS-116 post-incident hardening, ML-DEVOS-AS-125)
+  // corrected an earlier claim here that `remote: false` meant this binding
+  // "can never" target a production database. That was false:
+  //   - `remote: false` only governs local development. `wrangler dev`,
+  //     `getPlatformProxy` and the test suite bind a local Miniflare
+  //     simulation instead of the real database.
+  //   - A deployed Worker binds the real Cloudflare D1 database named here.
+  //     The production Worker does, and AS-116 was that database running
+  //     unmigrated.
+  //   - The production identity is pinned explicitly by `database_id`. The
+  //     `-local` suffix in `maisog-labs-web-inc-005-local` is historical and
+  //     is not a local-only guarantee.
+  //   - `--remote` D1 CLI commands target that production database. Any
+  //     remote D1 query, write, migration or restore needs its own
+  //     governance authority; this configuration grants none.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "maisog-labs-web-inc-005-local",
+      "database_id": "45b87574-e573-4e0f-9bb6-fbba2df29523",
       "migrations_dir": "migrations",
       "remote": false
     }
   ],
-  // WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029): local-only R2
-  // object-storage simulation for the media subsystem (AS23-F002). `remote:
-  // false` is explicit, exactly like the D1 binding above, so this binding
-  // can never target a real/production R2 bucket under any invocation. No
-  // public bucket, custom domain, or production resource identifier is
-  // configured here or anywhere else in this repository. Every command
-  // exercising this binding is run with `--local` / local-only tooling only
-  // — see coordination/IMPLEMENTER_HANDOFF.md for the exact command log.
+  // WEB-INC-004 (ML-DEVOS-RFC-007 / ML-DEVOS-AS-023 / D-029) media object
+  // storage. D-098 corrected the same false "can never target a real bucket"
+  // claim made here:
+  //   - `remote: false` only keeps local development and tests on a local
+  //     R2 simulation.
+  //   - A deployed Worker binds the real Cloudflare R2 bucket named by
+  //     `bucket_name` (`maisog-labs-web-inc-004-local` in production; again,
+  //     the `-local` suffix is historical).
+  //   - R2 bindings are identified by `bucket_name` alone; Wrangler has no
+  //     bucket-ID field.
+  //   - Any remote R2 read, write or bucket change needs its own governance
+  //     authority; this configuration grants none.
   "r2_buckets": [
     {
       "binding": "MEDIA",

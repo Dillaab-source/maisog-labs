@@ -347,3 +347,49 @@ test("/api/design/anything is not classified as the public design path and never
     await cleanup();
   }
 });
+
+// --- D-098: D1 failures become a controlled 503, never Worker Error 1101 ---
+
+const LEAK_MARKERS = ["SQL", "sqlite", "no such table", "theme_settings", "section_revisions", "D1_", "45b87574", "stack", "at "];
+
+async function assertControlled503(response) {
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("Content-Type"), "application/json");
+  const text = await response.text();
+  assert.deepEqual(JSON.parse(text), { error: "Service Unavailable" });
+  for (const marker of LEAK_MARKERS) assert.ok(!text.includes(marker), `503 body leaks "${marker}"`);
+}
+
+test("a bound DB whose queries throw returns a controlled 503 for /api/design, with no internal detail", async t => {
+  const logged = t.mock.method(console, "error", () => {});
+  const fail = () => { throw new Error("D1_ERROR: no such table: theme_settings: SQLITE_ERROR at 45b87574-e573-4e0f-9bb6-fbba2df29523"); };
+  const db = { prepare() { return { bind() { return this; }, all: async () => fail(), first: async () => fail() }; } };
+  await assertControlled503(await callWorker(publicRequest("/api/design"), { db, jwks: undefined }));
+  assert.equal(logged.mock.callCount(), 1);
+  assert.ok(!logged.mock.calls[0].arguments.join(" ").includes("no such table"));
+});
+
+test("a real local D1 with no schema (the AS-116 unmigrated condition) returns a controlled 503 for /api/design, not a crash", async t => {
+  t.mock.method(console, "error", () => {});
+  const statePath = fs.mkdtempSync(path.join(os.tmpdir(), "d-098-unmigrated-d1-test-"));
+  const proxy = await getPlatformProxy({ configPath: WRANGLER_CONFIG_PATH, persist: { path: statePath }, remoteBindings: false });
+  try {
+    await assertControlled503(await callWorker(publicRequest("/api/design"), { db: proxy.env.DB, jwks: undefined }));
+  } finally {
+    await proxy.dispose();
+    fs.rmSync(statePath, { recursive: true, force: true });
+  }
+});
+
+test("with the D1 failure handling in place, a migrated DB still serves /api/design 200 and other methods still 405", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const response = await callWorker(publicRequest("/api/design"), { db, jwks: undefined });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.deepEqual(Object.keys(body).sort(), ["sections", "theme"]);
+    assert.equal((await callWorker(publicRequest("/api/design", { method: "POST" }), { db, jwks: undefined })).status, 405);
+  } finally {
+    await cleanup();
+  }
+});

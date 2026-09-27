@@ -107,8 +107,18 @@ async function handleGet({ db }) {
 // never touches the database. Any other path is never routed here at all
 // (worker/auth.mjs's isPublicDesignApiPath is an exact match, not a
 // prefix), so it falls through to ordinary asset/404 handling.
+//
+// D-098 (AS-116 post-incident hardening): a D1 query, schema or runtime
+// failure must not escape as Worker Error 1101. It becomes the same fixed
+// 503 body as a missing binding: no SQL, table name, binding or resource
+// id, stack trace or exception message reaches the client.
 export async function handlePublicDesignDispatch({ request, db }) {
   if (request.method !== "GET") return jsonResponse(405, { error: "Method Not Allowed" });
   if (!db) return jsonResponse(503, { error: "Service Unavailable" });
-  return handleGet({ db });
+  try {
+    return await handleGet({ db });
+  } catch {
+    console.error("public design API: D1 read failed");
+    return jsonResponse(503, { error: "Service Unavailable" });
+  }
 }

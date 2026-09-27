@@ -88,9 +88,11 @@ The admin UI itself remains primarily a read-only status surface; the domain mut
 
 ### D1
 
-Local D1 is explicitly configured with:
+The `DB` binding is configured with `remote: false` and a pinned `database_id` (D-098):
 
-`remote: false`
+- `remote: false` governs local development only: `wrangler dev`, `getPlatformProxy` and the tests bind a local simulation.
+- A deployed Worker binds the real production database `maisog-labs-web-inc-005-local` (`45b87574-e573-4e0f-9bb6-fbba2df29523`). The `-local` suffix is historical.
+- Any remote D1 query, write, migration or restore needs separate governance authority.
 
 The accepted local schema contains exactly **20 product tables** after migrations 0001–0004.
 
@@ -107,9 +109,11 @@ Journal is the only accepted public D1 read domain so far.
 
 ### R2
 
-The `MEDIA` R2 binding is local-only:
+The `MEDIA` R2 binding is configured with `remote: false` and `bucket_name` `maisog-labs-web-inc-004-local` (D-098):
 
-`remote: false`
+- `remote: false` keeps local development and tests on a local simulation.
+- A deployed Worker binds the real bucket of that name. R2 bindings are identified by `bucket_name` alone; there is no bucket-ID field.
+- Any remote R2 read, write or bucket change needs separate governance authority.
 
 It supports the accepted admin media subsystem.
 
@@ -117,7 +121,6 @@ There is no:
 
 - public R2 bucket/domain;
 - public media-object serving route;
-- production bucket provisioning;
 - remote R2 authority.
 
 ## Presentation layer
@@ -157,10 +160,10 @@ The repository deployment shape remains:
   - `/api/journal`
   - `/api/journal/*`
 
-Current tracked Cloudflare resource configuration remains local/inert:
+Current tracked Cloudflare resource configuration:
 
-- D1: `remote: false`
-- R2: `remote: false`
+- D1: `remote: false` for local development; the deployed Worker binds production D1 `45b87574-e573-4e0f-9bb6-fbba2df29523`, pinned by `database_id`.
+- R2: `remote: false` for local development; the deployed Worker binds the bucket `maisog-labs-web-inc-004-local`.
 - Access team/audience values: placeholders only
 
 No deployment, production Access configuration, remote D1/R2, or protected/main merge is authorized by the current closed state.

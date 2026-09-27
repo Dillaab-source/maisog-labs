@@ -1,26 +1,26 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_AS116_HARDENING
-TURN: CLAUDE
-STATUS: READY_FOR_IMPLEMENTER
-AUTHORIZED_SCOPE: D098_AS116_POST_INCIDENT_HARDENING_REPOSITORY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D098_AS116_HARDENING_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-WEB-AS116-HARDENING-0001
-DIRECTIVE_ISSUE_PARENT: b0a7af9622ce8eb8efbe487a27f7f5920d103b81
-DIRECTIVE_AUTHORITY_REF: D-098
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-125
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-WEB-AS116-HARDENING-0001
+REVIEW_TARGET_COMMIT: 199db5b2404aad192699de367472369b02fb87c7
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-125
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: YES
+MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
@@ -29,20 +29,29 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-098 records Paulo's authorization of the AS-116 post-incident hardening, limited to repository and local changes: pinning the D1 `database_id`, correcting the D1/R2 `remote: false` documentation, and adding controlled 503 handling and tests to the public handlers. `ML-DEVOS-AS-125` closed AS-116.
+D-098 authorized the AS-116 post-incident hardening as repository/local changes only. That authority is consumed with this return.
 
-## Selected directive
+## Builder return
 
-`DIR-WEB-AS116-HARDENING-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-098 and the directive.
+`H-WEB-AS116-HARDENING-0001` is the return record. It is evidence, not authority. `DIR-WEB-AS116-HARDENING-0001` is archived byte-for-byte and deselected.
+
+Reported result:
+- `wrangler.jsonc` pins `DB` `database_id` `45b87574-e573-4e0f-9bb6-fbba2df29523`;
+- the D1/R2 `remote: false` documentation is corrected;
+- `/api/journal`, `/api/journal/:slug` and `/api/design` return a controlled 503 on any D1 failure;
+- `npm test` 914/914 and `npm run build` pass;
+- no remote Cloudflare resource was touched, and `main` is unchanged.
+
+## Architect scope
+
+Independent review of the hardening return under the next unused immutable Architect Sync ID after ML-DEVOS-AS-125.
 
 ## Hard boundaries
 
-No remote D1/R2 query or write, migration, Time Travel restore, version upload, deploy, promotion or Cloudflare binding change. No Access/DNS/secret/environment change. No creating, deleting or renaming Cloudflare resources. No preview D1. No `main` merge. No PR #7 or PR #10 action. No S6/S7. No D-068.
+No remote D1 or R2 action, migration, restore, version upload, deploy, promotion, binding change, Access/DNS/secret/environment change, resource rename, `main` mutation or PR merge.
+
+No PR #7 or PR #10 action. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103 until the Architect accepts this cycle. O1 and O2 remain open.
 
-Only `MUTATION_AUTHORIZED` is `YES`, for repository/local changes within D-098. Every other action-specific flag is `NO`.
-
-## Next transition
-
-Claude/Builder implements, tests and builds, publishes the return, archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
+All action-specific authorization flags are `NO`.

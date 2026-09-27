@@ -4,8 +4,10 @@
 //
 // Local-only by construction: `getPlatformProxy` is called with
 // `remoteBindings: false` and the `DB` binding in wrangler.jsonc has
-// `remote: false` with no database_id — there is no code path here capable
-// of reaching a real Cloudflare D1 resource (AS13-F008). Persists to
+// `remote: false`, so this script binds a local Miniflare simulation and
+// never reaches a real Cloudflare D1 resource (AS13-F008). The binding's
+// `database_id` (D-098) pins the production database a deployed Worker
+// binds; it does not make this script remote. Persists to
 // `.wrangler/state/v3` by default, the same local state Wrangler itself
 // uses, unless overridden with the WEB_INC_005_D1_STATE_DIR env var (used by
 // the test suite to get an isolated state directory per test run).
