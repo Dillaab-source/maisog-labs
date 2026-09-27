@@ -1,0 +1,9 @@
+{
+  "directive_id": "DIR-WEB-AS116-HARDENING-0001",
+  "cycle_id": "MAISOGLABS_WEB_AS116_HARDENING",
+  "source_path": "coordination/CURRENT_DIRECTIVE.md",
+  "publication_commit": "199db5b2404aad192699de367472369b02fb87c7",
+  "source_blob": "35eb94f7f20ff2636cda3c3c8f35dfb80112dbb2",
+  "archive_blob": "35eb94f7f20ff2636cda3c3c8f35dfb80112dbb2",
+  "sha256": "864bad18e5d644397b1ad5aab9d9ad9df41e039f74c6c0fbfb25aafa2559c498"
+}

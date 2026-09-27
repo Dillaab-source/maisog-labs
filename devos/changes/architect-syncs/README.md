@@ -119,4 +119,16 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-120.md` — D-093 published Design System homepage artifact acceptance. Concluded `ARCHITECT_APPROVED — D-093 HOMEPAGE ARTIFACT ACCEPTED FOR GATE C`; binds Gate C to D-094 and the exact reviewed implementation/artifact while keeping production promotion separately gated.
 
+- `ML-DEVOS-AS-121.md` — D-093 Gate C protected main merge closure review. Concluded `ARCHITECT_APPROVED — GATE C ACCEPTED / CLOSED` and `READY FOR PAULO GATE D DECISION: YES`; production allocation evidence remains owner-reported (`AS121-N001`), and the review grants no Gate D, promotion or deployment authority. Header lines re-issued in the canonical Protocol V2 `Key: value` format; review text from `## Verdict` onward unchanged.
+
+- `ML-DEVOS-AS-122.md` — D-093 Gate D pre-authorization coordination sync. Records Paulo's Gate D intent, the Architect-verified main Build→Version binding, and Claude Code's local permission blocker while explicitly preserving repository `DEPLOY_AUTHORIZED: NO`; SENTINEL/SU disposition is held authority with no deploy or rollback authorization.
+
+- `ML-DEVOS-AS-123.md` — D-093 Gate D production promotion closure review. Concluded `ARCHITECT_APPROVED — D-093 GATE D ACCEPTED / RELEASE CLOSED`; accepts the single D-095 promotion to `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100% (deployment `fc425da6-d57f-4e9e-abc0-ac8582c2d4bf`) with the live homepage matching the D-093 artifact SHA-256, rollback not required, and the D-093 release sequence complete. Cloudflare allocation remains Builder/owner evidence (`AS123-N001`); grants no further deployment, rollback or Cloudflare authority.
+
+- `ML-DEVOS-AS-124.md` — AS-116 Stage A production API incident root-cause review. Concluded `ARCHITECT_APPROVED — AS-116 STAGE A ROOT CAUSE ACCEPTED / PRODUCTION REPAIR OWNER-GATED`; accepts that production `DB` is bound to D1 `45b87574-e573-4e0f-9bb6-fbba2df29523` with migrations `0001`–`0005` never applied (uncaught `no such table` → 1101), recommends migrating that database as the recovery path with no Worker deploy, and defers `remote: false`/resource-naming/503 hardening. Transcribed from Paulo's relay of the Architect's disposition; grants no remote or deploy authority.
+
+- `ML-DEVOS-AS-125.md` — AS-116 Stage B production D1 migration repair and incident closure. Concluded `ARCHITECT_APPROVED — AS-116 REPAIRED / INCIDENT CLOSED`; D-097 authority consumed, unused restore authority lapsed, configuration/error-handling hardening deferred to a separate cycle. Mechanically published from the Architect's disposition as relayed by Paulo.
+
+- `ML-DEVOS-AS-126.md` — D-098 AS-116 post-incident hardening acceptance. Concluded `ARCHITECT_APPROVED — D-098 HARDENING ACCEPTED / RELEASE OWNER-GATED`; remediation not required; production release (Gate C → Gate D) not authorized by the review and left to a separate owner decision.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).

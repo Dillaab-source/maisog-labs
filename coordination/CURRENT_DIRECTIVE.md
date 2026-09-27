@@ -1,98 +1,102 @@
+# Current Directive — D-098 Hardening Gate C Protected Main Release
+
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-D093-GATE-C-0001
-cycle_id: MAISOGLABS_WEB_D093_GATE_C
-issue_parent_commit: f2c13aa3dbc65b3829f1a8f64437a929392369a5
+directive_id: DIR-WEB-D098-GATE-C-0001
+cycle_id: MAISOGLABS_WEB_D098_GATE_C
+issue_parent_commit: d2ed608139265dc58e75963e01634726fd7b2254
 target_turn: CLAUDE
-authority_ref: D-094
-applicable_review_id: ML-DEVOS-AS-120
+authority_ref: D-099
+applicable_review_id: ML-DEVOS-AS-126
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-099 and `ML-DEVOS-AS-126`.
+
 ## Objective
 
-Perform D-094 Gate C only: create a fresh release PR from `governance/maisoglabs-v0.1` to `main`, validate its exact final head, merge it through the normal protected GitHub merge-commit path, observe the resulting Workers version upload, and prove production traffic did not move.
+Release the AS-126-accepted D-098 hardening tree from `governance/maisoglabs-v0.1` to `main` through one fresh protected PR with a normal merge commit. The `main` Workers Build may upload a new inactive version. Production traffic must not move.
 
 ## Preconditions
 
-Freshly require:
-
-- Protocol V2 bootstrap/checker passes;
-- authoritative governance branch is the transition head produced from `f2c13aa3dbc65b3829f1a8f64437a929392369a5`;
-- `main` has not unexpectedly moved from the reviewed baseline;
-- working tree is clean;
-- `stash@{0}` is untouched;
-- canonical homepage artifact remains SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
-- Cloudflare production branch remains `main`;
-- Version command remains `npx wrangler versions upload`;
-- active production Version ID is freshly captured immediately before merge;
-- PR #7 is excluded;
-- PR #10 is not merged;
-- D-068 is untouched;
-- S6/S7 remain parked.
+Immediately before the merge, all of the following must hold:
+- Protocol V2 bootstrap passes, and STATE selects this directive with only `MAIN_MERGE_AUTHORIZED: YES`.
+- `main` is `7d22a96d10b5e24f5296795c2b049f77093386c3`.
+- The PR head equals the published D-099 transition head, and the governance branch has not moved.
+- The release diff contains only the eight AS-126-accepted files plus governance/audit records. `migrations/**`, the homepage artifact, `package.json` and the lockfile are unchanged. The homepage SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- `npm test`, `npm run build` and `git diff --check` pass on the exact head.
+- Exact-final-head `test-and-build` reports SUCCESS, and the Cloudflare Workers check succeeds if it runs.
+- Active production is `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100% (`OWNER_REPORTED` by Paulo).
+- The worktree is clean apart from the untouched D-068 draft.
 
 ## Governing references
 
-- D-093.
-- D-094.
-- ML-DEVOS-AS-120.
-- Protocol V2 / RFC-020.
-- H-WEB-HOMEPAGE-ARTIFACT-0001 archived evidence.
+- **T0:** Protocol V2; D-099; live STATE; `ML-DEVOS-AS-126`.
+- **T1:** D-098; `coordination/archive/handoffs/H-WEB-AS116-HARDENING-0001.md`; D-094 Gate C precedent (`coordination/archive/handoffs/H-WEB-D093-GATE-C-0001.md`); `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Exact execution scope
 
 Allowed:
+- one new PR from governance to `main`;
+- read-only GitHub reads (PR, checks, protection);
+- local tests and build;
+- one merge through the GitHub PR merge API with `merge_method=merge` and the expected head SHA pinned;
+- observing the `main` Workers Build;
+- one Protocol V2 Builder return.
 
-- one fresh `governance/maisoglabs-v0.1 -> main` release PR;
-- PR metadata, diff, checks, review, protection and ruleset reads;
-- GitHub Linux CI;
-- normal protected merge commit;
-- read-only Cloudflare build, version and deployment observation;
-- Protocol V2 return publication.
-
-`MAIN_MERGE_AUTHORIZED: YES` applies only to that exact Gate C PR after all preconditions pass. No product or runtime code modification is authorized.
+Not allowed:
+- `wrangler versions deploy`, promotion, traffic changes or rollback;
+- any D1, R2, binding, Access, DNS, secret or environment action;
+- creating, deleting or renaming resources;
+- squash, rebase, direct push, force, auto-merge or bypassing protection;
+- reusing an old PR;
+- PR #7, PR #10, S6/S7 or D-068.
 
 ## SENTINEL Sync
 
-`CLEAR` only for the bounded Gate C path. Authority, capability and execution remain separated. Main merge authority does not imply deployment authority.
+- **Authority:** D-099 (Paulo).
+- **Context:** tree accepted by AS-126; `main` and production baseline bound.
+- **Capability:** one protected merge only.
+- **Execution:** PR, then CI, then the owner's pre-merge reading, then the merge, then the build, then the owner's post-merge reading.
+- **Evidence:** GitHub PR, checks and merge (reproducible); production readings `OWNER_REPORTED`.
+
+Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
-`CLEAR_WITH_NOTES`. Treat any SHA drift, artifact drift, CI failure, build-command ambiguity, active-production change or unexpected PR content as a stop condition.
+`BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
+
+- The `main` build uploads a version with `DB.database_id` pinned. That equals the database production already binds, and uploading does not activate anything.
+- If the build output were to indicate a deploy or promotion rather than `versions upload`, stop and report.
 
 ## Instructions
 
-Create exactly one fresh PR from `governance/maisoglabs-v0.1` to `main`. Do not reuse PR #13.
-
-Record the PR number, exact base, exact final head, complete release diff, mergeability, unresolved review conversations, and protection/ruleset state. Require exact-final-head Linux `test-and-build` SUCCESS. If bookkeeping advances the governance head, the final new head must pass CI.
-
-Immediately before merge, re-read `main`, the PR head, the active production Version ID, the bounded release diff, and the applicable Cloudflare Version command evidence.
-
-Merge only through the normal GitHub PR path with merge method `merge`. No squash, rebase, auto-merge, force, bypass, or direct push to `main`.
-
-Wait for the resulting `main` Workers Build. Record its Build ID and uploaded Worker Version ID, then re-read the active production deployment. The post-merge active Version ID at 100% must equal the pre-merge active Version ID at 100%.
+1. Bootstrap fresh and verify the preconditions.
+2. Open the PR and record its number, base, head, mergeability, files, threads and checks.
+3. Run the local tests and build on the exact head, and wait for exact-head CI.
+4. Obtain Paulo's pre-merge production reading, then re-read `main`, the governance branch and the PR head.
+5. Merge with a merge commit and the head pinned.
+6. Confirm the merge SHA and tree equivalence, and wait for the `main` Workers Build.
+7. Obtain Paulo's post-merge reading; it must equal the pre-merge reading at 100%.
+8. Publish the return.
 
 ## Validation and evidence
 
-Required success evidence:
-
-- exact-final-head Linux CI;
-- PR merge commit SHA;
-- `main` points to the expected merge;
-- Workers main build success;
-- new uploaded Worker version identified and inactive;
-- pre/post active production Version ID equality;
-- canonical artifact SHA remains approved;
-- no production promotion command was run.
+PR identity, CI, merge commit, tree equivalence, release diff, Workers Build ID, new version ID, pre and post active version. Builder evidence is `ACTOR_REPORTED`; production readings are `OWNER_REPORTED`.
 
 ## Stop conditions
 
-Stop without repair if the governance or main identity unexpectedly moves; the artifact hash changes; final-head CI is not green; the PR contains unapproved runtime/product changes; the normal protection path cannot be used; Cloudflare configuration becomes ambiguous; production active Version changes unexpectedly; the build unexpectedly promotes traffic; any request would require `wrangler versions deploy`; or any D1/R2/Access/DNS/secret/environment mutation becomes necessary.
-
-No automatic rollback is authorized.
+Stop without merging if:
+- `main` or the governance branch moves unexpectedly;
+- the diff contains unapproved files, or `migrations/**` or the homepage hash change;
+- tests, the build or CI fail or are stale;
+- a normal protected merge is unavailable;
+- the Cloudflare build behavior is ambiguous;
+- production is not on the expected single version at 100%;
+- any production mutation would be needed.
 
 ## Next action
 
-On successful Gate C, publish the Builder return; archive and deselect this directive; reset action flags to `NO`; and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`. Gate D remains unauthorized.
+Publish the return `H-WEB-D098-GATE-C-0001`. Archive and deselect this directive, reset `MAIN_MERGE_AUTHORIZED` and every flag to `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `ARCHITECT_ACTION_REQUIRED: YES`. Gate D remains unauthorized.

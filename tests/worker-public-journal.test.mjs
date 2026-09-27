@@ -395,3 +395,60 @@ test("missing DB binding returns 503 for both public journal routes, not a crash
   const detailResponse = await callWorker(publicRequest("/api/journal/some-slug"), { db: undefined, jwks: undefined });
   assert.equal(detailResponse.status, 503);
 });
+
+// --- D-098: D1 failures become a controlled 503, never Worker Error 1101 ---
+
+const LEAK_MARKERS = ["SQL", "sqlite", "no such table", "journal_entries", "journal_entry_revisions", "D1_", "45b87574", "stack", "at "];
+
+async function assertControlled503(response) {
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("Content-Type"), "application/json");
+  const text = await response.text();
+  assert.deepEqual(JSON.parse(text), { error: "Service Unavailable" });
+  for (const marker of LEAK_MARKERS) assert.ok(!text.includes(marker), `503 body leaks "${marker}"`);
+}
+
+function throwingDb(message) {
+  const fail = () => { throw new Error(message); };
+  return {
+    prepare() {
+      return { bind() { return this; }, all: async () => fail(), first: async () => fail(), run: async () => fail() };
+    },
+  };
+}
+
+test("a bound DB whose queries throw returns a controlled 503 on both routes, with no internal detail", async t => {
+  const logged = t.mock.method(console, "error", () => {});
+  const db = throwingDb("D1_ERROR: no such table: journal_entries: SQLITE_ERROR at 45b87574-e573-4e0f-9bb6-fbba2df29523");
+  await assertControlled503(await callWorker(publicRequest("/api/journal"), { db, jwks: undefined }));
+  await assertControlled503(await callWorker(publicRequest("/api/journal/some-slug"), { db, jwks: undefined }));
+  assert.equal(logged.mock.callCount(), 2);
+  for (const call of logged.mock.calls) assert.ok(!call.arguments.join(" ").includes("no such table"));
+});
+
+test("a real local D1 with no schema (the AS-116 unmigrated condition) returns a controlled 503, not a crash", async t => {
+  t.mock.method(console, "error", () => {});
+  const statePath = fs.mkdtempSync(path.join(os.tmpdir(), "d-098-unmigrated-d1-test-"));
+  const proxy = await getPlatformProxy({ configPath: WRANGLER_CONFIG_PATH, persist: { path: statePath }, remoteBindings: false });
+  try {
+    await assertControlled503(await callWorker(publicRequest("/api/journal"), { db: proxy.env.DB, jwks: undefined }));
+    await assertControlled503(await callWorker(publicRequest("/api/journal/some-slug"), { db: proxy.env.DB, jwks: undefined }));
+  } finally {
+    await proxy.dispose();
+    fs.rmSync(statePath, { recursive: true, force: true });
+  }
+});
+
+test("with the D1 failure handling in place, a migrated DB still serves 200, unknown slugs still 404 and other methods still 405", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const index = await callWorker(publicRequest("/api/journal"), { db, jwks: undefined });
+    assert.equal(index.status, 200);
+    assert.deepEqual(await index.json(), { entries: [] });
+    assert.equal((await callWorker(publicRequest("/api/journal/does-not-exist"), { db, jwks: undefined })).status, 404);
+    assert.equal((await callWorker(publicRequest("/api/journal", { method: "POST" }), { db, jwks: undefined })).status, 405);
+    assert.equal((await callWorker(publicRequest("/api/journal/does-not-exist", { method: "DELETE" }), { db, jwks: undefined })).status, 405);
+  } finally {
+    await cleanup();
+  }
+});

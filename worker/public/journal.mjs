@@ -126,6 +126,23 @@ async function handleDetail({ db, slug }) {
   });
 }
 
+// D-098 (AS-116 post-incident hardening): a D1 query, schema or runtime
+// failure must not escape as Worker Error 1101. It becomes the same fixed
+// 503 body as a missing binding: no SQL, table name, binding or resource
+// id, stack trace or exception message reaches the client.
+function serviceUnavailable() {
+  return jsonResponse(503, { error: "Service Unavailable" });
+}
+
+async function readOrUnavailable(read) {
+  try {
+    return await read();
+  } catch {
+    console.error("public journal API: D1 read failed");
+    return serviceUnavailable();
+  }
+}
+
 // The single entry point for the two exact public routes. Route/method
 // classification happens before any D1 access — an unsupported method or
 // unrecognized sub-path never touches the database.
@@ -134,15 +151,15 @@ export async function handlePublicJournalDispatch({ request, url, db }) {
 
   if (pathname === PUBLIC_JOURNAL_ROOT_PATH) {
     if (request.method !== "GET") return jsonResponse(405, { error: "Method Not Allowed" });
-    if (!db) return jsonResponse(503, { error: "Service Unavailable" });
-    return handleIndex({ db });
+    if (!db) return serviceUnavailable();
+    return readOrUnavailable(() => handleIndex({ db }));
   }
 
   const match = pathname.match(PUBLIC_JOURNAL_DETAIL_PATTERN);
   if (match) {
     if (request.method !== "GET") return jsonResponse(405, { error: "Method Not Allowed" });
-    if (!db) return jsonResponse(503, { error: "Service Unavailable" });
-    return handleDetail({ db, slug: match[1] });
+    if (!db) return serviceUnavailable();
+    return readOrUnavailable(() => handleDetail({ db, slug: match[1] }));
   }
 
   // No other public journal sub-path exists.
