@@ -129,4 +129,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-125.md` — AS-116 Stage B production D1 migration repair and incident closure. Concluded `ARCHITECT_APPROVED — AS-116 REPAIRED / INCIDENT CLOSED`; D-097 authority consumed, unused restore authority lapsed, configuration/error-handling hardening deferred to a separate cycle. Mechanically published from the Architect's disposition as relayed by Paulo.
 
+- `ML-DEVOS-AS-126.md` — D-098 AS-116 post-incident hardening acceptance. Concluded `ARCHITECT_APPROVED — D-098 HARDENING ACCEPTED / RELEASE OWNER-GATED`; remediation not required; production release (Gate C → Gate D) not authorized by the review and left to a separate owner decision.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).

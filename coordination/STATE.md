@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_AS116_HARDENING
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D098_AS116_HARDENING_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS126_D098_RELEASE_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-AS116-HARDENING-0001
-REVIEW_TARGET_COMMIT: 199db5b2404aad192699de367472369b02fb87c7
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-125
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,31 +27,24 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-098 authorized the AS-116 post-incident hardening as repository/local changes only. That authority is consumed with this return.
+`ML-DEVOS-AS-126` returns `ARCHITECT_APPROVED — D-098 HARDENING ACCEPTED / RELEASE OWNER-GATED`. Remediation is not required.
 
-## Builder return
+The accepted hardening is on the governance branch and is not deployed. Production remains on Worker version `f473c170-b39c-4d7b-85ad-a99c5208d539`. AS-116 itself is already repaired and closed (`ML-DEVOS-AS-125`).
 
-`H-WEB-AS116-HARDENING-0001` is the return record. It is evidence, not authority. `DIR-WEB-AS116-HARDENING-0001` is archived byte-for-byte and deselected.
+`H-WEB-AS116-HARDENING-0001` is archived byte-for-byte and deselected.
 
-Reported result:
-- `wrangler.jsonc` pins `DB` `database_id` `45b87574-e573-4e0f-9bb6-fbba2df29523`;
-- the D1/R2 `remote: false` documentation is corrected;
-- `/api/journal`, `/api/journal/:slug` and `/api/design` return a controlled 503 on any D1 failure;
-- `npm test` 914/914 and `npm run build` pass;
-- no remote Cloudflare resource was touched, and `main` is unchanged.
+## Paulo decision required
 
-## Architect scope
-
-Independent review of the hardening return under the next unused immutable Architect Sync ID after ML-DEVOS-AS-125.
+Paulo decides whether to release the accepted D-098 hardening through the normal Gate C → Gate D path, or to leave it queued and resume another separately authorized workstream.
 
 ## Hard boundaries
 
-No remote D1 or R2 action, migration, restore, version upload, deploy, promotion, binding change, Access/DNS/secret/environment change, resource rename, `main` mutation or PR merge.
+No `main` merge, Worker upload, deployment or promotion, remote D1 or R2 mutation, D1 migration or restore, binding mutation, or Access/DNS/secret/environment change.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068.
 
-S6 remains parked at ML-DEVOS-AS-103 until the Architect accepts this cycle. O1 and O2 remain open.
+S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 All action-specific authorization flags are `NO`.
