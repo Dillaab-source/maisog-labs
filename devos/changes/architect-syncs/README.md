@@ -127,4 +127,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-124.md` — AS-116 Stage A production API incident root-cause review. Concluded `ARCHITECT_APPROVED — AS-116 STAGE A ROOT CAUSE ACCEPTED / PRODUCTION REPAIR OWNER-GATED`; accepts that production `DB` is bound to D1 `45b87574-e573-4e0f-9bb6-fbba2df29523` with migrations `0001`–`0005` never applied (uncaught `no such table` → 1101), recommends migrating that database as the recovery path with no Worker deploy, and defers `remote: false`/resource-naming/503 hardening. Transcribed from Paulo's relay of the Architect's disposition; grants no remote or deploy authority.
 
+- `ML-DEVOS-AS-125.md` — AS-116 Stage B production D1 migration repair and incident closure. Concluded `ARCHITECT_APPROVED — AS-116 REPAIRED / INCIDENT CLOSED`; D-097 authority consumed, unused restore authority lapsed, configuration/error-handling hardening deferred to a separate cycle. Mechanically published from the Architect's disposition as relayed by Paulo.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).
