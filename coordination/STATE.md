@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_AS116_HARDENING
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: AS126_D098_RELEASE_OWNER_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_WEB_D098_GATE_C
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D099_D098_GATE_C_PROTECTED_MAIN_RELEASE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,37 +14,37 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-D098-GATE-C-0001
+DIRECTIVE_ISSUE_PARENT: d2ed608139265dc58e75963e01634726fd7b2254
+DIRECTIVE_AUTHORITY_REF: D-099
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-126
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: NO
+MAIN_MERGE_AUTHORIZED: YES
 
-## Architect review
+## Authority
 
-`ML-DEVOS-AS-126` returns `ARCHITECT_APPROVED — D-098 HARDENING ACCEPTED / RELEASE OWNER-GATED`. Remediation is not required.
+D-099 records Paulo's authorization of Gate C for the D-098 hardening accepted by `ML-DEVOS-AS-126`. It covers one fresh protected PR from governance to `main`, exact-head CI, one normal merge commit with the head pinned, observation of the `main` version upload, and proof that production traffic did not move.
 
-The accepted hardening is on the governance branch and is not deployed. Production remains on Worker version `f473c170-b39c-4d7b-85ad-a99c5208d539`. AS-116 itself is already repaired and closed (`ML-DEVOS-AS-125`).
+## Selected directive
 
-`H-WEB-AS116-HARDENING-0001` is archived byte-for-byte and deselected.
-
-## Paulo decision required
-
-Paulo decides whether to release the accepted D-098 hardening through the normal Gate C → Gate D path, or to leave it queued and resume another separately authorized workstream.
+`DIR-WEB-D098-GATE-C-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-099 and the directive.
 
 ## Hard boundaries
 
-No `main` merge, Worker upload, deployment or promotion, remote D1 or R2 mutation, D1 migration or restore, binding mutation, or Access/DNS/secret/environment change.
+Gate D (production promotion) is not authorized. No `wrangler versions deploy`, promotion, traffic change, rollback, D1 migration, remote SQL, Time Travel restore, R2 mutation, Cloudflare binding change, or Access/DNS/secret/environment change. No creating, deleting or renaming resources. No squash, rebase, direct push, force, auto-merge or protection bypass.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific authorization flags are `NO`.
+Only `MAIN_MERGE_AUTHORIZED` is `YES`, for this exact Gate C. Every other action-specific flag is `NO`.
+
+## Next transition
+
+Claude/Builder executes Gate C and publishes the return, archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.

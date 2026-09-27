@@ -1730,3 +1730,22 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `MUTATION_AUTHORIZED: YES` for repository/local changes within this scope only. Every remote, deploy and other action flag is `NO`.
 - **Return:** one Protocol V2 Builder return listing the files changed, the exact config change, test/build results and the 503 behavior evidence, and confirming that no remote Cloudflare resource was touched and `main` is unchanged. Every flag is reset to `NO` and the return is routed to the Architect. S6 stays parked until the Architect accepts this cycle.
 - **Directive:** issue `DIR-WEB-AS116-HARDENING-0001` (cycle `MAISOGLABS_WEB_AS116_HARDENING`, scope `D098_AS116_POST_INCIDENT_HARDENING_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-125`), routed to Claude/Builder.
+
+### D-099 — Authorize D-098 Hardening Gate C Protected Main Release
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `d2ed608139265dc58e75963e01634726fd7b2254`, after `ML-DEVOS-AS-126` accepted the D-098 hardening. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:** `main` `7d22a96d10b5e24f5296795c2b049f77093386c3`; expected active production `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100%; D-093 homepage SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- **Authorized (Gate C only):**
+  - one fresh protected PR from `governance/maisoglabs-v0.1` to `main`, with its final head pinned to the published D-099 transition head;
+  - exact-final-head `test-and-build` CI SUCCESS, plus the Cloudflare Workers check if it runs;
+  - local `npm test`, `npm run build` and `git diff --check`, and the homepage hash;
+  - `PRE_MERGE_ACTIVE_VERSION_ID` recorded;
+  - one normal merge-commit merge with the expected head pinned;
+  - the `main` Workers Build observed, with its inactive version upload recorded;
+  - `POST_MERGE_ACTIVE_VERSION_ID` equal to `PRE_MERGE_ACTIVE_VERSION_ID`, still at 100%.
+- **Release content:** the eight AS-126-accepted files (`wrangler.jsonc`, `worker/public/journal.mjs`, `worker/public/design.mjs`, `scripts/d1-migrate.mjs`, `docs/ARCHITECTURE.md`, `tests/cloudflare-bindings-config.test.mjs`, `tests/worker-public-journal.test.mjs`, `tests/worker-public-design.test.mjs`), plus the governance/audit records accumulated since the last `main` release. No `migrations/**`, homepage artifact, `package.json`, lockfile, Access, DNS, secret or production-data change.
+- **Production readings:** the Builder's cloud session cannot reach Cloudflare. The pre- and post-merge active-version readings are therefore supplied by Paulo from the dashboard and classed `OWNER_REPORTED`, as at D-094 Gate C.
+- **Not authorized:** Gate D; `wrangler versions deploy`; promotion; traffic change; rollback; D1 migration, remote SQL or Time Travel; R2 mutation; Cloudflare binding, Access, DNS, secret or environment change; creating, deleting or renaming resources; squash, rebase, direct push, force, auto-merge or protection bypass; PR #7; PR #10; S6/S7; D-068.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only; every other action flag `NO`.
+- **Return:** Builder return `H-WEB-D098-GATE-C-0001` with the D-099 publication SHA, PR number, base and head, CI, merge commit, release diff, Workers Build ID, new version ID, pre and post active version, proof that pre equals post, and proof that no Gate D command ran. `MAIN_MERGE_AUTHORIZED` is reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-D098-GATE-C-0001` (cycle `MAISOGLABS_WEB_D098_GATE_C`, scope `D099_D098_GATE_C_PROTECTED_MAIN_RELEASE_ONLY`, applicable review `ML-DEVOS-AS-126`), routed to Claude/Builder.
