@@ -123,4 +123,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-122.md` — D-093 Gate D pre-authorization coordination sync. Records Paulo's Gate D intent, the Architect-verified main Build→Version binding, and Claude Code's local permission blocker while explicitly preserving repository `DEPLOY_AUTHORIZED: NO`; SENTINEL/SU disposition is held authority with no deploy or rollback authorization.
 
+- `ML-DEVOS-AS-123.md` — D-093 Gate D production promotion closure review. Concluded `ARCHITECT_APPROVED — D-093 GATE D ACCEPTED / RELEASE CLOSED`; accepts the single D-095 promotion to `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100% (deployment `fc425da6-d57f-4e9e-abc0-ac8582c2d4bf`) with the live homepage matching the D-093 artifact SHA-256, rollback not required, and the D-093 release sequence complete. Cloudflare allocation remains Builder/owner evidence (`AS123-N001`); grants no further deployment, rollback or Cloudflare authority.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).
