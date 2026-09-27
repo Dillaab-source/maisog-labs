@@ -121,4 +121,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-121.md` — D-093 Gate C protected main merge closure review. Concluded `ARCHITECT_APPROVED — GATE C ACCEPTED / CLOSED` and `READY FOR PAULO GATE D DECISION: YES`; production allocation evidence remains owner-reported (`AS121-N001`), and the review grants no Gate D, promotion or deployment authority. Header lines re-issued in the canonical Protocol V2 `Key: value` format; review text from `## Verdict` onward unchanged.
 
+- `ML-DEVOS-AS-122.md` — D-093 Gate D pre-authorization coordination sync. Records Paulo's Gate D intent, the Architect-verified main Build→Version binding, and Claude Code's local permission blocker while explicitly preserving repository `DEPLOY_AUTHORIZED: NO`; SENTINEL/SU disposition is held authority with no deploy or rollback authorization.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).
