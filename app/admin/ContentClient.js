@@ -84,6 +84,10 @@ function ProjectEditor({ project, onChanged }) {
   const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
   const setV10 = (key, value) => setForm(current => ({ ...current, v10: { ...current.v10, [key]: value } }));
 
+  // A completely blank V10 section is sent as `null` (not a homepage project),
+  // so non-homepage/legacy projects stay editable without homepage fields.
+  // Any partially filled section is sent as-is and validated by the server.
+  const v10Blank = !form.v10.tagline.trim() && !form.v10.status && form.v10.disciplines.length === 0 && form.v10.flow.every(stage => !stage.trim());
   const body = () => ({
     order: Number(form.order),
     category: form.category.trim(),
@@ -93,12 +97,14 @@ function ProjectEditor({ project, onChanged }) {
     accent: form.accent,
     icon: form.icon,
     featured: form.featured,
-    v10: {
-      tagline: form.v10.tagline.trim(),
-      status: form.v10.status,
-      disciplines: [...form.v10.disciplines].sort((a, b) => a - b),
-      flow: form.v10.flow.map(stage => stage.trim()),
-    },
+    v10: v10Blank
+      ? null
+      : {
+          tagline: form.v10.tagline.trim(),
+          status: form.v10.status,
+          disciplines: [...form.v10.disciplines].sort((a, b) => a - b),
+          flow: form.v10.flow.map(stage => stage.trim()),
+        },
   });
 
   async function saveDraft() {

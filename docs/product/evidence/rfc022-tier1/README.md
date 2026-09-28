@@ -32,3 +32,15 @@ This session's network policy blocked `registry.npmjs.org`, so `wrangler`, `jose
 - a minimal ES256 `jose`.
 
 The full suite, `npm run build`, and these suites against real Miniflare D1 must be re-run in a session with registry access before the D-106 return is published.
+
+## Admin Content UI (`admin-ui-report.json`, `admin-ui-*.png`)
+
+Produced by `node scripts/rfc022-admin-ui-evidence.mjs`. It renders the real `app/admin/ContentClient.js` in Chromium with React 18.3.1 and Babel standalone, decoded from the artifact's own bundle, against an in-page mock API that records each request. This is not the Next.js build (React 19), which still needs `npm run build` in a session with registry access.
+
+All checks passed, with 0 console/page errors:
+- the homepage count and AS132-F002 gate status are shown;
+- a legacy project with a blank V10 section saves with `v10: null` (kept editable without homepage fields);
+- a new project saves a complete `v10` group (4 flow steps, sorted discipline indices);
+- publish sends the expected pointers, and a `HOMEPAGE_LIMIT` 409 is explained;
+- the contact "Publish email" button stays disabled until the deliverability box is ticked, then sends `confirmDeliverability: true`;
+- the Profile / Home, About and Navigation tabs show deferral notices with no inputs.

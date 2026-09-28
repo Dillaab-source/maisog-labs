@@ -1,0 +1,16 @@
+{
+  "renderer": "React 18.3.1 + Babel standalone decoded from public/index.html (not the Next.js build)",
+  "errors": [],
+  "checks": {
+    "gateShown": true,
+    "legacySavesWithNullV10": true,
+    "publishSendsPointers": true,
+    "limitMessageShown": true,
+    "createSendsCompleteV10": true,
+    "contactPublishDisabledWithoutAttestation": true,
+    "contactPublishSendsAttestation": true,
+    "tier2Notice:Profile / Home": true,
+    "tier2Notice:About": true,
+    "tier2Notice:Navigation": true
+  }
+}
