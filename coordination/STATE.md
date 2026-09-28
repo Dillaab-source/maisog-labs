@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D108_RFC022_CBR_STAGE1_READINESS_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS135_RFC022_GATE_C_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-RFC022-CBR-S1-0001
-REVIEW_TARGET_COMMIT: cebf92686ab9c99e70c05c88a665ba4286e816ca
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-134
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,32 +27,36 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-108 recorded Paulo's decision to open the RFC-022 CB-R release cycle for Stage 1 readiness only. That authority is consumed with this return. Gate C itself (the `main` merge) was not authorized and was not performed.
+`ML-DEVOS-AS-135`: `STAGE 1 READINESS EVIDENCE ACCEPTED — FIRST BRIDGE ACTIVATION NOT READY`. Reviewed tip: `557889cc306aa91faaa1fbba514f25a312973faa`.
 
-## Builder return
+Confirmed:
+- PR #16 is the correct RFC-022 release PR.
+- The code/release candidate is suitable to proceed to a separately authorized Gate C.
+- Production traffic remains unchanged.
+- Production D1 still requires migration `0006`.
+- AS132-F002 is not ready, because production has no project content.
+- `site_settings` is uninitialized.
+- Eternal Eggs copy and the other initial project content still require owner approval.
+- Deliverability of `paulo.maisog@maisoglabs.com` remains unconfirmed.
 
-`H-WEB-RFC022-CBR-S1-0001` is the readiness record. It is evidence, not authority. `DIR-WEB-RFC022-CBR-S1-0001` is archived byte-for-byte and deselected.
+These are release/activation prerequisites, not implementation defects.
 
-Summary: **NOT READY for first bridge activation.**
-- The release candidate is clean: draft PR #16, `test-and-build` green on `cebf926`, no merge conflicts, and the artifact unchanged.
-- Production traffic is unchanged (`53137101…` @ 100%).
-- Production D1 has `0001`–`0005` only (`0006` not applied), 0 projects and uninitialized `site_settings`.
-- AS132-F002, Eternal Eggs copy and email deliverability are all `NOT READY`.
-- The handoff lists four release-sequencing findings for the Architect/Paulo.
+`H-WEB-RFC022-CBR-S1-0001` is archived byte-for-byte and deselected. The D-108 authority is consumed.
 
-## Architect scope
+## Paulo decision required
 
-Review of the Stage 1 readiness evidence under the next unused immutable Architect Sync ID after ML-DEVOS-AS-134. Acceptance would grant no Gate C, remote D1, deployment or promotion authority. Gate C remains a separate Paulo authorization.
+Scope: the separate Gate C decision for PR #16 (the protected `main` merge). No Gate C work begins automatically.
 
 ## Hard boundaries
 
-Every action-specific flag is `NO`.
+No merge authority exists. Also not authorized:
+- remote D1 writes or migrations; content publication;
+- Gate D; deployment; promotion;
+- Cloudflare, Access or DNS mutation.
 
-Not authorized:
-- merging PR #16 or anything to `main`; remote migration `0006`; any D1 write (including contact-settings initialization); content publication;
-- Cloudflare, Access or DNS changes; deployment; Gate D; production promotion.
+PR #16 stays a draft.
 
 AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
@@ -60,6 +64,4 @@ No PR #7 or PR #10 action. No S6/S7. No D-068. A-3 and A-6 are not authorized.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-## Next transition
-
-The Architect reviews `H-WEB-RFC022-CBR-S1-0001` and routes the Gate C and content-readiness decisions to Paulo. Nothing proceeds automatically.
+All action-specific authorization flags are `NO`.
