@@ -2185,3 +2185,51 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `MUTATION_AUTHORIZED: YES` for exactly this Access policy mutation (D-103 precedent for a bounded Cloudflare configuration change). Every other action flag stays `NO`.
 - **Return:** Builder return `H-WEB-RFC022-CBR-ACCESS-0001` with the D-113 publication SHA, the exact pre-change state, whether the policy was shared, the exact operation, the exact post-change state and the verification above. Every flag is then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-CBR-ACCESS-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D113_RFC022_CBR_ACCESS_IDENTITY_ALIGNMENT_ONLY`, applicable review `ML-DEVOS-AS-139`), routed to Claude/Builder.
+
+### D-114 — Authorize RFC-022 Gate D: one bounded production promotion of the exact `main` candidate
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `c24f8882586a5a2cdb25b7dc8bbfbd7b6e54fe72`, in the same message that relayed `ML-DEVOS-AS-140`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:**
+  - `main` `405375998392e936b71181de387ae395b7d46e40`; `main` Workers Build `ded31be5-394e-4674-95d9-88d904e784aa`;
+  - candidate version `862dc45e-9ad7-4324-80ae-912adbb6ce82`;
+  - current production and rollback target `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%;
+  - Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`; Access policy `62653faa-4c3c-4b96-a53f-7545f79dbd43`; canonical admin identity `paulo.maisog@maisoglabs.com`;
+  - homepage artifact SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- **Pre-promotion gate (fresh reads; any mismatch, traffic split or ambiguity stops without promoting, with no automatic repair):**
+  1. STATE selects the D-114 Gate D directive.
+  2. `main` is still exactly `40537599…`, not superseded by a newer authorized release.
+  3. The candidate `862dc45e…` exists, is inactive, was produced from the accepted `main` release, and carries `ACCESS_TEAM_DOMAIN` `jolly-disk-0469.cloudflareaccess.com`, `ACCESS_AUD` `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`, `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523`, `MEDIA` → `maisog-labs-web-inc-004-local`, and `ASSETS`.
+  4. Access application `b80acca4…` still protects only `maisoglabs.com/admin` and `/admin/*`, with the same AUD, team domain and OTP IdP, using policy `62653faa…`, which allows exactly `paulo.maisog@maisoglabs.com`.
+  5. A fresh active-production read immediately before promotion shows exactly `53137101…` @ 100%. Record `PRE_GATE_D_ACTIVE_VERSION_ID` and the deployment id.
+- **Pre-promotion baseline (RFC-022 §7 test 11):** a bounded sample of `GET /` (preferably ≥ 20), with median and p95 where supported. Also actual Worker CPU-time evidence for the active version from read-only Workers analytics/logging if available. No content mutation for measurement; no invented figures. If CPU evidence is unavailable, record the limitation; that alone authorizes no other deployment method or observability change.
+- **Authorized promotion:** exactly one production deployment assigning `862dc45e…` @ 100%, by the minimum official Cloudflare Workers deployment operation. The Wrangler equivalent is exactly `npx wrangler versions deploy 862dc45e-9ad7-4324-80ae-912adbb6ce82@100% --yes`, run once. No traffic or canary split, second candidate, version upload, `wrangler deploy`, rebuild or `main` merge.
+- **Post-promotion verification (read-only):**
+  1. active production is exactly `862dc45e…` @ 100%; record the new deployment id;
+  2. `GET https://maisoglabs.com/` returns 200 and, with no homepage projects or contact published, still serves the approved D-093 artifact, not blank or materially broken;
+  3. `/api/journal`, `/api/design` and `/journal` stay healthy under their contracts;
+  4. `/admin` stays protected by Cloudflare Access (no weakening or bypass);
+  5. no production content or D1 state changed;
+  6. no new Worker exception or binding failure attributable to the candidate.
+- **Post-promotion measurement (RFC-022 §7 test 11):** repeat the same `GET /` sample while still in artifact fallback. Obtain actual Worker CPU-time evidence for `862dc45e…` from read-only analytics/logging. Record the sample/window, latency statistics, CPU statistics, source, and the old/new comparison. If CPU evidence is unavailable, do not fabricate it: report test 11 as still incomplete and leave the healthy candidate deployed unless a rollback condition holds. No observability configuration mutation.
+- **Conditional rollback (at most one):**
+  - **When:** only for a new material production failure attributable to `862dc45e…`: homepage unavailable or materially broken; previously healthy public APIs failing; widespread new Worker exceptions; an Access/Worker binding failure preventing the governed admin path; or a production binding failure caused by the candidate.
+  - **How:** roll back to `53137101…` @ 100%. The Wrangler equivalent is `npx wrangler rollback 53137101-afb8-456c-ab83-d8b7b934df01 --message "D-114 rollback: newly caused RFC-022 Gate D production failure"`. Then verify, rerun the health checks and stop, with no second promotion.
+  - **Not a rollback reason:** absent project content, the homepage remaining the D-093 artifact, an empty Journal, unavailable CPU/latency evidence, cosmetic or pre-existing issues, or the historical `-local` resource names.
+- **Not authorized:**
+  - project draft creation or publication; initial homepage activation;
+  - `site_settings` or content mutation; public contact-email publication;
+  - D1 query, write, migration or restore; R2 mutation;
+  - Access mutation; DNS change; secret, environment or binding change;
+  - version upload; another `main` merge;
+  - PR #7 or PR #10 action; S6/S7; D-068.
+- **Flags:** `DEPLOY_AUTHORIZED: YES` for this exact Gate D (and its one conditional rollback). Every other action-specific flag stays `NO`.
+- **Return:** one Gate D return `H-WEB-RFC022-GATE-D-0001` containing:
+  - the D-114 publication SHA, the `main` SHA, the candidate and previous version ids, and the pre-Gate-D active version and deployment;
+  - the exact deployment operation, the new deployment id, and the post-Gate-D active version and allocation;
+  - the HTTP smoke results and the Access re-check;
+  - the test 11 evidence or explicit limitation;
+  - the rollback status;
+  - confirmation that no content, D1, R2, Access, DNS, binding, secret or `main` mutation occurred.
+
+  Then `DEPLOY_AUTHORIZED` and every flag are reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; the directive is archived and deselected.
+- **Directive:** issue `DIR-WEB-RFC022-GATE-D-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D114_RFC022_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-140`), routed to Claude/Builder.
