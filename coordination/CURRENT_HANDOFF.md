@@ -1,164 +1,132 @@
-# Current Handoff — RFC-022 CB-R AS-137 remediation (D-111)
+# Current Handoff — RFC-022 Gate C for the D-111 remediation (D-112)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RFC022-CBR-REM1-0001
+handoff_id: H-WEB-RFC022-GATE-C-0002
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-input_base_commit: fde97b6d4be4cc427cde682bd27182f8e328e93d
-review_target_commit: fde97b6d4be4cc427cde682bd27182f8e328e93d
-applicable_review_id: ML-DEVOS-AS-137
+input_base_commit: dfae2a59278a761a4157155178f7ed94955c2926
+review_target_commit: dfae2a59278a761a4157155178f7ed94955c2926
+applicable_review_id: ML-DEVOS-AS-138
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
-
-Evidence classes:
-- **`ACTOR_REPORTED`, local:** every test, build and bundle result below.
-- **`ACTOR_REPORTED`, read-only Cloudflare API:** the source of the Access values (GET only).
-
-Nothing here is production evidence. No remote resource was mutated.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Evidence class: `ACTOR_REPORTED`, from live GitHub and Cloudflare API calls made in this session (Cloudflare reads were GET only).
 
 ## Objective
 
-Execute `DIR-WEB-RFC022-CBR-REM1-0001` (D-111): remediate AS137-F001 and AS137-F002, add the `site_settings` first-draft bootstrap, and narrowly update the release semantics. Repository/local only.
+Execute `DIR-WEB-RFC022-GATE-C-0002` (D-112): merge the D-111 remediation accepted by AS-138 into `main` through one fresh protected PR, without production promotion; prove production traffic is unchanged; record the AS138-F001 Access policy identity check.
 
 ## Result
 
-**All five D-111 items implemented. Full suite 950/950, build and Worker bundle green.**
+**Gate C complete. Production traffic unchanged. AS138-F001: MISMATCH — Gate D NOT READY.**
 
-The review diff is `fde97b6..` this return commit.
-
-## Design
-
-### 1. Initial project activation (AS137-F001)
-
-- **New route:** `POST /admin/api/projects/initial-activation`, reached only after Access verification, like every `/admin` route.
-  - Body: `{ projects: [{ id, expectedPublishedRevisionId, expectedDraftRevisionId }] }`, exactly five entries, no other keys, unique ids.
-  - A single path segment, so it cannot collide with `/admin/api/projects/:id/:action`.
-- **Pre-read checks (each failure publishes nothing and writes a failure audit):**
-  - activation not already done (409 `INITIAL_ACTIVATION_ALREADY_DONE`);
-  - no project currently published homepage-eligible (409 `HOMEPAGE_NOT_EMPTY`);
-  - each entry's pointers match (409) and a draft exists (409 `DRAFT_REQUIRED`);
-  - each draft is revalidated from storage and must be homepage-eligible (409 `NOT_HOMEPAGE_ELIGIBLE`);
-  - the five, mapped to bridge projects, pass `initialReleaseReadiness`: exactly ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat, complete and valid, in that order. Their `sort_order`/id ordering must also render in that order (400 `INITIAL_SET_MISMATCH`).
-- **One `db.batch()`:**
-  - five guarded pointer UPDATEs, then five `project_publish` success audit rows, then one `homepage_initial_activation` success row (`entity_type` `homepage`, `entity_id` `home`);
-  - each UPDATE's poisoned-slug guard (the existing AS21-F007 technique) also requires, at commit time, that activation is not done and that exactly `index` other projects are published homepage-eligible;
-  - any failed guard rolls back everything: no publication, no audit success row, no marker.
-- **Durable marker without a new table or migration:** the `homepage_initial_activation` success row. `audit_log` is append-only at the database layer (migration `0002` triggers abort UPDATE and DELETE), so the marker cannot be removed and the restriction switches off exactly once. Failure rows never count.
-- **Individual publish:** a homepage-eligible publish now requires the marker. It is checked on the pre-read (409 `INITIAL_ACTIVATION_REQUIRED`) and again inside the guarded UPDATE. Non-homepage (legacy) publishes and unpublish are unchanged.
-- **No permanent runtime gate:** `worker/public/home.mjs` and `worker/bridge/snapshot.mjs` are unchanged. Public `/` still renders any valid published group of 1..5 (AS133-F001), including after unpublishes and later individual publishes.
-- **Status:** `GET /admin/api/content` adds `homepage.initialActivation.done`.
-
-### 2. `site_settings` bootstrap
-
-- **Trigger:** `PUT /admin/api/content/contact/draft` on a database with no `site_settings` row, sent with both expected pointers `null`. Non-null pointers → 409.
-- **One batch:**
-  - INSERT the `default` parent;
-  - INSERT revision 1 from `canonicalSiteSettingsRevisionColumns(data/site.js)` (the exact columns the WEB-INC-005 migration writes, now exported from `worker/d1/migrate.mjs`), with only `contact_email` replaced and `created_by` = `cf-access:<sub>`;
-  - set only `draft_revision_id` (guarded on both pointers null, poison `-1`);
-  - write `site_settings_bootstrap` and `site_settings_contact_update_draft` success audit rows.
-- **Never publishes:** `published_revision_id` stays null. The existing attested contact publish (`confirmDeliverability: true`) is still required. The bridge's existing admin-actor email rule is unchanged.
-- **Concurrency:** a competing bootstrap fails on the primary key and rolls back the whole batch (409). A later bootstrap still addressed as uninitialized is stale (409).
-
-### 3. Access configuration (AS137-F002)
-
-- **Source:** read-only `GET /accounts/{id}/access/apps` and `/access/organizations`. Exactly one application covers `maisoglabs.com/admin`: `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`, named "maisoglabs.com", self-hosted domains `maisoglabs.com/admin` and `maisoglabs.com/admin/*`. The other two applications are the separate hosts `admin.maisoglabs.com` and `staging-admin.maisoglabs.com`.
-- **Values in `wrangler.jsonc`:**
-  - `ACCESS_TEAM_DOMAIN` = `jolly-disk-0469.cloudflareaccess.com` (the organization `auth_domain`, bare-host convention of `worker/auth.mjs`);
-  - `ACCESS_AUD` = `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`.
-- **Current production state (read-only):** active version `53137101…` and the inactive `main` version `6ca2ddfe…` both still carry the placeholders. Production `/admin` is fail-closed (401) today. No dashboard override existed to preserve.
-- **Unchanged:** the placeholder constants and all fail-closed checks in `worker/auth.mjs`. No Access application, policy, identity, DNS or account change.
-
-### 4. Release semantics
-
-`ML-DEVOS-RFC-022`:
-- **§5.6:** documents initial activation and the bootstrap.
-- **§9:** the Access risk line.
-- **§10 CB-R row and new §10.1:** Gate D may activate the code while no bridge payload exists (public `/` stays the approved artifact). AS132-F002 governs the first project bridge activation, which is the exact-five initial activation; it is not weakened.
-- **§11:** a D-111 amendment entry.
-
-`worker/bridge/payload.mjs`'s AS132-F002 comment is updated to match.
-
-### 5. Admin UI (`app/admin/ContentClient.js`)
-
-- **Projects tab:** an "Initial homepage activation" panel, shown until `initialActivation.done`. It lists the five required names with draft status, and one button sends the five entries with their current pointers.
-- **Failure messages:** for each new reason code.
-- **Contact tab:** no longer refuses when uninitialized; it explains that the first draft sets site settings up.
+| Item | Value |
+|---|---|
+| D-112 publication (final PR head) | `dfae2a59278a761a4157155178f7ed94955c2926` (parent `9abb5f6…`, the end of the AS-138 reviewed implementation) |
+| PR | [Dillaab-source/maisog-labs#17](https://github.com/Dillaab-source/maisog-labs/pull/17), opened ready for review, merged |
+| Base before merge | `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3` (unchanged since D-109) |
+| Merge commit | `405375998392e936b71181de387ae395b7d46e40`, a normal merge commit with parents `fda42e04…` and `dfae2a59…`, merged with `merge_method: merge` and `expectedHeadSha: dfae2a59…` |
+| `main` after merge | `40537599…`. Its tree (`5cd4e710…`) is identical to the final head's |
+| `PRE_MERGE_ACTIVE_VERSION_ID` | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6-56b8-4412-a96a-a587588f8521`, read 2026-09-28T20:36:43Z |
+| `main` Workers Build | `ded31be5-394e-4674-95d9-88d904e784aa`, branch `main`, commit `40537599…`, outcome `success`, stopped 20:37:35Z; deploy command `npx wrangler versions upload` |
+| New inactive version | `862dc45e-9ad7-4324-80ae-912adbb6ce82` (#828), alias `main`, `workers/triggered_by: version_upload`, created 20:37:30Z |
+| `POST_MERGE_ACTIVE_VERSION_ID` | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6…` (created 07:21:06Z, unchanged), read 20:38:52Z |
+| Pre = post | **YES** |
 
 ## Tests and evidence
 
-- **`npm test`:** 950/950 pass (0 fail, 0 skipped). The 942 baseline in this session already included the 4 new Access tests; this cycle adds 8 new D-111 tests, and 4 existing RFC-022 tests were adapted.
-- **`npm run build`:** exit 0.
-- **`npx wrangler deploy --dry-run --outdir <scratch>`:** bundles (228 KiB), bindings list the real Access values. Local only, no upload.
-- **`git diff --check`:** clean.
+### Pre-merge checks on the final head `dfae2a59…`
 
-D-111 requirement → test (`tests/worker-rfc022-content.test.mjs` unless noted):
+- **`test-and-build` (GitHub Actions):**
+  - run `36479666981` / job `109121922346`: `success` (20:30:23–20:32:40Z);
+  - run `36479769693` / job `109122250362`: `success` (20:31:12–20:33:51Z).
 
-| Requirement | Test |
-|---|---|
-| zero published → artifact fallback | "zero published projects is the artifact fallback, before and after activation" (+ existing test 2) |
-| one / four individual publishes cannot create first activation | "one or four individual homepage publishes cannot create a first activation"; "the individual publish guard also holds at commit time before activation" |
-| exact five activate atomically | "the exact D-105 five activate atomically, once, with audit evidence" (order on `/`, 5 publish rows + marker, audit revision ids, repeat → 409, marker DELETE rejected) |
-| failed activation leaves zero published | "failed initial activations publish nothing" (wrong order, duplicate, stale pointer, extra key, wrong name, incomplete project, and a commit-time race on project 5 rolling back projects 1–4); "initial activation refuses a non-empty homepage and non-POST methods" |
-| normal 1..5 after activation | "AS133-F001 item 3: after initial activation, any valid published group of 1..5 renders…" (5→1 by unpublish, then a new individual publish); item 4; test 8 (sixth rejected) |
-| bootstrap atomic, no publish | "the first contact draft initializes site_settings atomically and does not publish" |
-| stale / conflicting bootstrap | "stale or conflicting site_settings bootstrap attempts fail safely" (non-null pointers, invalid email, a commit-time race leaving no revision and no success audit, second bootstrap → 409) |
-| Access placeholders gone, fail-closed kept | `tests/cloudflare-bindings-config.test.mjs`: exact values; no `REPLACE_WITH_`; with the real values, missing/garbage/wrong-audience/wrong-issuer/untrusted-key → 401 + no-store, zero asset calls; valid assertion → 200 |
+  These are the push and pull-request triggers.
+- **`Workers Builds: maisog-labs`:** `success` on both branch uploads of `dfae2a5`:
+  - `52879440…` (`governance/maisoglabs-v0.1`);
+  - `d2a701b1…` (the Builder's session branch).
 
-- **Adapted tests:** four existing RFC-022 tests that published homepage projects one by one now use initial activation. Their assertions are kept or strengthened: the first adds a refused lone publish; item 3 now covers every group size 5..1 after activation.
-- **Mutation check (local, reverted):** removing the activation batch's pointer guard fails the race test. Removing the marker condition from the individual publish guard fails the commit-time test.
+  Both use the "Deploy non-production branches" trigger (`npx wrangler versions upload`), so neither is a deployment.
+- **Mergeability:** GitHub `mergeable_state: clean`. `git merge-tree --write-tree main dfae2a5` has no conflicts, and the merged tree equals the final head.
+- **`main` unchanged:** `fda42e04…`, re-read immediately before the merge.
+- **Release scope:**
+  - AS-138 reviewed end `9abb5f6…` → final head `dfae2a5…` changes only the AS-138/D-112 governance records: `brain/DECISION_LOG.md`, `coordination/{ARCHITECT_REVIEW,CURRENT_DIRECTIVE,STATE}.md`, the `H-WEB-RFC022-CBR-REM1-0001` archive and index, and `devos/changes/architect-syncs/{ML-DEVOS-AS-138.md,README.md}`.
+  - The full release diff `fda42e0..40537599` is 34 files, +2109/−183: the D-111 remediation plus the governance records since PR #16.
+- **Homepage artifact:** SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9` at the final head and on `main` after the merge.
+
+### AS138-F001 — Access policy identity (read-only)
+
+- **Source:** `GET /accounts/{id}/access/apps/b80acca4-ecff-4d9a-ba1b-cedff87cb25b` and `…/policies`. The application `maisoglabs.com/admin` has exactly one policy:
+  - `460d0315-1e4b-414a-8845-c656f1f04c79`, "Maisog Labs Admin V1 — Canonical Administrator";
+  - `decision: allow`, precedence 1, `reusable: true`;
+  - `include`: a single `email` rule; no `exclude` or `require`.
+- **Comparison:** the allowed identity is a single personal `gmail.com` address. It is **not** the D-106 identity `paulo.maisog@maisoglabs.com`. The exact address was reported to Paulo in the session and is deliberately not committed here.
+- **Consequence:** **Gate D is NOT READY.** Under AS-138/D-112 this does not block Gate C. The policy is reusable (shared), so changing it may affect other Access applications that reference it. Any change needs a separate Paulo authorization. No Access mutation was made.
+
+### Production (Cloudflare API, GET only)
+
+- **Deployments list:** 10 entries before and after. The latest is still `3bf053d6…` from 07:21:06Z, so no deployment was created during Gate C.
+- **New inactive version `862dc45e…`** carries the D-111 configuration:
+  - `ACCESS_TEAM_DOMAIN` `jolly-disk-0469.cloudflareaccess.com`;
+  - `ACCESS_AUD` `ef44d36e…0cea22`;
+  - `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523`;
+  - `MEDIA` → `maisog-labs-web-inc-004-local`;
+  - `ASSETS`.
+
+  The active `53137101…` still carries the placeholders, so production `/admin` stays fail-closed (401).
+
+### No Gate D
+
+The Builder ran:
+- no `wrangler versions deploy`, deploy, promotion, traffic change or rollback;
+- no D1 query or write;
+- no content, `site_settings` or email change;
+- no Access, DNS, R2, binding, secret or environment change;
+- no direct push to `main`.
+
+The only production-side effects are the automatic Workers Builds version uploads, which are inactive.
 
 ## Changed files
 
-- **Code:**
-  - `worker/d1/projects.mjs`: activation marker and batch; the publish guard;
-  - `worker/admin/projects.mjs`: route; publish gate;
-  - `worker/d1/site.mjs`: bootstrap batch;
-  - `worker/admin/content.mjs`: bootstrap path; status;
-  - `worker/d1/migrate.mjs`: exported canonical columns, behavior unchanged;
-  - `worker/bridge/payload.mjs`: comment only;
-  - `app/admin/ContentClient.js`;
-  - `wrangler.jsonc`: Access vars and comment.
-- **Tests:** `tests/worker-rfc022-content.test.mjs`; `tests/cloudflare-bindings-config.test.mjs`.
-- **Docs:** `devos/changes/rfcs/ML-DEVOS-RFC-022.md`.
 - **Coordination:**
   - `coordination/STATE.md`; this file;
-  - `coordination/archive/directives/DIR-WEB-RFC022-CBR-REM1-0001.{md,provenance.json}` (byte-for-byte, blob `7a6d454…`) and the index row.
-- **Not changed:**
-  - `migrations/**`; `worker/public/**`; `worker/bridge/snapshot.mjs`; `worker/bridge/inject.mjs`; `worker/auth.mjs`; `public/index.html`;
-  - `coordination/OPERATIVE_OBLIGATIONS.md`.
+  - `coordination/archive/directives/DIR-WEB-RFC022-GATE-C-0002.{md,provenance.json}` (byte-for-byte, blob `c8cd80d…`) and the index row;
+  - `coordination/OPERATIVE_OBLIGATIONS.md` is unchanged.
+- **Outside this commit:** the PR #17 merge (`main` → `40537599…`). No product, test or migration change in this return.
 
 ## Unresolved findings and limitations
 
-- **Nothing deployed.**
-  - The Access values and both capabilities reach production only through a separately authorized Gate C (`main` merge) and Gate D. Production `/admin` stays fail-closed until then.
-  - The governance push triggers the usual inactive non-production preview upload.
-- **Access value provenance:** the Access values were read at a point in time. If the Access application's audience is rotated or the application is replaced before Gate D, `/admin` fails closed (safe) and the values need re-reading.
-- **Marker semantics:**
-  - Activation is one-way by design. Unpublishing all projects afterwards returns `/` to the artifact but does not re-arm the five-project requirement (AS133-F001).
-  - A database seeded by hand with a published homepage-eligible row blocks activation (409 `HOMEPAGE_NOT_EMPTY`) until that row is unpublished.
-- **Bootstrap base content:** the first `site_settings` revision copies the canonical `data/site.js` fields. The V10 artifact does not read them (only the email reaches the bridge), so they are inert placeholders for Tier 2.
-- **Doc drift:** `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md` and older release reports still describe the Access vars as placeholders. They are historical planning records, left unchanged to keep this cycle narrow.
-- **UI evidence:** the UI changes are build-verified only. There is no browser/Playwright run this cycle.
-- **Carried forward:**
-  - AS132-F003 remains open;
-  - traceability: the pre-existing 3 ERRORs and DRIFT are unchanged;
-  - the pre-publication D-111 orphan WARNING is resolved by this directive archive.
-- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged.
+- **AS138-F001 open:** the Access policy allows a different identity than D-106's. Gate D NOT READY until Paulo separately decides the Access policy change, or amends the D-106 identity.
+- **Remaining activation prerequisites (after Gate D, each separately authorized):**
+  - owner-approved project copy for the five, including Eternal Eggs;
+  - the initial activation itself;
+  - the contact draft/publish with confirmed deliverability.
+
+  RFC-022 §7 test 11 still needs production measurements.
+- **The new version is not deployed.** `862dc45e…` (`main`) carries the D-111 code and real Access values but receives no traffic. Remote `0006` is already applied, so the schema is ready for it.
+- **Branch relationship:** `main` now carries the merge commit `40537599`, which is not on `governance/maisoglabs-v0.1` (the same pattern as PRs #12–#17). This return is published on the governance branch, not `main`.
+- **Publication attempts:** the D-112 issue transition was recorded as attempt 3 of the checker's local per-transition limit. Its attempt key (cycle, no handoff, `CLAUDE`) was shared with the D-110 and D-111 issue transitions, and none of the three was a failed push. The limit is local to this clone. A further directive issue in this cycle from this clone would need a fresh bootstrap (`PUBLICATION_ATTEMPTS_EXHAUSTED`).
+- **Carried forward:** AS132-F003 remains open; the traceability validator's pre-existing 3 ERRORs and DRIFT are unchanged.
+- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged. `OBL-017` (separate production deploy gate) still holds: Gate C is not a production release.
 
 ## Evidence locations
 
-- Tests: `tests/worker-rfc022-content.test.mjs` (the D-111 section at the end), `tests/cloudflare-bindings-config.test.mjs`.
-- Access application (read-only): account `fb7234ae9117baf1481ab3b169a9824a`, app `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`.
+- PR: https://github.com/Dillaab-source/maisog-labs/pull/17 (merged as `40537599…`).
+- CI jobs: `109121922346`, `109122250362`.
+- Cloudflare builds:
+  - `ded31be5-394e-4674-95d9-88d904e784aa` (`main`);
+  - `52879440-28b3-41b1-ac70-aba7d015635a`, `d2a701b1-33ba-40c5-b04a-79c0402d0056` (branch).
+- Versions: `862dc45e-9ad7-4324-80ae-912adbb6ce82` (`main`, inactive); active `53137101-afb8-456c-ab83-d8b7b934df01`.
+- Access: application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`, policy `460d0315-1e4b-414a-8845-c656f1f04c79`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-111; `ML-DEVOS-AS-137`.
-- **T1:** `ML-DEVOS-RFC-022`; D-105; D-106; D-107 / `ML-DEVOS-AS-133`; `ML-DEVOS-AS-132`.
-- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CBR-REM1-0001.md`.
+- **T0:** Protocol V2; D-112; `ML-DEVOS-AS-138`.
+- **T1:** `ML-DEVOS-RFC-022` §10 / §10.1 (CB-R); D-111; D-109 (Gate C precedent); D-106 (canonical admin identity).
+- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-GATE-C-0002.md`.
 
 ## Next action
 
-The Architect reviews the D-111 remediation. The following each need separate Paulo authorization:
-- Gate C (`main` merge) and Gate D (promotion);
+The Architect reviews the Gate C return. The following each need separate Paulo authorization:
+- the AS138-F001 Access policy change;
+- Gate D / promotion;
 - production content, initial activation and email publication.
