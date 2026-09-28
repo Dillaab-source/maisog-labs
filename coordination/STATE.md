@@ -45,6 +45,12 @@ Paulo, authenticated through Access in his own browser, runs one Builder-generat
 
 The Builder creates nothing. After Paulo reports, it verifies read-only (read-back versus D-115, validators, `initialReleaseReadiness`, nothing published, no marker, `/` unchanged). The desktop preview may be `OWNER_REPORTED`.
 
+**D-118 amends D-117.** Paulo created only ClinicFlow, through the UI, as revision 1, and 7 fields differ from D-115. The replacement owner-executed script (SHA-256 `35b059d6…`) does two things:
+- corrects ClinicFlow with the authenticated `PUT /admin/api/projects/project-clinicflow/draft`, expected pointers `null`/`1`, creating a new immutable revision;
+- creates the other four with authenticated POSTs.
+
+All values come exactly from D-115. The directive stays open until all five exact drafts are verified.
+
 ## Selected directive
 
 `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` is transport, not authority. Effective scope is the intersection of this STATE, D-116, D-115 (content) and the directive.

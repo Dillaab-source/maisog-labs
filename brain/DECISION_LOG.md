@@ -2519,3 +2519,43 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   Then the Builder returns to the Architect and stops.
 - **Flags:** unchanged from D-116 (`MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` `YES` for this operation only). The Builder itself creates no drafts and performs only read-only verification.
 - **Directive:** `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` stays selected, with its execution path amended by D-117 (as D-101 amended D-100). The return is `H-WEB-RFC022-CONTENT-DRAFTS-0002`.
+
+### D-118 — Amend D-117: correct the UI-made ClinicFlow draft by PUT; create the other four by POST
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `e0ad72d7f15dd86a1daed793709c9f5e09ae6544`, after the Builder's read-only ClinicFlow diagnostic. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Diagnostic (accepted by Paulo):**
+  - Paulo created only `project-clinicflow`, through the admin UI: revision 1, `created_by cf-access:f2cab460-…`, published `null`, draft `1`.
+  - 7 of 14 fields differ from D-115: `title` `clinicflow` (should be `ClinicFlow`); `order` 3 (1); `stack` `[]`; `accent` `blue` (`gold`); `icon` `lab` (`automation`); `featured` false (true); `v10.disciplines` `[0,1,3,4]` (`[0,1,4,3]`).
+  - `id`, `slug`, `category`, `summary`, `v10.tagline`, `v10.status` and `v10.flow` match.
+  - No activation marker. Public `/` is unchanged.
+- **Authorized (only):**
+  1. correct the existing ClinicFlow draft through the authenticated draft-edit lifecycle `PUT /admin/api/projects/project-clinicflow/draft`, creating a new immutable revision exactly equal to canonical D-115, with expected pointers `expectedPublishedRevisionId: null`, `expectedDraftRevisionId: 1`. Stop if they no longer match;
+  2. create Eternal Eggs, Sentinel / DevOS, SU and Maisog Kilat with authenticated `POST /admin/api/projects`, exactly as in D-115;
+  3. both in one owner-executed browser-console script that replaces the D-117 script, stops on the first unexpected response, and never publishes or activates;
+  4. after Paulo runs it, read-only verification of all five: field-by-field comparison with D-115, the production validators, `validateProjectsGroup`, `initialReleaseReadiness() == true`, `published_revision_id` null for all, no `homepage_initial_activation` marker, public `/` unchanged.
+- **Verified live PUT contract** (the code at `main` `405375998392e936b71181de387ae395b7d46e40`, identical to the governance branch):
+  - post-Access `sub` required; same-origin `Origin`; JSON; ≤ 32 KiB;
+  - the project must exist (else 404);
+  - `expectedPublishedRevisionId` and `expectedDraftRevisionId` are required (null or a positive integer; else 400) and must equal the live pointers (else 409);
+  - the body carries `order`, `category`, `title`, `summary`, `stack`, `accent`, `icon`, `featured` and `v10` (`id`/`slug` are not accepted and stay unchanged). An omitted `media` inherits the source revision's snapshot (none for ClinicFlow);
+  - `validateProjectRevisionContent`, with discipline order preserved;
+  - one atomic batch: a new immutable `project_revisions` row (next revision number), a draft-pointer UPDATE guarded at commit time on both expected pointers, and a `project_update_draft` success audit row. Revision 1 is not modified;
+  - `published_revision_id` is never touched;
+  - the response is 200 `{ id, slug, state, publishedRevisionId, draftRevisionId, revisionId }`.
+- **Script:**
+  - generated from the canonical D-115 JSON (compact SHA-256 `e45a56ca8a5d96fc8a0484da857dbd8d3b783a936181d875b05bb756bab6e90c`); script SHA-256 `35b059d6a1cc82dee756b50ed52405f101c0a9d6b37f65aca55d62ebb7bb8f16`;
+  - pre-checks: on `maisoglabs.com/admin`; initial activation not done; ClinicFlow pointers exactly published `null` / draft `1`; the other four ids absent;
+  - then one PUT, which must give 200, `state: draft`, published `null` and an advanced draft pointer, and four POSTs, each 201, `draft`, published `null`;
+  - it stops on the first unexpected response.
+- **Local dry run (Builder, Miniflare D1, real admin handlers; not production):**
+  - from a reproduced UI-made ClinicFlow revision 1, the script produced ClinicFlow revision 2 and four new drafts;
+  - 0 field differences against canonical D-115 across all five; validators, `validateProjectsGroup` and `initialReleaseReadiness` all pass;
+  - 0 published, 0 markers; one success audit row per operation;
+  - a re-run stops at the pointer pre-check.
+- **Not authorized:**
+  - deleting or recreating ClinicFlow;
+  - project publication; homepage activation; an activation marker;
+  - contact/`site_settings` changes; deployment;
+  - direct D1 SQL; a service token; Access changes; R2; schema or migrations;
+  - `main` merge; V10.1 changes.
+- **Flags and directive:** unchanged. `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` stays selected and open until all five exact drafts are verified. The Builder performs no write. The return is `H-WEB-RFC022-CONTENT-DRAFTS-0002`.
