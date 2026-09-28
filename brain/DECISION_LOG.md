@@ -2046,3 +2046,37 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Every action flag is then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D109_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-135`), routed to Claude/Builder.
+
+### D-110 — Authorize RFC-022 CB-R production D1 migration `0006` only (owner-executed)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `1296c505e7b592d7fabe4cfcfa5f5bd91efb48d2`, after `ML-DEVOS-AS-136` accepted Gate C and recommended remote production migration `0006` only. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Execution path (owner-executed):** the Builder's cloud session has no Wrangler authentication. Paulo runs the migration from Paulo's own locally authenticated Wrangler session (independently verified by Paulo, with D1 write permission). The Builder does not run the migration. It performs the read-only pre- and post-migration verification through the Cloudflare MCP/API connector and publishes the return.
+- **Bound identities:**
+  - production D1 `maisog-labs-web-inc-005-local` / `45b87574-e573-4e0f-9bb6-fbba2df29523`, bound as `DB`;
+  - `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3`;
+  - expected active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%;
+  - `migrations/0006_rfc022_v10_project_fields.sql`, blob `45da6f6c6452e4c55a656927ca970218d071eae0`, identical on `main` and the governance branch.
+- **Pre-publication readings (read-only, Cloudflare connector, `ACTOR_REPORTED`):**
+  - `d1_migrations` lists exactly `0001`–`0005`; `0006` is absent;
+  - `project_revisions` has 13 columns, none of `tagline`, `status`, `disciplines_json`, `flow_json`;
+  - row counts: `theme_settings` 1 and `theme_settings_revisions` 1; every other content, revision, media, journal, `site_settings` and `audit_log` table 0;
+  - latest deployment: `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- **Authorized (only):**
+  - Paulo runs, from a checkout of `main` or of the D-110 governance transition: `npx wrangler d1 time-travel info maisog-labs-web-inc-005-local --json`, to record the pre-migration bookmark (read-only);
+  - Paulo runs `npx wrangler d1 migrations list maisog-labs-web-inc-005-local --remote` (read-only), which must list only `0006_rfc022_v10_project_fields.sql` as pending;
+  - Paulo runs exactly one `npx wrangler d1 migrations apply maisog-labs-web-inc-005-local --remote`, approving only after the prompt lists `0006_rfc022_v10_project_fields.sql` alone on that database;
+  - the Builder independently verifies production D1 read-only through the Cloudflare connector and publishes the return.
+- **Not authorized:**
+  - any migration other than `0006`; creating or editing any migration; arbitrary remote SQL (`d1 execute --remote`);
+  - Time Travel restore or any other rollback (a restore needs a separate Paulo decision);
+  - `site_settings` initialization; project, content or revision writes; content publication; email publication;
+  - Gate D; `wrangler deploy`; `wrangler versions deploy`; version upload; promotion; traffic change;
+  - R2, Access, DNS, binding, secret or environment changes; creating, deleting or renaming any Cloudflare resource;
+  - any `main` merge; PR #7 or PR #10; S6/S7; D-068; A-3/A-6.
+- **Flags:** `REMOTE_D1_AUTHORIZED: YES` for this exact migration only. Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-CBR-D1-0006-0001` recording:
+  - the D-110 publication SHA; Paulo's reported bookmark, command and output (`OWNER_REPORTED`);
+  - Builder read-only verification (`ACTOR_REPORTED`): `d1_migrations` lists `0001`–`0006`; `project_revisions` has all four new columns; row counts unchanged from the readings above; the active version is still `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+
+  `REMOTE_D1_AUTHORIZED` and every action flag are then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-D1-0006-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D110_RFC022_CBR_PRODUCTION_D1_0006_ONLY`, applicable review `ML-DEVOS-AS-136`), routed to Claude/Builder.

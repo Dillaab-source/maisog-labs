@@ -1,92 +1,96 @@
-# Current Directive — RFC-022 Gate C (D-109)
+# Current Directive — RFC-022 CB-R production D1 migration 0006 (D-110)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-RFC022-GATE-C-0001
+directive_id: DIR-WEB-RFC022-CBR-D1-0006-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-issue_parent_commit: 52026f7806f92e867737599fc4e5992e2ae6e8ef
+issue_parent_commit: 1296c505e7b592d7fabe4cfcfa5f5bd91efb48d2
 target_turn: CLAUDE
-authority_ref: D-109
-applicable_review_id: ML-DEVOS-AS-135
+authority_ref: D-110
+applicable_review_id: ML-DEVOS-AS-136
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-109 and `ML-DEVOS-AS-135`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-110 and `ML-DEVOS-AS-136`.
 
 ## Objective
 
-Execute RFC-022 Gate C: merge PR #16 into `main` through the protected PR path, without production promotion, and prove that production traffic is unchanged.
+Apply production D1 migration `0006` only, executed by Paulo from Paulo's locally authenticated Wrangler session. The Builder independently verifies the result read-only and returns to the Architect.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `MAIN_MERGE_AUTHORIZED` is the only `YES` flag.
-- `main` is `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`.
-- The reviewed PR head is `52026f7806f92e867737599fc4e5992e2ae6e8ef`. The final head is this directive's publication commit.
-- The homepage SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
-- The expected active production version is `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- The Protocol V2 bootstrap passes; STATE selects this directive; `REMOTE_D1_AUTHORIZED` is the only `YES` flag.
+- `main` is `fda42e04d18b960d8212d49616f96b657a5c6bf3`.
+- Production D1 is `maisog-labs-web-inc-005-local` / `45b87574-e573-4e0f-9bb6-fbba2df29523`. `d1_migrations` lists exactly `0001`–`0005`.
+- `project_revisions` has none of `tagline`, `status`, `disciplines_json`, `flow_json`.
+- The active production version is `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- `migrations/0006_rfc022_v10_project_fields.sql` is blob `45da6f6c6452e4c55a656927ca970218d071eae0`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-109; live STATE; `ML-DEVOS-AS-135`.
-- **T1:** `ML-DEVOS-RFC-022` §10 (CB-R); D-108; `ML-DEVOS-AS-134`; D-094/D-099 (Gate C precedent); D-055.
+- **T0:** Protocol V2; D-110; live STATE; `ML-DEVOS-AS-136`.
+- **T1:** `ML-DEVOS-RFC-022` §10 (CB-R); D-106; D-097 (remote migration precedent); `migrations/0006_rfc022_v10_project_fields.sql`.
 
 ## Exact execution scope
 
-Allowed:
-- mark PR #16 ready for review;
-- read CI, the PR and the Cloudflare deployment state;
-- one merge of PR #16 (`merge_method: merge`, `sha` = final head);
-- observe the Workers Build;
+Owner-executed (Paulo, local Wrangler), from a checkout of `main` or of the D-110 transition:
+1. `npx wrangler d1 time-travel info maisog-labs-web-inc-005-local --json` — record the bookmark (read-only).
+2. `npx wrangler d1 migrations list maisog-labs-web-inc-005-local --remote` — must list only `0006_rfc022_v10_project_fields.sql` (read-only).
+3. `npx wrangler d1 migrations apply maisog-labs-web-inc-005-local --remote` — exactly once; approve only if the prompt lists `0006_rfc022_v10_project_fields.sql` alone.
+
+Builder-executed:
+- read-only Cloudflare connector reads (D1 metadata, `d1_migrations`, `pragma_table_info`, row counts, Worker deployments);
 - one Protocol V2 Builder return on `governance/maisoglabs-v0.1`.
 
 Not allowed:
-- Gate D; `wrangler versions deploy`; promotion; traffic change; rollback;
-- remote `0006`; D1 writes; content publication; R2;
-- Cloudflare binding, Access, DNS, secret or environment changes;
-- direct push to `main`; force; squash; rebase; auto-merge; protection bypass;
-- PR #7 or PR #10.
+- the Builder running any migration or remote D1 write;
+- any migration other than `0006`; editing migrations; `d1 execute --remote`; Time Travel restore;
+- `site_settings` initialization; project/content writes or publication; email publication;
+- Gate D; deploy; version upload; promotion; traffic change;
+- R2, Access, DNS, binding, secret or environment changes;
+- any `main` merge; PR #7 or PR #10.
 
 ## SENTINEL Sync
 
-- **Authority:** D-109 (Paulo).
-- **Context:** AS-135 accepted the readiness evidence; PR #16 is the correct release PR.
-- **Capability:** one protected merge.
-- **Execution:** Gate C only.
-- **Evidence:** final-head CI, the merge commit, the Workers Build, and pre-merge active version = post-merge active version.
+- **Authority:** D-110 (Paulo).
+- **Context:** AS-136 accepted Gate C and recommended remote `0006` only.
+- **Capability:** one remote migration of one database, owner-executed.
+- **Execution:** Paulo runs it; the Builder only verifies.
+- **Evidence:** Paulo's command output (`OWNER_REPORTED`); Builder connector reads (`ACTOR_REPORTED`).
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- Merging to `main` triggers a `main` Workers Build that uploads a new version but, as at D-094/D-099, does not deploy it. If the post-merge active version differs from the pre-merge one, that is a stop condition and must be reported. The Builder does not roll back without authority.
-- `0006` is not applied in production. That is harmless while the new version receives no traffic.
+- The executor (Paulo) is not the Builder that publishes the return. The Builder must not treat the migration as applied on Paulo's report alone; it verifies production D1 through the connector first.
+- `0006` only adds four nullable columns. Existing rows stay valid, and the active version `53137101…` does not read them.
+- A Time Travel restore is not authorized here. A new material failure stops the cycle and returns to Paulo.
 
 ## Instructions
 
-1. Bootstrap.
-2. Mark PR #16 ready. Wait for `test-and-build` SUCCESS on the exact final head.
-3. Re-check mergeability, `main`, the release scope and the homepage hash. Record `PRE_MERGE_ACTIVE_VERSION_ID`.
-4. Merge with a normal merge commit, pinned to the final head.
-5. Observe the Workers Build. Record `POST_MERGE_ACTIVE_VERSION_ID` and compare.
-6. Publish the return.
+1. Publish D-110, then return the exact commands to Paulo and stop.
+2. On Paulo's report: re-bootstrap, then verify read-only through the connector.
+3. Publish the return.
 
 ## Validation and evidence
 
-- The final head SHA and its CI result.
-- The merge commit SHA and its parents.
-- The Workers Build ID and the new version ID.
-- Pre- and post-merge active version, and whether they are equal.
-- `main` after the merge; the homepage hash.
+- The D-110 publication SHA.
+- Paulo's bookmark, command and output.
+- `d1_migrations` lists `0001`–`0006`.
+- `project_revisions` has `tagline`, `status`, `disciplines_json`, `flow_json`.
+- Row counts unchanged: `theme_settings` 1, `theme_settings_revisions` 1, every other content table 0.
+- The active version is still `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
 
 ## Stop conditions
 
-- Any CI failure on the final head, `main` has moved, a merge conflict, or an unexpected release-scope difference.
-- The post-merge active version differs from the pre-merge one: stop and report, without remediating.
+- Any precondition or identity differs.
+- Wrangler targets another database, or lists anything other than `0006` as pending.
+- Post-migration verification fails, or row counts or the active version changed. Stop and report, without remediating.
 - Any step would need a non-authorized action.
 
 ## Next action
 
-Publish `H-WEB-RFC022-GATE-C-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-RFC022-CBR-D1-0006-0001`. Archive and deselect this directive, reset `REMOTE_D1_AUTHORIZED` and every flag to `NO`, and route `TURN: ARCHITECT`.
