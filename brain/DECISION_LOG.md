@@ -2233,3 +2233,216 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Then `DEPLOY_AUTHORIZED` and every flag are reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; the directive is archived and deselected.
 - **Directive:** issue `DIR-WEB-RFC022-GATE-D-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D114_RFC022_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-140`), routed to Claude/Builder.
+
+### D-115 — Approve the initial five-project homepage content; authorize production drafts and protected preview only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `68a614de98290b744a28c4afc43699a94ab384f1`, under `ML-DEVOS-AS-141` scope `RFC022_INITIAL_CONTENT_OWNER_APPROVAL_ONLY`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Context:** Paulo reports that a comprehensive live-site review found launch blockers, and recommends saving invisible drafts first, then completing a bounded V10.1 remediation before public activation. The review itself is not recorded in this repository.
+- **Approved content (exact):**
+  - order: 1 ClinicFlow, 2 Eternal Eggs, 3 Sentinel / DevOS, 4 SU, 5 Maisog Kilat;
+  - discipline map: 0 AI, 1 Automation, 2 Research, 3 Security, 4 Systems, 5 Architecture.
+
+  The admin project fields are below. Kind = `category`, description = `summary`, the homepage fields are under `v10`, and the flow stages are listed in order:
+
+```json
+[
+  {
+    "id": "project-clinicflow",
+    "slug": "clinicflow",
+    "order": 1,
+    "category": "Clinic automation",
+    "title": "ClinicFlow",
+    "summary": "ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow.",
+    "stack": [
+      "n8n",
+      "LLM",
+      "Webhooks",
+      "Calendar"
+    ],
+    "accent": "gold",
+    "icon": "automation",
+    "featured": true,
+    "v10": {
+      "tagline": "AI-assisted booking and workflow automation for dental clinics.",
+      "status": "",
+      "disciplines": [
+        0,
+        1,
+        4,
+        3
+      ],
+      "flow": [
+        "Patient starts a conversation",
+        "Request is structured and validated",
+        "Appointment workflow is coordinated",
+        "Staff review and remain in control"
+      ]
+    }
+  },
+  {
+    "id": "project-eternal-eggs",
+    "slug": "eternal-eggs",
+    "order": 2,
+    "category": "Conversational ordering",
+    "title": "Eternal Eggs",
+    "summary": "Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection.",
+    "stack": [
+      "Cloudflare Workers",
+      "Durable Objects",
+      "D1",
+      "LLM"
+    ],
+    "accent": "violet",
+    "icon": "automation",
+    "featured": true,
+    "v10": {
+      "tagline": "A conversational ordering system built around real customer orders.",
+      "status": "",
+      "disciplines": [
+        0,
+        1,
+        4
+      ],
+      "flow": [
+        "Customer sends an order",
+        "Order details are extracted and checked",
+        "Total and delivery details are confirmed",
+        "A person receives the structured order"
+      ]
+    }
+  },
+  {
+    "id": "project-sentinel-devos",
+    "slug": "sentinel-devos",
+    "order": 3,
+    "category": "AI operating system",
+    "title": "Sentinel / DevOS",
+    "summary": "Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review.",
+    "stack": [
+      "Governance",
+      "Architecture",
+      "Evidence",
+      "AI"
+    ],
+    "accent": "blue",
+    "icon": "systems",
+    "featured": true,
+    "v10": {
+      "tagline": "A governed system for coordinating human and AI software development.",
+      "status": "Active",
+      "disciplines": [
+        0,
+        2,
+        1,
+        5,
+        3
+      ],
+      "flow": [
+        "Work begins from an explicit decision",
+        "Scope and architecture are defined",
+        "Implementation produces evidence",
+        "A person reviews and authorizes the next step"
+      ]
+    }
+  },
+  {
+    "id": "project-su",
+    "slug": "su",
+    "order": 4,
+    "category": "Research engine",
+    "title": "SU",
+    "summary": "SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them.",
+    "stack": [
+      "Research",
+      "Evidence",
+      "Review",
+      "AI"
+    ],
+    "accent": "violet",
+    "icon": "lab",
+    "featured": true,
+    "v10": {
+      "tagline": "An evidence-first research engine built to challenge its own conclusions.",
+      "status": "",
+      "disciplines": [
+        2,
+        0,
+        5
+      ],
+      "flow": [
+        "Sources are collected",
+        "Claims and evidence are mapped",
+        "Contradictions are actively tested",
+        "A person reviews the supported conclusion"
+      ]
+    }
+  },
+  {
+    "id": "project-maisog-kilat",
+    "slug": "maisog-kilat",
+    "order": 5,
+    "category": "Strategy validation",
+    "title": "Maisog Kilat",
+    "summary": "Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product.",
+    "stack": [
+      "Research",
+      "Backtesting",
+      "Risk Controls",
+      "Market Data"
+    ],
+    "accent": "blue",
+    "icon": "lab",
+    "featured": true,
+    "v10": {
+      "tagline": "Algorithmic trading research with deterministic testing and risk controls.",
+      "status": "",
+      "disciplines": [
+        2,
+        0,
+        4,
+        5
+      ],
+      "flow": [
+        "A strategy hypothesis is defined",
+        "It is tested against market data",
+        "Results and risk are measured",
+        "A person decides whether it proceeds"
+      ]
+    }
+  }
+]
+```
+
+  The Builder validated this content locally, before publication, with the production validators:
+  - each `id`, `slug` and revision passes `validateProjectId` / `validateProjectSlug` / `validateProjectRevisionContent`;
+  - the group passes `validateProjectsGroup`;
+  - `initialReleaseReadiness` returns `true`.
+- **Authorized (only):**
+  1. record this approval;
+  2. create exactly these five production project drafts through the existing authenticated admin project lifecycle (`POST /admin/api/projects`), using its immutable revision, stale-pointer and atomic audit mechanisms;
+  3. read back the exact stored drafts;
+  4. revalidate all five with the production validators and confirm `initialReleaseReadiness()` is `true`;
+  5. generate the protected homepage preview (`/admin/preview/home`) and capture desktop and mobile evidence for Architect/Paulo review;
+  6. verify that public `/` stays in artifact fallback and no project content becomes public.
+- **Authentication stop condition:** the drafts must be created through the authenticated admin lifecycle as Paulo via Cloudflare Access. If this session cannot authenticate correctly, the Builder stops, returns the limitation to the Architect, and must not:
+  - bypass authentication;
+  - substitute direct D1 SQL;
+  - invent a service token;
+  - weaken Access.
+- **Not authorized:**
+  - any project publish; initial homepage activation; a `homepage_initial_activation` marker; public homepage content activation;
+  - contact/`site_settings` mutation; contact-email publication;
+  - deployment or traffic change;
+  - R2, Access, DNS, binding, secret or environment change;
+  - schema or migration change; `main` merge;
+  - PR #7 or PR #10; S6/S7; D-068;
+  - V10.1 remediation.
+- **Flags:** for this operation only, `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES` and `REMOTE_D1_AUTHORIZED: YES`. Every other action-specific flag stays `NO`.
+- **Return:** Builder handoff `H-WEB-RFC022-CONTENT-DRAFTS-0001` recording:
+  - the D-115 publication SHA; project ids and revision ids;
+  - validation results and the `initialReleaseReadiness` result;
+  - the protected preview evidence;
+  - confirmation that public `/` is unchanged, no project was published and no activation marker was created.
+
+  Or, if the stop condition applies, the authentication limitation. Every flag is then reset to `NO`, with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+- **Directive:** issue `DIR-WEB-RFC022-CONTENT-DRAFTS-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D115_RFC022_INITIAL_CONTENT_DRAFTS_AND_PREVIEW_ONLY`, applicable review `ML-DEVOS-AS-141`), routed to Claude/Builder.
