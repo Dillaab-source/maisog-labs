@@ -109,9 +109,12 @@ test("the artifact loads nothing from the network: every script, stylesheet, ico
   for (const ref of refs) assert.match(ref, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, ref);
 });
 
-test("the Worker routing contract is unchanged: /journal, /admin and the APIs stay Worker-first", () => {
+// RFC-022 (ML-DEVOS-AS-132, D-105 Q2, D-106) adds exactly the path "/" for
+// the published-content bridge; the artifact file itself stays byte-identical
+// (asserted above) and no other asset route becomes Worker-first.
+test("the Worker routing contract: exact / (RFC-022) plus /admin and the APIs are Worker-first", () => {
   const config = read("wrangler.jsonc").toString();
-  assert.match(config, /"run_worker_first": \["\/admin", "\/admin\/\*", "\/api\/journal", "\/api\/journal\/\*", "\/api\/design"\]/);
+  assert.match(config, /"run_worker_first": \["\/", "\/admin", "\/admin\/\*", "\/api\/journal", "\/api\/journal\/\*", "\/api\/design"\]/);
   assert.match(config, /"html_handling": "auto-trailing-slash"/);
   assert.ok(fs.existsSync(url("app/journal/page.js")));
   assert.ok(fs.existsSync(url("app/admin/page.js")));

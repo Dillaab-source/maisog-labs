@@ -20,6 +20,7 @@ function hasControlOrAngleBracketChar(value) {
   return false;
 }
 
+import { validateV10ProjectFields, PROJECT_LIMITS } from "../bridge/payload.mjs";
 const text = (max = 500) => value =>
   typeof value === "string" && value.trim().length > 0 && value.length <= max && !hasControlOrAngleBracketChar(value);
 
@@ -214,7 +215,7 @@ export function validateFoundationRevisionContent(value) {
 export function validateProjectRevisionContent(value) {
   assertNoUnknownFields(
     value,
-    ["order", "category", "title", "summary", "stack", "accent", "icon", "featured"],
+    ["order", "category", "title", "summary", "stack", "accent", "icon", "featured", "v10"],
     "projectRevision"
   );
   assertField(value.order, order, "projectRevision.order");
@@ -225,6 +226,17 @@ export function validateProjectRevisionContent(value) {
   assertField(value.accent, v => ["gold", "blue", "red", "violet"].includes(v), "projectRevision.accent");
   assertField(value.icon, icon, "projectRevision.icon");
   assertField(value.featured, v => typeof v === "boolean", "projectRevision.featured");
+  // RFC-022 Tier 1 (ML-DEVOS-AS-132, D-106): optional V10 homepage fields
+  // (migration 0006). Absent/null keeps the legacy shape. When present, all
+  // four are validated together, and the fields the V10 artifact renders must
+  // also fit its bounds (name/kind 40, description 400), so a homepage-eligible
+  // revision can never fail the bridge's own validation.
+  if (value.v10 !== undefined && value.v10 !== null) {
+    validateV10ProjectFields(value.v10);
+    assertField(value.title, v => v === v.trim() && v.length <= PROJECT_LIMITS.name, "projectRevision.title (V10)");
+    assertField(value.category, v => v === v.trim() && v.length <= PROJECT_LIMITS.kind, "projectRevision.category (V10)");
+    assertField(value.summary, v => v === v.trim() && v.length <= PROJECT_LIMITS.description, "projectRevision.summary (V10)");
+  }
   return value;
 }
 
