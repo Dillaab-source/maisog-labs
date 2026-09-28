@@ -234,9 +234,31 @@ export async function buildEditDraftBatch(
 // (featured with V10 fields), the same guard also requires that fewer than
 // MAX_HOMEPAGE_PROJECTS other projects are published homepage-eligible at
 // commit time, so a concurrent publish cannot push the homepage past five.
-const HOMEPAGE_LIMIT_CONDITION =
+// D-111 (AS137-F001): it also requires that initial homepage activation has
+// already happened, so no individual publish can create a partial first
+// homepage activation.
+const PUBLISHED_HOMEPAGE_COUNT_EXCLUDING =
   "(SELECT COUNT(*) FROM projects p2 JOIN project_revisions r2 ON r2.id = p2.published_revision_id AND r2.project_id = p2.id " +
-  "WHERE r2.featured = 1 AND r2.tagline IS NOT NULL AND r2.status IS NOT NULL AND r2.disciplines_json IS NOT NULL AND r2.flow_json IS NOT NULL AND p2.id != ?) < ?";
+  "WHERE r2.featured = 1 AND r2.tagline IS NOT NULL AND r2.status IS NOT NULL AND r2.disciplines_json IS NOT NULL AND r2.flow_json IS NOT NULL AND p2.id != ?)";
+const HOMEPAGE_LIMIT_CONDITION = `${PUBLISHED_HOMEPAGE_COUNT_EXCLUDING} < ?`;
+
+// D-111 (AS137-F001): durable evidence that the D-105 initial five were
+// activated together. It is the success row buildInitialActivationBatch
+// commits in the same transaction as the five publications. audit_log is
+// append-only at the database layer (migration 0002 triggers reject UPDATE
+// and DELETE), so once written it can never be removed: the pre-activation
+// guard switches off exactly once and for good. It gates only admin
+// homepage publishes; the public bridge never reads it (AS133-F001).
+export const INITIAL_ACTIVATION_AUDIT_ACTION = "homepage_initial_activation";
+export const INITIAL_ACTIVATION_ENTITY_TYPE = "homepage";
+export const INITIAL_ACTIVATION_ENTITY_ID = "home";
+const INITIAL_ACTIVATION_DONE_CONDITION =
+  "EXISTS (SELECT 1 FROM audit_log WHERE action = 'homepage_initial_activation' AND entity_type = 'homepage' AND entity_id = 'home' AND result = 'success')";
+
+export async function isInitialHomepageActivationDone(db) {
+  const row = await db.prepare(`SELECT ${INITIAL_ACTIVATION_DONE_CONDITION} AS done`).first();
+  return Boolean(row?.done);
+}
 
 export function buildPublishBatch(
   db,
@@ -245,7 +267,7 @@ export function buildPublishBatch(
   const slugAssignment =
     homepageLimit === null
       ? stalePointerGuardedSlugAssignment()
-      : `CASE WHEN published_revision_id IS ? AND draft_revision_id IS ? AND ${HOMEPAGE_LIMIT_CONDITION} THEN slug ELSE 'home' END`;
+      : `CASE WHEN published_revision_id IS ? AND draft_revision_id IS ? AND ${HOMEPAGE_LIMIT_CONDITION} AND ${INITIAL_ACTIVATION_DONE_CONDITION} THEN slug ELSE 'home' END`;
   const guardBindings =
     homepageLimit === null
       ? [expectedPublishedRevisionId, expectedDraftRevisionId]
@@ -263,6 +285,56 @@ export function buildPublishBatch(
       result: "success",
     }),
   ];
+}
+
+// D-111 (AS137-F001) initial homepage activation: publishes the D-105 initial
+// five in ONE db.batch() transaction. `entries` is in the caller-validated
+// D-105 order, each { id, draftRevisionId, expectedPublishedRevisionId,
+// expectedDraftRevisionId }, every draft already revalidated as
+// homepage-eligible by the caller.
+//
+// Each pointer UPDATE carries the same poisoned-slug guard as an individual
+// publish, extended with two commit-time preconditions evaluated against the
+// live rows as that statement runs:
+//   - initial activation has not happened yet;
+//   - exactly `index` OTHER projects are published homepage-eligible, i.e.
+//     none before this batch and only the ones this batch has just published.
+// Any failed guard violates the existing slug CHECK and rolls back the whole
+// batch: no project is published, no audit row survives, and the marker is
+// not written. The five `project_publish` rows and the marker commit only
+// together with the five publications.
+export function buildInitialActivationBatch(db, { entries, actor }) {
+  const statements = entries.map((entry, index) =>
+    db
+      .prepare(
+        "UPDATE projects SET published_revision_id = ?, draft_revision_id = NULL, slug = " +
+          `CASE WHEN published_revision_id IS ? AND draft_revision_id IS ? AND NOT ${INITIAL_ACTIVATION_DONE_CONDITION} ` +
+          `AND ${PUBLISHED_HOMEPAGE_COUNT_EXCLUDING} = ? THEN slug ELSE 'home' END WHERE id = ?`
+      )
+      .bind(entry.draftRevisionId, entry.expectedPublishedRevisionId, entry.expectedDraftRevisionId, entry.id, index, entry.id)
+  );
+  for (const entry of entries) {
+    statements.push(
+      buildAuditAppendStatement(db, {
+        actor,
+        action: "project_publish",
+        entityType: "project",
+        entityId: entry.id,
+        revisionId: entry.draftRevisionId,
+        result: "success",
+      })
+    );
+  }
+  statements.push(
+    buildAuditAppendStatement(db, {
+      actor,
+      action: INITIAL_ACTIVATION_AUDIT_ACTION,
+      entityType: INITIAL_ACTIVATION_ENTITY_TYPE,
+      entityId: INITIAL_ACTIVATION_ENTITY_ID,
+      result: "success",
+    })
+  );
+  return statements;
 }
 
 // Unpublish: the published revision row is preserved untouched (only the

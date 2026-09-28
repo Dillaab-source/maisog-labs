@@ -9,6 +9,10 @@
 // (worker/d1/theme.mjs): the guarded pointer UPDATE writes the poison value -1
 // on a pointer mismatch, which violates the composite foreign key and rolls
 // back the whole batch, including the success audit row.
+//
+// D-111 bootstrap: when no site_settings row exists (a fresh production
+// database), the first contact draft creates the singleton parent and its
+// first revision in the same transaction (buildContactBootstrapBatch).
 import { buildSiteSettingsRevisionAuditStatement, buildAuditAppendStatement } from "./audit.mjs";
 import { isValidBridgeEmail } from "../bridge/payload.mjs";
 
@@ -88,6 +92,60 @@ export function buildContactPublishBatch(db, { draftRevisionId, expectedPublishe
       entityType: "site_settings",
       entityId: SITE_SETTINGS_ID,
       revisionId: draftRevisionId,
+      result: "success",
+    }),
+  ];
+}
+
+// D-111: first contact draft on a database with no site_settings row. One
+// transaction creates the 'default' parent (both pointers null), revision 1
+// (the canonical columns with only contact_email replaced, created_by the
+// admin actor), and points ONLY draft_revision_id at it. published_revision_id
+// stays null: nothing is published, so public `/` is unchanged until a
+// separate, attested contact publish.
+//
+// Concurrency: the parent INSERT fails on the primary key if any other request
+// created the row first, which rolls back the whole batch (no revision, no
+// audit rows). The pointer UPDATE is also guarded on both pointers still being
+// null, poisoning with -1 like buildContactDraftBatch.
+export function buildContactBootstrapBatch(db, { baseColumns, email, createdAt, createdBy, actor }) {
+  const validEmail = validateContactEmail(email);
+  const copied = Object.entries(baseColumns).filter(([column]) => !NON_COPIED_COLUMNS.has(column));
+  const columnNames = [...copied.map(([column]) => column), "contact_email"];
+  const values = [...copied.map(([, value]) => value), validEmail];
+  const revisionNumber = 1;
+
+  return [
+    db.prepare("INSERT INTO site_settings (id, created_at) VALUES (?, ?)").bind(SITE_SETTINGS_ID, createdAt),
+    db
+      .prepare(
+        `INSERT INTO site_settings_revisions (site_settings_id, revision_number, ${columnNames.join(", ")}, created_at, created_by) ` +
+          `VALUES (?, ?, ${columnNames.map(() => "?").join(", ")}, ?, ?)`
+      )
+      .bind(SITE_SETTINGS_ID, revisionNumber, ...values, createdAt, createdBy),
+    db
+      .prepare(
+        "UPDATE site_settings SET draft_revision_id = " +
+          "CASE WHEN published_revision_id IS NULL AND draft_revision_id IS NULL " +
+          "THEN (SELECT id FROM site_settings_revisions WHERE site_settings_id = ? AND revision_number = ?) " +
+          `ELSE ${POISON_REVISION_ID} END ` +
+          "WHERE id = ?"
+      )
+      .bind(SITE_SETTINGS_ID, revisionNumber, SITE_SETTINGS_ID),
+    buildSiteSettingsRevisionAuditStatement(db, {
+      actor,
+      action: "site_settings_bootstrap",
+      entityId: SITE_SETTINGS_ID,
+      siteSettingsId: SITE_SETTINGS_ID,
+      revisionNumber,
+      result: "success",
+    }),
+    buildSiteSettingsRevisionAuditStatement(db, {
+      actor,
+      action: "site_settings_contact_update_draft",
+      entityId: SITE_SETTINGS_ID,
+      siteSettingsId: SITE_SETTINGS_ID,
+      revisionNumber,
       result: "success",
     }),
   ];

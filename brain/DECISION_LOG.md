@@ -2046,3 +2046,111 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Every action flag is then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D109_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-135`), routed to Claude/Builder.
+
+### D-110 — Authorize RFC-022 CB-R production D1 migration `0006` only (owner-executed)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `1296c505e7b592d7fabe4cfcfa5f5bd91efb48d2`, after `ML-DEVOS-AS-136` accepted Gate C and recommended remote production migration `0006` only. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Execution path (owner-executed):** the Builder's cloud session has no Wrangler authentication. Paulo runs the migration from Paulo's own locally authenticated Wrangler session (independently verified by Paulo, with D1 write permission). The Builder does not run the migration. It performs the read-only pre- and post-migration verification through the Cloudflare MCP/API connector and publishes the return.
+- **Bound identities:**
+  - production D1 `maisog-labs-web-inc-005-local` / `45b87574-e573-4e0f-9bb6-fbba2df29523`, bound as `DB`;
+  - `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3`;
+  - expected active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%;
+  - `migrations/0006_rfc022_v10_project_fields.sql`, blob `45da6f6c6452e4c55a656927ca970218d071eae0`, identical on `main` and the governance branch.
+- **Pre-publication readings (read-only, Cloudflare connector, `ACTOR_REPORTED`):**
+  - `d1_migrations` lists exactly `0001`–`0005`; `0006` is absent;
+  - `project_revisions` has 13 columns, none of `tagline`, `status`, `disciplines_json`, `flow_json`;
+  - row counts: `theme_settings` 1 and `theme_settings_revisions` 1; every other content, revision, media, journal, `site_settings` and `audit_log` table 0;
+  - latest deployment: `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- **Authorized (only):**
+  - Paulo runs, from a checkout of `main` or of the D-110 governance transition: `npx wrangler d1 time-travel info maisog-labs-web-inc-005-local --json`, to record the pre-migration bookmark (read-only);
+  - Paulo runs `npx wrangler d1 migrations list maisog-labs-web-inc-005-local --remote` (read-only), which must list only `0006_rfc022_v10_project_fields.sql` as pending;
+  - Paulo runs exactly one `npx wrangler d1 migrations apply maisog-labs-web-inc-005-local --remote`, approving only after the prompt lists `0006_rfc022_v10_project_fields.sql` alone on that database;
+  - the Builder independently verifies production D1 read-only through the Cloudflare connector and publishes the return.
+- **Not authorized:**
+  - any migration other than `0006`; creating or editing any migration; arbitrary remote SQL (`d1 execute --remote`);
+  - Time Travel restore or any other rollback (a restore needs a separate Paulo decision);
+  - `site_settings` initialization; project, content or revision writes; content publication; email publication;
+  - Gate D; `wrangler deploy`; `wrangler versions deploy`; version upload; promotion; traffic change;
+  - R2, Access, DNS, binding, secret or environment changes; creating, deleting or renaming any Cloudflare resource;
+  - any `main` merge; PR #7 or PR #10; S6/S7; D-068; A-3/A-6.
+- **Flags:** `REMOTE_D1_AUTHORIZED: YES` for this exact migration only. Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-CBR-D1-0006-0001` recording:
+  - the D-110 publication SHA; Paulo's reported bookmark, command and output (`OWNER_REPORTED`);
+  - Builder read-only verification (`ACTOR_REPORTED`): `d1_migrations` lists `0001`–`0006`; `project_revisions` has all four new columns; row counts unchanged from the readings above; the active version is still `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+
+  `REMOTE_D1_AUTHORIZED` and every action flag are then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-D1-0006-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D110_RFC022_CBR_PRODUCTION_D1_0006_ONLY`, applicable review `ML-DEVOS-AS-136`), routed to Claude/Builder.
+
+### D-111 — Authorize one bounded repository/local remediation of AS137-F001 and AS137-F002
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `df5b4e153e8c0ff21be2fbc10b6521b1ed8d69ef`, in the same message that relayed `ML-DEVOS-AS-137`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:** `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3`; production D1 `45b87574-e573-4e0f-9bb6-fbba2df29523` at migrations `0001`–`0006`; active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- **Authorized (one remediation cycle, repository/local only):**
+  1. **Initial project activation (AS137-F001).**
+     - Implement the smallest initial-only atomic activation capability.
+     - Before initial activation, an individual homepage-project publish must not be able to create a partial first homepage activation.
+     - The initial activation operation requires exactly ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat, in that order, complete and valid.
+     - It publishes all five in one atomic D1 operation with audit evidence, preserving expected-pointer guards.
+     - After initial activation, the accepted AS133 behavior is preserved: public runtime renders any valid 1..5 published projects.
+     - Use a durable existing substrate (such as bounded audit/state evidence) rather than a permanent runtime five-project gate, unless the implementation proves another smaller design is safer.
+  2. **`site_settings` bootstrap.** Remove the manual production-seed dependency for first contact use. The first contact-draft creation safely initializes the `site_settings` parent state when absent, atomically and with stale-write and audit protections. It never publishes an email automatically.
+  3. **Access configuration (AS137-F002).** Read the existing `maisoglabs.com/admin` Access application read-only. Use its exact current non-secret `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` values, replacing only the inert placeholders for the governed `maisog-labs` Worker. No change to the Access application, policy, allowed identity, DNS or Cloudflare account configuration.
+  4. **Release semantics.** Narrowly update RFC-022 / release documentation so that Gate D may activate the code while there is still no valid published bridge payload, because public `/` remains the approved artifact. AS132-F002 stays mandatory before the first project bridge activation, not as a precondition for making the admin/bootstrap code reachable. The exact-five initial activation requirement is not weakened.
+  5. **Tests** proving:
+     - zero published projects → public artifact fallback;
+     - one or four individual project publishes cannot create first activation;
+     - the exact five initial projects activate atomically;
+     - a failed initial activation leaves zero published homepage projects;
+     - after a successful initial activation, normal 1..5 behavior remains;
+     - the `site_settings` first-draft bootstrap is atomic and does not publish;
+     - stale or conflicting bootstrap attempts fail safely;
+     - the Access placeholders are gone and fail-closed authentication behavior remains;
+     - the existing RFC-022 tests and the full suite stay green.
+- **Not authorized:**
+  - any production D1 write; content creation or publication in production; production email change;
+  - Gate D; deployment or promotion;
+  - Cloudflare Access mutation; DNS, R2, secret or environment mutation;
+  - another `main` merge; PR #7 or PR #10 action;
+  - a new planning RFC, unless an implementation-blocking architectural issue is discovered.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for repository/local changes within this scope only. Every remote, deploy and other action flag stays `NO`. Read-only Cloudflare API reads (the Access application) need no flag.
+- **Return:** one Protocol V2 Builder return with the files changed, the design chosen for initial activation and bootstrap, the Access values' provenance, test and build results, and confirmation that no remote resource was mutated. Every flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-REM1-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D111_RFC022_CBR_AS137_REMEDIATION_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-137`), routed to Claude/Builder.
+
+### D-112 — Authorize RFC-022 Gate C for the accepted D-111 remediation, without production promotion
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `9abb5f61cd6d18ca836cfc254df7a8236cc105ae`, in the same message that relayed `ML-DEVOS-AS-138`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:**
+  - reviewed implementation `fde97b6d4be4cc427cde682bd27182f8e328e93d..9abb5f61cd6d18ca836cfc254df7a8236cc105ae` (AS-138);
+  - `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3`;
+  - expected active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%;
+  - homepage SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
+  - Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b` (`maisoglabs.com/admin`); D-106 identity `paulo.maisog@maisoglabs.com`.
+- **Authorized (Gate C only):**
+  - open one fresh `governance/maisoglabs-v0.1 → main` release PR, bound to the D-111 remediation accepted by AS-138;
+  - because this AS-138/D-112 publication advances the branch head, require fresh `test-and-build` SUCCESS on the exact final PR head;
+  - verify clean mergeability, unchanged `main` and the unchanged `public/index.html` hash;
+  - perform the read-only AS138-F001 Access policy identity check and record the result;
+  - record `PRE_MERGE_ACTIVE_VERSION_ID` immediately before the merge;
+  - merge through the normal protected GitHub PR path, with a normal merge commit and the exact expected head pinned;
+  - observe the resulting Workers Build and version upload;
+  - verify that `POST_MERGE_ACTIVE_VERSION_ID` equals `PRE_MERGE_ACTIVE_VERSION_ID`;
+  - publish the Gate C return to the Architect.
+- **AS138-F001 outcome:** a mismatch does not block Gate C. It is recorded in the return as Gate D NOT READY, and a separate Paulo authorization is required before any Access policy change.
+- **Production readings:** read-only through the Cloudflare MCP/API connector in the Builder session (`ACTOR_REPORTED`), as at D-109.
+- **Not authorized:**
+  - Gate D; `wrangler versions deploy`; production promotion or traffic shift;
+  - any production D1 write; project/content creation or publication; `site_settings` production mutation; email publication;
+  - Cloudflare Access policy mutation; DNS, R2, binding, secret or environment mutation;
+  - direct push to `main`, force push, squash, rebase, auto-merge or protection bypass;
+  - PR #7 or PR #10 action.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-GATE-C-0002` recording:
+  - the D-112 publication SHA; the PR number, base and final head; CI on the final head;
+  - the merge commit; the release diff; the homepage hash;
+  - the AS138-F001 policy identity result;
+  - the Workers Build ID and new version ID;
+  - the pre- and post-merge active version and proof that they are equal;
+  - proof that no Gate D command ran.
+
+  Every action flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-GATE-C-0002` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D112_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-138`), routed to Claude/Builder.

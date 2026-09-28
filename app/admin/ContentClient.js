@@ -37,6 +37,15 @@ async function submitJson(url, method, body) {
 function describeFailure(result) {
   if (result.status === 409 && result.json.reason === "HOMEPAGE_LIMIT") return "The homepage already shows five projects. Remove one from the homepage first.";
   if (result.status === 409 && result.json.reason === "SITE_SETTINGS_NOT_INITIALIZED") return "Site settings are not initialized in this database.";
+  if (result.status === 409 && result.json.reason === "INITIAL_ACTIVATION_REQUIRED")
+    return "The homepage has not been activated yet. Save all five initial projects as drafts, then use Activate initial homepage projects.";
+  if (result.status === 409 && result.json.reason === "INITIAL_ACTIVATION_ALREADY_DONE") return "The initial homepage projects are already active.";
+  if (result.status === 409 && result.json.reason === "HOMEPAGE_NOT_EMPTY") return "Some project is already on the homepage. Initial activation needs an empty homepage.";
+  if (result.status === 409 && result.json.reason === "DRAFT_REQUIRED") return "Each of the five initial projects needs a saved draft.";
+  if (result.status === 409 && result.json.reason === "NOT_HOMEPAGE_ELIGIBLE")
+    return "Each of the five initial projects must be on the homepage and have every homepage field filled in.";
+  if (result.status === 400 && result.json.reason === "INITIAL_SET_MISMATCH")
+    return "The five drafts must be exactly the initial projects, with these names, complete and valid, and ordered in this sequence.";
   if (result.status === 409) return "Someone else changed this item. The latest version has been reloaded.";
   if (result.status === 400) return "Validation failed. Check every field (plain text only, 4 flow steps, at least one discipline).";
   return `Request failed (${result.status}).`;
@@ -225,10 +234,65 @@ function ProjectEditor({ project, onChanged }) {
   );
 }
 
+// D-111 (AS137-F001): before the homepage is first activated, homepage
+// projects are published only together, through one atomic operation.
+function InitialActivationPanel({ data, reload }) {
+  const { homepage } = data;
+  const [message, setMessage] = useState(null);
+  const [busy, setBusy] = useState(false);
+  if (homepage.initialActivation.done) return null;
+
+  const drafts = homepage.releaseReadiness.requiredNames.map(name => data.projects.find(project => project.draft?.title === name) ?? null);
+  const allDrafted = drafts.every(Boolean);
+
+  async function activate() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const result = await submitJson("/admin/api/projects/initial-activation", "POST", {
+        projects: drafts.map(project => ({
+          id: project.id,
+          expectedPublishedRevisionId: project.publishedRevisionId,
+          expectedDraftRevisionId: project.draftRevisionId,
+        })),
+      });
+      setMessage(result.ok ? { tone: "success", text: "The five initial projects are now live on the homepage." } : { tone: "error", text: describeFailure(result) });
+      await reload();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={styles.card}>
+      <h3 style={{ marginTop: 0 }}>Initial homepage activation</h3>
+      <p style={styles.note}>
+        The homepage switches to your projects only when all five initial projects go live together, in this order:{" "}
+        {homepage.releaseReadiness.requiredNames.join(", ")}. Save each one as a draft, check the preview, then activate them in one step. Until then,
+        publishing a single homepage project is not possible and the homepage keeps the V10 design&apos;s built-in projects.
+      </p>
+      <ul style={styles.note}>
+        {homepage.releaseReadiness.requiredNames.map((name, i) => (
+          <li key={name}>
+            {name}: {drafts[i] ? "draft saved" : "no draft yet"}
+          </li>
+        ))}
+      </ul>
+      <div style={styles.row}>
+        <button type="button" disabled={busy || !allDrafted} onClick={activate}>
+          Activate initial homepage projects
+        </button>
+      </div>
+      <Message message={message} />
+    </div>
+  );
+}
+
 function ProjectsTab({ data, reload }) {
   const { homepage } = data;
   return (
     <div>
+      <InitialActivationPanel data={data} reload={reload} />
       <div style={styles.card}>
         <h3 style={{ marginTop: 0 }}>Homepage projects</h3>
         <p style={styles.note}>
@@ -261,7 +325,6 @@ function ContactTab({ data, reload }) {
   const [confirmed, setConfirmed] = useState(false);
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
-  if (!contact.initialized) return <DeferredNotice title="Contact">Site settings are not initialized in this database.</DeferredNotice>;
 
   const expected = { expectedPublishedRevisionId: contact.publishedRevisionId, expectedDraftRevisionId: contact.draftRevisionId };
   async function run(action) {
@@ -287,6 +350,9 @@ function ContactTab({ data, reload }) {
         <strong>{data.homepage.live.contact ? contact.published?.email : "the V10 design's built-in address (no email published here yet)"}</strong>
         {contact.draft ? ` · draft: ${contact.draft.email}` : ""}
       </p>
+      {!contact.initialized && (
+        <p style={styles.note}>Site settings are set up automatically when you save the first draft. Nothing is published until you publish.</p>
+      )}
       <label style={styles.label}>
         New public email
         <input style={styles.input} type="email" maxLength={254} value={email} onChange={event => setEmail(event.target.value)} />
