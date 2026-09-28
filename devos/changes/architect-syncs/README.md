@@ -131,4 +131,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-126.md` — D-098 AS-116 post-incident hardening acceptance. Concluded `ARCHITECT_APPROVED — D-098 HARDENING ACCEPTED / RELEASE OWNER-GATED`; remediation not required; production release (Gate C → Gate D) not authorized by the review and left to a separate owner decision.
 
+- `ML-DEVOS-AS-127.md` — D-098 hardening Gate C protected main release closure. Concluded `ARCHITECT_APPROVED — GATE C ACCEPTED / CLOSED` and `READY FOR PAULO GATE D DECISION: YES`; PR #15 merged as `6e14077`, inactive Gate D candidate version `53137101-afb8-456c-ab83-d8b7b934df01`; production allocation owner-reported; grants no Gate D authority.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).
