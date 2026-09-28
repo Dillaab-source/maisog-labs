@@ -1934,3 +1934,38 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** every action flag stays `NO`.
 - **Return:** Builder return `H-WEB-RFC022-AMEND-0001`, routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-AMEND-0001` (cycle `MAISOGLABS_WEB_RFC022_AMENDMENT`, scope `D105_RFC022_AMENDMENT_ONLY`, applicable review `ML-DEVOS-AS-131`), routed to Claude/Builder.
+
+### D-106 — Authorize RFC-022 Tier 1 Admin Content Bridge implementation (CB-1..CB-5, repository/local only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `c0eb486e576a843bda94b5a6465bfa9e0f98eb63`, under `ML-DEVOS-AS-132`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized:** implement CB-1 through CB-5 together, repository and local only, exactly under `ML-DEVOS-RFC-022`, `ML-DEVOS-AS-132` and `D-105`:
+  - the MLData content bridge;
+  - migration `0006` with the four approved V10 project fields;
+  - the extended project draft → preview → publish lifecycle;
+  - a bounded contact-email draft → preview → publish lifecycle;
+  - a usable `/admin` Content UI;
+  - the protected homepage draft preview;
+  - the exact `/` Worker-first published-content bridge;
+  - the RFC-022 / AS-132 tests and local browser evidence.
+
+  Local D1 migrations and tests are allowed.
+- **Binding requirements:**
+  - `public/index.html` is not modified; its SHA-256 stays `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
+  - every RFC-022 requirement and the twelve AS-131 tests;
+  - AS132-F001 (transformed-response identity and caching) as a mandatory implementation condition;
+  - AS132-F002 stays a release gate: Eternal Eggs production copy and email-verification status are not invented.
+- **Canonical admin login identity (from D-106 onward):** `paulo.maisog@maisoglabs.com`.
+  - This is separate from the publicly displayed email.
+  - The governed Worker does not hard-code an admin email; the login allowlist is configured in Cloudflare Access.
+  - The later production Access/admin wiring step must configure this identity.
+  - Any retained admin implementation with an application-level `ADMIN_EMAIL` or equivalent pin must use the same address.
+  - This is not authorization to modify Cloudflare Access or the legacy Admin V1 Workers now.
+- **Flags:** `MUTATION_AUTHORIZED: YES` and `AUDIT_APPEND_AUTHORIZED: YES` for this implementation only. `REMOTE_D1`, `REMOTE_R2`, `MEDIA_MUTATION`, `DEPLOY` and `MAIN_MERGE` stay `NO`.
+- **Not authorized:**
+  - CB-R; remote D1/R2; Cloudflare configuration or Access policy changes;
+  - production content publication; deployment; `main` merge;
+  - `/api/site-content`; the Journal bridge; Tier 2; About/CTA redesign; project deletion;
+  - S6/S7; A-3/A-6; PR #7; PR #10; D-068.
+- **Publication discipline (AS132-F003 open):** every publication manually inspects STATE and the changed-file set in addition to `--check-only`.
+- **Return:** Builder return `H-WEB-RFC022-TIER1-IMPL-0001`; all flags reset to `NO`; routed to the Architect. The production release does not start automatically.
+- **Directive:** issue `DIR-WEB-RFC022-TIER1-IMPL-0001` (cycle `MAISOGLABS_WEB_RFC022_TIER1_IMPL`, scope `D106_RFC022_TIER1_LOCAL_IMPLEMENTATION_ONLY`, applicable review `ML-DEVOS-AS-132`), routed to Claude/Builder.
