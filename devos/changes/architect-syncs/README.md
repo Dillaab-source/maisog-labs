@@ -135,4 +135,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-128.md` — D-098 hardening Gate D production promotion closure. Concluded `ARCHITECT_APPROVED — D-098 GATE D ACCEPTED / RELEASE CLOSED`; one D-101 connector deployment `3bf053d6-56b8-4412-a96a-a587588f8521` put `53137101-afb8-456c-ab83-d8b7b934df01` at 100%; rollback not required; Cloudflare evidence `ACTOR_REPORTED`; grants no new authority.
 
+- `ML-DEVOS-AS-129.md` — D-102 Cloudflare Inventory & Exposure Review acceptance. Concluded `ARCHITECT_APPROVED — D-102 ASSESSMENT ACCEPTED WITH ARCHITECT AMENDMENTS / OWNER REMEDIATION DECISION REQUIRED`; F-1 precision amendment (branch-preview execution with production bindings, not an `/admin` bypass); F-3 data impact unverified; priority A-1, A-4, A-3, A-6; Cloudflare evidence `ACTOR_REPORTED`; authorizes no remediation.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).

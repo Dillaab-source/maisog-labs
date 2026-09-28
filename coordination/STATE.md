@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_CF_INVENTORY_REVIEW
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D102_CF_INVENTORY_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS129_CF_EXPOSURE_REMEDIATION_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-CF-INVENTORY-0001
-REVIEW_TARGET_COMMIT: 9e8c9f5006f0654eac7c139a41ef4d21b71a5f34
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-128
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,28 +27,31 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-102 authorized a read-only Cloudflare Inventory & Exposure Review, assessment only, with no mutations. That authority is consumed with this return.
+`ML-DEVOS-AS-129` accepts the D-102 assessment with Architect amendments: `ARCHITECT_APPROVED — D-102 ASSESSMENT ACCEPTED WITH ARCHITECT AMENDMENTS / OWNER REMEDIATION DECISION REQUIRED`. Builder remediation is not required. The report is `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md`, and the Cloudflare evidence is `ACTOR_REPORTED`.
 
-## Builder return
+`H-WEB-CF-INVENTORY-0001` is archived byte-for-byte and deselected. The D-102 authority is consumed.
 
-`H-WEB-CF-INVENTORY-0001` is the return record. It is evidence, not authority. The report is `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md`. `DIR-WEB-CF-INVENTORY-0001` is archived byte-for-byte and deselected.
+## Paulo decision required
 
-Reported headline findings (`ACTOR_REPORTED`):
-- `maisog-labs` preview URLs and `workers.dev` are public and production-bound, and every branch push publishes one (F-1).
-- Staging admin shares production CMS D1/R2 (F-2).
-- `maisog-labs-staging` publicly serves the admin CMS publication (F-3).
-- The n8n tunnel has no Access app (F-5).
-- The code of the Admin V1 stack, `maisog-labs-staging` and `maisog-jobs` is not in this repository.
+Scope: the Cloudflare exposure remediation choices only.
 
-## Architect scope
+Architect priority:
+1. A-1: disable `maisog-labs` preview URLs.
+2. A-4: disable `maisog-labs-staging` `workers.dev` and previews.
+3. A-3: remove or narrowly restrict the non-main Workers Builds trigger.
+4. A-6: if n8n is retained, an Access boundary before the tunnel is next brought online.
 
-Independent review of the assessment under the next unused immutable Architect Sync ID after ML-DEVOS-AS-128, and routing of the owner decisions (A-0) and any remediation authorization to Paulo.
+A-2, A-5 and A-7 are bounded follow-ups. A-8 and A-9 are deferred structural work and do not block the return to product development.
+
+The Access allow-listed email (F-8) is to be confirmed privately and is not written into this repository.
+
+No remediation is authorized by `ML-DEVOS-AS-129`. No deletion of `maisog-cms`, `maisog-media`, Admin V1, jobs or Eternal Eggs resources is authorized.
 
 ## Hard boundaries
 
-No Cloudflare mutation of any kind: no deployment, traffic, DNS, Access, Worker or preview setting, binding, secret or environment change, and no resource creation, deletion or rename. No D1/R2 data access. No runtime change and no `main` merge. The remediation actions A-1…A-9 are proposals only.
+No Cloudflare mutation of any kind: no deployment, traffic, DNS, Access, Worker or preview setting, binding, secret or environment change, and no resource creation, deletion or rename. No D1/R2 data access. No runtime change and no `main` merge.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068.
 
