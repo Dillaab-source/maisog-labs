@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D109_RFC022_GATE_C_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS136_RFC022_CBR_NEXT_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-RFC022-GATE-C-0001
-REVIEW_TARGET_COMMIT: 51971780ead20a45673456a55273f93b3a0f4e51
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-135
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,32 +27,35 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-109 authorized RFC-022 Gate C for PR #16 only. That authority is consumed with this return, and `MAIN_MERGE_AUTHORIZED` is reset to `NO`.
+`ML-DEVOS-AS-136`: `GATE C ACCEPTED — PRODUCTION PROMOTION NOT AUTHORIZED`. Reviewed tip: `794ef619887971346af885c33dcc03590996a3a3`.
 
-## Builder return
+Verified:
+- PR #16 was merged through the protected normal merge path.
+- `main` is `fda42e04d18b960d8212d49616f96b657a5c6bf3`, with parents the previous `main` and the exact authorized head `51971780ead20a45673456a55273f93b3a0f4e51`.
+- Exact-head CI passed.
+- The Gate C authority is consumed, and every action flag is `NO`.
 
-`H-WEB-RFC022-GATE-C-0001` is the return record. It is evidence, not authority. `DIR-WEB-RFC022-GATE-C-0001` is archived byte-for-byte and deselected.
+The unchanged active production version (`53137101-afb8-456c-ab83-d8b7b934df01` @ 100%) is accepted as `ACTOR_REPORTED` evidence, not independently reproduced Architect evidence. The new `main` version `6ca2ddfe…` is uploaded but inactive.
 
-Summary:
-- PR #16 was merged into `main` as the normal merge commit `fda42e04d18b960d8212d49616f96b657a5c6bf3` (parents `6e14077…`, `51971780…`), pinned to the final head `51971780…`, whose `test-and-build` was green.
-- The `main` Workers Build `955203ca…` uploaded the inactive version `6ca2ddfe…`.
-- The active production version before and after the merge is `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%: unchanged.
-- No Gate D command ran.
+`H-WEB-RFC022-GATE-C-0001` is archived byte-for-byte and deselected. The D-109 authority is consumed.
 
-## Architect scope
+## Paulo decision required
 
-Review of the Gate C return under the next unused immutable Architect Sync ID after ML-DEVOS-AS-135. Acceptance would grant no remote D1, content, Gate D, deployment or promotion authority.
+Scope: the next CB-R owner decision. The Architect recommends **remote production migration `0006` only**. Nothing proceeds automatically.
 
 ## Hard boundaries
 
-Every action-specific flag is `NO`.
+AS-136 authorizes none of the following:
+- Gate D or production promotion;
+- content publication;
+- `site_settings` initialization;
+- any project-data write;
+- Access, DNS, R2, binding or secret changes;
+- another `main` merge.
 
-Not authorized:
-- any further merge to `main`; remote migration `0006`; any production D1 write (including `site_settings` initialization); content publication;
-- Gate D; `wrangler versions deploy`; promotion; traffic change; rollback;
-- R2 mutation; Cloudflare binding, Access, DNS, secret or environment changes.
+Remote `0006` itself also needs Paulo's separate decision.
 
 AS-135 activation prerequisites remain: production `0006`, approved project content (including Eternal Eggs), `site_settings` initialization, and confirmed email deliverability.
 
@@ -62,6 +65,4 @@ No PR #7 or PR #10 action. No S6/S7. No D-068. A-3 and A-6 are not authorized.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-## Next transition
-
-The Architect reviews `H-WEB-RFC022-GATE-C-0001` and routes the next CB-R decision (remote `0006`, content readiness, Gate D) to Paulo. Nothing proceeds automatically.
+All action-specific authorization flags are `NO`.
