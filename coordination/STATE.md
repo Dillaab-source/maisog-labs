@@ -1,26 +1,26 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D112_RFC022_GATE_C_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D113_RFC022_CBR_ACCESS_IDENTITY_ALIGNMENT_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-RFC022-GATE-C-0002
-REVIEW_TARGET_COMMIT: dfae2a59278a761a4157155178f7ed94955c2926
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-138
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-RFC022-CBR-ACCESS-0001
+DIRECTIVE_ISSUE_PARENT: 7555f48809e40abaeea3ddca084d53b4fff1e846
+DIRECTIVE_AUTHORITY_REF: D-113
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-139
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
@@ -29,28 +29,29 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-112 authorized RFC-022 Gate C for the D-111 remediation accepted by `ML-DEVOS-AS-138`. The Builder executed it. The D-112 authority is consumed and `MAIN_MERGE_AUTHORIZED` is reset to `NO`.
+`ML-DEVOS-AS-139`: `GATE C ACCEPTED — GATE D BLOCKED BY ACCESS IDENTITY ALIGNMENT`. Reviewed tip: `7555f48809e40abaeea3ddca084d53b4fff1e846`. PR #17 merged as `main` `405375998392e936b71181de387ae395b7d46e40`; active production stayed `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%. `H-WEB-RFC022-GATE-C-0002` is archived byte-for-byte and deselected. The D-112 authority is consumed.
 
-## Current handoff
+AS138-F001 is confirmed: the `maisoglabs.com/admin` Access policy does not allow the D-106 identity. D-106 stays unchanged: `paulo.maisog@maisoglabs.com`.
 
-`H-WEB-RFC022-GATE-C-0002`:
-- PR #17 merged as the normal merge commit `405375998392e936b71181de387ae395b7d46e40` (parents `fda42e04…` and the exact final head `dfae2a59…`), with `test-and-build` green on that head;
-- the homepage hash unchanged;
-- the `main` Workers Build `ded31be5…` uploaded the inactive version `862dc45e…`;
-- the active production version is `53137101-afb8-456c-ab83-d8b7b934df01` @ 100% before and after the merge (`ACTOR_REPORTED`).
+D-113 records Paulo's authorization of one bounded Cloudflare Access remediation:
+- if policy `460d0315…` is not shared, update only its allowed email;
+- if it is shared, attach a new dedicated policy to this application instead, leaving the shared one unchanged.
 
-AS138-F001: the `maisoglabs.com/admin` Access policy allows a single identity that is **not** the D-106 identity `paulo.maisog@maisoglabs.com`. **Gate D is NOT READY** until a separate Paulo decision. No Access mutation was made.
+`MUTATION_AUTHORIZED: YES` covers exactly that Access policy mutation.
 
-`DIR-WEB-RFC022-GATE-C-0002` is archived byte-for-byte and deselected.
+## Selected directive
+
+`DIR-WEB-RFC022-CBR-ACCESS-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-113 and the directive.
 
 ## Hard boundaries
 
-All action-specific authorization flags are `NO`.
+Only `MUTATION_AUTHORIZED` is `YES`, for the one Access policy mutation. Every other action-specific flag is `NO`.
 
 Not authorized:
-- Gate D; `wrangler versions deploy`; promotion; traffic change;
-- any production D1 write; project/content creation or publication; `site_settings` production mutation; email publication;
-- Cloudflare Access policy mutation; DNS, R2, binding, secret or environment mutation;
+- any other Access application or policy change; changes to the application's domain, AUD, IdPs or session settings;
+- Gate D; Worker deployment, promotion or traffic change;
+- D1, R2, content, `site_settings` or email mutation;
+- DNS, binding, secret or environment changes;
 - another `main` merge.
 
 AS132-F002 remains mandatory before the first project bridge activation. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
@@ -61,4 +62,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-The Architect reviews `H-WEB-RFC022-GATE-C-0002` under a new immutable `ML-DEVOS-AS-NNN`.
+The Builder executes the Access alignment and publishes `H-WEB-RFC022-CBR-ACCESS-0001`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.

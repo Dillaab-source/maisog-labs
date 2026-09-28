@@ -2154,3 +2154,34 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Every action flag is then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-GATE-C-0002` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D112_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-138`), routed to Claude/Builder.
+
+### D-113 — Authorize one bounded Cloudflare Access remediation: align `maisoglabs.com/admin` with the D-106 identity
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `7555f48809e40abaeea3ddca084d53b4fff1e846`, in the same message that relayed `ML-DEVOS-AS-139`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **D-106 unchanged:** the canonical admin identity remains `paulo.maisog@maisoglabs.com`.
+- **Bound identities:**
+  - Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b` (`maisoglabs.com/admin`, `maisoglabs.com/admin/*`), AUD `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`, team domain `jolly-disk-0469.cloudflareaccess.com`;
+  - its current policy `460d0315-1e4b-414a-8845-c656f1f04c79` ("Maisog Labs Admin V1 — Canonical Administrator", reusable);
+  - `main` `405375998392e936b71181de387ae395b7d46e40`; active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- **Before mutation (read-only):**
+  1. read the application and its attached policies;
+  2. determine whether policy `460d0315…` is referenced by any other Access application;
+  3. record the application's AUD, team domain, identity providers (OTP), session settings and protected paths, all of which must be preserved.
+- **Mutation rule:**
+  - **Not shared:** update only that policy's allowed email identity to `paulo.maisog@maisoglabs.com`.
+  - **Shared:** do not edit the shared policy. Create a dedicated allow policy for this application using only `paulo.maisog@maisoglabs.com`, attach it to this application in place of the shared one, and leave every other application and reusable policy unchanged.
+- **Post-change verification:**
+  - the application still protects exactly `/admin` and `/admin/*`;
+  - the team domain and AUD are unchanged;
+  - the allowed identity for this application is exactly `paulo.maisog@maisoglabs.com`;
+  - no other application's policy changed;
+  - the production Worker version and traffic are unchanged; no Worker deploy or Gate D occurred.
+- **Authorized:** only the minimal Cloudflare Access policy mutation above; read-only verification before and after; governance publication of the result.
+- **Not authorized:**
+  - Gate D; Worker deployment, promotion or traffic change;
+  - D1, R2, content, `site_settings` or email mutation;
+  - DNS changes; binding, secret or environment changes;
+  - another `main` merge; PR #7 or PR #10 action.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for exactly this Access policy mutation (D-103 precedent for a bounded Cloudflare configuration change). Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-CBR-ACCESS-0001` with the D-113 publication SHA, the exact pre-change state, whether the policy was shared, the exact operation, the exact post-change state and the verification above. Every flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-ACCESS-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D113_RFC022_CBR_ACCESS_IDENTITY_ALIGNMENT_ONLY`, applicable review `ML-DEVOS-AS-139`), routed to Claude/Builder.
