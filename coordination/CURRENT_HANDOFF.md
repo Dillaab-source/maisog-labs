@@ -1,106 +1,109 @@
-# Current Handoff — RFC-022 Gate C (D-109)
+# Current Handoff — RFC-022 CB-R production D1 migration 0006 (D-110)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RFC022-GATE-C-0001
+handoff_id: H-WEB-RFC022-CBR-D1-0006-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-input_base_commit: 51971780ead20a45673456a55273f93b3a0f4e51
-review_target_commit: 51971780ead20a45673456a55273f93b3a0f4e51
-applicable_review_id: ML-DEVOS-AS-135
+input_base_commit: c727700f37275f136f525520972da89752f93bcf
+review_target_commit: c727700f37275f136f525520972da89752f93bcf
+applicable_review_id: ML-DEVOS-AS-136
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Evidence class: `ACTOR_REPORTED`, from live GitHub and Cloudflare API calls made in this session (Cloudflare reads were GET only).
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
+
+Evidence classes:
+- **`OWNER_REPORTED`:** Paulo's local Wrangler bookmark, command and output. The Builder did not see this output directly.
+- **`ACTOR_REPORTED`:** the Builder's own Cloudflare MCP/API connector reads in this session. Every one was read-only: D1 `SELECT`/`pragma` and HTTP `GET` only.
 
 ## Objective
 
-Execute `DIR-WEB-RFC022-GATE-C-0001` (D-109): merge PR #16 into `main` through the protected PR path, without production promotion, and prove that production traffic is unchanged.
+Execute `DIR-WEB-RFC022-CBR-D1-0006-0001` (D-110): apply production D1 migration `0006` only, owner-executed, and independently verify the result.
 
 ## Result
 
-**Gate C complete. Production traffic unchanged.**
+**Migration `0006` applied to production D1 and independently verified. Existing data and production traffic unchanged.**
 
 | Item | Value |
 |---|---|
-| D-109 publication (final PR head) | `51971780ead20a45673456a55273f93b3a0f4e51` (parent `52026f7…`, the AS-135 reviewed head) |
-| PR | [Dillaab-source/maisog-labs#16](https://github.com/Dillaab-source/maisog-labs/pull/16), marked ready, merged |
-| Base before merge | `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4` (unchanged since D-106) |
-| Merge commit | `fda42e04d18b960d8212d49616f96b657a5c6bf3`, a normal merge commit with parents `6e14077…` and `51971780…`, merged with `merge_method: merge` and `expectedHeadSha: 51971780…` |
-| `main` after merge | `fda42e04…`. Its tree is identical to the final head `51971780…` |
-| `PRE_MERGE_ACTIVE_VERSION_ID` | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6-56b8-4412-a96a-a587588f8521`, read 2026-09-28T18:44:26Z |
-| `main` Workers Build | `955203ca-48b4-494f-9ed4-347b284a0949`, branch `main`, commit `fda42e04…`, outcome `success`, stopped 18:45:33Z; deploy command `npx wrangler versions upload` |
-| New inactive version | `6ca2ddfe-fcab-48f1-bb83-6eeb17ab9b53`, alias `main`, `workers/triggered_by: version_upload`, created 18:45:25Z |
-| `POST_MERGE_ACTIVE_VERSION_ID` | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6…` (created 07:21:06Z, unchanged), read 18:45:59Z |
-| Pre = post | **YES** |
+| D-110 publication | `c727700f37275f136f525520972da89752f93bcf` (parent `1296c505…`, the AS-136 tip) |
+| Database | `maisog-labs-web-inc-005-local` / `45b87574-e573-4e0f-9bb6-fbba2df29523` |
+| Executor | Paulo, from a locally authenticated Wrangler session. The Builder ran no migration and made no D1 write. |
+| Pre-migration bookmark | `00000173-00000000-000050f4-6cab41e7205b23306c18fe609d33a7cc` (`OWNER_REPORTED`) |
+| `0006` applied at | `2026-09-28 19:50:34` UTC, per production `d1_migrations` |
+| Active version before and after | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6-56b8-4412-a96a-a587588f8521`. Unchanged. |
 
 ## Tests and evidence
 
-### Pre-merge checks on the final head `51971780…`
+### Owner-executed migration (`OWNER_REPORTED`)
 
-- **`test-and-build` (GitHub Actions):**
-  - run `36466945506` / job `109079290954`: `success` (18:41:17–18:43:39Z);
-  - run `36466952420` / job `109079315243`: `success` (18:41:21–18:43:44Z).
+- `npx wrangler d1 time-travel info maisog-labs-web-inc-005-local --json` returned bookmark `00000173-00000000-000050f4-6cab41e7205b23306c18fe609d33a7cc`.
+- `npx wrangler d1 migrations list maisog-labs-web-inc-005-local --remote` showed exactly one pending migration: `0006_rfc022_v10_project_fields.sql`.
+- `npx wrangler d1 migrations apply maisog-labs-web-inc-005-local --remote` reported:
+  - remote database `maisog-labs-web-inc-005-local`, ID `45b87574-e573-4e0f-9bb6-fbba2df29523`;
+  - exactly one migration applied: `0006_rfc022_v10_project_fields.sql` → SUCCESS;
+  - 5 commands executed.
 
-  These are the push and pull-request triggers.
-- **`Workers Builds: maisog-labs`** check `109079678705`: `success`. This is the branch upload `b9295a24…` (trigger "Deploy non-production branches", `npx wrangler versions upload`, version `b86e4568…`, alias `governance-maisoglabs-v0-1`). It is not a deployment.
-- **Locally on the same head:** `npm test` 938/938 pass (0 fail, 0 skipped); `npm run build` exit 0.
-- **Mergeability:** GitHub `mergeable_state: clean`. `git merge-tree --write-tree main 51971780` has no conflicts, and the merged tree equals the final head.
-- **`main` unchanged:** `6e14077…`, re-read immediately before the merge.
-- **Release scope:** reviewed head `52026f7…` → final head `51971780…` changes only `brain/DECISION_LOG.md`, `coordination/CURRENT_DIRECTIVE.md` and `coordination/STATE.md` (the D-109 records). The full release diff `6e14077..fda42e04` is 102 files, +7368/−293: the RFC-022 Tier 1 release accepted in AS-134/AS-135, plus the governance records since PR #15.
-- **Homepage artifact:** SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9` at the final head and on `main` after the merge.
+### Pre-migration production readings (`ACTOR_REPORTED`, before D-110 publication)
 
-### Production (Cloudflare API, GET only)
+- D1 metadata: name `maisog-labs-web-inc-005-local`, version `production`, 23 tables (Cloudflare's count), file size 278528.
+- `d1_migrations`: exactly `0001`–`0005`, applied 2026-09-27 02:16:51–55.
+- `project_revisions`: 13 columns (`id` … `created_by`); none of `tagline`, `status`, `disciplines_json`, `flow_json`.
+- Row counts: `theme_settings` 1, `theme_settings_revisions` 1. These 20 tables had 0 rows each: `audit_log`, `foundations`, `foundation_revisions`, `journal_entries`, `journal_entry_revisions`, `journal_media`, `media`, `navigation`, `navigation_revisions`, `process_steps`, `process_step_revisions`, `project_media`, `projects`, `project_revisions`, `sections`, `section_revisions`, `services`, `service_revisions`, `site_settings`, `site_settings_revisions`.
+- Latest deployment: `3bf053d6…` (created 2026-09-28T07:21:06Z), `53137101…` @ 100%.
 
-- **Worker build triggers:**
-  - `main`: `npx wrangler versions upload`;
-  - "Deploy non-production branches" (`*`): `npx wrangler versions upload`.
+### Post-migration verification (`ACTOR_REPORTED`)
 
-  Neither trigger deploys.
-- **Deployments list:** 10 entries. The latest is still `3bf053d6…` from 07:21:06Z, so no deployment was created during Gate C.
+Read after Paulo's report, on governance tip `c727700…` (Protocol V2 bootstrap `ok: true`; `main` still `fda42e04d18b960d8212d49616f96b657a5c6bf3`).
 
-### No Gate D
+- **Migrations:** `d1_migrations` has 6 rows: `0001`–`0005` (unchanged timestamps) and `0006_rfc022_v10_project_fields.sql` @ `2026-09-28 19:50:34`. **PASS**
+- **Columns:** `project_revisions` has 17 columns. The 13 original columns are unchanged; the new ones are `tagline` (cid 13), `status` (14), `disciplines_json` (15), `flow_json` (16), all `TEXT`, nullable, no default. **PASS**
+- **Constraints:** the stored DDL carries the `0006` CHECK constraints verbatim: `tagline` trimmed, length 1–160; `status` in (`''`, `'Active'`). **PASS**
+- **Row counts:** identical to the pre-migration readings: `theme_settings` 1, `theme_settings_revisions` 1, all 20 other tables 0 (including `site_settings`, `site_settings_revisions` and `audit_log`). `sqlite_master` table count is 25, as before. **PASS**
+- **Size:** file size 278528 → 282624 bytes (+4096, one page), consistent with the DDL change alone.
+- **Traffic:** the latest deployment is still `3bf053d6…` from 07:21:06Z. `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%. **PASS**
+- **Bindings:** the active version's bindings are `ACCESS_AUD`, `ACCESS_TEAM_DOMAIN` (plain text), `ASSETS`, `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523`, and `MEDIA` → R2 `maisog-labs-web-inc-004-local`. They are as expected. **PASS**
 
-The Builder issued no `wrangler versions deploy` or deploy, no promotion or traffic change, no remote D1 query other than the earlier read-only D-108 inspection, no D1 write or migration, no R2, Cloudflare configuration, Access, DNS or secret change, and no direct push to `main`. The only production-side effects are the automatic Workers Builds version uploads, which are inactive.
+### No other production change
 
-### PR #16 edits
+- **Not done:** the Builder ran no migration, remote SQL write, Time Travel restore, `site_settings` initialization, project/content write or publication, email publication, deploy, `wrangler versions deploy`, promotion or traffic change. Nor did it change R2, Access, DNS, bindings, secrets or environment, or merge anything to `main`.
+- **Automatic uploads.** Three inactive non-production versions were uploaded today by Workers Builds (`workers/triggered_by: version_upload`), each about a minute after a git push:
+  - `07656f90…` (#818, 19:25:53Z, alias `governance-maisoglabs-v0-1`), after the AS-136 publication `1296c50` (19:24:50Z);
+  - `4e4d3f58…` (#819, 19:44:00Z, alias `governance-maisoglabs-v0-1`), after the D-110 publication `c727700` (19:43:07Z);
+  - `bdea7046…` (#820, 19:44:44Z, alias `claude-rfc-022-cb-r-migration-0gx6b9`), after the Builder's push of its session branch.
 
-- marked ready for review (`draft: false`);
-- retitled to "[RFC-022 Gate C] Release: governance → main (D-109; no production promotion)";
-- body replaced, because the previous body said "Do not merge / `MAIN_MERGE_AUTHORIZED: NO`", which D-109 had made stale. The new body describes the Gate C scope and the AS-135 activation prerequisites.
-
-No other PR (#7, #10) was touched.
+  None was deployed. The deployments list is unchanged.
+- **Not proven by this Builder:** the absence of Access, DNS or R2 changes made outside the Worker/D1 surfaces read here. Those surfaces were not inspected. No action in this cycle targeted them.
 
 ## Changed files
 
 - **Coordination:**
-  - `coordination/STATE.md`, this file;
-  - `coordination/archive/directives/DIR-WEB-RFC022-GATE-C-0001.{md,provenance.json}` and the index row;
-  - the outgoing `H-WEB-RFC022-CBR-S1-0001` was already archived at AS-135;
-  - `coordination/OPERATIVE_OBLIGATIONS.md` is unchanged.
-- **Outside this commit:** the PR #16 merge (`main` → `fda42e04…`). No product, test or migration change in this return.
+  - `coordination/STATE.md`; this file;
+  - `coordination/archive/directives/DIR-WEB-RFC022-CBR-D1-0006-0001.{md,provenance.json}` (byte-for-byte, blob `8bd92aa…`) and the index row.
+- **Unchanged:** `coordination/OPERATIVE_OBLIGATIONS.md`. The outgoing `H-WEB-RFC022-GATE-C-0001` was already archived at AS-136.
+- **Outside this commit:** production D1 schema (`0006`), owner-executed. No product, test or migration file change.
 
 ## Unresolved findings and limitations
 
-- **The new version is not deployed.** `6ca2ddfe…` (`main`) carries the RFC-022 code but receives no traffic. Promoting it (Gate D) before remote `0006` would break admin V10 operations; public `/` would fall back safely (see `H-WEB-RFC022-CBR-S1-0001`, finding 1). Remote `0006` and Gate D remain separately gated.
-- **Activation prerequisites (AS-135) are unchanged:** production `0006`, production project content (including approved Eternal Eggs copy), `site_settings` initialization, and confirmed email deliverability. RFC-022 §7 test 11 still needs production measurements.
-- **Branch relationship.** `main` now carries the merge commit `fda42e04`, which is not on `governance/maisoglabs-v0.1`. This is the same pattern as PRs #12–#15. This return is published on the governance branch, not `main`.
-- **Automatic uploads.** Each governance push, including this return, triggers another inactive non-production version upload.
-- **Publication attempt count.** The D-109 publication was recorded as attempt 2 of 3: the checker's attempt key (cycle/handoff/turn) was shared with the D-108 issue transition. It was not a failed push.
+- **Evidence split.** Migration execution is `OWNER_REPORTED`; the Builder saw only its effect, not the Wrangler output. The resulting state is `ACTOR_REPORTED`, and none of it is Architect-reproduced.
+- **Recovery.** The bookmark `00000173-00000000-000050f4-6cab41e7205b23306c18fe609d33a7cc` is `OWNER_REPORTED`; the Builder did not read it back. Any restore needs a separate Paulo decision.
+- **Activation prerequisites (AS-135) remaining:** production project content (including approved Eternal Eggs copy), `site_settings` initialization, and confirmed email deliverability. Production `0006` is now satisfied. RFC-022 §7 test 11 still needs production measurements.
+- **Gate D not ready.** Gate D / promotion of the RFC-022 `main` version `6ca2ddfe…` remains separately gated. Schema is no longer a blocker, but the activation prerequisites above still are.
+- **Session-branch preview.** The Builder's session branch push created a preview upload (`bdea7046…`). It is harmless and inactive, but future returns should avoid pushing extra branches that trigger uploads.
 - **Carried forward:** AS132-F003 remains open; the traceability validator's pre-existing 3 ERRORs and DRIFT are unchanged.
-- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged. `OBL-017` (separate production deploy gate) still holds: Gate C is not a production release.
+- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged.
 
 ## Evidence locations
 
-- PR: https://github.com/Dillaab-source/maisog-labs/pull/16 (merged as `fda42e04…`).
-- CI jobs: `109079290954`, `109079315243`; Workers Builds check `109079678705`.
-- Cloudflare builds: `955203ca-48b4-494f-9ed4-347b284a0949` (`main`), `b9295a24-198a-4da1-a629-4335b463e5e6` (branch).
-- Versions: `6ca2ddfe-fcab-48f1-bb83-6eeb17ab9b53` (`main`, inactive); active `53137101-afb8-456c-ab83-d8b7b934df01`.
+- D1 `45b87574-e573-4e0f-9bb6-fbba2df29523`: `d1_migrations`, `pragma_table_info('project_revisions')`, `sqlite_master`.
+- Worker `maisog-labs`: deployment `3bf053d6-56b8-4412-a96a-a587588f8521`; active version `53137101-afb8-456c-ab83-d8b7b934df01`; inactive uploads `07656f90…`, `4e4d3f58…`, `bdea7046…`.
+- Account: `fb7234ae9117baf1481ab3b169a9824a`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-109; `ML-DEVOS-AS-135`.
-- **T1:** `ML-DEVOS-RFC-022` §10 (CB-R); D-108; `ML-DEVOS-AS-134`; D-094/D-099 (Gate C precedent); D-055.
-- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-GATE-C-0001.md`.
+- **T0:** Protocol V2; D-110; `ML-DEVOS-AS-136`.
+- **T1:** `ML-DEVOS-RFC-022` §10 (CB-R); D-106; D-097 (remote migration precedent); `migrations/0006_rfc022_v10_project_fields.sql`.
+- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CBR-D1-0006-0001.md`.
 
 ## Next action
 
-The Architect reviews the Gate C return. Remote `0006`, any production D1 write (including `site_settings` initialization), content publication, Gate D and promotion each need separate Paulo authorization.
+The Architect reviews the `0006` return. `site_settings` initialization, project content, email publication, Gate D and promotion each need separate Paulo authorization.
