@@ -1910,3 +1910,27 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** every action flag stays `NO`.
 - **Return:** Builder return `H-WEB-V10-CONTENT-BRIDGE-PLAN-0001`, routed to the Architect. RFC-022 implementation does not start automatically.
 - **Directive:** issue `DIR-WEB-V10-CONTENT-BRIDGE-PLAN-0001` (cycle `MAISOGLABS_WEB_V10_CONTENT_BRIDGE_PLAN`, scope `D104_V10_ADMIN_CONTENT_BRIDGE_PLANNING_ONLY`, applicable review `ML-DEVOS-AS-130`), routed to Claude/Builder.
+
+### D-105 — RFC-022 owner decisions (Q1–Q5), D-093 served-byte amendment, and RFC-022 amendment authority
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `716b9b74658a3c40c147ce60f1b674e25068d45e`, under `ML-DEVOS-AS-131`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Q1 — D-093 amendment:**
+  - `public/index.html` stays immutable and byte-identical to the approved artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`).
+  - The served `/` response may differ from the artifact **only** by the bounded, validated RFC-022 content-bridge span, and only when published content exists.
+  - Every other D-093 requirement is unchanged, including the byte-identical served response whenever no bridge span is inserted.
+  - The amendment takes effect for implementation only once RFC-022 is accepted and an implementation is separately authorized.
+- **Q2 — routing:** the RFC-022 architecture may make exact `/` Worker-first, with `env.ASSETS.fetch(request)` as the fail-safe fallback. No other ordinary asset route is included. The residual dependency of `/` on Worker execution (AS-131) is accepted as an explicit risk.
+- **Q3 — facts:**
+  - The initial homepage project set, in order: ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat.
+  - Preferred public email: `paulo.maisog@maisoglabs.com`, once its deliverability is confirmed. Until that check passes, the currently verified working address is retained.
+- **Q4:** Tier 2 / artifact v2, About, and new CTA or design changes are deferred. Tier 1 is completed first.
+- **Q5:** no `/api/site-content` initially; the Journal → Research bridge (CB-6) is deferred.
+- **Authorized:** amendment of `devos/changes/rfcs/ML-DEVOS-RFC-022.md` to incorporate Q1–Q5 and the AS-131 findings, returned for final Architect review only. RFC-022 stays `DRAFT` until the Architect accepts it.
+- **Not authorized:**
+  - CB-1 through CB-7; any implementation or migration;
+  - changes to `public/index.html`, the homepage artifact contract, runtime, admin UI, Worker routes or config;
+  - Cloudflare mutation; remote D1/R2; deployment; `main` merge;
+  - A-3, A-6; S6/S7; PR #7; PR #10; D-068.
+- **Flags:** every action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-AMEND-0001`, routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-AMEND-0001` (cycle `MAISOGLABS_WEB_RFC022_AMENDMENT`, scope `D105_RFC022_AMENDMENT_ONLY`, applicable review `ML-DEVOS-AS-131`), routed to Claude/Builder.

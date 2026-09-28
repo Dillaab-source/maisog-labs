@@ -1,86 +1,85 @@
-# Current Directive — V10 Admin Content Bridge Architecture Planning
+# Current Directive — RFC-022 Amendment (D-105)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-V10-CONTENT-BRIDGE-PLAN-0001
-cycle_id: MAISOGLABS_WEB_V10_CONTENT_BRIDGE_PLAN
-issue_parent_commit: 65288c7c9c412506826ca72912a8f32d816c95a1
+directive_id: DIR-WEB-RFC022-AMEND-0001
+cycle_id: MAISOGLABS_WEB_RFC022_AMENDMENT
+issue_parent_commit: 716b9b74658a3c40c147ce60f1b674e25068d45e
 target_turn: CLAUDE
-authority_ref: D-104
-applicable_review_id: ML-DEVOS-AS-130
+authority_ref: D-105
+applicable_review_id: ML-DEVOS-AS-131
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-104 and `ML-DEVOS-AS-130`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-105 and `ML-DEVOS-AS-131`.
 
 ## Objective
 
-Produce a repository-grounded architecture for a V10 Admin Content Editor plus a Public Content Bridge that lets Paulo eventually edit recruiter-facing copy from `/admin` while preserving the D-093 V10 homepage. The rule is: code owns the V10 design; admin owns approved content fields.
+Amend `devos/changes/rfcs/ML-DEVOS-RFC-022.md` to incorporate:
+- Paulo's D-105 decisions Q1–Q5;
+- the AS-131 findings (the D-093 served-byte amendment; the Worker-execution dependency precision; the Tier 1 scope; deferrals; no public API; the twelve acceptance tests).
 
-Deliver:
-- `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md`;
-- a draft of `devos/changes/rfcs/ML-DEVOS-RFC-022.md` (status `DRAFT`).
+Return it for final Architect review. RFC-022 stays `DRAFT`.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes, and STATE selects this directive with every action flag `NO`.
-- `main` is still `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`.
-- `public/index.html` SHA-256 is still `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- The Protocol V2 bootstrap passes; STATE selects this directive; every action flag is `NO`.
+- `main` is `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`.
+- `public/index.html` SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-104; live STATE; `ML-DEVOS-AS-130`.
-- **T1:** D-093 and the homepage artifact records; `docs/product/MAISOGLABS_V10_VISUAL_PARITY_ADMIN_PLAN.md`; `ML-DEVOS-RFC-021`; `docs/ARCHITECTURE.md`; `coordination/OPERATIVE_OBLIGATIONS.md`.
+- **T0:** Protocol V2; D-105; live STATE; `ML-DEVOS-AS-131`.
+- **T1:** D-104; D-093; `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md` (accepted planning basis); `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Exact execution scope
 
 Allowed:
+- editing `devos/changes/rfcs/ML-DEVOS-RFC-022.md`, and its row in `devos/changes/rfcs/README.md`;
 - repository reads;
-- local read-only analysis, including running existing tests;
-- writing the plan document and the RFC-022 draft;
 - one Protocol V2 Builder return.
 
 Not allowed:
-- changes to `public/index.html`, `app/**`, `worker/**`, `migrations/**`, `lib/**`, `data/**`, `scripts/**`, tests or configuration;
-- Cloudflare calls; remote D1/R2;
-- deployment; `main`;
-- A-2, A-3, A-5, A-6, A-7, A-8, A-9;
-- S6/S7, PR #7, PR #10, D-068, `devos/execution/`, `tests/fixtures/execution/`.
+- any other file change, including the accepted plan, `HOMEPAGE_ARTIFACT_CONTRACT.md`, `public/**`, `app/**`, `worker/**`, `migrations/**`, tests and config;
+- CB-1..CB-7;
+- Cloudflare; remote D1/R2; deployment; `main`;
+- A-3, A-6, S6/S7, PR #7, PR #10, D-068.
 
 ## SENTINEL Sync
 
-- **Authority:** D-104 (Paulo), planning only.
-- **Context:** D-093 made the homepage a static artifact; the prior V10 plan predates it.
-- **Capability:** repository and documentation writes only.
+- **Authority:** D-105 (Paulo), amendment of a DRAFT RFC only.
+- **Context:** AS-131 accepted the plan, and the owner answered Q1–Q5.
+- **Capability:** documentation only.
 - **Execution:** single pass.
-- **Evidence:** repository citations and local read-only test output.
+- **Evidence:** the diff of RFC-022.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
-`BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`. The architecture choice is itself under contradiction review inside the plan. The directive only fixes that the plan must not assume its preferred candidate.
+`BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
+- Eternal Eggs is not in the artifact's `MLData`, and no approved Eternal Eggs copy exists in the repository. The RFC must not invent content: facts are entered through the admin lifecycle later.
+- Email deliverability is an owner-attested precondition that the system cannot verify.
 
 ## Instructions
 
-1. Inspect the D-093 artifact, the admin/worker/D1 code, the migrations and the prior V10 plan.
-2. Compare the alternatives.
-3. Select and specify the architecture.
-4. Write the plan and the RFC-022 draft.
-5. Publish the return.
+1. Bootstrap.
+2. Amend RFC-022 to incorporate D-105 and AS-131.
+3. Keep `DRAFT`.
+4. Publish the return.
 
 ## Validation and evidence
 
-- every claim about current code cites a repository path;
-- the existing test suite still passes unchanged;
-- `public/index.html` is byte-unchanged.
+- the RFC diff;
+- the traceability validator has no new errors;
+- the artifact SHA is unchanged.
 
 ## Stop conditions
 
-Stop if any step would need a runtime, product or Cloudflare change, or if the repository contradicts D-093 in a way that invalidates planning.
+Stop if the amendment would require a change outside RFC-022 and its index row.
 
 ## Next action
 
-Publish `H-WEB-V10-CONTENT-BRIDGE-PLAN-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-RFC022-AMEND-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`.
