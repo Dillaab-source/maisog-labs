@@ -6,7 +6,9 @@
 // own bundle (public/index.html), exactly as tests/homepage-artifact.test.mjs
 // decodes it. The component runs against an in-page mock of the admin API that
 // records every request, so the evidence checks what the UI actually sends.
-// This is not the Next.js build (React 19); it verifies component behaviour.
+// It then runs the same checks against the real `next build` static export
+// (out/admin.html, Next's bundled React 19), so run `npm run build` first; a
+// missing build fails the run.
 //
 // Checks: tabs render; Tier 2 tabs show deferral notices and no inputs; the
 // homepage status/gate is shown; a new V10 project saves with a complete v10
@@ -16,7 +18,8 @@
 // ticked and then sends confirmDeliverability: true.
 //
 // Playwright is resolved from PLAYWRIGHT_MODULE or the global install.
-// Output: docs/product/evidence/rfc022-tier1/admin-ui-*.png, admin-ui-report.json.
+// Output: docs/product/evidence/rfc022-tier1/admin-ui-*.png,
+// admin-ui-nextjs-*.png, admin-ui-report.json.
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -90,94 +93,132 @@ window.fetch = async (url, init = {}) => {
 `;
 
 const libs = artifactLibraries();
-const page = `<!doctype html><html><head><meta charset="utf-8"><title>Admin Content UI evidence</title></head><body>
+const componentPage = `<!doctype html><html><head><meta charset="utf-8"><title>Admin Content UI evidence</title></head><body>
 <div id="root"></div>
 <script src="/react.js"></script><script src="/react-dom.js"></script><script src="/babel.js"></script>
-<script>${MOCK_API}</script>
 <script type="text/babel" data-presets="react">${componentSource()}
 ReactDOM.createRoot(document.getElementById("root")).render(<main style={{ padding: "2rem", fontFamily: "system-ui, sans-serif", maxWidth: "48rem" }}><window.ContentClient /></main>);
 </script></body></html>`;
 
-const files = { "/": ["text/html", page], "/react.js": ["text/javascript", libs.react], "/react-dom.js": ["text/javascript", libs.reactDom], "/babel.js": ["text/javascript", libs.babel] };
-const server = http.createServer((req, res) => {
-  const file = files[new URL(req.url, "http://localhost").pathname];
+// Variant 1 (component): the component with the artifact's React 18.
+const componentFiles = { "/": ["text/html", componentPage], "/react.js": ["text/javascript", libs.react], "/react-dom.js": ["text/javascript", libs.reactDom], "/babel.js": ["text/javascript", libs.babel] };
+function serveComponent(req, res) {
+  const file = componentFiles[new URL(req.url, "http://localhost").pathname];
   if (!file) return res.writeHead(404).end();
   res.writeHead(200, { "Content-Type": file[0] });
   res.end(file[1]);
-});
-await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-const chromium = await loadPlaywright();
-const browser = await chromium.launch();
-const p = await browser.newPage({ viewport: { width: 1280, height: 1600 } });
-const errors = [];
-p.on("pageerror", error => errors.push(error.message));
-p.on("console", message => message.type() === "error" && errors.push(message.text()));
-await p.goto(`http://127.0.0.1:${server.address().port}/`);
-await p.getByRole("heading", { name: "Homepage content" }).waitFor({ timeout: 30000 });
-await p.getByRole("heading", { name: "Homepage projects" }).waitFor();
-
-const checks = {};
-const requests = () => p.evaluate(() => window.__requests);
-fs.mkdirSync(OUT, { recursive: true });
-await p.screenshot({ path: path.join(OUT, "admin-ui-projects.png"), fullPage: true });
-checks.gateShown = (await p.getByText("First activation requires exactly these five").count()) === 1;
-
-// Legacy project with a blank V10 section -> v10: null.
-const legacyCard = p.locator("div", { has: p.getByRole("heading", { name: /Automation Hub/ }) }).last();
-await legacyCard.getByRole("button", { name: "Save draft" }).click();
-await p.waitForTimeout(300);
-const legacySave = (await requests()).find(r => r.url === "/admin/api/projects/legacy-one/draft");
-checks.legacySavesWithNullV10 = legacySave?.method === "PUT" && legacySave.body.v10 === null && legacySave.body.expectedPublishedRevisionId === 3 && legacySave.body.accent === "gold";
-
-// Existing V10 draft publishes with its expected pointers; a 409 limit is explained.
-await p.evaluate(() => { window.__limitNext = true; });
-const clinicCard = p.locator("div", { has: p.getByRole("heading", { name: /^ClinicFlow/ }) }).last();
-await clinicCard.getByRole("button", { name: "Publish" }).click();
-await p.waitForTimeout(300);
-const publish = (await requests()).find(r => r.url === "/admin/api/projects/clinicflow/publish");
-checks.publishSendsPointers = publish?.body.expectedPublishedRevisionId === null && publish.body.expectedDraftRevisionId === 7;
-checks.limitMessageShown = (await p.getByText("The homepage already shows five projects").count()) >= 1;
-
-// New project with complete V10 fields.
-const newCard = p.locator("div", { has: p.getByRole("heading", { name: "New project" }) }).last();
-await newCard.getByLabel(/Project id/).fill("maisog-kilat");
-await newCard.getByLabel("Slug").fill("maisog-kilat");
-await newCard.getByLabel(/^Name/).fill("Maisog Kilat");
-await newCard.getByLabel(/^Kind/).fill("Fixture kind");
-await newCard.getByLabel(/^Tagline/).fill("Fixture tagline.");
-await newCard.getByLabel(/^Description/).fill("Fixture description.");
-await newCard.getByLabel("Research").check();
-await newCard.getByLabel("AI").check();
-for (let i = 1; i <= 4; i++) await newCard.getByLabel(`Flow step ${i}`).fill(`Fixture step ${i}`);
-await newCard.getByLabel(/Show on homepage/).check();
-await newCard.getByRole("button", { name: "Save draft" }).click();
-await p.waitForTimeout(300);
-const create = (await requests()).find(r => r.url === "/admin/api/projects" && r.method === "POST");
-checks.createSendsCompleteV10 =
-  create?.body.id === "maisog-kilat" && create.body.featured === true &&
-  JSON.stringify(create.body.v10) === JSON.stringify({ tagline: "Fixture tagline.", status: "", disciplines: [0, 2], flow: ["Fixture step 1", "Fixture step 2", "Fixture step 3", "Fixture step 4"] });
-
-// Contact: publish disabled until attestation.
-await p.getByRole("tab", { name: "Contact" }).click();
-const publishEmail = p.getByRole("button", { name: "Publish email" });
-checks.contactPublishDisabledWithoutAttestation = await publishEmail.isDisabled();
-await p.getByLabel(/I have confirmed this address receives mail/).check();
-await publishEmail.click();
-await p.waitForTimeout(300);
-const contactPublish = (await requests()).find(r => r.url === "/admin/api/content/contact/publish");
-checks.contactPublishSendsAttestation = contactPublish?.body.confirmDeliverability === true && contactPublish.body.expectedDraftRevisionId === 9;
-await p.screenshot({ path: path.join(OUT, "admin-ui-contact.png"), fullPage: true });
-
-// Tier 2 / design tabs: notices only, no inputs.
-for (const tab of ["Profile / Home", "About", "Navigation"]) {
-  await p.getByRole("tab", { name: tab }).click();
-  checks[`tier2Notice:${tab}`] = (await p.locator("section input, section textarea, section select").count()) === 0;
 }
-await p.screenshot({ path: path.join(OUT, "admin-ui-deferred.png"), fullPage: true });
 
-await browser.close();
-server.close();
-const report = { renderer: "React 18.3.1 + Babel standalone decoded from public/index.html (not the Next.js build)", errors, checks };
+// Variant 2 (nextjs): the real `next build` static export (out/), with
+// /admin served from out/admin.html as the Worker's assets binding does.
+const OUT_DIR = path.join(ROOT, "out");
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".txt": "text/plain", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".woff2": "font/woff2" };
+function serveNextExport(req, res) {
+  let pathname = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
+  if (pathname === "/admin" || pathname === "/admin/") pathname = "/admin.html";
+  const file = path.join(OUT_DIR, pathname);
+  if (!file.startsWith(OUT_DIR) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return res.writeHead(404).end();
+  res.writeHead(200, { "Content-Type": MIME[path.extname(file)] ?? "application/octet-stream" });
+  res.end(fs.readFileSync(file));
+}
+function nextReactVersion() {
+  const dir = path.join(OUT_DIR, "_next/static/chunks");
+  for (const name of fs.readdirSync(dir, { recursive: true })) {
+    if (!String(name).endsWith(".js")) continue;
+    const match = fs.readFileSync(path.join(dir, String(name)), "utf8").match(/version:"(19\.[^"]+)"/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+async function runVariant(chromium, { handler, url, shotPrefix }) {
+  const server = http.createServer(handler);
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  const browser = await chromium.launch();
+  const p = await browser.newPage({ viewport: { width: 1280, height: 1600 } });
+  const errors = [];
+  p.on("pageerror", error => errors.push(error.message));
+  p.on("console", message => message.type() === "error" && errors.push(message.text()));
+  await p.addInitScript(MOCK_API);
+  await p.goto(`http://127.0.0.1:${server.address().port}${url}`);
+  await p.getByRole("heading", { name: "Homepage content" }).waitFor({ timeout: 30000 });
+  await p.getByRole("heading", { name: "Homepage projects" }).waitFor();
+  const content = p.locator('section[aria-labelledby="content-title"]');
+
+  const checks = {};
+  const requests = () => p.evaluate(() => window.__requests);
+  await p.screenshot({ path: path.join(OUT, `${shotPrefix}-projects.png`), fullPage: true });
+  checks.gateShown = (await content.getByText("First activation requires exactly these five").count()) === 1;
+
+  // Legacy project with a blank V10 section -> v10: null.
+  const legacyCard = content.locator("div", { has: p.getByRole("heading", { name: /Automation Hub/ }) }).last();
+  await legacyCard.getByRole("button", { name: "Save draft" }).click();
+  await p.waitForTimeout(300);
+  const legacySave = (await requests()).find(r => r.url === "/admin/api/projects/legacy-one/draft");
+  checks.legacySavesWithNullV10 = legacySave?.method === "PUT" && legacySave.body.v10 === null && legacySave.body.expectedPublishedRevisionId === 3 && legacySave.body.accent === "gold";
+
+  // Existing V10 draft publishes with its expected pointers; a 409 limit is explained.
+  await p.evaluate(() => { window.__limitNext = true; });
+  const clinicCard = content.locator("div", { has: p.getByRole("heading", { name: /^ClinicFlow/ }) }).last();
+  await clinicCard.getByRole("button", { name: "Publish" }).click();
+  await p.waitForTimeout(300);
+  const publish = (await requests()).find(r => r.url === "/admin/api/projects/clinicflow/publish");
+  checks.publishSendsPointers = publish?.body.expectedPublishedRevisionId === null && publish.body.expectedDraftRevisionId === 7;
+  checks.limitMessageShown = (await content.getByText("The homepage already shows five projects").count()) >= 1;
+
+  // New project with complete V10 fields.
+  const newCard = content.locator("div", { has: p.getByRole("heading", { name: "New project" }) }).last();
+  await newCard.getByLabel(/Project id/).fill("maisog-kilat");
+  await newCard.getByLabel("Slug").fill("maisog-kilat");
+  await newCard.getByLabel(/^Name/).fill("Maisog Kilat");
+  await newCard.getByLabel(/^Kind/).fill("Fixture kind");
+  await newCard.getByLabel(/^Tagline/).fill("Fixture tagline.");
+  await newCard.getByLabel(/^Description/).fill("Fixture description.");
+  await newCard.getByLabel("Research").check();
+  await newCard.getByLabel("AI").check();
+  for (let i = 1; i <= 4; i++) await newCard.getByLabel(`Flow step ${i}`).fill(`Fixture step ${i}`);
+  await newCard.getByLabel(/Show on homepage/).check();
+  await newCard.getByRole("button", { name: "Save draft" }).click();
+  await p.waitForTimeout(300);
+  const create = (await requests()).find(r => r.url === "/admin/api/projects" && r.method === "POST");
+  checks.createSendsCompleteV10 =
+    create?.body.id === "maisog-kilat" && create.body.featured === true &&
+    JSON.stringify(create.body.v10) === JSON.stringify({ tagline: "Fixture tagline.", status: "", disciplines: [0, 2], flow: ["Fixture step 1", "Fixture step 2", "Fixture step 3", "Fixture step 4"] });
+
+  // Contact: publish disabled until attestation.
+  await content.getByRole("tab", { name: "Contact" }).click();
+  const publishEmail = content.getByRole("button", { name: "Publish email" });
+  checks.contactPublishDisabledWithoutAttestation = await publishEmail.isDisabled();
+  await content.getByLabel(/I have confirmed this address receives mail/).check();
+  await publishEmail.click();
+  await p.waitForTimeout(300);
+  const contactPublish = (await requests()).find(r => r.url === "/admin/api/content/contact/publish");
+  checks.contactPublishSendsAttestation = contactPublish?.body.confirmDeliverability === true && contactPublish.body.expectedDraftRevisionId === 9;
+  await p.screenshot({ path: path.join(OUT, `${shotPrefix}-contact.png`), fullPage: true });
+
+  // Tier 2 / design tabs: notices only, no inputs inside the Content section.
+  for (const tab of ["Profile / Home", "About", "Navigation"]) {
+    await content.getByRole("tab", { name: tab }).click();
+    checks[`tier2Notice:${tab}`] = (await content.locator("input, textarea, select").count()) === 0;
+  }
+  await p.screenshot({ path: path.join(OUT, `${shotPrefix}-deferred.png`), fullPage: true });
+
+  await browser.close();
+  server.close();
+  return { errors, checks };
+}
+
+fs.mkdirSync(OUT, { recursive: true });
+const chromium = await loadPlaywright();
+const variants = {
+  component: { renderer: "React 18.3.1 + Babel standalone decoded from public/index.html", ...(await runVariant(chromium, { handler: serveComponent, url: "/", shotPrefix: "admin-ui" })) },
+};
+if (fs.existsSync(path.join(OUT_DIR, "admin.html"))) {
+  variants.nextjs = { renderer: `next build static export out/admin.html (Next ${JSON.parse(fs.readFileSync(path.join(ROOT, "node_modules/next/package.json"), "utf8")).version}, bundled React ${nextReactVersion()})`, ...(await runVariant(chromium, { handler: serveNextExport, url: "/admin", shotPrefix: "admin-ui-nextjs" })) };
+} else {
+  variants.nextjs = { renderer: "not run: out/admin.html missing (run npm run build first)", errors: ["out/admin.html missing"], checks: {} };
+}
+const report = { variants };
 fs.writeFileSync(path.join(OUT, "admin-ui-report.json"), JSON.stringify(report, null, 2) + "\n");
 console.log(JSON.stringify(report, null, 2));
-if (errors.length > 0 || Object.values(checks).some(v => v !== true)) process.exitCode = 1;
+if (Object.values(variants).some(v => v.errors.length > 0 || Object.keys(v.checks).length === 0 || Object.values(v.checks).some(c => c !== true))) process.exitCode = 1;

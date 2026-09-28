@@ -25,7 +25,7 @@ const styles = {
   label: { display: "block", fontSize: "0.85rem", marginTop: "0.6rem" },
   input: { width: "100%", padding: "0.35rem", fontSize: "0.95rem", boxSizing: "border-box" },
   row: { display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.8rem" },
-  note: { fontSize: "0.85rem", color: "#444" },
+  note: { fontSize: "0.85rem", color: "inherit", opacity: 0.8 },
 };
 
 async function submitJson(url, method, body) {
@@ -45,7 +45,7 @@ function describeFailure(result) {
 function Message({ message }) {
   if (!message) return null;
   return (
-    <p role="status" aria-live="polite" style={{ color: message.tone === "error" ? "#b00020" : "#1b5e20", fontSize: "0.9rem" }}>
+    <p role="status" aria-live="polite" style={{ color: message.tone === "error" ? "#e0564f" : "#3fa66a", fontSize: "0.9rem" }}>
       {message.text}
     </p>
   );

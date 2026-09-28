@@ -6,7 +6,7 @@
     {
       "variant": "artifact",
       "viewport": "desktop",
-      "renderMs": 4929,
+      "renderMs": 3473,
       "nonBlank": true,
       "mlData": {
         "projects": [
@@ -32,7 +32,7 @@
     {
       "variant": "artifact",
       "viewport": "mobile",
-      "renderMs": 3738,
+      "renderMs": 3408,
       "nonBlank": true,
       "mlData": {
         "projects": [
@@ -58,7 +58,7 @@
     {
       "variant": "bridged",
       "viewport": "desktop",
-      "renderMs": 3779,
+      "renderMs": 3530,
       "nonBlank": true,
       "mlData": {
         "projects": [
@@ -84,7 +84,7 @@
     {
       "variant": "bridged",
       "viewport": "mobile",
-      "renderMs": 3716,
+      "renderMs": 3479,
       "nonBlank": true,
       "mlData": {
         "projects": [
