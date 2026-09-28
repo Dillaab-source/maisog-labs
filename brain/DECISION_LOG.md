@@ -1969,3 +1969,22 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Publication discipline (AS132-F003 open):** every publication manually inspects STATE and the changed-file set in addition to `--check-only`.
 - **Return:** Builder return `H-WEB-RFC022-TIER1-IMPL-0001`; all flags reset to `NO`; routed to the Architect. The production release does not start automatically.
 - **Directive:** issue `DIR-WEB-RFC022-TIER1-IMPL-0001` (cycle `MAISOGLABS_WEB_RFC022_TIER1_IMPL`, scope `D106_RFC022_TIER1_LOCAL_IMPLEMENTATION_ONLY`, applicable review `ML-DEVOS-AS-132`), routed to Claude/Builder.
+
+### D-107 — Authorize AS-133 remediation cycle 1 (AS133-F001 only, repository/local only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `f31996832b014555b982b84cad9e0137d4fc6064`, when relaying the Architect's `ML-DEVOS-AS-133` (`CHANGES_REQUESTED`). Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized:** one bounded remediation of AS133-F001 under `ML-DEVOS-RFC-022`, `ML-DEVOS-AS-132`, `ML-DEVOS-AS-133`, D-105 and D-106:
+  - keep the exact D-105 five-project/order check (AS132-F002) as a CB-R release-readiness check, with its helper/status preserved;
+  - stop gating normal public bridge rendering on those five names, so that any valid published project group of 1..5 renders through `/`;
+  - add the AS-133 regression evidence;
+  - adjust admin wording/status only if needed to distinguish release readiness from runtime bridge validity.
+- **Binding requirements:**
+  - no new table, migration field, runtime activation flag, API or architecture change;
+  - `public/index.html` is unchanged (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`);
+  - AS132-F002 remains a mandatory release condition, to be proven at CB-R.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for this remediation only. `AUDIT_APPEND_AUTHORIZED`, `REMOTE_D1`, `REMOTE_R2`, `MEDIA_MUTATION`, `DEPLOY` and `MAIN_MERGE` stay `NO`.
+- **Not authorized:** anything outside AS133-F001, including:
+  - CB-R; production, remote D1/R2, Cloudflare, Access or DNS actions;
+  - production content; deployment; `main` merge.
+- **Remediation cycle:** `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`.
+- **Directive:** issue `DIR-WEB-RFC022-TIER1-REM1-0001` (cycle `MAISOGLABS_WEB_RFC022_TIER1_IMPL`, scope `D107_AS133_F001_REMEDIATION_CYCLE_1_ONLY`, applicable review `ML-DEVOS-AS-133`), routed to Claude/Builder. The Builder returns to the Architect on completion.
