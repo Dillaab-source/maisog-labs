@@ -141,4 +141,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-131.md` — D-104 V10 Admin Content Bridge plan review. Concluded `ARCHITECT_APPROVED — D-104 PLAN ACCEPTED / RFC-022 OWNER AMENDMENT REQUIRED`; plan accepted as planning basis; RFC-022 stays `DRAFT`; the MLData bridge requires an explicit owner amendment of the D-093 served-byte rule and makes exact `/` depend on Worker execution; Tier 1 acceptable for future implementation, Tier 2 and design additions deferred; no `/api/site-content` or Journal bridge initially; routes Q1–Q5 to Paulo; authorizes no implementation.
 
+- `ML-DEVOS-AS-132.md` — RFC-022 V10 Published Content Bridge final architecture review. Concluded `ARCHITECT_APPROVED — RFC-022 ACCEPTED / READY FOR OWNER IMPLEMENTATION DECISION`; RFC-022 accepted; implementation and release not authorized; mandatory AS132-F001 (transformed-response identity/caching) and AS132-F002 (initial five-project activation) conditions; AS132-F003 non-blocking checker-gap follow-up; routes the implementation decision to Paulo.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).

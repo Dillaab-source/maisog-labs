@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-022: V10 Published Content Bridge
 
-Status: `DRAFT`. Drafted under `D-104` (planning only). Reviewed in `ML-DEVOS-AS-131` (plan accepted, RFC not yet accepted). Amended under `D-105` to incorporate Paulo's owner decisions Q1–Q5 and the AS-131 findings, and returned for final Architect review. Not accepted, and it grants no implementation authority.
+Status: `ACCEPTED` — accepted by `ML-DEVOS-AS-132` (final architecture review), after Paulo's owner decisions under `D-105`. Drafted under `D-104`, reviewed in `ML-DEVOS-AS-131`, amended under `D-105`. Acceptance grants no implementation authority and is subject to the mandatory conditions AS132-F001 (implementation) and AS132-F002 (release) recorded in `ML-DEVOS-AS-132`.
 
 Proposed change class: `ARCHITECTURE`
 
@@ -217,4 +217,4 @@ CB-6 (Journal bridge) and CB-7 (Tier 2) are deferred.
 
 ## 12. Acceptance
 
-Not accepted. Final independent Architect review is required. Acceptance would still grant no implementation authority: CB-1..CB-5 and CB-R each need their own owner decision.
+Accepted by `ML-DEVOS-AS-132`, subject to AS132-F001 (dynamic response identity and caching; mandatory implementation condition) and AS132-F002 (initial five-project activation; mandatory release condition). Acceptance grants no implementation authority: CB-1..CB-5 and CB-R each need their own owner decision.
