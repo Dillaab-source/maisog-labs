@@ -1,58 +1,60 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D115_RFC022_CONTENT_DRAFTS_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D116_RFC022_CONTENT_DRAFTS_OWNER_BROWSER_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-RFC022-CONTENT-DRAFTS-0001
-REVIEW_TARGET_COMMIT: cb304f30713e01914d779c008768c6e38e83d797
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-141
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-RFC022-CONTENT-DRAFTS-0002
+DIRECTIVE_ISSUE_PARENT: 4e363fbf595db5b9fa20e408fa7a241f53686165
+DIRECTIVE_AUTHORITY_REF: D-116
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-142
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
-AUDIT_APPEND_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
+AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_R2_AUTHORIZED: NO
-REMOTE_D1_AUTHORIZED: NO
+REMOTE_D1_AUTHORIZED: YES
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-115 recorded Paulo's approval of the exact initial five-project content and authorized production drafts plus protected preview only. The Builder stopped at D-115's authentication stop condition. The D-115 flag authority is reset to `NO`; the content approval stands as recorded.
+`ML-DEVOS-AS-142`: `D-115 AUTHENTICATION STOP ACCEPTED`. Reviewed tip: `4e363fbf595db5b9fa20e408fa7a241f53686165`. No drafts were created, no substitute was used, and production is unchanged. The D-115 approved content remains valid and approved. `H-WEB-RFC022-CONTENT-DRAFTS-0001` is archived byte-for-byte and deselected.
 
-## Current handoff
+D-116 records Paulo's authorization to create exactly the five D-115 drafts **only through an owner-authenticated interactive browser session**:
+- Paulo personally completes the Access login;
+- the Builder never touches the OTP and resumes only on Paulo's confirmation;
+- read-back, validation, `initialReleaseReadiness`, and desktop preview evidence follow;
+- mobile is deferred.
 
-`H-WEB-RFC022-CONTENT-DRAFTS-0001`: **STOPPED — authentication.**
-- This session cannot sign in as `paulo.maisog@maisoglabs.com` through Cloudflare Access (OTP to that mailbox; no browser, no credential).
-- No substitute was used.
-- No draft was created.
-- Production is unchanged: `/` is the D-093 artifact; D1 has 0 projects, 0 revisions, 0 audit rows and 0 activation markers (`ACTOR_REPORTED`).
-- The return lists owner-executed and alternative paths for a Paulo decision. None is authorized.
+The flags cover that operation only: `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`.
 
-`DIR-WEB-RFC022-CONTENT-DRAFTS-0001` is archived byte-for-byte and deselected.
+**Execution requires a browser-enabled Claude session.** The session that published D-116 has no owner-visible interactive browser, so it stopped after publication. D-116 execution must continue in a Claude session with an owner-visible browser (the Claude desktop browser pane, computer-use on Paulo's machine, or Claude in Chrome).
+
+## Selected directive
+
+`DIR-WEB-RFC022-CONTENT-DRAFTS-0002` is transport, not authority. Effective scope is the intersection of this STATE, D-116, D-115 (content) and the directive.
 
 ## Hard boundaries
 
-All action-specific authorization flags are `NO`.
+Only `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` are `YES`, for the five drafts only. Every other action-specific flag is `NO`.
 
 Not authorized:
-- project drafts, publication or initial activation; a `homepage_initial_activation` marker;
-- contact/`site_settings` mutation; contact-email publication;
-- deployment or traffic change;
-- R2, Access, DNS, binding, secret or environment change;
-- schema or migration change; `main` merge;
-- V10.1 remediation.
+- project publication; initial homepage activation; a `homepage_initial_activation` marker;
+- contact/`site_settings` mutation; deployment;
+- Access mutation; direct production D1 SQL as an admin substitute; service-token creation;
+- R2; schema or migration changes; `main` merge;
+- V10.1 implementation.
 
 AS132-F002 remains mandatory before the first project bridge activation. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
@@ -62,4 +64,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-The Architect reviews `H-WEB-RFC022-CONTENT-DRAFTS-0001` under a new immutable `ML-DEVOS-AS-NNN`.
+A browser-enabled Builder session executes D-116 and publishes `H-WEB-RFC022-CONTENT-DRAFTS-0002`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.

@@ -2446,3 +2446,37 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Or, if the stop condition applies, the authentication limitation. Every flag is then reset to `NO`, with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
 - **Directive:** issue `DIR-WEB-RFC022-CONTENT-DRAFTS-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D115_RFC022_INITIAL_CONTENT_DRAFTS_AND_PREVIEW_ONLY`, applicable review `ML-DEVOS-AS-141`), routed to Claude/Builder.
+
+### D-116 — Execute the D-115 drafts only through an owner-authenticated interactive browser session
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `4e363fbf595db5b9fa20e408fa7a241f53686165`, in the same message that relayed `ML-DEVOS-AS-142`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Content:** exactly the five projects approved in D-115 (the canonical JSON in D-115), with no editorial changes.
+- **Required execution path:**
+  1. open `https://maisoglabs.com/admin` in an interactive browser session visible to Paulo;
+  2. stop at Cloudflare Access authentication;
+  3. Paulo personally completes authentication for `paulo.maisog@maisoglabs.com`. The Builder never retrieves, requests, stores or bypasses the OTP;
+  4. resume only after Paulo confirms that the authenticated admin UI is loaded;
+  5. create exactly the five D-115 drafts through the existing admin lifecycle;
+  6. make no editorial changes to the approved content;
+  7. read back and validate the saved drafts;
+  8. confirm `initialReleaseReadiness()` remains `true`;
+  9. open `/admin/preview/home` and capture desktop preview evidence;
+  10. confirm public `/` is unchanged;
+  11. stop.
+- **Deferred by Paulo:** mobile preview and remediation. Not required for this step.
+- **No browser available:** if no owner-visible interactive browser is available, the Builder publishes D-116 and stops. Execution then continues in a browser-enabled Claude session.
+- **Flags:** `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`, `REMOTE_D1_AUTHORIZED: YES`, for this operation only. Every other action-specific flag stays `NO`.
+- **Not authorized:**
+  - project publication; initial homepage activation; a `homepage_initial_activation` marker;
+  - contact/`site_settings` mutation; deployment;
+  - Access mutation; direct production D1 SQL as an admin substitute; service-token creation;
+  - R2; schema or migration changes; `main` merge;
+  - V10.1 implementation.
+- **Return:** Builder handoff `H-WEB-RFC022-CONTENT-DRAFTS-0002` recording:
+  - the D-116 publication SHA; the project ids and revision ids;
+  - validation and the `initialReleaseReadiness` result;
+  - desktop preview evidence;
+  - confirmation that public `/` is unchanged, no project was published and no activation marker was created.
+
+  Every flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D116_RFC022_CONTENT_DRAFTS_OWNER_BROWSER_ONLY`, applicable review `ML-DEVOS-AS-142`), routed to Claude/Builder.
