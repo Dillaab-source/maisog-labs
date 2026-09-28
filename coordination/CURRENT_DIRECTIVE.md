@@ -1,66 +1,70 @@
-# Current Directive — Cloudflare Inventory & Exposure Review (read-only)
+# Current Directive — Cloudflare Exposure Remediation A-1 + A-4
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-CF-INVENTORY-0001
-cycle_id: MAISOGLABS_CF_INVENTORY_REVIEW
-issue_parent_commit: 2f3f82cd9ed2e903bdd6096897a372511de34904
+directive_id: DIR-WEB-CF-EXPOSURE-REMEDIATION-0001
+cycle_id: MAISOGLABS_CF_EXPOSURE_REMEDIATION
+issue_parent_commit: 872f31b16000fa2407a7bc37beffc83f35548d5c
 target_turn: CLAUDE
-authority_ref: D-102
-applicable_review_id: ML-DEVOS-AS-128
+authority_ref: D-103
+applicable_review_id: ML-DEVOS-AS-129
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-102 and `ML-DEVOS-AS-128`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-103 and `ML-DEVOS-AS-129`.
 
 ## Objective
 
-Carry out the D-102 assessment. Inventory and classify, read-only, the Cloudflare resources found during D-101, and map them against repository intent. Produce findings and a remediation proposal. Execute nothing.
+Execute exactly two reversible exposure reductions from AS-129:
+
+- **A-1:** disable `maisog-labs` preview URLs.
+- **A-4:** disable `maisog-labs-staging` `workers.dev` and preview URLs.
+
+Verify, then return.
 
 ## Preconditions
 
-- Protocol V2 bootstrap passes, STATE selects this directive, and every action flag is `NO`.
+- Protocol V2 bootstrap passes on the published D-103 tip; STATE selects this directive; `MUTATION_AUTHORIZED: YES` is the only `YES` flag.
 - `main` is still `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`.
-- The Cloudflare MCP/API connector is available for read (`GET`) calls.
+- A fresh read shows:
+  - `maisog-labs`: `enabled: true`, `previews_enabled: true`;
+  - `maisog-labs-staging`: `enabled: true`, `previews_enabled: true`.
+- Active production is still `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, and the custom domain `maisoglabs.com` is bound to `maisog-labs`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-102; live STATE; `ML-DEVOS-AS-128`.
-- **T1:** D-101 (inventory findings); `wrangler.jsonc`; `worker/`; `docs/ARCHITECTURE.md`; `brain/PROJECT_GOVERNANCE.md`; `brain/RISK_REGISTER.md`; `coordination/OPERATIVE_OBLIGATIONS.md`.
+- **T0:** Protocol V2; D-103; live STATE; `ML-DEVOS-AS-129`.
+- **T1:** D-102; `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md` (A-1, A-4, F-1, F-3); `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Exact execution scope
 
 Allowed:
-- Cloudflare `GET` reads of configuration and metadata:
-  - Workers: scripts, settings, bindings (names and types only), routes, custom domains, `workers.dev` and preview settings, deployments, versions;
-  - the Pages project;
-  - D1 database metadata;
-  - R2 bucket configuration (public access, custom domains, CORS);
-  - Access applications and policies;
-  - zone DNS records for `maisoglabs.com`;
-- unauthenticated HTTP `GET` / `HEAD` probes of public hostnames, to observe exposure;
-- repository reads;
-- one Protocol V2 Builder return.
+- Cloudflare `GET` reads needed for the pre-read, verification and evidence: script subdomain settings, settings/bindings, deployments, custom domains.
+- **A-1:** exactly one `POST /accounts/{account}/workers/scripts/maisog-labs/subdomain` with body `{"enabled": true, "previews_enabled": false}`. The API requires `enabled`; `true` re-asserts its current, unchanged value.
+- **A-4:** exactly one `POST /accounts/{account}/workers/scripts/maisog-labs-staging/subdomain` with body `{"enabled": false, "previews_enabled": false}`.
+- A read-only HTTP probe of `https://maisoglabs.com/`.
+- **Conditional rollback:** one `POST` of the exact prior body per action, only on the D-103 failure conditions.
+- One Protocol V2 Builder return.
 
 Not allowed:
-- any Cloudflare `POST` / `PUT` / `PATCH` / `DELETE`;
-- D1 SQL of any kind;
-- R2 object listing, reads or writes;
-- reading secret values;
-- authenticated requests to any application;
-- any deploy, deletion, rename, or traffic, DNS, Access, setting, binding, secret or environment change;
-- code or `main` changes;
-- PR #7, PR #10, S6/S7, D-068.
+- any other Cloudflare write, including `DELETE …/subdomain`;
+- disabling `maisog-labs` `workers.dev`;
+- A-2, A-3, A-5, A-6, A-7, A-8, A-9;
+- Builds triggers, Access, n8n or DNS changes;
+- deployment, traffic or version changes;
+- Worker deletion or rename;
+- D1/R2 data access; binding, secret or environment changes;
+- `main`, PR #7, PR #10, S6/S7, D-068, `devos/execution/`, `tests/fixtures/execution/`, `stash@{0}`.
 
 ## SENTINEL Sync
 
-- **Authority:** D-102 (Paulo), assessment only.
-- **Context:** Gate D closed at `ML-DEVOS-AS-128`; production is `53137101…` @ 100%.
-- **Capability:** the connector can write, but that capability is not authority. Only `GET` is used.
-- **Execution:** single read-only pass.
-- **Evidence:** `ACTOR_REPORTED` Cloudflare reads and HTTP probes.
+- **Authority:** D-103 (Paulo).
+- **Context:** AS-129 accepted the assessment and prioritized A-1 and A-4.
+- **Capability:** the connector can make any Cloudflare write, but capability is not authority; only the two subdomain `POST`s are allowed.
+- **Execution:** fresh pre-read, then two single operations, each with an immediate read-back.
+- **Evidence:** pre and post settings, operation responses, production checks.
 
 Disposition `CLEAR`.
 
@@ -68,31 +72,35 @@ Disposition `CLEAR`.
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
 
-- Only `maisog-labs` and its D1/R2 bindings are documented in the repository. The other resources are known only from D-101 inventory notes, so repository intent for them may simply be absent. Absence is not evidence of obsolescence.
-- If any finding looks urgent, it is reported. It is not acted on.
+- The API's required `enabled` field means A-1's request carries `enabled: true`. This is not a `workers.dev` change, provided the pre-read shows `true`. If the pre-read shows otherwise, stop.
+- Disabling `maisog-labs` previews ends public version-preview URLs, including the preview host used for past Gate smoke tests. This is an accepted consequence (AS-129).
+- The session network allowlist may prevent probing the disabled hosts. Post-state evidence is then the API read-back.
 
 ## Instructions
 
-1. Bootstrap fresh.
-2. Read the Cloudflare configuration for every in-scope resource, and any directly related resource discovered on the way.
-3. Probe public exposure with unauthenticated requests.
-4. Map to repository references.
-5. Classify, identify dependencies, and draft the remediation plan as independently authorizable actions.
-6. Publish the return.
+1. Bootstrap from the published tip and verify the preconditions.
+2. Record the pre-change settings.
+3. Run A-1, then read back.
+4. Run A-4, then read back.
+5. Verify production and bindings.
+6. Roll back only on the defined conditions.
+7. Publish the return.
 
 ## Validation and evidence
 
-- the inventory table with IDs;
-- the evidence behind each classification;
-- the exposure probes (URL, status, redirect target);
-- uncertainties stated explicitly;
-- confirmation that only `GET` calls were made.
+- pre-change and post-change subdomain settings for both Workers;
+- exact requests and responses;
+- active deployment before and after;
+- custom domain and bindings before and after;
+- `maisoglabs.com` health;
+- rollback status.
 
 ## Stop conditions
 
-- Stop if any step would require a non-`GET` Cloudflare call, SQL, R2 object access, a secret value or authentication.
-- Report a finding that looks urgent; do not remediate it.
+- Any precondition differs, or a setting already differs materially from AS-129: stop without change.
+- A read-back does not show the target state: stop and report; do not retry with other operations.
+- Any unrelated setting changed: stop and report.
 
 ## Next action
 
-Publish the Builder return `H-WEB-CF-INVENTORY-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-CF-EXPOSURE-REMEDIATION-0001`. Archive and deselect this directive, reset `MUTATION_AUTHORIZED` to `NO`, and route `TURN: ARCHITECT`.

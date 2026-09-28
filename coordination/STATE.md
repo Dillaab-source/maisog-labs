@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_CF_INVENTORY_REVIEW
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: AS129_CF_EXPOSURE_REMEDIATION_OWNER_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_CF_EXPOSURE_REMEDIATION
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D103_CF_EXPOSURE_REMEDIATION_A1_A4_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,47 +14,51 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-CF-EXPOSURE-REMEDIATION-0001
+DIRECTIVE_ISSUE_PARENT: 872f31b16000fa2407a7bc37beffc83f35548d5c
+DIRECTIVE_AUTHORITY_REF: D-103
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-129
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect review
+## Authority
 
-`ML-DEVOS-AS-129` accepts the D-102 assessment with Architect amendments: `ARCHITECT_APPROVED — D-102 ASSESSMENT ACCEPTED WITH ARCHITECT AMENDMENTS / OWNER REMEDIATION DECISION REQUIRED`. Builder remediation is not required. The report is `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md`, and the Cloudflare evidence is `ACTOR_REPORTED`.
+D-103 records Paulo's authorization of exactly two reversible Cloudflare exposure reductions from `ML-DEVOS-AS-129`:
 
-`H-WEB-CF-INVENTORY-0001` is archived byte-for-byte and deselected. The D-102 authority is consumed.
+- **A-1:** `maisog-labs` preview URLs disabled; `workers.dev` stays enabled.
+- **A-4:** `maisog-labs-staging` `workers.dev` and preview URLs disabled.
 
-## Paulo decision required
+Each has a single conditional restore of its exact prior setting.
 
-Scope: the Cloudflare exposure remediation choices only.
+## Selected directive
 
-Architect priority:
-1. A-1: disable `maisog-labs` preview URLs.
-2. A-4: disable `maisog-labs-staging` `workers.dev` and previews.
-3. A-3: remove or narrowly restrict the non-main Workers Builds trigger.
-4. A-6: if n8n is retained, an Access boundary before the tunnel is next brought online.
-
-A-2, A-5 and A-7 are bounded follow-ups. A-8 and A-9 are deferred structural work and do not block the return to product development.
-
-The Access allow-listed email (F-8) is to be confirmed privately and is not written into this repository.
-
-No remediation is authorized by `ML-DEVOS-AS-129`. No deletion of `maisog-cms`, `maisog-media`, Admin V1, jobs or Eternal Eggs resources is authorized.
+`DIR-WEB-CF-EXPOSURE-REMEDIATION-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-103 and the directive.
 
 ## Hard boundaries
 
-No Cloudflare mutation of any kind: no deployment, traffic, DNS, Access, Worker or preview setting, binding, secret or environment change, and no resource creation, deletion or rename. No D1/R2 data access. No runtime change and no `main` merge.
+`MUTATION_AUTHORIZED` covers only the two `workers/scripts/{name}/subdomain` updates named in the directive and their conditional restore.
+
+Not authorized:
+- A-2, A-3, A-5, A-6, A-7, A-8, A-9;
+- disabling `maisog-labs` `workers.dev`;
+- Builds trigger, Access, n8n or DNS changes;
+- deployment, traffic or version operations;
+- Worker deletion or rename;
+- D1/R2 data access, and binding, secret or environment changes;
+- `main` changes.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific authorization flags are `NO`.
+Only `MUTATION_AUTHORIZED` is `YES`. Every other action-specific flag is `NO`.
+
+## Next transition
+
+The Builder executes A-1 and A-4, publishes `H-WEB-CF-EXPOSURE-REMEDIATION-0001`, archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.

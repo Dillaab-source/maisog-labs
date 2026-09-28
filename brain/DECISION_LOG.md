@@ -1847,3 +1847,37 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   The return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-CF-INVENTORY-0001` (cycle `MAISOGLABS_CF_INVENTORY_REVIEW`, scope `D102_CF_INVENTORY_EXPOSURE_REVIEW_READ_ONLY`, applicable review `ML-DEVOS-AS-128`), routed to Claude/Builder.
+
+### D-103 — Bounded Cloudflare Exposure Remediation: A-1 + A-4 only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `872f31b16000fa2407a7bc37beffc83f35548d5c`, after `ML-DEVOS-AS-129` accepted the D-102 assessment. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized (exactly two reversible setting changes from AS-129):**
+  - **A-1 — `maisog-labs`:** disable preview URLs only. Target `previews_enabled: false`; `workers.dev` stays enabled.
+  - **A-4 — `maisog-labs-staging`:** disable `workers.dev` and preview URLs. Target `workers_dev: false`, `previews_enabled: false`. The Worker is not deleted, and its D1/R2 bindings and data are not modified.
+- **Pre-change requirement:** a fresh read after publication must show `maisog-labs` previews enabled, and `maisog-labs-staging` with `workers.dev` and previews enabled. Any material difference from the AS-129 assessment stops the cycle without change.
+- **Verification:**
+  - the `maisog-labs` custom domain is still configured;
+  - the active production deployment/version is unchanged;
+  - `https://maisoglabs.com/` is healthy (read-only probe);
+  - no D1/R2 binding changed;
+  - no deployment, version or traffic operation occurred;
+  - `maisog-labs-staging` still exists, with its public `workers.dev` and preview exposure disabled.
+- **Conditional rollback:**
+  - If A-1 unexpectedly disrupts `maisoglabs.com` production, restore only the exact prior A-1 preview setting and stop.
+  - If A-4 causes an unexpected material dependency failure directly attributable to disabling these endpoints, restore only the exact prior A-4 settings and stop.
+  - Rollback never justifies altering any other resource.
+- **Not authorized:**
+  - A-2, A-3, A-5, A-6, A-7, A-8 and A-9;
+  - disabling `maisog-labs` `workers.dev`;
+  - changing Workers Builds triggers;
+  - Access, n8n or DNS changes;
+  - deployment or traffic changes, or a version upload;
+  - Worker deletion or rename;
+  - D1 SQL or migration, or R2 object access or mutation;
+  - binding, secret or environment changes;
+  - `main` changes;
+  - PR #7, PR #10, S6/S7, D-068;
+  - `devos/execution/`, `tests/fixtures/execution/`, `stash@{0}`.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for exactly A-1 and A-4 (and their conditional rollback); every other action flag `NO`.
+- **Return:** Builder return `H-WEB-CF-EXPOSURE-REMEDIATION-0001` with the D-103 publication SHA, exact pre-change settings, exact operations, exact post-change settings, production health, the unchanged active deployment, confirmation that nothing else changed, and rollback status. `MUTATION_AUTHORIZED` is reset to `NO` and the return is routed to the Architect. A-3, A-6, S6, admin work and ClinicFlow do not start automatically.
+- **Directive:** issue `DIR-WEB-CF-EXPOSURE-REMEDIATION-0001` (cycle `MAISOGLABS_CF_EXPOSURE_REMEDIATION`, scope `D103_CF_EXPOSURE_REMEDIATION_A1_A4_ONLY`, applicable review `ML-DEVOS-AS-129`), routed to Claude/Builder.
