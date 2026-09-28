@@ -1988,3 +1988,24 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   - production content; deployment; `main` merge.
 - **Remediation cycle:** `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`.
 - **Directive:** issue `DIR-WEB-RFC022-TIER1-REM1-0001` (cycle `MAISOGLABS_WEB_RFC022_TIER1_IMPL`, scope `D107_AS133_F001_REMEDIATION_CYCLE_1_ONLY`, applicable review `ML-DEVOS-AS-133`), routed to Claude/Builder. The Builder returns to the Architect on completion.
+
+### D-108 — Open the RFC-022 CB-R release cycle: Stage 1 readiness only (no Gate C)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `b2b88c7b4bca0c3d92b62d4054c06b8ab0f419d9`, after `ML-DEVOS-AS-134` accepted the RFC-022 Tier 1 implementation. Paulo narrowed the request to "Readiness only. Do not execute Gate C yet." Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **New cycle:** `MAISOGLABS_WEB_RFC022_CBR`. `CURRENT_REMEDIATION_CYCLE` resets to 0.
+- **Authorized (CB-R Stage 1, readiness only):**
+  - open one fresh `governance/maisoglabs-v0.1 → main` release PR and observe exact-head CI;
+  - read-only release-state checks: `main`, the release diff, CI on the exact head;
+  - read-only production D1 inspection (SELECT/PRAGMA only) through the Cloudflare MCP connector, as at D-102: applied migrations, the `0006` schema state, published project and contact state;
+  - AS132-F002 initial-five release readiness against real production content;
+  - whether Eternal Eggs production copy exists;
+  - whether deliverability of `paulo.maisog@maisoglabs.com` has been confirmed.
+- **Content rule:** a missing content prerequisite is reported as `NOT READY`. No content is invented or published.
+- **Flags:** every action flag stays `NO`, including `MAIN_MERGE_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`. A read-only inspection needs no write flag (D-102 precedent).
+- **Not authorized:**
+  - Gate C itself (the `main` merge), which remains a separate Paulo authorization after readiness is accepted;
+  - remote migration `0006`; any D1 write; content publication;
+  - Cloudflare, Access or DNS changes; deployment; Gate D; production promotion;
+  - PR #7 or PR #10 action; S6/S7; D-068; A-3/A-6.
+- **Return:** Stage 1 readiness evidence goes to the Architect/Paulo; all flags `NO`; then stop.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-S1-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D108_RFC022_CBR_STAGE1_READINESS_ONLY`, applicable review `ML-DEVOS-AS-134`), routed to Claude/Builder.
