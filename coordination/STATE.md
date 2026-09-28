@@ -39,7 +39,11 @@ D-116 records Paulo's authorization to create exactly the five D-115 drafts **on
 
 The flags cover that operation only: `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`.
 
-**Execution requires a browser-enabled Claude session.** The session that published D-116 has no owner-visible interactive browser, so it stopped after publication. D-116 execution must continue in a Claude session with an owner-visible browser (the Claude desktop browser pane, computer-use on Paulo's machine, or Claude in Chrome).
+**D-117 amends the D-116 execution path to owner-executed.** Builder-run browser execution is unavailable, and the admin UI cannot carry the exact D-115 values: it has no stack/accent/icon inputs and sorts disciplines.
+
+Paulo, authenticated through Access in his own browser, runs one Builder-generated console script (SHA-256 `dbe453f6…`). It POSTs the exact canonical D-115 JSON to the existing authenticated `POST /admin/api/projects`: the same lifecycle the UI uses, as drafts only.
+
+The Builder creates nothing. After Paulo reports, it verifies read-only (read-back versus D-115, validators, `initialReleaseReadiness`, nothing published, no marker, `/` unchanged). The desktop preview may be `OWNER_REPORTED`.
 
 ## Selected directive
 
@@ -64,4 +68,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-A browser-enabled Builder session executes D-116 and publishes `H-WEB-RFC022-CONTENT-DRAFTS-0002`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
+After Paulo reports that the five drafts are saved, the Builder verifies read-only and publishes `H-WEB-RFC022-CONTENT-DRAFTS-0002`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
