@@ -11,16 +11,21 @@
 // Project content keeps using the existing /admin/api/projects lifecycle. This
 // module never adds generic mutation reach: the only write is the bounded
 // contact email, same-origin, JSON, size-bounded, expected-pointer guarded,
-// with its success audit row committed atomically.
+// with its success audit row committed atomically. D-111: on a database with
+// no site_settings row, the first contact draft also creates that row
+// (drafted, never published) in the same transaction.
 import { jsonResponse } from "./dashboard.mjs";
 import { appendAuditEvent } from "../d1/audit.mjs";
-import { revisionRowToDomainFields } from "../d1/projects.mjs";
+import { revisionRowToDomainFields, isInitialHomepageActivationDone } from "../d1/projects.mjs";
+import { canonicalSiteSettingsRevisionColumns } from "../d1/migrate.mjs";
+import { siteContent } from "../../data/site.js";
 import {
   SITE_SETTINGS_ID,
   readSiteSettingsForMutation,
   readSiteSettingsRevisionRow,
   buildContactDraftBatch,
   buildContactPublishBatch,
+  buildContactBootstrapBatch,
   validateContactEmail,
 } from "../d1/site.mjs";
 import { readBridgeSnapshot, countPublishedHomepageProjects } from "../bridge/snapshot.mjs";
@@ -135,7 +140,9 @@ async function projectEditingView(db) {
 
 async function contactEditingView(db) {
   const row = await readSiteSettingsForMutation(db);
-  if (!row) return { initialized: false };
+  // D-111: not initialized yet. The first contact draft (sent with both
+  // expected pointers null) initializes it.
+  if (!row) return { initialized: false, publishedRevisionId: null, draftRevisionId: null, published: null, draft: null };
   const read = async revisionId => {
     if (revisionId === null || revisionId === undefined) return null;
     const revision = await readSiteSettingsRevisionRow(db, revisionId);
@@ -172,6 +179,9 @@ async function homepageStatus(db) {
     publishedEligibleProjects: await countPublishedHomepageProjects(db, { excludeProjectId: "" }),
     projectsGroupValid: projectsValid,
     releaseReadiness: { check: "AS132-F002", requiredNames: [...INITIAL_ACTIVATION_PROJECT_NAMES], ready: snapshot.projects !== null && initialReleaseReadiness(snapshot.projects) },
+    // D-111 (AS137-F001): whether the D-105 five have been activated together.
+    // Until then homepage projects can only be published through initial activation.
+    initialActivation: { done: await isInitialHomepageActivationDone(db) },
     live: { projects: Boolean(payload?.projects), contact: Boolean(payload?.contact) },
   };
 }
@@ -197,10 +207,6 @@ async function handleContactDraft({ request, url, db, sub }) {
   const action = "site_settings_contact_update_draft";
 
   const row = await readSiteSettingsForMutation(db);
-  if (!row) {
-    await tryAppendFailureAudit(db, { actor, action });
-    return jsonResponse(409, { error: "Conflict", reason: "SITE_SETTINGS_NOT_INITIALIZED" });
-  }
   const expected = readExpectedPointers(body);
   let email;
   try {
@@ -211,6 +217,7 @@ async function handleContactDraft({ request, url, db, sub }) {
     await tryAppendFailureAudit(db, { actor, action });
     return jsonResponse(400, { error: "Validation failed" });
   }
+  if (!row) return handleContactBootstrap({ db, actor, action, email, expected });
   if (!pointersMatch(row, expected)) {
     await tryAppendFailureAudit(db, { actor, action });
     return jsonResponse(409, { error: "Conflict" });
@@ -236,6 +243,31 @@ async function handleContactDraft({ request, url, db, sub }) {
   } catch {
     const current = await readSiteSettingsForMutation(db).catch(() => null);
     const status = current && !pointersMatch(current, expected) ? 409 : 500;
+    await tryAppendFailureAudit(db, { actor, action });
+    return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
+  }
+  return jsonResponse(200, { contact: await contactEditingView(db) });
+}
+
+// D-111: first contact draft when no site_settings row exists. The caller
+// must state the uninitialized pointer state explicitly (both null). The new
+// revision starts from the canonical data/site.js content, replaces only the
+// contact email, and is left as a draft.
+async function handleContactBootstrap({ db, actor, action, email, expected }) {
+  if (expected.expectedPublishedRevisionId !== null || expected.expectedDraftRevisionId !== null) {
+    await tryAppendFailureAudit(db, { actor, action });
+    return jsonResponse(409, { error: "Conflict" });
+  }
+  try {
+    const createdAt = new Date().toISOString();
+    await db.batch(
+      buildContactBootstrapBatch(db, { baseColumns: canonicalSiteSettingsRevisionColumns(siteContent), email, createdAt, createdBy: actor, actor })
+    );
+  } catch {
+    // Rolled back as a whole. If the row exists now, another request
+    // initialized it first: a stale write, 409.
+    const current = await readSiteSettingsForMutation(db).catch(() => undefined);
+    const status = current ? 409 : 500;
     await tryAppendFailureAudit(db, { actor, action });
     return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
   }

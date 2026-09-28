@@ -145,6 +145,8 @@ The `/` dispatch is wrapped in the strongest practical outer fail-safe, and is p
 - Every success writes an audit row atomically in the business batch. Failure audits are best-effort.
 - The actor is `cf-access:<sub>`.
 - Public `/` never reads draft pointers.
+- **Initial activation (D-111, AS137-F001).** Until the D-105 initial five are activated, no single homepage-eligible publish is accepted. `POST /admin/api/projects/initial-activation` publishes exactly ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU and Maisog Kilat, complete, valid and in that order, in one atomic batch. The batch keeps each project's expected-pointer guard and writes one `project_publish` audit row per project plus one `homepage_initial_activation` success row. That row is the durable activation marker: `audit_log` is append-only, so the pre-activation restriction switches off exactly once. The marker gates only admin publishes. Public `/` never reads it and keeps rendering any valid published group of 1..5 (AS133-F001).
+- **`site_settings` bootstrap (D-111).** On a database with no `site_settings` row, the first contact draft (sent with both expected pointers `null`) creates the row and revision 1 in one batch. The revision takes the canonical `data/site.js` content with only the email replaced, and only the draft pointer is set. Nothing is published; the attested contact publish is still required. A competing bootstrap fails on the primary key and rolls back.
 
 ## 6. Migration (proposed; not authorized until this RFC is accepted)
 
@@ -189,7 +191,7 @@ A new artifact with a built-in adapter is complementary, and deferred with Tier 
 
 - The homepage depends on Worker execution for `/` (§5.4 residual risk; accepted by D-105 Q2).
 - Production D1 content state is unknown. A read-only check is required before release.
-- The production admin is non-functional while `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN` are placeholders (AS-129 F-6). Editing in production needs that separate decision.
+- The production admin was non-functional while `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN` were placeholders (AS-129 F-6, AS137-F002). D-111 sets them to the existing `maisoglabs.com/admin` Access application's values; the deployed Worker picks them up only at Gate D.
 - Version previews are disabled (AS-130), so pre-promotion verification must use local Miniflare/Playwright evidence plus a post-promotion read-only check.
 - Eternal Eggs copy does not yet exist, and email deliverability is unconfirmed. Until both are supplied, the homepage keeps the artifact's own data (safe, but no visible change).
 - RFC-021 C1 (eight projects) and C3 remain partly unmet on the homepage by design (five slots). D-105 Q3 sets the homepage set.
@@ -203,9 +205,15 @@ A new artifact with a built-in adapter is complementary, and deferred with Tier 
 | CB-3 | site-settings lifecycle (email) |
 | CB-4 | admin preview and Content UI (Tier 1; Tier 2 tabs read-only) |
 | CB-5 | public exact-`/` wiring, the `HOMEPAGE_ARTIFACT_CONTRACT.md` update, Playwright evidence |
-| CB-R | release: Gate C, read-only production D1 check, remote `0006`, Gate D, production smoke |
+| CB-R | release: Gate C, read-only production D1 check, remote `0006`, Gate D, production smoke; then owner content and initial activation (§10.1) |
 
 CB-6 (Journal bridge) and CB-7 (Tier 2) are deferred.
+
+### 10.1 Release sequencing (D-111)
+
+- **Gate D activates the code, not the bridge.** Gate D may promote the RFC-022 Worker while there is still no valid published bridge payload. With no published homepage projects and no admin-published email, public `/` serves the approved artifact unchanged (§5.4), so promotion alone changes nothing visible.
+- **AS132-F002 applies to the first project bridge activation.** It is not a precondition for making the admin and bootstrap code reachable. The first project activation is the §5.6 initial activation of exactly the D-105 five, in order; no path creates a partial first group. This requirement is not weakened.
+- **After Gate D, in production, each with its own owner authority:** save the five project drafts (with approved copy, including Eternal Eggs), preview them, run initial activation, then draft and publish the contact email once its deliverability is confirmed.
 
 ## 11. Amendment log
 
@@ -214,6 +222,11 @@ CB-6 (Journal bridge) and CB-7 (Tier 2) are deferred.
 - incorporated AS-131: the Worker-dependency precision (§5.4), storage and no-snapshot reuse (§2, §6), the twelve acceptance tests (§7);
 - removed the optional `/api/site-content` mirror from the contract;
 - stated that the migration is not authorized before acceptance.
+
+**D-111 amendment (`ML-DEVOS-AS-137`):**
+- §5.6: initial-only atomic activation of the D-105 five (AS137-F001), and the `site_settings` first-draft bootstrap;
+- §9: Access values wired (AS137-F002);
+- §10 / §10.1: Gate D may activate the code before any bridge payload exists. AS132-F002 governs the first project bridge activation, unchanged in substance.
 
 ## 12. Acceptance
 

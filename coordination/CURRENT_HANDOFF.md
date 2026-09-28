@@ -1,109 +1,164 @@
-# Current Handoff — RFC-022 CB-R production D1 migration 0006 (D-110)
+# Current Handoff — RFC-022 CB-R AS-137 remediation (D-111)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RFC022-CBR-D1-0006-0001
+handoff_id: H-WEB-RFC022-CBR-REM1-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-input_base_commit: c727700f37275f136f525520972da89752f93bcf
-review_target_commit: c727700f37275f136f525520972da89752f93bcf
-applicable_review_id: ML-DEVOS-AS-136
+input_base_commit: fde97b6d4be4cc427cde682bd27182f8e328e93d
+review_target_commit: fde97b6d4be4cc427cde682bd27182f8e328e93d
+applicable_review_id: ML-DEVOS-AS-137
 ```
 
 This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
 
 Evidence classes:
-- **`OWNER_REPORTED`:** Paulo's local Wrangler bookmark, command and output. The Builder did not see this output directly.
-- **`ACTOR_REPORTED`:** the Builder's own Cloudflare MCP/API connector reads in this session. Every one was read-only: D1 `SELECT`/`pragma` and HTTP `GET` only.
+- **`ACTOR_REPORTED`, local:** every test, build and bundle result below.
+- **`ACTOR_REPORTED`, read-only Cloudflare API:** the source of the Access values (GET only).
+
+Nothing here is production evidence. No remote resource was mutated.
 
 ## Objective
 
-Execute `DIR-WEB-RFC022-CBR-D1-0006-0001` (D-110): apply production D1 migration `0006` only, owner-executed, and independently verify the result.
+Execute `DIR-WEB-RFC022-CBR-REM1-0001` (D-111): remediate AS137-F001 and AS137-F002, add the `site_settings` first-draft bootstrap, and narrowly update the release semantics. Repository/local only.
 
 ## Result
 
-**Migration `0006` applied to production D1 and independently verified. Existing data and production traffic unchanged.**
+**All five D-111 items implemented. Full suite 950/950, build and Worker bundle green.**
 
-| Item | Value |
-|---|---|
-| D-110 publication | `c727700f37275f136f525520972da89752f93bcf` (parent `1296c505…`, the AS-136 tip) |
-| Database | `maisog-labs-web-inc-005-local` / `45b87574-e573-4e0f-9bb6-fbba2df29523` |
-| Executor | Paulo, from a locally authenticated Wrangler session. The Builder ran no migration and made no D1 write. |
-| Pre-migration bookmark | `00000173-00000000-000050f4-6cab41e7205b23306c18fe609d33a7cc` (`OWNER_REPORTED`) |
-| `0006` applied at | `2026-09-28 19:50:34` UTC, per production `d1_migrations` |
-| Active version before and after | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6-56b8-4412-a96a-a587588f8521`. Unchanged. |
+The review diff is `fde97b6..` this return commit.
+
+## Design
+
+### 1. Initial project activation (AS137-F001)
+
+- **New route:** `POST /admin/api/projects/initial-activation`, reached only after Access verification, like every `/admin` route.
+  - Body: `{ projects: [{ id, expectedPublishedRevisionId, expectedDraftRevisionId }] }`, exactly five entries, no other keys, unique ids.
+  - A single path segment, so it cannot collide with `/admin/api/projects/:id/:action`.
+- **Pre-read checks (each failure publishes nothing and writes a failure audit):**
+  - activation not already done (409 `INITIAL_ACTIVATION_ALREADY_DONE`);
+  - no project currently published homepage-eligible (409 `HOMEPAGE_NOT_EMPTY`);
+  - each entry's pointers match (409) and a draft exists (409 `DRAFT_REQUIRED`);
+  - each draft is revalidated from storage and must be homepage-eligible (409 `NOT_HOMEPAGE_ELIGIBLE`);
+  - the five, mapped to bridge projects, pass `initialReleaseReadiness`: exactly ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat, complete and valid, in that order. Their `sort_order`/id ordering must also render in that order (400 `INITIAL_SET_MISMATCH`).
+- **One `db.batch()`:**
+  - five guarded pointer UPDATEs, then five `project_publish` success audit rows, then one `homepage_initial_activation` success row (`entity_type` `homepage`, `entity_id` `home`);
+  - each UPDATE's poisoned-slug guard (the existing AS21-F007 technique) also requires, at commit time, that activation is not done and that exactly `index` other projects are published homepage-eligible;
+  - any failed guard rolls back everything: no publication, no audit success row, no marker.
+- **Durable marker without a new table or migration:** the `homepage_initial_activation` success row. `audit_log` is append-only at the database layer (migration `0002` triggers abort UPDATE and DELETE), so the marker cannot be removed and the restriction switches off exactly once. Failure rows never count.
+- **Individual publish:** a homepage-eligible publish now requires the marker. It is checked on the pre-read (409 `INITIAL_ACTIVATION_REQUIRED`) and again inside the guarded UPDATE. Non-homepage (legacy) publishes and unpublish are unchanged.
+- **No permanent runtime gate:** `worker/public/home.mjs` and `worker/bridge/snapshot.mjs` are unchanged. Public `/` still renders any valid published group of 1..5 (AS133-F001), including after unpublishes and later individual publishes.
+- **Status:** `GET /admin/api/content` adds `homepage.initialActivation.done`.
+
+### 2. `site_settings` bootstrap
+
+- **Trigger:** `PUT /admin/api/content/contact/draft` on a database with no `site_settings` row, sent with both expected pointers `null`. Non-null pointers → 409.
+- **One batch:**
+  - INSERT the `default` parent;
+  - INSERT revision 1 from `canonicalSiteSettingsRevisionColumns(data/site.js)` (the exact columns the WEB-INC-005 migration writes, now exported from `worker/d1/migrate.mjs`), with only `contact_email` replaced and `created_by` = `cf-access:<sub>`;
+  - set only `draft_revision_id` (guarded on both pointers null, poison `-1`);
+  - write `site_settings_bootstrap` and `site_settings_contact_update_draft` success audit rows.
+- **Never publishes:** `published_revision_id` stays null. The existing attested contact publish (`confirmDeliverability: true`) is still required. The bridge's existing admin-actor email rule is unchanged.
+- **Concurrency:** a competing bootstrap fails on the primary key and rolls back the whole batch (409). A later bootstrap still addressed as uninitialized is stale (409).
+
+### 3. Access configuration (AS137-F002)
+
+- **Source:** read-only `GET /accounts/{id}/access/apps` and `/access/organizations`. Exactly one application covers `maisoglabs.com/admin`: `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`, named "maisoglabs.com", self-hosted domains `maisoglabs.com/admin` and `maisoglabs.com/admin/*`. The other two applications are the separate hosts `admin.maisoglabs.com` and `staging-admin.maisoglabs.com`.
+- **Values in `wrangler.jsonc`:**
+  - `ACCESS_TEAM_DOMAIN` = `jolly-disk-0469.cloudflareaccess.com` (the organization `auth_domain`, bare-host convention of `worker/auth.mjs`);
+  - `ACCESS_AUD` = `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`.
+- **Current production state (read-only):** active version `53137101…` and the inactive `main` version `6ca2ddfe…` both still carry the placeholders. Production `/admin` is fail-closed (401) today. No dashboard override existed to preserve.
+- **Unchanged:** the placeholder constants and all fail-closed checks in `worker/auth.mjs`. No Access application, policy, identity, DNS or account change.
+
+### 4. Release semantics
+
+`ML-DEVOS-RFC-022`:
+- **§5.6:** documents initial activation and the bootstrap.
+- **§9:** the Access risk line.
+- **§10 CB-R row and new §10.1:** Gate D may activate the code while no bridge payload exists (public `/` stays the approved artifact). AS132-F002 governs the first project bridge activation, which is the exact-five initial activation; it is not weakened.
+- **§11:** a D-111 amendment entry.
+
+`worker/bridge/payload.mjs`'s AS132-F002 comment is updated to match.
+
+### 5. Admin UI (`app/admin/ContentClient.js`)
+
+- **Projects tab:** an "Initial homepage activation" panel, shown until `initialActivation.done`. It lists the five required names with draft status, and one button sends the five entries with their current pointers.
+- **Failure messages:** for each new reason code.
+- **Contact tab:** no longer refuses when uninitialized; it explains that the first draft sets site settings up.
 
 ## Tests and evidence
 
-### Owner-executed migration (`OWNER_REPORTED`)
+- **`npm test`:** 950/950 pass (0 fail, 0 skipped). The 942 baseline in this session already included the 4 new Access tests; this cycle adds 8 new D-111 tests, and 4 existing RFC-022 tests were adapted.
+- **`npm run build`:** exit 0.
+- **`npx wrangler deploy --dry-run --outdir <scratch>`:** bundles (228 KiB), bindings list the real Access values. Local only, no upload.
+- **`git diff --check`:** clean.
 
-- `npx wrangler d1 time-travel info maisog-labs-web-inc-005-local --json` returned bookmark `00000173-00000000-000050f4-6cab41e7205b23306c18fe609d33a7cc`.
-- `npx wrangler d1 migrations list maisog-labs-web-inc-005-local --remote` showed exactly one pending migration: `0006_rfc022_v10_project_fields.sql`.
-- `npx wrangler d1 migrations apply maisog-labs-web-inc-005-local --remote` reported:
-  - remote database `maisog-labs-web-inc-005-local`, ID `45b87574-e573-4e0f-9bb6-fbba2df29523`;
-  - exactly one migration applied: `0006_rfc022_v10_project_fields.sql` → SUCCESS;
-  - 5 commands executed.
+D-111 requirement → test (`tests/worker-rfc022-content.test.mjs` unless noted):
 
-### Pre-migration production readings (`ACTOR_REPORTED`, before D-110 publication)
+| Requirement | Test |
+|---|---|
+| zero published → artifact fallback | "zero published projects is the artifact fallback, before and after activation" (+ existing test 2) |
+| one / four individual publishes cannot create first activation | "one or four individual homepage publishes cannot create a first activation"; "the individual publish guard also holds at commit time before activation" |
+| exact five activate atomically | "the exact D-105 five activate atomically, once, with audit evidence" (order on `/`, 5 publish rows + marker, audit revision ids, repeat → 409, marker DELETE rejected) |
+| failed activation leaves zero published | "failed initial activations publish nothing" (wrong order, duplicate, stale pointer, extra key, wrong name, incomplete project, and a commit-time race on project 5 rolling back projects 1–4); "initial activation refuses a non-empty homepage and non-POST methods" |
+| normal 1..5 after activation | "AS133-F001 item 3: after initial activation, any valid published group of 1..5 renders…" (5→1 by unpublish, then a new individual publish); item 4; test 8 (sixth rejected) |
+| bootstrap atomic, no publish | "the first contact draft initializes site_settings atomically and does not publish" |
+| stale / conflicting bootstrap | "stale or conflicting site_settings bootstrap attempts fail safely" (non-null pointers, invalid email, a commit-time race leaving no revision and no success audit, second bootstrap → 409) |
+| Access placeholders gone, fail-closed kept | `tests/cloudflare-bindings-config.test.mjs`: exact values; no `REPLACE_WITH_`; with the real values, missing/garbage/wrong-audience/wrong-issuer/untrusted-key → 401 + no-store, zero asset calls; valid assertion → 200 |
 
-- D1 metadata: name `maisog-labs-web-inc-005-local`, version `production`, 23 tables (Cloudflare's count), file size 278528.
-- `d1_migrations`: exactly `0001`–`0005`, applied 2026-09-27 02:16:51–55.
-- `project_revisions`: 13 columns (`id` … `created_by`); none of `tagline`, `status`, `disciplines_json`, `flow_json`.
-- Row counts: `theme_settings` 1, `theme_settings_revisions` 1. These 20 tables had 0 rows each: `audit_log`, `foundations`, `foundation_revisions`, `journal_entries`, `journal_entry_revisions`, `journal_media`, `media`, `navigation`, `navigation_revisions`, `process_steps`, `process_step_revisions`, `project_media`, `projects`, `project_revisions`, `sections`, `section_revisions`, `services`, `service_revisions`, `site_settings`, `site_settings_revisions`.
-- Latest deployment: `3bf053d6…` (created 2026-09-28T07:21:06Z), `53137101…` @ 100%.
-
-### Post-migration verification (`ACTOR_REPORTED`)
-
-Read after Paulo's report, on governance tip `c727700…` (Protocol V2 bootstrap `ok: true`; `main` still `fda42e04d18b960d8212d49616f96b657a5c6bf3`).
-
-- **Migrations:** `d1_migrations` has 6 rows: `0001`–`0005` (unchanged timestamps) and `0006_rfc022_v10_project_fields.sql` @ `2026-09-28 19:50:34`. **PASS**
-- **Columns:** `project_revisions` has 17 columns. The 13 original columns are unchanged; the new ones are `tagline` (cid 13), `status` (14), `disciplines_json` (15), `flow_json` (16), all `TEXT`, nullable, no default. **PASS**
-- **Constraints:** the stored DDL carries the `0006` CHECK constraints verbatim: `tagline` trimmed, length 1–160; `status` in (`''`, `'Active'`). **PASS**
-- **Row counts:** identical to the pre-migration readings: `theme_settings` 1, `theme_settings_revisions` 1, all 20 other tables 0 (including `site_settings`, `site_settings_revisions` and `audit_log`). `sqlite_master` table count is 25, as before. **PASS**
-- **Size:** file size 278528 → 282624 bytes (+4096, one page), consistent with the DDL change alone.
-- **Traffic:** the latest deployment is still `3bf053d6…` from 07:21:06Z. `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%. **PASS**
-- **Bindings:** the active version's bindings are `ACCESS_AUD`, `ACCESS_TEAM_DOMAIN` (plain text), `ASSETS`, `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523`, and `MEDIA` → R2 `maisog-labs-web-inc-004-local`. They are as expected. **PASS**
-
-### No other production change
-
-- **Not done:** the Builder ran no migration, remote SQL write, Time Travel restore, `site_settings` initialization, project/content write or publication, email publication, deploy, `wrangler versions deploy`, promotion or traffic change. Nor did it change R2, Access, DNS, bindings, secrets or environment, or merge anything to `main`.
-- **Automatic uploads.** Three inactive non-production versions were uploaded today by Workers Builds (`workers/triggered_by: version_upload`), each about a minute after a git push:
-  - `07656f90…` (#818, 19:25:53Z, alias `governance-maisoglabs-v0-1`), after the AS-136 publication `1296c50` (19:24:50Z);
-  - `4e4d3f58…` (#819, 19:44:00Z, alias `governance-maisoglabs-v0-1`), after the D-110 publication `c727700` (19:43:07Z);
-  - `bdea7046…` (#820, 19:44:44Z, alias `claude-rfc-022-cb-r-migration-0gx6b9`), after the Builder's push of its session branch.
-
-  None was deployed. The deployments list is unchanged.
-- **Not proven by this Builder:** the absence of Access, DNS or R2 changes made outside the Worker/D1 surfaces read here. Those surfaces were not inspected. No action in this cycle targeted them.
+- **Adapted tests:** four existing RFC-022 tests that published homepage projects one by one now use initial activation. Their assertions are kept or strengthened: the first adds a refused lone publish; item 3 now covers every group size 5..1 after activation.
+- **Mutation check (local, reverted):** removing the activation batch's pointer guard fails the race test. Removing the marker condition from the individual publish guard fails the commit-time test.
 
 ## Changed files
 
+- **Code:**
+  - `worker/d1/projects.mjs`: activation marker and batch; the publish guard;
+  - `worker/admin/projects.mjs`: route; publish gate;
+  - `worker/d1/site.mjs`: bootstrap batch;
+  - `worker/admin/content.mjs`: bootstrap path; status;
+  - `worker/d1/migrate.mjs`: exported canonical columns, behavior unchanged;
+  - `worker/bridge/payload.mjs`: comment only;
+  - `app/admin/ContentClient.js`;
+  - `wrangler.jsonc`: Access vars and comment.
+- **Tests:** `tests/worker-rfc022-content.test.mjs`; `tests/cloudflare-bindings-config.test.mjs`.
+- **Docs:** `devos/changes/rfcs/ML-DEVOS-RFC-022.md`.
 - **Coordination:**
   - `coordination/STATE.md`; this file;
-  - `coordination/archive/directives/DIR-WEB-RFC022-CBR-D1-0006-0001.{md,provenance.json}` (byte-for-byte, blob `8bd92aa…`) and the index row.
-- **Unchanged:** `coordination/OPERATIVE_OBLIGATIONS.md`. The outgoing `H-WEB-RFC022-GATE-C-0001` was already archived at AS-136.
-- **Outside this commit:** production D1 schema (`0006`), owner-executed. No product, test or migration file change.
+  - `coordination/archive/directives/DIR-WEB-RFC022-CBR-REM1-0001.{md,provenance.json}` (byte-for-byte, blob `7a6d454…`) and the index row.
+- **Not changed:**
+  - `migrations/**`; `worker/public/**`; `worker/bridge/snapshot.mjs`; `worker/bridge/inject.mjs`; `worker/auth.mjs`; `public/index.html`;
+  - `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Unresolved findings and limitations
 
-- **Evidence split.** Migration execution is `OWNER_REPORTED`; the Builder saw only its effect, not the Wrangler output. The resulting state is `ACTOR_REPORTED`, and none of it is Architect-reproduced.
-- **Recovery.** The bookmark `00000173-00000000-000050f4-6cab41e7205b23306c18fe609d33a7cc` is `OWNER_REPORTED`; the Builder did not read it back. Any restore needs a separate Paulo decision.
-- **Activation prerequisites (AS-135) remaining:** production project content (including approved Eternal Eggs copy), `site_settings` initialization, and confirmed email deliverability. Production `0006` is now satisfied. RFC-022 §7 test 11 still needs production measurements.
-- **Gate D not ready.** Gate D / promotion of the RFC-022 `main` version `6ca2ddfe…` remains separately gated. Schema is no longer a blocker, but the activation prerequisites above still are.
-- **Session-branch preview.** The Builder's session branch push created a preview upload (`bdea7046…`). It is harmless and inactive, but future returns should avoid pushing extra branches that trigger uploads.
-- **Carried forward:** AS132-F003 remains open; the traceability validator's pre-existing 3 ERRORs and DRIFT are unchanged.
+- **Nothing deployed.**
+  - The Access values and both capabilities reach production only through a separately authorized Gate C (`main` merge) and Gate D. Production `/admin` stays fail-closed until then.
+  - The governance push triggers the usual inactive non-production preview upload.
+- **Access value provenance:** the Access values were read at a point in time. If the Access application's audience is rotated or the application is replaced before Gate D, `/admin` fails closed (safe) and the values need re-reading.
+- **Marker semantics:**
+  - Activation is one-way by design. Unpublishing all projects afterwards returns `/` to the artifact but does not re-arm the five-project requirement (AS133-F001).
+  - A database seeded by hand with a published homepage-eligible row blocks activation (409 `HOMEPAGE_NOT_EMPTY`) until that row is unpublished.
+- **Bootstrap base content:** the first `site_settings` revision copies the canonical `data/site.js` fields. The V10 artifact does not read them (only the email reaches the bridge), so they are inert placeholders for Tier 2.
+- **Doc drift:** `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md` and older release reports still describe the Access vars as placeholders. They are historical planning records, left unchanged to keep this cycle narrow.
+- **UI evidence:** the UI changes are build-verified only. There is no browser/Playwright run this cycle.
+- **Carried forward:**
+  - AS132-F003 remains open;
+  - traceability: the pre-existing 3 ERRORs and DRIFT are unchanged;
+  - the pre-publication D-111 orphan WARNING is resolved by this directive archive.
 - **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged.
 
 ## Evidence locations
 
-- D1 `45b87574-e573-4e0f-9bb6-fbba2df29523`: `d1_migrations`, `pragma_table_info('project_revisions')`, `sqlite_master`.
-- Worker `maisog-labs`: deployment `3bf053d6-56b8-4412-a96a-a587588f8521`; active version `53137101-afb8-456c-ab83-d8b7b934df01`; inactive uploads `07656f90…`, `4e4d3f58…`, `bdea7046…`.
-- Account: `fb7234ae9117baf1481ab3b169a9824a`.
+- Tests: `tests/worker-rfc022-content.test.mjs` (the D-111 section at the end), `tests/cloudflare-bindings-config.test.mjs`.
+- Access application (read-only): account `fb7234ae9117baf1481ab3b169a9824a`, app `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-110; `ML-DEVOS-AS-136`.
-- **T1:** `ML-DEVOS-RFC-022` §10 (CB-R); D-106; D-097 (remote migration precedent); `migrations/0006_rfc022_v10_project_fields.sql`.
-- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CBR-D1-0006-0001.md`.
+- **T0:** Protocol V2; D-111; `ML-DEVOS-AS-137`.
+- **T1:** `ML-DEVOS-RFC-022`; D-105; D-106; D-107 / `ML-DEVOS-AS-133`; `ML-DEVOS-AS-132`.
+- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CBR-REM1-0001.md`.
 
 ## Next action
 
-The Architect reviews the `0006` return. `site_settings` initialization, project content, email publication, Gate D and promotion each need separate Paulo authorization.
+The Architect reviews the D-111 remediation. The following each need separate Paulo authorization:
+- Gate C (`main` merge) and Gate D (promotion);
+- production content, initial activation and email publication.

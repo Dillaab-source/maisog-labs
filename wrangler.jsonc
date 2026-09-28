@@ -34,12 +34,17 @@
     "run_worker_first": ["/", "/admin", "/admin/*", "/api/journal", "/api/journal/*", "/api/design"]
   },
   // Non-secret runtime configuration only (ML-DEVOS-RFC-002 §4). No secret,
-  // private key, credential, or administrator identity is set here. Real
-  // values are configured outside tracked source before any production
-  // Access application exists; these placeholders are inert until then.
+  // private key, credential, or administrator identity is set here.
+  // D-111 (AS137-F002): the exact values of the existing Cloudflare Access
+  // application for `maisoglabs.com/admin` (app `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`,
+  // named "maisoglabs.com"; organization "Maisog Labs"), read read-only from
+  // the Cloudflare API on 2026-09-28. The team domain is the organization's
+  // auth domain as a bare host; ACCESS_AUD is that application's audience tag.
+  // Neither is a secret: the AUD appears in every Access JWT. worker/auth.mjs
+  // still fails closed on a missing, blank, malformed or placeholder value.
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "REPLACE_WITH_ACCESS_TEAM_DOMAIN",
-    "ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD"
+    "ACCESS_TEAM_DOMAIN": "jolly-disk-0469.cloudflareaccess.com",
+    "ACCESS_AUD": "ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22"
   },
   // WEB-INC-005 (ML-DEVOS-RFC-003 / ML-DEVOS-AS-013 / D-024) D1 revision
   // substrate. D-098 (AS-116 post-incident hardening, ML-DEVOS-AS-125)

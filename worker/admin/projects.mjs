@@ -19,13 +19,21 @@ import {
   buildEditDraftBatch,
   buildPublishBatch,
   buildUnpublishBatch,
+  buildInitialActivationBatch,
   isHomepageEligible,
+  isInitialHomepageActivationDone,
+  INITIAL_ACTIVATION_AUDIT_ACTION,
+  INITIAL_ACTIVATION_ENTITY_TYPE,
+  INITIAL_ACTIVATION_ENTITY_ID,
 } from "../d1/projects.mjs";
 import { countPublishedHomepageProjects } from "../bridge/snapshot.mjs";
-import { MAX_HOMEPAGE_PROJECTS } from "../bridge/payload.mjs";
+import { MAX_HOMEPAGE_PROJECTS, INITIAL_ACTIVATION_PROJECT_NAMES, initialReleaseReadiness } from "../bridge/payload.mjs";
 import { validateMediaSnapshotEntries, readActiveMediaRowsByIds, readProjectMediaSnapshot } from "../d1/media.mjs";
 
 const PROJECTS_ROOT_PATH = "/admin/api/projects";
+// D-111 (AS137-F001): the one initial homepage activation route. A single
+// path segment, so it can never collide with /admin/api/projects/:id/:action.
+const INITIAL_ACTIVATION_PATH = "/admin/api/projects/initial-activation";
 const PROJECT_SUBROUTE_PATTERN = /^\/admin\/api\/projects\/([^/]+)\/(draft|preview|publish|unpublish)$/;
 
 // Same-origin + JSON + bounded body (AS20-F004). 32 KiB is generous for a
@@ -508,6 +516,14 @@ async function handlePublish({ request, url, db, sub, id }) {
   // already published homepage-eligible. The same bound is re-checked at
   // commit time inside the guarded UPDATE.
   const homepageEligible = isHomepageEligible(draftFields);
+  // D-111 (AS137-F001): before initial activation, a homepage-eligible
+  // revision can only be published together with the other four D-105
+  // projects, through POST /admin/api/projects/initial-activation. Re-checked
+  // at commit time inside the guarded UPDATE.
+  if (homepageEligible && !(await isInitialHomepageActivationDone(db))) {
+    await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
+    return jsonResponse(409, { error: "Conflict", reason: "INITIAL_ACTIVATION_REQUIRED" });
+  }
   if (homepageEligible && (await countPublishedHomepageProjects(db, { excludeProjectId: id })) >= MAX_HOMEPAGE_PROJECTS) {
     await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
     return jsonResponse(409, { error: "Conflict", reason: "HOMEPAGE_LIMIT" });
@@ -530,7 +546,11 @@ async function handlePublish({ request, url, db, sub, id }) {
     // concurrent publish that filled the homepage between the pre-check and
     // the commit is also a 409 (RFC-022 Tier 1).
     let status = await classifyMutationBatchFailure(db, id, expected);
-    if (status === 500 && homepageEligible && (await countPublishedHomepageProjects(db, { excludeProjectId: id })) >= MAX_HOMEPAGE_PROJECTS) {
+    if (
+      status === 500 &&
+      homepageEligible &&
+      ((await countPublishedHomepageProjects(db, { excludeProjectId: id })) >= MAX_HOMEPAGE_PROJECTS || !(await isInitialHomepageActivationDone(db)))
+    ) {
       status = 409;
     }
     await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
@@ -593,6 +613,144 @@ async function handleUnpublish({ request, url, db, sub, id }) {
   return jsonResponse(200, projectStatusResponse(updated, { revisionId: row.published_revision_id }));
 }
 
+// D-111 (AS137-F001) failure audit for the initial activation route. Same
+// best-effort rule as tryAppendFailureAudit; `result: "failure"` rows never
+// count as the activation marker.
+async function tryAppendInitialActivationFailureAudit(db, actor) {
+  try {
+    await appendAuditEvent(db, {
+      actor,
+      action: INITIAL_ACTIVATION_AUDIT_ACTION,
+      entityType: INITIAL_ACTIVATION_ENTITY_TYPE,
+      entityId: INITIAL_ACTIVATION_ENTITY_ID,
+      revisionId: null,
+      result: "failure",
+    });
+  } catch {
+    // Never changes the response already decided (AS20-F011).
+  }
+}
+
+const INITIAL_ACTIVATION_ENTRY_KEYS = ["id", "expectedPublishedRevisionId", "expectedDraftRevisionId"];
+
+// Body: { projects: [{ id, expectedPublishedRevisionId, expectedDraftRevisionId }] },
+// exactly five entries in the D-105 order. Returns the normalized entries or null.
+function readInitialActivationEntries(body) {
+  if (Object.keys(body).length !== 1 || !Array.isArray(body.projects)) return null;
+  if (body.projects.length !== INITIAL_ACTIVATION_PROJECT_NAMES.length) return null;
+  const entries = [];
+  for (const raw of body.projects) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+    const keys = Object.keys(raw);
+    if (keys.length !== INITIAL_ACTIVATION_ENTRY_KEYS.length || !INITIAL_ACTIVATION_ENTRY_KEYS.every(key => keys.includes(key))) return null;
+    const expected = readExpectedPointers(raw);
+    if (!expected) return null;
+    let id;
+    try {
+      id = validateProjectId(raw.id);
+    } catch {
+      return null;
+    }
+    entries.push({ id, ...expected });
+  }
+  if (new Set(entries.map(entry => entry.id)).size !== entries.length) return null;
+  return entries;
+}
+
+// Public `/` orders published homepage projects by sort_order, then id
+// (worker/bridge/snapshot.mjs). The request order must equal that order, so
+// the homepage shows the five exactly in the D-105 order.
+function isRenderedInRequestOrder(prepared) {
+  const sorted = [...prepared].sort((a, b) => a.fields.order - b.fields.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return sorted.every((entry, index) => entry === prepared[index]);
+}
+
+// POST /admin/api/projects/initial-activation — D-111 (AS137-F001).
+//
+// Publishes the D-105 initial five (ClinicFlow, Eternal Eggs, Sentinel /
+// DevOS, SU, Maisog Kilat) in one atomic D1 transaction, once. Preconditions,
+// checked on the pre-read and again at commit time by the batch guards:
+// initial activation has not happened; no project is published
+// homepage-eligible; every entry's pointers equal the caller's expected
+// values. Each draft is revalidated from storage, must be homepage-eligible,
+// and the five together must be exactly the D-105 set, complete and valid,
+// rendering in that order. Anything else publishes nothing.
+async function handleInitialActivation({ request, url, db, sub }) {
+  if (!sub) return jsonResponse(403, { error: "Forbidden" });
+
+  const parsed = await readAndValidateMutationRequest(request, url);
+  if (parsed.error) return parsed.error;
+  const actor = auditActor(sub);
+
+  const entries = readInitialActivationEntries(parsed.body);
+  if (!entries) {
+    await tryAppendInitialActivationFailureAudit(db, actor);
+    return jsonResponse(400, { error: "Validation failed" });
+  }
+
+  const conflict = async reason => {
+    await tryAppendInitialActivationFailureAudit(db, actor);
+    return jsonResponse(409, { error: "Conflict", reason });
+  };
+  if (await isInitialHomepageActivationDone(db)) return conflict("INITIAL_ACTIVATION_ALREADY_DONE");
+  if ((await countPublishedHomepageProjects(db, { excludeProjectId: "" })) !== 0) return conflict("HOMEPAGE_NOT_EMPTY");
+
+  const prepared = [];
+  for (const entry of entries) {
+    const row = await readProjectForMutation(db, entry.id);
+    if (!row || !pointersMatch(row, entry)) return conflict(undefined);
+    if (row.draft_revision_id === null || row.draft_revision_id === undefined) return conflict("DRAFT_REQUIRED");
+    const revisionRow = await readProjectRevisionRow(db, row.draft_revision_id);
+    let fields;
+    try {
+      if (!revisionRow) throw new Error("draft revision row missing");
+      fields = validateProjectRevisionContent(revisionRowToDomainFields(revisionRow));
+    } catch {
+      await tryAppendInitialActivationFailureAudit(db, actor);
+      return jsonResponse(500, { error: "Internal Server Error" });
+    }
+    if (!isHomepageEligible(fields)) return conflict("NOT_HOMEPAGE_ELIGIBLE");
+    prepared.push({ ...entry, draftRevisionId: row.draft_revision_id, fields });
+  }
+
+  const group = prepared.map(({ fields }) => ({ name: fields.title, kind: fields.category, description: fields.summary, ...fields.v10 }));
+  if (!initialReleaseReadiness(group) || !isRenderedInRequestOrder(prepared)) {
+    await tryAppendInitialActivationFailureAudit(db, actor);
+    return jsonResponse(400, { error: "Validation failed", reason: "INITIAL_SET_MISMATCH" });
+  }
+
+  try {
+    await db.batch(buildInitialActivationBatch(db, { entries: prepared, actor }));
+  } catch {
+    // The whole transaction rolled back: nothing was published and no
+    // success audit row or activation marker exists. A concurrent change to
+    // any of the five, a concurrent activation, or a concurrent homepage
+    // publish is a 409; anything else is a storage failure.
+    let status = 500;
+    try {
+      if (await isInitialHomepageActivationDone(db)) status = 409;
+      else if ((await countPublishedHomepageProjects(db, { excludeProjectId: "" })) !== 0) status = 409;
+      else {
+        for (const entry of prepared) {
+          const current = await readProjectForMutation(db, entry.id);
+          if (!current || !pointersMatch(current, entry)) status = 409;
+        }
+      }
+    } catch {
+      status = 500;
+    }
+    await tryAppendInitialActivationFailureAudit(db, actor);
+    return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
+  }
+
+  const projects = [];
+  for (const entry of prepared) {
+    const updated = await readProjectForMutation(db, entry.id);
+    projects.push(projectStatusResponse(updated, { revisionId: updated.published_revision_id }));
+  }
+  return jsonResponse(200, { initialActivation: { done: true }, projects });
+}
+
 // The single entry point invoked by worker/admin/dashboard.mjs for every
 // `/admin/api/projects` / `/admin/api/projects/*` path. Unrecognized method
 // or sub-route combinations fail closed to 405/404 with zero D1 access
@@ -611,6 +769,12 @@ export async function handleProjectsDispatch({ request, url, db, sub }) {
     if (request.method !== "POST") return jsonResponse(405, { error: "Method Not Allowed" });
     if (!db) return jsonResponse(503, { error: "Service Unavailable" });
     return handleCreateDraft({ request, url, db, sub });
+  }
+
+  if (pathname === INITIAL_ACTIVATION_PATH) {
+    if (request.method !== "POST") return jsonResponse(405, { error: "Method Not Allowed" });
+    if (!db) return jsonResponse(503, { error: "Service Unavailable" });
+    return handleInitialActivation({ request, url, db, sub });
   }
 
   const match = pathname.match(PROJECT_SUBROUTE_PATTERN);

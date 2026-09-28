@@ -21,10 +21,11 @@ export const PROJECT_STATUS_VALUES = ["", "Active"];
 
 export const PROJECT_LIMITS = Object.freeze({ name: 40, kind: 40, tagline: 160, description: 400, flowStage: 60 });
 
-// AS132-F002 (mandatory release condition) as scoped by AS133-F001: before
-// the first production release (CB-R), exactly the D-105 initial set must be
-// published, featured and complete, in this order. This is a release-readiness
-// check only (initialReleaseReadiness below). It never gates the runtime
+// AS132-F002 (mandatory release condition) as scoped by AS133-F001: the first
+// project bridge activation is exactly the D-105 initial set, published,
+// featured and complete, in this order. D-111 (AS137-F001) enforces it on the
+// admin write path: initialReleaseReadiness below validates the one atomic
+// initial activation (worker/admin/projects.mjs). It never gates the runtime
 // bridge: public `/` renders any valid published group of 1..5.
 export const INITIAL_ACTIVATION_PROJECT_NAMES = Object.freeze(["ClinicFlow", "Eternal Eggs", "Sentinel / DevOS", "SU", "Maisog Kilat"]);
 

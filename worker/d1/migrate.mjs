@@ -323,10 +323,19 @@ function flattenSiteSettingsColumns(domain) {
   };
 }
 
-async function planSiteSettings(db, source, { createdAt, createdBy }) {
+// D-111: the validated site_settings revision columns for `source`, exactly as
+// this migration writes them. Also the base of the admin contact-draft
+// bootstrap (worker/d1/site.mjs) when no site_settings row exists yet, so the
+// first admin revision starts from the same canonical content as a seeded
+// database would, never from invented values.
+export function canonicalSiteSettingsRevisionColumns(source) {
   const domain = buildSiteSettingsDomainObject(source);
   validateSiteSettingsContent(domain);
-  const revisionColumns = flattenSiteSettingsColumns(domain);
+  return flattenSiteSettingsColumns(domain);
+}
+
+async function planSiteSettings(db, source, { createdAt, createdBy }) {
+  const revisionColumns = canonicalSiteSettingsRevisionColumns(source);
   return planEntity(db, {
     entityTable: "site_settings",
     revisionsTable: "site_settings_revisions",
