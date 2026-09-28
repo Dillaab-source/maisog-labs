@@ -235,12 +235,11 @@ function ProjectsTab({ data, reload }) {
           Published homepage projects: {homepage.publishedEligibleProjects} of {homepage.maxProjects}. Live on the homepage now:{" "}
           <strong>{homepage.live.projects ? "yes" : "no (the V10 design's built-in projects are shown)"}</strong>.
         </p>
-        {homepage.activationGate.enabled && (
-          <p style={styles.note}>
-            First activation requires exactly these five, published and complete, in this order: {homepage.activationGate.requiredNames.join(", ")}. Status:{" "}
-            <strong>{homepage.activationGate.passes ? "ready" : "not yet"}</strong>.
-          </p>
-        )}
+        <p style={styles.note}>
+          First production release readiness: the first release requires exactly these five, published and complete, in this order:{" "}
+          {homepage.releaseReadiness.requiredNames.join(", ")}. Status: <strong>{homepage.releaseReadiness.ready ? "ready" : "not yet"}</strong>. This is a
+          release check only; it does not change what the homepage shows now.
+        </p>
         <p style={styles.note}>
           <a href="/admin/preview/home" target="_blank" rel="noopener noreferrer">
             Preview homepage with drafts

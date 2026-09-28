@@ -12,7 +12,7 @@ import {
   buildBridgePayload,
   serializeBridgePayload,
   validateProjectsGroup,
-  passesInitialActivationGate,
+  initialReleaseReadiness,
   INITIAL_ACTIVATION_PROJECT_NAMES,
   MAX_HOMEPAGE_PROJECTS,
 } from "../worker/bridge/payload.mjs";
@@ -118,12 +118,33 @@ test("payload: hostile or out-of-bounds values are rejected (test 5)", () => {
   assert.throws(() => validateProjectsGroup([project("Same"), project("same")]), "names unique case-insensitively");
 });
 
-test("activation gate (AS132-F002): only the exact D-105 set in order passes", () => {
-  assert.equal(passesInitialActivationGate(validateProjectsGroup(initialFive())), true);
-  assert.equal(passesInitialActivationGate(validateProjectsGroup(initialFive().reverse())), false);
-  assert.equal(passesInitialActivationGate(validateProjectsGroup(initialFive().slice(0, 4))), false);
-  assert.equal(buildBridgePayload({ projects: initialFive().slice(0, 4) }), null, "gate keeps artifact data");
-  assert.equal(buildBridgePayload({ projects: initialFive().slice(0, 4), applyActivationGate: false }).projects.length, 4, "preview mode");
+test("AS133-F001 item 1: the exact D-105 five, in order, pass initial release readiness (AS132-F002)", () => {
+  assert.equal(initialReleaseReadiness(initialFive()), true);
+});
+
+test("AS133-F001 item 2: a wrong or incomplete initial set fails release readiness", () => {
+  const renamed = initialFive();
+  renamed[1] = project("Maisog Guild");
+  const cases = {
+    reordered: initialFive().reverse(),
+    incomplete: initialFive().slice(0, 4),
+    wrongName: renamed,
+    invalidGroup: initialFive().map((p, i) => (i === 2 ? project(p.name, { flow: ["One", "Two", "Three"] }) : p)),
+    tooMany: [...initialFive(), project("Maisog Guild")],
+    empty: [],
+    notAnArray: null,
+  };
+  for (const [label, projects] of Object.entries(cases)) assert.equal(initialReleaseReadiness(projects), false, label);
+});
+
+test("AS133-F001 item 3: any valid group of 1..5 builds the public payload; no name gate at runtime", () => {
+  for (let n = 1; n <= MAX_HOMEPAGE_PROJECTS; n++) {
+    const projects = Array.from({ length: n }, (_, i) => project(`Fixture ${i + 1}`));
+    const payload = buildBridgePayload({ projects });
+    assert.deepEqual(payload.projects.map(p => p.name), projects.map(p => p.name), `n=${n}`);
+    assert.equal(initialReleaseReadiness(projects), false, "release readiness is independent of runtime validity");
+  }
+  assert.equal(buildBridgePayload({ projects: initialFive().slice(0, 4) }).projects.length, 4, "four of the D-105 five still render");
 });
 
 test("serialization escapes <, >, &, U+2028 and U+2029 so the island cannot break out", () => {

@@ -1,136 +1,106 @@
-# Current Handoff — RFC-022 Tier 1 Implementation (D-106)
+# Current Handoff — AS-133 Remediation Cycle 1 (D-107)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RFC022-TIER1-IMPL-0001
+handoff_id: H-WEB-RFC022-TIER1-REM1-0001
 cycle_id: MAISOGLABS_WEB_RFC022_TIER1_IMPL
-input_base_commit: f884e6e2917cf7e598cb00add083470115e5e5b6
-review_target_commit: f884e6e2917cf7e598cb00add083470115e5e5b6
-applicable_review_id: ML-DEVOS-AS-132
+input_base_commit: a70efb321a26b4810f262f0b1214ca62ea27d0f5
+review_target_commit: a70efb321a26b4810f262f0b1214ca62ea27d0f5
+applicable_review_id: ML-DEVOS-AS-133
 ```
 
 This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Every result here is `ACTOR_REPORTED` and local. Nothing here is preview, remote or production evidence.
 
 ## Objective
 
-Execute `DIR-WEB-RFC022-TIER1-IMPL-0001` (D-106): implement RFC-022 Tier 1, CB-1..CB-5, in the repository with local evidence only, and return it for Architect review.
+Execute `DIR-WEB-RFC022-TIER1-REM1-0001` (D-107) and remediate AS133-F001:
+- the AS132-F002 exact D-105 five-project/order check becomes a CB-R release-readiness check only;
+- public `/` renders any valid published RFC-022 project group of 1..5.
 
 ## Result
 
-CB-1..CB-5 are implemented and all were verified locally against the real dependencies.
-- **Reviewed change:** this return commit's diff against `f884e6e` (the D-106 authorization). It carries the implementation and the coordination transition together, as the D-093 return `f2c13aa` did.
-- **Unsquashed Builder history:** available for provenance on `claude/jose-npm-registry-check-w2vxoo`:
-  - `8a5559e`: implementation (session 1, npm blocked);
-  - `c226d96`: legacy-project edit fix and the Content UI evidence script;
-  - `e3d644b`: real-dependency verification and the fix below.
-- **`public/index.html`:** SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`, unchanged. No file under `public/` changed.
+AS133-F001 is remediated in this return commit (its diff against `a70efb3`, the AS-133/D-107 publication). This is remediation cycle 1 of 2. `public/index.html` SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`, unchanged.
 
-## Implementation by increment (RFC-022 §10)
+No new table, migration, migration field, runtime activation flag, API route or architecture change.
 
-- **CB-1** (`worker/bridge/`):
-  - `payload.mjs`: bounded payload contract; the five-project limit; exactly four flow stages; hostile-value rejection; the AS132-F002 activation gate (the exact D-105 set, in order).
-  - `inject.mjs`: the approved-artifact SHA precondition; one bounded span spliced at a fixed offset before the outer `</head>`; escaping of `< > &` U+2028 and U+2029; the MLData hook; AS132-F001 transformed-response headers.
-  - `snapshot.mjs`: the published-only D1 read.
-- **CB-2:** `migrations/0006_rfc022_v10_project_fields.sql` adds four nullable, CHECK-bounded `project_revisions` columns: `tagline`, `status`, `disciplines_json`, `flow_json`. In the project lifecycle (`worker/d1/projects.mjs`, `worker/admin/projects.mjs`, `worker/d1/validate.mjs`, `worker/d1/schema.mjs`):
-  - the `v10` group is optional and all-or-nothing;
-  - the homepage limit of five is enforced by a pre-check and a commit-time guard;
-  - an edit that omits `v10` inherits it;
-  - legacy projects stay publishable.
-- **CB-3** (`worker/d1/site.mjs`, `worker/admin/content.mjs`, `worker/d1/audit.mjs`): contact email draft/publish. Publishing requires `confirmDeliverability: true`, stale writes fail, and the audit append is atomic.
-- **CB-4:**
-  - `/admin/api/content` and the Access-protected `/admin/preview/home`, where drafts are visible only to an admin;
-  - `app/admin/ContentClient.js`: Projects and Contact tabs; Profile / Home, About and Navigation show deferral notices with no inputs; no HTML, CSS, JS, URL, selector or asset input.
-- **CB-5:**
-  - exact `/` is Worker-first (`wrangler.jsonc`, `worker/index.mjs`, `worker/public/home.mjs`), and every failure falls back to the untouched artifact;
-  - `docs/product/HOMEPAGE_ARTIFACT_CONTRACT.md` records the D-105 Q1 bounded amendment, and `docs/ARCHITECTURE.md` is updated;
-  - Playwright evidence scripts are added.
+## Change
+
+- **`worker/bridge/payload.mjs`:**
+  - `buildBridgePayload` no longer takes `applyActivationGate`. A valid 1..5 group is always used; an invalid group is still dropped as a whole.
+  - The `INITIAL_ACTIVATION_GATE` constant is removed.
+  - `passesInitialActivationGate` is replaced by `initialReleaseReadiness(projects)`. It returns true only for a valid group that is exactly the D-105 five in order (ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat).
+  - `INITIAL_ACTIVATION_PROJECT_NAMES` is kept. The helper is not used by the public bridge.
+- **`worker/public/home.mjs`:** the public `/` call no longer applies the five-name gate (one line).
+- **`worker/admin/content.mjs`:**
+  - the preview call drops the removed parameter;
+  - in the `homepage` status object of the existing `GET /admin/api/content` response, `activationGate {enabled, requiredNames, passes}` becomes `releaseReadiness {check: "AS132-F002", requiredNames, ready}`;
+  - `live.projects` now reports runtime bridge validity only.
+- **`app/admin/ContentClient.js`:** the status line now reads "First production release readiness … Status: ready / not yet. This is a release check only; it does not change what the homepage shows now." "Live on the homepage now" stays separate.
+- **`docs/ARCHITECTURE.md`, evidence `README.md`:** wording aligned with AS133-F001.
+- **`scripts/rfc022-admin-ui-evidence.mjs`:** the mock status uses the new shape; the check is renamed `releaseReadinessShown` and also asserts the "does not change what the homepage shows now" wording.
+
+## Tests and evidence
+
+### AS-133 regression evidence
+
+| Item | Test | Result |
+|---|---|---|
+| 1. The exact five pass initial release readiness | `rfc022-bridge` "AS133-F001 item 1"; `worker-rfc022-content` "item 4" (`releaseReadiness.ready === true` with the five published, on Miniflare D1) | pass |
+| 2. A wrong or incomplete set fails | `rfc022-bridge` "AS133-F001 item 2": reordered, first four only, one wrong name, an invalid member (3 flow stages), six projects, empty, `null` | pass |
+| 3. A valid 1..5 group renders through public `/` | `rfc022-bridge` "item 3": n = 1..5 with non-D-105 names. `worker-rfc022-content` "item 3": publishes five non-D-105 projects one by one; after each, `/` carries exactly those k projects with a span-only body, `live.projects` is true and readiness is false. The existing "publishing the initial five" test now asserts that `/` shows 1..4 of the D-105 set before the fifth. | pass |
+| 4. Unpublishing one of five active projects leaves four visible | `worker-rfc022-content` "item 4": the five are published and readiness is true. Eternal Eggs is then removed through the governed `POST /admin/api/projects/v10-2/unpublish` with expected pointers. `/` is then not the artifact, the body is span-only, and the island holds the other four in order. `live.projects` stays true; readiness is false and gates nothing. | pass |
+| 5. Existing tests still pass | artifact fallback (tests 2, 3), draft isolation (test 6), max-five (test 8), AS132-F001 headers, D-093 artifact tests | pass |
+
+**Negative control:** with the old runtime gate temporarily restored in `worker/public/home.mjs` only (not committed), three tests fail: items 3 and 4, and the updated initial-five test. With the fix, all pass.
+
+### Checks
+
+| Check | Result |
+|---|---|
+| `check-context-bootstrap.mjs --commit a70efb3… --session-protocol 2` | `ok: true` |
+| `npm test` (full) | 938 tests; 938 pass, 0 fail, 0 skipped. D1 suites on real local Miniflare. (The previous 934, minus 1 replaced gate test, plus 3 unit and 2 D1 tests.) |
+| `npm run build` | exit 0 |
+| `node scripts/rfc022-browser-evidence.mjs` | exit 0; 4/4 runs non-blank with 0 errors |
+| `node scripts/rfc022-admin-ui-evidence.mjs` | exit 0; 10/10 checks, 0 errors, on both the component (React 18.3.1) and the built `out/admin.html` (Next 16.3.5, bundled React 19) |
+| `git diff --check` | clean |
+| Scope audit (AS132-F003 manual inspection) | changed files are only those listed above plus regenerated evidence screenshots/reports and the coordination files. No `public/`, migration, schema or route change. |
 
 ## Changed files
 
 - **Product and tests:**
-  - `app/admin/ContentClient.js` (new), `app/admin/page.js`;
-  - `worker/bridge/{inject,payload,snapshot}.mjs` (new), `worker/public/home.mjs` (new), `worker/d1/site.mjs` (new), `worker/admin/content.mjs` (new);
-  - `worker/admin/{dashboard,projects}.mjs`, `worker/d1/{audit,projects,schema,validate}.mjs`, `worker/index.mjs`;
-  - `migrations/0006_rfc022_v10_project_fields.sql` (new), `wrangler.jsonc` (adds exactly `"/"` to `run_worker_first`);
-  - `tests/rfc022-bridge.test.mjs` (new), `tests/worker-rfc022-content.test.mjs` (new), `tests/homepage-artifact.test.mjs`.
+  - `worker/bridge/payload.mjs`, `worker/public/home.mjs`, `worker/admin/content.mjs`, `app/admin/ContentClient.js`;
+  - `tests/rfc022-bridge.test.mjs`, `tests/worker-rfc022-content.test.mjs`.
 - **Docs and evidence:**
-  - `docs/ARCHITECTURE.md`, `docs/product/HOMEPAGE_ARTIFACT_CONTRACT.md`;
-  - `docs/product/evidence/rfc022-tier1/` (README, `report.json`, `admin-ui-report.json`, 18 screenshots);
-  - `scripts/rfc022-browser-evidence.mjs`, `scripts/rfc022-admin-ui-evidence.mjs`.
+  - `docs/ARCHITECTURE.md`;
+  - `docs/product/evidence/rfc022-tier1/` (README, `report.json`, `admin-ui-report.json`, regenerated screenshots);
+  - `scripts/rfc022-admin-ui-evidence.mjs`.
 - **Coordination:**
   - `coordination/STATE.md`, this file;
-  - `coordination/archive/directives/DIR-WEB-RFC022-TIER1-IMPL-0001.{md,provenance.json}` and the index row.
-  - The outgoing `H-WEB-RFC022-AMEND-0001` was already archived. `OPERATIVE_OBLIGATIONS.md` is unchanged: every row is carried forward as is.
-
-## Fix made during verification
-
-**Dark theme (in scope, CB-4).** The site's dark body theme (`#020918`) applies on `/admin`. On the built page, `ContentClient`'s light-theme note color (`#444`) and message tones (`#1b5e20` / `#b00020`) were nearly unreadable. They now use `DesignControls`' existing values (`inherit` at 0.8 opacity; `#3fa66a` / `#e0564f`). This affects style only. Only the Next.js-build check could show it, because the React 18 harness has no site CSS.
-
-**Admin evidence script.** `scripts/rfc022-admin-ui-evidence.mjs` now runs the same checks against both renderers. Its Tier 2 "no inputs" check is scoped to the Content section, because the built page also contains the Design controls.
-
-## Tests and evidence
-
-**Environment:** real dependencies from `npm ci`:
-- `jose` 6.2.12;
-- `wrangler` 4.131.1;
-- `miniflare` 5.20260911.0-alpha;
-- `next` 16.3.5;
-- `react`/`react-dom` 19.2.4;
-- Chromium from the global Playwright install.
-
-| Check | Result |
-|---|---|
-| `node scripts/check-context-bootstrap.mjs --commit f884e6e… --session-protocol 2` | `ok: true` |
-| `npm ci` | exit 0; 0 vulnerabilities |
-| `npm test` (full suite) | 934 tests; 934 pass, 0 fail, 0 skipped, 0 cancelled. D1 suites on real local Miniflare D1 (`getPlatformProxy({ remoteBindings: false })`), migrations through `0006`. Run twice: before and after the fix. |
-| `npm run build` | exit 0; static `/admin`, `/journal`, `/_not-found`. Run before and after the fix. |
-| `wrangler d1 migrations apply DB --local --persist-to <scratch>` | `0001`–`0006` all ✅. `project_revisions` then has `tagline`, `status`, `disciplines_json`, `flow_json`. Local only, in a throwaway directory. |
-| `node scripts/rfc022-browser-evidence.mjs` | exit 0. Artifact and bridged variants at 1440×900 and 390×844: all non-blank, 0 console/page errors. The bridged variant shows the fixture projects and email; the body delta is 3,766 bytes. |
-| `node scripts/rfc022-admin-ui-evidence.mjs` | exit 0. 10/10 checks, 0 errors, for both the `component` variant (React 18.3.1) and the `nextjs` variant (built `out/admin.html`: Next 16.3.5 with its bundled React `19.3.0-canary-cbb046ab-20260731`) |
-| `git diff --check` over the full range from `f884e6e` | clean |
-| Scope audit of the changed-file set (AS132-F003 manual inspection) | no file under `public/`, `devos/execution/` or `tests/fixtures/execution/`; no `/api/site-content` |
-
-### RFC-022 §7 / AS-131 acceptance mapping
-
-| # | Requirement | Evidence |
-|---|---|---|
-| 1 | artifact SHA unchanged | `rfc022-bridge` "approved D-093 bytes (test 1)"; `sha256sum` above |
-| 2 | no-published-content `/` byte-identical | `worker-rfc022-content` "(test 2)"; seeded legacy content ignored |
-| 3 | D1 error/timeout byte-identical | `worker-rfc022-content` "(test 3)" |
-| 4 | injected response differs only by the span | `rfc022-bridge` "splice … (test 4)"; `worker-rfc022-content` "publishing the initial five … (tests 4, 11-header)" |
-| 5 | hostile data cannot execute | `rfc022-bridge` "(test 5)", serialization escaping, hook robustness; `worker-rfc022-content` "(tests 5, 9)" |
-| 6 | drafts never reach `/` | `worker-rfc022-content` "(test 6)"; contact draft not public |
-| 7 | stale mutations fail without partial publication | `worker-rfc022-content` "(test 7)"; contact stale writes |
-| 8 | >5 homepage projects rejected before publication | `rfc022-bridge` "(test 8)"; `worker-rfc022-content` "(test 8)" |
-| 9 | exactly four flow stages | `rfc022-bridge` "(test 9)"; `worker-rfc022-content` "(tests 5, 9)" |
-| 10 | no console error, no blank page | `report.json`: 4/4 runs non-blank with 0 errors |
-| 11 | `/` Worker CPU and latency measured before release | **Not met; release item.** Local Node proxies only; see limitations |
-| 12 | D-093 artifact hash tests still pass | `tests/homepage-artifact.test.mjs` passes in the full suite |
-| AS132-F001 | transformed responses drop body-identity validators and are `no-store` | `rfc022-bridge` "AS132-F001 …"; `worker-rfc022-content` "(tests 4, 11-header)" |
+  - `coordination/archive/directives/DIR-WEB-RFC022-TIER1-REM1-0001.{md,provenance.json}` and the index row.
+  - `coordination/OPERATIVE_OBLIGATIONS.md` is unchanged.
 
 ## Unresolved findings and limitations
 
-- **RFC-022 §7 test 11 is not met.** The only `GET /` figures are local Node proxies (median 4.88 ms bridged, 1.54 ms fallback). Their D1 read came from the first session's `node:sqlite` stand-in and was not re-measured on Miniflare. Real Workers CPU and D1 latency need a deployed Worker and belong to CB-R.
-- **AS132-F002 is still an open release gate.** The activation gate is implemented and tested, but no Eternal Eggs copy or email deliverability status exists or was invented. Evidence uses placeholder fixture content only.
-- **Mock API in the admin UI evidence.** Both admin UI variants run against an in-page API that records requests, not against the Worker behind Access. The Worker handlers themselves are covered by the Miniflare D1 suite, For `/admin/preview/home`, the authenticated path is driven post-auth through `handleAdminDispatch`. An unauthenticated request is shown to get a 401 through `handleRequest`, with a stub JWKS and without reaching dispatch. No real Access was involved.
-- **React version on the built page.** `/admin` runs the React that Next 16.3.5 bundles for the App Router (`19.3.0-canary-cbb046ab-20260731`), not the `react@19.2.4` package. This is standard Next behavior and is recorded as observed.
-- **Miniflare version.** `wrangler` 4.131.1 resolves `miniflare` `5.20260911.0-alpha` under the existing `^4.35.0` range. The lockfile was not changed.
-- **Squashed history.** Governed publication requires one candidate commit on the exact tip, so the three Builder commits are squashed here. Their originals are named above.
-- **Traceability validator (pre-existing).** `validate-traceability.mjs` exits 1 with the same 3 ERRORs (`CORE-022`, `D-000`, `WEB-REQ-009`) and the same generated-index DRIFT, both at the tip `f884e6e` and with this change. The ERRORs relate to `OBL-015`. This cycle introduces none of them and, being out of scope, regenerates nothing.
-- **AS132-F003** (Protocol V2 checker gap) remains open. This publication was inspected manually, as the Result section records.
-- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged. This cycle closes none.
+- **What now carries the AS132-F002 guarantee.** "Until the initial activation condition passes, public `/` must retain the artifact's project data" is no longer enforced at runtime (AS133-F001; D-107 forbids a runtime flag). It now depends on CB-R running `initialReleaseReadiness` (or the admin `releaseReadiness.ready` status) against production D1 before the first release. If any valid homepage group were published in production before that check, `/` would show it. CB-R must therefore include this check; the Architect should confirm this is the intended reading.
+- **Status field change.** The `homepage.activationGate` status object in the existing `GET /admin/api/content` response is renamed to `releaseReadiness`. This is an admin status change allowed by AS-133, not a new route. The admin UI is the only consumer.
+- **Unchanged from `H-WEB-RFC022-TIER1-IMPL-0001`:**
+  - RFC-022 §7 test 11 (Workers CPU/latency) is still a CB-R item;
+  - the admin UI evidence uses a recording mock API;
+  - the traceability validator's 3 pre-existing ERRORs and DRIFT are still present;
+  - AS132-F003 is still open.
+- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged.
 
 ## Evidence locations
 
-- `docs/product/evidence/rfc022-tier1/`: `README.md`, `report.json`, `admin-ui-report.json`, `artifact-*`, `bridged-*`, `admin-ui-*`, `admin-ui-nextjs-*` screenshots.
-- Tests: `tests/rfc022-bridge.test.mjs`, `tests/worker-rfc022-content.test.mjs`, `tests/homepage-artifact.test.mjs`.
+- `docs/product/evidence/rfc022-tier1/`: `README.md`, `report.json`, `admin-ui-report.json`, screenshots.
+- Tests: `tests/rfc022-bridge.test.mjs`, `tests/worker-rfc022-content.test.mjs`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-106; `ML-DEVOS-RFC-022`; `ML-DEVOS-AS-132`.
-- **T1:** D-105; `ML-DEVOS-AS-131`; `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md`; `coordination/OPERATIVE_OBLIGATIONS.md`.
-- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-TIER1-IMPL-0001.md`.
+- **T0:** Protocol V2; D-107; `ML-DEVOS-AS-133`.
+- **T1:** D-106; D-105; `ML-DEVOS-RFC-022`; `ML-DEVOS-AS-132`; the archived `H-WEB-RFC022-TIER1-IMPL-0001`.
+- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-TIER1-REM1-0001.md`.
 
 ## Next action
 
-The Architect independently reviews this return under the next unused immutable Sync ID after `ML-DEVOS-AS-132`. Nothing here authorizes CB-R, remote D1/R2, Access wiring, production content, deployment or a `main` merge.
+The Architect independently re-reviews this remediation under the next unused immutable Sync ID after `ML-DEVOS-AS-133`. Nothing here authorizes CB-R, remote D1/R2, Access wiring, production content, deployment or a `main` merge.

@@ -11,7 +11,8 @@
 // missing build fails the run.
 //
 // Checks: tabs render; Tier 2 tabs show deferral notices and no inputs; the
-// homepage status/gate is shown; a new V10 project saves with a complete v10
+// homepage status and the AS132-F002 release-readiness status (labelled as a
+// release check, not a live gate: AS133-F001) are shown; a new V10 project saves with a complete v10
 // group; a legacy project with a blank V10 section saves with v10: null;
 // publish sends expected pointers; a HOMEPAGE_LIMIT 409 is explained; the
 // contact publish button stays disabled until the deliverability box is
@@ -79,7 +80,7 @@ const state = {
   ],
   contact: { initialized: true, publishedRevisionId: 1, draftRevisionId: 9, published: { email: "seed@example.com", setThroughAdmin: false }, draft: { email: "fixture-contact@example.com", setThroughAdmin: true } },
   homepage: { maxProjects: 5, publishedEligibleProjects: 0, projectsGroupValid: false,
-    activationGate: { enabled: true, requiredNames: ["ClinicFlow", "Eternal Eggs", "Sentinel / DevOS", "SU", "Maisog Kilat"], passes: false },
+    releaseReadiness: { check: "AS132-F002", requiredNames: ["ClinicFlow", "Eternal Eggs", "Sentinel / DevOS", "SU", "Maisog Kilat"], ready: false },
     live: { projects: false, contact: false } },
 };
 window.fetch = async (url, init = {}) => {
@@ -148,7 +149,9 @@ async function runVariant(chromium, { handler, url, shotPrefix }) {
   const checks = {};
   const requests = () => p.evaluate(() => window.__requests);
   await p.screenshot({ path: path.join(OUT, `${shotPrefix}-projects.png`), fullPage: true });
-  checks.gateShown = (await content.getByText("First activation requires exactly these five").count()) === 1;
+  checks.releaseReadinessShown =
+    (await content.getByText("First production release readiness").count()) === 1 &&
+    (await content.getByText("does not change what the homepage shows now").count()) === 1;
 
   // Legacy project with a blank V10 section -> v10: null.
   const legacyCard = content.locator("div", { has: p.getByRole("heading", { name: /Automation Hub/ }) }).last();

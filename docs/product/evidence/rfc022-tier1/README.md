@@ -28,7 +28,7 @@ The D1 snapshot read in this measurement used a provisional `node:sqlite` stand-
 ## Verification environment
 
 The initial implementation session could not reach `registry.npmjs.org`, so it ran the D1-backed suites against local, uncommitted stand-ins for `wrangler` (`node:sqlite`) and `jose`. Those stand-ins are superseded. In a session with registry access, the following all ran against the real dependencies from `npm ci`: `jose` 6.2.12, `wrangler` 4.131.1, `miniflare` 5.20260911.0-alpha, `next` 16.3.5, `react`/`react-dom` 19.2.4.
-- `npm test`: 934 tests; 934 pass, 0 fail, 0 skipped. The D1 suites used real local Miniflare D1 through `getPlatformProxy({ remoteBindings: false })`, with every migration through `0006`.
+- `npm test`: 934 tests at the D-106 return; 938 after AS-133 remediation cycle 1. All pass, 0 fail, 0 skipped. The D1 suites used real local Miniflare D1 through `getPlatformProxy({ remoteBindings: false })`, with every migration through `0006`.
 - `npm run build` succeeded (static `/admin`, `/journal`).
 - Both evidence scripts reran and passed. The screenshots and `report.json` in this folder come from that run; only render timings changed.
 
@@ -41,7 +41,7 @@ Produced by `node scripts/rfc022-admin-ui-evidence.mjs` after `npm run build`. I
 - `nextjs` (`admin-ui-nextjs-*.png`): the real `next build` static export, `out/admin.html` served at `/admin` (Next 16.3.5 with its bundled React 19). This is the built page the Worker serves after Access.
 
 Both variants passed every check, with 0 console/page errors:
-- the homepage count and AS132-F002 gate status are shown;
+- the homepage count and the AS132-F002 first-release readiness status are shown, labelled as a release check that does not change the live homepage (AS133-F001);
 - a legacy project with a blank V10 section saves with `v10: null` (kept editable without homepage fields);
 - a new project saves a complete `v10` group (4 flow steps, sorted discipline indices);
 - publish sends the expected pointers, and a `HOMEPAGE_LIMIT` 409 is explained;

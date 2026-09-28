@@ -4,7 +4,7 @@
       "renderer": "React 18.3.1 + Babel standalone decoded from public/index.html",
       "errors": [],
       "checks": {
-        "gateShown": true,
+        "releaseReadinessShown": true,
         "legacySavesWithNullV10": true,
         "publishSendsPointers": true,
         "limitMessageShown": true,
@@ -20,7 +20,7 @@
       "renderer": "next build static export out/admin.html (Next 16.3.5, bundled React 19.3.0-canary-cbb046ab-20260731)",
       "errors": [],
       "checks": {
-        "gateShown": true,
+        "releaseReadinessShown": true,
         "legacySavesWithNullV10": true,
         "publishSendsPointers": true,
         "limitMessageShown": true,

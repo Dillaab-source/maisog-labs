@@ -178,7 +178,8 @@ test("publishing the initial five activates /, with a span-only body and AS132-F
     for (const [i, name] of INITIAL_ACTIVATION_PROJECT_NAMES.entries()) {
       const published = await createAndPublish(db, name, i + 1);
       assert.equal(published.status, 200, name);
-      if (i < 4) assert.equal(sha(await bytesOf(await publicHome(db))), ARTIFACT_SHA256, "AS132-F002 gate holds until all five");
+      const partial = spanOf(await bytesOf(await publicHome(db))).island;
+      assert.deepEqual(partial.projects.map(p => p.name), INITIAL_ACTIVATION_PROJECT_NAMES.slice(0, i + 1), "no runtime name gate (AS133-F001)");
     }
     const response = await publicHome(db, artifactAssets(), { headers: { "If-None-Match": ARTIFACT_ETAG } });
     assert.equal(response.status, 200, "a conditional request is never answered with the artifact's 304");
@@ -195,6 +196,61 @@ test("publishing the initial five activates /, with a span-only body and AS132-F
 
     const head = await publicHome(db, artifactAssets(), { method: "HEAD" });
     assert.equal(head.headers.get("etag"), ARTIFACT_ETAG, "non-GET methods stay untouched");
+  } finally {
+    await cleanup();
+  }
+});
+
+async function homepageStatus(db) {
+  const response = await admin(db, "GET", "/admin/api/content");
+  assert.equal(response.status, 200);
+  return (await response.json()).homepage;
+}
+
+test("AS133-F001 item 3: any valid published group of 1..5 renders through public /", async () => {
+  const { db, cleanup } = await openDb();
+  try {
+    const names = ["Fixture One", "Fixture Two", "Fixture Three", "Fixture Four", "Fixture Five"];
+    for (const [i, name] of names.entries()) {
+      assert.equal((await createAndPublish(db, name, i + 1)).status, 200, name);
+      const { restSha, island } = spanOf(await bytesOf(await publicHome(db)));
+      assert.equal(restSha, ARTIFACT_SHA256, "span-only transformation");
+      assert.deepEqual(island.projects.map(p => p.name), names.slice(0, i + 1), `${i + 1} project(s) render`);
+      const status = await homepageStatus(db);
+      assert.equal(status.live.projects, true, "runtime bridge is valid");
+      assert.equal(status.releaseReadiness.ready, false, "release readiness is independent of runtime validity");
+    }
+  } finally {
+    await cleanup();
+  }
+});
+
+test("AS133-F001 item 4: after the D-105 five are active, unpublishing one leaves the other four visible", async () => {
+  const { db, cleanup } = await openDb();
+  try {
+    for (const [i, name] of INITIAL_ACTIVATION_PROJECT_NAMES.entries()) assert.equal((await createAndPublish(db, name, i + 1)).status, 200, name);
+    const before = await homepageStatus(db);
+    assert.equal(before.releaseReadiness.ready, true, "AS132-F002 initial release readiness passes");
+    assert.deepEqual(before.releaseReadiness.requiredNames, [...INITIAL_ACTIVATION_PROJECT_NAMES]);
+
+    const row = await db.prepare("SELECT published_revision_id, draft_revision_id FROM projects WHERE id = 'v10-2'").first();
+    const unpublished = await admin(db, "POST", "/admin/api/projects/v10-2/unpublish", {
+      expectedPublishedRevisionId: row.published_revision_id,
+      expectedDraftRevisionId: row.draft_revision_id,
+    });
+    assert.equal(unpublished.status, 200);
+
+    const bytes = await bytesOf(await publicHome(db));
+    assert.notEqual(sha(bytes), ARTIFACT_SHA256, "does not revert to the artifact's project data");
+    const { restSha, island } = spanOf(bytes);
+    assert.equal(restSha, ARTIFACT_SHA256);
+    assert.deepEqual(
+      island.projects.map(p => p.name),
+      INITIAL_ACTIVATION_PROJECT_NAMES.filter(name => name !== "Eternal Eggs"),
+    );
+    const after = await homepageStatus(db);
+    assert.equal(after.live.projects, true);
+    assert.equal(after.releaseReadiness.ready, false, "the release check reflects the changed set, but gates nothing");
   } finally {
     await cleanup();
   }

@@ -68,7 +68,7 @@ export async function handlePublicHome({ request, assets, db, timeoutMs = SNAPSH
       return fallback();
     }
 
-    const payload = buildBridgePayload({ projects: snapshot.projects, email: snapshot.email, applyActivationGate: true });
+    const payload = buildBridgePayload({ projects: snapshot.projects, email: snapshot.email });
     if (!payload) return fallback();
 
     const original = await assets.fetch(unconditionalAssetRequest(request));

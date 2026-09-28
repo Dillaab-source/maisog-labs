@@ -40,7 +40,7 @@ That path has **not** been cut over to D1.
 
 `/` is the immutable D-093 artifact (`public/index.html`). Under `ML-DEVOS-RFC-022` (accepted by `ML-DEVOS-AS-132`, implemented under D-106), exact `/` is Worker-first. `worker/public/home.mjs` works as follows:
 - It reads the published snapshot from D1: featured project revisions carrying the four V10 fields (migration `0006`), and a contact email published through the admin lifecycle. The read has a 250 ms budget.
-- It validates the snapshot against the artifact's structural bounds: 1–5 projects, 4 flow stages, discipline indices 0–5, and the AS132-F002 initial activation set.
+- It validates the snapshot against the artifact's structural bounds: 1–5 projects, 4 flow stages, discipline indices 0–5. Any valid published group of 1–5 renders. The AS132-F002 initial five-project set is a CB-R release-readiness check (`initialReleaseReadiness`), not a runtime gate (AS133-F001).
 - When the snapshot is valid, it inserts one JSON island plus a fixed hook before the outer `</head>`. The hook merges the values into the artifact's `window.MLData` before first render.
 - Any failure returns the untouched asset response.
 

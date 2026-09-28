@@ -26,9 +26,8 @@ import {
 import { readBridgeSnapshot, countPublishedHomepageProjects } from "../bridge/snapshot.mjs";
 import {
   buildBridgePayload,
-  passesInitialActivationGate,
+  initialReleaseReadiness,
   validateProjectsGroup,
-  INITIAL_ACTIVATION_GATE,
   INITIAL_ACTIVATION_PROJECT_NAMES,
   MAX_HOMEPAGE_PROJECTS,
 } from "../bridge/payload.mjs";
@@ -152,27 +151,27 @@ async function contactEditingView(db) {
   };
 }
 
-// Homepage status as the public bridge would see it now (published pointers),
-// including the AS132-F002 initial activation gate.
+// Homepage status from published pointers. `live` is what public `/` shows
+// now (runtime bridge validity). `releaseReadiness` is the separate CB-R check
+// for the first production release (AS132-F002); it never gates `live`
+// (AS133-F001).
 async function homepageStatus(db) {
   const snapshot = await readBridgeSnapshot(db, { mode: "published" });
   let projectsValid = false;
-  let gatePasses = false;
   if (snapshot.projects !== null) {
     try {
-      const valid = validateProjectsGroup(snapshot.projects);
+      validateProjectsGroup(snapshot.projects);
       projectsValid = true;
-      gatePasses = passesInitialActivationGate(valid);
     } catch {
       projectsValid = false;
     }
   }
-  const payload = buildBridgePayload({ projects: snapshot.projects, email: snapshot.email, applyActivationGate: true });
+  const payload = buildBridgePayload({ projects: snapshot.projects, email: snapshot.email });
   return {
     maxProjects: MAX_HOMEPAGE_PROJECTS,
     publishedEligibleProjects: await countPublishedHomepageProjects(db, { excludeProjectId: "" }),
     projectsGroupValid: projectsValid,
-    activationGate: { enabled: INITIAL_ACTIVATION_GATE, requiredNames: [...INITIAL_ACTIVATION_PROJECT_NAMES], passes: gatePasses },
+    releaseReadiness: { check: "AS132-F002", requiredNames: [...INITIAL_ACTIVATION_PROJECT_NAMES], ready: snapshot.projects !== null && initialReleaseReadiness(snapshot.projects) },
     live: { projects: Boolean(payload?.projects), contact: Boolean(payload?.contact) },
   };
 }
@@ -318,7 +317,7 @@ export async function handleHomePreview({ request, url, assets, db }) {
   const original = await assets.fetch(new Request(new URL("/", url), { method: "GET" }));
   try {
     const snapshot = await readBridgeSnapshot(db, { mode: "draft" });
-    const payload = buildBridgePayload({ projects: snapshot.projects, email: snapshot.email, applyActivationGate: false });
+    const payload = buildBridgePayload({ projects: snapshot.projects, email: snapshot.email });
     if (!payload || original.status !== 200) return original;
     const bytes = new Uint8Array(await original.clone().arrayBuffer());
     if (!(await isApprovedArtifact(bytes))) return original;

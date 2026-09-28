@@ -21,12 +21,11 @@ export const PROJECT_STATUS_VALUES = ["", "Active"];
 
 export const PROJECT_LIMITS = Object.freeze({ name: 40, kind: 40, tagline: 160, description: 400, flowStage: 60 });
 
-// AS132-F002 (mandatory release condition): the project bridge is first
-// enabled only when exactly the D-105 initial set is published, featured and
-// complete, in this order. Until then public `/` keeps the artifact's own
-// project data. Lifting this gate after initial activation is a separate,
-// governed code change; it is not a runtime switch.
-export const INITIAL_ACTIVATION_GATE = true;
+// AS132-F002 (mandatory release condition) as scoped by AS133-F001: before
+// the first production release (CB-R), exactly the D-105 initial set must be
+// published, featured and complete, in this order. This is a release-readiness
+// check only (initialReleaseReadiness below). It never gates the runtime
+// bridge: public `/` renders any valid published group of 1..5.
 export const INITIAL_ACTIVATION_PROJECT_NAMES = Object.freeze(["ClinicFlow", "Eternal Eggs", "Sentinel / DevOS", "SU", "Maisog Kilat"]);
 
 const CONTROL_OR_ANGLE = /[\u0000-\u001f\u007f<>]/;
@@ -91,23 +90,30 @@ export function validateProjectsGroup(projects) {
   return normalized;
 }
 
-export function passesInitialActivationGate(projects) {
-  if (!INITIAL_ACTIVATION_GATE) return true;
+// CB-R release readiness (AS132-F002): true only when `projects` is a valid
+// group that is exactly the D-105 initial set, in order. Not consulted by the
+// public bridge (AS133-F001).
+export function initialReleaseReadiness(projects) {
+  let valid;
+  try {
+    valid = validateProjectsGroup(projects);
+  } catch {
+    return false;
+  }
   return (
-    projects.length === INITIAL_ACTIVATION_PROJECT_NAMES.length &&
-    projects.every((project, i) => project.name === INITIAL_ACTIVATION_PROJECT_NAMES[i])
+    valid.length === INITIAL_ACTIVATION_PROJECT_NAMES.length &&
+    valid.every((project, i) => project.name === INITIAL_ACTIVATION_PROJECT_NAMES[i])
   );
 }
 
 // Builds the bridge payload from candidate groups. Each group is validated
 // independently; an invalid group is dropped, never partially applied.
 // Returns null when nothing valid remains (=> no injection at all).
-export function buildBridgePayload({ projects = null, email = null, applyActivationGate = true } = {}) {
+export function buildBridgePayload({ projects = null, email = null } = {}) {
   const payload = { schemaVersion: BRIDGE_SCHEMA_VERSION };
   if (projects !== null) {
     try {
-      const valid = validateProjectsGroup(projects);
-      if (!applyActivationGate || passesInitialActivationGate(valid)) payload.projects = valid;
+      payload.projects = validateProjectsGroup(projects);
     } catch {
       // group dropped: the artifact's own project data stays in place
     }
