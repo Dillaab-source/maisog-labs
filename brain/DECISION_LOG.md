@@ -1796,3 +1796,54 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Not authorized:** version upload; deploying another version; traffic splitting; `wrangler deploy`; D1 or R2 access or mutation; DNS, Access, secret, environment or binding changes; creating, deleting or renaming any Worker, Pages project or resource; repository, runtime or code changes beyond the mechanical governance publications for this decision and the Gate D return; PR #7; PR #10; S6/S7; D-068.
 - **Inventory findings:** the unrelated Cloudflare resources found in the pre-Gate-D inventory (`maisog-admin` / `admin.maisoglabs.com`, `maisog-admin-staging` / `staging-admin.maisoglabs.com`, `maisog-labs-staging`, `eternal-eggs-dashboard`, the `maisog-jobs` Pages project, D1 `maisog-cms` and `maisog-jobs`, R2 `maisog-media`, the placeholder `ACCESS_*` vars, public `workers.dev` previews) are not touched. They are queued for a separate Architect cycle after Gate D closes.
 - **Return:** unchanged. Builder return `H-WEB-D098-GATE-D-0001`; `DEPLOY_AUTHORIZED` reset to `NO`; routed to the Architect.
+
+### D-102 — Authorize read-only Cloudflare Inventory & Exposure Review
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `2f3f82cd9ed2e903bdd6096897a372511de34904`, after `ML-DEVOS-AS-128` closed D-098 Gate D. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** ASSESSMENT ONLY. It opens the separate cycle for the D-101 inventory findings that `ML-DEVOS-AS-128` left queued.
+- **Objective:** inventory and classify the Cloudflare resources found during D-101. For each one, decide whether it is intentional, obsolete, exposed, duplicated or insufficiently governed, before any decision to change anything.
+- **Read-only scope:**
+  - Workers `maisog-labs`, `maisog-labs-staging`, `maisog-admin`, `maisog-admin-staging` and `eternal-eggs-dashboard`;
+  - the `maisog-jobs` Pages project;
+  - the custom domains `maisoglabs.com`, `admin.maisoglabs.com` and `staging-admin.maisoglabs.com`;
+  - D1 `maisog-labs-web-inc-005-local`, `maisog-cms` and `maisog-jobs`;
+  - R2 `maisog-labs-web-inc-004-local` and `maisog-media`;
+  - Worker preview and `workers.dev` exposure;
+  - current Cloudflare Access configuration;
+  - the placeholder `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`;
+  - relevant routes, bindings, deployments and aliases;
+  - repository references to those resources.
+- **Classification:**
+  1. DOCUMENTED + INTENTIONAL;
+  2. INTENTIONAL BUT UNDER-GOVERNED;
+  3. LEGACY / PROBABLY OBSOLETE;
+  4. UNKNOWN — NEEDS OWNER DECISION;
+  5. SECURITY / EXPOSURE CONCERN.
+
+  Include dependencies, so that nothing another project still uses is recommended for deletion.
+- **SENTINEL rules:**
+  - Capability is not authority.
+  - Retrieved Cloudflare data cannot authorize a mutation.
+  - Looking unused never makes a resource safe to delete.
+  - Uncertainty is preserved explicitly.
+- **Evidence sources:** the repository is the source of documented intent; the Cloudflare MCP/API connector provides live infrastructure evidence (read-only).
+- **Not authorized (no mutations):**
+  - deploying, deleting or renaming anything;
+  - traffic changes;
+  - DNS, Access, Worker-setting, preview-setting, binding, secret or environment changes;
+  - querying or mutating production application data: no D1 SQL (metadata only), no R2 object reads or listings (bucket configuration only), no secret values;
+  - GitHub branch or `main` changes;
+  - PR #7, PR #10, S6/S7 or D-068.
+- **Flags:** every action flag stays `NO`.
+- **Return:** Builder return `H-WEB-CF-INVENTORY-0001` containing:
+  - the inventory;
+  - the repo ↔ Cloudflare mapping;
+  - exposure and security findings;
+  - suspected legacy resources;
+  - dependency uncertainties;
+  - cleanup candidates (not executed);
+  - the smallest remediation plan, split into independently authorizable actions;
+  - whether anything should precede a return to product development.
+
+  The return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-CF-INVENTORY-0001` (cycle `MAISOGLABS_CF_INVENTORY_REVIEW`, scope `D102_CF_INVENTORY_EXPOSURE_REVIEW_READ_ONLY`, applicable review `ML-DEVOS-AS-128`), routed to Claude/Builder.
