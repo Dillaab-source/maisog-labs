@@ -1749,3 +1749,31 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only; every other action flag `NO`.
 - **Return:** Builder return `H-WEB-D098-GATE-C-0001` with the D-099 publication SHA, PR number, base and head, CI, merge commit, release diff, Workers Build ID, new version ID, pre and post active version, proof that pre equals post, and proof that no Gate D command ran. `MAIN_MERGE_AUTHORIZED` is reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-D098-GATE-C-0001` (cycle `MAISOGLABS_WEB_D098_GATE_C`, scope `D099_D098_GATE_C_PROTECTED_MAIN_RELEASE_ONLY`, applicable review `ML-DEVOS-AS-126`), routed to Claude/Builder.
+
+### D-100 — Authorize D-098 Hardening Gate D Production Promotion
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `cb9d2da9869cfdad780d120678e238a9e5036587`, after `ML-DEVOS-AS-127` accepted and closed the D-099 Gate C. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:** `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`; `main` Workers Build `e2a2d328-76d0-4361-816e-3b74c0c7b5c7` (check run `108607242213`, Architect-verified in AS-127); candidate Version `53137101-afb8-456c-ab83-d8b7b934df01`; current production and rollback target `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100%.
+- **Pre-promotion checks:**
+  - fresh bootstrap selecting this directive;
+  - governance, `main`, build and candidate identities unchanged, with no newer `main` release;
+  - a read-only smoke test of `https://53137101-maisog-labs.paulomaisog284.workers.dev`: `/` 200 serving the D-093 artifact, `/api/journal` and `/api/design` healthy, no 1101;
+  - a fresh read of active production immediately before promotion (`PRE_GATE_D_ACTIVE_VERSION_ID`), which must be exactly `f473c170-b39c-4d7b-85ad-a99c5208d539` at 100%. The Gate C reading may not be reused; if the executor cannot read it directly, Paulo supplies one fresh dashboard reading (`OWNER_REPORTED`).
+
+  Any difference, split, ambiguity or unhealthy candidate stops the operation without promotion.
+- **Authorized promotion (exactly one, run once):** `npx wrangler versions deploy 53137101-afb8-456c-ab83-d8b7b934df01@100% --yes`. No force, no second version, no split, no `wrangler deploy`, no version upload.
+- **Post-promotion verification (read-only):**
+  - active deployment exactly `53137101-afb8-456c-ab83-d8b7b934df01` at 100%, with its Deployment ID recorded;
+  - `https://maisoglabs.com/` 200 with the D-093 artifact unchanged;
+  - `/api/journal` 200 (empty collection unless content changed separately);
+  - `/api/design` 200;
+  - `/journal` 200;
+  - `/admin` protection and redirect behavior unchanged.
+
+  D1 must not be damaged or un-migrated to test the 503 path.
+- **Conditional rollback (exactly one):** only if this promotion causes a new material production failure (homepage unavailable or materially broken, healthy APIs failing, widespread Worker exceptions or a binding failure attributable to `53137101…`). Command: `npx wrangler rollback f473c170-b39c-4d7b-85ad-a99c5208d539 --message "D-100 rollback: newly caused Gate D production failure"`. After it, require `f473c170…` at 100%, re-run the checks and stop; no further promotion. No rollback for accepted cosmetic differences, empty Journal content, `-local` names, pre-existing issues or evidence limits.
+- **Executor capability:** the Builder's cloud session has no Cloudflare network access or credential. The smoke test, production reads, promotion, verification and any rollback must run from an environment with authenticated Cloudflare access, as for D-095 and D-097 (Paulo's local clone). The authority and the return are published through Protocol V2 as usual.
+- **Not authorized:** any version upload; code, repository or runtime change; `main` merge; D1 query, write, migration or restore; R2 read, write or mutation; binding, Access, DNS, secret or environment change; creating, deleting or renaming resources; PR #7; PR #10; S6/S7; D-068.
+- **Flags:** `DEPLOY_AUTHORIZED: YES` for this exact promotion and conditional rollback only; every other action flag `NO`.
+- **Return:** Builder return `H-WEB-D098-GATE-D-0001` with the D-100 publication SHA, pre-deploy active version, candidate, exact command, Deployment ID, post-deploy active version, production HTTP evidence, rollback status, and confirmation that no unrelated resource was touched. `DEPLOY_AUTHORIZED` is reset to `NO` and the return is routed to the Architect. S6 does not start automatically.
+- **Directive:** issue `DIR-WEB-D098-GATE-D-0001` (cycle `MAISOGLABS_WEB_D098_GATE_D`, scope `D100_D098_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-127`), routed to Claude/Builder.
