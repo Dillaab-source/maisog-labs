@@ -18,6 +18,7 @@ import { isProjectsApiPath, handleProjectsDispatch } from "./projects.mjs";
 import { isMediaApiPath, handleMediaDispatch } from "./media.mjs";
 import { isJournalApiPath, handleJournalDispatch } from "./journal.mjs";
 import { isDesignApiPath, handleDesignDispatch } from "./design.mjs";
+import { isContentApiPath, handleContentDispatch, isHomePreviewPath, handleHomePreview } from "./content.mjs";
 
 export const DASHBOARD_PATH = "/admin/api/dashboard";
 
@@ -223,6 +224,18 @@ export async function handleAdminDispatch({ request, url, assets, db, media, sub
   // design mutation reach.
   if (isDesignApiPath(pathname)) {
     return handleDesignDispatch({ request, url, db, sub });
+  }
+
+  // RFC-022 Tier 1 (ML-DEVOS-AS-132, D-106): the V10 content view and the
+  // bounded contact-email lifecycle. Routed before the generic "/admin/api/*"
+  // 404 fallback so no other route gains reach.
+  if (isContentApiPath(pathname)) {
+    return handleContentDispatch({ request, url, db, sub });
+  }
+
+  // RFC-022 Tier 1: the draft homepage preview (exact path only).
+  if (isHomePreviewPath(pathname)) {
+    return handleHomePreview({ request, url, assets, db });
   }
 
   if (isAdminApiPath(pathname)) {

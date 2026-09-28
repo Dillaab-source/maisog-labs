@@ -66,6 +66,10 @@ const AUDIT_INSERT_WITH_THEME_REVISION_LOOKUP_SQL =
 
 // Keyed on section_revisions' UNIQUE (section_id, revision_number)
 // constraint — see buildSectionRevisionAuditStatement below.
+const AUDIT_INSERT_WITH_SITE_SETTINGS_REVISION_LOOKUP_SQL =
+  "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
+  "VALUES (?, ?, ?, ?, ?, (SELECT id FROM site_settings_revisions WHERE site_settings_id = ? AND revision_number = ?), ?)";
+
 const AUDIT_INSERT_WITH_SECTION_REVISION_LOOKUP_SQL =
   "INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) " +
   "VALUES (?, ?, ?, ?, ?, (SELECT id FROM section_revisions WHERE section_id = ? AND revision_number = ?), ?)";
@@ -294,6 +298,33 @@ export function buildSectionRevisionAuditStatement(db, { actor, action, entityId
       validated.entityType,
       validated.entityId,
       sectionId,
+      revisionNumber,
+      validated.result
+    );
+}
+
+// RFC-022 Tier 1 (ML-DEVOS-AS-132, D-106): the site-settings equivalent, keyed
+// on site_settings_revisions. entityType is fixed to "site_settings". Only the
+// call-site literal `site_settings_contact_update_draft` (worker/d1/site.mjs)
+// uses it.
+export function buildSiteSettingsRevisionAuditStatement(db, { actor, action, entityId, siteSettingsId, revisionNumber, result }) {
+  const validated = validateCoreFields({ actor, action, entityType: "site_settings", entityId, result });
+  if (typeof siteSettingsId !== "string" || !ENTITY_ID_PATTERN.test(siteSettingsId)) {
+    fail("siteSettingsId must be a bounded id string");
+  }
+  if (!Number.isSafeInteger(revisionNumber) || revisionNumber < 1) {
+    fail("revisionNumber must be a positive safe integer");
+  }
+  const occurredAt = new Date().toISOString();
+  return db
+    .prepare(AUDIT_INSERT_WITH_SITE_SETTINGS_REVISION_LOOKUP_SQL)
+    .bind(
+      occurredAt,
+      validated.actor,
+      validated.action,
+      validated.entityType,
+      validated.entityId,
+      siteSettingsId,
       revisionNumber,
       validated.result
     );

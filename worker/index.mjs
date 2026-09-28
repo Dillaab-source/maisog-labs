@@ -33,6 +33,7 @@ import { handleRequest, isPublicDesignApiPath } from "./auth.mjs";
 import { handleAdminDispatch } from "./admin/dashboard.mjs";
 import { handlePublicJournalDispatch } from "./public/journal.mjs";
 import { handlePublicDesignDispatch } from "./public/design.mjs";
+import { handlePublicHome, isHomePath } from "./public/home.mjs";
 
 let cachedJWKS;
 let cachedTeamDomain;
@@ -47,6 +48,16 @@ function getJWKS(teamDomain) {
 
 export default {
   async fetch(request, env) {
+    // RFC-022 (ML-DEVOS-AS-132, D-106): exact `/` is Worker-first for the
+    // published-content bridge. It is handled before any other Worker logic,
+    // and any failure returns the untouched artifact response (RFC-022 §5.4).
+    if (isHomePath(new URL(request.url).pathname)) {
+      try {
+        return await handlePublicHome({ request, assets: env.ASSETS, db: env.DB });
+      } catch {
+        return env.ASSETS.fetch(request);
+      }
+    }
     return handleRequest(request, {
       assets: env.ASSETS,
       teamDomain: env.ACCESS_TEAM_DOMAIN,
