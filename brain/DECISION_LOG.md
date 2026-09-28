@@ -2115,3 +2115,42 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `MUTATION_AUTHORIZED: YES` for repository/local changes within this scope only. Every remote, deploy and other action flag stays `NO`. Read-only Cloudflare API reads (the Access application) need no flag.
 - **Return:** one Protocol V2 Builder return with the files changed, the design chosen for initial activation and bootstrap, the Access values' provenance, test and build results, and confirmation that no remote resource was mutated. Every flag is then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-CBR-REM1-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D111_RFC022_CBR_AS137_REMEDIATION_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-137`), routed to Claude/Builder.
+
+### D-112 — Authorize RFC-022 Gate C for the accepted D-111 remediation, without production promotion
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `9abb5f61cd6d18ca836cfc254df7a8236cc105ae`, in the same message that relayed `ML-DEVOS-AS-138`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:**
+  - reviewed implementation `fde97b6d4be4cc427cde682bd27182f8e328e93d..9abb5f61cd6d18ca836cfc254df7a8236cc105ae` (AS-138);
+  - `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3`;
+  - expected active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%;
+  - homepage SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
+  - Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b` (`maisoglabs.com/admin`); D-106 identity `paulo.maisog@maisoglabs.com`.
+- **Authorized (Gate C only):**
+  - open one fresh `governance/maisoglabs-v0.1 → main` release PR, bound to the D-111 remediation accepted by AS-138;
+  - because this AS-138/D-112 publication advances the branch head, require fresh `test-and-build` SUCCESS on the exact final PR head;
+  - verify clean mergeability, unchanged `main` and the unchanged `public/index.html` hash;
+  - perform the read-only AS138-F001 Access policy identity check and record the result;
+  - record `PRE_MERGE_ACTIVE_VERSION_ID` immediately before the merge;
+  - merge through the normal protected GitHub PR path, with a normal merge commit and the exact expected head pinned;
+  - observe the resulting Workers Build and version upload;
+  - verify that `POST_MERGE_ACTIVE_VERSION_ID` equals `PRE_MERGE_ACTIVE_VERSION_ID`;
+  - publish the Gate C return to the Architect.
+- **AS138-F001 outcome:** a mismatch does not block Gate C. It is recorded in the return as Gate D NOT READY, and a separate Paulo authorization is required before any Access policy change.
+- **Production readings:** read-only through the Cloudflare MCP/API connector in the Builder session (`ACTOR_REPORTED`), as at D-109.
+- **Not authorized:**
+  - Gate D; `wrangler versions deploy`; production promotion or traffic shift;
+  - any production D1 write; project/content creation or publication; `site_settings` production mutation; email publication;
+  - Cloudflare Access policy mutation; DNS, R2, binding, secret or environment mutation;
+  - direct push to `main`, force push, squash, rebase, auto-merge or protection bypass;
+  - PR #7 or PR #10 action.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-GATE-C-0002` recording:
+  - the D-112 publication SHA; the PR number, base and final head; CI on the final head;
+  - the merge commit; the release diff; the homepage hash;
+  - the AS138-F001 policy identity result;
+  - the Workers Build ID and new version ID;
+  - the pre- and post-merge active version and proof that they are equal;
+  - proof that no Gate D command ran.
+
+  Every action flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-GATE-C-0002` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D112_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-138`), routed to Claude/Builder.
