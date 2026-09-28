@@ -1,129 +1,115 @@
-# Current Handoff — Cloudflare Inventory & Exposure Review (D-102, read-only)
+# Current Handoff — Cloudflare Exposure Remediation A-1 + A-4 (D-103)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-CF-INVENTORY-0001
-cycle_id: MAISOGLABS_CF_INVENTORY_REVIEW
-input_base_commit: 9e8c9f5006f0654eac7c139a41ef4d21b71a5f34
-review_target_commit: 9e8c9f5006f0654eac7c139a41ef4d21b71a5f34
-applicable_review_id: ML-DEVOS-AS-128
+handoff_id: H-WEB-CF-EXPOSURE-REMEDIATION-0001
+cycle_id: MAISOGLABS_CF_EXPOSURE_REMEDIATION
+input_base_commit: dd20f25285702147e441b0c3d2e2deb4cfe52a4f
+review_target_commit: dd20f25285702147e441b0c3d2e2deb4cfe52a4f
+applicable_review_id: ML-DEVOS-AS-129
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. All Cloudflare evidence is `ACTOR_REPORTED`: connector `GET` reads made from this authenticated cloud session.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Cloudflare evidence (connector reads and writes from this authenticated cloud session) and HTTP probes are `ACTOR_REPORTED`.
 
 ## Objective
 
-Execute `DIR-WEB-CF-INVENTORY-0001` (D-102): a read-only inventory and classification of the Cloudflare resources found during D-101, mapped against repository intent. The deliverables are findings and a remediation proposal. Nothing is executed.
+Execute `DIR-WEB-CF-EXPOSURE-REMEDIATION-0001` (D-103):
+
+- **A-1:** disable `maisog-labs` preview URLs, with `workers.dev` unchanged.
+- **A-4:** disable `maisog-labs-staging` `workers.dev` and preview URLs.
+
+Verify, and roll back only on the D-103 failure conditions.
 
 ## Result
 
-**Assessment complete. No mutation was made.** The full report is `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md`. In brief:
+**A-1 and A-4 complete. There were two Cloudflare writes, both succeeded, and no rollback was needed.**
 
-1. **Inventory:**
-   - 5 Workers, 1 Pages project, 3 D1 databases, 2 R2 buckets, 3 Access apps, 3 Worker custom domains;
-   - one extra resource outside the D-101 list: the `n8n.maisoglabs.com` Cloudflare Tunnel, currently down, with no Access app.
-2. **Repo ↔ Cloudflare:** only `maisog-labs`, with its D1 `…-005-local` and R2 `…-004-local`, is sourced from and documented in this repository. **The deployed code of `maisog-admin`, `maisog-admin-staging`, `maisog-labs-staging` and Pages `maisog-jobs` exists on no branch** (all remote branches were searched). `maisog-cms` / `maisog-media` appear only in the uninspected `master-plan-v1` plan.
-3. **Exposure findings:**
-   - **F-1 (HIGH):** `maisog-labs` previews and `workers.dev` are on. Every non-`main` branch push publishes a public preview URL running unreviewed code bound to the production D1/R2 (783 versions so far), which bypasses the Gate C/D path.
-   - **F-2 (HIGH):** staging admin shares production `maisog-cms` / `maisog-media`, so it is not isolated.
-   - **F-3 (MEDIUM):** `maisog-labs-staging` serves an unauthenticated public read of the admin CMS publication and media on `workers.dev`.
-   - **F-4 (LOW):** `ACCESS_DIAGNOSTIC=1` is set on staging admin.
-   - **F-5 (MEDIUM, latent):** n8n tunnel with no Access app.
-   - **F-6 (INFO):** the governed apex `/admin` is safe but non-functional (placeholders), while the ungoverned `admin.maisoglabs.com` is the working admin.
-   - **F-7 (UNVERIFIED):** `maisog-jobs` and `eternal-eggs-dashboard` are public with no Access app.
-   - **F-8 (INFO):** confirm the single allow-listed admin email.
-   - R2 is not public. The admin bundles verify the Access JWT correctly behind an origin check.
-4. **Suspected legacy:**
-   - `maisog-labs-staging`;
-   - the pre-governance Admin V1 stack (`maisog-admin*`, `maisog-cms`, `maisog-media`), which is nonetheless the only working admin;
-   - old `maisog-labs` preview versions;
-   - `eternal-eggs-dashboard` (legacy for this repo; possibly live for Eternal Eggs).
-5. **Dependency uncertainties:**
-   - `maisog-cms` / `maisog-media` have three dependants and unknown content;
-   - Worker source may exist only in Cloudflare;
-   - usage is unknown (analytics not read);
-   - the origin of `maisog-jobs` is unproven;
-   - n8n usage is unknown.
-6. **Cleanup candidates (not executed):**
-   - `maisog-labs-staging` exposure, then retirement;
-   - staging admin hardening or retirement;
-   - n8n DNS/tunnel or an Access app for it.
+| Item | Value |
+|---|---|
+| D-103 / directive publication | `dd20f25285702147e441b0c3d2e2deb4cfe52a4f` (parent `872f31b…`, AS-129) |
+| `main` | `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4` (unchanged) |
+| Pre-change read | `2026-09-28T14:56:23Z` |
+| **A-1 pre** | `maisog-labs` subdomain `{"enabled": true, "previews_enabled": true}` |
+| **A-1 operation** | `POST /accounts/{account}/workers/scripts/maisog-labs/subdomain`, body `{"enabled": true, "previews_enabled": false}`, at `2026-09-28T14:59:03Z`. HTTP 200, `success: true`, no errors. The API requires `enabled`; `true` re-asserted its unchanged prior value |
+| **A-1 post** (immediate read-back) | `{"enabled": true, "previews_enabled": false}` |
+| **A-4 pre** | `maisog-labs-staging` subdomain `{"enabled": true, "previews_enabled": true}` |
+| **A-4 operation** | `POST /accounts/{account}/workers/scripts/maisog-labs-staging/subdomain`, body `{"enabled": false, "previews_enabled": false}`, at `2026-09-28T14:59:40Z`. HTTP 200, `success: true`, no errors |
+| **A-4 post** (immediate read-back) | `{"enabled": false, "previews_enabled": false}` |
+| Rollback | **not required**; not run |
 
-   No deletion is recommended for any Class-4 resource before owner decisions.
-7. **Remediation plan:** A-0 (owner decisions only) and A-1…A-9, each one bounded setting or record change with its own rollback (report §8).
-8. **Before returning to product development:**
-   - **Recommended first:** A-0 (owner decisions), then A-1 (disable `maisog-labs` preview URLs) and A-4 (disable `maisog-labs-staging` `workers.dev` and previews). These are small, reversible setting toggles that close the two paths reaching real data without authentication or review.
-   - **Also before n8n is next started:** A-6.
-   - **Can run alongside product work:** A-2, A-3, A-5, A-7; A-8 and A-9 are larger follow-ups.
+Each write ran inside one connector call that re-read the setting immediately before the `POST`, and would have aborted had it differed from the expected pre-state.
 
-   This is a Builder recommendation; the owner decides.
+## Tests and evidence
+
+**Bootstrap:**
+- Before D-103: tip `872f31b…`, `main` `6e14077…`; `TURN: PAULO`, `PAULO_DECISION_REQUIRED`; no handoff or directive; every flag `NO`; D-103 absent; bootstrap exit 0.
+- D-103: `--check-only` exit 0, then compare-and-swap publish (attempt 1).
+- After publication: bootstrap exit 0 on `dd20f25`; STATE selects the directive; `MUTATION_AUTHORIZED: YES` is the only `YES` flag.
+
+**Unchanged across the change** (pre-read `14:56:23Z` vs post-read `14:59:52Z`):
+
+| Setting | `maisog-labs` | `maisog-labs-staging` |
+|---|---|---|
+| Active deployment | `3bf053d6-56b8-4412-a96a-a587588f8521`, `53137101-afb8-456c-ab83-d8b7b934df01` @ 100% | `8e1dc39c-2f71-4411-9d52-e2fa46eba435`, `5a178e36…` @ 100% |
+| Custom domain | `maisoglabs.com` (`70c1abc4…`), still bound | none, before and after; the Worker still exists |
+| D1 | `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523` | `DB` → `72dfb480…` |
+| R2 | `MEDIA` → `maisog-labs-web-inc-004-local` | `MEDIA` → `maisog-media` |
+| Vars and other bindings | placeholder `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`, `ASSETS` | `ASSETS` |
+
+- Compatibility date, logpush and tail consumers are identical for both Workers.
+- The account's Worker list is unchanged (5 scripts).
+
+**Production HTTP (`https://maisoglabs.com`):**
+- Before the change: `/` 200, SHA-256 `2417f7e5…9f9`.
+- After A-1, and again after both actions (`15:00:08Z`): `/` 200 with SHA `2417f7e5…9f9` (the D-093 artifact, unchanged); `/api/journal` 200; `/api/design` 200; `/journal` 200; `/admin` 302 to the Access login (unchanged).
+
+**Live exposure evidence for A-1:**
+- `https://53137101-maisog-labs.paulomaisog284.workers.dev/admin` answered `401` from the Worker immediately after A-1 (propagation).
+- By `15:00:08Z`, `/` and `/admin` on that host return `404` `error code: 1042`: the preview URL is no longer served.
+
+## Unresolved findings and limitations
+
+1. **A-4 live probe not possible:** `maisog-labs-staging.paulomaisog284.workers.dev` is outside the session network allowlist (proxy `CONNECT 403`). A-4's post-state rests on the API read-back.
+2. **Build-trigger side effect (F-1 remainder, A-3 not authorized):**
+   - Workers Builds still uploads a non-production version for every non-`main` push. The D-103 governance push created `maisog-labs` v789 (`1848998a…`, `14:59:29Z`); publishing this return will add more.
+   - These uploads were not run by the Builder and were not deployed; the active deployment is unchanged.
+   - With previews disabled, they no longer receive public preview URLs.
+3. **Consequence noted in the directive:** version-preview smoke testing (as used for past Gate C/D candidates) is no longer available on `maisog-labs`. A future promotion gate needs a different pre-promotion check.
+4. **Carried forward:**
+   - AS-129 findings F-2, F-4, F-5, F-6, F-7 and F-8, and actions A-2, A-3, A-5, A-6, A-7, A-8 and A-9, remain open and unauthorized. For F-3, A-4 closed the exposure mechanism; the data impact is still unverified.
+   - S6 parked at ML-DEVOS-AS-103; O1 and O2 open; D-068 held.
+   - OBL-017/OBL-019/OBL-020 are unchanged.
+
+## Confirmations
+
+- Exactly two Cloudflare writes: the A-1 and A-4 subdomain `POST`s above. Everything else was a `GET`.
+- `maisog-labs` `workers.dev` stays enabled. No other Worker setting changed.
+- No D1/R2 access or change, and no Access, DNS, n8n, Builds-trigger, deployment, traffic, version, binding, secret or environment action.
+- No Worker deleted or renamed.
+- No `main`, PR #7, PR #10, S6/S7 or D-068 action. `devos/execution/`, `tests/fixtures/execution/` and `stash@{0}` were not touched.
 
 ## Changed files
 
 This return commit changes only:
 
-- `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md` (new): the assessment report.
 - `coordination/CURRENT_HANDOFF.md`: this handoff.
-- `coordination/STATE.md`: routed to `TURN: ARCHITECT`, directive deselected, all flags `NO`.
-- `coordination/archive/directives/DIR-WEB-CF-INVENTORY-0001.{md,provenance.json}`: byte-identical directive archive, plus its index row.
-
-The cycle-opening commit `9e8c9f5` (D-102 and the directive) is the other commit in this cycle.
-
-## Tests and evidence
-
-**Bootstrap:**
-- `check-context-bootstrap.mjs --commit 9e8c9f5… --session-protocol 2`: exit 0.
-- `main` is `6e14077…`.
-
-**Cloudflare `GET` reads:**
-- Workers: scripts, settings/bindings, subdomain toggles, deployments, versions, custom domains, and Builds triggers (by script tag);
-- Pages projects;
-- D1 list and metadata;
-- R2 buckets, managed-domain, custom-domain and CORS configuration;
-- Access organization, IdPs, apps and policies;
-- zones, DNS records and zone Worker routes;
-- Cloudflare Tunnels and their configuration;
-- the deployed bundles of `maisog-admin`, `maisog-admin-staging`, `maisog-labs-staging` and `eternal-eggs-dashboard` (2 bytes; assets only), inspected only for authentication and route logic.
-
-**HTTP (unauthenticated `GET`):**
-- `https://53137101-maisog-labs.paulomaisog284.workers.dev/admin` returned `401`, so the Worker fails closed.
-- Every other host returned a session-proxy `CONNECT 403` (network allowlist). This is recorded as an evidence limit, not as a Cloudflare response.
-
-**Repository:** references were searched across all remote branches (a local fetch only; nothing on GitHub changed).
-
-## Unresolved findings and limitations
-
-1. **Live exposure probes were not possible** except on the two allowlisted hosts. F-3, F-4 and F-7 rest on configuration and bundle code, not on observed responses.
-2. **No data reads:** it is unknown whether `maisog-cms` has a current publication (F-3 severity) or what `maisog-cms`, `maisog-media` or `maisog-jobs` contain.
-3. **Side effect of publishing, disclosed:** under F-1, this session's own branch pushes, and every governance-branch push, cause Workers Builds to upload non-production preview versions of `maisog-labs` (for example v781 and v783 from `claude/maisoglabs-protocol-v2-resume-7o14cx`). Publishing this return will add another. None was deployed; production remains `53137101…` @ 100%.
-4. **Redaction:** the Access allow-list email is not written in this public repository.
-5. **Carried forward:**
-   - S6 parked at ML-DEVOS-AS-103;
-   - O1 and O2 open;
-   - D-068 held;
-   - OBL-017 (production gate sequence) is directly affected by F-1;
-   - OBL-019/OBL-020 risks (RISK-WEB-002, -013) are touched by F-1 and F-3. The risk register was not edited (assessment only; A-7).
-
-## Confirmations
-
-- Only `GET` Cloudflare calls. No deploy, deletion, rename, or traffic, DNS, Access, Worker-setting, preview-setting, binding, secret or environment change.
-- No D1 SQL, no R2 object listing or read, no secret values read, no authenticated application requests.
-- No `main`, PR #7, PR #10, S6/S7 or D-068 action. Remote branches were fetched locally only, never modified.
+- `coordination/STATE.md`: routed to `TURN: ARCHITECT`, directive deselected, `MUTATION_AUTHORIZED` reset, every flag `NO`.
+- `coordination/archive/directives/DIR-WEB-CF-EXPOSURE-REMEDIATION-0001.{md,provenance.json}`: byte-identical directive archive, plus its index row.
 
 ## Evidence locations
 
-- `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md` (inventory tables with IDs, mapping, classification, findings, plan).
-- Cloudflare account `fb7234ae…`, zone `22a56d25…`; the resource IDs are listed in the report.
-- `coordination/archive/directives/DIR-WEB-CF-INVENTORY-0001.md`.
+- Cloudflare account `fb7234ae…`: Workers `maisog-labs` and `maisog-labs-staging` subdomain settings; deployments `3bf053d6…` and `8e1dc39c…`.
+- `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md` (A-1, A-4, F-1, F-3).
+- `coordination/archive/directives/DIR-WEB-CF-EXPOSURE-REMEDIATION-0001.md`.
 
 ## Governing references
 
-- **Authority:** D-102 (assessment only).
-- **Directive:** DIR-WEB-CF-INVENTORY-0001 (archived).
-- **Reviews:** ML-DEVOS-AS-128.
-- **Decisions:** D-101 (inventory findings), D-098 (`-local` naming), D-057/OBL-017 (production gate sequence).
+- **Authority:** D-103.
+- **Directive:** DIR-WEB-CF-EXPOSURE-REMEDIATION-0001 (archived).
+- **Reviews:** ML-DEVOS-AS-129.
+- **Decisions:** D-102.
 - **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Next action
 
-The Architect reviews this assessment under the next unused immutable Architect Sync ID after ML-DEVOS-AS-128, and routes the owner decisions (A-0) and any remediation authorizations to Paulo. Nothing in this return authorizes a change.
+The Architect reviews this return under the next unused immutable Architect Sync ID after ML-DEVOS-AS-129. The D-103 authority is consumed. A-3, A-6, S6, admin work and ClinicFlow do not start automatically.
