@@ -2080,3 +2080,38 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   `REMOTE_D1_AUTHORIZED` and every action flag are then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-CBR-D1-0006-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D110_RFC022_CBR_PRODUCTION_D1_0006_ONLY`, applicable review `ML-DEVOS-AS-136`), routed to Claude/Builder.
+
+### D-111 — Authorize one bounded repository/local remediation of AS137-F001 and AS137-F002
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `df5b4e153e8c0ff21be2fbc10b6521b1ed8d69ef`, in the same message that relayed `ML-DEVOS-AS-137`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:** `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3`; production D1 `45b87574-e573-4e0f-9bb6-fbba2df29523` at migrations `0001`–`0006`; active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- **Authorized (one remediation cycle, repository/local only):**
+  1. **Initial project activation (AS137-F001).**
+     - Implement the smallest initial-only atomic activation capability.
+     - Before initial activation, an individual homepage-project publish must not be able to create a partial first homepage activation.
+     - The initial activation operation requires exactly ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat, in that order, complete and valid.
+     - It publishes all five in one atomic D1 operation with audit evidence, preserving expected-pointer guards.
+     - After initial activation, the accepted AS133 behavior is preserved: public runtime renders any valid 1..5 published projects.
+     - Use a durable existing substrate (such as bounded audit/state evidence) rather than a permanent runtime five-project gate, unless the implementation proves another smaller design is safer.
+  2. **`site_settings` bootstrap.** Remove the manual production-seed dependency for first contact use. The first contact-draft creation safely initializes the `site_settings` parent state when absent, atomically and with stale-write and audit protections. It never publishes an email automatically.
+  3. **Access configuration (AS137-F002).** Read the existing `maisoglabs.com/admin` Access application read-only. Use its exact current non-secret `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` values, replacing only the inert placeholders for the governed `maisog-labs` Worker. No change to the Access application, policy, allowed identity, DNS or Cloudflare account configuration.
+  4. **Release semantics.** Narrowly update RFC-022 / release documentation so that Gate D may activate the code while there is still no valid published bridge payload, because public `/` remains the approved artifact. AS132-F002 stays mandatory before the first project bridge activation, not as a precondition for making the admin/bootstrap code reachable. The exact-five initial activation requirement is not weakened.
+  5. **Tests** proving:
+     - zero published projects → public artifact fallback;
+     - one or four individual project publishes cannot create first activation;
+     - the exact five initial projects activate atomically;
+     - a failed initial activation leaves zero published homepage projects;
+     - after a successful initial activation, normal 1..5 behavior remains;
+     - the `site_settings` first-draft bootstrap is atomic and does not publish;
+     - stale or conflicting bootstrap attempts fail safely;
+     - the Access placeholders are gone and fail-closed authentication behavior remains;
+     - the existing RFC-022 tests and the full suite stay green.
+- **Not authorized:**
+  - any production D1 write; content creation or publication in production; production email change;
+  - Gate D; deployment or promotion;
+  - Cloudflare Access mutation; DNS, R2, secret or environment mutation;
+  - another `main` merge; PR #7 or PR #10 action;
+  - a new planning RFC, unless an implementation-blocking architectural issue is discovered.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for repository/local changes within this scope only. Every remote, deploy and other action flag stays `NO`. Read-only Cloudflare API reads (the Access application) need no flag.
+- **Return:** one Protocol V2 Builder return with the files changed, the design chosen for initial activation and bootstrap, the Access values' provenance, test and build results, and confirmation that no remote resource was mutated. Every flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-REM1-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D111_RFC022_CBR_AS137_REMEDIATION_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-137`), routed to Claude/Builder.
