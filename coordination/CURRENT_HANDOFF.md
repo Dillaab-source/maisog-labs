@@ -1,116 +1,129 @@
-# Current Handoff — D-098 Hardening Gate D Production Promotion (D-100 / D-101)
+# Current Handoff — Cloudflare Inventory & Exposure Review (D-102, read-only)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-D098-GATE-D-0001
-cycle_id: MAISOGLABS_WEB_D098_GATE_D
-input_base_commit: 0d0c8fff7ad4b2bb5efdfbf6b5a409cc680c6033
-review_target_commit: 0d0c8fff7ad4b2bb5efdfbf6b5a409cc680c6033
-applicable_review_id: ML-DEVOS-AS-127
+handoff_id: H-WEB-CF-INVENTORY-0001
+cycle_id: MAISOGLABS_CF_INVENTORY_REVIEW
+input_base_commit: 9e8c9f5006f0654eac7c139a41ef4d21b71a5f34
+review_target_commit: 9e8c9f5006f0654eac7c139a41ef4d21b71a5f34
+applicable_review_id: ML-DEVOS-AS-128
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
-
-**Evidence classes:**
-- Cloudflare deployment, version and build readings, and the single promotion call: made by the Builder in the authenticated Claude Code cloud session through the Cloudflare MCP/API connector (D-101 execution path). `ACTOR_REPORTED`.
-- Production and candidate HTTP checks: `curl` from the same cloud session after the environment network allowlist was updated. `ACTOR_REPORTED`.
-- Paulo gave a one-time, in-session approval for the exact promotion call before it ran. No standing Cloudflare write permission was created.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. All Cloudflare evidence is `ACTOR_REPORTED`: connector `GET` reads made from this authenticated cloud session.
 
 ## Objective
 
-Execute `DIR-WEB-D098-GATE-D-0001` under D-100 as amended by D-101: promote Worker Version `53137101-afb8-456c-ab83-d8b7b934df01` (the D-098 hardening released by D-099 Gate C) to 100% production traffic with exactly one deployment, verify production read-only, and roll back once to `f473c170-b39c-4d7b-85ad-a99c5208d539` only on a new material failure.
+Execute `DIR-WEB-CF-INVENTORY-0001` (D-102): a read-only inventory and classification of the Cloudflare resources found during D-101, mapped against repository intent. The deliverables are findings and a remediation proposal. Nothing is executed.
 
 ## Result
 
-**Gate D complete. `53137101…` is live at 100%; there was one promotion and no rollback.**
+**Assessment complete. No mutation was made.** The full report is `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md`. In brief:
 
-| Item | Value |
-|---|---|
-| Governance tip at execution | `0d0c8fff7ad4b2bb5efdfbf6b5a409cc680c6033` (D-101 publication; D-100 at `964f330e0fa27c1307bedaf7e13a4bde561dee51`) |
-| `main` | `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4` (unchanged) |
-| Candidate | `53137101-afb8-456c-ab83-d8b7b934df01`, version #775, alias `main`, created `2026-09-27T11:08:07Z` |
-| **PRE_GATE_D_ACTIVE_VERSION_ID** | `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100%, no split. Deployment `fc425da6-d57f-4e9e-abc0-ac8582c2d4bf`. Read fresh twice: at bootstrap, then again inside the same connector call, immediately before the write |
-| **Operation** | `POST /accounts/{account}/workers/scripts/maisog-labs/deployments`, body `{"strategy":"percentage","versions":[{"version_id":"53137101-afb8-456c-ab83-d8b7b934df01","percentage":100}],"annotations":{"workers/message":"D-100/D-101 Gate D promotion"}}`, no `force` |
-| Response | HTTP 200, `success: true`, `errors: []` |
-| **Deployment ID** | `3bf053d6-56b8-4412-a96a-a587588f8521`, created `2026-09-28T07:21:06.41128Z`, source `api` |
-| **POST_GATE_D_ACTIVE_VERSION_ID** | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, no split (re-read after the write) |
-| Rollback | **not run**: no D-100 failure condition was met |
+1. **Inventory:**
+   - 5 Workers, 1 Pages project, 3 D1 databases, 2 R2 buckets, 3 Access apps, 3 Worker custom domains;
+   - one extra resource outside the D-101 list: the `n8n.maisoglabs.com` Cloudflare Tunnel, currently down, with no Access app.
+2. **Repo ↔ Cloudflare:** only `maisog-labs`, with its D1 `…-005-local` and R2 `…-004-local`, is sourced from and documented in this repository. **The deployed code of `maisog-admin`, `maisog-admin-staging`, `maisog-labs-staging` and Pages `maisog-jobs` exists on no branch** (all remote branches were searched). `maisog-cms` / `maisog-media` appear only in the uninspected `master-plan-v1` plan.
+3. **Exposure findings:**
+   - **F-1 (HIGH):** `maisog-labs` previews and `workers.dev` are on. Every non-`main` branch push publishes a public preview URL running unreviewed code bound to the production D1/R2 (783 versions so far), which bypasses the Gate C/D path.
+   - **F-2 (HIGH):** staging admin shares production `maisog-cms` / `maisog-media`, so it is not isolated.
+   - **F-3 (MEDIUM):** `maisog-labs-staging` serves an unauthenticated public read of the admin CMS publication and media on `workers.dev`.
+   - **F-4 (LOW):** `ACCESS_DIAGNOSTIC=1` is set on staging admin.
+   - **F-5 (MEDIUM, latent):** n8n tunnel with no Access app.
+   - **F-6 (INFO):** the governed apex `/admin` is safe but non-functional (placeholders), while the ungoverned `admin.maisoglabs.com` is the working admin.
+   - **F-7 (UNVERIFIED):** `maisog-jobs` and `eternal-eggs-dashboard` are public with no Access app.
+   - **F-8 (INFO):** confirm the single allow-listed admin email.
+   - R2 is not public. The admin bundles verify the Access JWT correctly behind an origin check.
+4. **Suspected legacy:**
+   - `maisog-labs-staging`;
+   - the pre-governance Admin V1 stack (`maisog-admin*`, `maisog-cms`, `maisog-media`), which is nonetheless the only working admin;
+   - old `maisog-labs` preview versions;
+   - `eternal-eggs-dashboard` (legacy for this repo; possibly live for Eternal Eggs).
+5. **Dependency uncertainties:**
+   - `maisog-cms` / `maisog-media` have three dependants and unknown content;
+   - Worker source may exist only in Cloudflare;
+   - usage is unknown (analytics not read);
+   - the origin of `maisog-jobs` is unproven;
+   - n8n usage is unknown.
+6. **Cleanup candidates (not executed):**
+   - `maisog-labs-staging` exposure, then retirement;
+   - staging admin hardening or retirement;
+   - n8n DNS/tunnel or an Access app for it.
 
-## Tests and evidence
+   No deletion is recommended for any Class-4 resource before owner decisions.
+7. **Remediation plan:** A-0 (owner decisions only) and A-1…A-9, each one bounded setting or record change with its own rollback (report §8).
+8. **Before returning to product development:**
+   - **Recommended first:** A-0 (owner decisions), then A-1 (disable `maisog-labs` preview URLs) and A-4 (disable `maisog-labs-staging` `workers.dev` and previews). These are small, reversible setting toggles that close the two paths reaching real data without authentication or review.
+   - **Also before n8n is next started:** A-6.
+   - **Can run alongside product work:** A-2, A-3, A-5, A-7; A-8 and A-9 are larger follow-ups.
 
-### Pre-execution checks (all fresh, all passed)
-
-1. `node scripts/check-context-bootstrap.mjs --commit 0d0c8ff… --session-protocol 2` returned `ok: true`. STATE selects `DIR-WEB-D098-GATE-D-0001`. `DEPLOY_AUTHORIZED: YES` is the only `YES` flag. The live review is `ML-DEVOS-AS-127`.
-2. `main` is `6e14077…`. Workers Build `e2a2d328-76d0-4361-816e-3b74c0c7b5c7` read `success`, `main` push `6e14077…`, `npx wrangler versions upload`. The build record does not expose a version ID. `53137101…` is the only version with alias `main`, and it matches the Gate C record.
-3. **No newer `main` release.** The four versions uploaded after `53137101…` (#776–#779: `c71dc311…`, `90581dbf…`, `daf473cb…`, `6ff132ca…`) all carry the alias `governance-maisoglabs-v0-1`. They are branch previews and were not deployed.
-4. **Candidate smoke test** on `https://53137101-maisog-labs.paulomaisog284.workers.dev`:
-   - `/`: 200 `text/html`, 1,969,988 bytes. SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`, the D-093 artifact.
-   - `/api/journal`: 200 `application/json`, `{"entries":[]}`.
-   - `/api/design`: 200 `application/json`, 500 bytes, theme payload.
-   - No `error code: 1101` in any response.
-5. **Production baseline before the write** (`https://maisoglabs.com`):
-   - `/`: 200, SHA `2417f7e5…`.
-   - `/api/journal`: 200.
-   - `/api/design`: 200.
-   - `/journal`: 200, 10,213 bytes.
-   - `/admin`: 302 to Cloudflare Access login (`jolly-disk-0469.cloudflareaccess.com`).
-
-### Post-promotion production checks (`https://maisoglabs.com`, `2026-09-28T07:21:26Z`)
-
-| Path | Result | Compared with pre |
-|---|---|---|
-| `/` | 200 `text/html`, 1,969,988 B, SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9` | **identical**: D-093 homepage artifact unchanged |
-| `/api/journal` | 200 `application/json`, `{"entries":[]}` | identical |
-| `/api/design` | 200 `application/json`, 500 B | byte-identical |
-| `/journal` | 200 `text/html`, 10,213 B | differs only in the embedded Next.js build ID (`6hOtAyt2PgNZtJal5oB1P` → `GBlRlqngjbD30D9DKxKzV`). This is expected for a new build. It is byte-identical to the candidate's `/journal` and stable on re-fetch |
-| `/admin` | 302 to the same Cloudflare Access login | unchanged; the body hash matches the pre-reading |
-
-No 1101 or 5xx. Empty Journal content is known and is not a failure (SU note).
+   This is a Builder recommendation; the owner decides.
 
 ## Changed files
 
-This Builder return commit changes only:
+This return commit changes only:
 
+- `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md` (new): the assessment report.
 - `coordination/CURRENT_HANDOFF.md`: this handoff.
-- `coordination/STATE.md`: routed to `TURN: ARCHITECT`, directive deselected, `DEPLOY_AUTHORIZED` reset, every action flag `NO`.
-- `coordination/archive/directives/DIR-WEB-D098-GATE-D-0001.{md,provenance.json}`: byte-identical archive of the executed directive (blob `bb6110586331506344be090fa0b7b8cd2104bf63`, publication `964f330`), plus its index row in `coordination/archive/directives/README.md`.
+- `coordination/STATE.md`: routed to `TURN: ARCHITECT`, directive deselected, all flags `NO`.
+- `coordination/archive/directives/DIR-WEB-CF-INVENTORY-0001.{md,provenance.json}`: byte-identical directive archive, plus its index row.
 
-No code, runtime, config or `main` change.
+The cycle-opening commit `9e8c9f5` (D-102 and the directive) is the other commit in this cycle.
+
+## Tests and evidence
+
+**Bootstrap:**
+- `check-context-bootstrap.mjs --commit 9e8c9f5… --session-protocol 2`: exit 0.
+- `main` is `6e14077…`.
+
+**Cloudflare `GET` reads:**
+- Workers: scripts, settings/bindings, subdomain toggles, deployments, versions, custom domains, and Builds triggers (by script tag);
+- Pages projects;
+- D1 list and metadata;
+- R2 buckets, managed-domain, custom-domain and CORS configuration;
+- Access organization, IdPs, apps and policies;
+- zones, DNS records and zone Worker routes;
+- Cloudflare Tunnels and their configuration;
+- the deployed bundles of `maisog-admin`, `maisog-admin-staging`, `maisog-labs-staging` and `eternal-eggs-dashboard` (2 bytes; assets only), inspected only for authentication and route logic.
+
+**HTTP (unauthenticated `GET`):**
+- `https://53137101-maisog-labs.paulomaisog284.workers.dev/admin` returned `401`, so the Worker fails closed.
+- Every other host returned a session-proxy `CONNECT 403` (network allowlist). This is recorded as an evidence limit, not as a Cloudflare response.
+
+**Repository:** references were searched across all remote branches (a local fetch only; nothing on GitHub changed).
 
 ## Unresolved findings and limitations
 
-1. **Execution-path deviation, as amended:** the directive text still names `npx wrangler versions deploy …` and a local-clone executor. The promotion used the D-101 connector path instead: one `POST …/deployments` with the same effect. No wrangler command ran.
-2. **Build-to-version binding:** the Workers Build record for `e2a2d328…` does not expose the version ID. The binding to `53137101…` rests on the `main` alias, the timing, and the Gate C record (`OWNER_REPORTED` / check-run evidence). It was not re-proven from the build object.
-3. **Local-clone preconditions do not apply here:** "worktree clean apart from the D-068 draft" and "`stash@{0}` untouched" refer to Paulo's local clone. This fresh cloud checkout has neither. Neither was touched.
-4. **No Architect or owner reproduction yet:** all Cloudflare and HTTP evidence is `ACTOR_REPORTED`.
-5. Carried forward:
-   - S6 parked at ML-DEVOS-AS-103.
-   - O1 and O2 open.
-   - D-068 held.
-   - The D-101 inventory findings (admin/staging Workers, Pages, D1/R2, placeholder `ACCESS_*` vars, public `workers.dev` previews) are queued for a separate Architect cycle and were not touched.
+1. **Live exposure probes were not possible** except on the two allowlisted hosts. F-3, F-4 and F-7 rest on configuration and bundle code, not on observed responses.
+2. **No data reads:** it is unknown whether `maisog-cms` has a current publication (F-3 severity) or what `maisog-cms`, `maisog-media` or `maisog-jobs` contain.
+3. **Side effect of publishing, disclosed:** under F-1, this session's own branch pushes, and every governance-branch push, cause Workers Builds to upload non-production preview versions of `maisog-labs` (for example v781 and v783 from `claude/maisoglabs-protocol-v2-resume-7o14cx`). Publishing this return will add another. None was deployed; production remains `53137101…` @ 100%.
+4. **Redaction:** the Access allow-list email is not written in this public repository.
+5. **Carried forward:**
+   - S6 parked at ML-DEVOS-AS-103;
+   - O1 and O2 open;
+   - D-068 held;
+   - OBL-017 (production gate sequence) is directly affected by F-1;
+   - OBL-019/OBL-020 risks (RISK-WEB-002, -013) are touched by F-1 and F-3. The risk register was not edited (assessment only; A-7).
 
 ## Confirmations
 
-- Exactly one Cloudflare write: the single deployment creation above. No version upload, `wrangler deploy`, other version, split, `force`, or rollback.
-- No D1 or R2 access or mutation; no binding, Access, DNS, secret or environment change; no resource created, deleted or renamed. Preview versions, admin/staging Workers, Pages and Eternal Eggs were not touched.
-- Connector reads were limited to the `maisog-labs` deployments and versions, candidate version `53137101…`, and build `e2a2d328…`.
-- PR #7, PR #10, S6/S7 and D-068 were not touched.
+- Only `GET` Cloudflare calls. No deploy, deletion, rename, or traffic, DNS, Access, Worker-setting, preview-setting, binding, secret or environment change.
+- No D1 SQL, no R2 object listing or read, no secret values read, no authenticated application requests.
+- No `main`, PR #7, PR #10, S6/S7 or D-068 action. Remote branches were fetched locally only, never modified.
 
 ## Evidence locations
 
-- Cloudflare deployments `3bf053d6-56b8-4412-a96a-a587588f8521` (new, `53137101…` @ 100%) and `fc425da6-d57f-4e9e-abc0-ac8582c2d4bf` (previous, `f473c170…` @ 100%).
-- Versions `53137101-afb8-456c-ab83-d8b7b934df01` (active) and `f473c170-b39c-4d7b-85ad-a99c5208d539` (the rollback target, still available).
-- Build `e2a2d328-76d0-4361-816e-3b74c0c7b5c7`.
-- `coordination/archive/directives/DIR-WEB-D098-GATE-D-0001.md`.
+- `docs/security/CF_INVENTORY_EXPOSURE_REVIEW.md` (inventory tables with IDs, mapping, classification, findings, plan).
+- Cloudflare account `fb7234ae…`, zone `22a56d25…`; the resource IDs are listed in the report.
+- `coordination/archive/directives/DIR-WEB-CF-INVENTORY-0001.md`.
 
 ## Governing references
 
-- **Authority:** D-100, as amended by D-101 (execution path only).
-- **Directive:** DIR-WEB-D098-GATE-D-0001 (archived).
-- **Reviews:** ML-DEVOS-AS-127 (Gate C closure), ML-DEVOS-AS-126 (hardening acceptance).
-- **Decisions:** D-098, D-099, D-095 (Gate D precedent).
-- **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md` (OBL-017 production-gate sequence followed).
+- **Authority:** D-102 (assessment only).
+- **Directive:** DIR-WEB-CF-INVENTORY-0001 (archived).
+- **Reviews:** ML-DEVOS-AS-128.
+- **Decisions:** D-101 (inventory findings), D-098 (`-local` naming), D-057/OBL-017 (production gate sequence).
+- **Obligations:** `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Next action
 
-The Architect reviews this Gate D return under the next unused immutable Architect Sync ID after ML-DEVOS-AS-127. The Gate D authority is consumed. No further Cloudflare action is authorized. S6 does not start automatically.
+The Architect reviews this assessment under the next unused immutable Architect Sync ID after ML-DEVOS-AS-128, and routes the owner decisions (A-0) and any remediation authorizations to Paulo. Nothing in this return authorizes a change.
