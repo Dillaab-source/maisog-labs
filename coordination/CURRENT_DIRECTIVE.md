@@ -1,91 +1,92 @@
-# Current Directive — RFC-022 CB-R Stage 1 Readiness (D-108)
+# Current Directive — RFC-022 Gate C (D-109)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-RFC022-CBR-S1-0001
+directive_id: DIR-WEB-RFC022-GATE-C-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-issue_parent_commit: b2b88c7b4bca0c3d92b62d4054c06b8ab0f419d9
+issue_parent_commit: 52026f7806f92e867737599fc4e5992e2ae6e8ef
 target_turn: CLAUDE
-authority_ref: D-108
-applicable_review_id: ML-DEVOS-AS-134
+authority_ref: D-109
+applicable_review_id: ML-DEVOS-AS-135
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-108 and `ML-DEVOS-AS-134`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-109 and `ML-DEVOS-AS-135`.
 
 ## Objective
 
-Produce CB-R Stage 1 release-readiness evidence for RFC-022 Tier 1 without executing Gate C:
-- one fresh release PR with exact-head CI;
-- read-only release-state checks;
-- a read-only production D1 inspection;
-- AS132-F002 readiness and the content prerequisites.
+Execute RFC-022 Gate C: merge PR #16 into `main` through the protected PR path, without production promotion, and prove that production traffic is unchanged.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; every action flag is `NO`.
-- `main` is `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`, unless the readiness check reports otherwise.
-- `public/index.html` SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- The Protocol V2 bootstrap passes; STATE selects this directive; `MAIN_MERGE_AUTHORIZED` is the only `YES` flag.
+- `main` is `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`.
+- The reviewed PR head is `52026f7806f92e867737599fc4e5992e2ae6e8ef`. The final head is this directive's publication commit.
+- The homepage SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- The expected active production version is `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-108; live STATE; `ML-DEVOS-AS-134`.
-- **T1:** `ML-DEVOS-RFC-022` §7 and §10 (CB-R); `ML-DEVOS-AS-132` (AS132-F002); D-102 (read-only Cloudflare precedent); D-094/D-099 (Gate C shape, for reference only).
+- **T0:** Protocol V2; D-109; live STATE; `ML-DEVOS-AS-135`.
+- **T1:** `ML-DEVOS-RFC-022` §10 (CB-R); D-108; `ML-DEVOS-AS-134`; D-094/D-099 (Gate C precedent); D-055.
 
 ## Exact execution scope
 
 Allowed:
-- open one `governance/maisoglabs-v0.1 → main` release PR and read its exact-head CI;
-- read-only GitHub checks;
-- read-only production D1 queries (SELECT and PRAGMA only) on database `45b87574-e573-4e0f-9bb6-fbba2df29523`;
-- one Protocol V2 Builder return.
+- mark PR #16 ready for review;
+- read CI, the PR and the Cloudflare deployment state;
+- one merge of PR #16 (`merge_method: merge`, `sha` = final head);
+- observe the Workers Build;
+- one Protocol V2 Builder return on `governance/maisoglabs-v0.1`.
 
 Not allowed:
-- merging the PR (Gate C);
-- any D1 write or remote migration;
-- content publication;
-- Cloudflare, Access or DNS changes; deployment; Gate D; promotion;
-- PR #7 or PR #10 action.
+- Gate D; `wrangler versions deploy`; promotion; traffic change; rollback;
+- remote `0006`; D1 writes; content publication; R2;
+- Cloudflare binding, Access, DNS, secret or environment changes;
+- direct push to `main`; force; squash; rebase; auto-merge; protection bypass;
+- PR #7 or PR #10.
 
 ## SENTINEL Sync
 
-- **Authority:** D-108 (Paulo).
-- **Context:** AS-134 accepted the implementation; CB-R is a separate release decision.
-- **Capability:** read-only production inspection plus one release PR.
-- **Execution:** Stage 1 readiness only.
-- **Evidence:** exact-head CI, production schema/content state, AS132-F002 status, and the content prerequisites.
+- **Authority:** D-109 (Paulo).
+- **Context:** AS-135 accepted the readiness evidence; PR #16 is the correct release PR.
+- **Capability:** one protected merge.
+- **Execution:** Gate C only.
+- **Evidence:** final-head CI, the merge commit, the Workers Build, and pre-merge active version = post-merge active version.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- In this repository "Gate C" means the protected `main` merge. D-108 authorizes Gate C readiness only; the merge is a separate Paulo authorization.
-- The release PR's head is the governance branch, so publishing the return advances the PR head. The return reports the CI result for both the reviewed head and the final head.
+- Merging to `main` triggers a `main` Workers Build that uploads a new version but, as at D-094/D-099, does not deploy it. If the post-merge active version differs from the pre-merge one, that is a stop condition and must be reported. The Builder does not roll back without authority.
+- `0006` is not applied in production. That is harmless while the new version receives no traffic.
 
 ## Instructions
 
 1. Bootstrap.
-2. Open the release PR and record its exact-head CI.
-3. Run the read-only checks, including production D1.
-4. Evaluate AS132-F002 and the content prerequisites. Anything missing is `NOT READY`.
-5. Publish the return.
+2. Mark PR #16 ready. Wait for `test-and-build` SUCCESS on the exact final head.
+3. Re-check mergeability, `main`, the release scope and the homepage hash. Record `PRE_MERGE_ACTIVE_VERSION_ID`.
+4. Merge with a normal merge commit, pinned to the final head.
+5. Observe the Workers Build. Record `POST_MERGE_ACTIVE_VERSION_ID` and compare.
+6. Publish the return.
 
 ## Validation and evidence
 
-- The PR number and head SHA; the CI result on that exact head.
-- `main` SHA; the diff summary; `public/index.html` SHA.
-- Production D1: applied migrations, the `0006` column state, published projects, and contact settings.
-- AS132-F002: `READY` or `NOT READY`, with reasons.
-- Eternal Eggs copy and email deliverability: found or `NOT READY`.
+- The final head SHA and its CI result.
+- The merge commit SHA and its parents.
+- The Workers Build ID and the new version ID.
+- Pre- and post-merge active version, and whether they are equal.
+- `main` after the merge; the homepage hash.
 
 ## Stop conditions
 
-- Any check would require a write, a migration, a merge or a Cloudflare change.
-- Production state contradicts the repository in a way that would require action.
+- Any CI failure on the final head, `main` has moved, a merge conflict, or an unexpected release-scope difference.
+- The post-merge active version differs from the pre-merge one: stop and report, without remediating.
+- Any step would need a non-authorized action.
 
 ## Next action
 
-Publish the Stage 1 readiness handoff. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-RFC022-GATE-C-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.

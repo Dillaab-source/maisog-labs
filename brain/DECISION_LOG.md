@@ -2009,3 +2009,40 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   - PR #7 or PR #10 action; S6/S7; D-068; A-3/A-6.
 - **Return:** Stage 1 readiness evidence goes to the Architect/Paulo; all flags `NO`; then stop.
 - **Directive:** issue `DIR-WEB-RFC022-CBR-S1-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D108_RFC022_CBR_STAGE1_READINESS_ONLY`, applicable review `ML-DEVOS-AS-134`), routed to Claude/Builder.
+
+### D-109 — Authorize RFC-022 Gate C: protected merge of PR #16 without production promotion
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `52026f7806f92e867737599fc4e5992e2ae6e8ef`, after `ML-DEVOS-AS-135` accepted the CB-R Stage 1 readiness evidence. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:**
+  - PR `Dillaab-source/maisog-labs#16` (`governance/maisoglabs-v0.1 → main`);
+  - reviewed head `52026f7806f92e867737599fc4e5992e2ae6e8ef`;
+  - `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`;
+  - expected active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100% (as read at Stage 1);
+  - homepage SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- **Authorized (Gate C only):**
+  - publish the bounded Gate C directive;
+  - mark PR #16 ready for review;
+  - require fresh `test-and-build` SUCCESS on the new exact final head, because this D-109 publication advances the PR head;
+  - re-check clean mergeability, unchanged `main`, the release scope (the final head differs from the reviewed head only by D-109 coordination records) and the homepage hash;
+  - record a fresh `PRE_MERGE_ACTIVE_VERSION_ID`;
+  - merge PR #16 through the normal protected GitHub PR path, with a normal merge commit and the exact expected head pinned;
+  - observe the resulting `main` Workers Build and version upload;
+  - verify that `POST_MERGE_ACTIVE_VERSION_ID` equals `PRE_MERGE_ACTIVE_VERSION_ID`, still at 100%;
+  - publish the Gate C return to the Architect.
+- **Production readings:** taken read-only through the Cloudflare MCP/API connector in the Builder session (`ACTOR_REPORTED`), as at the D-108 Stage 1.
+- **Not authorized:**
+  - production promotion or Gate D; `wrangler versions deploy`; any traffic change or rollback;
+  - remote D1 migration `0006`; any production D1 write; content publication; R2 mutation;
+  - Cloudflare binding, Access, DNS, secret or environment changes;
+  - direct push to `main`, force push, squash, rebase, auto-merge or protection bypass;
+  - PR #7 or PR #10 action; S6/S7; D-068; A-3/A-6.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-GATE-C-0001` recording:
+  - the D-109 publication SHA; the PR number, base and final head; CI on the final head;
+  - the merge commit; the release diff;
+  - the Workers Build ID and new version ID;
+  - the pre- and post-merge active version and proof that they are equal;
+  - proof that no Gate D command ran.
+
+  Every action flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D109_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-135`), routed to Claude/Builder.

@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: AS135_RFC022_GATE_C_OWNER_DECISION_ONLY
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D109_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,49 +14,38 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-RFC022-GATE-C-0001
+DIRECTIVE_ISSUE_PARENT: 52026f7806f92e867737599fc4e5992e2ae6e8ef
+DIRECTIVE_AUTHORITY_REF: D-109
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-135
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: NO
+MAIN_MERGE_AUTHORIZED: YES
 
-## Architect review
+## Authority
 
-`ML-DEVOS-AS-135`: `STAGE 1 READINESS EVIDENCE ACCEPTED — FIRST BRIDGE ACTIVATION NOT READY`. Reviewed tip: `557889cc306aa91faaa1fbba514f25a312973faa`.
+D-109 records Paulo's authorization of RFC-022 Gate C for PR #16 only, after `ML-DEVOS-AS-135` accepted the CB-R Stage 1 readiness evidence: one protected normal-merge-commit merge into `main`, without production promotion.
 
-Confirmed:
-- PR #16 is the correct RFC-022 release PR.
-- The code/release candidate is suitable to proceed to a separately authorized Gate C.
-- Production traffic remains unchanged.
-- Production D1 still requires migration `0006`.
-- AS132-F002 is not ready, because production has no project content.
-- `site_settings` is uninitialized.
-- Eternal Eggs copy and the other initial project content still require owner approval.
-- Deliverability of `paulo.maisog@maisoglabs.com` remains unconfirmed.
+`MAIN_MERGE_AUTHORIZED: YES` covers this exact Gate C only.
 
-These are release/activation prerequisites, not implementation defects.
+## Selected directive
 
-`H-WEB-RFC022-CBR-S1-0001` is archived byte-for-byte and deselected. The D-108 authority is consumed.
-
-## Paulo decision required
-
-Scope: the separate Gate C decision for PR #16 (the protected `main` merge). No Gate C work begins automatically.
+`DIR-WEB-RFC022-GATE-C-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-109 and the directive.
 
 ## Hard boundaries
 
-No merge authority exists. Also not authorized:
-- remote D1 writes or migrations; content publication;
-- Gate D; deployment; promotion;
-- Cloudflare, Access or DNS mutation.
+Only `MAIN_MERGE_AUTHORIZED` is `YES`. Every other action-specific flag is `NO`.
 
-PR #16 stays a draft.
+Not authorized:
+- Gate D; `wrangler versions deploy`; promotion; traffic change; rollback;
+- remote D1 migration `0006`; any production D1 write; content publication; R2 mutation;
+- Cloudflare binding, Access, DNS, secret or environment changes;
+- direct push to `main`, force push, squash, rebase, auto-merge or protection bypass.
 
 AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
@@ -64,4 +53,6 @@ No PR #7 or PR #10 action. No S6/S7. No D-068. A-3 and A-6 are not authorized.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-All action-specific authorization flags are `NO`.
+## Next transition
+
+The Builder executes Gate C and publishes `H-WEB-RFC022-GATE-C-0001`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
