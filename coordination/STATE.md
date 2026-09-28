@@ -33,7 +33,9 @@ D-100 records Paulo's authorization of exactly one production promotion: `npx wr
 
 ## Selected directive
 
-`DIR-WEB-D098-GATE-D-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-100 and the directive. Cloudflare steps run from an environment with authenticated Cloudflare access; the Builder's cloud session has none.
+`DIR-WEB-D098-GATE-D-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-100 as amended by D-101, and the directive.
+
+D-101 amends only the execution path. The authenticated cloud Builder session may run the single promotion of `53137101-afb8-456c-ab83-d8b7b934df01` at 100%, and the single conditional rollback to `f473c170-b39c-4d7b-85ad-a99c5208d539`, through the Cloudflare MCP/API connector, using the minimum Workers deployment operation, after fresh pre-execution checks. The authorized effect is unchanged.
 
 ## Hard boundaries
 

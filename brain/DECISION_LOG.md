@@ -1777,3 +1777,22 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `DEPLOY_AUTHORIZED: YES` for this exact promotion and conditional rollback only; every other action flag `NO`.
 - **Return:** Builder return `H-WEB-D098-GATE-D-0001` with the D-100 publication SHA, pre-deploy active version, candidate, exact command, Deployment ID, post-deploy active version, production HTTP evidence, rollback status, and confirmation that no unrelated resource was touched. `DEPLOY_AUTHORIZED` is reset to `NO` and the return is routed to the Architect. S6 does not start automatically.
 - **Directive:** issue `DIR-WEB-D098-GATE-D-0001` (cycle `MAISOGLABS_WEB_D098_GATE_D`, scope `D100_D098_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-127`), routed to Claude/Builder.
+
+### D-101 — Amend D-100 execution path: Gate D promotion through the Cloudflare MCP/API connector
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `964f330e0fa27c1307bedaf7e13a4bde561dee51`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** a bounded amendment to D-100 that changes only the execution path. It does not broaden the authorized effect. D-100 and `DIR-WEB-D098-GATE-D-0001` remain controlling in every other respect.
+- **Amendment:** the currently authenticated Claude Code cloud Builder session may run the already-authorized D-100 promotion through the official Cloudflare MCP/API connector, using the minimum Workers API operation that creates a deployment of exactly `53137101-afb8-456c-ab83-d8b7b934df01` at 100%. This replaces the locally run `npx wrangler versions deploy …` path. The single conditional D-100 rollback may likewise be run through the connector, as a deployment of exactly `f473c170-b39c-4d7b-85ad-a99c5208d539` at 100%, under the unchanged D-100 failure conditions.
+- **Bound identities (unchanged):** candidate `53137101-afb8-456c-ab83-d8b7b934df01`; 100% production traffic; current production and rollback target `f473c170-b39c-4d7b-85ad-a99c5208d539`; `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`; one promotion attempt; at most one conditional rollback.
+- **Fresh pre-execution checks:**
+  1. STATE still selects `DIR-WEB-D098-GATE-D-0001`;
+  2. `main` is still `6e14077…`;
+  3. active production is exactly `f473c170…` at 100%;
+  4. the candidate `53137101…` is healthy;
+  5. no newer authorized `main` release replaces it.
+
+  Any difference means stop without promotion and return to Paulo and the Architect.
+- **Connector authority:** limited to the read operations these checks need, plus that single deployment-creation call and the conditional rollback. Broader connector capabilities are capability only, not authority.
+- **Not authorized:** version upload; deploying another version; traffic splitting; `wrangler deploy`; D1 or R2 access or mutation; DNS, Access, secret, environment or binding changes; creating, deleting or renaming any Worker, Pages project or resource; repository, runtime or code changes beyond the mechanical governance publications for this decision and the Gate D return; PR #7; PR #10; S6/S7; D-068.
+- **Inventory findings:** the unrelated Cloudflare resources found in the pre-Gate-D inventory (`maisog-admin` / `admin.maisoglabs.com`, `maisog-admin-staging` / `staging-admin.maisoglabs.com`, `maisog-labs-staging`, `eternal-eggs-dashboard`, the `maisog-jobs` Pages project, D1 `maisog-cms` and `maisog-jobs`, R2 `maisog-media`, the placeholder `ACCESS_*` vars, public `workers.dev` previews) are not touched. They are queued for a separate Architect cycle after Gate D closes.
+- **Return:** unchanged. Builder return `H-WEB-D098-GATE-D-0001`; `DEPLOY_AUTHORIZED` reset to `NO`; routed to the Architect.
