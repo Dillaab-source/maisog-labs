@@ -1,132 +1,114 @@
-# Current Handoff — RFC-022 Gate C for the D-111 remediation (D-112)
+# Current Handoff — RFC-022 CB-R Access identity alignment (D-113)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RFC022-GATE-C-0002
+handoff_id: H-WEB-RFC022-CBR-ACCESS-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-input_base_commit: dfae2a59278a761a4157155178f7ed94955c2926
-review_target_commit: dfae2a59278a761a4157155178f7ed94955c2926
-applicable_review_id: ML-DEVOS-AS-138
+input_base_commit: d6a9480fbf491ed3d2cf7441534e332056172da2
+review_target_commit: d6a9480fbf491ed3d2cf7441534e332056172da2
+applicable_review_id: ML-DEVOS-AS-139
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Evidence class: `ACTOR_REPORTED`, from live GitHub and Cloudflare API calls made in this session (Cloudflare reads were GET only).
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Evidence class: `ACTOR_REPORTED`, from live Cloudflare API calls made in this session through the Cloudflare MCP/API connector. Two calls were writes: one policy create and one application update. Every other call was a GET.
 
 ## Objective
 
-Execute `DIR-WEB-RFC022-GATE-C-0002` (D-112): merge the D-111 remediation accepted by AS-138 into `main` through one fresh protected PR, without production promotion; prove production traffic is unchanged; record the AS138-F001 Access policy identity check.
+Execute `DIR-WEB-RFC022-CBR-ACCESS-0001` (D-113): make the `maisoglabs.com/admin` Access application allow exactly the D-106 identity `paulo.maisog@maisoglabs.com`, with the minimal policy mutation, and change nothing else.
 
 ## Result
 
-**Gate C complete. Production traffic unchanged. AS138-F001: MISMATCH — Gate D NOT READY.**
+**AS138-F001 remediated. The application now allows exactly `paulo.maisog@maisoglabs.com`. The shared policy and every other application are unchanged. Worker traffic is unchanged.**
 
 | Item | Value |
 |---|---|
-| D-112 publication (final PR head) | `dfae2a59278a761a4157155178f7ed94955c2926` (parent `9abb5f6…`, the end of the AS-138 reviewed implementation) |
-| PR | [Dillaab-source/maisog-labs#17](https://github.com/Dillaab-source/maisog-labs/pull/17), opened ready for review, merged |
-| Base before merge | `main` `fda42e04d18b960d8212d49616f96b657a5c6bf3` (unchanged since D-109) |
-| Merge commit | `405375998392e936b71181de387ae395b7d46e40`, a normal merge commit with parents `fda42e04…` and `dfae2a59…`, merged with `merge_method: merge` and `expectedHeadSha: dfae2a59…` |
-| `main` after merge | `40537599…`. Its tree (`5cd4e710…`) is identical to the final head's |
-| `PRE_MERGE_ACTIVE_VERSION_ID` | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6-56b8-4412-a96a-a587588f8521`, read 2026-09-28T20:36:43Z |
-| `main` Workers Build | `ded31be5-394e-4674-95d9-88d904e784aa`, branch `main`, commit `40537599…`, outcome `success`, stopped 20:37:35Z; deploy command `npx wrangler versions upload` |
-| New inactive version | `862dc45e-9ad7-4324-80ae-912adbb6ce82` (#828), alias `main`, `workers/triggered_by: version_upload`, created 20:37:30Z |
-| `POST_MERGE_ACTIVE_VERSION_ID` | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6…` (created 07:21:06Z, unchanged), read 20:38:52Z |
-| Pre = post | **YES** |
+| D-113 publication | `d6a9480fbf491ed3d2cf7441534e332056172da2` (parent `7555f48…`, the AS-139 tip) |
+| Application | `b80acca4-ecff-4d9a-ba1b-cedff87cb25b` ("maisoglabs.com", self-hosted) |
+| Branch taken | **Shared.** Policy `460d0315-1e4b-414a-8845-c656f1f04c79` had `app_count: 3` and was referenced by `b80acca4…` (`maisoglabs.com/admin`), `697320d0…` (`admin.maisoglabs.com`) and `cb6a1bce…` (`staging-admin.maisoglabs.com`). It was not edited. |
+| Operation 1 | `POST /access/policies`: created the dedicated reusable policy `62653faa-4c3c-4b96-a53f-7545f79dbd43`, "maisoglabs.com/admin — D-106 Canonical Administrator". `decision: allow`; `include` is only `email: paulo.maisog@maisoglabs.com`; `exclude`/`require` empty; `session_duration: 30m` (copied from the shared policy). |
+| Operation 2 | `PUT /access/apps/b80acca4…`: resent every field exactly as read, with only `policies` changed from `[460d0315…]` to `[{ id: 62653faa…, precedence: 1 }]`. |
+| Application `updated_at` | `2026-09-12T17:48:19Z` → `2026-09-28T20:47:05Z` |
+| Active Worker before / after | `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%, deployment `3bf053d6…`, unchanged |
+
+Reusable and inline policies are mutually exclusive on an application (Cloudflare API schema), so the dedicated policy is a reusable policy attached only to this application (`app_count: 1`).
 
 ## Tests and evidence
 
-### Pre-merge checks on the final head `dfae2a59…`
+### Pre-change (read 2026-09-28T20:45:36Z, and again immediately before the write)
 
-- **`test-and-build` (GitHub Actions):**
-  - run `36479666981` / job `109121922346`: `success` (20:30:23–20:32:40Z);
-  - run `36479769693` / job `109122250362`: `success` (20:31:12–20:33:51Z).
+- **Application `b80acca4…`:**
+  - AUD `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`;
+  - domain `maisoglabs.com/admin`; `self_hosted_domains` and `destinations` both `maisoglabs.com/admin` and `maisoglabs.com/admin/*`;
+  - `allowed_idps` `[169c0391-1a42-474c-bbe2-ff3474f66053]`;
+  - `session_duration: 24h`; `auto_redirect_to_identity: true`; `app_launcher_visible: true`; `enable_binding_cookie: false`; `http_only_cookie_attribute: false`; `options_preflight_bypass: false`; `eager_redirect_cookie_setting: true`; `tags: []`;
+  - policies `[460d0315…]` (precedence 1).
+- **Policy `460d0315…`:** allow; `include` a single personal `gmail.com` address (the AS138-F001 mismatch; the address is intentionally not committed here); `session_duration: 30m`; `updated_at 2026-09-12T17:48:05Z`; `app_count: 3`.
+- **Team domain (organization `auth_domain`):** `jolly-disk-0469.cloudflareaccess.com`.
+- **Other reusable policies:** `e8712ebf…` "Paul Admin Only", `82aae8a7…` and `4205934f…` "Paulo Admin Only", each `app_count: 0`. Not used and not modified.
 
-  These are the push and pull-request triggers.
-- **`Workers Builds: maisog-labs`:** `success` on both branch uploads of `dfae2a5`:
-  - `52879440…` (`governance/maisoglabs-v0.1`);
-  - `d2a701b1…` (the Builder's session branch).
+### Post-change (read 2026-09-28T20:47:44Z)
 
-  Both use the "Deploy non-production branches" trigger (`npx wrangler versions upload`), so neither is a deployment.
-- **Mergeability:** GitHub `mergeable_state: clean`. `git merge-tree --write-tree main dfae2a5` has no conflicts, and the merged tree equals the final head.
-- **`main` unchanged:** `fda42e04…`, re-read immediately before the merge.
-- **Release scope:**
-  - AS-138 reviewed end `9abb5f6…` → final head `dfae2a5…` changes only the AS-138/D-112 governance records: `brain/DECISION_LOG.md`, `coordination/{ARCHITECT_REVIEW,CURRENT_DIRECTIVE,STATE}.md`, the `H-WEB-RFC022-CBR-REM1-0001` archive and index, and `devos/changes/architect-syncs/{ML-DEVOS-AS-138.md,README.md}`.
-  - The full release diff `fda42e0..40537599` is 34 files, +2109/−183: the D-111 remediation plus the governance records since PR #16.
-- **Homepage artifact:** SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9` at the final head and on `main` after the merge.
+- **Protected paths:** still exactly `maisoglabs.com/admin` and `maisoglabs.com/admin/*` (domain, `self_hosted_domains` and `destinations` identical). **PASS**
+- **Team domain and AUD:** unchanged. **PASS**
+- **IdP, session and cookie/redirect/launcher/tag settings:** all identical to pre-change. **PASS**
+- **Allowed identity:** this application's only policy is `62653faa…`, allowing exactly `paulo.maisog@maisoglabs.com`. **PASS**
+- **Other applications:**
+  - `697320d0…` (`admin.maisoglabs.com`, `updated_at 2026-09-12T17:55:14Z`) and `cb6a1bce…` (`staging-admin.maisoglabs.com`, `updated_at 2026-09-13T00:22:48Z`) still reference only `460d0315…`;
+  - their `updated_at` values are unchanged.
 
-### AS138-F001 — Access policy identity (read-only)
+  **PASS**
+- **Shared policy `460d0315…`:** `include` and `updated_at` are unchanged. `app_count` went from 3 to 2 only because `b80acca4…` no longer references it. **PASS**
+- **Other reusable policies:** unchanged (`app_count` 0, `updated_at` as before). **PASS**
+- **Worker:** the latest deployment is still `3bf053d6…` (created 07:21:06Z) with `53137101…` @ 100%; the deployments list still has 10 entries. **PASS**
 
-- **Source:** `GET /accounts/{id}/access/apps/b80acca4-ecff-4d9a-ba1b-cedff87cb25b` and `…/policies`. The application `maisoglabs.com/admin` has exactly one policy:
-  - `460d0315-1e4b-414a-8845-c656f1f04c79`, "Maisog Labs Admin V1 — Canonical Administrator";
-  - `decision: allow`, precedence 1, `reusable: true`;
-  - `include`: a single `email` rule; no `exclude` or `require`.
-- **Comparison:** the allowed identity is a single personal `gmail.com` address. It is **not** the D-106 identity `paulo.maisog@maisoglabs.com`. The exact address was reported to Paulo in the session and is deliberately not committed here.
-- **Consequence:** **Gate D is NOT READY.** Under AS-138/D-112 this does not block Gate C. The policy is reusable (shared), so changing it may affect other Access applications that reference it. Any change needs a separate Paulo authorization. No Access mutation was made.
-
-### Production (Cloudflare API, GET only)
-
-- **Deployments list:** 10 entries before and after. The latest is still `3bf053d6…` from 07:21:06Z, so no deployment was created during Gate C.
-- **New inactive version `862dc45e…`** carries the D-111 configuration:
-  - `ACCESS_TEAM_DOMAIN` `jolly-disk-0469.cloudflareaccess.com`;
-  - `ACCESS_AUD` `ef44d36e…0cea22`;
-  - `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523`;
-  - `MEDIA` → `maisog-labs-web-inc-004-local`;
-  - `ASSETS`.
-
-  The active `53137101…` still carries the placeholders, so production `/admin` stays fail-closed (401).
-
-### No Gate D
+### No other production change
 
 The Builder ran:
-- no `wrangler versions deploy`, deploy, promotion, traffic change or rollback;
-- no D1 query or write;
-- no content, `site_settings` or email change;
-- no Access, DNS, R2, binding, secret or environment change;
-- no direct push to `main`.
-
-The only production-side effects are the automatic Workers Builds version uploads, which are inactive.
+- no Worker deploy, upload, promotion or traffic change; no Gate D;
+- no D1, R2, content, `site_settings` or email change;
+- no DNS, binding, secret or environment change;
+- no change to any other Access application or policy;
+- no `main` merge.
 
 ## Changed files
 
 - **Coordination:**
   - `coordination/STATE.md`; this file;
-  - `coordination/archive/directives/DIR-WEB-RFC022-GATE-C-0002.{md,provenance.json}` (byte-for-byte, blob `c8cd80d…`) and the index row;
+  - `coordination/archive/directives/DIR-WEB-RFC022-CBR-ACCESS-0001.{md,provenance.json}` (byte-for-byte, blob `4b8c649…`) and the index row;
   - `coordination/OPERATIVE_OBLIGATIONS.md` is unchanged.
-- **Outside this commit:** the PR #17 merge (`main` → `40537599…`). No product, test or migration change in this return.
+- **Outside this commit:** the Cloudflare Access change above. No product, test or configuration file change.
 
 ## Unresolved findings and limitations
 
-- **AS138-F001 open:** the Access policy allows a different identity than D-106's. Gate D NOT READY until Paulo separately decides the Access policy change, or amends the D-106 identity.
-- **Remaining activation prerequisites (after Gate D, each separately authorized):**
-  - owner-approved project copy for the five, including Eternal Eggs;
-  - the initial activation itself;
-  - the contact draft/publish with confirmed deliverability.
-
-  RFC-022 §7 test 11 still needs production measurements.
-- **The new version is not deployed.** `862dc45e…` (`main`) carries the D-111 code and real Access values but receives no traffic. Remote `0006` is already applied, so the schema is ready for it.
-- **Branch relationship:** `main` now carries the merge commit `40537599`, which is not on `governance/maisoglabs-v0.1` (the same pattern as PRs #12–#17). This return is published on the governance branch, not `main`.
-- **Publication attempts:** the D-112 issue transition was recorded as attempt 3 of the checker's local per-transition limit. Its attempt key (cycle, no handoff, `CLAUDE`) was shared with the D-110 and D-111 issue transitions, and none of the three was a failed push. The limit is local to this clone. A further directive issue in this cycle from this clone would need a fresh bootstrap (`PUBLICATION_ATTEMPTS_EXHAUSTED`).
+- **Login not proven end to end:**
+  - This cycle proves the configuration only. No interactive login as `paulo.maisog@maisoglabs.com` was performed.
+  - The application's IdP `169c0391…` (the OTP IdP per D-113) must deliver the one-time code to that mailbox.
+  - The active production Worker still carries the placeholder `ACCESS_*` values (fail-closed). A real admin login through the Worker is only testable after Gate D.
+- **Current admin session behavior:** a browser session issued under the previous policy may remain valid until the application session (24h) or policy session (30m) expires. That is normal Access behavior. With the Worker fail-closed, it gives no Worker access.
+- **Other applications unchanged by design:** `admin.maisoglabs.com` and `staging-admin.maisoglabs.com` still allow only the previous identity through the shared policy. Aligning them, and cleaning up the three unused reusable policies, is outside D-113.
+- **Publication attempt keys:**
+  - The D-113 issue transition was published with the explicit `--transition-id MAISOGLABS_WEB_RFC022_CBR:NONE:CLAUDE:D-113`.
+  - The checker's default key for directive issues in this cycle (`MAISOGLABS_WEB_RFC022_CBR:NONE:CLAUDE`) had reached its local limit of 3 after three distinct successful issues (D-110, D-111, D-112), none of them a retry.
+  - The local ledger was not edited.
+- **Remaining before activation:**
+  - Gate D (with a pre-promotion re-check of the Access application and AUD);
+  - then, each separately authorized: approved project copy (including Eternal Eggs), initial activation, and the contact email with confirmed deliverability.
 - **Carried forward:** AS132-F003 remains open; the traceability validator's pre-existing 3 ERRORs and DRIFT are unchanged.
-- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged. `OBL-017` (separate production deploy gate) still holds: Gate C is not a production release.
+- **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged.
 
 ## Evidence locations
 
-- PR: https://github.com/Dillaab-source/maisog-labs/pull/17 (merged as `40537599…`).
-- CI jobs: `109121922346`, `109122250362`.
-- Cloudflare builds:
-  - `ded31be5-394e-4674-95d9-88d904e784aa` (`main`);
-  - `52879440-28b3-41b1-ac70-aba7d015635a`, `d2a701b1-33ba-40c5-b04a-79c0402d0056` (branch).
-- Versions: `862dc45e-9ad7-4324-80ae-912adbb6ce82` (`main`, inactive); active `53137101-afb8-456c-ab83-d8b7b934df01`.
-- Access: application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`, policy `460d0315-1e4b-414a-8845-c656f1f04c79`.
+- Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`.
+- Dedicated policy `62653faa-4c3c-4b96-a53f-7545f79dbd43`.
+- Shared policy `460d0315-1e4b-414a-8845-c656f1f04c79`.
+- Account `fb7234ae9117baf1481ab3b169a9824a`.
+- Worker `maisog-labs`, deployment `3bf053d6-56b8-4412-a96a-a587588f8521`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-112; `ML-DEVOS-AS-138`.
-- **T1:** `ML-DEVOS-RFC-022` §10 / §10.1 (CB-R); D-111; D-109 (Gate C precedent); D-106 (canonical admin identity).
-- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-GATE-C-0002.md`.
+- **T0:** Protocol V2; D-113; `ML-DEVOS-AS-139`.
+- **T1:** AS138-F001 (`ML-DEVOS-AS-138`); D-106; D-103 (precedent).
+- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CBR-ACCESS-0001.md`.
 
 ## Next action
 
-The Architect reviews the Gate C return. The following each need separate Paulo authorization:
-- the AS138-F001 Access policy change;
-- Gate D / promotion;
-- production content, initial activation and email publication.
+The Architect reviews the Access alignment. Gate D, production content, initial activation and email publication each need separate Paulo authorization.
