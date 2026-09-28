@@ -137,4 +137,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 
 - `ML-DEVOS-AS-129.md` — D-102 Cloudflare Inventory & Exposure Review acceptance. Concluded `ARCHITECT_APPROVED — D-102 ASSESSMENT ACCEPTED WITH ARCHITECT AMENDMENTS / OWNER REMEDIATION DECISION REQUIRED`; F-1 precision amendment (branch-preview execution with production bindings, not an `/admin` bypass); F-3 data impact unverified; priority A-1, A-4, A-3, A-6; Cloudflare evidence `ACTOR_REPORTED`; authorizes no remediation.
 
+- `ML-DEVOS-AS-130.md` — D-103 Cloudflare exposure remediation acceptance. Concluded `ARCHITECT_APPROVED — A-1 + A-4 ACCEPTED / IMMEDIATE EXPOSURE REMEDIATION CLOSED`; `maisog-labs` previews disabled (`workers.dev` kept), `maisog-labs-staging` `workers.dev` and previews disabled; production `53137101…` @ 100% unchanged; rollback not required; Cloudflare evidence `ACTOR_REPORTED`; routes the next product priority to Paulo; authorizes nothing further.
+
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).
