@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_AMENDMENT
-TURN: CLAUDE
-STATUS: READY_FOR_IMPLEMENTER
-AUTHORIZED_SCOPE: D105_RFC022_AMENDMENT_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D105_RFC022_AMENDMENT_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-WEB-RFC022-AMEND-0001
-DIRECTIVE_ISSUE_PARENT: 716b9b74658a3c40c147ce60f1b674e25068d45e
-DIRECTIVE_AUTHORITY_REF: D-105
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-131
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-WEB-RFC022-AMEND-0001
+REVIEW_TARGET_COMMIT: 678f038181665159781cf308664c8f48c16f16b1
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-131
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,27 +29,26 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-D-105 records Paulo's RFC-022 owner decisions (Q1–Q5) under `ML-DEVOS-AS-131`, including the bounded D-093 served-byte amendment. It authorizes only the amendment of the `DRAFT` `ML-DEVOS-RFC-022`, returned for final Architect review.
+D-105 recorded Paulo's RFC-022 owner decisions Q1–Q5, including the bounded D-093 served-byte amendment, and authorized the amendment of the `DRAFT` RFC-022 only. That authority is consumed with this return.
 
-## Selected directive
+## Builder return
 
-`DIR-WEB-RFC022-AMEND-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-105 and the directive.
+`H-WEB-RFC022-AMEND-0001` is the return record. It is evidence, not authority. `ML-DEVOS-RFC-022` is amended and remains `DRAFT`. `DIR-WEB-RFC022-AMEND-0001` is archived byte-for-byte and deselected.
+
+## Architect scope
+
+Final independent review of the amended RFC-022 under the next unused immutable Architect Sync ID after ML-DEVOS-AS-131. Acceptance would grant no implementation authority.
 
 ## Hard boundaries
 
-Only `devos/changes/rfcs/ML-DEVOS-RFC-022.md` and its index row may change. Not authorized:
+Not authorized:
 - CB-1 through CB-7; any implementation or migration;
+- changes to `public/index.html`, the homepage artifact contract, runtime, admin UI, Worker routes or config;
 - Cloudflare mutation; remote D1/R2; deployment; `main` merge;
 - A-3, A-6.
-
-RFC-022 stays `DRAFT`.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 All action-specific authorization flags are `NO`.
-
-## Next transition
-
-The Builder amends RFC-022, publishes `H-WEB-RFC022-AMEND-0001`, archives and deselects the directive, and routes to the Architect.
