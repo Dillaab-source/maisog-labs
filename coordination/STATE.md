@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_TIER1_IMPL
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D107_AS133_F001_REMEDIATION_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: AS134_RFC022_CBR_RELEASE_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-RFC022-TIER1-REM1-0001
-REVIEW_TARGET_COMMIT: a70efb321a26b4810f262f0b1214ca62ea27d0f5
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-133
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,35 +27,36 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-107 recorded Paulo's authorization of `ML-DEVOS-AS-133` remediation cycle 1 (AS133-F001 only, repository and local only). That authority is consumed with this return. D-106, D-105, `ML-DEVOS-RFC-022` and `ML-DEVOS-AS-132` remain the governing chain.
+`ML-DEVOS-AS-134` accepts the RFC-022 Tier 1 repository/local implementation after the AS133-F001 remediation: `ACCEPTED`. Reviewed live commit: `1b1a602ddb451a98ec2b34bc3ed2c75c46122f83`.
 
-## Builder return
+Confirmed:
+- `initialReleaseReadiness()` is a CB-R release-readiness check only;
+- public `/` supports any valid published project group of 1..5;
+- regression tests cover runtime rendering of 1..5 projects and the five→four unpublish behavior;
+- artifact fallback, draft isolation, max-five and AS132-F001 behavior are preserved;
+- no runtime activation flag, new schema, route or architecture was introduced.
 
-`H-WEB-RFC022-TIER1-REM1-0001` is the return record. It is evidence, not authority. AS133-F001 is remediated in this return commit. `DIR-WEB-RFC022-TIER1-REM1-0001` is archived byte-for-byte and deselected.
+Remaining release conditions (not implementation defects):
+- **AS132-F002:** verified against real production content during CB-R, before first bridge activation.
+- **RFC-022 §7 test 11:** production Worker CPU/latency evidence.
+- **Content:** Eternal Eggs production copy and contact-email deliverability are resolved before activation. Neither may be invented.
 
-## Architect scope
+`H-WEB-RFC022-TIER1-REM1-0001` is archived byte-for-byte and deselected. The D-106 and D-107 authorities are consumed. `CURRENT_REMEDIATION_CYCLE` stays at 1 as the record of this cycle's single remediation, as after V10-A. Any new cycle resets it.
 
-Independent re-review of the AS133-F001 remediation under the next unused immutable Architect Sync ID after ML-DEVOS-AS-133. This is remediation cycle 1 of 2. Acceptance would grant no release, deployment, remote or production authority.
+## Paulo decision required
+
+Scope: the separate owner decision on CB-R (the RFC-022 Tier 1 release). CB-R per RFC-022 §10 covers Gate C, a read-only production D1 check, remote `0006`, Gate D and a production smoke test. No CB-R work begins automatically.
 
 ## Hard boundaries
 
-Every action-specific flag is `NO`.
+The acceptance grants no CB-R, production D1/R2, Cloudflare/Access, DNS, deployment or `main`-merge authority. No production content is published.
 
-Not authorized:
-- modifying `public/index.html`;
-- CB-R; remote D1/R2; Cloudflare, Access or DNS changes;
-- production content; deployment; `main` merge;
-- `/api/site-content`; the Journal bridge; Tier 2; About/CTA; project deletion;
-- A-3, A-6.
+AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
-AS132-F002 remains a mandatory release condition, proven at CB-R through the release-readiness check. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
-
-No PR #7 or PR #10 action. No S6/S7. No D-068.
+No PR #7 or PR #10 action. No S6/S7. No D-068. A-3 and A-6 are not authorized.
 
 S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
-## Next transition
-
-The Architect re-reviews `H-WEB-RFC022-TIER1-REM1-0001` and publishes a verdict under a new immutable Sync ID. Any release step (CB-R) needs a separate owner decision.
+All action-specific authorization flags are `NO`.
