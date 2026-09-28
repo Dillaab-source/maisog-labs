@@ -1,0 +1,111 @@
+{
+  "artifactSha256": "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9",
+  "approvedSha256": "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9",
+  "bridgedBytesDelta": 3766,
+  "runs": [
+    {
+      "variant": "artifact",
+      "viewport": "desktop",
+      "renderMs": 3719,
+      "nonBlank": true,
+      "mlData": {
+        "projects": [
+          "Sentinel / DevOS",
+          "SU",
+          "ClinicFlow",
+          "Maisog Kilat",
+          "Maisog Guild"
+        ],
+        "email": "maisog36@gmail.com",
+        "flows": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "projectsPanelText": "02 / PROJECTS\nFROM RESEARCH TO REAL-WORLD IMPACT\n01\nSENTINEL / DEVOS\n02\nSU\n03\nCLINICFLOW\n04\nMAISOG KILAT\n05\nMAISOG GUILD\n01\nSENTINEL / DEVOS\nACTIVE\n\nA research and operations system for intelligent work.\n\nSentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment.\n\nAI\nRESEARCH\nAUTOMATION\nARCHITECTURE\nHOW ",
+      "contactShowsFixtureEmail": false,
+      "errors": []
+    },
+    {
+      "variant": "artifact",
+      "viewport": "mobile",
+      "renderMs": 3382,
+      "nonBlank": true,
+      "mlData": {
+        "projects": [
+          "Sentinel / DevOS",
+          "SU",
+          "ClinicFlow",
+          "Maisog Kilat",
+          "Maisog Guild"
+        ],
+        "email": "maisog36@gmail.com",
+        "flows": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "projectsPanelText": "02 / PROJECTS\nFROM RESEARCH TO REAL-WORLD IMPACT\n01\nSENTINEL / DEVOS\n02\nSU\n03\nCLINICFLOW\n04\nMAISOG KILAT\n05\nMAISOG GUILD\n01\nSENTINEL / DEVOS\nACTIVE\n\nA research and operations system for intelligent work.\n\nSentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment.\n\nAI\nRESEARCH\nAUTOMATION\nARCHITECTURE\nHOW ",
+      "contactShowsFixtureEmail": false,
+      "errors": []
+    },
+    {
+      "variant": "bridged",
+      "viewport": "desktop",
+      "renderMs": 3489,
+      "nonBlank": true,
+      "mlData": {
+        "projects": [
+          "ClinicFlow",
+          "Eternal Eggs",
+          "Sentinel / DevOS",
+          "SU",
+          "Maisog Kilat"
+        ],
+        "email": "fixture-contact@example.com",
+        "flows": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "projectsPanelText": "02 / PROJECTS\nFROM RESEARCH TO REAL-WORLD IMPACT\n01\nCLINICFLOW\n02\nETERNAL EGGS\n03\nSENTINEL / DEVOS\n04\nSU\n05\nMAISOG KILAT\n01\nCLINICFLOW\nACTIVE\n\nTest fixture tagline for ClinicFlow.\n\nTest fixture description for ClinicFlow. Placeholder copy for local evidence only.\n\nAI\nRESEARCH\nHOW IT WORKS\nFIG. 03.01 — SYSTEM FLOW\nS1\nFixture step one\nS2\nFixture step two\nS3\nFixture step three\nS4\nFixture person decid",
+      "contactShowsFixtureEmail": true,
+      "errors": []
+    },
+    {
+      "variant": "bridged",
+      "viewport": "mobile",
+      "renderMs": 3424,
+      "nonBlank": true,
+      "mlData": {
+        "projects": [
+          "ClinicFlow",
+          "Eternal Eggs",
+          "Sentinel / DevOS",
+          "SU",
+          "Maisog Kilat"
+        ],
+        "email": "fixture-contact@example.com",
+        "flows": [
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "projectsPanelText": "02 / PROJECTS\nFROM RESEARCH TO REAL-WORLD IMPACT\n01\nCLINICFLOW\n02\nETERNAL EGGS\n03\nSENTINEL / DEVOS\n04\nSU\n05\nMAISOG KILAT\n01\nCLINICFLOW\nACTIVE\n\nTest fixture tagline for ClinicFlow.\n\nTest fixture description for ClinicFlow. Placeholder copy for local evidence only.\n\nAI\nRESEARCH\nHOW IT WORKS\nFIG. 03.01 — SYSTEM FLOW\nS1\nFixture step one\nS2\nFixture step two\nS3\nFixture step three\nS4\nFixture person decid",
+      "contactShowsFixtureEmail": true,
+      "errors": []
+    }
+  ]
+}

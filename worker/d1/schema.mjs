@@ -27,6 +27,7 @@ const AUDIT_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", 
 const MEDIA_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0003_web_inc_004_media.sql");
 const JOURNAL_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0004_web_inc_006_journal.sql");
 const THEME_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0005_web_inc_007_theme.sql");
+const V10_PROJECT_FIELDS_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0006_rfc022_v10_project_fields.sql");
 
 // Exactly the 14 tables authorized by D-024 / ML-DEVOS-AS-013 (AS13-F002).
 // Order matches the authorized inventory in coordination/STATE.md.
@@ -208,4 +209,25 @@ export async function applyThemeMigration(db) {
 export async function applyCompleteSchema(db) {
   await applyFullSchema(db);
   await applyThemeMigration(db);
+}
+
+// RFC-022 Tier 1 (ML-DEVOS-AS-132, D-106) migration 0006: four nullable V10
+// columns on project_revisions. No table is added, so the table inventories
+// above are unchanged. Not idempotent (ALTER TABLE ADD COLUMN): apply once per
+// database, exactly like `wrangler d1 migrations apply` does.
+export const V10_PROJECT_COLUMNS = ["tagline", "status", "disciplines_json", "flow_json"];
+
+export function readV10ProjectFieldsMigrationSql() {
+  return fs.readFileSync(V10_PROJECT_FIELDS_MIGRATION_SQL_PATH, "utf8");
+}
+
+export async function applyV10ProjectFieldsMigration(db) {
+  const statements = unstable_splitSqlQuery(readV10ProjectFieldsMigrationSql()).filter(statement => statement.trim().length > 0);
+  await db.batch(statements.map(statement => db.prepare(statement)));
+}
+
+// Every migration through 0006 (the RFC-022 Tier 1 schema).
+export async function applyRfc022Schema(db) {
+  await applyCompleteSchema(db);
+  await applyV10ProjectFieldsMigration(db);
 }

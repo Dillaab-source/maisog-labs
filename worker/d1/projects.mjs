@@ -26,8 +26,11 @@ import { validateProjectId, validateProjectSlug, validateProjectRevisionContent 
 import { buildProjectRevisionAuditStatement, buildAuditAppendStatement } from "./audit.mjs";
 import { buildProjectMediaInsertStatements } from "./media.mjs";
 
+// RFC-022 Tier 1 (migration 0006): the four V10 columns are written only when
+// the revision carries V10 fields, so a legacy-shaped write never references
+// them and stays compatible with a pre-0006 schema.
 function projectRevisionColumns(fields) {
-  return {
+  const columns = {
     sort_order: fields.order,
     category: fields.category,
     title: fields.title,
@@ -37,10 +40,21 @@ function projectRevisionColumns(fields) {
     icon: fields.icon,
     featured: fields.featured ? 1 : 0,
   };
+  if (fields.v10 !== undefined && fields.v10 !== null) {
+    columns.tagline = fields.v10.tagline;
+    columns.status = fields.v10.status;
+    columns.disciplines_json = JSON.stringify(fields.v10.disciplines);
+    columns.flow_json = JSON.stringify(fields.v10.flow);
+  }
+  return columns;
 }
 
+// Maps a stored revision row back to domain fields. `v10` is present only when
+// the schema has the 0006 columns: null when the revision has none, the
+// parsed group when all four are set. A partially set row cannot be produced
+// by this module and is reported as malformed (revalidation then fails).
 export function revisionRowToDomainFields(row) {
-  return {
+  const fields = {
     order: row.sort_order,
     category: row.category,
     title: row.title,
@@ -50,6 +64,20 @@ export function revisionRowToDomainFields(row) {
     icon: row.icon,
     featured: Boolean(row.featured),
   };
+  if (Object.hasOwn(row, "tagline")) {
+    const set = [row.tagline, row.status, row.disciplines_json, row.flow_json].filter(v => v !== null && v !== undefined).length;
+    if (set === 0) fields.v10 = null;
+    else if (set === 4) {
+      fields.v10 = { tagline: row.tagline, status: row.status, disciplines: JSON.parse(row.disciplines_json), flow: JSON.parse(row.flow_json) };
+    } else fields.v10 = { malformed: true };
+  }
+  return fields;
+}
+
+// True when a revision is a V10 homepage candidate: featured with a complete
+// V10 group (worker/bridge/snapshot.mjs applies the same rule in SQL).
+export function isHomepageEligible(fields) {
+  return fields.featured === true && fields.v10 !== undefined && fields.v10 !== null;
 }
 
 // Plain read-only lookup used by every mutation route to check existence
@@ -202,17 +230,30 @@ export async function buildEditDraftBatch(
 // from the caller's pre-read, so no subquery correlation is needed here —
 // buildAuditAppendStatement's plain literal revisionId is sufficient
 // (AS20-F007). The pointer UPDATE is guarded exactly as edit's is above.
-export function buildPublishBatch(db, { id, draftRevisionId, expectedPublishedRevisionId, expectedDraftRevisionId, actor }) {
+// RFC-022 Tier 1: when the revision being published is homepage-eligible
+// (featured with V10 fields), the same guard also requires that fewer than
+// MAX_HOMEPAGE_PROJECTS other projects are published homepage-eligible at
+// commit time, so a concurrent publish cannot push the homepage past five.
+const HOMEPAGE_LIMIT_CONDITION =
+  "(SELECT COUNT(*) FROM projects p2 JOIN project_revisions r2 ON r2.id = p2.published_revision_id AND r2.project_id = p2.id " +
+  "WHERE r2.featured = 1 AND r2.tagline IS NOT NULL AND r2.status IS NOT NULL AND r2.disciplines_json IS NOT NULL AND r2.flow_json IS NOT NULL AND p2.id != ?) < ?";
+
+export function buildPublishBatch(
+  db,
+  { id, draftRevisionId, expectedPublishedRevisionId, expectedDraftRevisionId, actor, homepageLimit = null }
+) {
+  const slugAssignment =
+    homepageLimit === null
+      ? stalePointerGuardedSlugAssignment()
+      : `CASE WHEN published_revision_id IS ? AND draft_revision_id IS ? AND ${HOMEPAGE_LIMIT_CONDITION} THEN slug ELSE 'home' END`;
+  const guardBindings =
+    homepageLimit === null
+      ? [expectedPublishedRevisionId, expectedDraftRevisionId]
+      : [expectedPublishedRevisionId, expectedDraftRevisionId, id, homepageLimit];
   return [
     db
-      .prepare(
-        "UPDATE projects SET " +
-          "published_revision_id = ?, " +
-          "draft_revision_id = NULL, " +
-          `slug = ${stalePointerGuardedSlugAssignment()} ` +
-          "WHERE id = ?"
-      )
-      .bind(draftRevisionId, expectedPublishedRevisionId, expectedDraftRevisionId, id),
+      .prepare("UPDATE projects SET " + "published_revision_id = ?, " + "draft_revision_id = NULL, " + `slug = ${slugAssignment} ` + "WHERE id = ?")
+      .bind(draftRevisionId, ...guardBindings, id),
     buildAuditAppendStatement(db, {
       actor,
       action: "project_publish",

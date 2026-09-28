@@ -19,7 +19,10 @@ import {
   buildEditDraftBatch,
   buildPublishBatch,
   buildUnpublishBatch,
+  isHomepageEligible,
 } from "../d1/projects.mjs";
+import { countPublishedHomepageProjects } from "../bridge/snapshot.mjs";
+import { MAX_HOMEPAGE_PROJECTS } from "../bridge/payload.mjs";
 import { validateMediaSnapshotEntries, readActiveMediaRowsByIds, readProjectMediaSnapshot } from "../d1/media.mjs";
 
 const PROJECTS_ROOT_PATH = "/admin/api/projects";
@@ -231,6 +234,17 @@ async function inheritedMediaEntries(db, expected) {
 // state against the same `expected` values distinguishes "the guard fired
 // (stale) → 409" from "some other storage failure → 500" without needing
 // to inspect the driver's error message.
+// RFC-022 Tier 1: the source revision's V10 group (draft, else published),
+// or undefined when the schema/revision has none.
+async function inheritedV10Fields(db, expected) {
+  const sourceRevisionId = expected.expectedDraftRevisionId ?? expected.expectedPublishedRevisionId;
+  if (sourceRevisionId === null) return undefined;
+  const row = await readProjectRevisionRow(db, sourceRevisionId);
+  if (!row) return undefined;
+  const { v10 } = revisionRowToDomainFields(row);
+  return v10 === null || v10 === undefined ? undefined : v10;
+}
+
 async function classifyMutationBatchFailure(db, id, expected) {
   try {
     const current = await readProjectForMutation(db, id);
@@ -269,6 +283,7 @@ async function handleCreateDraft({ request, url, db, sub }) {
       accent: body.accent,
       icon: body.icon,
       featured: body.featured,
+      v10: body.v10,
     });
   } catch {
     await tryAppendFailureAudit(db, { actor: auditActor(sub), action: "project_create_draft", entityId: auditEntityId });
@@ -341,6 +356,11 @@ async function handleEditDraft({ request, url, db, sub, id }) {
 
   let fields;
   try {
+    // RFC-022 Tier 1: an explicit `v10` (object or null) replaces the V10
+    // group; omitting it inherits the source revision's V10 group, so a
+    // legacy-shaped edit never silently drops homepage content (same rule as
+    // media, AS23-F012).
+    const v10 = "v10" in body ? body.v10 : await inheritedV10Fields(db, expected);
     fields = validateProjectRevisionContent({
       order: body.order,
       category: body.category,
@@ -350,6 +370,7 @@ async function handleEditDraft({ request, url, db, sub, id }) {
       accent: body.accent,
       icon: body.icon,
       featured: body.featured,
+      v10,
     });
   } catch {
     await tryAppendFailureAudit(db, { actor, action: "project_update_draft", entityId: id });
@@ -473,12 +494,23 @@ async function handlePublish({ request, url, db, sub, id }) {
   // promoting it (AS20-F007) — never trust that a prior write remains
   // valid without re-checking.
   const revisionRow = await readProjectRevisionRow(db, row.draft_revision_id);
+  let draftFields;
   try {
     if (!revisionRow) throw new Error("draft revision row missing");
-    validateProjectRevisionContent(revisionRowToDomainFields(revisionRow));
+    draftFields = validateProjectRevisionContent(revisionRowToDomainFields(revisionRow));
   } catch {
     await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
     return jsonResponse(500, { error: "Internal Server Error" });
+  }
+
+  // RFC-022 Tier 1 (ML-DEVOS-AS-132 test 8): publishing a homepage-eligible
+  // revision is rejected before publication when five other projects are
+  // already published homepage-eligible. The same bound is re-checked at
+  // commit time inside the guarded UPDATE.
+  const homepageEligible = isHomepageEligible(draftFields);
+  if (homepageEligible && (await countPublishedHomepageProjects(db, { excludeProjectId: id })) >= MAX_HOMEPAGE_PROJECTS) {
+    await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
+    return jsonResponse(409, { error: "Conflict", reason: "HOMEPAGE_LIMIT" });
   }
 
   try {
@@ -489,12 +521,18 @@ async function handlePublish({ request, url, db, sub, id }) {
         expectedPublishedRevisionId: expected.expectedPublishedRevisionId,
         expectedDraftRevisionId: expected.expectedDraftRevisionId,
         actor,
+        homepageLimit: homepageEligible ? MAX_HOMEPAGE_PROJECTS : null,
       })
     );
   } catch {
     // Commit-time stale-write guard fired, or some other storage failure —
-    // classifyMutationBatchFailure distinguishes them (AS21-F007).
-    const status = await classifyMutationBatchFailure(db, id, expected);
+    // classifyMutationBatchFailure distinguishes them (AS21-F007). A
+    // concurrent publish that filled the homepage between the pre-check and
+    // the commit is also a 409 (RFC-022 Tier 1).
+    let status = await classifyMutationBatchFailure(db, id, expected);
+    if (status === 500 && homepageEligible && (await countPublishedHomepageProjects(db, { excludeProjectId: id })) >= MAX_HOMEPAGE_PROJECTS) {
+      status = 409;
+    }
     await tryAppendFailureAudit(db, { actor, action: "project_publish", entityId: id, revisionId: row.draft_revision_id });
     return jsonResponse(status, { error: status === 409 ? "Conflict" : "Internal Server Error" });
   }

@@ -1,0 +1,9 @@
+{
+  "directive_id": "DIR-WEB-CF-INVENTORY-0001",
+  "cycle_id": "MAISOGLABS_CF_INVENTORY_REVIEW",
+  "source_path": "coordination/CURRENT_DIRECTIVE.md",
+  "publication_commit": "9e8c9f5006f0654eac7c139a41ef4d21b71a5f34",
+  "source_blob": "1b7ceb17b01e023a5103c2d6883bba5c5b176b83",
+  "archive_blob": "1b7ceb17b01e023a5103c2d6883bba5c5b176b83",
+  "sha256": "52ac7868eacd8fbc4023f8e63abf9517e1c9eb4779f6d311d90614b40a879ccf"
+}

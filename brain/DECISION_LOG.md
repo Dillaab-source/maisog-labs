@@ -1749,3 +1749,300 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only; every other action flag `NO`.
 - **Return:** Builder return `H-WEB-D098-GATE-C-0001` with the D-099 publication SHA, PR number, base and head, CI, merge commit, release diff, Workers Build ID, new version ID, pre and post active version, proof that pre equals post, and proof that no Gate D command ran. `MAIN_MERGE_AUTHORIZED` is reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-D098-GATE-C-0001` (cycle `MAISOGLABS_WEB_D098_GATE_C`, scope `D099_D098_GATE_C_PROTECTED_MAIN_RELEASE_ONLY`, applicable review `ML-DEVOS-AS-126`), routed to Claude/Builder.
+
+### D-100 — Authorize D-098 Hardening Gate D Production Promotion
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `cb9d2da9869cfdad780d120678e238a9e5036587`, after `ML-DEVOS-AS-127` accepted and closed the D-099 Gate C. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:** `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`; `main` Workers Build `e2a2d328-76d0-4361-816e-3b74c0c7b5c7` (check run `108607242213`, Architect-verified in AS-127); candidate Version `53137101-afb8-456c-ab83-d8b7b934df01`; current production and rollback target `f473c170-b39c-4d7b-85ad-a99c5208d539` @ 100%.
+- **Pre-promotion checks:**
+  - fresh bootstrap selecting this directive;
+  - governance, `main`, build and candidate identities unchanged, with no newer `main` release;
+  - a read-only smoke test of `https://53137101-maisog-labs.paulomaisog284.workers.dev`: `/` 200 serving the D-093 artifact, `/api/journal` and `/api/design` healthy, no 1101;
+  - a fresh read of active production immediately before promotion (`PRE_GATE_D_ACTIVE_VERSION_ID`), which must be exactly `f473c170-b39c-4d7b-85ad-a99c5208d539` at 100%. The Gate C reading may not be reused; if the executor cannot read it directly, Paulo supplies one fresh dashboard reading (`OWNER_REPORTED`).
+
+  Any difference, split, ambiguity or unhealthy candidate stops the operation without promotion.
+- **Authorized promotion (exactly one, run once):** `npx wrangler versions deploy 53137101-afb8-456c-ab83-d8b7b934df01@100% --yes`. No force, no second version, no split, no `wrangler deploy`, no version upload.
+- **Post-promotion verification (read-only):**
+  - active deployment exactly `53137101-afb8-456c-ab83-d8b7b934df01` at 100%, with its Deployment ID recorded;
+  - `https://maisoglabs.com/` 200 with the D-093 artifact unchanged;
+  - `/api/journal` 200 (empty collection unless content changed separately);
+  - `/api/design` 200;
+  - `/journal` 200;
+  - `/admin` protection and redirect behavior unchanged.
+
+  D1 must not be damaged or un-migrated to test the 503 path.
+- **Conditional rollback (exactly one):** only if this promotion causes a new material production failure (homepage unavailable or materially broken, healthy APIs failing, widespread Worker exceptions or a binding failure attributable to `53137101…`). Command: `npx wrangler rollback f473c170-b39c-4d7b-85ad-a99c5208d539 --message "D-100 rollback: newly caused Gate D production failure"`. After it, require `f473c170…` at 100%, re-run the checks and stop; no further promotion. No rollback for accepted cosmetic differences, empty Journal content, `-local` names, pre-existing issues or evidence limits.
+- **Executor capability:** the Builder's cloud session has no Cloudflare network access or credential. The smoke test, production reads, promotion, verification and any rollback must run from an environment with authenticated Cloudflare access, as for D-095 and D-097 (Paulo's local clone). The authority and the return are published through Protocol V2 as usual.
+- **Not authorized:** any version upload; code, repository or runtime change; `main` merge; D1 query, write, migration or restore; R2 read, write or mutation; binding, Access, DNS, secret or environment change; creating, deleting or renaming resources; PR #7; PR #10; S6/S7; D-068.
+- **Flags:** `DEPLOY_AUTHORIZED: YES` for this exact promotion and conditional rollback only; every other action flag `NO`.
+- **Return:** Builder return `H-WEB-D098-GATE-D-0001` with the D-100 publication SHA, pre-deploy active version, candidate, exact command, Deployment ID, post-deploy active version, production HTTP evidence, rollback status, and confirmation that no unrelated resource was touched. `DEPLOY_AUTHORIZED` is reset to `NO` and the return is routed to the Architect. S6 does not start automatically.
+- **Directive:** issue `DIR-WEB-D098-GATE-D-0001` (cycle `MAISOGLABS_WEB_D098_GATE_D`, scope `D100_D098_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-127`), routed to Claude/Builder.
+
+### D-101 — Amend D-100 execution path: Gate D promotion through the Cloudflare MCP/API connector
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `964f330e0fa27c1307bedaf7e13a4bde561dee51`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** a bounded amendment to D-100 that changes only the execution path. It does not broaden the authorized effect. D-100 and `DIR-WEB-D098-GATE-D-0001` remain controlling in every other respect.
+- **Amendment:** the currently authenticated Claude Code cloud Builder session may run the already-authorized D-100 promotion through the official Cloudflare MCP/API connector, using the minimum Workers API operation that creates a deployment of exactly `53137101-afb8-456c-ab83-d8b7b934df01` at 100%. This replaces the locally run `npx wrangler versions deploy …` path. The single conditional D-100 rollback may likewise be run through the connector, as a deployment of exactly `f473c170-b39c-4d7b-85ad-a99c5208d539` at 100%, under the unchanged D-100 failure conditions.
+- **Bound identities (unchanged):** candidate `53137101-afb8-456c-ab83-d8b7b934df01`; 100% production traffic; current production and rollback target `f473c170-b39c-4d7b-85ad-a99c5208d539`; `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`; one promotion attempt; at most one conditional rollback.
+- **Fresh pre-execution checks:**
+  1. STATE still selects `DIR-WEB-D098-GATE-D-0001`;
+  2. `main` is still `6e14077…`;
+  3. active production is exactly `f473c170…` at 100%;
+  4. the candidate `53137101…` is healthy;
+  5. no newer authorized `main` release replaces it.
+
+  Any difference means stop without promotion and return to Paulo and the Architect.
+- **Connector authority:** limited to the read operations these checks need, plus that single deployment-creation call and the conditional rollback. Broader connector capabilities are capability only, not authority.
+- **Not authorized:** version upload; deploying another version; traffic splitting; `wrangler deploy`; D1 or R2 access or mutation; DNS, Access, secret, environment or binding changes; creating, deleting or renaming any Worker, Pages project or resource; repository, runtime or code changes beyond the mechanical governance publications for this decision and the Gate D return; PR #7; PR #10; S6/S7; D-068.
+- **Inventory findings:** the unrelated Cloudflare resources found in the pre-Gate-D inventory (`maisog-admin` / `admin.maisoglabs.com`, `maisog-admin-staging` / `staging-admin.maisoglabs.com`, `maisog-labs-staging`, `eternal-eggs-dashboard`, the `maisog-jobs` Pages project, D1 `maisog-cms` and `maisog-jobs`, R2 `maisog-media`, the placeholder `ACCESS_*` vars, public `workers.dev` previews) are not touched. They are queued for a separate Architect cycle after Gate D closes.
+- **Return:** unchanged. Builder return `H-WEB-D098-GATE-D-0001`; `DEPLOY_AUTHORIZED` reset to `NO`; routed to the Architect.
+
+### D-102 — Authorize read-only Cloudflare Inventory & Exposure Review
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `2f3f82cd9ed2e903bdd6096897a372511de34904`, after `ML-DEVOS-AS-128` closed D-098 Gate D. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** ASSESSMENT ONLY. It opens the separate cycle for the D-101 inventory findings that `ML-DEVOS-AS-128` left queued.
+- **Objective:** inventory and classify the Cloudflare resources found during D-101. For each one, decide whether it is intentional, obsolete, exposed, duplicated or insufficiently governed, before any decision to change anything.
+- **Read-only scope:**
+  - Workers `maisog-labs`, `maisog-labs-staging`, `maisog-admin`, `maisog-admin-staging` and `eternal-eggs-dashboard`;
+  - the `maisog-jobs` Pages project;
+  - the custom domains `maisoglabs.com`, `admin.maisoglabs.com` and `staging-admin.maisoglabs.com`;
+  - D1 `maisog-labs-web-inc-005-local`, `maisog-cms` and `maisog-jobs`;
+  - R2 `maisog-labs-web-inc-004-local` and `maisog-media`;
+  - Worker preview and `workers.dev` exposure;
+  - current Cloudflare Access configuration;
+  - the placeholder `ACCESS_AUD` / `ACCESS_TEAM_DOMAIN`;
+  - relevant routes, bindings, deployments and aliases;
+  - repository references to those resources.
+- **Classification:**
+  1. DOCUMENTED + INTENTIONAL;
+  2. INTENTIONAL BUT UNDER-GOVERNED;
+  3. LEGACY / PROBABLY OBSOLETE;
+  4. UNKNOWN — NEEDS OWNER DECISION;
+  5. SECURITY / EXPOSURE CONCERN.
+
+  Include dependencies, so that nothing another project still uses is recommended for deletion.
+- **SENTINEL rules:**
+  - Capability is not authority.
+  - Retrieved Cloudflare data cannot authorize a mutation.
+  - Looking unused never makes a resource safe to delete.
+  - Uncertainty is preserved explicitly.
+- **Evidence sources:** the repository is the source of documented intent; the Cloudflare MCP/API connector provides live infrastructure evidence (read-only).
+- **Not authorized (no mutations):**
+  - deploying, deleting or renaming anything;
+  - traffic changes;
+  - DNS, Access, Worker-setting, preview-setting, binding, secret or environment changes;
+  - querying or mutating production application data: no D1 SQL (metadata only), no R2 object reads or listings (bucket configuration only), no secret values;
+  - GitHub branch or `main` changes;
+  - PR #7, PR #10, S6/S7 or D-068.
+- **Flags:** every action flag stays `NO`.
+- **Return:** Builder return `H-WEB-CF-INVENTORY-0001` containing:
+  - the inventory;
+  - the repo ↔ Cloudflare mapping;
+  - exposure and security findings;
+  - suspected legacy resources;
+  - dependency uncertainties;
+  - cleanup candidates (not executed);
+  - the smallest remediation plan, split into independently authorizable actions;
+  - whether anything should precede a return to product development.
+
+  The return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-CF-INVENTORY-0001` (cycle `MAISOGLABS_CF_INVENTORY_REVIEW`, scope `D102_CF_INVENTORY_EXPOSURE_REVIEW_READ_ONLY`, applicable review `ML-DEVOS-AS-128`), routed to Claude/Builder.
+
+### D-103 — Bounded Cloudflare Exposure Remediation: A-1 + A-4 only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `872f31b16000fa2407a7bc37beffc83f35548d5c`, after `ML-DEVOS-AS-129` accepted the D-102 assessment. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized (exactly two reversible setting changes from AS-129):**
+  - **A-1 — `maisog-labs`:** disable preview URLs only. Target `previews_enabled: false`; `workers.dev` stays enabled.
+  - **A-4 — `maisog-labs-staging`:** disable `workers.dev` and preview URLs. Target `workers_dev: false`, `previews_enabled: false`. The Worker is not deleted, and its D1/R2 bindings and data are not modified.
+- **Pre-change requirement:** a fresh read after publication must show `maisog-labs` previews enabled, and `maisog-labs-staging` with `workers.dev` and previews enabled. Any material difference from the AS-129 assessment stops the cycle without change.
+- **Verification:**
+  - the `maisog-labs` custom domain is still configured;
+  - the active production deployment/version is unchanged;
+  - `https://maisoglabs.com/` is healthy (read-only probe);
+  - no D1/R2 binding changed;
+  - no deployment, version or traffic operation occurred;
+  - `maisog-labs-staging` still exists, with its public `workers.dev` and preview exposure disabled.
+- **Conditional rollback:**
+  - If A-1 unexpectedly disrupts `maisoglabs.com` production, restore only the exact prior A-1 preview setting and stop.
+  - If A-4 causes an unexpected material dependency failure directly attributable to disabling these endpoints, restore only the exact prior A-4 settings and stop.
+  - Rollback never justifies altering any other resource.
+- **Not authorized:**
+  - A-2, A-3, A-5, A-6, A-7, A-8 and A-9;
+  - disabling `maisog-labs` `workers.dev`;
+  - changing Workers Builds triggers;
+  - Access, n8n or DNS changes;
+  - deployment or traffic changes, or a version upload;
+  - Worker deletion or rename;
+  - D1 SQL or migration, or R2 object access or mutation;
+  - binding, secret or environment changes;
+  - `main` changes;
+  - PR #7, PR #10, S6/S7, D-068;
+  - `devos/execution/`, `tests/fixtures/execution/`, `stash@{0}`.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for exactly A-1 and A-4 (and their conditional rollback); every other action flag `NO`.
+- **Return:** Builder return `H-WEB-CF-EXPOSURE-REMEDIATION-0001` with the D-103 publication SHA, exact pre-change settings, exact operations, exact post-change settings, production health, the unchanged active deployment, confirmation that nothing else changed, and rollback status. `MUTATION_AUTHORIZED` is reset to `NO` and the return is routed to the Architect. A-3, A-6, S6, admin work and ClinicFlow do not start automatically.
+- **Directive:** issue `DIR-WEB-CF-EXPOSURE-REMEDIATION-0001` (cycle `MAISOGLABS_CF_EXPOSURE_REMEDIATION`, scope `D103_CF_EXPOSURE_REMEDIATION_A1_A4_ONLY`, applicable review `ML-DEVOS-AS-129`), routed to Claude/Builder.
+
+### D-104 — Authorize V10 Admin Content Bridge Architecture Planning
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `65288c7c9c412506826ca72912a8f32d816c95a1`, after `ML-DEVOS-AS-130` closed the immediate Cloudflare exposure remediation and routed the next product priority to Paulo. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** PLANNING / ARCHITECTURE ONLY.
+- **Why:** D-093 made `public/index.html` (production SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) the asset-first static homepage and removed `app/page.js`. The existing admin/project mutation APIs therefore do not reach the homepage. An admin editor is only useful with an explicit, bounded publication bridge from managed content to the D-093 homepage. Earlier V10 plan assumptions that the homepage renders through `app/page.js` / `data/site.js` are superseded by D-093. The earlier plan remains evidence and design intent.
+- **Objective:** a repository-grounded architecture for a V10 Admin Content Editor plus a Public Content Bridge, under the rule "CODE OWNS THE V10 DESIGN. ADMIN OWNS APPROVED CONTENT FIELDS." The admin never gains arbitrary HTML, CSS, JS, selector, asset-path, script or free-form layout capability.
+- **Required outputs:**
+  - `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md`, covering the 20 planning sections Paulo specified;
+  - `devos/changes/rfcs/ML-DEVOS-RFC-022.md` ("V10 Published Content Bridge"), status `DRAFT`, not accepted.
+
+  The work compares:
+  - a static artifact with a bounded runtime `/api/site-content` read;
+  - request-time HTML rewriting;
+  - a return to React;
+  - rebuild/deploy on publish;
+  - runtime hydration.
+
+  It also carries a bounded SENTINEL sync and an SU contradiction check.
+- **Allowed:** repository reads; documentation and plan creation; the RFC-022 draft; D-104 governance records; local read-only analysis or testing needed to understand the artifact.
+- **Not authorized:**
+  - changing `public/index.html`, admin UI, Worker routes, migrations or schema, or any application/runtime code;
+  - Cloudflare changes; remote D1/R2 reads or writes;
+  - deployment; `main` merge; production change;
+  - A-2, A-3, A-5, A-6, A-7, A-8, A-9;
+  - S6/S7; PR #7; PR #10; D-068.
+- **Flags:** every action flag stays `NO`.
+- **Return:** Builder return `H-WEB-V10-CONTENT-BRIDGE-PLAN-0001`, routed to the Architect. RFC-022 implementation does not start automatically.
+- **Directive:** issue `DIR-WEB-V10-CONTENT-BRIDGE-PLAN-0001` (cycle `MAISOGLABS_WEB_V10_CONTENT_BRIDGE_PLAN`, scope `D104_V10_ADMIN_CONTENT_BRIDGE_PLANNING_ONLY`, applicable review `ML-DEVOS-AS-130`), routed to Claude/Builder.
+
+### D-105 — RFC-022 owner decisions (Q1–Q5), D-093 served-byte amendment, and RFC-022 amendment authority
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `716b9b74658a3c40c147ce60f1b674e25068d45e`, under `ML-DEVOS-AS-131`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Q1 — D-093 amendment:**
+  - `public/index.html` stays immutable and byte-identical to the approved artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`).
+  - The served `/` response may differ from the artifact **only** by the bounded, validated RFC-022 content-bridge span, and only when published content exists.
+  - Every other D-093 requirement is unchanged, including the byte-identical served response whenever no bridge span is inserted.
+  - The amendment takes effect for implementation only once RFC-022 is accepted and an implementation is separately authorized.
+- **Q2 — routing:** the RFC-022 architecture may make exact `/` Worker-first, with `env.ASSETS.fetch(request)` as the fail-safe fallback. No other ordinary asset route is included. The residual dependency of `/` on Worker execution (AS-131) is accepted as an explicit risk.
+- **Q3 — facts:**
+  - The initial homepage project set, in order: ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat.
+  - Preferred public email: `paulo.maisog@maisoglabs.com`, once its deliverability is confirmed. Until that check passes, the currently verified working address is retained.
+- **Q4:** Tier 2 / artifact v2, About, and new CTA or design changes are deferred. Tier 1 is completed first.
+- **Q5:** no `/api/site-content` initially; the Journal → Research bridge (CB-6) is deferred.
+- **Authorized:** amendment of `devos/changes/rfcs/ML-DEVOS-RFC-022.md` to incorporate Q1–Q5 and the AS-131 findings, returned for final Architect review only. RFC-022 stays `DRAFT` until the Architect accepts it.
+- **Not authorized:**
+  - CB-1 through CB-7; any implementation or migration;
+  - changes to `public/index.html`, the homepage artifact contract, runtime, admin UI, Worker routes or config;
+  - Cloudflare mutation; remote D1/R2; deployment; `main` merge;
+  - A-3, A-6; S6/S7; PR #7; PR #10; D-068.
+- **Flags:** every action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-AMEND-0001`, routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-AMEND-0001` (cycle `MAISOGLABS_WEB_RFC022_AMENDMENT`, scope `D105_RFC022_AMENDMENT_ONLY`, applicable review `ML-DEVOS-AS-131`), routed to Claude/Builder.
+
+### D-106 — Authorize RFC-022 Tier 1 Admin Content Bridge implementation (CB-1..CB-5, repository/local only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `c0eb486e576a843bda94b5a6465bfa9e0f98eb63`, under `ML-DEVOS-AS-132`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized:** implement CB-1 through CB-5 together, repository and local only, exactly under `ML-DEVOS-RFC-022`, `ML-DEVOS-AS-132` and `D-105`:
+  - the MLData content bridge;
+  - migration `0006` with the four approved V10 project fields;
+  - the extended project draft → preview → publish lifecycle;
+  - a bounded contact-email draft → preview → publish lifecycle;
+  - a usable `/admin` Content UI;
+  - the protected homepage draft preview;
+  - the exact `/` Worker-first published-content bridge;
+  - the RFC-022 / AS-132 tests and local browser evidence.
+
+  Local D1 migrations and tests are allowed.
+- **Binding requirements:**
+  - `public/index.html` is not modified; its SHA-256 stays `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`;
+  - every RFC-022 requirement and the twelve AS-131 tests;
+  - AS132-F001 (transformed-response identity and caching) as a mandatory implementation condition;
+  - AS132-F002 stays a release gate: Eternal Eggs production copy and email-verification status are not invented.
+- **Canonical admin login identity (from D-106 onward):** `paulo.maisog@maisoglabs.com`.
+  - This is separate from the publicly displayed email.
+  - The governed Worker does not hard-code an admin email; the login allowlist is configured in Cloudflare Access.
+  - The later production Access/admin wiring step must configure this identity.
+  - Any retained admin implementation with an application-level `ADMIN_EMAIL` or equivalent pin must use the same address.
+  - This is not authorization to modify Cloudflare Access or the legacy Admin V1 Workers now.
+- **Flags:** `MUTATION_AUTHORIZED: YES` and `AUDIT_APPEND_AUTHORIZED: YES` for this implementation only. `REMOTE_D1`, `REMOTE_R2`, `MEDIA_MUTATION`, `DEPLOY` and `MAIN_MERGE` stay `NO`.
+- **Not authorized:**
+  - CB-R; remote D1/R2; Cloudflare configuration or Access policy changes;
+  - production content publication; deployment; `main` merge;
+  - `/api/site-content`; the Journal bridge; Tier 2; About/CTA redesign; project deletion;
+  - S6/S7; A-3/A-6; PR #7; PR #10; D-068.
+- **Publication discipline (AS132-F003 open):** every publication manually inspects STATE and the changed-file set in addition to `--check-only`.
+- **Return:** Builder return `H-WEB-RFC022-TIER1-IMPL-0001`; all flags reset to `NO`; routed to the Architect. The production release does not start automatically.
+- **Directive:** issue `DIR-WEB-RFC022-TIER1-IMPL-0001` (cycle `MAISOGLABS_WEB_RFC022_TIER1_IMPL`, scope `D106_RFC022_TIER1_LOCAL_IMPLEMENTATION_ONLY`, applicable review `ML-DEVOS-AS-132`), routed to Claude/Builder.
+
+### D-107 — Authorize AS-133 remediation cycle 1 (AS133-F001 only, repository/local only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `f31996832b014555b982b84cad9e0137d4fc6064`, when relaying the Architect's `ML-DEVOS-AS-133` (`CHANGES_REQUESTED`). Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized:** one bounded remediation of AS133-F001 under `ML-DEVOS-RFC-022`, `ML-DEVOS-AS-132`, `ML-DEVOS-AS-133`, D-105 and D-106:
+  - keep the exact D-105 five-project/order check (AS132-F002) as a CB-R release-readiness check, with its helper/status preserved;
+  - stop gating normal public bridge rendering on those five names, so that any valid published project group of 1..5 renders through `/`;
+  - add the AS-133 regression evidence;
+  - adjust admin wording/status only if needed to distinguish release readiness from runtime bridge validity.
+- **Binding requirements:**
+  - no new table, migration field, runtime activation flag, API or architecture change;
+  - `public/index.html` is unchanged (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`);
+  - AS132-F002 remains a mandatory release condition, to be proven at CB-R.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for this remediation only. `AUDIT_APPEND_AUTHORIZED`, `REMOTE_D1`, `REMOTE_R2`, `MEDIA_MUTATION`, `DEPLOY` and `MAIN_MERGE` stay `NO`.
+- **Not authorized:** anything outside AS133-F001, including:
+  - CB-R; production, remote D1/R2, Cloudflare, Access or DNS actions;
+  - production content; deployment; `main` merge.
+- **Remediation cycle:** `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`.
+- **Directive:** issue `DIR-WEB-RFC022-TIER1-REM1-0001` (cycle `MAISOGLABS_WEB_RFC022_TIER1_IMPL`, scope `D107_AS133_F001_REMEDIATION_CYCLE_1_ONLY`, applicable review `ML-DEVOS-AS-133`), routed to Claude/Builder. The Builder returns to the Architect on completion.
+
+### D-108 — Open the RFC-022 CB-R release cycle: Stage 1 readiness only (no Gate C)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `b2b88c7b4bca0c3d92b62d4054c06b8ab0f419d9`, after `ML-DEVOS-AS-134` accepted the RFC-022 Tier 1 implementation. Paulo narrowed the request to "Readiness only. Do not execute Gate C yet." Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **New cycle:** `MAISOGLABS_WEB_RFC022_CBR`. `CURRENT_REMEDIATION_CYCLE` resets to 0.
+- **Authorized (CB-R Stage 1, readiness only):**
+  - open one fresh `governance/maisoglabs-v0.1 → main` release PR and observe exact-head CI;
+  - read-only release-state checks: `main`, the release diff, CI on the exact head;
+  - read-only production D1 inspection (SELECT/PRAGMA only) through the Cloudflare MCP connector, as at D-102: applied migrations, the `0006` schema state, published project and contact state;
+  - AS132-F002 initial-five release readiness against real production content;
+  - whether Eternal Eggs production copy exists;
+  - whether deliverability of `paulo.maisog@maisoglabs.com` has been confirmed.
+- **Content rule:** a missing content prerequisite is reported as `NOT READY`. No content is invented or published.
+- **Flags:** every action flag stays `NO`, including `MAIN_MERGE_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`. A read-only inspection needs no write flag (D-102 precedent).
+- **Not authorized:**
+  - Gate C itself (the `main` merge), which remains a separate Paulo authorization after readiness is accepted;
+  - remote migration `0006`; any D1 write; content publication;
+  - Cloudflare, Access or DNS changes; deployment; Gate D; production promotion;
+  - PR #7 or PR #10 action; S6/S7; D-068; A-3/A-6.
+- **Return:** Stage 1 readiness evidence goes to the Architect/Paulo; all flags `NO`; then stop.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-S1-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D108_RFC022_CBR_STAGE1_READINESS_ONLY`, applicable review `ML-DEVOS-AS-134`), routed to Claude/Builder.
+
+### D-109 — Authorize RFC-022 Gate C: protected merge of PR #16 without production promotion
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `52026f7806f92e867737599fc4e5992e2ae6e8ef`, after `ML-DEVOS-AS-135` accepted the CB-R Stage 1 readiness evidence. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:**
+  - PR `Dillaab-source/maisog-labs#16` (`governance/maisoglabs-v0.1 → main`);
+  - reviewed head `52026f7806f92e867737599fc4e5992e2ae6e8ef`;
+  - `main` `6e14077a0f48ba7712d772b3f8e1d0b9b62e0ab4`;
+  - expected active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100% (as read at Stage 1);
+  - homepage SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- **Authorized (Gate C only):**
+  - publish the bounded Gate C directive;
+  - mark PR #16 ready for review;
+  - require fresh `test-and-build` SUCCESS on the new exact final head, because this D-109 publication advances the PR head;
+  - re-check clean mergeability, unchanged `main`, the release scope (the final head differs from the reviewed head only by D-109 coordination records) and the homepage hash;
+  - record a fresh `PRE_MERGE_ACTIVE_VERSION_ID`;
+  - merge PR #16 through the normal protected GitHub PR path, with a normal merge commit and the exact expected head pinned;
+  - observe the resulting `main` Workers Build and version upload;
+  - verify that `POST_MERGE_ACTIVE_VERSION_ID` equals `PRE_MERGE_ACTIVE_VERSION_ID`, still at 100%;
+  - publish the Gate C return to the Architect.
+- **Production readings:** taken read-only through the Cloudflare MCP/API connector in the Builder session (`ACTOR_REPORTED`), as at the D-108 Stage 1.
+- **Not authorized:**
+  - production promotion or Gate D; `wrangler versions deploy`; any traffic change or rollback;
+  - remote D1 migration `0006`; any production D1 write; content publication; R2 mutation;
+  - Cloudflare binding, Access, DNS, secret or environment changes;
+  - direct push to `main`, force push, squash, rebase, auto-merge or protection bypass;
+  - PR #7 or PR #10 action; S6/S7; D-068; A-3/A-6.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-GATE-C-0001` recording:
+  - the D-109 publication SHA; the PR number, base and final head; CI on the final head;
+  - the merge commit; the release diff;
+  - the Workers Build ID and new version ID;
+  - the pre- and post-merge active version and proof that they are equal;
+  - proof that no Gate D command ran.
+
+  Every action flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D109_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-135`), routed to Claude/Builder.

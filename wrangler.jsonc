@@ -27,8 +27,11 @@
     // exactly one more, narrower widening: /api/design — an EXACT path, not
     // a wildcard (no /api/design/* is authorized) — same public/
     // unauthenticated/GET-only/read-only/classified-before-Access-auth
-    // treatment. No other public path becomes Worker-first.
-    "run_worker_first": ["/admin", "/admin/*", "/api/journal", "/api/journal/*", "/api/design"]
+    // treatment. RFC-022 (ML-DEVOS-AS-132, D-105 Q2, D-106) adds exactly one
+    // more: the exact path "/" (not a wildcard) for the V10 published-content
+    // bridge, which falls back to the untouched artifact on any failure. No
+    // other ordinary asset route becomes Worker-first.
+    "run_worker_first": ["/", "/admin", "/admin/*", "/api/journal", "/api/journal/*", "/api/design"]
   },
   // Non-secret runtime configuration only (ML-DEVOS-RFC-002 §4). No secret,
   // private key, credential, or administrator identity is set here. Real
