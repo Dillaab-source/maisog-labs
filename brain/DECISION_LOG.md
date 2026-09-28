@@ -1881,3 +1881,32 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** `MUTATION_AUTHORIZED: YES` for exactly A-1 and A-4 (and their conditional rollback); every other action flag `NO`.
 - **Return:** Builder return `H-WEB-CF-EXPOSURE-REMEDIATION-0001` with the D-103 publication SHA, exact pre-change settings, exact operations, exact post-change settings, production health, the unchanged active deployment, confirmation that nothing else changed, and rollback status. `MUTATION_AUTHORIZED` is reset to `NO` and the return is routed to the Architect. A-3, A-6, S6, admin work and ClinicFlow do not start automatically.
 - **Directive:** issue `DIR-WEB-CF-EXPOSURE-REMEDIATION-0001` (cycle `MAISOGLABS_CF_EXPOSURE_REMEDIATION`, scope `D103_CF_EXPOSURE_REMEDIATION_A1_A4_ONLY`, applicable review `ML-DEVOS-AS-129`), routed to Claude/Builder.
+
+### D-104 — Authorize V10 Admin Content Bridge Architecture Planning
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `65288c7c9c412506826ca72912a8f32d816c95a1`, after `ML-DEVOS-AS-130` closed the immediate Cloudflare exposure remediation and routed the next product priority to Paulo. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** PLANNING / ARCHITECTURE ONLY.
+- **Why:** D-093 made `public/index.html` (production SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) the asset-first static homepage and removed `app/page.js`. The existing admin/project mutation APIs therefore do not reach the homepage. An admin editor is only useful with an explicit, bounded publication bridge from managed content to the D-093 homepage. Earlier V10 plan assumptions that the homepage renders through `app/page.js` / `data/site.js` are superseded by D-093. The earlier plan remains evidence and design intent.
+- **Objective:** a repository-grounded architecture for a V10 Admin Content Editor plus a Public Content Bridge, under the rule "CODE OWNS THE V10 DESIGN. ADMIN OWNS APPROVED CONTENT FIELDS." The admin never gains arbitrary HTML, CSS, JS, selector, asset-path, script or free-form layout capability.
+- **Required outputs:**
+  - `docs/product/V10_ADMIN_CONTENT_BRIDGE_PLAN.md`, covering the 20 planning sections Paulo specified;
+  - `devos/changes/rfcs/ML-DEVOS-RFC-022.md` ("V10 Published Content Bridge"), status `DRAFT`, not accepted.
+
+  The work compares:
+  - a static artifact with a bounded runtime `/api/site-content` read;
+  - request-time HTML rewriting;
+  - a return to React;
+  - rebuild/deploy on publish;
+  - runtime hydration.
+
+  It also carries a bounded SENTINEL sync and an SU contradiction check.
+- **Allowed:** repository reads; documentation and plan creation; the RFC-022 draft; D-104 governance records; local read-only analysis or testing needed to understand the artifact.
+- **Not authorized:**
+  - changing `public/index.html`, admin UI, Worker routes, migrations or schema, or any application/runtime code;
+  - Cloudflare changes; remote D1/R2 reads or writes;
+  - deployment; `main` merge; production change;
+  - A-2, A-3, A-5, A-6, A-7, A-8, A-9;
+  - S6/S7; PR #7; PR #10; D-068.
+- **Flags:** every action flag stays `NO`.
+- **Return:** Builder return `H-WEB-V10-CONTENT-BRIDGE-PLAN-0001`, routed to the Architect. RFC-022 implementation does not start automatically.
+- **Directive:** issue `DIR-WEB-V10-CONTENT-BRIDGE-PLAN-0001` (cycle `MAISOGLABS_WEB_V10_CONTENT_BRIDGE_PLAN`, scope `D104_V10_ADMIN_CONTENT_BRIDGE_PLANNING_ONLY`, applicable review `ML-DEVOS-AS-130`), routed to Claude/Builder.
