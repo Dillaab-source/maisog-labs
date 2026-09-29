@@ -1,0 +1,145 @@
+{
+  "sourceArtifactSha256": "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9",
+  "candidateIndexSha256": "220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc",
+  "candidateIndexBytes": 20857,
+  "insertionOffset": 20116,
+  "assets": [
+    {
+      "file": "icon.606027999c4f.svg",
+      "bytes": 8384
+    },
+    {
+      "file": "font.f8c22ec1804b.woff2",
+      "bytes": 6912
+    },
+    {
+      "file": "font.7635422bd10d.woff2",
+      "bytes": 8356
+    },
+    {
+      "file": "font.62632b637530.woff2",
+      "bytes": 5868
+    },
+    {
+      "file": "font.6bc0f226a5b7.woff2",
+      "bytes": 13348
+    },
+    {
+      "file": "font.08949f728dc5.woff2",
+      "bytes": 14708
+    },
+    {
+      "file": "font.3febe5c7f22e.woff2",
+      "bytes": 6972
+    },
+    {
+      "file": "font.1d89462e86cb.woff2",
+      "bytes": 8460
+    },
+    {
+      "file": "font.781633d95de8.woff2",
+      "bytes": 6040
+    },
+    {
+      "file": "font.6bb06407c975.woff2",
+      "bytes": 13432
+    },
+    {
+      "file": "font.01d285447409.woff2",
+      "bytes": 14888
+    },
+    {
+      "file": "font.ca157063339a.woff2",
+      "bytes": 25960
+    },
+    {
+      "file": "font.71d5ee93cc1e.woff2",
+      "bytes": 18748
+    },
+    {
+      "file": "font.6e9e020a25f9.woff2",
+      "bytes": 11232
+    },
+    {
+      "file": "font.1be3448e292f.woff2",
+      "bytes": 18996
+    },
+    {
+      "file": "font.5c66f9e07e90.woff2",
+      "bytes": 10252
+    },
+    {
+      "file": "font.34b9c504cab7.woff2",
+      "bytes": 85068
+    },
+    {
+      "file": "font.3100e775e861.woff2",
+      "bytes": 48256
+    },
+    {
+      "file": "font.0f7f5f2fbb4e.woff2",
+      "bytes": 26368
+    },
+    {
+      "file": "font.a187b077090f.woff2",
+      "bytes": 23828
+    },
+    {
+      "file": "font.26b2403f995e.woff2",
+      "bytes": 12928
+    },
+    {
+      "file": "font.54d9a78b7ff6.woff2",
+      "bytes": 70688
+    },
+    {
+      "file": "font.06b16db7a969.woff2",
+      "bytes": 37956
+    },
+    {
+      "file": "react.production.d949f1c3687a.js",
+      "bytes": 10751
+    },
+    {
+      "file": "react-dom.production.35f4f974f4b2.js",
+      "bytes": 131835
+    },
+    {
+      "file": "design-system.c349f854986d.js",
+      "bytes": 54444
+    },
+    {
+      "file": "data.f804d6673bf6.js",
+      "bytes": 4751
+    },
+    {
+      "file": "entry.7995859f655d.js",
+      "bytes": 7485
+    },
+    {
+      "file": "overlay.40b08c01543f.js",
+      "bytes": 920
+    },
+    {
+      "file": "systems.c57b27f6a3c1.js",
+      "bytes": 7361
+    },
+    {
+      "file": "projects.f30288d8da5f.js",
+      "bytes": 4458
+    },
+    {
+      "file": "research.7506383efa2f.js",
+      "bytes": 1423
+    },
+    {
+      "file": "contact.d60d31598c40.js",
+      "bytes": 3191
+    },
+    {
+      "file": "app.2eb79497681e.js",
+      "bytes": 1658
+    }
+  ],
+  "totalAssetBytes": 725925
+}
