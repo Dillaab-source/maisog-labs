@@ -2567,3 +2567,96 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Exact-script requirement:** do not change, regenerate, broaden or reinterpret the script. If the authenticated admin session is unavailable, stop for Paulo to authenticate personally; Work must not request, retrieve, record, handle or bypass the OTP. If the script stops or any response differs from the D-118 contract, stop immediately, report the exact output and do not rerun blindly.
 - **Unchanged content, verification and boundaries:** D-115 remains canonical without editorial change. D-118's PUT/POST sequence, expected pointers, read-only verification, desktop protected-preview evidence and mobile deferral remain unchanged. No project publication, initial homepage activation or marker, contact/`site_settings` mutation, deployment, Access/DNS/binding/secret/environment change, R2, schema or migration change, direct D1 SQL, service token, `main` or PR #7/#10 action, S6/S7, D-068 or V10.1 work is authorized.
 - **Flags and directive:** unchanged. Only `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` remain `YES` for this operation. `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` stays selected and open until the five exact drafts are verified. On success, publish the bounded Builder/Architect handoff, reset every action-specific authorization flag to `NO`, route to the Architect and stop.
+
+### D-120 — Authorize a bounded V10.1 desktop remediation candidate only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `e2e6d243b21ad90f81ac5f9db376f2dc4fc8ef83`, in the same message that relayed `ML-DEVOS-AS-144`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** one reviewable V10.1 candidate that preserves the approved V10 visual identity while addressing the remaining desktop launch issues from the live review. It is not a redesign, not a production deployment and not project activation.
+- **Source of truth:** the current approved V10 source and the current production implementation.
+- **Preserve:**
+  - the celestial and Roman/classical identity; the logo and brand system; the desktop composition;
+  - the Systems experience; the Projects experience; the five D-115 projects; project navigation;
+  - the motion style, except where production hardening requires an equivalent implementation;
+  - RFC-022 content ownership boundaries.
+- **Mobile:** explicitly deferred by Paulo. Not in scope: mobile navigation, selector rails, hero contrast, touch targets, nested scrolling. Mobile findings do not block this desktop candidate.
+- **Bounded fixes:**
+  1. **Research: remove dead affordances.**
+     - Keep the working Research / Build / Thoughts filters.
+     - Article cards stop being links, and nothing navigates to `#`.
+     - Remove the dead "More notes" link.
+     - Make clear these are previews or notes in preparation. Preferred treatment: the heading "Research Previews", and the non-interactive text "Notes in preparation" instead of "More notes →".
+     - No fake article pages; no invented publications.
+  2. **Contact: desktop polish only.**
+     - Preserve the email data source and lifecycle.
+     - Do not publish `paulo.maisog@maisoglabs.com`; do not change `site_settings`.
+     - Fix desktop email wrapping so the address cannot break awkwardly before its final character.
+     - Preserve the Contact composition and style.
+     - Domain-email publication remains a separate owner decision after deliverability confirmation.
+  3. **Document / accessibility basics,** where compatible with the V10 artifact pipeline, without redesigning sections:
+     - `html lang="en-PH"`;
+     - a real `main` landmark around the primary content; coherent heading order;
+     - meta description; canonical; basic Open Graph and Twitter metadata;
+     - preserved `:focus-visible`.
+
+     If the self-unpacking mechanism removes metadata after document replacement, document that and address it in item 5 rather than adding metadata that disappears at runtime.
+  4. **SEO static basics:** if indexing is intended and it needs no architecture expansion, a minimal `sitemap.xml` for the current public site and a useful, non-misleading `robots.txt`. No CMS, sitemap service or backend.
+  5. **Production runtime hardening (feasibility, then implement if bounded).**
+     - **Observed:** about 1.97 MB of initial HTML; client-side self-unpacking; development React/runtime; in-browser Babel; a transient blank state on reload.
+     - **Approach:** investigate the actual source/build pipeline first.
+     - **Preferred outcome:**
+       - precompiled production JS and the production React runtime;
+       - no browser-side Babel and no unnecessary client-side unpacking;
+       - equivalent V10 rendering and interaction;
+       - fingerprintable, cacheable assets where practical.
+     - **Stop rule:** if it would require replatforming V10, replacing the visual system, rewriting the application architecture, materially changing RFC-022, breaking the MLData content seam, or a large new build system, stop that subtask and report it as deferred technical debt with the smallest future path.
+  6. **Asset / caching quick wins,** only if trivial and safe:
+     - identify oversized desktop assets;
+     - enable long-lived immutable caching for fingerprinted static assets where the architecture supports it;
+     - no recompression or re-authoring that risks visible quality loss.
+- **RFC-022 / artifact safety:**
+  - The D-093 artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) remains canonical and production-authoritative; it is not silently replaced.
+  - Any candidate reports:
+    - its artifact SHA-256;
+    - whether its MLData seam stays RFC-022-compatible;
+    - whether the bridge offset/hash constants would need updating;
+    - whether the worker/bridge tests need changes;
+    - whether serving it requires a new deployment.
+  - A new artifact stays a review candidate, never production-authoritative under D-120.
+- **Project content:** ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU and Maisog Kilat are not modified. No D-115 copy change, no new project revision, no publication, no homepage activation.
+- **Authorized:** repository-local V10.1 candidate work only:
+  - source changes; candidate build output;
+  - local/headless-browser tests; screenshots and evidence;
+  - documentation of the required artifact/bridge migration;
+  - ordinary implementation commits on the working implementation branch.
+- **Not authorized:**
+  - production project publication; `POST /admin/api/projects/initial-activation`; a `homepage_initial_activation` marker;
+  - production D1 mutation; `site_settings`/contact mutation; public email publication;
+  - production deployment or traffic change;
+  - Cloudflare Access, DNS, binding, secret or environment mutation; R2 mutation; production schema or migrations;
+  - `main` merge; Gate C; PR #7 or #10; S6/S7; D-068.
+- **Test / review target:**
+  - viewports: 1440×900 and 1280×720;
+  - checks:
+    - entry/landing renders; Systems works; all five Projects render and navigate;
+    - Research filters work and Research has no dead links;
+    - Contact works visually; keyboard focus is visible;
+    - no new console errors; no desktop horizontal overflow; project content is unchanged;
+    - RFC-022 MLData compatibility is explicitly assessed.
+
+  If hardening is implemented, report before/after: initial HTML size, in-browser Babel, the development React warning, self-unpacking, and any obvious load/render regression.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for repository-local candidate work only. Every production action flag stays `NO`.
+- **Return:** Builder return `H-WEB-V101-DESKTOP-CANDIDATE-0001` with:
+  1. exact files changed;
+  2. the candidate commit SHA;
+  3. the candidate artifact SHA if one exists;
+  4. screenshots at 1440×900 and 1280×720;
+  5. test results;
+  6. Research behavior before and after;
+  7. document/SEO changes;
+  8. the contact wrapping result;
+  9. the runtime-hardening result, `IMPLEMENTED` or `DEFERRED` with the reason;
+  10. the RFC-022 bridge compatibility assessment;
+  11. the exact steps to promote V10.1 later.
+
+  Then `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, every flag `NO`.
+- **Directive:** issue `DIR-WEB-V101-DESKTOP-CANDIDATE-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D120_V101_DESKTOP_CANDIDATE_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-144`), routed to Claude/Builder.
