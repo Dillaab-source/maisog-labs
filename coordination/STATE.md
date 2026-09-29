@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: RFC022_INITIAL_PROJECT_ACTIVATION_DECISION_ONLY
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D125_RFC022_INITIAL_PROJECT_ACTIVATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,54 +14,52 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-RFC022-INITIAL-ACTIVATION-0001
+DIRECTIVE_ISSUE_PARENT: 4bc72aad469f3b38798b3d16f310040b10026199
+DIRECTIVE_AUTHORITY_REF: D-125
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-149
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
-AUDIT_APPEND_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
+AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_R2_AUTHORIZED: NO
-REMOTE_D1_AUTHORIZED: NO
+REMOTE_D1_AUTHORIZED: YES
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect review
+## Authority
 
-`ML-DEVOS-AS-149`: `ACCEPTED — D-124 COMPLETE`. Reviewed return `e2b79d4d3283423237005600cf1e6a76cec54eb8`.
+`ML-DEVOS-AS-149`: `ACCEPTED — D-124 COMPLETE`. The unpublished drafts are recruiter-ready revisions 7–11 (canonical D-124 `8c76c749…`). Any activation must bind exactly to them after the owner preview.
 
-- **Drafts:** the five unpublished drafts point to recruiter-friendly revisions ClinicFlow **7**, Eternal Eggs **8**, Sentinel / DevOS **9**, SU **10**, Maisog Kilat **11**. They match canonical D-124 `8c76c749409521f9311be8c78e9f49de3e4b43ea7ca05e5d3baf5590bcd1beab`, with only `category`, `summary`, `v10.tagline` and `v10.flow` changed. Sentinel / DevOS remains `Active`.
-- **Publication boundary PASS:** 0 published; 0 activation markers; contact/`site_settings` untouched; public `/` raw V10.1 `220ce809…`; `8fd31f47…` @ 100%.
-- **Evidence:** the script execution is `OWNER_REPORTED`; read-back, Cloudflare state, validators and HTTP are `ACTOR_REPORTED`. Not upgraded.
-- **Readiness:** the validators pass; `initialReleaseReadiness()` is `true`. The content-readiness portion of AS132-F002 is satisfied; it is not consumed until initial activation.
-- **Authority:** D-124 is satisfied and closed. No remediation. No additional script infrastructure, admin redesign, deployment or content pipeline is justified.
+D-125 records Paulo's authorization, after reviewing `/admin/preview/home`, of the **RFC-022 initial project activation** of exactly ClinicFlow 7, Eternal Eggs 8, Sentinel / DevOS 9, SU 10 and Maisog Kilat 11, atomically as one group:
+- **Channel:** only the existing `POST /admin/api/projects/initial-activation` (D-111), owner-executed in Paulo's authenticated `/admin` session.
+- **Fresh preflight:** drafts 7–11 current; 0 published; readiness `true`; 0 markers; `/` in artifact fallback. Any difference: stop.
+- **Post-verification:**
+  - exactly the five published, in order; exactly one marker;
+  - the public bridge renders the five, and Eternal Eggs replaces Maisog Guild;
+  - V10.1 navigation, Systems, Projects, Research and Contact healthy;
+  - no contact email or unrelated mutation.
 
-`H-WEB-RFC022-CONTENT-COPY-0001` is archived byte-for-byte and deselected.
+`MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` are `YES` for that one activation only.
 
-## Paulo decision required
+D-125 also records the **recruiter homepage copy follow-up**: the intro line and the `HUMANITY / ORBITS / HIGHER` lines. It is prepared locally after the activation return, returned for Architect review, and not deployed under this authority.
 
-Scope: `RFC022_INITIAL_PROJECT_ACTIVATION_DECISION_ONLY`.
+## Selected directive
 
-Before any activation, Paulo inspects the protected revised preview `https://maisoglabs.com/admin/preview/home`: the Entry/Home first impression; Projects panel readability; recruiter comprehension of all five projects; scrolling at the normal desktop viewport; no truncation or awkward wrapping.
-
-Paulo may then authorize activation only if the decision binds exactly to draft revisions `7, 8, 9, 10, 11` for ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU and Maisog Kilat. The remaining operation is: owner preview → one atomic initial activation → live verification.
-
-Separate decisions: contact-email publication; mobile; `og:image`; robots/content-signals work; unrelated changes.
+`DIR-WEB-RFC022-INITIAL-ACTIVATION-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-125 and `ML-DEVOS-AS-149`.
 
 ## Hard boundaries
 
-All action-specific authorization flags are `NO`.
+Only the three flags above are `YES`, for the one activation. Every other flag is `NO`.
 
 Not authorized:
-- initial homepage activation; a `homepage_initial_activation` marker; any project publication;
+- any other project publish, unpublish or edit; direct D1 SQL writes; service tokens; Access bypass;
 - contact/`site_settings` mutation; contact-email publication;
-- any deployment, promotion, rollback or traffic shift; `main` merge;
-- production D1 or R2 mutation;
-- Access, DNS, binding, secret, environment or zone change (including robots.txt/content signals); schema or migration change;
+- any deployment, promotion, rollback or traffic shift; `main` merge; code or design change in production (including the homepage copy follow-up);
+- R2, Access, DNS, binding, secret, environment or zone change (including robots.txt/content signals); schema or migration change;
 - mobile remediation; `og:image`.
 
-AS132-F002 applies at the first project bridge activation. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
+AS132-F002 is consumed by this activation. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068. A-3 and A-6 are not authorized.
 
@@ -69,4 +67,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-Paulo inspects the protected preview and records the initial-activation decision (or declines). No production mutation is authorized by AS-149.
+Paulo runs the exact activation script in the authenticated `/admin` session. The Builder then verifies read-only, prepares the homepage copy follow-up locally and publishes `H-WEB-RFC022-INITIAL-ACTIVATION-0001`. It archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.

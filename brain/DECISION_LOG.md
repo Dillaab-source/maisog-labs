@@ -2961,3 +2961,46 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Then every action flag is reset to `NO`, with `TURN: PAULO`, `STATUS: PAULO_DECISION_REQUIRED`, `AUTHORIZED_SCOPE: RFC022_INITIAL_PROJECT_ACTIVATION_DECISION_ONLY`. Then stop.
 - **Directive:** issue `DIR-WEB-RFC022-CONTENT-COPY-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D124_RFC022_PROJECT_COPY_DRAFT_REVISION_ONLY`, applicable review `ML-DEVOS-AS-148`), routed to Claude/Builder.
+
+### D-125 — Authorize RFC-022 initial project activation of the recruiter-ready set (revisions 7–11); record the recruiter homepage follow-up
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `4bc72aad469f3b38798b3d16f310040b10026199`, after `ML-DEVOS-AS-149` accepted D-124. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Owner preview:** Paulo reviewed the protected preview `/admin/preview/home` and accepted it for recruiter-facing use (`OWNER_REPORTED`).
+- **Authorized:** RFC-022 initial project activation of exactly these current drafts, atomically and only as one group:
+  - ClinicFlow — revision 7;
+  - Eternal Eggs — revision 8;
+  - Sentinel / DevOS — revision 9;
+  - SU — revision 10;
+  - Maisog Kilat — revision 11.
+
+  Only the existing atomic RFC-022 initial activation (`POST /admin/api/projects/initial-activation`, the D-111 path; AS132-F002).
+- **Before mutation, freshly verify:**
+  - revisions 7–11 remain the current drafts for the named projects;
+  - none is published;
+  - `initialReleaseReadiness()` is still `true`;
+  - no initial activation marker exists;
+  - public `/` remains in artifact fallback.
+
+  If any bound value differs, stop.
+- **After activation, verify:**
+  - exactly those five revisions are published, in the order ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat;
+  - exactly one `homepage_initial_activation` marker exists;
+  - the public homepage bridge renders the five projects, and Eternal Eggs replaces the Maisog Guild fallback;
+  - V10.1 navigation, Systems, Projects, Research and Contact remain healthy;
+  - no contact-email publication or unrelated mutation occurred.
+- **Not authorized by the activation:** deployment; code change; design mutation; R2; Access; DNS; bindings; robots.txt; mobile; `og:image`; contact-email publication; `site_settings` changes; any further project change.
+- **Recruiter homepage follow-up — record and prepare only.** After the activation return is complete, the next bounded website task is recorded. It is not combined with the activation, because the homepage introduction is code/artifact-owned, not part of the admin project-content bridge.
+  - **Objective:** make the existing V10.1 landing page immediately understandable to a recruiter arriving from LinkedIn, Upwork, JobStreet or a résumé.
+  - **Preserve:** the space + Roman visual system; logo; animation; composition; navigation; typography system; layout; the "IDEAS IN ORBIT" brand line. No redesign.
+  - **Lower-left introduction becomes:** `Paulo Maisog — AI Automation & Technical Systems Builder` / `Building practical AI workflows, cloud automation, and technical systems for real-world business processes.`
+  - **Lower-right decorative wording:** `HUMANITY / ORBITS / HIGHER` → `AI / AUTOMATION / SYSTEMS`, with the existing visual treatment and vertical composition preserved.
+  - **Overengineering disposition: SIMPLIFY.** A copy-only recruiter-positioning improvement: no new CMS, homepage schema, services, admin infrastructure, layout redesign, animation or architecture expansion. The smallest implementation changes only these two visible text regions, preserving the accepted V10.1 artifact as much as technically possible.
+  - **Return first**, for Architect review:
+    - the exact files that would change; exact before/after strings;
+    - screenshots at 1440×900 and 1280×720; confirmation of no clipping or awkward wrapping;
+    - test/build result;
+    - whether the change truly requires a new Worker version/release.
+
+    It is not deployed under the activation authority.
+- **Flags** (activation only): `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`, `REMOTE_D1_AUTHORIZED: YES`, for the one atomic initial activation through the authenticated admin lifecycle. Every other flag stays `NO`.
+- **Directive:** issue `DIR-WEB-RFC022-INITIAL-ACTIVATION-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D125_RFC022_INITIAL_PROJECT_ACTIVATION_ONLY`, applicable review `ML-DEVOS-AS-149`), routed to Claude/Builder. The return is `H-WEB-RFC022-INITIAL-ACTIVATION-0001`, routed to the Architect.

@@ -1,84 +1,87 @@
-# Current Directive — RFC-022 recruiter-friendly project copy (D-124)
+# Current Directive — RFC-022 initial project activation (D-125)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-RFC022-CONTENT-COPY-0001
+directive_id: DIR-WEB-RFC022-INITIAL-ACTIVATION-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-issue_parent_commit: 69cf99d042007eea535154d2bffb199ffff473cd
+issue_parent_commit: 4bc72aad469f3b38798b3d16f310040b10026199
 target_turn: CLAUDE
-authority_ref: D-124
-applicable_review_id: ML-DEVOS-AS-148
+authority_ref: D-125
+applicable_review_id: ML-DEVOS-AS-149
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-124 and `ML-DEVOS-AS-148`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-125 and `ML-DEVOS-AS-149`.
 
 ## Objective
 
-Revise the public-facing copy of the five existing unpublished D-115 project drafts to the exact D-124 content (compact JSON SHA-256 `8c76c749409521f9311be8c78e9f49de3e4b43ea7ca05e5d3baf5590bcd1beab`). Create one new immutable draft revision each through the authenticated admin lifecycle, verify read-only, check the desktop layout, and return for Paulo's final activation decision. Nothing is published or activated.
+Activate exactly the recruiter-ready drafts (ClinicFlow 7, Eternal Eggs 8, Sentinel / DevOS 9, SU 10, Maisog Kilat 11) through the one existing atomic RFC-022 initial activation, verify the live homepage read-only, and return. Then record and prepare, local only, the D-125 recruiter homepage copy follow-up for Architect review.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; the only `YES` flags are `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`, for these five draft revisions only.
-- The five drafts exist, unpublished, with draft revision ids ClinicFlow 2, Eternal Eggs 3, Sentinel / DevOS 4, SU 5, Maisog Kilat 6 (`H-WEB-RFC022-CONTENT-DRAFTS-0002`). No `homepage_initial_activation` marker exists.
-- Production serves V10.1 `8fd31f47…` @ 100%; public `/` is the raw artifact `220ce809…`.
+- The Protocol V2 bootstrap passes; STATE selects this directive; the only `YES` flags are `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`, for the one activation.
+- Fresh read-only checks:
+  - drafts 7–11 are current;
+  - 0 published;
+  - `initialReleaseReadiness()` is `true`;
+  - 0 activation markers;
+  - public `/` is the raw V10.1 artifact `220ce809…` (fallback, no span).
 
 ## Governing references
 
-- **T0:** Protocol V2; D-124; live STATE; `ML-DEVOS-AS-148`.
-- **T1:** D-115 (identities and non-copy fields); D-117/D-118/D-119 (owner-executed authenticated console channel); `ML-DEVOS-RFC-022` §5.6, §10.1; AS132-F002 (unconsumed).
+- **T0:** Protocol V2; D-125; live STATE; `ML-DEVOS-AS-149`.
+- **T1:** D-111 (`POST /admin/api/projects/initial-activation`, AS137-F001); AS132-F002; D-124 (content); D-117/D-119 (owner-executed authenticated console channel); `ML-DEVOS-RFC-022` §5.4, §10.1.
 
 ## Exact execution scope
 
 Allowed:
-- read-only production D1 `SELECT`s and Cloudflare GETs for verification;
-- one Builder-generated, locally dry-run console script. Paulo (or the D-119 Work/browser operator) runs it in Paulo's owner-authenticated `/admin` session. It makes exactly five authenticated `PUT /admin/api/projects/:id/draft` calls, with exact expected pointers (`published: null`; draft 2/3/4/5/6). Each creates one immutable draft revision with the exact D-124 content. This is the existing authenticated lifecycle. The Builder cannot pass Cloudflare Access itself and never handles the OTP;
-- local headless layout checks of the exact copy in V10.1 through the unchanged bridge;
-- the protected preview `/admin/preview/home`, viewed in Paulo's authenticated session (`OWNER_REPORTED`);
+- read-only production D1 `SELECT`s, Cloudflare GETs and public HTTP GETs;
+- one Builder-generated, locally dry-run console script, run by Paulo in the owner-authenticated `/admin` session. It makes exactly one `POST /admin/api/projects/initial-activation` with the five entries in rendered order and expected pointers `published: null`, `draft: 7/8/9/10/11`. The Builder cannot pass Cloudflare Access and never handles the OTP;
+- a live read-only browser/HTTP smoke test after activation;
+- after the activation return: local, repository-only preparation of the homepage copy follow-up (no commit to product files without review, no deploy);
 - one Protocol V2 Builder return.
 
 Not allowed:
-- any project publish/unpublish; `POST /admin/api/projects/initial-activation`; a `homepage_initial_activation` marker;
-- direct D1 SQL writes; service tokens; any Access bypass;
-- V10.1, deployment, merge, `site_settings`, contact email, robots.txt/content signals, R2, DNS, bindings, secrets, environment;
-- any field change beyond `category`, `summary`, `v10.tagline`, `v10.flow`.
+- any other project publish, unpublish or edit; direct D1 SQL writes; service tokens; Access bypass;
+- contact email, `site_settings`, deployment, code or design change in production, R2, Access, DNS, bindings, robots.txt, mobile, `og:image`;
+- deploying the homepage copy follow-up.
 
 ## SENTINEL Sync
 
-- **Authority:** D-124 (Paulo).
-- **Context:** AS-148 accepted V10.1 live; initial activation is deferred for recruiter-friendly copy.
-- **Capability:** five authenticated draft-revision PUTs, owner-executed.
-- **Execution:** script → owner run → read-only verification → layout check.
-- **Evidence:** revision ids, before/after copy, validators, readiness, preview, public `/` unchanged.
+- **Authority:** D-125 (Paulo), after the owner preview.
+- **Context:** AS-149 accepted the D-124 copy; activation must bind exactly to revisions 7–11.
+- **Capability:** one authenticated atomic activation, owner-executed.
+- **Execution:** fresh preflight → script → owner run → read-only verification.
+- **Evidence:** published pointers, marker, audit, live `/` bridge, smoke test.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- **"Keep the existing stack" vs display:** the D-124 stacks equal D-115's stored stacks exactly. The V10.1 homepage renders discipline tags, not `stack`. The category (`kind`) appears only in the Systems panel's "Used in projects" list. Recorded as a presentation note; no site change.
-- **Execution channel:** D-124 requires the authenticated lifecycle; the Builder cannot authenticate through Cloudflare Access. The D-117/D-119 owner-executed console channel is the existing route. The Builder generates and dry-runs; the owner executes.
+- **Activation vs homepage copy:** the project copy is admin-owned (RFC-022 bridge). The intro text and the `HUMANITY / ORBITS / HIGHER` lines are code-owned in the V10.1 artifact. They are handled separately: the follow-up needs a new artifact, bridge constants and a governed release.
+- **Execution channel:** the endpoint is Access-protected; owner execution under the D-117/D-119 channel.
 
 ## Instructions
 
-1. Bootstrap. Read-only verify the current five drafts and pointers.
-2. Generate the D-124 console script and dry-run it locally against the real Worker code; record its SHA-256.
-3. Paulo runs it in the authenticated `/admin` session and reports the output.
-4. Verify read-only (field-by-field against D-124 canonical, validators, readiness, unpublished, no marker, `/` unchanged); collect preview evidence.
+1. Bootstrap. Run the fresh preflight; stop on any mismatch.
+2. Generate the activation script; dry-run it locally against the real Worker code; record its SHA-256.
+3. Paulo runs it once; the Builder verifies read-only and smoke-tests the live homepage.
+4. Prepare the homepage copy follow-up locally (files, before/after, screenshots, tests/build, release assessment).
 5. Publish the return.
 
 ## Validation and evidence
 
-The D-124 return list.
+The D-125 "after activation" list, plus the follow-up preparation items.
 
 ## Stop conditions
 
-- Current pointers differ from `null` / 2–6, or activation is already done.
-- Any unexpected response from the script; any published pointer.
-- Any stored field differs from the D-124 canonical content.
+- Any precondition mismatch.
+- Any unexpected script response.
+- Any published pointer or marker state other than exactly the five and exactly one marker.
 
 ## Next action
 
-Publish `H-WEB-RFC022-CONTENT-COPY-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: PAULO` (D-124).
+Publish `H-WEB-RFC022-INITIAL-ACTIVATION-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.
