@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D121_V101_PROMOTION_PREPARATION_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: V101_GATE_C_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-V101-PROMOTION-PREP-0001
-REVIEW_TARGET_COMMIT: ab1720fd5d8dedd18b284d11ad14d9ad6eadd545
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-145
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -27,20 +27,30 @@ REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Authority
+## Architect review
 
-D-121 (`ML-DEVOS-AS-145`) authorized one atomic repository promotion-preparation change for the exact accepted V10.1 candidate. The authority is consumed. `MUTATION_AUTHORIZED` is reset to `NO`.
+`ML-DEVOS-AS-146`: `ACCEPTED — V10.1 PROMOTION PREPARATION`. Reviewed commit: `49984e74bdc4109f431bdc24248f7a9bb000dcff` (input D-121 publication `ab1720f`).
 
-## Current handoff
+- **Invariant satisfied:** one commit carries the accepted artifact, the `/v101/` assets, `robots.txt`, `sitemap.xml`, `_headers`, all three RFC-022 identity values, the affected tests and the return.
+- **Identity:** `public/index.html` is the same Git blob as the accepted candidate: SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, length `20857`, offset `20116`, pinned by `worker/bridge/inject.mjs`. The bridge mechanism was not widened.
+- **Evidence:** 958/958, build green and local Chromium PASS remain `ACTOR_REPORTED`, local; not reclassified as production evidence.
+- **Production:** unchanged. `main` is `405375998392e936b71181de387ae395b7d46e40`; production stays on V10 until separately authorized Gate C and Gate D.
+- **Authority:** D-121 is satisfied and closed. No remediation.
+- **Non-blocking:** the candidate build script fails safely; stale comment in `worker/bridge/payload.mjs`; no Firefox/WebKit/real-device/live-D1 browser evidence; mobile and `og:image` deferred; pre-existing traceability ERRORs/DRIFT carried forward.
 
-`H-WEB-V101-PROMOTION-PREP-0001`:
-- **Promoted artifact:** `public/index.html` is the accepted candidate byte-for-byte: SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, 20,857 bytes, `</head>` at byte 20,116. It was copied, not rebuilt. `public/v101/` (34 assets), `robots.txt`, `sitemap.xml` and `_headers` were copied the same way.
-- **Bridge constants, same commit:** `ARTIFACT_SHA256 = 220ce809…`, `ARTIFACT_LENGTH = 20857`, `INSERTION_OFFSET = 20116`. The affected homepage-artifact, RFC-022 bridge and candidate tests are updated.
-- **Tests:** 958/958 pass; the build is green; `out/index.html` = `220ce809…`.
-- **Browser (`ACTOR_REPORTED`, local):** through the production bridge functions, the five D-115 projects render in the approved order with content identical to V10. Every D-121 functional check passes at 1440×900 and 1280×720.
-- **Production:** no mutation, merge or deployment. Production still serves V10 until Gate C and Gate D.
+`H-WEB-V101-PROMOTION-PREP-0001` is archived byte-for-byte and deselected.
 
-`DIR-WEB-V101-PROMOTION-PREP-0001` is archived byte-for-byte and deselected.
+## Paulo decision required
+
+Scope: `V101_GATE_C_DECISION_ONLY`.
+
+Paulo decides whether to authorize Gate C for the exact reviewed head `49984e74bdc4109f431bdc24248f7a9bb000dcff` against the current `main` `405375998392e936b71181de387ae395b7d46e40`. AS-146 Gate C conditions:
+- a fresh release pull request from `governance/maisoglabs-v0.1` to `main`, bound to that exact head; **not PR #10** (the Sentinel handoff channel, never merged);
+- the `main-protection` ruleset: pull-request merge path and a successful `test-and-build`, so fresh CI success on the exact final PR head and clean mergeability before merging;
+- any head movement invalidates the binding and requires stopping for review;
+- Gate C is merge-only: no deployment and no traffic shift.
+
+Gate D / deployment remains separate and is not authorized by AS-146.
 
 ## Hard boundaries
 
@@ -61,4 +71,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-The Architect reviews `H-WEB-V101-PROMOTION-PREP-0001` under a new immutable `ML-DEVOS-AS-NNN`.
+Paulo records a Gate C decision (or declines). No implementation, merge or production mutation is authorized by AS-146.
