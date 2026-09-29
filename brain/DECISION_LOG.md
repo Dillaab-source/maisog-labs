@@ -2154,3 +2154,576 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Every action flag is then reset to `NO` and the return is routed to the Architect.
 - **Directive:** issue `DIR-WEB-RFC022-GATE-C-0002` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D112_RFC022_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-138`), routed to Claude/Builder.
+
+### D-113 — Authorize one bounded Cloudflare Access remediation: align `maisoglabs.com/admin` with the D-106 identity
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `7555f48809e40abaeea3ddca084d53b4fff1e846`, in the same message that relayed `ML-DEVOS-AS-139`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **D-106 unchanged:** the canonical admin identity remains `paulo.maisog@maisoglabs.com`.
+- **Bound identities:**
+  - Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b` (`maisoglabs.com/admin`, `maisoglabs.com/admin/*`), AUD `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`, team domain `jolly-disk-0469.cloudflareaccess.com`;
+  - its current policy `460d0315-1e4b-414a-8845-c656f1f04c79` ("Maisog Labs Admin V1 — Canonical Administrator", reusable);
+  - `main` `405375998392e936b71181de387ae395b7d46e40`; active production `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- **Before mutation (read-only):**
+  1. read the application and its attached policies;
+  2. determine whether policy `460d0315…` is referenced by any other Access application;
+  3. record the application's AUD, team domain, identity providers (OTP), session settings and protected paths, all of which must be preserved.
+- **Mutation rule:**
+  - **Not shared:** update only that policy's allowed email identity to `paulo.maisog@maisoglabs.com`.
+  - **Shared:** do not edit the shared policy. Create a dedicated allow policy for this application using only `paulo.maisog@maisoglabs.com`, attach it to this application in place of the shared one, and leave every other application and reusable policy unchanged.
+- **Post-change verification:**
+  - the application still protects exactly `/admin` and `/admin/*`;
+  - the team domain and AUD are unchanged;
+  - the allowed identity for this application is exactly `paulo.maisog@maisoglabs.com`;
+  - no other application's policy changed;
+  - the production Worker version and traffic are unchanged; no Worker deploy or Gate D occurred.
+- **Authorized:** only the minimal Cloudflare Access policy mutation above; read-only verification before and after; governance publication of the result.
+- **Not authorized:**
+  - Gate D; Worker deployment, promotion or traffic change;
+  - D1, R2, content, `site_settings` or email mutation;
+  - DNS changes; binding, secret or environment changes;
+  - another `main` merge; PR #7 or PR #10 action.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for exactly this Access policy mutation (D-103 precedent for a bounded Cloudflare configuration change). Every other action flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-CBR-ACCESS-0001` with the D-113 publication SHA, the exact pre-change state, whether the policy was shared, the exact operation, the exact post-change state and the verification above. Every flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CBR-ACCESS-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D113_RFC022_CBR_ACCESS_IDENTITY_ALIGNMENT_ONLY`, applicable review `ML-DEVOS-AS-139`), routed to Claude/Builder.
+
+### D-114 — Authorize RFC-022 Gate D: one bounded production promotion of the exact `main` candidate
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `c24f8882586a5a2cdb25b7dc8bbfbd7b6e54fe72`, in the same message that relayed `ML-DEVOS-AS-140`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound identities:**
+  - `main` `405375998392e936b71181de387ae395b7d46e40`; `main` Workers Build `ded31be5-394e-4674-95d9-88d904e784aa`;
+  - candidate version `862dc45e-9ad7-4324-80ae-912adbb6ce82`;
+  - current production and rollback target `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%;
+  - Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`; Access policy `62653faa-4c3c-4b96-a53f-7545f79dbd43`; canonical admin identity `paulo.maisog@maisoglabs.com`;
+  - homepage artifact SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
+- **Pre-promotion gate (fresh reads; any mismatch, traffic split or ambiguity stops without promoting, with no automatic repair):**
+  1. STATE selects the D-114 Gate D directive.
+  2. `main` is still exactly `40537599…`, not superseded by a newer authorized release.
+  3. The candidate `862dc45e…` exists, is inactive, was produced from the accepted `main` release, and carries `ACCESS_TEAM_DOMAIN` `jolly-disk-0469.cloudflareaccess.com`, `ACCESS_AUD` `ef44d36e676be36eedb87d5378b8f3fd1ed40cc34505b7261a990c166a0cea22`, `DB` → `45b87574-e573-4e0f-9bb6-fbba2df29523`, `MEDIA` → `maisog-labs-web-inc-004-local`, and `ASSETS`.
+  4. Access application `b80acca4…` still protects only `maisoglabs.com/admin` and `/admin/*`, with the same AUD, team domain and OTP IdP, using policy `62653faa…`, which allows exactly `paulo.maisog@maisoglabs.com`.
+  5. A fresh active-production read immediately before promotion shows exactly `53137101…` @ 100%. Record `PRE_GATE_D_ACTIVE_VERSION_ID` and the deployment id.
+- **Pre-promotion baseline (RFC-022 §7 test 11):** a bounded sample of `GET /` (preferably ≥ 20), with median and p95 where supported. Also actual Worker CPU-time evidence for the active version from read-only Workers analytics/logging if available. No content mutation for measurement; no invented figures. If CPU evidence is unavailable, record the limitation; that alone authorizes no other deployment method or observability change.
+- **Authorized promotion:** exactly one production deployment assigning `862dc45e…` @ 100%, by the minimum official Cloudflare Workers deployment operation. The Wrangler equivalent is exactly `npx wrangler versions deploy 862dc45e-9ad7-4324-80ae-912adbb6ce82@100% --yes`, run once. No traffic or canary split, second candidate, version upload, `wrangler deploy`, rebuild or `main` merge.
+- **Post-promotion verification (read-only):**
+  1. active production is exactly `862dc45e…` @ 100%; record the new deployment id;
+  2. `GET https://maisoglabs.com/` returns 200 and, with no homepage projects or contact published, still serves the approved D-093 artifact, not blank or materially broken;
+  3. `/api/journal`, `/api/design` and `/journal` stay healthy under their contracts;
+  4. `/admin` stays protected by Cloudflare Access (no weakening or bypass);
+  5. no production content or D1 state changed;
+  6. no new Worker exception or binding failure attributable to the candidate.
+- **Post-promotion measurement (RFC-022 §7 test 11):** repeat the same `GET /` sample while still in artifact fallback. Obtain actual Worker CPU-time evidence for `862dc45e…` from read-only analytics/logging. Record the sample/window, latency statistics, CPU statistics, source, and the old/new comparison. If CPU evidence is unavailable, do not fabricate it: report test 11 as still incomplete and leave the healthy candidate deployed unless a rollback condition holds. No observability configuration mutation.
+- **Conditional rollback (at most one):**
+  - **When:** only for a new material production failure attributable to `862dc45e…`: homepage unavailable or materially broken; previously healthy public APIs failing; widespread new Worker exceptions; an Access/Worker binding failure preventing the governed admin path; or a production binding failure caused by the candidate.
+  - **How:** roll back to `53137101…` @ 100%. The Wrangler equivalent is `npx wrangler rollback 53137101-afb8-456c-ab83-d8b7b934df01 --message "D-114 rollback: newly caused RFC-022 Gate D production failure"`. Then verify, rerun the health checks and stop, with no second promotion.
+  - **Not a rollback reason:** absent project content, the homepage remaining the D-093 artifact, an empty Journal, unavailable CPU/latency evidence, cosmetic or pre-existing issues, or the historical `-local` resource names.
+- **Not authorized:**
+  - project draft creation or publication; initial homepage activation;
+  - `site_settings` or content mutation; public contact-email publication;
+  - D1 query, write, migration or restore; R2 mutation;
+  - Access mutation; DNS change; secret, environment or binding change;
+  - version upload; another `main` merge;
+  - PR #7 or PR #10 action; S6/S7; D-068.
+- **Flags:** `DEPLOY_AUTHORIZED: YES` for this exact Gate D (and its one conditional rollback). Every other action-specific flag stays `NO`.
+- **Return:** one Gate D return `H-WEB-RFC022-GATE-D-0001` containing:
+  - the D-114 publication SHA, the `main` SHA, the candidate and previous version ids, and the pre-Gate-D active version and deployment;
+  - the exact deployment operation, the new deployment id, and the post-Gate-D active version and allocation;
+  - the HTTP smoke results and the Access re-check;
+  - the test 11 evidence or explicit limitation;
+  - the rollback status;
+  - confirmation that no content, D1, R2, Access, DNS, binding, secret or `main` mutation occurred.
+
+  Then `DEPLOY_AUTHORIZED` and every flag are reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; the directive is archived and deselected.
+- **Directive:** issue `DIR-WEB-RFC022-GATE-D-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D114_RFC022_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-140`), routed to Claude/Builder.
+
+### D-115 — Approve the initial five-project homepage content; authorize production drafts and protected preview only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `68a614de98290b744a28c4afc43699a94ab384f1`, under `ML-DEVOS-AS-141` scope `RFC022_INITIAL_CONTENT_OWNER_APPROVAL_ONLY`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Context:** Paulo reports that a comprehensive live-site review found launch blockers, and recommends saving invisible drafts first, then completing a bounded V10.1 remediation before public activation. The review itself is not recorded in this repository.
+- **Approved content (exact):**
+  - order: 1 ClinicFlow, 2 Eternal Eggs, 3 Sentinel / DevOS, 4 SU, 5 Maisog Kilat;
+  - discipline map: 0 AI, 1 Automation, 2 Research, 3 Security, 4 Systems, 5 Architecture.
+
+  The admin project fields are below. Kind = `category`, description = `summary`, the homepage fields are under `v10`, and the flow stages are listed in order:
+
+```json
+[
+  {
+    "id": "project-clinicflow",
+    "slug": "clinicflow",
+    "order": 1,
+    "category": "Clinic automation",
+    "title": "ClinicFlow",
+    "summary": "ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow.",
+    "stack": [
+      "n8n",
+      "LLM",
+      "Webhooks",
+      "Calendar"
+    ],
+    "accent": "gold",
+    "icon": "automation",
+    "featured": true,
+    "v10": {
+      "tagline": "AI-assisted booking and workflow automation for dental clinics.",
+      "status": "",
+      "disciplines": [
+        0,
+        1,
+        4,
+        3
+      ],
+      "flow": [
+        "Patient starts a conversation",
+        "Request is structured and validated",
+        "Appointment workflow is coordinated",
+        "Staff review and remain in control"
+      ]
+    }
+  },
+  {
+    "id": "project-eternal-eggs",
+    "slug": "eternal-eggs",
+    "order": 2,
+    "category": "Conversational ordering",
+    "title": "Eternal Eggs",
+    "summary": "Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection.",
+    "stack": [
+      "Cloudflare Workers",
+      "Durable Objects",
+      "D1",
+      "LLM"
+    ],
+    "accent": "violet",
+    "icon": "automation",
+    "featured": true,
+    "v10": {
+      "tagline": "A conversational ordering system built around real customer orders.",
+      "status": "",
+      "disciplines": [
+        0,
+        1,
+        4
+      ],
+      "flow": [
+        "Customer sends an order",
+        "Order details are extracted and checked",
+        "Total and delivery details are confirmed",
+        "A person receives the structured order"
+      ]
+    }
+  },
+  {
+    "id": "project-sentinel-devos",
+    "slug": "sentinel-devos",
+    "order": 3,
+    "category": "AI operating system",
+    "title": "Sentinel / DevOS",
+    "summary": "Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review.",
+    "stack": [
+      "Governance",
+      "Architecture",
+      "Evidence",
+      "AI"
+    ],
+    "accent": "blue",
+    "icon": "systems",
+    "featured": true,
+    "v10": {
+      "tagline": "A governed system for coordinating human and AI software development.",
+      "status": "Active",
+      "disciplines": [
+        0,
+        2,
+        1,
+        5,
+        3
+      ],
+      "flow": [
+        "Work begins from an explicit decision",
+        "Scope and architecture are defined",
+        "Implementation produces evidence",
+        "A person reviews and authorizes the next step"
+      ]
+    }
+  },
+  {
+    "id": "project-su",
+    "slug": "su",
+    "order": 4,
+    "category": "Research engine",
+    "title": "SU",
+    "summary": "SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them.",
+    "stack": [
+      "Research",
+      "Evidence",
+      "Review",
+      "AI"
+    ],
+    "accent": "violet",
+    "icon": "lab",
+    "featured": true,
+    "v10": {
+      "tagline": "An evidence-first research engine built to challenge its own conclusions.",
+      "status": "",
+      "disciplines": [
+        2,
+        0,
+        5
+      ],
+      "flow": [
+        "Sources are collected",
+        "Claims and evidence are mapped",
+        "Contradictions are actively tested",
+        "A person reviews the supported conclusion"
+      ]
+    }
+  },
+  {
+    "id": "project-maisog-kilat",
+    "slug": "maisog-kilat",
+    "order": 5,
+    "category": "Strategy validation",
+    "title": "Maisog Kilat",
+    "summary": "Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product.",
+    "stack": [
+      "Research",
+      "Backtesting",
+      "Risk Controls",
+      "Market Data"
+    ],
+    "accent": "blue",
+    "icon": "lab",
+    "featured": true,
+    "v10": {
+      "tagline": "Algorithmic trading research with deterministic testing and risk controls.",
+      "status": "",
+      "disciplines": [
+        2,
+        0,
+        4,
+        5
+      ],
+      "flow": [
+        "A strategy hypothesis is defined",
+        "It is tested against market data",
+        "Results and risk are measured",
+        "A person decides whether it proceeds"
+      ]
+    }
+  }
+]
+```
+
+  The Builder validated this content locally, before publication, with the production validators:
+  - each `id`, `slug` and revision passes `validateProjectId` / `validateProjectSlug` / `validateProjectRevisionContent`;
+  - the group passes `validateProjectsGroup`;
+  - `initialReleaseReadiness` returns `true`.
+- **Authorized (only):**
+  1. record this approval;
+  2. create exactly these five production project drafts through the existing authenticated admin project lifecycle (`POST /admin/api/projects`), using its immutable revision, stale-pointer and atomic audit mechanisms;
+  3. read back the exact stored drafts;
+  4. revalidate all five with the production validators and confirm `initialReleaseReadiness()` is `true`;
+  5. generate the protected homepage preview (`/admin/preview/home`) and capture desktop and mobile evidence for Architect/Paulo review;
+  6. verify that public `/` stays in artifact fallback and no project content becomes public.
+- **Authentication stop condition:** the drafts must be created through the authenticated admin lifecycle as Paulo via Cloudflare Access. If this session cannot authenticate correctly, the Builder stops, returns the limitation to the Architect, and must not:
+  - bypass authentication;
+  - substitute direct D1 SQL;
+  - invent a service token;
+  - weaken Access.
+- **Not authorized:**
+  - any project publish; initial homepage activation; a `homepage_initial_activation` marker; public homepage content activation;
+  - contact/`site_settings` mutation; contact-email publication;
+  - deployment or traffic change;
+  - R2, Access, DNS, binding, secret or environment change;
+  - schema or migration change; `main` merge;
+  - PR #7 or PR #10; S6/S7; D-068;
+  - V10.1 remediation.
+- **Flags:** for this operation only, `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES` and `REMOTE_D1_AUTHORIZED: YES`. Every other action-specific flag stays `NO`.
+- **Return:** Builder handoff `H-WEB-RFC022-CONTENT-DRAFTS-0001` recording:
+  - the D-115 publication SHA; project ids and revision ids;
+  - validation results and the `initialReleaseReadiness` result;
+  - the protected preview evidence;
+  - confirmation that public `/` is unchanged, no project was published and no activation marker was created.
+
+  Or, if the stop condition applies, the authentication limitation. Every flag is then reset to `NO`, with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+- **Directive:** issue `DIR-WEB-RFC022-CONTENT-DRAFTS-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D115_RFC022_INITIAL_CONTENT_DRAFTS_AND_PREVIEW_ONLY`, applicable review `ML-DEVOS-AS-141`), routed to Claude/Builder.
+
+### D-116 — Execute the D-115 drafts only through an owner-authenticated interactive browser session
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `4e363fbf595db5b9fa20e408fa7a241f53686165`, in the same message that relayed `ML-DEVOS-AS-142`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Content:** exactly the five projects approved in D-115 (the canonical JSON in D-115), with no editorial changes.
+- **Required execution path:**
+  1. open `https://maisoglabs.com/admin` in an interactive browser session visible to Paulo;
+  2. stop at Cloudflare Access authentication;
+  3. Paulo personally completes authentication for `paulo.maisog@maisoglabs.com`. The Builder never retrieves, requests, stores or bypasses the OTP;
+  4. resume only after Paulo confirms that the authenticated admin UI is loaded;
+  5. create exactly the five D-115 drafts through the existing admin lifecycle;
+  6. make no editorial changes to the approved content;
+  7. read back and validate the saved drafts;
+  8. confirm `initialReleaseReadiness()` remains `true`;
+  9. open `/admin/preview/home` and capture desktop preview evidence;
+  10. confirm public `/` is unchanged;
+  11. stop.
+- **Deferred by Paulo:** mobile preview and remediation. Not required for this step.
+- **No browser available:** if no owner-visible interactive browser is available, the Builder publishes D-116 and stops. Execution then continues in a browser-enabled Claude session.
+- **Flags:** `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`, `REMOTE_D1_AUTHORIZED: YES`, for this operation only. Every other action-specific flag stays `NO`.
+- **Not authorized:**
+  - project publication; initial homepage activation; a `homepage_initial_activation` marker;
+  - contact/`site_settings` mutation; deployment;
+  - Access mutation; direct production D1 SQL as an admin substitute; service-token creation;
+  - R2; schema or migration changes; `main` merge;
+  - V10.1 implementation.
+- **Return:** Builder handoff `H-WEB-RFC022-CONTENT-DRAFTS-0002` recording:
+  - the D-116 publication SHA; the project ids and revision ids;
+  - validation and the `initialReleaseReadiness` result;
+  - desktop preview evidence;
+  - confirmation that public `/` is unchanged, no project was published and no activation marker was created.
+
+  Every flag is then reset to `NO` and the return is routed to the Architect.
+- **Directive:** issue `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D116_RFC022_CONTENT_DRAFTS_OWNER_BROWSER_ONLY`, applicable review `ML-DEVOS-AS-142`), routed to Claude/Builder.
+
+### D-117 — Amend D-116: owner-executed browser-console POST of the exact D-115 drafts
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `c69be77cd3577a0c0c717b5643ff0d78a3ee156d`, after the Builder reported that the admin UI cannot carry the exact D-115 values. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Why:**
+  - Builder-run browser execution under D-116 is unavailable.
+  - The admin UI's new-project form has no `stack`, `accent` or `icon` inputs; it saves `[]`, `blue` and `lab`.
+  - The form also sorts disciplines ascending, and the homepage renders discipline tags in stored order.
+  - So D-115 cannot be entered exactly through the UI. D-116 forbids approximation.
+- **Amendment:**
+  - The D-116 execution path becomes owner-executed.
+  - Paulo, already authenticated through Cloudflare Access as `paulo.maisog@maisoglabs.com` in his own browser, runs one browser-console script on `https://maisoglabs.com/admin`.
+  - The script POSTs the exact canonical D-115 JSON to the existing authenticated admin endpoint `POST /admin/api/projects`, one request per project, in the D-105 order.
+  - This is allowed only because it uses the same production admin lifecycle and API the UI uses.
+- **Verified live contract** (the code at `main` `405375998392e936b71181de387ae395b7d46e40`, identical to the governance branch):
+  - post-Access `sub` required; same-origin `Origin`; JSON; ≤ 32 KiB;
+  - `validateProjectId`, `validateProjectSlug` and `validateProjectRevisionContent` (discipline order preserved);
+  - no expected pointers for create; a duplicate id or slug gives 409 with nothing written;
+  - one atomic batch: `projects` row, immutable `project_revisions` revision 1 with the V10 columns, `draft_revision_id`, and a `project_create_draft` success audit row;
+  - `published_revision_id` stays null; the response is 201 with the draft revision id.
+- **Script:**
+  - generated by the Builder from the canonical D-115 JSON committed in this log (compact JSON SHA-256 `e45a56ca8a5d96fc8a0484da857dbd8d3b783a936181d875b05bb756bab6e90c`); script SHA-256 `dbe453f69da6c53049b9c49d4f654e1ded1ccf77b2b371bcff9dd6a24a210d6e`;
+  - it aborts unless run on `https://maisoglabs.com/admin`, if initial activation is already done, or if any of the five ids already exists;
+  - it stops at the first non-201;
+  - it makes no publish, activation, contact or other call.
+- **Requirements:**
+  - exactly the D-115 canonical values: `id`, `slug`, `order`, `category`, `title`, `summary`, `stack`, `accent`, `icon`, `featured`, and every `v10` field, including discipline order;
+  - no direct D1 SQL; no service token; no Access change;
+  - no publication; no initial homepage activation; no `homepage_initial_activation` marker;
+  - no contact/`site_settings` mutation; no deployment; no V10.1 changes.
+- **After Paulo reports the result:**
+  - the Builder, read-only, reads back all five drafts and compares every stored field with D-115;
+  - it validates them with the production validators and confirms `initialReleaseReadiness()` is `true`;
+  - it confirms none is published, no activation marker exists, and public `/` is unchanged;
+  - the protected `/admin/preview/home` inspection may be `OWNER_REPORTED`; mobile stays deferred.
+
+  Then the Builder returns to the Architect and stops.
+- **Flags:** unchanged from D-116 (`MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` `YES` for this operation only). The Builder itself creates no drafts and performs only read-only verification.
+- **Directive:** `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` stays selected, with its execution path amended by D-117 (as D-101 amended D-100). The return is `H-WEB-RFC022-CONTENT-DRAFTS-0002`.
+
+### D-118 — Amend D-117: correct the UI-made ClinicFlow draft by PUT; create the other four by POST
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `e0ad72d7f15dd86a1daed793709c9f5e09ae6544`, after the Builder's read-only ClinicFlow diagnostic. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Diagnostic (accepted by Paulo):**
+  - Paulo created only `project-clinicflow`, through the admin UI: revision 1, `created_by cf-access:f2cab460-…`, published `null`, draft `1`.
+  - 7 of 14 fields differ from D-115: `title` `clinicflow` (should be `ClinicFlow`); `order` 3 (1); `stack` `[]`; `accent` `blue` (`gold`); `icon` `lab` (`automation`); `featured` false (true); `v10.disciplines` `[0,1,3,4]` (`[0,1,4,3]`).
+  - `id`, `slug`, `category`, `summary`, `v10.tagline`, `v10.status` and `v10.flow` match.
+  - No activation marker. Public `/` is unchanged.
+- **Authorized (only):**
+  1. correct the existing ClinicFlow draft through the authenticated draft-edit lifecycle `PUT /admin/api/projects/project-clinicflow/draft`, creating a new immutable revision exactly equal to canonical D-115, with expected pointers `expectedPublishedRevisionId: null`, `expectedDraftRevisionId: 1`. Stop if they no longer match;
+  2. create Eternal Eggs, Sentinel / DevOS, SU and Maisog Kilat with authenticated `POST /admin/api/projects`, exactly as in D-115;
+  3. both in one owner-executed browser-console script that replaces the D-117 script, stops on the first unexpected response, and never publishes or activates;
+  4. after Paulo runs it, read-only verification of all five: field-by-field comparison with D-115, the production validators, `validateProjectsGroup`, `initialReleaseReadiness() == true`, `published_revision_id` null for all, no `homepage_initial_activation` marker, public `/` unchanged.
+- **Verified live PUT contract** (the code at `main` `405375998392e936b71181de387ae395b7d46e40`, identical to the governance branch):
+  - post-Access `sub` required; same-origin `Origin`; JSON; ≤ 32 KiB;
+  - the project must exist (else 404);
+  - `expectedPublishedRevisionId` and `expectedDraftRevisionId` are required (null or a positive integer; else 400) and must equal the live pointers (else 409);
+  - the body carries `order`, `category`, `title`, `summary`, `stack`, `accent`, `icon`, `featured` and `v10` (`id`/`slug` are not accepted and stay unchanged). An omitted `media` inherits the source revision's snapshot (none for ClinicFlow);
+  - `validateProjectRevisionContent`, with discipline order preserved;
+  - one atomic batch: a new immutable `project_revisions` row (next revision number), a draft-pointer UPDATE guarded at commit time on both expected pointers, and a `project_update_draft` success audit row. Revision 1 is not modified;
+  - `published_revision_id` is never touched;
+  - the response is 200 `{ id, slug, state, publishedRevisionId, draftRevisionId, revisionId }`.
+- **Script:**
+  - generated from the canonical D-115 JSON (compact SHA-256 `e45a56ca8a5d96fc8a0484da857dbd8d3b783a936181d875b05bb756bab6e90c`); script SHA-256 `35b059d6a1cc82dee756b50ed52405f101c0a9d6b37f65aca55d62ebb7bb8f16`;
+  - pre-checks: on `maisoglabs.com/admin`; initial activation not done; ClinicFlow pointers exactly published `null` / draft `1`; the other four ids absent;
+  - then one PUT, which must give 200, `state: draft`, published `null` and an advanced draft pointer, and four POSTs, each 201, `draft`, published `null`;
+  - it stops on the first unexpected response.
+- **Local dry run (Builder, Miniflare D1, real admin handlers; not production):**
+  - from a reproduced UI-made ClinicFlow revision 1, the script produced ClinicFlow revision 2 and four new drafts;
+  - 0 field differences against canonical D-115 across all five; validators, `validateProjectsGroup` and `initialReleaseReadiness` all pass;
+  - 0 published, 0 markers; one success audit row per operation;
+  - a re-run stops at the pointer pre-check.
+- **Not authorized:**
+  - deleting or recreating ClinicFlow;
+  - project publication; homepage activation; an activation marker;
+  - contact/`site_settings` changes; deployment;
+  - direct D1 SQL; a service token; Access changes; R2; schema or migrations;
+  - `main` merge; V10.1 changes.
+- **Flags and directive:** unchanged. `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` stays selected and open until all five exact drafts are verified. The Builder performs no write. The return is `H-WEB-RFC022-CONTENT-DRAFTS-0002`.
+
+### D-119 — Amend D-118 execution channel: Work/browser operator may execute the exact replacement script
+
+- **Decided by:** Paulo (Product / Risk Owner), in the ChatGPT Work session continuing from `Verify Gate C Handoff`, on authoritative governance tip `f4a63c4850e2d925c1dd90319f9648e56e3d7169`. Published by Work as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Amendment only:** Work/browser operator may execute, on Paulo's behalf in the owner-authenticated `https://maisoglabs.com/admin` browser session, the already-issued D-118 replacement browser-console script whose SHA-256 is `35b059d6a1cc82dee756b50ed52405f101c0a9d6b37f65aca55d62ebb7bb8f16`.
+- **Exact-script requirement:** do not change, regenerate, broaden or reinterpret the script. If the authenticated admin session is unavailable, stop for Paulo to authenticate personally; Work must not request, retrieve, record, handle or bypass the OTP. If the script stops or any response differs from the D-118 contract, stop immediately, report the exact output and do not rerun blindly.
+- **Unchanged content, verification and boundaries:** D-115 remains canonical without editorial change. D-118's PUT/POST sequence, expected pointers, read-only verification, desktop protected-preview evidence and mobile deferral remain unchanged. No project publication, initial homepage activation or marker, contact/`site_settings` mutation, deployment, Access/DNS/binding/secret/environment change, R2, schema or migration change, direct D1 SQL, service token, `main` or PR #7/#10 action, S6/S7, D-068 or V10.1 work is authorized.
+- **Flags and directive:** unchanged. Only `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` remain `YES` for this operation. `DIR-WEB-RFC022-CONTENT-DRAFTS-0002` stays selected and open until the five exact drafts are verified. On success, publish the bounded Builder/Architect handoff, reset every action-specific authorization flag to `NO`, route to the Architect and stop.
+
+### D-120 — Authorize a bounded V10.1 desktop remediation candidate only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `e2e6d243b21ad90f81ac5f9db376f2dc4fc8ef83`, in the same message that relayed `ML-DEVOS-AS-144`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Nature:** one reviewable V10.1 candidate that preserves the approved V10 visual identity while addressing the remaining desktop launch issues from the live review. It is not a redesign, not a production deployment and not project activation.
+- **Source of truth:** the current approved V10 source and the current production implementation.
+- **Preserve:**
+  - the celestial and Roman/classical identity; the logo and brand system; the desktop composition;
+  - the Systems experience; the Projects experience; the five D-115 projects; project navigation;
+  - the motion style, except where production hardening requires an equivalent implementation;
+  - RFC-022 content ownership boundaries.
+- **Mobile:** explicitly deferred by Paulo. Not in scope: mobile navigation, selector rails, hero contrast, touch targets, nested scrolling. Mobile findings do not block this desktop candidate.
+- **Bounded fixes:**
+  1. **Research: remove dead affordances.**
+     - Keep the working Research / Build / Thoughts filters.
+     - Article cards stop being links, and nothing navigates to `#`.
+     - Remove the dead "More notes" link.
+     - Make clear these are previews or notes in preparation. Preferred treatment: the heading "Research Previews", and the non-interactive text "Notes in preparation" instead of "More notes →".
+     - No fake article pages; no invented publications.
+  2. **Contact: desktop polish only.**
+     - Preserve the email data source and lifecycle.
+     - Do not publish `paulo.maisog@maisoglabs.com`; do not change `site_settings`.
+     - Fix desktop email wrapping so the address cannot break awkwardly before its final character.
+     - Preserve the Contact composition and style.
+     - Domain-email publication remains a separate owner decision after deliverability confirmation.
+  3. **Document / accessibility basics,** where compatible with the V10 artifact pipeline, without redesigning sections:
+     - `html lang="en-PH"`;
+     - a real `main` landmark around the primary content; coherent heading order;
+     - meta description; canonical; basic Open Graph and Twitter metadata;
+     - preserved `:focus-visible`.
+
+     If the self-unpacking mechanism removes metadata after document replacement, document that and address it in item 5 rather than adding metadata that disappears at runtime.
+  4. **SEO static basics:** if indexing is intended and it needs no architecture expansion, a minimal `sitemap.xml` for the current public site and a useful, non-misleading `robots.txt`. No CMS, sitemap service or backend.
+  5. **Production runtime hardening (feasibility, then implement if bounded).**
+     - **Observed:** about 1.97 MB of initial HTML; client-side self-unpacking; development React/runtime; in-browser Babel; a transient blank state on reload.
+     - **Approach:** investigate the actual source/build pipeline first.
+     - **Preferred outcome:**
+       - precompiled production JS and the production React runtime;
+       - no browser-side Babel and no unnecessary client-side unpacking;
+       - equivalent V10 rendering and interaction;
+       - fingerprintable, cacheable assets where practical.
+     - **Stop rule:** if it would require replatforming V10, replacing the visual system, rewriting the application architecture, materially changing RFC-022, breaking the MLData content seam, or a large new build system, stop that subtask and report it as deferred technical debt with the smallest future path.
+  6. **Asset / caching quick wins,** only if trivial and safe:
+     - identify oversized desktop assets;
+     - enable long-lived immutable caching for fingerprinted static assets where the architecture supports it;
+     - no recompression or re-authoring that risks visible quality loss.
+- **RFC-022 / artifact safety:**
+  - The D-093 artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) remains canonical and production-authoritative; it is not silently replaced.
+  - Any candidate reports:
+    - its artifact SHA-256;
+    - whether its MLData seam stays RFC-022-compatible;
+    - whether the bridge offset/hash constants would need updating;
+    - whether the worker/bridge tests need changes;
+    - whether serving it requires a new deployment.
+  - A new artifact stays a review candidate, never production-authoritative under D-120.
+- **Project content:** ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU and Maisog Kilat are not modified. No D-115 copy change, no new project revision, no publication, no homepage activation.
+- **Authorized:** repository-local V10.1 candidate work only:
+  - source changes; candidate build output;
+  - local/headless-browser tests; screenshots and evidence;
+  - documentation of the required artifact/bridge migration;
+  - ordinary implementation commits on the working implementation branch.
+- **Not authorized:**
+  - production project publication; `POST /admin/api/projects/initial-activation`; a `homepage_initial_activation` marker;
+  - production D1 mutation; `site_settings`/contact mutation; public email publication;
+  - production deployment or traffic change;
+  - Cloudflare Access, DNS, binding, secret or environment mutation; R2 mutation; production schema or migrations;
+  - `main` merge; Gate C; PR #7 or #10; S6/S7; D-068.
+- **Test / review target:**
+  - viewports: 1440×900 and 1280×720;
+  - checks:
+    - entry/landing renders; Systems works; all five Projects render and navigate;
+    - Research filters work and Research has no dead links;
+    - Contact works visually; keyboard focus is visible;
+    - no new console errors; no desktop horizontal overflow; project content is unchanged;
+    - RFC-022 MLData compatibility is explicitly assessed.
+
+  If hardening is implemented, report before/after: initial HTML size, in-browser Babel, the development React warning, self-unpacking, and any obvious load/render regression.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for repository-local candidate work only. Every production action flag stays `NO`.
+- **Return:** Builder return `H-WEB-V101-DESKTOP-CANDIDATE-0001` with:
+  1. exact files changed;
+  2. the candidate commit SHA;
+  3. the candidate artifact SHA if one exists;
+  4. screenshots at 1440×900 and 1280×720;
+  5. test results;
+  6. Research behavior before and after;
+  7. document/SEO changes;
+  8. the contact wrapping result;
+  9. the runtime-hardening result, `IMPLEMENTED` or `DEFERRED` with the reason;
+  10. the RFC-022 bridge compatibility assessment;
+  11. the exact steps to promote V10.1 later.
+
+  Then `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, every flag `NO`.
+- **Directive:** issue `DIR-WEB-V101-DESKTOP-CANDIDATE-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D120_V101_DESKTOP_CANDIDATE_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-144`), routed to Claude/Builder.
+
+### D-121 — Authorize bounded V10.1 promotion preparation (repository only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `ae0419f73398cd43c140be0a4f76e6cb199f6d5b`, after `ML-DEVOS-AS-145` accepted the V10.1 desktop candidate. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Exact accepted artifact:** `candidates/v10.1/site/index.html`, SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`. The accepted candidate bytes are immutable for this operation: they are not rebuilt or regenerated in any way that changes the artifact.
+- **Authorized scope:** one bounded repository promotion-preparation change that atomically:
+  1. replaces `public/index.html` with the exact accepted candidate bytes;
+  2. adds the accepted `/v101/` fingerprinted assets;
+  3. adds the accepted `robots.txt`, `sitemap.xml` and `_headers`;
+  4. updates the RFC-022 bridge constants to match the promoted artifact: `ARTIFACT_SHA256 = 220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, `ARTIFACT_LENGTH = 20857`, `INSERTION_OFFSET = 20116`;
+  5. updates all affected homepage-artifact and RFC-022 bridge tests in the same commit.
+
+  The artifact replacement, all three bridge values and the affected tests are one atomic governed change. Partial replacement is prohibited (`ML-DEVOS-AS-145` mandatory promotion invariant).
+- **Required verification:** the complete repository test suite and build. Locally/headlessly:
+  - the promoted homepage artifact stays byte-identical to the accepted SHA-256;
+  - RFC-022 injects successfully against the new artifact;
+  - the five D-115 projects render in the approved order: ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat;
+  - project copy and data are unchanged;
+  - entry, Systems, Projects, Research and Contact remain functional; Research filters work and no dead `href="#"` links return;
+  - keyboard focus stays visible; no desktop horizontal overflow; no new console errors;
+  - the candidate's document metadata and static SEO files remain intact.
+- **Not authorized:** Gate C; `main` merge; Gate D; production deployment or traffic change; production D1 or R2 mutation; project publication; initial homepage activation or a `homepage_initial_activation` marker; contact or `site_settings` mutation; contact-email publication; Access, DNS, binding, secret or environment mutation; schema or migration changes; mobile remediation; `og:image`; unrelated cleanup, refactoring or architecture expansion; PR #7 or PR #10 action; S6/S7; D-068.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for this repository-local change only. Every production, deployment and merge flag stays `NO`.
+- **Return:** `H-WEB-V101-PROMOTION-PREP-0001` with:
+  1. the exact promotion-preparation commit SHA;
+  2. the complete changed-file set;
+  3. the SHA-256 of `public/index.html`;
+  4. the artifact length and insertion offset;
+  5. the exact RFC-022 bridge constant values;
+  6. complete test and build results;
+  7. browser/bridge verification results;
+  8. confirmation that D-115 project content is unchanged;
+  9. confirmation that no production mutation, merge or deployment occurred;
+  10. any limitations or newly discovered findings.
+
+  Then `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, every flag `NO`. Stop after the return.
+- **Directive:** issue `DIR-WEB-V101-PROMOTION-PREP-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D121_V101_PROMOTION_PREPARATION_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-145`), routed to Claude/Builder.
+
+### D-122 — Authorize V10.1 Gate C (protected `main` merge only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `a9351c660ae4911c5f0536285560cb2c42befa65`, after `ML-DEVOS-AS-146` accepted the D-121 promotion preparation. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound anchors:**
+  - reviewed implementation `49984e74bdc4109f431bdc24248f7a9bb000dcff`;
+  - AS-146 publication `a9351c660ae4911c5f0536285560cb2c42befa65`;
+  - expected `main` `405375998392e936b71181de387ae395b7d46e40`;
+  - accepted homepage SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, length `20857`, RFC-022 insertion offset `20116`.
+- **Final Gate C head:** publishing D-122 and its directive is the only permitted governance-branch advancement after `a9351c6` before Gate C. That publication commit is `FINAL_GATE_C_HEAD`; its exact full SHA is recorded in the return. It contains only the governance/state/directive records needed to publish D-122: no application code, `public/`, tests, bridge behavior, runtime configuration, project content or production state. After it is recorded, any movement of `governance/maisoglabs-v0.1` invalidates this authorization and requires stopping for review.
+- **Authorized action:** open exactly one fresh release PR `governance/maisoglabs-v0.1 → main`. Do not use or modify PR #10.
+- **Before merge, verify:**
+  - `main` is still exactly `405375998392e936b71181de387ae395b7d46e40`;
+  - the PR head is exactly `FINAL_GATE_C_HEAD`;
+  - the changes after `49984e7` are governance-only AS-146 and D-122 publication records;
+  - `public/index.html` still has SHA-256 `220ce809…`;
+  - the bridge values remain SHA `220ce809…`, length `20857`, offset `20116`;
+  - the fresh PR is cleanly mergeable;
+  - the active `main-protection` ruleset remains applicable;
+  - `test-and-build` succeeds on the exact `FINAL_GATE_C_HEAD`;
+  - the final changed-file set is manually inspected under AS132-F003;
+  - the active production Worker version is recorded immediately before the merge.
+
+  If any bound value differs, stop without merging.
+- **Merge:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. Merge through the normal protected GitHub pull-request path with a normal merge commit pinned to `FINAL_GATE_C_HEAD`. No direct push, force push, squash, rebase, auto-merge or protection/ruleset bypass.
+- **After merge, record:** the PR number; the final PR head; the CI result; the merge commit SHA and both parents; the resulting `main` SHA; the homepage artifact identity; the resulting Workers Build/version if Git integration uploads one; the active production version immediately before and after the merge. The active production version must remain unchanged. If Gate C unexpectedly changes production traffic, stop and report it without remediation.
+- **Not authorized:** Gate D; deployment or traffic shift; `wrangler versions deploy`; production D1/R2 mutation; project publication or initial activation; contact or `site_settings` mutation; email publication; Access/DNS/binding/secret/environment changes; migrations/schema changes; mobile remediation; `og:image`; PR #7 or PR #10 action; unrelated cleanup; S6/S7; D-068.
+- **Flags:** every authorization flag except the bounded `MAIN_MERGE_AUTHORIZED` stays `NO`.
+- **Return:** Builder return `H-WEB-V101-GATE-C-0001` with the complete merge and CI evidence; every action flag reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`. Then stop. Gate D remains a separate Paulo authorization.
+- **Directive:** issue `DIR-WEB-V101-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D122_V101_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-146`), routed to Claude/Builder.

@@ -7,7 +7,6 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import { test } from "node:test";
 import vm from "node:vm";
-import zlib from "node:zlib";
 import {
   buildBridgePayload,
   serializeBridgePayload,
@@ -44,20 +43,18 @@ export function project(name, overrides = {}) {
 }
 const initialFive = () => INITIAL_ACTIVATION_PROJECT_NAMES.map(name => project(name));
 
-// The artifact's own MLData resource, decoded exactly as tests/homepage-artifact.test.mjs does.
+// The artifact's own MLData resource: the data script the promoted artifact
+// (D-121) references under /v101/assets/.
 function artifactMLDataSource() {
   const html = Buffer.from(ARTIFACT).toString("utf8");
-  const manifest = JSON.parse(html.match(/<script type="__bundler\/manifest">([\s\S]*?)<\/script>/)[1]);
-  for (const entry of Object.values(manifest)) {
-    const raw = Buffer.from(entry.data, "base64");
-    const text = (entry.compressed ? zlib.gunzipSync(raw) : raw).toString("utf8");
-    if (text.startsWith("window.MLData = {")) return text.slice(0, text.indexOf("// Motion mode"));
-  }
-  throw new Error("MLData resource not found");
+  const ref = html.match(/<script src="(\/v101\/assets\/data\.[0-9a-f]{12}\.js)"><\/script>/)[1];
+  const text = fs.readFileSync(new URL(`../public${ref}`, import.meta.url), "utf8");
+  if (!text.startsWith("window.MLData = {")) throw new Error("MLData resource not found");
+  return text.slice(0, text.indexOf("// Motion mode"));
 }
 
 // Runs the hook against an island, then executes the artifact's own MLData
-// assignment, exactly as the loader would.
+// assignment, exactly as the page would.
 function runHookThenArtifact(islandText) {
   const island = islandText === null ? null : { textContent: islandText };
   const sandbox = { document: { getElementById: id => (id === "ml-published" ? island : null) } };
@@ -68,12 +65,12 @@ function runHookThenArtifact(islandText) {
   return sandbox.window.MLData;
 }
 
-test("the artifact is still the approved D-093 bytes (test 1)", () => {
+test("the artifact is the promoted V10.1 bytes the constants pin (test 1)", () => {
   assert.equal(ARTIFACT.length, ARTIFACT_LENGTH);
   assert.equal(sha(ARTIFACT), ARTIFACT_SHA256);
   assert.equal(Buffer.from(ARTIFACT.subarray(INSERTION_OFFSET, INSERTION_OFFSET + 7)).toString(), "</head>");
-  const outerHead = Buffer.from(ARTIFACT.subarray(0, INSERTION_OFFSET)).toString("utf8");
-  assert.ok(!outerHead.includes("<script"), "the outer head holds no script, so the span precedes every script");
+  const head = Buffer.from(ARTIFACT.subarray(0, INSERTION_OFFSET)).toString("utf8");
+  assert.ok(!head.includes("<script"), "the head holds no script, so the span precedes every script");
 });
 
 test("payload: a valid initial set of five builds; groups are all-or-nothing and independent", () => {

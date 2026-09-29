@@ -1,0 +1,12 @@
+baseline 1440x900 errs(excl. codec video/babel warning) 0 projects SENTINEL / DEVOS|SU|CLINICFLOW|MAISOG KILAT|MAISOG GUILD research# 4 contact 30px lines 2 overflowFree true
+baseline 1280x720 errs(excl. codec video/babel warning) 0 projects SENTINEL / DEVOS|SU|CLINICFLOW|MAISOG KILAT|MAISOG GUILD research# 4 contact 28.16px lines 1 overflowFree true
+candidate 1440x900 errs(excl. codec video/babel warning) 0 projects SENTINEL / DEVOS|SU|CLINICFLOW|MAISOG KILAT|MAISOG GUILD research# 0 contact 25.2px lines 1 overflowFree true
+candidate 1280x720 errs(excl. codec video/babel warning) 0 projects SENTINEL / DEVOS|SU|CLINICFLOW|MAISOG KILAT|MAISOG GUILD research# 0 contact 22.4px lines 1 overflowFree true
+candidate-bridge 1440x900 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 0 contact 25.2px lines 1 overflowFree true
+candidate-bridge 1280x720 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 0 contact 22.4px lines 1 overflowFree true
+baseline-bridge 1440x900 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 4 contact 30px lines 2 overflowFree true
+baseline-bridge 1280x720 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 4 contact 28.16px lines 1 overflowFree true
+candidate-bridge-longemail 1440x900 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 0 contact 25.2px lines 2 overflowFree true
+candidate-bridge-longemail 1280x720 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 0 contact 22.4px lines 2 overflowFree true
+baseline-bridge-longemail 1440x900 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 4 contact 30px lines 4 overflowFree true
+baseline-bridge-longemail 1280x720 errs(excl. codec video/babel warning) 0 projects CLINICFLOW|ETERNAL EGGS|SENTINEL / DEVOS|SU|MAISOG KILAT research# 4 contact 28.16px lines 3 overflowFree true

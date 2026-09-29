@@ -1,94 +1,87 @@
-# Current Directive — RFC-022 Gate C for the D-111 remediation (D-112)
+# Current Directive — V10.1 Gate C (D-122)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-RFC022-GATE-C-0002
+directive_id: DIR-WEB-V101-GATE-C-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-issue_parent_commit: 9abb5f61cd6d18ca836cfc254df7a8236cc105ae
+issue_parent_commit: a9351c660ae4911c5f0536285560cb2c42befa65
 target_turn: CLAUDE
-authority_ref: D-112
-applicable_review_id: ML-DEVOS-AS-138
+authority_ref: D-122
+applicable_review_id: ML-DEVOS-AS-146
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-112 and `ML-DEVOS-AS-138`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-122 and `ML-DEVOS-AS-146`.
 
 ## Objective
 
-Execute RFC-022 Gate C for the D-111 remediation accepted by AS-138: merge `governance/maisoglabs-v0.1` into `main` through one fresh protected PR, without production promotion. Prove production traffic is unchanged, and record the AS138-F001 Access policy identity check.
+Merge the AS-146-accepted V10.1 promotion into `main` through one fresh protected release PR, pinned to `FINAL_GATE_C_HEAD` (this directive's publication commit), without any production deployment or traffic change.
 
 ## Preconditions
 
 - The Protocol V2 bootstrap passes; STATE selects this directive; `MAIN_MERGE_AUTHORIZED` is the only `YES` flag.
-- `main` is `fda42e04d18b960d8212d49616f96b657a5c6bf3`.
-- The accepted implementation is `fde97b6..9abb5f6`. The final PR head is this directive's publication commit.
-- The homepage SHA-256 is `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`.
-- The expected active production version is `53137101-afb8-456c-ab83-d8b7b934df01` @ 100%.
+- `main` is `405375998392e936b71181de387ae395b7d46e40`.
+- `public/index.html` is SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc` (20,857 bytes), and `worker/bridge/inject.mjs` pins `220ce809…` / `20857` / `20116`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-112; live STATE; `ML-DEVOS-AS-138`.
-- **T1:** `ML-DEVOS-RFC-022` §10 / §10.1 (CB-R); D-111; D-109 (Gate C precedent); D-106 (canonical admin identity).
+- **T0:** Protocol V2; D-122; live STATE; `ML-DEVOS-AS-146` (Gate C readiness conditions).
+- **T1:** D-121; `ML-DEVOS-AS-145` (atomic promotion invariant); D-112 / PR #17 (Gate C precedent); `OBL-017` (separate production deploy gate).
 
 ## Exact execution scope
 
 Allowed:
-- open one fresh PR `governance/maisoglabs-v0.1 → main`;
-- read CI, the PR and Cloudflare deployment state (read-only);
-- read the `maisoglabs.com/admin` Access application's policies (read-only);
-- one merge of that PR (`merge_method: merge`, `sha` = final head);
-- observe the Workers Build;
-- one Protocol V2 Builder return on `governance/maisoglabs-v0.1`.
+- record `FINAL_GATE_C_HEAD` (the full SHA of this publication commit);
+- open exactly one fresh PR `governance/maisoglabs-v0.1 → main`;
+- read-only checks: GitHub (PR, CI, mergeability, ruleset) and Cloudflare (active deployment/version, Workers Builds; GET only);
+- one normal merge commit through the protected PR path, pinned to `FINAL_GATE_C_HEAD`;
+- one Protocol V2 Builder return on `governance/maisoglabs-v0.1` after the merge.
 
 Not allowed:
-- Gate D; `wrangler versions deploy`; promotion; traffic change; rollback;
-- any production D1 write; content, `site_settings` or email changes;
-- Access policy, DNS, R2, binding, secret or environment changes;
-- direct push to `main`; force; squash; rebase; auto-merge; protection bypass;
-- PR #7 or PR #10.
+- any governance-branch movement between `FINAL_GATE_C_HEAD` and the merge;
+- PR #10 (or PR #7) use or modification;
+- direct push, force push, squash, rebase, auto-merge, protection or ruleset bypass;
+- Gate D; `wrangler versions deploy`; deployment, promotion, rollback or traffic change;
+- any production D1/R2/Access/DNS/binding/secret/environment change; schema or migrations;
+- project publication or activation; contact/`site_settings` changes; email publication;
+- mobile remediation; `og:image`; unrelated cleanup.
 
 ## SENTINEL Sync
 
-- **Authority:** D-112 (Paulo).
-- **Context:** AS-138 accepted the D-111 remediation and recorded AS138-F001.
-- **Capability:** one protected merge plus read-only checks.
-- **Execution:** Gate C only.
-- **Evidence:** final-head CI, the merge commit, the Workers Build, pre-merge active version = post-merge active version, and the Access policy identity result.
+- **Authority:** D-122 (Paulo).
+- **Context:** AS-146 accepted the atomic promotion preparation at `49984e7` and set the Gate C conditions.
+- **Capability:** protected PR merge only.
+- **Execution:** verify every bound value, merge pinned, observe production read-only.
+- **Evidence:** PR, CI, merge commit and parents, `main` SHA, artifact identity, Workers Build/version, pre/post active version.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- The merge triggers a `main` Workers Build that uploads an inactive version (`versions upload`), as at D-109. A changed active version is a stop condition, reported without remediation.
-- An AS138-F001 mismatch does not stop Gate C. It makes Gate D NOT READY, and is reported, not fixed.
+- **Reviewed head vs final head:** AS-146 reviewed `49984e7`; this publication (and the AS-146 publication `a9351c6`) necessarily advance the branch. D-122 resolves this: `FINAL_GATE_C_HEAD` is bound, and the diff `49984e7..FINAL_GATE_C_HEAD` must be governance-only.
+- **Merge vs production:** `main`'s Git integration uploads an inactive version (`npx wrangler versions upload`); that is not a deployment. The active production version must stay unchanged.
 
 ## Instructions
 
-1. Bootstrap.
-2. Open the PR. Wait for `test-and-build` SUCCESS on the exact final head.
-3. Re-check mergeability, `main`, the release scope and the homepage hash. Run the AS138-F001 check. Record `PRE_MERGE_ACTIVE_VERSION_ID`.
-4. Merge with a normal merge commit, pinned to the final head.
-5. Observe the Workers Build. Record `POST_MERGE_ACTIVE_VERSION_ID` and compare.
-6. Publish the return.
+1. Bootstrap at `FINAL_GATE_C_HEAD`; record its full SHA.
+2. Open the release PR; verify every D-122 pre-merge condition; inspect the changed-file set.
+3. Record the active production version; merge with a normal merge commit pinned to `FINAL_GATE_C_HEAD`.
+4. Record the post-merge evidence; confirm the active version is unchanged.
+5. Publish the return.
 
 ## Validation and evidence
 
-- The final head SHA and its CI result.
-- The merge commit SHA and its parents; the release diff.
-- The Workers Build ID and the new version ID.
-- Pre- and post-merge active version, and whether they are equal.
-- `main` after the merge; the homepage hash.
-- The Access policy's allowed identities compared with `paulo.maisog@maisoglabs.com`.
+The D-122 "after merge" record list.
 
 ## Stop conditions
 
-- Any CI failure on the final head, `main` has moved, a merge conflict, or an unexpected release-scope difference.
-- The post-merge active version differs from the pre-merge one: stop and report, without remediating.
-- Any step would need a non-authorized action.
+- Any bound value differs (main, head, artifact, constants, CI, mergeability, ruleset).
+- `governance/maisoglabs-v0.1` moves after `FINAL_GATE_C_HEAD` before the merge.
+- The active production version changes: stop and report without remediation.
 
 ## Next action
 
-Publish `H-WEB-RFC022-GATE-C-0002`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-V101-GATE-C-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.
