@@ -1,6 +1,6 @@
 # V10.1 desktop review candidate (D-120)
 
-**Status: REVIEW CANDIDATE. Not served, not canonical.** The production homepage stays the D-093 artifact `public/index.html` (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`). The RFC-022 bridge still pins that artifact. Promotion needs a separate Paulo decision plus Gate C and Gate D; see "Promotion" below.
+**Status: ACCEPTED (`ML-DEVOS-AS-145`) and PROMOTED IN THE REPOSITORY (D-121).** `public/index.html`, `public/v101/`, `public/robots.txt`, `public/sitemap.xml` and `public/_headers` are byte-for-byte copies of `site/`, and the RFC-022 bridge constants pin these bytes. Production still serves the V10 artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) until a separately authorized Gate C and Gate D. `scripts/build-v101-candidate.mjs` derives from that V10 artifact, so it no longer runs against the promoted `public/index.html`: it stops at its source-hash check and writes nothing. The accepted bytes are never regenerated.
 
 Authority: D-120 (Paulo), `ML-DEVOS-AS-144`, directive `DIR-WEB-V101-DESKTOP-CANDIDATE-0001`. Scope is desktop only; mobile remediation is deferred.
 

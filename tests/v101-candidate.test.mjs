@@ -1,14 +1,13 @@
-// D-120 (ML-DEVOS-AS-144): structural checks for the V10.1 desktop REVIEW
-// CANDIDATE in candidates/v10.1/site/. The candidate is not served: the
-// canonical homepage stays public/index.html (D-093), and the RFC-022 bridge
-// still pins that artifact. These checks keep the candidate honest until a
-// separately governed promotion.
+// D-120 (ML-DEVOS-AS-144): structural checks for the V10.1 desktop candidate
+// in candidates/v10.1/site/, accepted by ML-DEVOS-AS-145. D-121 promoted it
+// byte-for-byte to public/ (with the /v101/ assets, SEO files and _headers),
+// and the RFC-022 bridge constants now pin exactly those bytes.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-import { ARTIFACT_SHA256, buildBridgeSpan } from "../worker/bridge/inject.mjs";
+import { ARTIFACT_SHA256, ARTIFACT_LENGTH, INSERTION_OFFSET, buildBridgeSpan } from "../worker/bridge/inject.mjs";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const SITE = path.join(ROOT, "candidates/v10.1/site");
@@ -17,9 +16,22 @@ const index = fs.readFileSync(path.join(SITE, "index.html"));
 const html = index.toString("utf8");
 const sha256 = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
-test("the canonical artifact is unchanged and still the one the bridge pins", () => {
-  assert.equal(sha256(fs.readFileSync(path.join(ROOT, "public/index.html"))), ARTIFACT_SHA256);
-  assert.equal(report.sourceArtifactSha256, ARTIFACT_SHA256);
+const ACCEPTED_SHA256 = "220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc";
+
+test("the promoted artifact, the bridge constants and the accepted candidate are the same bytes (D-121)", () => {
+  assert.equal(sha256(index), ACCEPTED_SHA256);
+  assert.equal(ARTIFACT_SHA256, ACCEPTED_SHA256);
+  assert.equal(ARTIFACT_LENGTH, report.candidateIndexBytes);
+  assert.equal(INSERTION_OFFSET, report.insertionOffset);
+  assert.ok(fs.readFileSync(path.join(ROOT, "public/index.html")).equals(index));
+  for (const file of ["robots.txt", "sitemap.xml", "_headers"]) {
+    assert.ok(fs.readFileSync(path.join(ROOT, "public", file)).equals(fs.readFileSync(path.join(SITE, file))), file);
+  }
+  const assets = fs.readdirSync(path.join(SITE, "v101/assets")).sort();
+  assert.deepEqual(fs.readdirSync(path.join(ROOT, "public/v101/assets")).sort(), assets);
+  for (const name of assets) {
+    assert.ok(fs.readFileSync(path.join(ROOT, "public/v101/assets", name)).equals(fs.readFileSync(path.join(SITE, "v101/assets", name))), name);
+  }
 });
 
 test("the committed candidate matches its build report", () => {

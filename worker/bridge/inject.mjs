@@ -1,5 +1,7 @@
 // RFC-022 §5.2–§5.3 (ML-DEVOS-AS-132, D-105/D-106): the bridge span and its
-// fixed-offset insertion into the unmodified D-093 artifact.
+// fixed-offset insertion into the unmodified homepage artifact: since D-121
+// (ML-DEVOS-AS-145) the V10.1 artifact promoted byte-for-byte from
+// candidates/v10.1/site/index.html (derived from the D-093 artifact).
 //
 // The artifact file (public/index.html) is never edited. When — and only
 // when — a valid published payload exists, the served response is the
@@ -8,23 +10,22 @@
 //
 //   <script type="application/json" id="ml-published">JSON</script><script>HOOK</script>
 //
-// The outer head contains no <script>; the first script (the bundler loader)
-// is in the body, so this position precedes every script and the hook runs
-// before the loader replaces the document. Removing the span yields the
-// artifact bytes exactly.
+// The head contains no <script>; every script (the MLData data script
+// included) is at the end of the body, so this position precedes every
+// script and the hook runs before MLData is assigned. Removing the span
+// yields the artifact bytes exactly.
 //
 // HOOK is a code constant — never derived from data. It captures the island
-// at parse time (window state survives the loader's documentElement swap),
-// defines a `window.MLData` accessor, and when the artifact assigns MLData it
-// returns a shallow copy in which PROJ/FLOW (projects group) and EMAIL
-// (contact group) are replaced only if they re-validate. It never throws,
-// never adds keys and never evaluates data.
+// at parse time, defines a `window.MLData` accessor, and when the artifact
+// assigns MLData it returns a shallow copy in which PROJ/FLOW (projects
+// group) and EMAIL (contact group) are replaced only if they re-validate. It
+// never throws, never adds keys and never evaluates data.
 import { serializeBridgePayload } from "./payload.mjs";
 
-// D-093 artifact identity (tests/homepage-artifact.test.mjs pins the same SHA).
-export const ARTIFACT_SHA256 = "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9";
-export const ARTIFACT_LENGTH = 1969988;
-export const INSERTION_OFFSET = 1324; // byte offset of the outer "</head>"
+// Promoted V10.1 artifact identity (D-121; tests/homepage-artifact.test.mjs pins the same SHA).
+export const ARTIFACT_SHA256 = "220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc";
+export const ARTIFACT_LENGTH = 20857;
+export const INSERTION_OFFSET = 20116; // byte offset of "</head>"
 const INSERTION_MARKER = "</head>";
 
 export const HOOK_SOURCE =

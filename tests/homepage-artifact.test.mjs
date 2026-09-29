@@ -1,11 +1,14 @@
-// D-093: the published Design System artifact is the homepage, byte-for-byte.
+// D-093 / D-121: the homepage artifact, byte-for-byte.
 //
-// public/index.html is `publish/index.html` from the uploaded
-// "Maisog Labs Design System.zip" and must never be edited. The Next.js
-// static export has no `/` route, so it copies public/index.html to
-// out/index.html unchanged. The artifact's relative media paths
-// (../../assets/...) resolve to /assets/... and are served by byte-identical
-// copies of the approved V10 assets.
+// The V10 design source is `publish/index.html` from the uploaded
+// "Maisog Labs Design System.zip" (D-093). Since D-121 (ML-DEVOS-AS-145)
+// public/index.html is the accepted V10.1 artifact derived from it, promoted
+// byte-for-byte from candidates/v10.1/site/index.html; it must never be
+// edited. Its scripts, fonts and icon are content-fingerprinted files under
+// public/v101/assets/. The Next.js static export has no `/` route, so it
+// copies public/index.html to out/index.html unchanged. The artifact's
+// relative media paths (../../assets/...) resolve to /assets/... and are
+// served by byte-identical copies of the approved V10 assets.
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -17,7 +20,10 @@ const read = file => fs.readFileSync(url(file));
 const sha = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
 const ARTIFACT = "public/index.html";
-const ARTIFACT_SHA256 = "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9";
+const ARTIFACT_SHA256 = "220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc";
+const CANDIDATE = "candidates/v10.1/site/index.html";
+const V10_SOURCE_SHA256 = "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9";
+const ASSET_DIR = "public/v101/assets";
 const ZIP = "design-references/maisoglabs-design-system/Maisog Labs Design System.zip";
 const ZIP_SHA256 = "3ff9fbbaaf40f61fc9b82babafac4e33e9cdc5b723ed78157ef1b2068da6ead2";
 const MEDIA = {
@@ -55,25 +61,27 @@ function zipEntries(bytes) {
   return entries;
 }
 
-// Decodes the bundler manifest the artifact unpacks in the browser.
-function decodeArtifact() {
+// The promoted artifact's fingerprinted asset references, in document order.
+function artifactAssetRefs() {
   const html = read(ARTIFACT).toString("utf8");
-  const section = type => JSON.parse(html.match(new RegExp(`<script type="__bundler/${type}">([\\s\\S]*?)</script>`))[1]);
-  const manifest = section("manifest");
-  const resources = Object.values(manifest).map(entry => {
-    const raw = Buffer.from(entry.data, "base64");
-    return { mime: entry.mime, bytes: entry.compressed ? zlib.gunzipSync(raw) : raw };
-  });
-  return { template: section("template"), resources };
+  return [...new Set(html.match(/\/v101\/assets\/[^"')\s]+/g))];
 }
+const assetText = prefix => {
+  const file = fs.readdirSync(url(ASSET_DIR)).find(name => name.startsWith(prefix + "."));
+  return read(`${ASSET_DIR}/${file}`).toString("utf8");
+};
 
-test("the homepage artifact is byte-identical to the uploaded ZIP entry", () => {
+test("the homepage artifact is the accepted V10.1 bytes, derived from the uploaded D-093 ZIP entry", () => {
   const zip = read(ZIP);
   assert.equal(sha(zip), ZIP_SHA256);
   const entries = zipEntries(zip);
   assert.deepEqual(Object.keys(entries), ["publish/index.html"]);
-  assert.equal(sha(entries["publish/index.html"]), ARTIFACT_SHA256);
+  assert.equal(sha(entries["publish/index.html"]), V10_SOURCE_SHA256);
+  const report = JSON.parse(read("candidates/v10.1/build-report.json").toString());
+  assert.equal(report.sourceArtifactSha256, V10_SOURCE_SHA256);
+  assert.equal(report.candidateIndexSha256, ARTIFACT_SHA256);
   assert.equal(sha(read(ARTIFACT)), ARTIFACT_SHA256);
+  assert.ok(read(ARTIFACT).equals(read(CANDIDATE)), "promoted byte-for-byte from the accepted candidate");
 });
 
 test("Next.js has no / route, so the export copies the artifact unchanged", () => {
@@ -82,12 +90,11 @@ test("Next.js has no / route, so the export copies the artifact unchanged", () =
 });
 
 test("every media path the artifact expects resolves to a byte-identical approved asset", () => {
-  const { resources } = decodeArtifact();
-  const sources = resources.filter(r => /javascript/.test(r.mime)).map(r => r.bytes.toString("utf8")).join("\n");
+  const sources = artifactAssetRefs().filter(ref => ref.endsWith(".js")).map(ref => read(`public${ref}`).toString("utf8")).join("\n");
   const expected = new Set();
   for (const match of sources.matchAll(/\.\.\/\.\.\/assets\/([\w./-]+?\.(?:png|mp4|svg))/g)) expected.add(`public/assets/${match[1]}`);
-  const data = resources.map(r => r.bytes.toString("utf8")).find(text => text.startsWith("window.MLData = {"));
-  assert.ok(data, "UI kit data resource present");
+  const data = assetText("data");
+  assert.ok(data.startsWith("window.MLData = {"), "UI kit data resource present");
   for (const match of data.matchAll(/icon: '([\w-]+)'/g)) expected.add(`public/assets/icons/${match[1]}.svg`);
   assert.ok(expected.size >= 10, `found ${expected.size} media paths`);
   for (const file of expected) {
@@ -98,15 +105,20 @@ test("every media path the artifact expects resolves to a byte-identical approve
   }
 });
 
-test("the artifact loads nothing from the network: every script, stylesheet, icon and font is embedded", () => {
-  const { template } = decodeArtifact();
+test("the artifact loads nothing from the network: every script, icon and font is a same-origin fingerprinted file", () => {
+  const html = read(ARTIFACT).toString("utf8");
   const refs = [
-    ...[...template.matchAll(/<(?:script|img|video|source)[^>]*\ssrc="([^"]*)"/g)].map(match => match[1]),
-    ...[...template.matchAll(/<link[^>]*\shref="([^"]*)"/g)].map(match => match[1]),
-    ...[...template.matchAll(/url\(([^)]*)\)/g)].map(match => match[1].replace(/["']/g, "")),
+    ...[...html.matchAll(/<(?:script|img|video|source)[^>]*\ssrc="([^"]*)"/g)].map(match => match[1]),
+    ...[...html.matchAll(/<link[^>]*\shref="([^"]*)"/g)].filter(match => !/rel="canonical"/.test(match[0])).map(match => match[1]),
+    ...[...html.matchAll(/url\(([^)]*)\)/g)].map(match => match[1].replace(/["']/g, "")),
   ];
   assert.ok(refs.length > 30);
-  for (const ref of refs) assert.match(ref, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, ref);
+  for (const ref of refs) {
+    const [, fingerprint] = ref.match(/^\/v101\/assets\/[\w-]+(?:\.[\w-]+)*\.([0-9a-f]{12})\.(?:js|woff2|svg)$/) || [];
+    assert.ok(fingerprint, ref);
+    assert.equal(sha(read(`public${ref}`)).slice(0, 12), fingerprint, ref);
+  }
+  assert.deepEqual(fs.readdirSync(url(ASSET_DIR)).map(name => `/v101/assets/${name}`).sort(), artifactAssetRefs().sort(), "no unreferenced or missing assets");
 });
 
 // RFC-022 (ML-DEVOS-AS-132, D-105 Q2, D-106) adds exactly the path "/" for

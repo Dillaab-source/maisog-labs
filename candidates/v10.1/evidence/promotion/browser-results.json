@@ -1,0 +1,1548 @@
+[
+  {
+    "variant": "promoted",
+    "viewport": "1440x900",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "rootH1Ms": 373,
+      "doc": {
+        "lang": "en-PH",
+        "title": "Maisog Labs — Ideas in Orbit",
+        "main": 1,
+        "mainContainsRoot": true,
+        "description": "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
+        "canonical": "https://maisoglabs.com/",
+        "og": [
+          [
+            "og:type",
+            "website"
+          ],
+          [
+            "og:site_name",
+            "Maisog Labs"
+          ],
+          [
+            "og:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "og:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ],
+          [
+            "og:url",
+            "https://maisoglabs.com/"
+          ],
+          [
+            "og:locale",
+            "en_PH"
+          ]
+        ],
+        "twitter": [
+          [
+            "twitter:card",
+            "summary"
+          ],
+          [
+            "twitter:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "twitter:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ]
+        ],
+        "headings": [
+          "H1:MAISOGLABS",
+          "H2:Six disciplines,one working system.",
+          "H3:Research",
+          "H3:Sentinel / DevOS",
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment",
+          "H2:Humanityorbits higher."
+        ],
+        "h1": 1,
+        "babel": false,
+        "textBabel": 0,
+        "reactProd": true,
+        "reactVersion": "18.3.1",
+        "scriptsInHead": 0,
+        "focusVisibleRule": true,
+        "mldata": {
+          "proj": [
+            "Sentinel / DevOS",
+            "SU",
+            "ClinicFlow",
+            "Maisog Kilat",
+            "Maisog Guild"
+          ],
+          "email": "maisog36@gmail.com",
+          "flow0": [
+            "Research and notes come in",
+            "Organised into one knowledge base",
+            "Workflows run automatically",
+            "Person reviews the result"
+          ]
+        }
+      },
+      "entryOverflow": {
+        "sw": 1440,
+        "bw": 1440,
+        "iw": 1440
+      },
+      "focus": {
+        "tag": "A",
+        "text": "MAISOGLABS",
+        "outline": "solid 2px rgb(147, 180, 255)",
+        "fv": true
+      },
+      "systems": {
+        "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMAT",
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "projects": {
+        "list": [
+          {
+            "h3": "SENTINEL / DEVOS",
+            "text": "01 SENTINEL / DEVOS ACTIVE A research and operations system for intelligent work. Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment. AI RESEARCH AUTOMATION ARCHITECTURE HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Research and notes come in S2 Organised into one knowledge base S3 Workflows run automa"
+          },
+          {
+            "h3": "SU",
+            "text": "02 SU A research engine that ties every claim to its source. SU gathers evidence, runs adversarial review, and keeps a traceable link between each conclusion and the material behind it. RESEARCH AI HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Sources collected S2 Evidence extracted S3 Adversarial review S4 Conclusion linked to its sources AUTOMATED STAGE A PERSON DECIDES: CONCLUSION LINKED TO ITS SOUR"
+          },
+          {
+            "h3": "CLINICFLOW",
+            "text": "03 CLINICFLOW Booking and workflow automation for clinics. ClinicFlow moves appointments, reminders and intake through one automated pipeline, with every step visible to staff. AUTOMATION SYSTEMS SECURITY ARCHITECTURE HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Patient books S2 Reminders sent S3 Intake completed S4 Staff see every step AUTOMATED STAGE A PERSON DECIDES: STAFF SEE EVERY STEP ← SU 03 / "
+          },
+          {
+            "h3": "MAISOG KILAT",
+            "text": "04 MAISOG KILAT Strategy research, testing and validation. Maisog Kilat is a research environment for developing strategies and testing them against real data before they are trusted. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Strategy proposed S2 Tested on real data S3 Results measured S4 Trusted or rejected AUTOMATED STAGE A PERSON DECIDES: TRUSTED OR REJECTED ← Cl"
+          },
+          {
+            "h3": "MAISOG GUILD",
+            "text": "05 MAISOG GUILD An opportunity and quest platform. Maisog Guild turns opportunities into structured quests that people can discover, take on and complete. SYSTEMS AUTOMATION HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 Opportunity posted S2 Structured into a quest S3 Taken on by a person S4 Completion confirmed AUTOMATED STAGE A PERSON DECIDES: COMPLETION CONFIRMED ← Maisog Kilat 05 / 05 Sentinel / De"
+          }
+        ],
+        "pagerSeq": [
+          "SENTINEL / DEVOS",
+          "SU",
+          "CLINICFLOW",
+          "MAISOG KILAT",
+          "MAISOG GUILD"
+        ],
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "research": {
+        "filters": {
+          "Research": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "From Research to Real Tools"
+            ]
+          },
+          "Build": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems"
+            ]
+          },
+          "Thoughts": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "The Role of Human Judgment"
+            ]
+          },
+          "All": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems",
+              "From Research to Real Tools",
+              "The Role of Human Judgment"
+            ]
+          }
+        },
+        "heading": [
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment"
+        ],
+        "deadLinks": [],
+        "hashLinks": {
+          "journal": 0,
+          "page": []
+        },
+        "moreNotes": {
+          "moreNotes": false,
+          "inPrep": true
+        },
+        "inPrepInteractive": {
+          "tag": "SPAN",
+          "closestA": false,
+          "tabIndex": -1
+        },
+        "cardTags": [
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          }
+        ],
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "contact": {
+        "email": "maisog36@gmail.com",
+        "fontSize": "25.2px",
+        "lines": 1,
+        "spanH": 34,
+        "spanW": 293,
+        "linkRight": 1348,
+        "colRight": 1348,
+        "colW": 440,
+        "vw": 1440,
+        "spanOverflowsCol": false,
+        "spanOffscreen": false,
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "contactFocus": {
+        "tag": "A",
+        "fv": true,
+        "outline": "solid 2px"
+      },
+      "backToEntry": true,
+      "finalOverflow": {
+        "sw": 1440,
+        "bw": 1440,
+        "iw": 1440
+      }
+    }
+  },
+  {
+    "variant": "promoted",
+    "viewport": "1280x720",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "rootH1Ms": 357,
+      "doc": {
+        "lang": "en-PH",
+        "title": "Maisog Labs — Ideas in Orbit",
+        "main": 1,
+        "mainContainsRoot": true,
+        "description": "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
+        "canonical": "https://maisoglabs.com/",
+        "og": [
+          [
+            "og:type",
+            "website"
+          ],
+          [
+            "og:site_name",
+            "Maisog Labs"
+          ],
+          [
+            "og:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "og:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ],
+          [
+            "og:url",
+            "https://maisoglabs.com/"
+          ],
+          [
+            "og:locale",
+            "en_PH"
+          ]
+        ],
+        "twitter": [
+          [
+            "twitter:card",
+            "summary"
+          ],
+          [
+            "twitter:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "twitter:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ]
+        ],
+        "headings": [
+          "H1:MAISOGLABS",
+          "H2:Six disciplines,one working system.",
+          "H3:Research",
+          "H3:Sentinel / DevOS",
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment",
+          "H2:Humanityorbits higher."
+        ],
+        "h1": 1,
+        "babel": false,
+        "textBabel": 0,
+        "reactProd": true,
+        "reactVersion": "18.3.1",
+        "scriptsInHead": 0,
+        "focusVisibleRule": true,
+        "mldata": {
+          "proj": [
+            "Sentinel / DevOS",
+            "SU",
+            "ClinicFlow",
+            "Maisog Kilat",
+            "Maisog Guild"
+          ],
+          "email": "maisog36@gmail.com",
+          "flow0": [
+            "Research and notes come in",
+            "Organised into one knowledge base",
+            "Workflows run automatically",
+            "Person reviews the result"
+          ]
+        }
+      },
+      "entryOverflow": {
+        "sw": 1280,
+        "bw": 1280,
+        "iw": 1280
+      },
+      "focus": {
+        "tag": "A",
+        "text": "MAISOGLABS",
+        "outline": "solid 2px rgb(147, 180, 255)",
+        "fv": true
+      },
+      "systems": {
+        "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMAT",
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "projects": {
+        "list": [
+          {
+            "h3": "SENTINEL / DEVOS",
+            "text": "01 SENTINEL / DEVOS ACTIVE A research and operations system for intelligent work. Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment. AI RESEARCH AUTOMATION ARCHITECTURE HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Research and notes come in S2 Organised into one knowledge base S3 Workflows run automa"
+          },
+          {
+            "h3": "SU",
+            "text": "02 SU A research engine that ties every claim to its source. SU gathers evidence, runs adversarial review, and keeps a traceable link between each conclusion and the material behind it. RESEARCH AI HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Sources collected S2 Evidence extracted S3 Adversarial review S4 Conclusion linked to its sources AUTOMATED STAGE A PERSON DECIDES: CONCLUSION LINKED TO ITS SOUR"
+          },
+          {
+            "h3": "CLINICFLOW",
+            "text": "03 CLINICFLOW Booking and workflow automation for clinics. ClinicFlow moves appointments, reminders and intake through one automated pipeline, with every step visible to staff. AUTOMATION SYSTEMS SECURITY ARCHITECTURE HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Patient books S2 Reminders sent S3 Intake completed S4 Staff see every step AUTOMATED STAGE A PERSON DECIDES: STAFF SEE EVERY STEP ← SU 03 / "
+          },
+          {
+            "h3": "MAISOG KILAT",
+            "text": "04 MAISOG KILAT Strategy research, testing and validation. Maisog Kilat is a research environment for developing strategies and testing them against real data before they are trusted. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Strategy proposed S2 Tested on real data S3 Results measured S4 Trusted or rejected AUTOMATED STAGE A PERSON DECIDES: TRUSTED OR REJECTED ← Cl"
+          },
+          {
+            "h3": "MAISOG GUILD",
+            "text": "05 MAISOG GUILD An opportunity and quest platform. Maisog Guild turns opportunities into structured quests that people can discover, take on and complete. SYSTEMS AUTOMATION HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 Opportunity posted S2 Structured into a quest S3 Taken on by a person S4 Completion confirmed AUTOMATED STAGE A PERSON DECIDES: COMPLETION CONFIRMED ← Maisog Kilat 05 / 05 Sentinel / De"
+          }
+        ],
+        "pagerSeq": [
+          "SENTINEL / DEVOS",
+          "SU",
+          "CLINICFLOW",
+          "MAISOG KILAT",
+          "MAISOG GUILD"
+        ],
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "research": {
+        "filters": {
+          "Research": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "From Research to Real Tools"
+            ]
+          },
+          "Build": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems"
+            ]
+          },
+          "Thoughts": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "The Role of Human Judgment"
+            ]
+          },
+          "All": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems",
+              "From Research to Real Tools",
+              "The Role of Human Judgment"
+            ]
+          }
+        },
+        "heading": [
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment"
+        ],
+        "deadLinks": [],
+        "hashLinks": {
+          "journal": 0,
+          "page": []
+        },
+        "moreNotes": {
+          "moreNotes": false,
+          "inPrep": true
+        },
+        "inPrepInteractive": {
+          "tag": "SPAN",
+          "closestA": false,
+          "tabIndex": -1
+        },
+        "cardTags": [
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          }
+        ],
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "contact": {
+        "email": "maisog36@gmail.com",
+        "fontSize": "22.4px",
+        "lines": 1,
+        "spanH": 32,
+        "spanW": 255,
+        "linkRight": 1197,
+        "colRight": 1197,
+        "colW": 440,
+        "vw": 1280,
+        "spanOverflowsCol": false,
+        "spanOffscreen": false,
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "contactFocus": {
+        "tag": "A",
+        "fv": true,
+        "outline": "solid 2px"
+      },
+      "backToEntry": true,
+      "finalOverflow": {
+        "sw": 1280,
+        "bw": 1280,
+        "iw": 1280
+      }
+    }
+  },
+  {
+    "variant": "promoted-bridge",
+    "viewport": "1440x900",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "rootH1Ms": 409,
+      "doc": {
+        "lang": "en-PH",
+        "title": "Maisog Labs — Ideas in Orbit",
+        "main": 1,
+        "mainContainsRoot": true,
+        "description": "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
+        "canonical": "https://maisoglabs.com/",
+        "og": [
+          [
+            "og:type",
+            "website"
+          ],
+          [
+            "og:site_name",
+            "Maisog Labs"
+          ],
+          [
+            "og:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "og:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ],
+          [
+            "og:url",
+            "https://maisoglabs.com/"
+          ],
+          [
+            "og:locale",
+            "en_PH"
+          ]
+        ],
+        "twitter": [
+          [
+            "twitter:card",
+            "summary"
+          ],
+          [
+            "twitter:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "twitter:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ]
+        ],
+        "headings": [
+          "H1:MAISOGLABS",
+          "H2:Six disciplines,one working system.",
+          "H3:Research",
+          "H3:ClinicFlow",
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment",
+          "H2:Humanityorbits higher."
+        ],
+        "h1": 1,
+        "babel": false,
+        "textBabel": 0,
+        "reactProd": true,
+        "reactVersion": "18.3.1",
+        "scriptsInHead": 2,
+        "focusVisibleRule": true,
+        "mldata": {
+          "proj": [
+            "ClinicFlow",
+            "Eternal Eggs",
+            "Sentinel / DevOS",
+            "SU",
+            "Maisog Kilat"
+          ],
+          "email": "maisog36@gmail.com",
+          "flow0": [
+            "Patient starts a conversation",
+            "Request is structured and validated",
+            "Appointment workflow is coordinated",
+            "Staff review and remain in control"
+          ]
+        }
+      },
+      "entryOverflow": {
+        "sw": 1440,
+        "bw": 1440,
+        "iw": 1440
+      },
+      "focus": {
+        "tag": "A",
+        "text": "MAISOGLABS",
+        "outline": "solid 2px rgb(147, 180, 255)",
+        "fv": true
+      },
+      "systems": {
+        "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMAT",
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "projects": {
+        "list": [
+          {
+            "h3": "CLINICFLOW",
+            "text": "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid"
+          },
+          {
+            "h3": "ETERNAL EGGS",
+            "text": "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check"
+          },
+          {
+            "h3": "SENTINEL / DEVOS",
+            "text": "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco"
+          },
+          {
+            "h3": "SU",
+            "text": "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions"
+          },
+          {
+            "h3": "MAISOG KILAT",
+            "text": "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+          }
+        ],
+        "pagerSeq": [
+          "CLINICFLOW",
+          "ETERNAL EGGS",
+          "SENTINEL / DEVOS",
+          "SU",
+          "MAISOG KILAT"
+        ],
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "research": {
+        "filters": {
+          "Research": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "From Research to Real Tools"
+            ]
+          },
+          "Build": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems"
+            ]
+          },
+          "Thoughts": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "The Role of Human Judgment"
+            ]
+          },
+          "All": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems",
+              "From Research to Real Tools",
+              "The Role of Human Judgment"
+            ]
+          }
+        },
+        "heading": [
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment"
+        ],
+        "deadLinks": [],
+        "hashLinks": {
+          "journal": 0,
+          "page": []
+        },
+        "moreNotes": {
+          "moreNotes": false,
+          "inPrep": true
+        },
+        "inPrepInteractive": {
+          "tag": "SPAN",
+          "closestA": false,
+          "tabIndex": -1
+        },
+        "cardTags": [
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          }
+        ],
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "contact": {
+        "email": "maisog36@gmail.com",
+        "fontSize": "25.2px",
+        "lines": 1,
+        "spanH": 34,
+        "spanW": 293,
+        "linkRight": 1348,
+        "colRight": 1348,
+        "colW": 440,
+        "vw": 1440,
+        "spanOverflowsCol": false,
+        "spanOffscreen": false,
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "contactFocus": {
+        "tag": "A",
+        "fv": true,
+        "outline": "solid 2px"
+      },
+      "backToEntry": true,
+      "finalOverflow": {
+        "sw": 1440,
+        "bw": 1440,
+        "iw": 1440
+      }
+    }
+  },
+  {
+    "variant": "promoted-bridge",
+    "viewport": "1280x720",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "rootH1Ms": 355,
+      "doc": {
+        "lang": "en-PH",
+        "title": "Maisog Labs — Ideas in Orbit",
+        "main": 1,
+        "mainContainsRoot": true,
+        "description": "An independent technology lab building useful automation, secure systems, and human-centered AI experiences.",
+        "canonical": "https://maisoglabs.com/",
+        "og": [
+          [
+            "og:type",
+            "website"
+          ],
+          [
+            "og:site_name",
+            "Maisog Labs"
+          ],
+          [
+            "og:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "og:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ],
+          [
+            "og:url",
+            "https://maisoglabs.com/"
+          ],
+          [
+            "og:locale",
+            "en_PH"
+          ]
+        ],
+        "twitter": [
+          [
+            "twitter:card",
+            "summary"
+          ],
+          [
+            "twitter:title",
+            "Maisog Labs — Ideas in Orbit"
+          ],
+          [
+            "twitter:description",
+            "An independent technology lab building useful automation, secure systems, and human-centered AI experiences."
+          ]
+        ],
+        "headings": [
+          "H1:MAISOGLABS",
+          "H2:Six disciplines,one working system.",
+          "H3:Research",
+          "H3:ClinicFlow",
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment",
+          "H2:Humanityorbits higher."
+        ],
+        "h1": 1,
+        "babel": false,
+        "textBabel": 0,
+        "reactProd": true,
+        "reactVersion": "18.3.1",
+        "scriptsInHead": 2,
+        "focusVisibleRule": true,
+        "mldata": {
+          "proj": [
+            "ClinicFlow",
+            "Eternal Eggs",
+            "Sentinel / DevOS",
+            "SU",
+            "Maisog Kilat"
+          ],
+          "email": "maisog36@gmail.com",
+          "flow0": [
+            "Patient starts a conversation",
+            "Request is structured and validated",
+            "Appointment workflow is coordinated",
+            "Staff review and remain in control"
+          ]
+        }
+      },
+      "entryOverflow": {
+        "sw": 1280,
+        "bw": 1280,
+        "iw": 1280
+      },
+      "focus": {
+        "tag": "A",
+        "text": "MAISOGLABS",
+        "outline": "solid 2px rgb(147, 180, 255)",
+        "fv": true
+      },
+      "systems": {
+        "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMAT",
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "projects": {
+        "list": [
+          {
+            "h3": "CLINICFLOW",
+            "text": "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid"
+          },
+          {
+            "h3": "ETERNAL EGGS",
+            "text": "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check"
+          },
+          {
+            "h3": "SENTINEL / DEVOS",
+            "text": "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco"
+          },
+          {
+            "h3": "SU",
+            "text": "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions"
+          },
+          {
+            "h3": "MAISOG KILAT",
+            "text": "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+          }
+        ],
+        "pagerSeq": [
+          "CLINICFLOW",
+          "ETERNAL EGGS",
+          "SENTINEL / DEVOS",
+          "SU",
+          "MAISOG KILAT"
+        ],
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "research": {
+        "filters": {
+          "Research": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "From Research to Real Tools"
+            ]
+          },
+          "Build": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems"
+            ]
+          },
+          "Thoughts": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "The Role of Human Judgment"
+            ]
+          },
+          "All": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems",
+              "From Research to Real Tools",
+              "The Role of Human Judgment"
+            ]
+          }
+        },
+        "heading": [
+          "H2:Research Previews",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment"
+        ],
+        "deadLinks": [],
+        "hashLinks": {
+          "journal": 0,
+          "page": []
+        },
+        "moreNotes": {
+          "moreNotes": false,
+          "inPrep": true
+        },
+        "inPrepInteractive": {
+          "tag": "SPAN",
+          "closestA": false,
+          "tabIndex": -1
+        },
+        "cardTags": [
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          },
+          {
+            "tag": "ARTICLE",
+            "href": null,
+            "tabbable": false
+          }
+        ],
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "contact": {
+        "email": "maisog36@gmail.com",
+        "fontSize": "22.4px",
+        "lines": 1,
+        "spanH": 32,
+        "spanW": 255,
+        "linkRight": 1197,
+        "colRight": 1197,
+        "colW": 440,
+        "vw": 1280,
+        "spanOverflowsCol": false,
+        "spanOffscreen": false,
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "contactFocus": {
+        "tag": "A",
+        "fv": true,
+        "outline": "solid 2px"
+      },
+      "backToEntry": true,
+      "finalOverflow": {
+        "sw": 1280,
+        "bw": 1280,
+        "iw": 1280
+      }
+    }
+  },
+  {
+    "variant": "v10-bridge",
+    "viewport": "1440x900",
+    "errors": [
+      "warning: You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/",
+      "warning: [bundle] resource failed to load: VIDEO http://127.0.0.1:8203/assets/video/logo-mark.mp4",
+      "warning: [bundle] resource failed to load: VIDEO http://127.0.0.1:8203/assets/video/logo-mark.mp4"
+    ],
+    "failed": [
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "rootH1Ms": 1211,
+      "doc": {
+        "lang": null,
+        "title": "Maisog Labs — Ideas in Orbit",
+        "main": 0,
+        "mainContainsRoot": false,
+        "description": null,
+        "canonical": null,
+        "og": [
+          [
+            "og:type",
+            null
+          ],
+          [
+            "og:site_name",
+            null
+          ],
+          [
+            "og:title",
+            null
+          ],
+          [
+            "og:description",
+            null
+          ],
+          [
+            "og:url",
+            null
+          ],
+          [
+            "og:locale",
+            null
+          ]
+        ],
+        "twitter": [
+          [
+            "twitter:card",
+            null
+          ],
+          [
+            "twitter:title",
+            null
+          ],
+          [
+            "twitter:description",
+            null
+          ]
+        ],
+        "headings": [
+          "H1:MAISOGLABS",
+          "H2:Six disciplines,one working system.",
+          "H3:Research",
+          "H3:ClinicFlow",
+          "H2:Research Notes",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment",
+          "H2:Humanityorbits higher."
+        ],
+        "h1": 1,
+        "babel": true,
+        "textBabel": 7,
+        "reactProd": false,
+        "reactVersion": "18.3.1",
+        "scriptsInHead": 13,
+        "focusVisibleRule": true,
+        "mldata": {
+          "proj": [
+            "ClinicFlow",
+            "Eternal Eggs",
+            "Sentinel / DevOS",
+            "SU",
+            "Maisog Kilat"
+          ],
+          "email": "maisog36@gmail.com",
+          "flow0": [
+            "Patient starts a conversation",
+            "Request is structured and validated",
+            "Appointment workflow is coordinated",
+            "Staff review and remain in control"
+          ]
+        }
+      },
+      "entryOverflow": {
+        "sw": 1440,
+        "bw": 1440,
+        "iw": 1440
+      },
+      "focus": {
+        "tag": "A",
+        "text": "MAISOGLABS",
+        "outline": "solid 2px rgb(147, 180, 255)",
+        "fv": true
+      },
+      "systems": {
+        "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMAT",
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "projects": {
+        "list": [
+          {
+            "h3": "CLINICFLOW",
+            "text": "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid"
+          },
+          {
+            "h3": "ETERNAL EGGS",
+            "text": "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check"
+          },
+          {
+            "h3": "SENTINEL / DEVOS",
+            "text": "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco"
+          },
+          {
+            "h3": "SU",
+            "text": "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions"
+          },
+          {
+            "h3": "MAISOG KILAT",
+            "text": "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+          }
+        ],
+        "pagerSeq": [
+          "CLINICFLOW",
+          "ETERNAL EGGS",
+          "SENTINEL / DEVOS",
+          "SU",
+          "MAISOG KILAT"
+        ],
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "research": {
+        "filters": {
+          "Research": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "From Research to Real Tools"
+            ]
+          },
+          "Build": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems"
+            ]
+          },
+          "Thoughts": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "The Role of Human Judgment"
+            ]
+          },
+          "All": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems",
+              "From Research to Real Tools",
+              "The Role of Human Judgment"
+            ]
+          }
+        },
+        "heading": [
+          "H2:Research Notes",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment"
+        ],
+        "deadLinks": [
+          "#",
+          "#",
+          "#",
+          "#"
+        ],
+        "hashLinks": {
+          "journal": 4,
+          "page": [
+            "undefined:MAISOGLABS",
+            "journal:More notes→",
+            "journal:Mar 12, 2026Architecture Decis",
+            "journal:Feb 28, 2026From Research to R",
+            "journal:Feb 10, 2026The Role of Human "
+          ]
+        },
+        "moreNotes": {
+          "moreNotes": true,
+          "inPrep": false
+        },
+        "inPrepInteractive": null,
+        "cardTags": [
+          {
+            "tag": "A",
+            "href": "#",
+            "tabbable": true
+          },
+          {
+            "tag": "A",
+            "href": "#",
+            "tabbable": true
+          },
+          {
+            "tag": "A",
+            "href": "#",
+            "tabbable": true
+          }
+        ],
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "contact": {
+        "email": "maisog36@gmail.com",
+        "fontSize": "30px",
+        "lines": 2,
+        "spanH": 78,
+        "spanW": 332,
+        "linkRight": 1348,
+        "colRight": 1348,
+        "colW": 360,
+        "vw": 1440,
+        "spanOverflowsCol": false,
+        "spanOffscreen": false,
+        "overflow": {
+          "sw": 1440,
+          "bw": 1440,
+          "iw": 1440
+        }
+      },
+      "contactFocus": {
+        "tag": "A",
+        "fv": true,
+        "outline": "solid 2px"
+      },
+      "backToEntry": true,
+      "finalOverflow": {
+        "sw": 1440,
+        "bw": 1440,
+        "iw": 1440
+      }
+    }
+  },
+  {
+    "variant": "v10-bridge",
+    "viewport": "1280x720",
+    "errors": [
+      "warning: You are using the in-browser Babel transformer. Be sure to precompile your scripts for production - https://babeljs.io/docs/setup/",
+      "warning: [bundle] resource failed to load: VIDEO http://127.0.0.1:8203/assets/video/logo-mark.mp4",
+      "warning: [bundle] resource failed to load: VIDEO http://127.0.0.1:8203/assets/video/logo-mark.mp4"
+    ],
+    "failed": [
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "rootH1Ms": 1239,
+      "doc": {
+        "lang": null,
+        "title": "Maisog Labs — Ideas in Orbit",
+        "main": 0,
+        "mainContainsRoot": false,
+        "description": null,
+        "canonical": null,
+        "og": [
+          [
+            "og:type",
+            null
+          ],
+          [
+            "og:site_name",
+            null
+          ],
+          [
+            "og:title",
+            null
+          ],
+          [
+            "og:description",
+            null
+          ],
+          [
+            "og:url",
+            null
+          ],
+          [
+            "og:locale",
+            null
+          ]
+        ],
+        "twitter": [
+          [
+            "twitter:card",
+            null
+          ],
+          [
+            "twitter:title",
+            null
+          ],
+          [
+            "twitter:description",
+            null
+          ]
+        ],
+        "headings": [
+          "H1:MAISOGLABS",
+          "H2:Six disciplines,one working system.",
+          "H3:Research",
+          "H3:ClinicFlow",
+          "H2:Research Notes",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment",
+          "H2:Humanityorbits higher."
+        ],
+        "h1": 1,
+        "babel": true,
+        "textBabel": 7,
+        "reactProd": false,
+        "reactVersion": "18.3.1",
+        "scriptsInHead": 13,
+        "focusVisibleRule": true,
+        "mldata": {
+          "proj": [
+            "ClinicFlow",
+            "Eternal Eggs",
+            "Sentinel / DevOS",
+            "SU",
+            "Maisog Kilat"
+          ],
+          "email": "maisog36@gmail.com",
+          "flow0": [
+            "Patient starts a conversation",
+            "Request is structured and validated",
+            "Appointment workflow is coordinated",
+            "Staff review and remain in control"
+          ]
+        }
+      },
+      "entryOverflow": {
+        "sw": 1280,
+        "bw": 1280,
+        "iw": 1280
+      },
+      "focus": {
+        "tag": "A",
+        "text": "MAISOGLABS",
+        "outline": "solid 2px rgb(147, 180, 255)",
+        "fv": true
+      },
+      "systems": {
+        "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMAT",
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "projects": {
+        "list": [
+          {
+            "h3": "CLINICFLOW",
+            "text": "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid"
+          },
+          {
+            "h3": "ETERNAL EGGS",
+            "text": "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check"
+          },
+          {
+            "h3": "SENTINEL / DEVOS",
+            "text": "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco"
+          },
+          {
+            "h3": "SU",
+            "text": "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions"
+          },
+          {
+            "h3": "MAISOG KILAT",
+            "text": "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+          }
+        ],
+        "pagerSeq": [
+          "CLINICFLOW",
+          "ETERNAL EGGS",
+          "SENTINEL / DEVOS",
+          "SU",
+          "MAISOG KILAT"
+        ],
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "research": {
+        "filters": {
+          "Research": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "From Research to Real Tools"
+            ]
+          },
+          "Build": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems"
+            ]
+          },
+          "Thoughts": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "The Role of Human Judgment"
+            ]
+          },
+          "All": {
+            "clicked": "false",
+            "pressed": "true",
+            "cards": [
+              "Architecture Decisions for AI Systems",
+              "From Research to Real Tools",
+              "The Role of Human Judgment"
+            ]
+          }
+        },
+        "heading": [
+          "H2:Research Notes",
+          "H3:Architecture Decisions for AI Systems",
+          "H3:From Research to Real Tools",
+          "H3:The Role of Human Judgment"
+        ],
+        "deadLinks": [
+          "#",
+          "#",
+          "#",
+          "#"
+        ],
+        "hashLinks": {
+          "journal": 4,
+          "page": [
+            "undefined:MAISOGLABS",
+            "journal:More notes→",
+            "journal:Mar 12, 2026Architecture Decis",
+            "journal:Feb 28, 2026From Research to R",
+            "journal:Feb 10, 2026The Role of Human "
+          ]
+        },
+        "moreNotes": {
+          "moreNotes": true,
+          "inPrep": false
+        },
+        "inPrepInteractive": null,
+        "cardTags": [
+          {
+            "tag": "A",
+            "href": "#",
+            "tabbable": true
+          },
+          {
+            "tag": "A",
+            "href": "#",
+            "tabbable": true
+          },
+          {
+            "tag": "A",
+            "href": "#",
+            "tabbable": true
+          }
+        ],
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "contact": {
+        "email": "maisog36@gmail.com",
+        "fontSize": "28.16px",
+        "lines": 1,
+        "spanH": 38,
+        "spanW": 330,
+        "linkRight": 1197,
+        "colRight": 1197,
+        "colW": 360,
+        "vw": 1280,
+        "spanOverflowsCol": false,
+        "spanOffscreen": false,
+        "overflow": {
+          "sw": 1280,
+          "bw": 1280,
+          "iw": 1280
+        }
+      },
+      "contactFocus": {
+        "tag": "A",
+        "fv": true,
+        "outline": "solid 2px"
+      },
+      "backToEntry": true,
+      "finalOverflow": {
+        "sw": 1280,
+        "bw": 1280,
+        "iw": 1280
+      }
+    }
+  }
+]
