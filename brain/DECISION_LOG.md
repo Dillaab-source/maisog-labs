@@ -2727,3 +2727,39 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** every authorization flag except the bounded `MAIN_MERGE_AUTHORIZED` stays `NO`.
 - **Return:** Builder return `H-WEB-V101-GATE-C-0001` with the complete merge and CI evidence; every action flag reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`. Then stop. Gate D remains a separate Paulo authorization.
 - **Directive:** issue `DIR-WEB-V101-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D122_V101_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-146`), routed to Claude/Builder.
+
+### D-123 — Authorize V10.1 Gate D (one bounded production promotion)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `8d9b1227a74ffae8d03bbc833db2ab1143a208d5`, after `ML-DEVOS-AS-147` accepted V10.1 Gate C. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized operation:** exactly one deployment of the existing Cloudflare Worker version `8fd31f47-a65d-4f57-83f1-17a1e0cd8043` at 100% of production traffic. The Wrangler equivalent is `npx wrangler versions deploy 8fd31f47-a65d-4f57-83f1-17a1e0cd8043@100% --yes`, run once only. Rollback target: `862dc45e-9ad7-4324-80ae-912adbb6ce82`.
+- **Preflight, read-only and immediately before deployment:**
+  - `main` is still exactly `97ca982c9e8f1e306aaa8c8a5198f43f8e00629e`;
+  - the candidate `8fd31f47…` still exists and is inactive;
+  - it was produced by Workers Build `4eae04e3-02f3-4094-86bc-abc5f69b14d2`;
+  - its expected `ASSETS`, `DB`, `MEDIA`, Access team domain and AUD bindings/config remain intact;
+  - production is still exactly `862dc45e…` at 100%, with no traffic split;
+  - `/admin` remains protected by the existing Cloudflare Access configuration.
+
+  Any mismatch or ambiguity: STOP without deploying.
+- **Do not:** rebuild; upload another version; use `wrangler deploy`; deploy a newer `main`; create a canary or traffic split; publish projects; activate the five D-115 drafts; create `homepage_initial_activation`; publish the contact email; mutate `site_settings`; mutate D1/R2; change Access, DNS, bindings, secrets or environment; merge anything else.
+- **Expected live state:**
+  - active production is `8fd31f47…` at 100%;
+  - `/` returns 200 and serves V10.1 (artifact `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`);
+  - `/v101/assets/` loads;
+  - browser Babel and the old self-unpacking runtime are no longer served;
+  - Systems, Research, Contact and navigation remain usable;
+  - `/api/journal`, `/api/design` and `/journal` remain healthy;
+  - `/admin` remains Access-protected.
+
+  The five project drafts remaining absent from the public homepage is expected; do not publish them during Gate D and do not roll back because they are absent.
+- **Conditional rollback:** at most one rollback to `862dc45e…` @ 100%, only if V10.1 causes a new material production failure. Qualifying failures: homepage unavailable or materially broken; major existing public APIs fail; new widespread Worker exceptions; the Access/admin path fails because of this release; required production bindings fail. Not for: unpublished projects being absent; unavailable CPU metrics; deferred mobile issues; deferred `og:image`; known test-browser video-codec limitations; pre-existing issues.
+- **Flags:** `DEPLOY_AUTHORIZED: YES`. All other action flags remain `NO`.
+- **Return:** Builder return `H-WEB-V101-GATE-D-0001` reporting:
+  - the pre-deploy active version and deployment; the exact deployment operation; the new deployment ID;
+  - the post-deploy active version and traffic allocation;
+  - the live `/` result; the `/v101/` asset result; live functional smoke-test results; API/admin health;
+  - any Worker exception or binding failure; rollback status;
+  - confirmation that no project/contact publication or D1/R2/Access/config mutation occurred.
+
+  Then `DEPLOY_AUTHORIZED: NO`, `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`. Then stop. Project activation remains a separate later decision.
+- **Directive:** issue `DIR-WEB-V101-GATE-D-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D123_V101_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-147`), routed to Claude/Builder.
