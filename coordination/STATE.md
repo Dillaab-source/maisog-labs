@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: RFC022_INITIAL_PROJECT_ACTIVATION_DECISION_ONLY
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D124_RFC022_PROJECT_COPY_DRAFT_REVISION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,54 +14,44 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-RFC022-CONTENT-COPY-0001
+DIRECTIVE_ISSUE_PARENT: 69cf99d042007eea535154d2bffb199ffff473cd
+DIRECTIVE_AUTHORITY_REF: D-124
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-148
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
-AUDIT_APPEND_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
+AUDIT_APPEND_AUTHORIZED: YES
 REMOTE_R2_AUTHORIZED: NO
-REMOTE_D1_AUTHORIZED: NO
+REMOTE_D1_AUTHORIZED: YES
 DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
-## Architect review
+## Authority
 
-`ML-DEVOS-AS-148`: `ACCEPTED — V10.1 LIVE`. Reviewed return `63af9c426123c2436e743d77318c1a5a3884d359`.
+`ML-DEVOS-AS-148`: `ACCEPTED — V10.1 LIVE` (`8fd31f47…` @ 100%). The raw artifact shows its built-in fallback projects until RFC-022 initial activation; AS132-F002 is unconsumed.
 
-- **Production:** `8fd31f47-a65d-4f57-83f1-17a1e0cd8043` @ 100%, deployment `b0f11606-80e3-4980-b617-e76bbacbf57c`. Rollback target `862dc45e-9ad7-4324-80ae-912adbb6ce82`, not used. `main` `97ca982c9e8f1e306aaa8c8a5198f43f8e00629e`.
-- **Gate D scope PASS:** one exact promotion; no rebuild, upload, split, `wrangler deploy`, publication, or D1/R2/Access/DNS/config change.
-- **Evidence:** the live HTTP/browser/Cloudflare observations stay `ACTOR_REPORTED`; the Architect could not fetch the live site. Not blocking.
-- **Authority:** D-123 is satisfied and closed. No remediation.
+D-124 records Paulo's decision to **defer initial activation** and authorize a **copy-only revision of the five unpublished D-115 drafts**:
+- **What changes:** only `category`, `summary`, `v10.tagline` and `v10.flow` change, to the exact D-124 content (compact JSON SHA-256 `8c76c749409521f9311be8c78e9f49de3e4b43ea7ca05e5d3baf5590bcd1beab`). Identities, order, stack, accent, icon, featured, status and disciplines are unchanged from D-115.
+- **How:** one new immutable draft revision per project through the existing authenticated lifecycle (`PUT /admin/api/projects/:id/draft`), owner-executed in Paulo's `/admin` session (the D-117/D-119 channel).
+- **Checks:** production validators; `initialReleaseReadiness()` stays `true`; one protected V10.1 preview; a desktop layout check.
+- **Flags:** `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED` are `YES` for these five draft revisions only.
 
-`H-WEB-V101-GATE-D-0001` is archived byte-for-byte and deselected.
+## Selected directive
 
-## Remaining state
-
-- **Fallback projects are live:** the RFC-022 bridge is not yet initially activated. The live raw artifact shows its built-in fallback projects (including Maisog Guild), not the D-115 set (with Eternal Eggs). This is resolved through the separately governed initial project activation, not by editing V10.1. AS132-F002 remains unconsumed and applies to it.
-- **robots.txt:** the change from the Cloudflare-managed content-signals robots.txt to the repository `robots.txt` is a non-blocking follow-up. Do not alter robots.txt or Cloudflare zone settings during project activation.
-
-## Paulo decision required
-
-Scope: `RFC022_INITIAL_PROJECT_ACTIVATION_DECISION_ONLY`.
-
-Paulo decides whether to activate exactly the five D-115-approved project drafts through RFC-022 (ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat).
-
-Separate decisions: contact-email publication; mobile; `og:image`; robots/content-signals changes; unrelated cleanup.
+`DIR-WEB-RFC022-CONTENT-COPY-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-124 and `ML-DEVOS-AS-148`.
 
 ## Hard boundaries
 
-All action-specific authorization flags are `NO`.
+Only the three flags above are `YES`, for the five draft revisions. Every other flag is `NO`.
 
 Not authorized:
-- initial homepage activation; a `homepage_initial_activation` marker; any project publication;
-- contact/`site_settings` mutation; contact-email publication;
-- any deployment, promotion, rollback or traffic shift; `main` merge;
-- production D1 or R2 mutation;
-- Access, DNS, binding, secret, environment or zone change (including robots.txt/content signals); schema or migration change;
-- mobile remediation; `og:image`.
+- project publication; initial homepage activation; a `homepage_initial_activation` marker;
+- direct D1 SQL writes; service tokens; Access bypass;
+- V10.1 changes; any deployment, promotion, rollback or traffic shift; `main` merge;
+- contact/`site_settings` mutation; contact-email publication; robots.txt or content-signal changes;
+- R2, Access, DNS, binding, secret or environment change; schema or migration change;
+- mobile remediation; `og:image`; unrelated cleanup.
 
 AS132-F002 applies at the first project bridge activation. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
@@ -71,4 +61,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-Paulo records an initial-activation decision (or declines). No production mutation is authorized by AS-148.
+Paulo runs the exact D-124 script in the authenticated `/admin` session. The Builder then verifies read-only and publishes `H-WEB-RFC022-CONTENT-COPY-0001`, archives and deselects the directive, resets every flag to `NO`, and routes `TURN: PAULO` (D-124).

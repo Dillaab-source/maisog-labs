@@ -1,82 +1,84 @@
-# Current Directive — V10.1 Gate D (D-123)
+# Current Directive — RFC-022 recruiter-friendly project copy (D-124)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-V101-GATE-D-0001
+directive_id: DIR-WEB-RFC022-CONTENT-COPY-0001
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-issue_parent_commit: 8d9b1227a74ffae8d03bbc833db2ab1143a208d5
+issue_parent_commit: 69cf99d042007eea535154d2bffb199ffff473cd
 target_turn: CLAUDE
-authority_ref: D-123
-applicable_review_id: ML-DEVOS-AS-147
+authority_ref: D-124
+applicable_review_id: ML-DEVOS-AS-148
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-123 and `ML-DEVOS-AS-147`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-124 and `ML-DEVOS-AS-148`.
 
 ## Objective
 
-Promote the exact existing Worker version `8fd31f47-a65d-4f57-83f1-17a1e0cd8043` (V10.1, from `main` `97ca982c…`, Workers Build `4eae04e3…`) to 100% of production in one deployment, verify it read-only, and roll back to `862dc45e-9ad7-4324-80ae-912adbb6ce82` only on a new material failure V10.1 causes.
+Revise the public-facing copy of the five existing unpublished D-115 project drafts to the exact D-124 content (compact JSON SHA-256 `8c76c749409521f9311be8c78e9f49de3e4b43ea7ca05e5d3baf5590bcd1beab`). Create one new immutable draft revision each through the authenticated admin lifecycle, verify read-only, check the desktop layout, and return for Paulo's final activation decision. Nothing is published or activated.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `DEPLOY_AUTHORIZED` is the only `YES` flag.
-- The D-123 preflight passes in full, read fresh immediately before the deployment.
+- The Protocol V2 bootstrap passes; STATE selects this directive; the only `YES` flags are `MUTATION_AUTHORIZED`, `AUDIT_APPEND_AUTHORIZED` and `REMOTE_D1_AUTHORIZED`, for these five draft revisions only.
+- The five drafts exist, unpublished, with draft revision ids ClinicFlow 2, Eternal Eggs 3, Sentinel / DevOS 4, SU 5, Maisog Kilat 6 (`H-WEB-RFC022-CONTENT-DRAFTS-0002`). No `homepage_initial_activation` marker exists.
+- Production serves V10.1 `8fd31f47…` @ 100%; public `/` is the raw artifact `220ce809…`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-123; live STATE; `ML-DEVOS-AS-147` (Gate D readiness, separation, fallback state, post checks).
-- **T1:** D-114 / `H-WEB-RFC022-GATE-D-0001` (Gate D precedent); `ML-DEVOS-RFC-022` §5.4, §7 test 11; `OBL-017`.
+- **T0:** Protocol V2; D-124; live STATE; `ML-DEVOS-AS-148`.
+- **T1:** D-115 (identities and non-copy fields); D-117/D-118/D-119 (owner-executed authenticated console channel); `ML-DEVOS-RFC-022` §5.6, §10.1; AS132-F002 (unconsumed).
 
 ## Exact execution scope
 
 Allowed:
-- read-only GitHub and Cloudflare reads (versions, builds, deployments, Access application and policies, GraphQL analytics);
-- exactly one `POST /accounts/{id}/workers/scripts/maisog-labs/deployments` with `8fd31f47…` @ 100% (the equivalent of `wrangler versions deploy 8fd31f47…@100% --yes`), run once;
-- at most one conditional rollback deployment to `862dc45e…` @ 100%, under the D-123 rollback rule only;
-- unauthenticated public HTTP GETs and a headless-browser smoke test against the live site;
+- read-only production D1 `SELECT`s and Cloudflare GETs for verification;
+- one Builder-generated, locally dry-run console script. Paulo (or the D-119 Work/browser operator) runs it in Paulo's owner-authenticated `/admin` session. It makes exactly five authenticated `PUT /admin/api/projects/:id/draft` calls, with exact expected pointers (`published: null`; draft 2/3/4/5/6). Each creates one immutable draft revision with the exact D-124 content. This is the existing authenticated lifecycle. The Builder cannot pass Cloudflare Access itself and never handles the OTP;
+- local headless layout checks of the exact copy in V10.1 through the unchanged bridge;
+- the protected preview `/admin/preview/home`, viewed in Paulo's authenticated session (`OWNER_REPORTED`);
 - one Protocol V2 Builder return.
 
 Not allowed:
-- rebuild; version upload; `wrangler deploy`; a newer `main`; canary or traffic split; a second candidate;
-- project publication or activation; `homepage_initial_activation`; contact-email publication; `site_settings` mutation; D1/R2 mutation;
-- Access, DNS, binding, secret or environment change; any merge;
-- rollback for absent unpublished projects, unavailable CPU metrics, deferred mobile or `og:image`, the test-browser video codec, or pre-existing issues.
+- any project publish/unpublish; `POST /admin/api/projects/initial-activation`; a `homepage_initial_activation` marker;
+- direct D1 SQL writes; service tokens; any Access bypass;
+- V10.1, deployment, merge, `site_settings`, contact email, robots.txt/content signals, R2, DNS, bindings, secrets, environment;
+- any field change beyond `category`, `summary`, `v10.tagline`, `v10.flow`.
 
 ## SENTINEL Sync
 
-- **Authority:** D-123 (Paulo).
-- **Context:** AS-147 accepted Gate C and named the exact candidate and rollback target.
-- **Capability:** one production deployment operation (plus one conditional rollback).
-- **Execution:** fresh preflight → one deployment → read-only verification.
-- **Evidence:** pre/post versions and deployment IDs, HTTP and browser smoke, analytics, rollback status.
+- **Authority:** D-124 (Paulo).
+- **Context:** AS-148 accepted V10.1 live; initial activation is deferred for recruiter-friendly copy.
+- **Capability:** five authenticated draft-revision PUTs, owner-executed.
+- **Execution:** script → owner run → read-only verification → layout check.
+- **Evidence:** revision ids, before/after copy, validators, readiness, preview, public `/` unchanged.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- **Live site vs project activation:** V10.1 goes live without the D-115 projects. With nothing published, `/` serves the raw V10.1 artifact, and the homepage shows the artifact's own built-in project data. Expected; not a rollback condition. Activation stays a separate decision (AS132-F002 unconsumed).
-- **Wrangler vs connector:** Wrangler is not authenticated in the Builder container. The D-114 precedent uses the identical Cloudflare API deployment call through the connector.
+- **"Keep the existing stack" vs display:** the D-124 stacks equal D-115's stored stacks exactly. The V10.1 homepage renders discipline tags, not `stack`. The category (`kind`) appears only in the Systems panel's "Used in projects" list. Recorded as a presentation note; no site change.
+- **Execution channel:** D-124 requires the authenticated lifecycle; the Builder cannot authenticate through Cloudflare Access. The D-117/D-119 owner-executed console channel is the existing route. The Builder generates and dry-runs; the owner executes.
 
 ## Instructions
 
-1. Bootstrap. Run the full preflight; stop on any mismatch.
-2. Take a pre-deploy latency baseline.
-3. Re-read production and deploy `8fd31f47…` @ 100% once.
-4. Verify the live state (HTTP, `/v101/` assets, browser smoke, APIs, `/admin`, analytics); roll back only under the D-123 rule.
+1. Bootstrap. Read-only verify the current five drafts and pointers.
+2. Generate the D-124 console script and dry-run it locally against the real Worker code; record its SHA-256.
+3. Paulo runs it in the authenticated `/admin` session and reports the output.
+4. Verify read-only (field-by-field against D-124 canonical, validators, readiness, unpublished, no marker, `/` unchanged); collect preview evidence.
 5. Publish the return.
 
 ## Validation and evidence
 
-The D-123 return list.
+The D-124 return list.
 
 ## Stop conditions
 
-- Any preflight mismatch or ambiguity.
-- An unexpected result of the deployment call.
+- Current pointers differ from `null` / 2–6, or activation is already done.
+- Any unexpected response from the script; any published pointer.
+- Any stored field differs from the D-124 canonical content.
 
 ## Next action
 
-Publish `H-WEB-V101-GATE-D-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-RFC022-CONTENT-COPY-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: PAULO` (D-124).
