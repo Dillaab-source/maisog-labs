@@ -51,9 +51,11 @@ The Builder creates nothing. After Paulo reports, it verifies read-only (read-ba
 
 All values come exactly from D-115. The directive stays open until all five exact drafts are verified.
 
+**D-119 amends only the D-118 execution channel.** Work/browser operator may execute the exact already-issued D-118 replacement script (SHA-256 `35b059d6a1cc82dee756b50ed52405f101c0a9d6b37f65aca55d62ebb7bb8f16`) on Paulo's behalf in the owner-authenticated admin browser session. The script, D-115 content, D-118 contract, flags, verification and all hard boundaries are unchanged. On any stop or unexpected response, stop immediately, report the exact output and do not rerun blindly.
+
 ## Selected directive
 
-`DIR-WEB-RFC022-CONTENT-DRAFTS-0002` is transport, not authority. Effective scope is the intersection of this STATE, D-116, D-115 (content) and the directive.
+`DIR-WEB-RFC022-CONTENT-DRAFTS-0002` is transport, not authority. Effective scope is the intersection of this STATE, D-119, D-118, D-115 (content) and the directive.
 
 ## Hard boundaries
 
@@ -74,4 +76,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-After Paulo reports that the five drafts are saved, the Builder verifies read-only and publishes `H-WEB-RFC022-CONTENT-DRAFTS-0002`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
+Work/browser operator executes the exact D-118 replacement script in Paulo's owner-authenticated admin session. On success, the Builder verifies read-only and publishes `H-WEB-RFC022-CONTENT-DRAFTS-0002`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
