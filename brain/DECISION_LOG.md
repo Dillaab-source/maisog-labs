@@ -2697,3 +2697,33 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Then `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, every flag `NO`. Stop after the return.
 - **Directive:** issue `DIR-WEB-V101-PROMOTION-PREP-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D121_V101_PROMOTION_PREPARATION_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-145`), routed to Claude/Builder.
+
+### D-122 — Authorize V10.1 Gate C (protected `main` merge only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `a9351c660ae4911c5f0536285560cb2c42befa65`, after `ML-DEVOS-AS-146` accepted the D-121 promotion preparation. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Bound anchors:**
+  - reviewed implementation `49984e74bdc4109f431bdc24248f7a9bb000dcff`;
+  - AS-146 publication `a9351c660ae4911c5f0536285560cb2c42befa65`;
+  - expected `main` `405375998392e936b71181de387ae395b7d46e40`;
+  - accepted homepage SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, length `20857`, RFC-022 insertion offset `20116`.
+- **Final Gate C head:** publishing D-122 and its directive is the only permitted governance-branch advancement after `a9351c6` before Gate C. That publication commit is `FINAL_GATE_C_HEAD`; its exact full SHA is recorded in the return. It contains only the governance/state/directive records needed to publish D-122: no application code, `public/`, tests, bridge behavior, runtime configuration, project content or production state. After it is recorded, any movement of `governance/maisoglabs-v0.1` invalidates this authorization and requires stopping for review.
+- **Authorized action:** open exactly one fresh release PR `governance/maisoglabs-v0.1 → main`. Do not use or modify PR #10.
+- **Before merge, verify:**
+  - `main` is still exactly `405375998392e936b71181de387ae395b7d46e40`;
+  - the PR head is exactly `FINAL_GATE_C_HEAD`;
+  - the changes after `49984e7` are governance-only AS-146 and D-122 publication records;
+  - `public/index.html` still has SHA-256 `220ce809…`;
+  - the bridge values remain SHA `220ce809…`, length `20857`, offset `20116`;
+  - the fresh PR is cleanly mergeable;
+  - the active `main-protection` ruleset remains applicable;
+  - `test-and-build` succeeds on the exact `FINAL_GATE_C_HEAD`;
+  - the final changed-file set is manually inspected under AS132-F003;
+  - the active production Worker version is recorded immediately before the merge.
+
+  If any bound value differs, stop without merging.
+- **Merge:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. Merge through the normal protected GitHub pull-request path with a normal merge commit pinned to `FINAL_GATE_C_HEAD`. No direct push, force push, squash, rebase, auto-merge or protection/ruleset bypass.
+- **After merge, record:** the PR number; the final PR head; the CI result; the merge commit SHA and both parents; the resulting `main` SHA; the homepage artifact identity; the resulting Workers Build/version if Git integration uploads one; the active production version immediately before and after the merge. The active production version must remain unchanged. If Gate C unexpectedly changes production traffic, stop and report it without remediation.
+- **Not authorized:** Gate D; deployment or traffic shift; `wrangler versions deploy`; production D1/R2 mutation; project publication or initial activation; contact or `site_settings` mutation; email publication; Access/DNS/binding/secret/environment changes; migrations/schema changes; mobile remediation; `og:image`; PR #7 or PR #10 action; unrelated cleanup; S6/S7; D-068.
+- **Flags:** every authorization flag except the bounded `MAIN_MERGE_AUTHORIZED` stays `NO`.
+- **Return:** Builder return `H-WEB-V101-GATE-C-0001` with the complete merge and CI evidence; every action flag reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`. Then stop. Gate D remains a separate Paulo authorization.
+- **Directive:** issue `DIR-WEB-V101-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D122_V101_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-146`), routed to Claude/Builder.
