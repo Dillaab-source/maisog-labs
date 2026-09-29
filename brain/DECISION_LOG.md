@@ -3004,3 +3004,29 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
     It is not deployed under the activation authority.
 - **Flags** (activation only): `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`, `REMOTE_D1_AUTHORIZED: YES`, for the one atomic initial activation through the authenticated admin lifecycle. Every other flag stays `NO`.
 - **Directive:** issue `DIR-WEB-RFC022-INITIAL-ACTIVATION-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D125_RFC022_INITIAL_PROJECT_ACTIVATION_ONLY`, applicable review `ML-DEVOS-AS-149`), routed to Claude/Builder. The return is `H-WEB-RFC022-INITIAL-ACTIVATION-0001`, routed to the Architect.
+
+### D-126 — Governance learning capture; park the recruiter homepage prototype (record only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `2276abe643ce1546c8a62a637b76b8c7741a336f`, after `ML-DEVOS-AS-150`. Published by Claude/Builder as mechanical publisher; committed text proves provenance, not authority. This is governance-record-only: it does not amend the active architecture.
+- **1. Recruiter homepage prototype — parked.**
+  - Paulo authorized a local-only prototype after AS-150. Its result (`ACTOR_REPORTED`, never committed):
+    - artifact SHA-256 `f1917b6a5fe0adb775537eb916d49981b76fce09795d22d4b6b8e5f77b4ad8de`; entry `entry.87049e774a02.js`;
+    - tests 958/958; build green; the five live projects injected;
+    - working tree restored.
+  - It was feasibility evidence only. It must not be recreated, committed as a release candidate, PR'd, merged, uploaded or deployed. **No Gate C / Gate D** for it.
+  - Future recruiter homepage copy is deferred to RFC-022 Tier 2 `Profile / Home` Content Admin: the existing draft → protected preview → publish direction, reusing existing `site_settings` capabilities where semantically appropriate. **Tier 2 is not implemented now.**
+- **2. Governance/architecture learnings — captured as findings pending consolidated Architect/SU review, not adopted protocol amendments:**
+  1. **Independent Verification:** the Architect exhausts directly accessible repository, diff, STATE, branch, test and runtime evidence before asking Paulo to relay information. Builder handoffs are evidence pointers, not proof.
+  2. **Human Attention:** Paulo is Owner/product and risk authority, not an inter-agent courier. Owner involvement is reserved for genuine authority decisions, subjective acceptance, inaccessible owner-only evidence, changed scope/risk, consequential production actions, or explicit risk acceptance.
+  3. **Existing-Capability-First:** before designing new architecture or implementation, inspect the repository for existing, dormant, partial or intentionally deferred capability.
+  4. **Proportional Engineering / Coordination Economy:** optimize coordination cost, not engineering depth. Minimize accidental complexity, preserve necessary complexity, and require evidence for both. Token/model budget is pressure, not a hard ceiling.
+  5. **Adaptive effort:** future review distinguishes LIGHT / STANDARD / ESCALATED work by consequence and uncertainty, rather than applying maximum ceremony to everything.
+  6. **Batched Knowledge Recording:** routine lessons and observations are consolidated rather than each triggering a separate governance cycle.
+  7. **Constructive Dissent:** the Architect is not an approval assistant. It challenges Paulo, Claude, previous architecture and consensus when evidence supports disagreement, while avoiding performative contrarianism.
+  8. **Persistence semantics:** distinguish "captured in chat" from "persisted in repo". Only actual repository persistence may be described as durable project truth.
+  9. **Execution-environment independence:** routine MaisogLabs governance must not depend on ChatGPT Work or any single execution environment being available.
+  10. **Process lesson (homepage episode):** independently verify durable evidence and inspect existing capabilities before accepting a proposed implementation path.
+- **3. Status:** these findings are **captured, not adopted** as normative architecture.
+  - The next separate task is the **SU + Architect consolidated retrospective**: identify all lessons from the Sentinel/DevOS build; challenge each; remove duplicates; classify KEEP / SIMPLIFY / REQUIRED ROBUSTNESS / DEFER / REMOVE; propose the smallest coherent architecture amendment.
+  - That amendment is **not** performed in D-126.
+- **Boundaries:** governance-only. No website/product code, D1/R2, Cloudflare change, deployment, `main` merge, S6/S7, Tier 2 implementation, new governance subsystem or additional learning file. Every authorization flag stays `NO`.
