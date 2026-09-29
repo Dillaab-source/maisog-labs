@@ -2660,3 +2660,40 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 
   Then `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, every flag `NO`.
 - **Directive:** issue `DIR-WEB-V101-DESKTOP-CANDIDATE-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D120_V101_DESKTOP_CANDIDATE_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-144`), routed to Claude/Builder.
+
+### D-121 — Authorize bounded V10.1 promotion preparation (repository only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `ae0419f73398cd43c140be0a4f76e6cb199f6d5b`, after `ML-DEVOS-AS-145` accepted the V10.1 desktop candidate. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Exact accepted artifact:** `candidates/v10.1/site/index.html`, SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`. The accepted candidate bytes are immutable for this operation: they are not rebuilt or regenerated in any way that changes the artifact.
+- **Authorized scope:** one bounded repository promotion-preparation change that atomically:
+  1. replaces `public/index.html` with the exact accepted candidate bytes;
+  2. adds the accepted `/v101/` fingerprinted assets;
+  3. adds the accepted `robots.txt`, `sitemap.xml` and `_headers`;
+  4. updates the RFC-022 bridge constants to match the promoted artifact: `ARTIFACT_SHA256 = 220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, `ARTIFACT_LENGTH = 20857`, `INSERTION_OFFSET = 20116`;
+  5. updates all affected homepage-artifact and RFC-022 bridge tests in the same commit.
+
+  The artifact replacement, all three bridge values and the affected tests are one atomic governed change. Partial replacement is prohibited (`ML-DEVOS-AS-145` mandatory promotion invariant).
+- **Required verification:** the complete repository test suite and build. Locally/headlessly:
+  - the promoted homepage artifact stays byte-identical to the accepted SHA-256;
+  - RFC-022 injects successfully against the new artifact;
+  - the five D-115 projects render in the approved order: ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat;
+  - project copy and data are unchanged;
+  - entry, Systems, Projects, Research and Contact remain functional; Research filters work and no dead `href="#"` links return;
+  - keyboard focus stays visible; no desktop horizontal overflow; no new console errors;
+  - the candidate's document metadata and static SEO files remain intact.
+- **Not authorized:** Gate C; `main` merge; Gate D; production deployment or traffic change; production D1 or R2 mutation; project publication; initial homepage activation or a `homepage_initial_activation` marker; contact or `site_settings` mutation; contact-email publication; Access, DNS, binding, secret or environment mutation; schema or migration changes; mobile remediation; `og:image`; unrelated cleanup, refactoring or architecture expansion; PR #7 or PR #10 action; S6/S7; D-068.
+- **Flags:** `MUTATION_AUTHORIZED: YES` for this repository-local change only. Every production, deployment and merge flag stays `NO`.
+- **Return:** `H-WEB-V101-PROMOTION-PREP-0001` with:
+  1. the exact promotion-preparation commit SHA;
+  2. the complete changed-file set;
+  3. the SHA-256 of `public/index.html`;
+  4. the artifact length and insertion offset;
+  5. the exact RFC-022 bridge constant values;
+  6. complete test and build results;
+  7. browser/bridge verification results;
+  8. confirmation that D-115 project content is unchanged;
+  9. confirmation that no production mutation, merge or deployment occurred;
+  10. any limitations or newly discovered findings.
+
+  Then `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, every flag `NO`. Stop after the return.
+- **Directive:** issue `DIR-WEB-V101-PROMOTION-PREP-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D121_V101_PROMOTION_PREPARATION_REPOSITORY_ONLY`, applicable review `ML-DEVOS-AS-145`), routed to Claude/Builder.
