@@ -1,91 +1,131 @@
-# Current Handoff — RFC-022 initial content drafts (D-115): authentication stop
+# Current Handoff — RFC-022 initial content drafts (D-116 / D-117 / D-118 / D-119)
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-RFC022-CONTENT-DRAFTS-0001
+handoff_id: H-WEB-RFC022-CONTENT-DRAFTS-0002
 cycle_id: MAISOGLABS_WEB_RFC022_CBR
-input_base_commit: cb304f30713e01914d779c008768c6e38e83d797
-review_target_commit: cb304f30713e01914d779c008768c6e38e83d797
-applicable_review_id: ML-DEVOS-AS-141
+input_base_commit: 8e18b355ba90b5a35b40630193b1599335c49d30
+review_target_commit: 8e18b355ba90b5a35b40630193b1599335c49d30
+applicable_review_id: ML-DEVOS-AS-142
 ```
 
 This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve.
 
-Evidence class `ACTOR_REPORTED`:
-- public unauthenticated HTTP GETs;
-- one read-only production D1 `SELECT` (counts only), within the D-115 read-back scope;
-- local validation.
+Evidence classes:
+- **`OWNER_REPORTED`:** the D-118 script execution and its console output (run in Paulo's owner-authenticated admin session, under D-119's channel).
+- **`ACTOR_REPORTED`:** the Builder's read-only production D1 `SELECT`s, local validation, and public HTTP GETs.
+
+The Builder performed **no write**.
 
 ## Objective
 
-Execute `DIR-WEB-RFC022-CONTENT-DRAFTS-0001` (D-115): create the five approved production project drafts through the authenticated admin lifecycle, read them back, revalidate them, and capture protected preview evidence.
+Complete `DIR-WEB-RFC022-CONTENT-DRAFTS-0002`, as amended by D-117, D-118 and D-119:
+- the five D-115-approved production project drafts exist exactly as approved, created through the authenticated admin lifecycle;
+- nothing is published or activated;
+- read-only verification.
 
 ## Result
 
-**STOPPED at the D-115 authentication stop condition. No draft was created. Nothing in production changed.**
+**All five drafts are stored exactly as canonical D-115: 0 field differences. They validate, and `initialReleaseReadiness()` is `true`. None is published. No activation marker exists. Public `/` is unchanged.**
 
-This Builder session cannot authenticate as Paulo (`paulo.maisog@maisoglabs.com`) through Cloudflare Access:
-- **Access intercepts every admin path.** Unauthenticated `GET https://maisoglabs.com/admin` and `GET /admin/preview/home` both return **302** to the Access login (`jolly-disk-0469.cloudflareaccess.com/cdn-cgi/access/login/maisoglabs.com`). The login `meta` token reports `auth_status: NONE` and `service_token_status: false`.
-- **The only allowed identity needs an interactive email code.** Application `b80acca4…` allows exactly `paulo.maisog@maisoglabs.com` through the OTP identity provider. Signing in requires a one-time code delivered to that mailbox.
-- **The session has no means to complete that login:**
-  - no access to Paulo's mailbox;
-  - no browser or computer-use tool attached;
-  - no Access credential or cookie in its environment.
-- **D-115 forbids every substitute:** bypassing authentication, direct D1 SQL, inventing a service token, and weakening Access. None was attempted.
+| Project | Draft revision id | Revision number | Order | Published |
+|---|---|---|---|---|
+| `project-clinicflow` | 2 | 2 (revision 1 kept as history) | 1 | `null` |
+| `project-eternal-eggs` | 3 | 1 | 2 | `null` |
+| `project-sentinel-devos` | 4 | 1 | 3 | `null` |
+| `project-su` | 5 | 1 | 4 | `null` |
+| `project-maisog-kilat` | 6 | 1 | 5 | `null` |
 
-The D-115 content approval itself is recorded durably in `brain/DECISION_LOG.md` (D-115), including the exact approved JSON.
+All five revisions have `created_by` `cf-access:f2cab460-7d02-5201-abb1-272a3f3f7114` (Paulo's Access identity), created 2026-09-29T14:10:56.977Z–14:10:58.712Z.
+
+## History of this cycle
+
+1. **D-115:** content approved; the Builder's authentication stop (`H-WEB-RFC022-CONTENT-DRAFTS-0001`, accepted by AS-142).
+2. **D-116:** owner-authenticated browser path; no Builder browser was available.
+3. **D-117:** owner-executed console POST of the exact D-115 JSON. The Builder had found that the admin UI cannot carry `stack`/`accent`/`icon` and sorts disciplines.
+4. **Diagnostic:** Paulo first created only ClinicFlow, through the UI (revision 1, 2026-09-28T22:21:02Z). A read-only check found 7 of 14 fields differed from D-115.
+5. **D-118:** replacement script (SHA-256 `35b059d6a1cc82dee756b50ed52405f101c0a9d6b37f65aca55d62ebb7bb8f16`): PUT ClinicFlow (expected pointers `null`/`1`), then POST the other four. Dry-run locally before issue.
+6. **D-119** (published by Paulo's ChatGPT Work session at `8e18b35`): a Work/browser operator may execute that exact script in Paulo's owner-authenticated session. Nothing else changed.
 
 ## Tests and evidence
 
-- **Content validation (local, before publication, production validators):** all five pass:
-  - `validateProjectId`, `validateProjectSlug`, `validateProjectRevisionContent`;
-  - `validateProjectsGroup` → valid;
-  - `initialReleaseReadiness` → **true**;
-  - orders are 1–5 in the D-105 order. The content file SHA-256 was `286530730a03e037cf073266588100864821da07b415fbf9ba12796b618d52ce` (a scratch file; the canonical text is the JSON in D-115).
-- **Public `/` (2026-09-28T21:53:20Z):** 200, SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`, the unchanged D-093 artifact in fallback.
-- **Production D1 read (counts only):** `projects` 0, `project_revisions` 0, `audit_log` 0, `homepage_initial_activation` markers 0, `site_settings` 0. The query reported `changed_db: false` and `rows_written: 0`.
-- **Not done:**
-  - no project draft, publish, initial activation or marker;
-  - no contact or `site_settings` change;
-  - no deploy; no R2, Access, DNS, binding, secret, environment or schema change; no `main` merge.
+### Script execution (`OWNER_REPORTED`)
+
+| Step | Status | State | draftRevisionId | publishedRevisionId |
+|---|---|---|---|---|
+| PUT project-clinicflow | 200 | draft | 2 | null |
+| POST project-eternal-eggs | 201 | draft | 3 | null |
+| POST project-sentinel-devos | 201 | draft | 4 | null |
+| POST project-su | 201 | draft | 5 | null |
+| POST project-maisog-kilat | 201 | draft | 6 | null |
+
+Closing message: `D-118: ClinicFlow corrected and four drafts created. Nothing published.`
+
+### Production read-back (`ACTOR_REPORTED`, read-only, 2026-09-29T14:37:59Z–14:38:15Z)
+
+- **Field-by-field comparison:**
+  - The five stored draft revisions were read through the Cloudflare D1 query API (`rows_written: 0`, `changed_db: false`).
+  - Each was mapped into the D-115 shape: `id`, `slug`, `order`=`sort_order`, `category`, `title`, `summary`, `stack`, `accent`, `icon`, `featured`, and `v10` = `tagline`, `status`, `disciplines`, `flow`.
+  - The compact JSON of that mapping has SHA-256 **`e45a56ca8a5d96fc8a0484da857dbd8d3b783a936181d875b05bb756bab6e90c`**, byte-identical to the canonical D-115 compact JSON recorded in D-117 and D-118.
+  - **0 field differences across all five projects.** This includes every order-sensitive value: disciplines `[0,1,4,3]`, `[0,1,4]`, `[0,2,1,5,3]`, `[2,0,5]`, `[2,0,4,5]`; flow order; stack order.
+- **Validators** (production modules, on those identical bytes):
+  - `validateProjectId`, `validateProjectSlug` and `validateProjectRevisionContent` pass 5/5;
+  - `validateProjectsGroup` passes;
+  - **`initialReleaseReadiness()` → `true`**.
+- **Counts:**
+  - `projects` 5; **published 0** (`published_revision_id` null for all five);
+  - `project_revisions` 6; `project_media` 0;
+  - **`homepage_initial_activation` markers 0**;
+  - `site_settings` 0 and `site_settings_revisions` 0 (contact untouched);
+  - `audit_log` 10 rows, max id 10.
+- **Audit trail:**
+  - rows 1–4: failure-only rows from Paulo's earlier UI attempts (2026-09-28), with no state change. Row 1 is `section_design_edit_draft` on section `projects`.
+  - row 5: `project_create_draft` ClinicFlow revision 1 (UI).
+  - rows 6–10: exactly the D-118 script: `project_update_draft` ClinicFlow revision id 2, then `project_create_draft` for the four (revision ids 3–6), all `success`.
+- **Public `/`** (2026-09-29T14:38:27Z): 200, SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`, the unchanged D-093 artifact. Drafts never reach `/`.
+- **`/admin/preview/home` unauthenticated:** 302 to Cloudflare Access (protected).
+
+### Not performed by the Builder
+
+- No project draft, edit or publish; no initial activation or marker.
+- No contact/`site_settings` change; no deploy.
+- No Access, DNS, R2, binding, secret, environment or schema change.
+- No direct D1 write; no `main` merge.
 
 ## Changed files
 
 - **Coordination:**
   - `coordination/STATE.md`; this file;
-  - `coordination/archive/directives/DIR-WEB-RFC022-CONTENT-DRAFTS-0001.{md,provenance.json}` (byte-for-byte) and the index row.
-- **Unchanged:** `coordination/OPERATIVE_OBLIGATIONS.md`. The D-115 record itself is in the preceding transition (`cb304f3`).
+  - `coordination/archive/directives/DIR-WEB-RFC022-CONTENT-DRAFTS-0002.{md,provenance.json}` (byte-for-byte; unchanged since issue at `c69be77`) and the index row.
+- **Unchanged:** `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Unresolved findings and limitations
 
-- **No path to the authenticated admin from this Builder session.** It is the same class of limitation as D-110, where Wrangler authentication existed only on Paulo's machine. The following options are for Paulo and the Architect; none is proposed as authorized:
-  1. **Owner-executed drafts.** Paulo signs in at `https://maisoglabs.com/admin` in his own browser and saves the five drafts with the exact D-115 values (Content → Projects), without publishing or activating. The Builder then verifies read-back read-only through the D1 connector and revalidates locally. The protected preview (`/admin/preview/home`) and its desktop/mobile captures would be Paulo's (`OWNER_REPORTED`), unless a browser session is attached to the Builder.
-  2. **Attach an owner-authenticated browser** (for example a desktop Claude session linked to Paulo's computer). This requires Paulo to complete the OTP sign-in. A Builder session with that browser could then drive the admin UI as Paulo.
-  3. **A dedicated automation identity** (Access service token plus a policy). This is an Access change and outside D-115; it would need its own decision and security review, because D-106 makes Paulo the only admin identity.
-- **Admin UI form fields vs D-115 fields:**
-  - `app/admin/ContentClient.js` exposes the V10 fields and saves drafts through the same `POST /admin/api/projects`.
-  - It is not re-verified here whether the form lets the owner set every D-115 field exactly (`stack`, `accent`, `icon`, `id`, `slug`). If the owner executes, that check comes first.
-- **Publication attempt key:** the D-115 issue was published with `--transition-id MAISOGLABS_WEB_RFC022_CBR:NONE:CLAUDE:D-115`, as for D-113 and D-114. The local ledger was not edited.
+- **Desktop protected preview:** not captured by the Builder. It needs Paulo's authenticated browser, so it is `OWNER_REPORTED` if Paulo supplies it. Mobile is deferred by Paulo.
+- **Preview content:** all five drafts are featured and homepage-eligible, so `/admin/preview/home` (draft mode) should render them in the D-105 order. The initial activation panel should show all five as "draft saved".
+- **Next steps not started:**
+  - initial activation (`POST /admin/api/projects/initial-activation`) and any publication need separate Paulo authorization;
+  - Paulo's live-site review recommends a bounded V10.1 remediation before public activation.
+- **Tooling note:** during verification the dedicated D1 query tool returned internal errors on row reads. The read-back used the Cloudflare D1 query API through the general Cloudflare connector, which is equally read-only (`rows_written: 0`).
+- **Publication attempt keys:** D-115 through D-118 were issued with explicit `--transition-id …:D-11x`. The local ledger was never edited.
 - **Carried forward:**
-  - AS132-F002 remains mandatory before the first project bridge activation;
+  - AS132-F002 applies at initial activation (readiness now `true`);
   - AS132-F003 remains open;
-  - the traceability validator's pre-existing 3 ERRORs and DRIFT are unchanged;
-  - V10.1 remediation (per Paulo's live-site review) was not started.
+  - the traceability validator's pre-existing 3 ERRORs and DRIFT are unchanged.
 - **Obligations.** `OBL-006/007/010/011/012/013/014/015/017/018/019/020/021` are carried forward unchanged.
 
 ## Evidence locations
 
-- Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b` (policy `62653faa-4c3c-4b96-a53f-7545f79dbd43`); login endpoint `jolly-disk-0469.cloudflareaccess.com/cdn-cgi/access/login/maisoglabs.com`.
-- Production D1 `45b87574-e573-4e0f-9bb6-fbba2df29523` (counts read at 2026-09-28T21:53Z).
-- Active Worker `862dc45e-9ad7-4324-80ae-912adbb6ce82`.
-- Approved content: `brain/DECISION_LOG.md` § D-115 (publication `cb304f3`).
+- Production D1 `45b87574-e573-4e0f-9bb6-fbba2df29523`: `projects`, `project_revisions` ids 1–6, `audit_log` ids 1–10.
+- Canonical content: `brain/DECISION_LOG.md` § D-115. Scripts: D-117 (`dbe453f6…`, not used) and D-118 (`35b059d6…`, executed).
+- Active Worker `862dc45e-9ad7-4324-80ae-912adbb6ce82`; Access application `b80acca4-ecff-4d9a-ba1b-cedff87cb25b`.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-115; `ML-DEVOS-AS-141`.
-- **T1:** `ML-DEVOS-RFC-022` §5.6, §10.1; D-111; D-106; D-110 (owner-executed precedent).
-- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CONTENT-DRAFTS-0001.md`.
+- **T0:** Protocol V2; D-116 as amended by D-117, D-118 and D-119; D-115 (content); `ML-DEVOS-AS-142`.
+- **T1:** `ML-DEVOS-RFC-022` §5.6, §10.1; D-111; D-106.
+- **Directive archive:** `coordination/archive/directives/DIR-WEB-RFC022-CONTENT-DRAFTS-0002.md`.
 
 ## Next action
 
-The Architect reviews the authentication stop. Any owner-executed or alternative draft-creation path needs a Paulo decision.
+The Architect reviews the content-drafts return. Initial activation, publication, contact email and V10.1 each need separate Paulo authorization.
