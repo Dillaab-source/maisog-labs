@@ -1,59 +1,65 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: CLAUDE
-STATUS: READY_FOR_IMPLEMENTER
-AUTHORIZED_SCOPE: D122_V101_GATE_C_PROTECTED_MAIN_MERGE_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D122_V101_GATE_C_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-WEB-V101-GATE-C-0001
-DIRECTIVE_ISSUE_PARENT: a9351c660ae4911c5f0536285560cb2c42befa65
-DIRECTIVE_AUTHORITY_REF: D-122
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-146
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-WEB-V101-GATE-C-0001
+REVIEW_TARGET_COMMIT: b99353e923607e63fb9677e22a54608d5e3e38cb
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-146
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: YES
+MAIN_MERGE_AUTHORIZED: NO
 
 ## Authority
 
-`ML-DEVOS-AS-146`: `ACCEPTED — V10.1 PROMOTION PREPARATION` (reviewed `49984e74bdc4109f431bdc24248f7a9bb000dcff`; the AS-145 atomic-promotion invariant is satisfied). Gate C readiness: a fresh release PR from `governance/maisoglabs-v0.1` to `main`, not PR #10, fresh `test-and-build` success on the exact final head, clean mergeability, merge-only.
+D-122 (`ML-DEVOS-AS-146`) authorized Gate C only, pinned to `FINAL_GATE_C_HEAD` `b99353e923607e63fb9677e22a54608d5e3e38cb`. The authority is consumed. `MAIN_MERGE_AUTHORIZED` is reset to `NO`.
 
-D-122 records Paulo's authorization of **Gate C only**:
-- **Bound anchors:** reviewed implementation `49984e7…`; AS-146 publication `a9351c6…`; expected `main` `405375998392e936b71181de387ae395b7d46e40`; homepage SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`, length `20857`, offset `20116`.
-- **`FINAL_GATE_C_HEAD`:** the D-122 publication commit (this STATE's commit). It is the only permitted branch advancement after `a9351c6`; any later movement of `governance/maisoglabs-v0.1` before the merge invalidates the authorization.
-- **Action:** one fresh PR `governance/maisoglabs-v0.1 → main`; verify every bound value, clean mergeability, the `main-protection` ruleset, `test-and-build` on `FINAL_GATE_C_HEAD`, the AS132-F003 changed-file inspection, and the active production version; then a normal merge commit pinned to `FINAL_GATE_C_HEAD`.
-- **Production:** the active version must stay unchanged. An unexpected traffic change is a stop-and-report, without remediation.
+## Current handoff
 
-`MAIN_MERGE_AUTHORIZED: YES` covers that exact Gate C only.
+`H-WEB-V101-GATE-C-0001`:
+- **Merge:** PR #18 (`governance/maisoglabs-v0.1 → main`), head `b99353e…`, merged as the normal merge commit `97ca982c9e8f1e306aaa8c8a5198f43f8e00629e` with parents `4053759…` and `b99353e…`. `main` is now `97ca982c…`, with a tree identical to the final head's.
+- **Pre-merge checks:** every D-122 bound value matched:
+  - `main` `4053759…`; head `b99353e…`; governance-only changes after `49984e7`;
+  - homepage `220ce809…` / 20857 / 20116;
+  - `mergeable_state: clean`; ruleset `main-protection` active;
+  - `test-and-build` success on `b99353e…` (runs `36622429425`, `36622493451`);
+  - AS132-F003 file inspection done.
+- **Production:**
+  - active `862dc45e-9ad7-4324-80ae-912adbb6ce82` @ 100% (deployment `3fa32ba9…`) before and after: **unchanged**;
+  - the `main` Workers Build `4eae04e3…` uploaded the inactive version `8fd31f47-a65d-4f57-83f1-17a1e0cd8043`;
+  - public `/` still serves V10 (`2417f7e5…`).
+- **No Gate D, deployment or other production action.**
 
-## Selected directive
-
-`DIR-WEB-V101-GATE-C-0001` is transport, not authority. Effective scope is the intersection of this STATE, D-122 and `ML-DEVOS-AS-146`.
+`DIR-WEB-V101-GATE-C-0001` is archived byte-for-byte and deselected.
 
 ## Hard boundaries
 
-Only `MAIN_MERGE_AUTHORIZED` is `YES`, for this exact Gate C. Every other flag is `NO`.
+All action-specific authorization flags are `NO`.
 
 Not authorized:
-- Gate D; `wrangler versions deploy`; deployment, promotion or traffic shift;
-- direct push, force push, squash, rebase, auto-merge, protection/ruleset bypass;
+- Gate D; `wrangler versions deploy`; deployment, promotion, rollback or traffic shift;
+- `main` merge;
 - production D1 or R2 mutation; project publication; initial homepage activation; a `homepage_initial_activation` marker;
 - contact/`site_settings` mutation; contact-email publication;
 - Access, DNS, binding, secret or environment change; schema or migration change;
-- mobile remediation; `og:image`; unrelated cleanup.
+- mobile remediation; `og:image`.
 
 AS132-F002 applies at the first project bridge activation. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
@@ -63,4 +69,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-The Builder performs Gate C against `FINAL_GATE_C_HEAD` and publishes `H-WEB-V101-GATE-C-0001`. It then archives and deselects the directive, resets every flag to `NO`, and routes to the Architect.
+The Architect reviews `H-WEB-V101-GATE-C-0001` under a new immutable `ML-DEVOS-AS-NNN`.
