@@ -1,96 +1,84 @@
-# Current Directive — D-132 Gate D (D-129 homepage production promotion only)
+# Current Directive — D-133 ClinicFlow source-of-truth recovery (read-only)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-D132-GATE-D-0001
-cycle_id: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-issue_parent_commit: 38fefb4bcc67d5b0472b150d8d630894250db56b
+directive_id: DIR-CLINICFLOW-V1-RECOVERY-0001
+cycle_id: CLINICFLOW_V1_RECOVERY
+issue_parent_commit: 2939cbe8a9c52465e6467f9cf2671cd28c7bab81
 target_turn: CLAUDE
-authority_ref: D-132
-applicable_review_id: ML-DEVOS-AS-159
+authority_ref: D-133
+applicable_review_id: ML-DEVOS-AS-160
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-132 and `ML-DEVOS-AS-159`. Claude/Builder prepared it as mechanical publisher of D-132.
+This directive is transport, not authority. Effective scope is the intersection of live STATE and D-133. Claude/Builder prepared it as mechanical publisher of D-133.
 
 ## Objective
 
-Promote exactly Worker version `666b7bef-9d41-47d0-b5ca-00b8351f9a29` to 100% of production traffic, once, after a fresh preflight passes. Then verify production and return. At most one rollback to `8fd31f47…@100%`, only on a qualifying new material failure caused by this release.
+Recover the real current state of ClinicFlow from the material reachable from the Builder session. Return one recovery handoff with the sections D-133 lists. Implement nothing.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `DEPLOY_AUTHORIZED: YES` and every other action flag `NO`.
-- The read-only preflight run before issue (03:23–03:24Z) passed:
-  - `main` is `ab1296de…`. At `main`:
-    - `public/index.html` SHA-256 is `f60179dd…`, 20,857 bytes, and references `entry.e184fa740d43.js`;
-    - `public/v101/assets/entry.e184fa740d43.js` is present;
-    - `worker/bridge/inject.mjs` pins `f60179dd…` / `20857` / `20116`.
-  - Active production is deployment `b0f11606…` with `8fd31f47…` @ 100%, one version, no split. It is the latest deployment (D-123), so nothing has been deployed since.
-  - Target `666b7bef…` (#912) exists: `wrangler` `version_upload`, alias `main`, created 02:54:37Z. It is in no deployment, so it is inactive. Build `0588b13b…` ran on branch `main`, commit `ab1296de…`, outcome `success`.
-  - Target and production bindings are identical: `ACCESS_AUD`, `ACCESS_TEAM_DOMAIN`, `ASSETS`, `DB` → `45b87574…`, `MEDIA` → `maisog-labs-web-inc-004-local`; compat date `2026-09-11`.
-  - `/admin` and `/admin/api/content` return 302 to the Access login (`jolly-disk-0469.cloudflareaccess.com`).
-  - Baseline: `/` 200 (old entry `entry.7995859f655d.js`); `/api/journal` 200; `/api/design` 200; `/journal` 200.
+- The Protocol V2 bootstrap passes; STATE selects this directive; every action flag is `NO`.
+- `ML-DEVOS-AS-160` closed the D-129/D-132 website release.
 
 ## Governing references
 
-- **T0:** D-132; live STATE; `ML-DEVOS-AS-159`.
-- **T1:** D-130 / `ML-DEVOS-AS-158` (Gate C); D-123 / `H-WEB-V101-GATE-D-0001` (Gate D precedent, API-equivalent promotion); `ML-DEVOS-RFC-022`; `OBL-017`.
+- **T0:** D-133; live STATE.
+- **T1:** MaisogLabs records that mention ClinicFlow (RFC-022 homepage copy, D-088, D-105); `OBL-017` (production gating).
 
 ## Exact execution scope
 
-Allowed:
-- Cloudflare GET reads, and read-only GraphQL analytics.
-- Public HTTP GETs of `maisoglabs.com`.
-- Exactly one promotion `POST …/workers/scripts/maisog-labs/deployments`: `strategy: "percentage"`, `versions: [{ version_id: "666b7bef-9d41-47d0-b5ca-00b8351f9a29", percentage: 100 }]`. This is the API equivalent of `npx wrangler versions deploy 666b7bef…@100% --yes`; Wrangler is not authenticated in the container.
-- At most one conditional rollback in the same form to `8fd31f47…`.
-- One Protocol V2 Builder return.
+Allowed (read-only):
+- this repository and its history;
+- listing and reading repositories reachable from the session;
+- reading n8n workflows and executions through the n8n connector, if it is reachable;
+- read-only listing of Cloudflare resources;
+- reading workflow JSON, prompts, schemas and documentation.
+
+Credentials and secrets are recorded **by name, type and reference only, never by value**.
 
 Not allowed:
-- `wrangler deploy`; uploading or rebuilding; another version; a canary or split;
-- routes or triggers; D1, R2, Access, DNS, bindings, secrets or environment changes;
-- project, `site_settings` or contact changes; changes to `main` or the homepage;
-- AS158-F001; S6; V2.1 Revision 2; any PR merge.
+- creating, activating, deactivating, executing, testing or editing workflows;
+- sending messages; Messenger/Facebook, OAuth, Google Sheets or Calendar writes;
+- using production credentials to act; creating repositories; deleting material;
+- deploying; website changes; S6/S7; V2.1 Revision 2.
 
 ## SENTINEL Sync
 
-- **Authority:** D-132 (Paulo), after `ML-DEVOS-AS-159` and D-130.
-- **Context:** the D-129 candidate is accepted and merged; production serves `8fd31f47…`.
-- **Capability:** the Cloudflare API through the connected MCP connector, with one deployment write (plus one conditional rollback).
-- **Execution:** re-read the preflight → promote → verify → return.
-- **Evidence:**
-  - deployments before and after; the target identity;
-  - live homepage copy, Entry stack and entry asset; section, project, API and Journal smoke tests;
-  - `/admin` Access; Worker analytics.
+- **Authority:** D-133 (Paulo).
+- **Context:** the website release is closed; ClinicFlow is the next priority.
+- **Capability:** read-only inspection through the connected integrations.
+- **Execution:** inventory → classify → recover the architecture → V1 contract and test plan → return.
+- **Evidence:** what each located artifact is, and where.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- D-132 names the Wrangler command as the intended operation. The container cannot authenticate Wrangler, so the API equivalent is used, as at D-114/D-123 (accepted in `ML-DEVOS-AS-148`). The Builder note in D-132 records this. The target, the traffic percentage and the single-promotion limit are unchanged.
-- The target's asset bundle cannot be fetched before promotion (preview URLs are disabled). Its identity rests on the build link (`0588b13b…` → `main` `ab1296de…`) and the `main` tree. After promotion it is confirmed live: homepage SHA `f60179dd…` (on the unbridged path) or the D-129 copy, plus the entry asset.
+- Some sources D-133 names ("local ClinicFlow files", screenshots, notes on Paulo's machine) may be unreachable from a cloud session. They are reported as unreachable, never inferred.
+- Running a workflow to "demonstrate" that it works would be execution, and is not allowed. "Working" is established only from existing evidence (for example past execution records), classed accordingly.
 
 ## Instructions
 
 1. Bootstrap.
-2. Re-read deployments and target immediately before promotion. Stop on any drift.
-3. Promote once.
-4. Verify post-deploy D-132 items 1–12.
-5. Roll back only on a qualifying failure.
-6. Publish the return: reset `DEPLOY_AUTHORIZED` to `NO`, archive and deselect this directive, route `TURN: ARCHITECT`, scope `D132_GATE_D_ARCHITECT_REVIEW_ONLY`.
+2. Inventory every reachable source.
+3. Classify each component.
+4. Recover the architecture; build the preserve/repair/rebuild/remove matrix, the V1 contract, the test plan, the risks and the next gate.
+5. Publish the return: archive and deselect this directive; route `TURN: ARCHITECT`; all flags `NO`.
 
 ## Validation and evidence
 
-Everything D-132 lists for the Builder return.
+The D-133 return sections, each tied to a located artifact or marked not located or unreachable.
 
 ## Stop conditions
 
-- Any preflight value differs, or the target identity is ambiguous: stop without deploying.
-- A qualifying failure after promotion: one rollback, verify, stop. No hotfix.
-- Any step would need a non-authorized action.
+- Any step would need a write, an execution or the use of a credential to act.
+- A located artifact exposes a secret value: record the location only, and never copy the value.
 
 ## Next action
 
-Publish `H-WEB-D132-GATE-D-0001` and route to the Architect.
+Publish `H-CLINICFLOW-V1-RECOVERY-0001` and route to the Architect.

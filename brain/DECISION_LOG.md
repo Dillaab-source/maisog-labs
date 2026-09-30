@@ -4527,3 +4527,173 @@ IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 Then STOP.
 ````
+
+### D-133 — Select ClinicFlow as the next product priority; authorize bounded source-of-truth recovery / reconnaissance only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `2939cbe8a9c52465e6467f9cf2671cd28c7bab81`, after `ML-DEVOS-AS-160` closed the D-129/D-132 website release. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **New cycle:** `CLINICFLOW_V1_RECOVERY`, scope `D133_CLINICFLOW_SOURCE_RECOVERY_ONLY`, `CURRENT_REMEDIATION_CYCLE` 0.
+- **Authorized:** read-only inspection of available ClinicFlow material, and one recovery handoff.
+- **Flags:** every action flag stays `NO`, including `MUTATION_AUTHORIZED`. Read-only inspection needs no write flag (D-102 precedent).
+- **Directive:** `DIR-CLINICFLOW-V1-RECOVERY-0001`, routed to Claude/Builder. The return routes to the Architect.
+- **Decision text (verbatim as received in the Builder session):**
+
+````text
+D-133 — Select ClinicFlow as the next MaisogLabs product priority and
+authorize a bounded source-of-truth recovery / reconnaissance stage only.
+The D-129 / D-132 MaisogLabs website release sequence is closed.
+The next active product priority is:
+ClinicFlow
+The intended sequence is:
+ClinicFlow first.
+Eternal Eggs follows after ClinicFlow reaches a stable,
+portfolio-ready milestone.
+Do NOT automatically resume:
+
+* SENTINEL S6;
+* S7;
+* the interrupted V2.1 Revision 2 work;
+* Maisog Kilat;
+* SU implementation expansion;
+* Eternal Eggs implementation yet.
+
+Recover the real current ClinicFlow state before authorizing a rebuild.
+ClinicFlow previously existed as an AI-assisted clinic receptionist and
+appointment workflow using components such as:
+n8n
+webhooks / chat input
+LLM receptionist
+structured appointment extraction
+conversation memory
+Google Sheets
+Google Calendar
+booking-complete logic
+staff handoff
+The previous implementation had working and partially working pieces,
+including earlier Messenger/webhook integration problems.
+Do not assume the old architecture is still correct.
+Determine what actually exists now.
+Authorize bounded inspection of available ClinicFlow material,
+including where available:
+
+* local ClinicFlow files;
+* n8n workflow exports;
+* workflow JSON;
+* prompts;
+* appointment-extraction schemas;
+* receptionist instructions;
+* Google Sheets / Calendar integration definitions;
+* webhook / Messenger integration configuration records;
+* test cases;
+* screenshots;
+* notes and documentation;
+* old repositories or branches;
+* MaisogLabs records referring to ClinicFlow.
+
+Identify:
+
+1. every surviving ClinicFlow component;
+2. where each component currently lives;
+3. which artifact should become the durable source of truth;
+4. what is demonstrably working;
+5. what is incomplete or broken;
+6. which external dependencies are required;
+7. which credentials/secrets are referenced, without exposing or
+committing their values;
+8. what can be preserved versus what should be rebuilt;
+9. whether an existing ClinicFlow Git repository exists;
+10. if no dedicated repository exists, recommend the clean repository
+/ project structure for the rebuild, but do not create it yet;
+11. the smallest end-to-end workflow required for a portfolio-ready V1;
+12. a concrete test plan for that V1.
+
+Use this as the product objective for planning, not as authorization to
+implement it yet:
+A patient starts a conversation.
+ClinicFlow safely identifies that the user is requesting an
+appointment.
+It collects the minimum required appointment information.
+Structured data is extracted deterministically.
+The workflow validates whether the booking request is complete.
+The system checks or prepares scheduling information.
+The booking is recorded through the governed scheduling path.
+Staff remain able to review or take over.
+The patient receives an appropriate confirmation.
+Duplicate or repeated messages must not accidentally create duplicate
+bookings.
+The AI receptionist must not diagnose medical conditions.
+D-133 does NOT authorize:
+
+* rewriting ClinicFlow;
+* creating production workflows;
+* changing live n8n workflows;
+* changing Facebook / Messenger configuration;
+* sending real patient messages;
+* creating real appointments;
+* modifying Google Calendar;
+* modifying Google Sheets;
+* changing OAuth configuration;
+* using production credentials;
+* deploying anything;
+* creating a new repository;
+* deleting old ClinicFlow material;
+* migrating data;
+* introducing a new LLM architecture;
+* adding a shared CSM/state platform;
+* website changes;
+* S6/S7 work.
+
+This stage is evidence gathering and architecture recovery only.
+All action-specific production/mutation flags remain NO.
+Return one bounded ClinicFlow recovery handoff containing:
+CURRENT STATE
+What exists today and where.
+SURVIVING ASSETS
+Exact files/workflows/configuration artifacts found.
+WORKING PATHS
+Anything that can still be demonstrated as functioning.
+BROKEN / INCOMPLETE PATHS
+Specific failures or missing pieces.
+SOURCE OF TRUTH
+What should become the durable ClinicFlow source of truth.
+ARCHITECTURE RECOVERY
+A diagram or concise flow of the existing architecture.
+PRESERVE / REBUILD MATRIX
+For every major component:
+PRESERVE
+REPAIR
+REBUILD
+REMOVE
+V1 CONTRACT
+The smallest useful end-to-end ClinicFlow workflow we should build.
+TEST PLAN
+Including:
+happy-path appointment request;
+missing information;
+multi-message conversation;
+duplicate/replayed messages;
+invalid date/time;
+unavailable schedule;
+staff handoff;
+LLM malformed output;
+external API failure;
+retry/idempotency behavior;
+no-medical-diagnosis boundary.
+RISKS / BLOCKERS
+Especially external-account, Messenger, OAuth, state-management and
+booking-idempotency concerns.
+PROPOSED NEXT GATE
+The smallest bounded implementation stage that should follow recovery.
+Record D-133.
+Suggested cycle:
+CLINICFLOW_V1_RECOVERY
+Suggested scope:
+D133_CLINICFLOW_SOURCE_RECOVERY_ONLY
+After the recovery work:
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: NO
+All action-specific authorization flags remain NO.
+Then STOP.
+````
