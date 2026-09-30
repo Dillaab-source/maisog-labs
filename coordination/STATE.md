@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_DEVOS_RFC023_V21
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: AS154_F001_REMEDIATION_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D127_CYCLE_A_ACCEPTED_CYCLE_B_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-DEVOS-RFC023-CYCLE-A-REM1-0001
-REVIEW_TARGET_COMMIT: afd29a9a51c25273c71b5da03b8740216eb181ca
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-154
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,8 +29,8 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: `ML-DEVOS-AS-154` — Cycle A accepted except `AS-154-F001` (BC-4 propagation); remediation cycle 1 returned.
-- Authority: `D-127` Cycle A. Cycle B and any envelope are not authorized. All action flags `NO`.
+- Review: `ML-DEVOS-AS-155` — `READY TO COMMIT: YES`; Cycle A accepted and closed (`AS-154-F001` closed). Non-blocking follow-ups A–C are in `ML-DEVOS-AS-155`. Published mechanically by the Builder under BC-4.
+- Authority: `D-127`. Cycle B is not authorized until Paulo separately approves it; no envelope. All action flags `NO`.
 - Held positions not covered by `D-127` or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
-- Next: the Architect reviews `H-DEVOS-RFC023-CYCLE-A-REM1-0001`.
+- Next: Paulo decides on Cycle B.
