@@ -4278,3 +4278,26 @@ Then STOP.
 
 Gate D remains a separate Paulo decision after Architect review.
 ````
+
+### D-131 — Hold Gate D; route the AS-158 publication-integrity defect to the Architect for one review-only correction
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `3f27179aa9abea3f938210dbca7623e9ddcfcd8b`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Finding (Architect inspection, relayed by Paulo):**
+  - the published `ML-DEVOS-AS-158` fenced review body is not byte-identical to the Architect-authored review;
+  - Architect-authored section titles and separator lines are missing, among them "ARCHITECT VERIFICATION", "CHANGED-FILE / SCOPE DISPOSITION", "AS158-F001 — PRE-EXISTING S6 TIMING DEFECT", "PRODUCTION EVIDENCE BOUNDARY", "GATE C VERDICT" and "ROUTING";
+  - some bullet markers are normalized.
+
+  The substantive Gate C verdict appears preserved. However, the publication does not satisfy `ML-DEVOS-RFC-023` BC-4 ("The Architect authors review bytes, and the Builder (or Paulo) publishes them unchanged through CAS"), so the Builder's byte-identity attestation cannot be accepted as correct.
+- **Owner disposition:**
+  - Gate D is temporarily held.
+  - Do not deploy; do not promote Worker version `666b7bef…`; do not modify `main`; do not repair S6; do not resume the earlier V2.1 Revision 2 work.
+  - Do not rewrite, amend or delete the immutable `ML-DEVOS-AS-158` record or its archive.
+- **Authorized:** only the governance transition that returns this exact publication-integrity finding to the Architect. The next Architect turn's sole purpose is to issue a new immutable corrective Architect Sync for the AS-158 defect.
+- **Routing:**
+  - `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `AUTHORIZED_SCOPE: D131_AS158_PUBLICATION_INTEGRITY_REVIEW_ONLY`;
+  - `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`, `PAULO_DECISION_REQUIRED: NO`;
+  - `CURRENT_HANDOFF: NONE`, `CURRENT_DIRECTIVE: NONE`.
+- **Flags:** every action-specific flag stays `NO`, in particular `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED`, `MUTATION_AUTHORIZED`, `REMOTE_D1_AUTHORIZED` and `REMOTE_R2_AUTHORIZED`.
+- **Builder note (`ACTOR_REPORTED`; evidence for the Architect, not part of Paulo's decision):**
+  - The Builder kept the review text exactly as it arrived in the Builder session. That text contains none of the section titles or separator lines listed above, and the published AS-158 body is identical to it. The loss therefore appears to have happened before the text reached the Builder, in the relay.
+  - The attestation in AS-158 ("reproduced verbatim as received") was nonetheless inadequate for BC-4. The Builder verified identity only against what it received, not against the Architect-authored bytes, and had no Architect-supplied hash or length to check against.

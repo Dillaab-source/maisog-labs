@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: D130_GATE_C_ACCEPTED_GATE_D_DECISION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D131_AS158_PUBLICATION_INTEGRITY_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -29,8 +29,8 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: `ML-DEVOS-AS-158` — `READY TO COMMIT: YES`; D-130 Gate C accepted (PR #19 merged as `ab1296de…`). Published mechanically by the Builder under BC-4.
-- AS158-F001: the S6 test 421 timing sensitivity is confirmed as a real, pre-existing, non-blocking defect. It gets no D-130 remediation, and S6 stays parked (OBL-024).
-- Next: Paulo decides whether to authorize Gate D for the exact accepted release. Before any Gate D promotion, the Builder must re-read the active production deployment/version fresh and confirm that the intended inactive version still corresponds to the accepted `main` artifact. Gate D stays owner-gated (OBL-017). No deployment or S6 work is authorized. All action flags `NO`.
+- Decision: `D-131` (Paulo) — Gate D is **held**. The published `ML-DEVOS-AS-158` body is not byte-identical to the Architect-authored review (section titles and separators are missing; bullets normalized), so it fails BC-4. `ML-DEVOS-AS-158` and its archive stay unaltered.
+- Next: the Architect issues one new immutable corrective Architect Sync for the AS-158 publication-integrity defect. That is review-only; nothing else is in scope.
+- Not authorized: deployment or promotion of `666b7bef…`; changes to `main`; S6 repair; V2.1 Revision 2 work. All action flags `NO`.
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
