@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D130_GATE_C_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D130_GATE_C_ACCEPTED_GATE_D_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D130-GATE-C-0001
-REVIEW_TARGET_COMMIT: 75d8267168ec9892ff072a9fdef56e8a3d10a952
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-157
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,8 +29,8 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: `ML-DEVOS-AS-157` — D-129 candidate accepted; Paulo visually accepted it (D-130).
-- Authority: `D-130` — Gate C done: PR #19 merged as `ab1296de…` (pinned to `75d8267…`). `MAIN_MERGE_AUTHORIZED` reset to `NO`; all action flags `NO`. Production unchanged (`8fd31f47…` @ 100%); the new `main` version `666b7bef…` is inactive.
-- Next: the Architect reviews `H-WEB-D130-GATE-C-0001`. Gate D (production deploy) remains a separate Paulo decision.
+- Review: `ML-DEVOS-AS-158` — `READY TO COMMIT: YES`; D-130 Gate C accepted (PR #19 merged as `ab1296de…`). Published mechanically by the Builder under BC-4.
+- AS158-F001: the S6 test 421 timing sensitivity is confirmed as a real, pre-existing, non-blocking defect. It gets no D-130 remediation, and S6 stays parked (OBL-024).
+- Next: Paulo decides whether to authorize Gate D for the exact accepted release. Before any Gate D promotion, the Builder must re-read the active production deployment/version fresh and confirm that the intended inactive version still corresponds to the accepted `main` artifact. Gate D stays owner-gated (OBL-017). No deployment or S6 work is authorized. All action flags `NO`.
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
