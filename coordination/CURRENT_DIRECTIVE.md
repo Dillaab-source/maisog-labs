@@ -1,76 +1,84 @@
-# Current Directive — RFC-023 / V2.1 Cycle B (D-128)
+# Current Directive — D-129 homepage copy (two strings)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-DEVOS-RFC023-CYCLE-B-0001
-cycle_id: MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B
-issue_parent_commit: 1e5a8a5bacb7e60cab7df4cb226613a8f72ace01
+directive_id: DIR-WEB-D129-HOMEPAGE-COPY-0001
+cycle_id: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
+issue_parent_commit: bffd020d1b2357b161fd0ee6b924b2f93d06edc2
 target_turn: CLAUDE
-authority_ref: D-128
-applicable_review_id: ML-DEVOS-AS-155
+authority_ref: D-129
+applicable_review_id: ML-DEVOS-AS-156
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-128 and `ML-DEVOS-AS-155`. Claude/Builder prepared it as mechanical publisher of D-128, as for D-125 and D-127.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-129 and `ML-DEVOS-AS-156`. Claude/Builder prepared it as mechanical publisher of D-129, as for D-125, D-127 and D-128.
 
 ## Objective
 
-Implement `ML-DEVOS-RFC-023` BC-12 (the attempt-ledger chain) and BC-10 (the RFC lifecycle-projection checks), plus the AS-155 §6a one-line wording reconciliation, with tests. Then return.
+Apply exactly the two D-129 homepage copy edits at the canonical V10.1 source level, regenerate the derived assets through the existing V10.1 build path, verify the result on desktop (1440×900, 1280×720), and return a repository-local candidate. No merge or deploy.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `CURRENT_REMEDIATION_CYCLE: 0`; every action flag is `NO`.
-- The existing attempt ledger is left untouched.
+- The Protocol V2 bootstrap passes; STATE selects this directive; every action flag is `NO`.
+- Read-only discovery at `bffd020`, before issue:
+  - The rendered Entry view is `public/v101/assets/entry.7995859f655d.js`. `design-system.c349f854986d.js` carries an earlier duplicate `window.Entry`, which `entry.js` overwrites at load.
+  - Both strings are code-owned literals (no D1/admin/`site_settings` ownership).
+  - V10.1 is defined by `scripts/build-v101-candidate.mjs`: the canonical V10 artifact (SHA-256 `2417f7e5…`, recoverable byte-exact at `f2c13aa:public/index.html`) plus exact-match patches.
+  - `public/` holds byte copies of `candidates/v10.1/site/`.
 
 ## Governing references
 
-- **T0:** D-128; `ML-DEVOS-AS-155` (follow-ups A and C); live STATE.
-- **T1:** `ML-DEVOS-RFC-023` BC-10, BC-12, BC-4 and §6 (tests); `brain/protocols/CONTEXT_BOOTSTRAP.md` §3 item 7, §6a, §8; `OBL-023`.
+- **T0:** D-129; live STATE; `ML-DEVOS-AS-156`.
+- **T1:** D-126 (still in force except for the two strings); D-120/D-121 and `candidates/v10.1/README.md` (build path); `ML-DEVOS-RFC-022`, `worker/bridge/inject.mjs`; `ML-DEVOS-AS-150` (a homepage copy change needs a new fingerprinted entry asset, index reference, `ARTIFACT_SHA256`, affected tests, atomic consistency); `OBL-023`.
 
 ## Exact execution scope
 
 Allowed:
-- **B1.** `scripts/check-context-bootstrap.mjs` and `tests/context-bootstrap.test.mjs` (`tests/context-bootstrap-v2.test.mjs` only if the existing test organization genuinely needs it).
-- **B2.** `devos/governance/traceability/validate-traceability.mjs` and `tests/traceability.test.mjs`.
-- **B3.** `brain/protocols/CONTEXT_BOOTSTRAP.md` §6a, one sentence only.
+- **Source.** `scripts/build-v101-candidate.mjs`: two new exact-match patches in the Entry panel patch, plus the minimal input change needed to read the pinned V10 artifact, whose SHA-256 is still verified.
+- **Build outputs.** Regenerate `candidates/v10.1/site/` and `build-report.json` with the locked toolchain (`npm ci`, esbuild 0.28.1), then promote byte copies to `public/`. Only direct build outputs of the two edits may change: the new entry asset, the index reference and the resulting hashes.
+- **Pinned constants that follow mechanically from the new index hash.** `worker/bridge/inject.mjs` `ARTIFACT_SHA256`; the pinned hash in `tests/homepage-artifact.test.mjs` and `tests/v101-candidate.test.mjs`; the `candidates/v10.1/README.md` table.
+- **Evidence.** Screenshots and a browser report under `candidates/v10.1/evidence/d129/`.
 - One Protocol V2 Builder return.
 
-Not allowed: `generate-traceability.mjs` (stop and report if it appears necessary); regenerated traceability output; unrelated traceability debt; editing, resetting or deleting the ledger; RFC-023 redesign; STATE schema or `PROTOCOL_VERSION`; any envelope; product, production, deploy, `main`, D1/R2, Access/DNS/bindings/secrets/environment; S6/S7; D-068; mobile.
+Not allowed: editing a hashed bundle by hand; the parked prototype; the `design-system` duplicate or any other string (including the closing "Humanity orbits higher."); bridge logic, `INSERTION_OFFSET`, the data script or project payload; D1/R2; merge/PR merge; deploy; mobile; Tier 2; governance.
 
 ## SENTINEL Sync
 
-- **Authority:** D-128 (Paulo), after `ML-DEVOS-AS-155`.
-- **Context:** Cycle A is accepted and closed. BC-10 and BC-12 were adopted but left unimplemented.
-- **Capability:** repository code and tests only, with hermetic fixtures.
-- **Evidence:** the three governance suites, the Skills suite, the checker, the validator delta against the Cycle A baseline, and a manual changed-file inspection.
+- **Authority:** D-129 (Paulo), after `ML-DEVOS-AS-156`.
+- **Context:** V2.1 is frozen; D-126 parked homepage copy, and D-129 lifts that deferral for two strings only.
+- **Capability:** repository build, local static serving and headless Chromium. No Cloudflare, D1 or production access is used.
+- **Evidence:** determinism check (rebuild without the new patches reproduces the current bytes), diffs, hashes, tests, screenshots.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- **B3 vs §3 item 7:** §3 item 7 describes the old default key as current "until the separately authorized Cycle B implements BC-12". That wording is self-expiring and stays accurate once B1 lands, so D-128's §6a-only limit holds and §3 is not edited.
+- **D-126 vs D-129:** resolved by D-129's narrow supersession.
+- **"Only direct build outputs" vs the pinned hash constants:** RFC-022 pins the served index bytes; AS-150 anticipated this. The constant and pin updates are mechanical, not bridge architecture. If `INSERTION_OFFSET`, the data script or bridge logic would need to change, stop and return to the Architect.
 
 ## Instructions
 
-1. Bootstrap on the issue commit.
-2. Implement B1 with the eight RFC-023 ledger tests plus the chain-boundary test.
-3. Implement B2 with the ten BC-10 tests on hermetic fixtures.
-4. Apply B3.
-5. Validate and collect the evidence D-128 § Validation lists; publish the return.
+1. Bootstrap. Install the locked dependencies.
+2. Prove the build path: rebuild from the pinned V10 artifact without the new patches, and confirm it is byte-identical to the current `candidates/v10.1/site/` and `public/`.
+3. Add the two patches; rebuild; promote; update the pinned constants.
+4. Run the tests; serve locally; verify the 13 D-129 desktop checks at 1440×900 and 1280×720, with screenshots, both raw and with the bridge splice.
+5. Publish the return.
 
 ## Validation and evidence
 
-D-128 § Validation in full, including the before/after D-112 regression, the ledger entry shape, example chains, live RFC-projection findings and the global traceability delta.
+D-129 § Desktop verification and § Return in full.
 
 ## Stop conditions
 
-- `generate-traceability.mjs` or any file outside the allowed set appears necessary.
-- A required behavior would change `UNKNOWN_OUTCOME` or read-back semantics.
-- Any existing test fails for a reason other than this cycle's intended change.
+- The strings are not source-owned.
+- The build path does not reproduce the current bytes.
+- Any change beyond the entry asset, its index reference and the derived hashes and pins.
+- The copy does not fit cleanly on desktop.
+- A substantive RFC-022 change would be needed.
 
 ## Next action
 
-Publish `H-DEVOS-RFC023-CYCLE-B-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+Publish `H-WEB-D129-HOMEPAGE-COPY-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.

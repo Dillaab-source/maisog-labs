@@ -3678,3 +3678,305 @@ automatically.
 After V2.1 closure, return to product work — ClinicFlow is the intended
 next priority.
 ````
+
+### D-129 — Authorize the two final MaisogLabs homepage copy edits only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `bffd020d1b2357b161fd0ee6b924b2f93d06edc2` (live STATE `TURN: PAULO`, scope `V21_FROZEN_NEXT_PRODUCT_DECISION_ONLY`), after `ML-DEVOS-AS-156` froze Context Bootstrap V2.1. Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Relationship to D-126:** narrowly supersedes D-126's homepage-copy deferral **only** for the two exact strings below. D-126 otherwise stays in force: the parked prototype (`f1917b6a…` / `entry.87049e774a02.js`) is not recreated or reused; this is not RFC-022 Tier 2; the strings stay code-owned (not D1/admin); no redesign.
+- **Authorized:** a fresh bounded implementation of exactly two copy edits against the current canonical V10.1 homepage source, the normal regeneration of derived assets, a repository-local candidate commit, local headless desktop verification (1440×900, 1280×720) and normal bookkeeping.
+  - Change 1 (lower-left): "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software." → identity line "Paulo Maisog — AI Automation & Technical Systems Builder" plus supporting line "Building practical AI workflows, cloud automation, and technical systems for real-world business processes."
+  - Change 2 (lower-right stack): "Humanity / Orbits / Higher" → "AI / AUTOMATION / SYSTEMS", same three-line treatment, no punctuation.
+- **Not authorized:** deploy, Cloudflare traffic change, `main` or PR merge, remote D1/R2, project publication or activation, the activation marker, contact/`site_settings`, domain email, Access/DNS/bindings/secrets/environment, schema/migrations, mobile, Tier 2, governance (V2.1 frozen) or retrospective work, unrelated V10.1 cleanup, ClinicFlow. All action flags stay `NO`.
+- **Stop conditions:** the strings are not source-owned (would need D1/admin/`site_settings`); a substantive RFC-022 compatibility change would be needed; the copy does not fit the existing desktop design.
+- **Routing:** new cycle `MAISOGLABS_WEB_D129_HOMEPAGE_COPY` (`CURRENT_REMEDIATION_CYCLE: 0`); issue `DIR-WEB-D129-HOMEPAGE-COPY-0001` (scope `D129_HOMEPAGE_COPY_TWO_STRINGS_ONLY`); one bounded Builder return with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; stop. Merge/deployment need a separate Paulo decision after Architect acceptance.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-129.
+
+D-129 — Authorize the two final MaisogLabs homepage copy edits only.
+
+This is a narrowly bounded website-content implementation decision.
+
+Context Bootstrap V2.1 remains FROZEN.
+Do not reopen governance.
+
+==================================================
+RELATIONSHIP TO D-126
+==================================================
+
+D-129 narrowly supersedes D-126's homepage-copy deferral ONLY for the
+two exact homepage strings authorized below.
+
+D-126 otherwise remains in force.
+
+Specifically:
+
+- Do NOT recreate the parked D-126 recruiter homepage prototype.
+- Do NOT use or revive its uncommitted artifact
+  f1917b6a5fe0adb775537eb916d49981b76fce09795d22d4b6b8e5f77b4ad8de
+  or entry.87049e774a02.js as a release candidate.
+- Do NOT treat D-129 as implementation of RFC-022 Tier 2 Profile / Home
+  Content Admin.
+- Do NOT build Tier 2.
+- Do NOT make these strings D1/admin-owned.
+- Do NOT broaden this into homepage redesign work.
+
+D-129 authorizes a fresh bounded implementation of these two exact
+copy edits against the CURRENT canonical V10.1 homepage source.
+
+==================================================
+EXACT CHANGE 1 — LOWER-LEFT COPY
+==================================================
+
+Current text:
+
+The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.
+
+Replace it with exactly these two lines of content:
+
+Paulo Maisog — AI Automation & Technical Systems Builder
+
+Building practical AI workflows, cloud automation, and technical systems for real-world business processes.
+
+The first sentence is the identity/title line.
+
+The second sentence is the supporting capability line.
+
+Do not rewrite, shorten, expand or embellish either string.
+
+Natural wrapping caused by the existing layout is allowed.
+
+==================================================
+EXACT CHANGE 2 — LOWER-RIGHT STACK
+==================================================
+
+Current:
+
+Humanity
+Orbits
+Higher
+
+Replace with exactly:
+
+AI
+AUTOMATION
+SYSTEMS
+
+Preserve the existing three-line visual treatment.
+
+Do not add punctuation.
+
+==================================================
+PRESERVE EVERYTHING ELSE
+==================================================
+
+Do NOT change:
+
+- MAISOGLABS wordmark;
+- logo;
+- logo animation;
+- "Ideas in Orbit";
+- hero imagery;
+- celestial / Roman visual system;
+- orbital animation;
+- navigation;
+- Systems;
+- Projects;
+- Research;
+- Contact;
+- the five D-115 project records;
+- RFC-022 project bridge behavior;
+- colors;
+- fonts;
+- motion language;
+- desktop composition except natural wrapping required by the new copy;
+- mobile behavior.
+
+This is NOT V10.2.
+
+This is NOT a redesign.
+
+==================================================
+SOURCE / IMPLEMENTATION RULE
+==================================================
+
+First identify the CURRENT canonical V10.1 source that produces the
+homepage Entry view.
+
+Make the two edits at the canonical source level.
+
+Then rebuild/regenerate the derived browser asset using the existing
+V10.1 build path.
+
+Do NOT make a manual edit to a hashed/generated bundle as the only
+source of truth.
+
+If the normal build produces:
+- a new hashed Entry asset;
+- an updated public/index.html reference;
+- new artifact hashes;
+- other mechanically derived files;
+
+those changes are allowed only where they are direct build outputs of
+these two source edits.
+
+Report all such generated changes.
+
+If you discover that these exact strings are no longer source-owned and
+would require D1/admin/site_settings mutation:
+
+STOP and report.
+
+D-129 does NOT authorize remote D1 mutation.
+
+==================================================
+ARTIFACT / RFC-022 SAFETY
+==================================================
+
+Preserve the existing RFC-022 / MLData project-content seam.
+
+Do not modify project payload behavior.
+
+Do not modify the five project drafts.
+
+If rebuilding the homepage changes the canonical homepage artifact hash,
+report:
+
+- old artifact SHA-256;
+- new candidate SHA-256;
+- changed asset filename(s);
+- whether RFC-022 bridge constants or tests are affected.
+
+Do not silently update unrelated bridge architecture.
+
+If a substantive RFC-022 compatibility change would be required:
+
+STOP and return to the Architect.
+
+==================================================
+DESKTOP VERIFICATION
+==================================================
+
+Verify the resulting candidate at minimum at:
+
+1440×900
+1280×720
+
+Confirm:
+
+1. lower-left identity line renders correctly;
+2. supporting line renders correctly;
+3. AI / AUTOMATION / SYSTEMS renders as the existing three-line stack;
+4. no clipping;
+5. no desktop horizontal overflow;
+6. no accidental overlap with the hero/logo;
+7. Ideas in Orbit is unchanged;
+8. navigation still works;
+9. Systems still works;
+10. Projects still work;
+11. Research remains unchanged;
+12. Contact remains unchanged;
+13. no new browser console errors attributable to this change.
+
+If the text does not fit cleanly in the existing desktop design:
+
+STOP and report.
+
+Do NOT redesign the hero to force it to fit.
+
+Mobile remains deferred.
+
+==================================================
+AUTHORIZED
+==================================================
+
+Authorized:
+
+- record D-129;
+- issue one bounded Builder directive;
+- repository-local source edits for these two strings only;
+- normal build/regeneration required by those edits;
+- repository-local candidate commit;
+- local/headless desktop verification;
+- screenshots/evidence;
+- normal handoff/archive/STATE bookkeeping.
+
+==================================================
+NOT AUTHORIZED
+==================================================
+
+Not authorized:
+
+- production deploy;
+- Cloudflare traffic change;
+- main merge;
+- pull-request merge;
+- remote D1 mutation;
+- remote R2 mutation;
+- project publication;
+- project initial activation;
+- homepage_initial_activation marker;
+- contact/site_settings mutation;
+- domain-email publication;
+- Access/DNS/bindings/secrets/environment;
+- schema/migrations;
+- mobile remediation;
+- Tier 2 implementation;
+- V2.1/V2.2 governance work;
+- retrospective work;
+- unrelated V10.1 cleanup;
+- ClinicFlow implementation yet.
+
+All production action flags remain NO.
+
+==================================================
+NEW CYCLE
+==================================================
+
+Use a new bounded website cycle for D-129.
+
+Suggested:
+
+CYCLE_ID:
+MAISOGLABS_WEB_D129_HOMEPAGE_COPY
+
+CURRENT_REMEDIATION_CYCLE: 0
+
+MAX_REMEDIATION_CYCLES: 2
+
+==================================================
+RETURN
+==================================================
+
+Return one bounded handoff to the Architect containing:
+
+- exact source file changed;
+- exact generated files changed;
+- candidate commit SHA;
+- old and new homepage strings;
+- old/new asset names where applicable;
+- old/new artifact SHA-256 where applicable;
+- RFC-022 compatibility assessment;
+- screenshots at 1440×900 and 1280×720;
+- test/build results;
+- confirmation that all other homepage content and project content are unchanged.
+
+Route:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+Then STOP.
+
+Do NOT merge.
+Do NOT deploy.
+
+After Architect acceptance, Paulo will separately authorize the final
+merge/deployment.
+
+After these two copy edits are live and verified, freeze the MaisogLabs
+website and move to ClinicFlow.
+````
