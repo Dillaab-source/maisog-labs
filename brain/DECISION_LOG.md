@@ -2727,3 +2727,1554 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
 - **Flags:** every authorization flag except the bounded `MAIN_MERGE_AUTHORIZED` stays `NO`.
 - **Return:** Builder return `H-WEB-V101-GATE-C-0001` with the complete merge and CI evidence; every action flag reset to `NO`; `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`. Then stop. Gate D remains a separate Paulo authorization.
 - **Directive:** issue `DIR-WEB-V101-GATE-C-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D122_V101_GATE_C_PROTECTED_MAIN_MERGE_ONLY`, applicable review `ML-DEVOS-AS-146`), routed to Claude/Builder.
+
+### D-123 — Authorize V10.1 Gate D (one bounded production promotion)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `8d9b1227a74ffae8d03bbc833db2ab1143a208d5`, after `ML-DEVOS-AS-147` accepted V10.1 Gate C. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Authorized operation:** exactly one deployment of the existing Cloudflare Worker version `8fd31f47-a65d-4f57-83f1-17a1e0cd8043` at 100% of production traffic. The Wrangler equivalent is `npx wrangler versions deploy 8fd31f47-a65d-4f57-83f1-17a1e0cd8043@100% --yes`, run once only. Rollback target: `862dc45e-9ad7-4324-80ae-912adbb6ce82`.
+- **Preflight, read-only and immediately before deployment:**
+  - `main` is still exactly `97ca982c9e8f1e306aaa8c8a5198f43f8e00629e`;
+  - the candidate `8fd31f47…` still exists and is inactive;
+  - it was produced by Workers Build `4eae04e3-02f3-4094-86bc-abc5f69b14d2`;
+  - its expected `ASSETS`, `DB`, `MEDIA`, Access team domain and AUD bindings/config remain intact;
+  - production is still exactly `862dc45e…` at 100%, with no traffic split;
+  - `/admin` remains protected by the existing Cloudflare Access configuration.
+
+  Any mismatch or ambiguity: STOP without deploying.
+- **Do not:** rebuild; upload another version; use `wrangler deploy`; deploy a newer `main`; create a canary or traffic split; publish projects; activate the five D-115 drafts; create `homepage_initial_activation`; publish the contact email; mutate `site_settings`; mutate D1/R2; change Access, DNS, bindings, secrets or environment; merge anything else.
+- **Expected live state:**
+  - active production is `8fd31f47…` at 100%;
+  - `/` returns 200 and serves V10.1 (artifact `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`);
+  - `/v101/assets/` loads;
+  - browser Babel and the old self-unpacking runtime are no longer served;
+  - Systems, Research, Contact and navigation remain usable;
+  - `/api/journal`, `/api/design` and `/journal` remain healthy;
+  - `/admin` remains Access-protected.
+
+  The five project drafts remaining absent from the public homepage is expected; do not publish them during Gate D and do not roll back because they are absent.
+- **Conditional rollback:** at most one rollback to `862dc45e…` @ 100%, only if V10.1 causes a new material production failure. Qualifying failures: homepage unavailable or materially broken; major existing public APIs fail; new widespread Worker exceptions; the Access/admin path fails because of this release; required production bindings fail. Not for: unpublished projects being absent; unavailable CPU metrics; deferred mobile issues; deferred `og:image`; known test-browser video-codec limitations; pre-existing issues.
+- **Flags:** `DEPLOY_AUTHORIZED: YES`. All other action flags remain `NO`.
+- **Return:** Builder return `H-WEB-V101-GATE-D-0001` reporting:
+  - the pre-deploy active version and deployment; the exact deployment operation; the new deployment ID;
+  - the post-deploy active version and traffic allocation;
+  - the live `/` result; the `/v101/` asset result; live functional smoke-test results; API/admin health;
+  - any Worker exception or binding failure; rollback status;
+  - confirmation that no project/contact publication or D1/R2/Access/config mutation occurred.
+
+  Then `DEPLOY_AUTHORIZED: NO`, `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`. Then stop. Project activation remains a separate later decision.
+- **Directive:** issue `DIR-WEB-V101-GATE-D-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D123_V101_GATE_D_PRODUCTION_PROMOTION_ONLY`, applicable review `ML-DEVOS-AS-147`), routed to Claude/Builder.
+
+### D-124 — Defer initial activation; authorize recruiter-friendly project copy revision (drafts only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `69cf99d042007eea535154d2bffb199ffff473cd`, after `ML-DEVOS-AS-148` accepted V10.1 Gate D. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Decision:** initial homepage project activation is **not** authorized yet. Before activation, revise only the public-facing copy of the existing five approved project drafts, so a recruiter or first-time visitor can quickly understand what each project is, what problem it addresses, what was built and what technical capability it demonstrates.
+- **Copy-only refinement.** Project identities, order, technical stack, underlying project scope and architecture are unchanged. No project may be added, removed or reordered. Exact order: 1 ClinicFlow, 2 Eternal Eggs, 3 Sentinel / DevOS, 4 SU, 5 Maisog Kilat.
+- **Exact revised content.** Only `category`, `summary`, `v10.tagline` and `v10.flow` change on each project. `id`, `slug`, `order`, `title`, `stack`, `accent`, `icon`, `featured`, `v10.status` (Sentinel / DevOS stays `Active`) and `v10.disciplines` are carried unchanged from D-115. Compact JSON SHA-256 `8c76c749409521f9311be8c78e9f49de3e4b43ea7ca05e5d3baf5590bcd1beab` (D-115: `e45a56ca…`):
+
+```json
+[
+  {
+    "id": "project-clinicflow",
+    "slug": "clinicflow",
+    "order": 1,
+    "category": "AI Workflow Automation",
+    "title": "ClinicFlow",
+    "summary": "ClinicFlow is an AI-assisted clinic automation prototype I built to handle patient conversations, collect appointment details, coordinate scheduling and hand requests to staff through a structured workflow.",
+    "stack": [
+      "n8n",
+      "LLM",
+      "Webhooks",
+      "Calendar"
+    ],
+    "accent": "gold",
+    "icon": "automation",
+    "featured": true,
+    "v10": {
+      "tagline": "AI-assisted clinic receptionist and appointment workflow automation.",
+      "status": "",
+      "disciplines": [
+        0,
+        1,
+        4,
+        3
+      ],
+      "flow": [
+        "Patient starts a conversation",
+        "Appointment details are captured and validated",
+        "Booking and scheduling are coordinated",
+        "Staff review the request and remain in control"
+      ]
+    }
+  },
+  {
+    "id": "project-eternal-eggs",
+    "slug": "eternal-eggs",
+    "order": 2,
+    "category": "AI Ordering Automation",
+    "title": "Eternal Eggs",
+    "summary": "Eternal Eggs is a conversational ordering system in development that turns customer chat messages into structured orders, checks quantities and details, calculates totals and helps prevent the same order from being processed twice.",
+    "stack": [
+      "Cloudflare Workers",
+      "Durable Objects",
+      "D1",
+      "LLM"
+    ],
+    "accent": "violet",
+    "icon": "automation",
+    "featured": true,
+    "v10": {
+      "tagline": "A conversational ordering system that turns customer messages into structured orders.",
+      "status": "",
+      "disciplines": [
+        0,
+        1,
+        4
+      ],
+      "flow": [
+        "Customer sends an order by chat",
+        "Order details are extracted and validated",
+        "Quantity, total and delivery details are confirmed",
+        "Staff receive a structured order for processing"
+      ]
+    }
+  },
+  {
+    "id": "project-sentinel-devos",
+    "slug": "sentinel-devos",
+    "order": 3,
+    "category": "AI Development Governance",
+    "title": "Sentinel / DevOS",
+    "summary": "Sentinel / DevOS is a governance and coordination system I use inside MaisogLabs to manage AI-assisted software development with defined scope, implementation steps, testing evidence and human approval.",
+    "stack": [
+      "Governance",
+      "Architecture",
+      "Evidence",
+      "AI"
+    ],
+    "accent": "blue",
+    "icon": "systems",
+    "featured": true,
+    "v10": {
+      "tagline": "A system for managing AI-assisted software development with clear scope, testing and human approval.",
+      "status": "Active",
+      "disciplines": [
+        0,
+        2,
+        1,
+        5,
+        3
+      ],
+      "flow": [
+        "Work begins from an approved objective",
+        "Scope and technical boundaries are defined",
+        "Implementation produces testable evidence",
+        "A person reviews the result and authorizes what happens next"
+      ]
+    }
+  },
+  {
+    "id": "project-su",
+    "slug": "su",
+    "order": 4,
+    "category": "AI Research & Verification",
+    "title": "SU",
+    "summary": "SU is an experimental AI research system I am developing to gather sources, trace claims, search for conflicting evidence and check whether conclusions are supported by the available evidence.",
+    "stack": [
+      "Research",
+      "Evidence",
+      "Review",
+      "AI"
+    ],
+    "accent": "violet",
+    "icon": "lab",
+    "featured": true,
+    "v10": {
+      "tagline": "An AI research workflow for gathering sources, checking claims and testing conclusions against evidence.",
+      "status": "",
+      "disciplines": [
+        2,
+        0,
+        5
+      ],
+      "flow": [
+        "Relevant sources are gathered",
+        "Claims are linked to supporting evidence",
+        "Conflicting evidence is actively searched for",
+        "A person reviews the evidence-backed conclusion"
+      ]
+    }
+  },
+  {
+    "id": "project-maisog-kilat",
+    "slug": "maisog-kilat",
+    "order": 5,
+    "category": "Algorithmic Trading Research",
+    "title": "Maisog Kilat",
+    "summary": "Maisog Kilat is an experimental trading research environment I built to develop and backtest algorithmic strategies against market data under explicit risk controls before considering any live use.",
+    "stack": [
+      "Research",
+      "Backtesting",
+      "Risk Controls",
+      "Market Data"
+    ],
+    "accent": "blue",
+    "icon": "lab",
+    "featured": true,
+    "v10": {
+      "tagline": "A controlled environment for developing and backtesting trading strategies with explicit risk rules.",
+      "status": "",
+      "disciplines": [
+        2,
+        0,
+        4,
+        5
+      ],
+      "flow": [
+        "A trading strategy hypothesis is defined",
+        "The strategy is backtested against market data",
+        "Performance and risk are measured",
+        "Results are reviewed before any next step"
+      ]
+    }
+  }
+]
+```
+
+- **Authorized scope:**
+  1. update the existing five unpublished production drafts with the exact copy above;
+  2. create immutable revisions through the existing authenticated project lifecycle;
+  3. preserve project IDs, slugs, order, stack, accent, icon, featured state and all other fields unless explicitly changed above;
+  4. validate all five through the production validators;
+  5. confirm `initialReleaseReadiness()` remains `true`;
+  6. generate one protected V10.1 homepage preview;
+  7. verify the resulting copy fits the existing desktop layout without overflow or truncation;
+  8. return the preview and validation result for final owner approval.
+- **Not authorized:** publishing any project; initial homepage activation; a `homepage_initial_activation` marker; modifying V10.1; any deployment; any merge; contact-email publication; `site_settings` changes; robots.txt or Cloudflare content-signal changes; any D1 change except through the existing authenticated project revision lifecycle for these five draft revisions; R2, Access, DNS, binding, secret or environment changes; mobile remediation; `og:image`; PR #7 or PR #10 action; unrelated cleanup.
+- **Flags**, for this bounded draft-copy revision only: `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`, `REMOTE_D1_AUTHORIZED: YES`. Every other action-specific flag stays `NO`.
+- **Return:** Builder return `H-WEB-RFC022-CONTENT-COPY-0001` with:
+  - the five new revision IDs;
+  - the exact before/after public-facing copy;
+  - production validator results; the `initialReleaseReadiness()` result;
+  - protected V10.1 preview evidence;
+  - confirmation that none of the projects are published and that public `/` is unchanged;
+  - any copy overflow or presentation issue.
+
+  Then every action flag is reset to `NO`, with `TURN: PAULO`, `STATUS: PAULO_DECISION_REQUIRED`, `AUTHORIZED_SCOPE: RFC022_INITIAL_PROJECT_ACTIVATION_DECISION_ONLY`. Then stop.
+- **Directive:** issue `DIR-WEB-RFC022-CONTENT-COPY-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D124_RFC022_PROJECT_COPY_DRAFT_REVISION_ONLY`, applicable review `ML-DEVOS-AS-148`), routed to Claude/Builder.
+
+### D-125 — Authorize RFC-022 initial project activation of the recruiter-ready set (revisions 7–11); record the recruiter homepage follow-up
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `4bc72aad469f3b38798b3d16f310040b10026199`, after `ML-DEVOS-AS-149` accepted D-124. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Owner preview:** Paulo reviewed the protected preview `/admin/preview/home` and accepted it for recruiter-facing use (`OWNER_REPORTED`).
+- **Authorized:** RFC-022 initial project activation of exactly these current drafts, atomically and only as one group:
+  - ClinicFlow — revision 7;
+  - Eternal Eggs — revision 8;
+  - Sentinel / DevOS — revision 9;
+  - SU — revision 10;
+  - Maisog Kilat — revision 11.
+
+  Only the existing atomic RFC-022 initial activation (`POST /admin/api/projects/initial-activation`, the D-111 path; AS132-F002).
+- **Before mutation, freshly verify:**
+  - revisions 7–11 remain the current drafts for the named projects;
+  - none is published;
+  - `initialReleaseReadiness()` is still `true`;
+  - no initial activation marker exists;
+  - public `/` remains in artifact fallback.
+
+  If any bound value differs, stop.
+- **After activation, verify:**
+  - exactly those five revisions are published, in the order ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat;
+  - exactly one `homepage_initial_activation` marker exists;
+  - the public homepage bridge renders the five projects, and Eternal Eggs replaces the Maisog Guild fallback;
+  - V10.1 navigation, Systems, Projects, Research and Contact remain healthy;
+  - no contact-email publication or unrelated mutation occurred.
+- **Not authorized by the activation:** deployment; code change; design mutation; R2; Access; DNS; bindings; robots.txt; mobile; `og:image`; contact-email publication; `site_settings` changes; any further project change.
+- **Recruiter homepage follow-up — record and prepare only.** After the activation return is complete, the next bounded website task is recorded. It is not combined with the activation, because the homepage introduction is code/artifact-owned, not part of the admin project-content bridge.
+  - **Objective:** make the existing V10.1 landing page immediately understandable to a recruiter arriving from LinkedIn, Upwork, JobStreet or a résumé.
+  - **Preserve:** the space + Roman visual system; logo; animation; composition; navigation; typography system; layout; the "IDEAS IN ORBIT" brand line. No redesign.
+  - **Lower-left introduction becomes:** `Paulo Maisog — AI Automation & Technical Systems Builder` / `Building practical AI workflows, cloud automation, and technical systems for real-world business processes.`
+  - **Lower-right decorative wording:** `HUMANITY / ORBITS / HIGHER` → `AI / AUTOMATION / SYSTEMS`, with the existing visual treatment and vertical composition preserved.
+  - **Overengineering disposition: SIMPLIFY.** A copy-only recruiter-positioning improvement: no new CMS, homepage schema, services, admin infrastructure, layout redesign, animation or architecture expansion. The smallest implementation changes only these two visible text regions, preserving the accepted V10.1 artifact as much as technically possible.
+  - **Return first**, for Architect review:
+    - the exact files that would change; exact before/after strings;
+    - screenshots at 1440×900 and 1280×720; confirmation of no clipping or awkward wrapping;
+    - test/build result;
+    - whether the change truly requires a new Worker version/release.
+
+    It is not deployed under the activation authority.
+- **Flags** (activation only): `MUTATION_AUTHORIZED: YES`, `AUDIT_APPEND_AUTHORIZED: YES`, `REMOTE_D1_AUTHORIZED: YES`, for the one atomic initial activation through the authenticated admin lifecycle. Every other flag stays `NO`.
+- **Directive:** issue `DIR-WEB-RFC022-INITIAL-ACTIVATION-0001` (cycle `MAISOGLABS_WEB_RFC022_CBR`, scope `D125_RFC022_INITIAL_PROJECT_ACTIVATION_ONLY`, applicable review `ML-DEVOS-AS-149`), routed to Claude/Builder. The return is `H-WEB-RFC022-INITIAL-ACTIVATION-0001`, routed to the Architect.
+
+### D-126 — Governance learning capture; park the recruiter homepage prototype (record only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `2276abe643ce1546c8a62a637b76b8c7741a336f`, after `ML-DEVOS-AS-150`. Published by Claude/Builder as mechanical publisher; committed text proves provenance, not authority. This is governance-record-only: it does not amend the active architecture.
+- **1. Recruiter homepage prototype — parked.**
+  - Paulo authorized a local-only prototype after AS-150. Its result (`ACTOR_REPORTED`, never committed):
+    - artifact SHA-256 `f1917b6a5fe0adb775537eb916d49981b76fce09795d22d4b6b8e5f77b4ad8de`; entry `entry.87049e774a02.js`;
+    - tests 958/958; build green; the five live projects injected;
+    - working tree restored.
+  - It was feasibility evidence only. It must not be recreated, committed as a release candidate, PR'd, merged, uploaded or deployed. **No Gate C / Gate D** for it.
+  - Future recruiter homepage copy is deferred to RFC-022 Tier 2 `Profile / Home` Content Admin: the existing draft → protected preview → publish direction, reusing existing `site_settings` capabilities where semantically appropriate. **Tier 2 is not implemented now.**
+- **2. Governance/architecture learnings — captured as findings pending consolidated Architect/SU review, not adopted protocol amendments:**
+  1. **Independent Verification:** the Architect exhausts directly accessible repository, diff, STATE, branch, test and runtime evidence before asking Paulo to relay information. Builder handoffs are evidence pointers, not proof.
+  2. **Human Attention:** Paulo is Owner/product and risk authority, not an inter-agent courier. Owner involvement is reserved for genuine authority decisions, subjective acceptance, inaccessible owner-only evidence, changed scope/risk, consequential production actions, or explicit risk acceptance.
+  3. **Existing-Capability-First:** before designing new architecture or implementation, inspect the repository for existing, dormant, partial or intentionally deferred capability.
+  4. **Proportional Engineering / Coordination Economy:** optimize coordination cost, not engineering depth. Minimize accidental complexity, preserve necessary complexity, and require evidence for both. Token/model budget is pressure, not a hard ceiling.
+  5. **Adaptive effort:** future review distinguishes LIGHT / STANDARD / ESCALATED work by consequence and uncertainty, rather than applying maximum ceremony to everything.
+  6. **Batched Knowledge Recording:** routine lessons and observations are consolidated rather than each triggering a separate governance cycle.
+  7. **Constructive Dissent:** the Architect is not an approval assistant. It challenges Paulo, Claude, previous architecture and consensus when evidence supports disagreement, while avoiding performative contrarianism.
+  8. **Persistence semantics:** distinguish "captured in chat" from "persisted in repo". Only actual repository persistence may be described as durable project truth.
+  9. **Execution-environment independence:** routine MaisogLabs governance must not depend on ChatGPT Work or any single execution environment being available.
+  10. **Process lesson (homepage episode):** independently verify durable evidence and inspect existing capabilities before accepting a proposed implementation path.
+- **3. Status:** these findings are **captured, not adopted** as normative architecture.
+  - The next separate task is the **SU + Architect consolidated retrospective**: identify all lessons from the Sentinel/DevOS build; challenge each; remove duplicates; classify KEEP / SIMPLIFY / REQUIRED ROBUSTNESS / DEFER / REMOVE; propose the smallest coherent architecture amendment.
+  - That amendment is **not** performed in D-126.
+- **Boundaries:** governance-only. No website/product code, D1/R2, Cloudflare change, deployment, `main` merge, S6/S7, Tier 2 implementation, new governance subsystem or additional learning file. Every authorization flag stays `NO`.
+
+### D-127 — Adopt ML-DEVOS-RFC-023 / Context Bootstrap V2.1; authorize Cycle A only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `4e8a4789e2289477b6bf10076f86a36b1e1a04d3` (live STATE `TURN: PAULO`, `PAULO_DECISION_REQUIRED`), after the Architect's final review of V2.1 revision 3 (`ACCEPTED FOR OWNER ADOPTION DECISION`, persisted as `ML-DEVOS-AS-153`). Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Relationship to D-126:** narrowly supersedes D-126's reservation that active governance architecture amendments wait for the consolidated retrospective, **only** for the already-reviewed V2.1 / RFC-023 amendment. The other D-126 learnings are **not** adopted. The SU + Architect consolidated retrospective remains pending as a separate later task.
+- **Adopted:** V2.1 revision 3 as accepted by the Architect (`ML-DEVOS-AS-151` → `AS-152` → `AS-153`), carried by `ML-DEVOS-RFC-023`: an additive governance-efficiency / policy amendment to Protocol V2. `PROTOCOL_VERSION: 2` preserved; no STATE schema change; BC-1 through BC-12 adopted as accepted.
+- **Authorized:** Cycle A only — the policy / document / record migration listed in the owner text (items 1–11).
+- **Not authorized:** Cycle B (checker, attempt-ledger, traceability-validator code and tests) — a separate Paulo decision after Cycle A review; any Authorized Work Envelope (D-127 grants none); production mutation, deployment, `main` merge, D1/R2, Access/DNS/bindings/secrets/environment, website/product changes, Tier 2, S6/S7, D-068, mobile remediation. All action flags stay `NO`.
+- **Owner clarification on review preservation (2026-09-30, Builder session):** asked about the first Architect review, whose relay contains three elided `Pasted text` quotations, Paulo answered that the three closing paragraphs are the Architect's, and chose "As relayed, gaps disclosed": persist the exact bytes as received, keep the markers verbatim, disclose that the excerpts are unrecoverable, reconstruct nothing. Persisted accordingly as `ML-DEVOS-AS-151`.
+- **Routing:** issue `DIR-DEVOS-RFC023-CYCLE-A-0001` to Claude/Builder (cycle `MAISOGLABS_DEVOS_RFC023_V21`, scope `D127_RFC023_CYCLE_A_POLICY_RECORD_MIGRATION_ONLY`); return one bounded Cycle A handoff with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; stop.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-127.
+
+D-127 — Adopt ML-DEVOS-RFC-023 / Context Bootstrap V2.1; authorize Cycle A only.
+
+RELATIONSHIP TO D-126
+
+D-127 narrowly supersedes D-126's reservation that active governance architecture amendments wait for the consolidated retrospective, ONLY for the already-reviewed V2.1 / RFC-023 amendment.
+
+Reason:
+V2.1 has already completed a separate three-revision design and Architect review cycle and directly addresses the governance/coordination overhead affecting current work.
+
+This does NOT convert the other D-126 learnings into adopted architecture.
+
+The broader SU + Architect consolidated retrospective remains pending as a separate later task.
+
+Do not represent RFC-023 as adopting all D-126 findings.
+
+ADOPTED DESIGN
+
+Adopt V2.1 Revision 3 as accepted by the Architect.
+
+Carrier:
+ML-DEVOS-RFC-023
+
+It is an additive governance-efficiency / policy amendment to Protocol V2.
+
+Preserve:
+
+PROTOCOL_VERSION: 2
+
+No STATE schema change.
+
+Adopt BC-1 through BC-12 as accepted, including:
+
+- finite ordered Authorized Work Envelopes;
+- envelope progression separate from remediation counting;
+- shared remediation budget across an envelope unless Paulo later decides otherwise;
+- evidence escalation using existing CORE-020;
+- Existing-Capability-First;
+- Author != Publisher;
+- Adaptive SENTINEL / SU;
+- Constructive Dissent;
+- Knowledge Treasury reuse;
+- unchanged archive retention;
+- Thin STATE;
+- RFC lifecycle projection;
+- Thin obligations;
+- attempt-ledger repair.
+
+==================================================
+REVIEW RECORD PRESERVATION
+==================================================
+
+The V2.1 design revisions and Architect reviews currently exist only in chat.
+
+Before treating RFC-023 as durable adopted architecture, preserve the review trail.
+
+Publish each Architect review under its own NEW immutable ML-DEVOS-AS-NNN.
+
+Do not pretend those reviews were previously repository-published.
+
+Their provenance must state that they are being durably persisted now from the earlier Architect review conversation.
+
+Preserve the actual review text faithfully.
+
+Do not reconstruct, embellish or invent missing review content.
+
+If an exact prior review cannot be recovered, STOP and report which record is missing rather than fabricating it.
+
+Revision 3 becomes the design text of ML-DEVOS-RFC-023.
+
+RFC-023 must use the accepted canonical lifecycle Status line:
+
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
+
+==================================================
+CYCLE A AUTHORIZATION
+==================================================
+
+Authorize Cycle A ONLY.
+
+Cycle A may implement the accepted POLICY / DOCUMENT / RECORD migration:
+
+1. Persist the immutable Architect review records.
+
+2. Create:
+   devos/changes/rfcs/ML-DEVOS-RFC-023.md
+
+3. Record D-127 in:
+   brain/DECISION_LOG.md
+
+4. Amend:
+   brain/protocols/ARCHITECT_SYNC.md
+   brain/protocols/CONTEXT_BOOTSTRAP.md
+   CLAUDE.md
+
+5. Amend canonical Skills only where they actually restate changed policy:
+   .agents/skills/...
+
+If canonical Skills change, regenerate the .claude/skills bridge using the existing generator.
+Never hand-edit generated bridges.
+
+6. Update:
+   coordination/OPERATIVE_OBLIGATIONS.md
+
+Add the previously STATE-only durable obligations identified in Revision 3 before thinning STATE.
+
+Then:
+- OPEN / DEFERRED rows remain fully descriptive;
+- CLOSED / SUPERSEDED rows may become the accepted compact five-cell stubs;
+- preserve every obligation ID and source/closure reference.
+
+7. Rewrite:
+   devos/changes/rfcs/README.md
+
+as the subordinate RFC lifecycle projection.
+
+Ensure every RFC file has exactly one row.
+
+The currently missing RFC-011 and RFC-020 rows must be restored.
+
+8. Replace the Status line in RFC-001 through RFC-022 with the exact canonical pointer.
+
+9. Update:
+   devos/templates/RFC_TEMPLATE.md
+
+to use that same canonical pointer.
+
+10. RFC-023 uses the pointer from creation.
+
+11. Apply the Thin STATE body policy only at the normal governed transition after all STATE-only obligations have been preserved in OPERATIVE_OBLIGATIONS.md.
+
+No STATE header/schema changes.
+
+==================================================
+NOT AUTHORIZED — CYCLE B
+==================================================
+
+Cycle B is NOT authorized.
+
+Do not yet modify:
+
+- scripts/check-context-bootstrap.mjs
+- attempt-ledger behavior
+- originParent / continue_on implementation
+- traceability validator behavior
+- context-bootstrap ledger tests
+- RFC projection validator tests
+
+Those code/test changes require a separate Paulo decision after Cycle A is reviewed.
+
+==================================================
+NO ENVELOPE GRANT YET
+==================================================
+
+Adopting RFC-023 does NOT itself create an Authorized Work Envelope.
+
+No autonomous multi-step envelope is granted by D-127.
+
+Any future envelope must be explicitly defined by a separate Paulo Decision with its finite ordered steps.
+
+==================================================
+HARD BOUNDARIES
+==================================================
+
+Not authorized:
+
+- production mutation;
+- deployment;
+- main merge;
+- D1 or R2 mutation;
+- Access / DNS / bindings / secrets / environment changes;
+- website/product changes;
+- Tier 2 website work;
+- S6 / S7;
+- D-068;
+- mobile remediation;
+- Cycle B code changes.
+
+All production action flags remain NO.
+
+This is repository-governance Cycle A only.
+
+==================================================
+VALIDATION
+==================================================
+
+Before handoff:
+
+- run the existing Context Bootstrap checker;
+- verify no STATE schema change;
+- verify PROTOCOL_VERSION remains 2;
+- verify all unresolved obligations survive;
+- verify every RFC-001 through RFC-023 has exactly one canonical Status line;
+- verify the RFC index has exactly one row for each RFC;
+- verify archive behavior is unchanged;
+- verify generated Skills bridges match canonical Skills if regeneration was required;
+- inspect the complete changed-file set manually per AS132-F003;
+- confirm no Cycle B implementation slipped into the diff.
+
+Then publish one bounded Cycle A handoff.
+
+Route:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+All action-specific production flags remain NO.
+
+STOP after the Cycle A handoff.
+````
+
+### D-128 — Authorize RFC-023 / Context Bootstrap V2.1 Cycle B (mechanical checker + RFC lifecycle validator only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `1e5a8a5bacb7e60cab7df4cb226613a8f72ace01` (live STATE `TURN: PAULO`, scope `D127_CYCLE_A_ACCEPTED_CYCLE_B_DECISION_ONLY`), after `ML-DEVOS-AS-155` accepted and closed Cycle A. Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Cycle:** new implementation cycle `MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B`; `CURRENT_REMEDIATION_CYCLE` reset to `0`; `MAX_REMEDIATION_CYCLES: 2` and `PROTOCOL_VERSION: 2` preserved. The attempt ledger is not edited, reset or deleted.
+- **Authorized:** B1 — the `ML-DEVOS-RFC-023` BC-12 attempt-ledger repair in `scripts/check-context-bootstrap.mjs` with Context Bootstrap tests; B2 — the BC-10 RFC lifecycle-projection checks in `devos/governance/traceability/validate-traceability.mjs` with `tests/traceability.test.mjs`; B3 — the one-line §6a wording reconciliation in `brain/protocols/CONTEXT_BOOTSTRAP.md` accepted by `ML-DEVOS-AS-155`.
+- **Not authorized:** `generate-traceability.mjs` (stop and report if it appears necessary); unrelated traceability debt or index regeneration; RFC-023 redesign; STATE schema or `PROTOCOL_VERSION` change; any new governance subsystem; any Authorized Work Envelope; product/website, production, deploy, `main` merge, D1/R2, Access/DNS/bindings/secrets/environment; S6/S7; D-068; mobile; retrospective expansion. All action flags stay `NO`.
+- **After acceptance:** if the Architect accepts Cycle B with no blocker, V2.1 is treated as **frozen**; nothing further follows automatically, and product work (ClinicFlow) is the intended next priority.
+- **Routing:** issue `DIR-DEVOS-RFC023-CYCLE-B-0001` (scope `D128_RFC023_CYCLE_B_CHECKER_VALIDATOR_ONLY`); one bounded Builder return with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; stop.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-128.
+
+D-128 — Authorize RFC-023 / Context Bootstrap V2.1 Cycle B;
+mechanical checker + RFC lifecycle validator implementation only.
+
+Cycle A is accepted and closed by ML-DEVOS-AS-155.
+
+This is the final planned implementation cycle for V2.1.
+
+==================================================
+NEW CYCLE / REMEDIATION STATE
+==================================================
+
+Start a new implementation cycle:
+
+CYCLE_ID:
+MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B
+
+Reset:
+
+CURRENT_REMEDIATION_CYCLE: 0
+
+Preserve:
+
+MAX_REMEDIATION_CYCLES: 2
+PROTOCOL_VERSION: 2
+
+Reason:
+
+Cycle A is closed. Cycle B is a separately authorized implementation
+cycle, so it begins with a fresh remediation budget.
+
+Do NOT edit/reset/delete the existing attempt ledger to achieve this.
+
+The new CYCLE_ID is intentional and should naturally avoid inheriting
+Cycle A's defective old default transition key.
+
+==================================================
+AUTHORIZED SCOPE — CYCLE B ONLY
+==================================================
+
+Implement the already-adopted RFC-023 BC-12 attempt-ledger repair and
+BC-10 RFC lifecycle-projection validator.
+
+Also make the one exact non-blocking wording reconciliation accepted by
+AS-155 in CONTEXT_BOOTSTRAP §6a.
+
+No architecture redesign.
+
+No new governance subsystem.
+
+No new STATE schema fields.
+
+No protocol-version change.
+
+==================================================
+B1 — BC-12 ATTEMPT-LEDGER REPAIR
+==================================================
+
+Modify:
+
+scripts/check-context-bootstrap.mjs
+
+and the necessary Context Bootstrap tests only.
+
+Implement the accepted RFC-023 BC-12 semantics.
+
+DEFAULT LOGICAL CHAIN
+
+The default logical publication chain is identified by:
+
+CYCLE_ID
+originParent
+targetTurn
+
+where originParent is the parent of the chain's FIRST attempt.
+
+The implementation must distinguish:
+
+- a retry/rebuild that belongs to the same logical publication chain;
+- a later legitimate publication transition that merely happens to have
+  the same CYCLE_ID and target turn.
+
+BRANCH_ADVANCED
+
+When an attempted publication returns BRANCH_ADVANCED:
+
+- that attempt counts;
+- record the authoritative read-back tip as continue_on for that chain;
+- a rebuilt candidate whose parent is exactly that continue_on tip,
+  with the same CYCLE_ID and target turn, continues the SAME chain and
+  preserves the accumulated attempt count.
+
+Do not make unrelated later publications inherit that count.
+
+NOT_PUBLISHED
+
+A NOT_PUBLISHED retry remains on the same chain and consumes another
+attempt.
+
+UNKNOWN_OUTCOME
+
+Preserve the existing behavior exactly:
+
+read back first;
+if outcome remains unknown, STOP;
+do not automatically retry.
+
+PUBLISHED
+
+PUBLISHED terminates that logical chain.
+
+A later legitimate transition gets a fresh chain and attempt count,
+even when CYCLE_ID and target turn are the same.
+
+MAX
+
+MAX_PUBLICATION_ATTEMPTS remains 3.
+
+It is mechanically hard only within one persistent ledger lineage.
+
+The disclosed fresh-clone/fresh-ledger bypass remains unchanged.
+
+COMPATIBILITY
+
+Preserve:
+
+--transition-id
+
+Old-format ledger keys remain inert.
+
+Do not migrate, rewrite or delete old ledger entries.
+
+Do not silently reset counts.
+
+==================================================
+BC-12 REQUIRED REGRESSION TESTS
+==================================================
+
+At minimum implement the eight accepted RFC-023 tests:
+
+1. Sequential legitimate publications in one cycle with no handoff do
+   not falsely exhaust.
+
+2. Three BRANCH_ADVANCED attempts across rebuilt candidates and separate
+   invocations remain one logical chain.
+   A fourth attempt is refused with:
+   PUBLICATION_ATTEMPTS_EXHAUSTED.
+
+3. NOT_PUBLISHED retries consume the same chain budget.
+
+4. UNKNOWN_OUTCOME behavior remains unchanged.
+
+5. Another process sharing the same ledger cannot reset the count.
+
+6. --transition-id continues to work.
+
+7. Old-format ledger keys are inert.
+
+8. After PUBLISHED terminates a chain, the next legitimate publication
+   starts fresh and does not inherit the previous attempt count.
+
+Also test the chain boundary explicitly:
+
+A continue_on relationship may be followed only when:
+- parent == recorded continue_on;
+- CYCLE_ID matches;
+- target turn matches.
+
+A different parent or different turn must not accidentally inherit the
+old chain.
+
+==================================================
+B2 — BC-10 RFC LIFECYCLE-PROJECTION VALIDATOR
+==================================================
+
+Implement the accepted RFC-023 BC-10 checks in:
+
+devos/governance/traceability/validate-traceability.mjs
+
+with tests in:
+
+tests/traceability.test.mjs
+
+Do not redesign the traceability architecture.
+
+Do not make the RFC projection authoritative.
+
+Decisions, ADRs and immutable Architect Sync records remain authority /
+history.
+
+The RFC README is only the maintained lifecycle projection.
+
+CANONICAL STATUS LINE
+
+The validator must enforce exactly:
+
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
+
+For every RFC:
+
+- exactly one Status: line;
+- exactly at line 3;
+- byte-identical;
+- no trailing whitespace;
+- no second Status: line.
+
+RFC INDEX
+
+Validate:
+
+- one row for every RFC file;
+- no missing row;
+- no row for a nonexistent RFC;
+- no duplicate RFC row;
+- lifecycle status is one of:
+
+  DRAFT
+  UNDER_ARCHITECT_SYNC
+  ACCEPTED
+  REJECTED
+  SUPERSEDED
+
+- authority references resolve.
+
+STALE PROJECTION
+
+Implement the accepted heuristic:
+
+If a Decision / ADR / immutable Architect Sync cites an RFC and is newer
+than every authority reference recorded in that RFC's projection row,
+report:
+
+RFC_STATUS_PROJECTION_STALE
+
+as a WARNING, not an ERROR.
+
+It is heuristic evidence only.
+
+==================================================
+BC-10 REQUIRED TESTS
+==================================================
+
+At minimum:
+
+1. missing index row -> ERROR
+2. extra/nonexistent RFC row -> ERROR
+3. duplicate RFC row -> ERROR
+4. stale projection -> WARNING RFC_STATUS_PROJECTION_STALE
+5. noncanonical body Status bytes, including trailing whitespace -> ERROR
+6. Status missing or not at line 3 -> ERROR
+7. second Status line -> ERROR
+8. status outside vocabulary -> ERROR
+9. unresolved authority ref -> ERROR
+10. fully migrated valid fixture -> zero RFC-projection findings
+
+Use hermetic fixtures.
+
+Do not make tests depend on the live repository being clean.
+
+==================================================
+B3 — AS-155 ONE-LINE WORDING RECONCILIATION
+==================================================
+
+In:
+
+brain/protocols/CONTEXT_BOOTSTRAP.md
+
+reconcile §6a's stale sentence:
+
+"The Architect publishes each review..."
+
+with the already-adopted BC-4 Author != Publisher semantics.
+
+Make only the minimum wording change.
+
+Meaning:
+
+- Architect authors/reviews;
+- Architect may publish when its channel satisfies OBL-012;
+- otherwise Builder or Paulo may mechanically publish the exact
+  Architect-authored routing bytes unchanged through CAS.
+
+Do not otherwise rewrite CONTEXT_BOOTSTRAP policy in Cycle B.
+
+==================================================
+FILES AUTHORIZED
+==================================================
+
+Expected implementation files:
+
+- scripts/check-context-bootstrap.mjs
+- tests/context-bootstrap.test.mjs
+- tests/context-bootstrap-v2.test.mjs ONLY if genuinely needed by the
+  existing test organization
+- devos/governance/traceability/validate-traceability.mjs
+- tests/traceability.test.mjs
+- brain/protocols/CONTEXT_BOOTSTRAP.md
+
+Plus normal governed coordination / directive / handoff / archive files.
+
+Do NOT change generate-traceability.mjs unless implementation proves
+the validator cannot satisfy the accepted BC-10 contract without it.
+
+If generate-traceability.mjs appears necessary:
+STOP and report why before widening scope.
+
+==================================================
+PRE-EXISTING TRACEABILITY DEBT
+==================================================
+
+Do NOT fix unrelated existing traceability debt in D-128.
+
+The Cycle A baseline already contains the pre-existing findings,
+including:
+
+CORE-022
+D-000
+WEB-REQ-009
+
+and pre-existing generated-index drift.
+
+Cycle B acceptance is based on DELTA:
+
+- no new unrelated traceability ERROR;
+- RFC-023 BC-10 projection checks work correctly;
+- the current migrated RFC projection passes the new RFC-specific checks.
+
+Do not regenerate derived traceability output merely to hide the
+pre-existing drift unless separately authorized.
+
+==================================================
+VALIDATION
+==================================================
+
+Before returning:
+
+Run at minimum:
+
+- Context Bootstrap test suite;
+- Context Bootstrap V2 test suite;
+- traceability test suite;
+- Skills tests if the wording-only policy change can affect them;
+- normal bootstrap checker;
+- manual changed-file inspection required by OBL-023.
+
+For BC-12 provide evidence for all eight accepted cases plus the explicit
+chain-boundary case.
+
+For BC-10 provide evidence for all ten accepted cases.
+
+Report:
+
+- exact files changed;
+- exact tests and counts;
+- before/after behavior for the D-112 false-exhaustion regression;
+- resulting ledger entry shape;
+- one example BRANCH_ADVANCED continue_on chain;
+- one example PUBLISHED -> fresh next-chain case;
+- RFC projection validator findings on the migrated live tree;
+- global traceability baseline versus after;
+- any limitation.
+
+==================================================
+HARD BOUNDARIES
+==================================================
+
+Not authorized:
+
+- product or website changes;
+- production mutation;
+- deploy;
+- main merge;
+- D1/R2;
+- Access/DNS/bindings/secrets/environment;
+- RFC-023 redesign;
+- STATE schema changes;
+- PROTOCOL_VERSION change;
+- new governance subsystem;
+- Authorized Work Envelope;
+- S6/S7;
+- D-068;
+- mobile work;
+- unrelated traceability cleanup;
+- retrospective expansion.
+
+All action-specific production flags remain NO.
+
+==================================================
+RETURN
+==================================================
+
+After implementation, publish one bounded Builder handoff:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+Then STOP.
+
+If the Architect accepts Cycle B with no blocker, D-128's implementation
+work is complete and V2.1 should be treated as FROZEN.
+
+No V2.2, new governance feature, or retrospective implementation follows
+automatically.
+
+After V2.1 closure, return to product work — ClinicFlow is the intended
+next priority.
+````
+
+### D-129 — Authorize the two final MaisogLabs homepage copy edits only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `bffd020d1b2357b161fd0ee6b924b2f93d06edc2` (live STATE `TURN: PAULO`, scope `V21_FROZEN_NEXT_PRODUCT_DECISION_ONLY`), after `ML-DEVOS-AS-156` froze Context Bootstrap V2.1. Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Relationship to D-126:** narrowly supersedes D-126's homepage-copy deferral **only** for the two exact strings below. D-126 otherwise stays in force: the parked prototype (`f1917b6a…` / `entry.87049e774a02.js`) is not recreated or reused; this is not RFC-022 Tier 2; the strings stay code-owned (not D1/admin); no redesign.
+- **Authorized:** a fresh bounded implementation of exactly two copy edits against the current canonical V10.1 homepage source, the normal regeneration of derived assets, a repository-local candidate commit, local headless desktop verification (1440×900, 1280×720) and normal bookkeeping.
+  - Change 1 (lower-left): "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software." → identity line "Paulo Maisog — AI Automation & Technical Systems Builder" plus supporting line "Building practical AI workflows, cloud automation, and technical systems for real-world business processes."
+  - Change 2 (lower-right stack): "Humanity / Orbits / Higher" → "AI / AUTOMATION / SYSTEMS", same three-line treatment, no punctuation.
+- **Not authorized:** deploy, Cloudflare traffic change, `main` or PR merge, remote D1/R2, project publication or activation, the activation marker, contact/`site_settings`, domain email, Access/DNS/bindings/secrets/environment, schema/migrations, mobile, Tier 2, governance (V2.1 frozen) or retrospective work, unrelated V10.1 cleanup, ClinicFlow. All action flags stay `NO`.
+- **Stop conditions:** the strings are not source-owned (would need D1/admin/`site_settings`); a substantive RFC-022 compatibility change would be needed; the copy does not fit the existing desktop design.
+- **Routing:** new cycle `MAISOGLABS_WEB_D129_HOMEPAGE_COPY` (`CURRENT_REMEDIATION_CYCLE: 0`); issue `DIR-WEB-D129-HOMEPAGE-COPY-0001` (scope `D129_HOMEPAGE_COPY_TWO_STRINGS_ONLY`); one bounded Builder return with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; stop. Merge/deployment need a separate Paulo decision after Architect acceptance.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-129.
+
+D-129 — Authorize the two final MaisogLabs homepage copy edits only.
+
+This is a narrowly bounded website-content implementation decision.
+
+Context Bootstrap V2.1 remains FROZEN.
+Do not reopen governance.
+
+==================================================
+RELATIONSHIP TO D-126
+==================================================
+
+D-129 narrowly supersedes D-126's homepage-copy deferral ONLY for the
+two exact homepage strings authorized below.
+
+D-126 otherwise remains in force.
+
+Specifically:
+
+- Do NOT recreate the parked D-126 recruiter homepage prototype.
+- Do NOT use or revive its uncommitted artifact
+  f1917b6a5fe0adb775537eb916d49981b76fce09795d22d4b6b8e5f77b4ad8de
+  or entry.87049e774a02.js as a release candidate.
+- Do NOT treat D-129 as implementation of RFC-022 Tier 2 Profile / Home
+  Content Admin.
+- Do NOT build Tier 2.
+- Do NOT make these strings D1/admin-owned.
+- Do NOT broaden this into homepage redesign work.
+
+D-129 authorizes a fresh bounded implementation of these two exact
+copy edits against the CURRENT canonical V10.1 homepage source.
+
+==================================================
+EXACT CHANGE 1 — LOWER-LEFT COPY
+==================================================
+
+Current text:
+
+The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.
+
+Replace it with exactly these two lines of content:
+
+Paulo Maisog — AI Automation & Technical Systems Builder
+
+Building practical AI workflows, cloud automation, and technical systems for real-world business processes.
+
+The first sentence is the identity/title line.
+
+The second sentence is the supporting capability line.
+
+Do not rewrite, shorten, expand or embellish either string.
+
+Natural wrapping caused by the existing layout is allowed.
+
+==================================================
+EXACT CHANGE 2 — LOWER-RIGHT STACK
+==================================================
+
+Current:
+
+Humanity
+Orbits
+Higher
+
+Replace with exactly:
+
+AI
+AUTOMATION
+SYSTEMS
+
+Preserve the existing three-line visual treatment.
+
+Do not add punctuation.
+
+==================================================
+PRESERVE EVERYTHING ELSE
+==================================================
+
+Do NOT change:
+
+- MAISOGLABS wordmark;
+- logo;
+- logo animation;
+- "Ideas in Orbit";
+- hero imagery;
+- celestial / Roman visual system;
+- orbital animation;
+- navigation;
+- Systems;
+- Projects;
+- Research;
+- Contact;
+- the five D-115 project records;
+- RFC-022 project bridge behavior;
+- colors;
+- fonts;
+- motion language;
+- desktop composition except natural wrapping required by the new copy;
+- mobile behavior.
+
+This is NOT V10.2.
+
+This is NOT a redesign.
+
+==================================================
+SOURCE / IMPLEMENTATION RULE
+==================================================
+
+First identify the CURRENT canonical V10.1 source that produces the
+homepage Entry view.
+
+Make the two edits at the canonical source level.
+
+Then rebuild/regenerate the derived browser asset using the existing
+V10.1 build path.
+
+Do NOT make a manual edit to a hashed/generated bundle as the only
+source of truth.
+
+If the normal build produces:
+- a new hashed Entry asset;
+- an updated public/index.html reference;
+- new artifact hashes;
+- other mechanically derived files;
+
+those changes are allowed only where they are direct build outputs of
+these two source edits.
+
+Report all such generated changes.
+
+If you discover that these exact strings are no longer source-owned and
+would require D1/admin/site_settings mutation:
+
+STOP and report.
+
+D-129 does NOT authorize remote D1 mutation.
+
+==================================================
+ARTIFACT / RFC-022 SAFETY
+==================================================
+
+Preserve the existing RFC-022 / MLData project-content seam.
+
+Do not modify project payload behavior.
+
+Do not modify the five project drafts.
+
+If rebuilding the homepage changes the canonical homepage artifact hash,
+report:
+
+- old artifact SHA-256;
+- new candidate SHA-256;
+- changed asset filename(s);
+- whether RFC-022 bridge constants or tests are affected.
+
+Do not silently update unrelated bridge architecture.
+
+If a substantive RFC-022 compatibility change would be required:
+
+STOP and return to the Architect.
+
+==================================================
+DESKTOP VERIFICATION
+==================================================
+
+Verify the resulting candidate at minimum at:
+
+1440×900
+1280×720
+
+Confirm:
+
+1. lower-left identity line renders correctly;
+2. supporting line renders correctly;
+3. AI / AUTOMATION / SYSTEMS renders as the existing three-line stack;
+4. no clipping;
+5. no desktop horizontal overflow;
+6. no accidental overlap with the hero/logo;
+7. Ideas in Orbit is unchanged;
+8. navigation still works;
+9. Systems still works;
+10. Projects still work;
+11. Research remains unchanged;
+12. Contact remains unchanged;
+13. no new browser console errors attributable to this change.
+
+If the text does not fit cleanly in the existing desktop design:
+
+STOP and report.
+
+Do NOT redesign the hero to force it to fit.
+
+Mobile remains deferred.
+
+==================================================
+AUTHORIZED
+==================================================
+
+Authorized:
+
+- record D-129;
+- issue one bounded Builder directive;
+- repository-local source edits for these two strings only;
+- normal build/regeneration required by those edits;
+- repository-local candidate commit;
+- local/headless desktop verification;
+- screenshots/evidence;
+- normal handoff/archive/STATE bookkeeping.
+
+==================================================
+NOT AUTHORIZED
+==================================================
+
+Not authorized:
+
+- production deploy;
+- Cloudflare traffic change;
+- main merge;
+- pull-request merge;
+- remote D1 mutation;
+- remote R2 mutation;
+- project publication;
+- project initial activation;
+- homepage_initial_activation marker;
+- contact/site_settings mutation;
+- domain-email publication;
+- Access/DNS/bindings/secrets/environment;
+- schema/migrations;
+- mobile remediation;
+- Tier 2 implementation;
+- V2.1/V2.2 governance work;
+- retrospective work;
+- unrelated V10.1 cleanup;
+- ClinicFlow implementation yet.
+
+All production action flags remain NO.
+
+==================================================
+NEW CYCLE
+==================================================
+
+Use a new bounded website cycle for D-129.
+
+Suggested:
+
+CYCLE_ID:
+MAISOGLABS_WEB_D129_HOMEPAGE_COPY
+
+CURRENT_REMEDIATION_CYCLE: 0
+
+MAX_REMEDIATION_CYCLES: 2
+
+==================================================
+RETURN
+==================================================
+
+Return one bounded handoff to the Architect containing:
+
+- exact source file changed;
+- exact generated files changed;
+- candidate commit SHA;
+- old and new homepage strings;
+- old/new asset names where applicable;
+- old/new artifact SHA-256 where applicable;
+- RFC-022 compatibility assessment;
+- screenshots at 1440×900 and 1280×720;
+- test/build results;
+- confirmation that all other homepage content and project content are unchanged.
+
+Route:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+Then STOP.
+
+Do NOT merge.
+Do NOT deploy.
+
+After Architect acceptance, Paulo will separately authorize the final
+merge/deployment.
+
+After these two copy edits are live and verified, freeze the MaisogLabs
+website and move to ClinicFlow.
+````
+
+### D-130 — Visually accept the D-129 homepage candidate; authorize the protected Gate C merge only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `a5af6f43bc2046c4111b25959904423ebe2f9fe9` (live STATE `TURN: PAULO`, scope `D129_ACCEPTED_OWNER_VISUAL_AND_RELEASE_DECISION_ONLY`), after `ML-DEVOS-AS-157`. Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Visual acceptance:** the D-129 candidate `a6cdb11a42ea55cdd8b875ccedff972d6007ea48` (homepage SHA-256 `f60179dd…`, length 20857, offset 20116) is accepted as-is, including the natural wrapping and the 14–25 px hero shift.
+- **Authorized:** Gate C only. One protected release PR `governance/maisoglabs-v0.1` → `main`, merged through the normal protected path (one merge commit, pinned to `FINAL_GATE_C_HEAD`) only if every D-130 pre-merge check passes. `MAIN_MERGE_AUTHORIZED: YES` for this merge only. `FINAL_GATE_C_HEAD` is this D-130 publication commit; any governance-branch movement before the merge invalidates the authorization.
+- **Stop conditions:** a merge conflict, or a merged tree that would regress `main`; any pre-merge check failing; any production traffic change from Gate C.
+- **Not authorized:** Gate D, deploy, promotion or traffic change; D1/R2; project publication or activation; `site_settings`/contact; DNS, Access, bindings, secrets, migrations; history rewriting, direct push, force push, squash, rebase, auto-merge or protection bypass; mobile; redesign; Sentinel/DevOS; ClinicFlow. `DEPLOY_AUTHORIZED: NO`.
+- **Return:** one bounded handoff to the Architect after the merge, with `MAIN_MERGE_AUTHORIZED` reset to `NO`; stop. Gate D stays a separate Paulo decision.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-130.
+
+D-130 — Visually accept the D-129 homepage candidate and authorize
+the protected Gate C merge only.
+
+==================================================
+OWNER VISUAL ACCEPTANCE
+==================================================
+
+I accept the existing D-129 homepage candidate as-is.
+
+Accepted candidate implementation:
+
+a6cdb11a42ea55cdd8b875ccedff972d6007ea48
+
+Accepted Architect review:
+
+ML-DEVOS-AS-157
+
+Accepted homepage artifact SHA-256:
+
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+Artifact length:
+
+20857
+
+RFC-022 insertion offset:
+
+20116
+
+I accept the natural wrapping of the new lower-left copy and the
+reported 14–25 px upward hero shift.
+
+Do not modify the D-129 candidate further.
+
+==================================================
+AUTHORIZED ACTION — GATE C ONLY
+==================================================
+
+Authorize one normal protected release PR from:
+
+governance/maisoglabs-v0.1
+
+to:
+
+main
+
+and, only if all Gate C checks pass, merge it through the normal
+protected GitHub pull-request path.
+
+MAIN_MERGE_AUTHORIZED: YES
+
+All other action-specific authorization flags remain NO.
+
+This decision does NOT authorize production deployment or traffic
+change.
+
+==================================================
+CURRENT BOUND ANCHORS
+==================================================
+
+At the time of this owner decision:
+
+Expected main:
+
+97ca982c9e8f1e306aaa8c8a5198f43f8e00629e
+
+Current governance tip carrying AS-157:
+
+a5af6f43bc2046c4111b25959904423ebe2f9fe9
+
+Reviewed D-129 implementation:
+
+a6cdb11a42ea55cdd8b875ccedff972d6007ea48
+
+Homepage SHA-256:
+
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+Artifact length:
+
+20857
+
+Insertion offset:
+
+20116
+
+Publishing D-130 and its directive may advance the governance branch
+once.
+
+Record that resulting D-130 publication commit as:
+
+FINAL_GATE_C_HEAD
+
+After FINAL_GATE_C_HEAD is established, any further governance-branch
+movement before the Gate C merge invalidates this authorization.
+
+==================================================
+KNOWN BRANCH DIVERGENCE
+==================================================
+
+The Architect independently observed before D-130:
+
+governance/maisoglabs-v0.1 is currently:
+
+23 commits ahead of main
+7 commits behind main
+
+with merge base:
+
+b99353e923607e63fb9677e22a54608d5e3e38cb
+
+This divergence is known and is NOT permission to rewrite history.
+
+Do NOT:
+
+- rebase;
+- reset;
+- force-push;
+- squash history;
+- cherry-pick into main;
+- directly push main;
+- bypass protection.
+
+Use the normal protected PR merge path only.
+
+Before merge, verify that the PR resolves the divergent histories
+cleanly and that the resulting merge tree preserves current main plus
+the intended governance/D-129 changes.
+
+If GitHub reports a merge conflict or the resulting tree would regress
+current main content:
+
+STOP and report.
+
+Do not repair or rewrite history under D-130.
+
+==================================================
+PRE-MERGE CHECKS
+==================================================
+
+Immediately before merge verify:
+
+1. main is still exactly:
+
+   97ca982c9e8f1e306aaa8c8a5198f43f8e00629e
+
+2. PR head is exactly FINAL_GATE_C_HEAD.
+
+3. D-129 implementation remains:
+
+   a6cdb11a42ea55cdd8b875ccedff972d6007ea48
+
+4. public/index.html SHA-256 remains:
+
+   f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+5. RFC-022 bridge remains:
+
+   ARTIFACT_SHA256 =
+   f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+   ARTIFACT_LENGTH = 20857
+
+   INSERTION_OFFSET = 20116
+
+6. The exact new Entry asset remains:
+
+   entry.e184fa740d43.js
+
+7. The five published project records and their order remain unchanged:
+
+   ClinicFlow
+   Eternal Eggs
+   Sentinel / DevOS
+   SU
+   Maisog Kilat
+
+8. No project/content/D1/R2/site_settings mutation is included.
+
+9. The fresh PR is cleanly mergeable.
+
+10. The applicable main-protection rules remain active.
+
+11. test-and-build succeeds on the exact FINAL_GATE_C_HEAD.
+
+12. Manually inspect the final changed-file set under OBL-023.
+
+13. Record the active production Worker version immediately before the
+    merge.
+
+==================================================
+MERGE RULE
+==================================================
+
+If and only if every Gate C check passes:
+
+perform one normal protected merge commit.
+
+No:
+
+- direct push;
+- force push;
+- squash;
+- rebase;
+- auto-merge;
+- protection bypass.
+
+Pin the merge to FINAL_GATE_C_HEAD.
+
+==================================================
+POST-MERGE VERIFY
+==================================================
+
+Record:
+
+- PR number;
+- FINAL_GATE_C_HEAD;
+- CI/test-and-build result;
+- merge commit SHA;
+- both merge parents;
+- resulting main SHA;
+- resulting homepage SHA;
+- resulting Entry asset;
+- RFC-022 bridge values;
+- active production Worker version before and after the merge;
+- whether Git integration created a new inactive Worker version/build.
+
+Production traffic must remain unchanged.
+
+If Gate C unexpectedly changes production traffic:
+
+STOP and report.
+
+Do not remediate or deploy under D-130.
+
+==================================================
+NOT AUTHORIZED
+==================================================
+
+D-130 does NOT authorize:
+
+- Gate D;
+- wrangler versions deploy;
+- production promotion;
+- traffic change;
+- production D1/R2 mutation;
+- project publication;
+- homepage activation;
+- site_settings/contact mutation;
+- DNS;
+- Access;
+- bindings;
+- secrets;
+- migrations;
+- mobile work;
+- homepage redesign;
+- Sentinel/DevOS work;
+- ClinicFlow implementation yet.
+
+DEPLOY_AUTHORIZED: NO
+
+==================================================
+RETURN
+==================================================
+
+After the Gate C merge, return one bounded handoff to the Architect.
+
+Route:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+Reset:
+
+MAIN_MERGE_AUTHORIZED: NO
+
+All other action flags remain NO.
+
+Then STOP.
+
+Gate D remains a separate Paulo decision after Architect review.
+````

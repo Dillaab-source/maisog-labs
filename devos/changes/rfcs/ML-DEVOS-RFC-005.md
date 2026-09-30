@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-005: MaisogLabs WEB-INC-008 Append-Only Audit Substrate
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

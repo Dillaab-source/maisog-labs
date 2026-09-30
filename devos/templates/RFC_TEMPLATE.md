@@ -1,13 +1,17 @@
 # RFC-<NNN>: <Title>
 
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
+
 <!--
+Line 3 is always exactly the canonical Status line above (ML-DEVOS-RFC-023
+BC-10). Current lifecycle status lives only in devos/changes/rfcs/README.md,
+which projects DRAFT | UNDER_ARCHITECT_SYNC | ACCEPTED | REJECTED | SUPERSEDED.
+
 Numbering convention: ML-DEVOS-RFC-001, ML-DEVOS-RFC-002, ... — sequential,
 never reused, assigned when an RFC is actually filed under devos/changes/rfcs/.
 No RFC has been filed as of S1; this template establishes the convention and
 shape. See devos/governance/change-policy/CHANGE_GOVERNANCE_POLICY.md §3.
 -->
-
-Status: `DRAFT` | `UNDER_ARCHITECT_SYNC` | `ACCEPTED` | `REJECTED` | `SUPERSEDED`
 
 Proposed change class (see `../governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` §1): `PATCH` / `LOCAL_RULE` / `CORE_POLICY` / `CAPABILITY` / `ARCHITECTURE` / `CONSTITUTIONAL` / `WAIVER` / `PROJECT_ONBOARDING`
 

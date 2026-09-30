@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-003: MaisogLabs WEB-INC-005 D1 Revision Substrate and Current-Content Migration
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

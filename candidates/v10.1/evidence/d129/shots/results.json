@@ -1,0 +1,716 @@
+[
+  {
+    "variant": "baseline-bridge",
+    "viewport": "1440x900",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "entry": {
+        "lowerLeftText": "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.",
+        "lowerLeftHtml": "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.",
+        "lowerLeftRenderedLines": 4,
+        "stack": [
+          "HUMANITY",
+          "ORBITS",
+          "HIGHER"
+        ],
+        "stackStyle": {
+          "flexDirection": "column",
+          "fontSize": "10.5px",
+          "letterSpacing": "3.36px",
+          "textTransform": "uppercase"
+        },
+        "tagline": "IDEAS IN ORBIT",
+        "wordmark": "MAISOGLABS",
+        "clipped": {
+          "p": false,
+          "stack": false
+        },
+        "inViewport": {
+          "p": true,
+          "stack": true
+        },
+        "overlap": {
+          "pWithH1": false,
+          "pWithLogo": false,
+          "pWithTagline": false,
+          "stackWithH1": false,
+          "stackWithLogo": false,
+          "stackWithTagline": false,
+          "pWithStack": false
+        },
+        "boxes": {
+          "p": {
+            "l": 56,
+            "t": 752,
+            "r": 456,
+            "b": 864
+          },
+          "stack": {
+            "l": 1280,
+            "t": 809,
+            "r": 1384,
+            "b": 864
+          },
+          "h1": {
+            "l": 323,
+            "t": 514,
+            "r": 1117,
+            "b": 589
+          },
+          "logo": {
+            "l": 540,
+            "t": 172,
+            "r": 900,
+            "b": 532
+          },
+          "tagline": {
+            "l": 452,
+            "t": 600,
+            "r": 988,
+            "b": 639
+          }
+        },
+        "overflow": {
+          "sw": 1440,
+          "iw": 1440
+        },
+        "oldCopyInDom": true
+      },
+      "panels": {
+        "systems": {
+          "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMATION 03 RESEARCH 04 SECURITY 05 SYSTEMS 06 ARCHITECTURE CLINICFLOW ETERNAL EGGS SENTINEL / DEVOS SU MAISOG KILAT AI Models and analysis AUTOMATION Turns research into tools RESEARCH SECURITY Safe, responsible use SYSTEMS Infrastructure and data ARCHITECTURE Structure and boundaries CONNECTED DISCIPLINE PROJECT USING IT SELECTED DISCIPLINE RESEARCH Evidence gathering, adversarial review, and validation used across MaisogLabs systems. CONNECTS TO AI Models and analysis Systems Infrastructure and data Security Safe, responsible use USED IN PROJECTS Sentinel / DevOS AI operating system → SU Research engine → Maisog Kilat Strategy validation →",
+          "overflow": false
+        },
+        "projects": {
+          "text": "02 / PROJECTS FROM RESEARCH TO REAL-WORLD IMPACT 01 CLINICFLOW 02 ETERNAL EGGS 03 SENTINEL / DEVOS 04 SU 05 MAISOG KILAT 01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and validated S3 Appointment workflow is coordinated S4 Staff review and remain in control AUTOMATED STAGE A PERSON DECIDES: STAFF REVIEW AND REMAIN IN CONTROL ← Maisog Kilat 01 / 05 Eternal Eggs →",
+          "overflow": false
+        },
+        "journal": {
+          "text": "03 / RESEARCH ALL RESEARCH BUILD THOUGHTS Research Previews Field notes, technical writeups, and lessons from the lab. NOTES IN PREPARATION MAR 12, 2026 Architecture Decisions for AI Systems A practical framework for designing maintainable, auditable AI systems. ARCHITECTURE · AI · SYSTEMS FEB 28, 2026 From Research to Real Tools Notes on turning research prototypes into reliable, useful software. RESEARCH · AUTOMATION · EXECUTION FEB 10, 2026 The Role of Human Judgment Why human judgment remains essential in an age of increasingly capable AI systems. PHILOSOPHY · AI · SOCIETY",
+          "overflow": false
+        },
+        "contact": {
+          "text": "04 / CONTACT Humanity orbits higher. CORRESPONDENCE maisog36@gmail.com → Copy address For work that expands what people can understand, create, and explore.",
+          "overflow": false
+        },
+        "projectList": [
+          "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid",
+          "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check",
+          "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco",
+          "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions",
+          "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+        ],
+        "backToEntry": true
+      },
+      "mldata": {
+        "proj": [
+          "ClinicFlow",
+          "Eternal Eggs",
+          "Sentinel / DevOS",
+          "SU",
+          "Maisog Kilat"
+        ],
+        "email": "maisog36@gmail.com"
+      }
+    }
+  },
+  {
+    "variant": "baseline-bridge",
+    "viewport": "1280x720",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "entry": {
+        "lowerLeftText": "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.",
+        "lowerLeftHtml": "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.",
+        "lowerLeftRenderedLines": 3,
+        "stack": [
+          "HUMANITY",
+          "ORBITS",
+          "HIGHER"
+        ],
+        "stackStyle": {
+          "flexDirection": "column",
+          "fontSize": "10.5px",
+          "letterSpacing": "3.36px",
+          "textTransform": "uppercase"
+        },
+        "tagline": "IDEAS IN ORBIT",
+        "wordmark": "MAISOGLABS",
+        "clipped": {
+          "p": false,
+          "stack": false
+        },
+        "inViewport": {
+          "p": true,
+          "stack": true
+        },
+        "overlap": {
+          "pWithH1": false,
+          "pWithLogo": false,
+          "pWithTagline": false,
+          "stackWithH1": false,
+          "stackWithLogo": false,
+          "stackWithTagline": false,
+          "pWithStack": false
+        },
+        "boxes": {
+          "p": {
+            "l": 51,
+            "t": 617,
+            "r": 451,
+            "b": 691
+          },
+          "stack": {
+            "l": 1125,
+            "t": 636,
+            "r": 1229,
+            "b": 691
+          },
+          "h1": {
+            "l": 287,
+            "t": 420,
+            "r": 993,
+            "b": 487
+          },
+          "logo": {
+            "l": 496,
+            "t": 147,
+            "r": 784,
+            "b": 435
+          },
+          "tagline": {
+            "l": 383,
+            "t": 496,
+            "r": 897,
+            "b": 535
+          }
+        },
+        "overflow": {
+          "sw": 1280,
+          "iw": 1280
+        },
+        "oldCopyInDom": true
+      },
+      "panels": {
+        "systems": {
+          "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMATION 03 RESEARCH 04 SECURITY 05 SYSTEMS 06 ARCHITECTURE CLINICFLOW ETERNAL EGGS SENTINEL / DEVOS SU MAISOG KILAT AI Models and analysis AUTOMATION Turns research into tools RESEARCH SECURITY Safe, responsible use SYSTEMS Infrastructure and data ARCHITECTURE Structure and boundaries CONNECTED DISCIPLINE PROJECT USING IT SELECTED DISCIPLINE RESEARCH Evidence gathering, adversarial review, and validation used across MaisogLabs systems. CONNECTS TO AI Models and analysis Systems Infrastructure and data Security Safe, responsible use USED IN PROJECTS Sentinel / DevOS AI operating system → SU Research engine → Maisog Kilat Strategy validation →",
+          "overflow": false
+        },
+        "projects": {
+          "text": "02 / PROJECTS FROM RESEARCH TO REAL-WORLD IMPACT 01 CLINICFLOW 02 ETERNAL EGGS 03 SENTINEL / DEVOS 04 SU 05 MAISOG KILAT 01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and validated S3 Appointment workflow is coordinated S4 Staff review and remain in control AUTOMATED STAGE A PERSON DECIDES: STAFF REVIEW AND REMAIN IN CONTROL ← Maisog Kilat 01 / 05 Eternal Eggs →",
+          "overflow": false
+        },
+        "journal": {
+          "text": "03 / RESEARCH ALL RESEARCH BUILD THOUGHTS Research Previews Field notes, technical writeups, and lessons from the lab. NOTES IN PREPARATION MAR 12, 2026 Architecture Decisions for AI Systems A practical framework for designing maintainable, auditable AI systems. ARCHITECTURE · AI · SYSTEMS FEB 28, 2026 From Research to Real Tools Notes on turning research prototypes into reliable, useful software. RESEARCH · AUTOMATION · EXECUTION FEB 10, 2026 The Role of Human Judgment Why human judgment remains essential in an age of increasingly capable AI systems. PHILOSOPHY · AI · SOCIETY",
+          "overflow": false
+        },
+        "contact": {
+          "text": "04 / CONTACT Humanity orbits higher. CORRESPONDENCE maisog36@gmail.com → Copy address For work that expands what people can understand, create, and explore.",
+          "overflow": false
+        },
+        "projectList": [
+          "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid",
+          "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check",
+          "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco",
+          "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions",
+          "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+        ],
+        "backToEntry": true
+      },
+      "mldata": {
+        "proj": [
+          "ClinicFlow",
+          "Eternal Eggs",
+          "Sentinel / DevOS",
+          "SU",
+          "Maisog Kilat"
+        ],
+        "email": "maisog36@gmail.com"
+      }
+    }
+  },
+  {
+    "variant": "candidate-bridge",
+    "viewport": "1440x900",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "entry": {
+        "lowerLeftText": "Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftHtml": "Paulo Maisog — AI Automation &amp; Technical Systems Builder<br>Building practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftRenderedLines": 5,
+        "stack": [
+          "AI",
+          "AUTOMATION",
+          "SYSTEMS"
+        ],
+        "stackStyle": {
+          "flexDirection": "column",
+          "fontSize": "10.5px",
+          "letterSpacing": "3.36px",
+          "textTransform": "uppercase"
+        },
+        "tagline": "IDEAS IN ORBIT",
+        "wordmark": "MAISOGLABS",
+        "clipped": {
+          "p": false,
+          "stack": false
+        },
+        "inViewport": {
+          "p": true,
+          "stack": true
+        },
+        "overlap": {
+          "pWithH1": false,
+          "pWithLogo": false,
+          "pWithTagline": false,
+          "stackWithH1": false,
+          "stackWithLogo": false,
+          "stackWithTagline": false,
+          "pWithStack": false
+        },
+        "boxes": {
+          "p": {
+            "l": 56,
+            "t": 725,
+            "r": 456,
+            "b": 864
+          },
+          "stack": {
+            "l": 1257,
+            "t": 809,
+            "r": 1384,
+            "b": 864
+          },
+          "h1": {
+            "l": 323,
+            "t": 500,
+            "r": 1117,
+            "b": 575
+          },
+          "logo": {
+            "l": 540,
+            "t": 158,
+            "r": 900,
+            "b": 518
+          },
+          "tagline": {
+            "l": 452,
+            "t": 586,
+            "r": 988,
+            "b": 625
+          }
+        },
+        "overflow": {
+          "sw": 1440,
+          "iw": 1440
+        },
+        "oldCopyInDom": false
+      },
+      "panels": {
+        "systems": {
+          "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMATION 03 RESEARCH 04 SECURITY 05 SYSTEMS 06 ARCHITECTURE CLINICFLOW ETERNAL EGGS SENTINEL / DEVOS SU MAISOG KILAT AI Models and analysis AUTOMATION Turns research into tools RESEARCH SECURITY Safe, responsible use SYSTEMS Infrastructure and data ARCHITECTURE Structure and boundaries CONNECTED DISCIPLINE PROJECT USING IT SELECTED DISCIPLINE RESEARCH Evidence gathering, adversarial review, and validation used across MaisogLabs systems. CONNECTS TO AI Models and analysis Systems Infrastructure and data Security Safe, responsible use USED IN PROJECTS Sentinel / DevOS AI operating system → SU Research engine → Maisog Kilat Strategy validation →",
+          "overflow": false
+        },
+        "projects": {
+          "text": "02 / PROJECTS FROM RESEARCH TO REAL-WORLD IMPACT 01 CLINICFLOW 02 ETERNAL EGGS 03 SENTINEL / DEVOS 04 SU 05 MAISOG KILAT 01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and validated S3 Appointment workflow is coordinated S4 Staff review and remain in control AUTOMATED STAGE A PERSON DECIDES: STAFF REVIEW AND REMAIN IN CONTROL ← Maisog Kilat 01 / 05 Eternal Eggs →",
+          "overflow": false
+        },
+        "journal": {
+          "text": "03 / RESEARCH ALL RESEARCH BUILD THOUGHTS Research Previews Field notes, technical writeups, and lessons from the lab. NOTES IN PREPARATION MAR 12, 2026 Architecture Decisions for AI Systems A practical framework for designing maintainable, auditable AI systems. ARCHITECTURE · AI · SYSTEMS FEB 28, 2026 From Research to Real Tools Notes on turning research prototypes into reliable, useful software. RESEARCH · AUTOMATION · EXECUTION FEB 10, 2026 The Role of Human Judgment Why human judgment remains essential in an age of increasingly capable AI systems. PHILOSOPHY · AI · SOCIETY",
+          "overflow": false
+        },
+        "contact": {
+          "text": "04 / CONTACT Humanity orbits higher. CORRESPONDENCE maisog36@gmail.com → Copy address For work that expands what people can understand, create, and explore.",
+          "overflow": false
+        },
+        "projectList": [
+          "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid",
+          "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check",
+          "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco",
+          "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions",
+          "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+        ],
+        "backToEntry": true
+      },
+      "mldata": {
+        "proj": [
+          "ClinicFlow",
+          "Eternal Eggs",
+          "Sentinel / DevOS",
+          "SU",
+          "Maisog Kilat"
+        ],
+        "email": "maisog36@gmail.com"
+      }
+    }
+  },
+  {
+    "variant": "candidate-bridge",
+    "viewport": "1280x720",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "entry": {
+        "lowerLeftText": "Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftHtml": "Paulo Maisog — AI Automation &amp; Technical Systems Builder<br>Building practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftRenderedLines": 5,
+        "stack": [
+          "AI",
+          "AUTOMATION",
+          "SYSTEMS"
+        ],
+        "stackStyle": {
+          "flexDirection": "column",
+          "fontSize": "10.5px",
+          "letterSpacing": "3.36px",
+          "textTransform": "uppercase"
+        },
+        "tagline": "IDEAS IN ORBIT",
+        "wordmark": "MAISOGLABS",
+        "clipped": {
+          "p": false,
+          "stack": false
+        },
+        "inViewport": {
+          "p": true,
+          "stack": true
+        },
+        "overlap": {
+          "pWithH1": false,
+          "pWithLogo": false,
+          "pWithTagline": false,
+          "stackWithH1": false,
+          "stackWithLogo": false,
+          "stackWithTagline": false,
+          "pWithStack": false
+        },
+        "boxes": {
+          "p": {
+            "l": 51,
+            "t": 567,
+            "r": 451,
+            "b": 691
+          },
+          "stack": {
+            "l": 1102,
+            "t": 636,
+            "r": 1229,
+            "b": 691
+          },
+          "h1": {
+            "l": 287,
+            "t": 396,
+            "r": 993,
+            "b": 462
+          },
+          "logo": {
+            "l": 496,
+            "t": 122,
+            "r": 784,
+            "b": 410
+          },
+          "tagline": {
+            "l": 383,
+            "t": 471,
+            "r": 897,
+            "b": 510
+          }
+        },
+        "overflow": {
+          "sw": 1280,
+          "iw": 1280
+        },
+        "oldCopyInDom": false
+      },
+      "panels": {
+        "systems": {
+          "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMATION 03 RESEARCH 04 SECURITY 05 SYSTEMS 06 ARCHITECTURE CLINICFLOW ETERNAL EGGS SENTINEL / DEVOS SU MAISOG KILAT AI Models and analysis AUTOMATION Turns research into tools RESEARCH SECURITY Safe, responsible use SYSTEMS Infrastructure and data ARCHITECTURE Structure and boundaries CONNECTED DISCIPLINE PROJECT USING IT SELECTED DISCIPLINE RESEARCH Evidence gathering, adversarial review, and validation used across MaisogLabs systems. CONNECTS TO AI Models and analysis Systems Infrastructure and data Security Safe, responsible use USED IN PROJECTS Sentinel / DevOS AI operating system → SU Research engine → Maisog Kilat Strategy validation →",
+          "overflow": false
+        },
+        "projects": {
+          "text": "02 / PROJECTS FROM RESEARCH TO REAL-WORLD IMPACT 01 CLINICFLOW 02 ETERNAL EGGS 03 SENTINEL / DEVOS 04 SU 05 MAISOG KILAT 01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and validated S3 Appointment workflow is coordinated S4 Staff review and remain in control AUTOMATED STAGE A PERSON DECIDES: STAFF REVIEW AND REMAIN IN CONTROL ← Maisog Kilat 01 / 05 Eternal Eggs →",
+          "overflow": false
+        },
+        "journal": {
+          "text": "03 / RESEARCH ALL RESEARCH BUILD THOUGHTS Research Previews Field notes, technical writeups, and lessons from the lab. NOTES IN PREPARATION MAR 12, 2026 Architecture Decisions for AI Systems A practical framework for designing maintainable, auditable AI systems. ARCHITECTURE · AI · SYSTEMS FEB 28, 2026 From Research to Real Tools Notes on turning research prototypes into reliable, useful software. RESEARCH · AUTOMATION · EXECUTION FEB 10, 2026 The Role of Human Judgment Why human judgment remains essential in an age of increasingly capable AI systems. PHILOSOPHY · AI · SOCIETY",
+          "overflow": false
+        },
+        "contact": {
+          "text": "04 / CONTACT Humanity orbits higher. CORRESPONDENCE maisog36@gmail.com → Copy address For work that expands what people can understand, create, and explore.",
+          "overflow": false
+        },
+        "projectList": [
+          "01 CLINICFLOW AI-assisted booking and workflow automation for dental clinics. ClinicFlow is an AI-assisted clinic automation prototype for handling patient conversations, appointment intake, scheduling, reminders and staff handoff through one structured workflow. AI AUTOMATION SYSTEMS SECURITY HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Patient starts a conversation S2 Request is structured and valid",
+          "02 ETERNAL EGGS A conversational ordering system built around real customer orders. Eternal Eggs is a conversational ordering system in development that turns customer messages into structured orders with quantity checks, totals, delivery details and duplicate protection. AI AUTOMATION SYSTEMS HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Customer sends an order S2 Order details are extracted and check",
+          "03 SENTINEL / DEVOS ACTIVE A governed system for coordinating human and AI software development. Sentinel / DevOS is the active governance system used inside MaisogLabs to coordinate AI-assisted software work, including scope, implementation, evidence and human review. AI RESEARCH AUTOMATION ARCHITECTURE SECURITY HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Work begins from an explicit decision S2 Sco",
+          "04 SU An evidence-first research engine built to challenge its own conclusions. SU is an experimental evidence-first research system for gathering sources, tracing claims, searching for contradictions and reviewing conclusions against the evidence behind them. RESEARCH AI ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Sources are collected S2 Claims and evidence are mapped S3 Contradictions",
+          "05 MAISOG KILAT Algorithmic trading research with deterministic testing and risk controls. Maisog Kilat is a research environment for developing and backtesting trading strategies against market data under explicit risk controls. It is not presented as a proven trading product. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 A strategy hypothesis is defined S2 It is teste"
+        ],
+        "backToEntry": true
+      },
+      "mldata": {
+        "proj": [
+          "ClinicFlow",
+          "Eternal Eggs",
+          "Sentinel / DevOS",
+          "SU",
+          "Maisog Kilat"
+        ],
+        "email": "maisog36@gmail.com"
+      }
+    }
+  },
+  {
+    "variant": "candidate-raw",
+    "viewport": "1440x900",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "entry": {
+        "lowerLeftText": "Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftHtml": "Paulo Maisog — AI Automation &amp; Technical Systems Builder<br>Building practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftRenderedLines": 5,
+        "stack": [
+          "AI",
+          "AUTOMATION",
+          "SYSTEMS"
+        ],
+        "stackStyle": {
+          "flexDirection": "column",
+          "fontSize": "10.5px",
+          "letterSpacing": "3.36px",
+          "textTransform": "uppercase"
+        },
+        "tagline": "IDEAS IN ORBIT",
+        "wordmark": "MAISOGLABS",
+        "clipped": {
+          "p": false,
+          "stack": false
+        },
+        "inViewport": {
+          "p": true,
+          "stack": true
+        },
+        "overlap": {
+          "pWithH1": false,
+          "pWithLogo": false,
+          "pWithTagline": false,
+          "stackWithH1": false,
+          "stackWithLogo": false,
+          "stackWithTagline": false,
+          "pWithStack": false
+        },
+        "boxes": {
+          "p": {
+            "l": 56,
+            "t": 725,
+            "r": 456,
+            "b": 864
+          },
+          "stack": {
+            "l": 1257,
+            "t": 809,
+            "r": 1384,
+            "b": 864
+          },
+          "h1": {
+            "l": 323,
+            "t": 500,
+            "r": 1117,
+            "b": 575
+          },
+          "logo": {
+            "l": 540,
+            "t": 158,
+            "r": 900,
+            "b": 518
+          },
+          "tagline": {
+            "l": 452,
+            "t": 586,
+            "r": 988,
+            "b": 625
+          }
+        },
+        "overflow": {
+          "sw": 1440,
+          "iw": 1440
+        },
+        "oldCopyInDom": false
+      },
+      "panels": {
+        "systems": {
+          "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMATION 03 RESEARCH 04 SECURITY 05 SYSTEMS 06 ARCHITECTURE SENTINEL / DEVOS SU CLINICFLOW MAISOG KILAT MAISOG GUILD AI Models and analysis AUTOMATION Turns research into tools RESEARCH SECURITY Safe, responsible use SYSTEMS Infrastructure and data ARCHITECTURE Structure and boundaries CONNECTED DISCIPLINE PROJECT USING IT SELECTED DISCIPLINE RESEARCH Evidence gathering, adversarial review, and validation used across MaisogLabs systems. CONNECTS TO AI Models and analysis Systems Infrastructure and data Security Safe, responsible use USED IN PROJECTS Sentinel / DevOS AI operating system → SU Research engine → Maisog Kilat Strategy validation →",
+          "overflow": false
+        },
+        "projects": {
+          "text": "02 / PROJECTS FROM RESEARCH TO REAL-WORLD IMPACT 01 SENTINEL / DEVOS 02 SU 03 CLINICFLOW 04 MAISOG KILAT 05 MAISOG GUILD 01 SENTINEL / DEVOS ACTIVE A research and operations system for intelligent work. Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment. AI RESEARCH AUTOMATION ARCHITECTURE HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Research and notes come in S2 Organised into one knowledge base S3 Workflows run automatically S4 Person reviews the result AUTOMATED STAGE A PERSON DECIDES: PERSON REVIEWS THE RESULT ← Maisog Guild 01 / 05 SU →",
+          "overflow": false
+        },
+        "journal": {
+          "text": "03 / RESEARCH ALL RESEARCH BUILD THOUGHTS Research Previews Field notes, technical writeups, and lessons from the lab. NOTES IN PREPARATION MAR 12, 2026 Architecture Decisions for AI Systems A practical framework for designing maintainable, auditable AI systems. ARCHITECTURE · AI · SYSTEMS FEB 28, 2026 From Research to Real Tools Notes on turning research prototypes into reliable, useful software. RESEARCH · AUTOMATION · EXECUTION FEB 10, 2026 The Role of Human Judgment Why human judgment remains essential in an age of increasingly capable AI systems. PHILOSOPHY · AI · SOCIETY",
+          "overflow": false
+        },
+        "contact": {
+          "text": "04 / CONTACT Humanity orbits higher. CORRESPONDENCE maisog36@gmail.com → Copy address For work that expands what people can understand, create, and explore.",
+          "overflow": false
+        },
+        "projectList": [
+          "01 SENTINEL / DEVOS ACTIVE A research and operations system for intelligent work. Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment. AI RESEARCH AUTOMATION ARCHITECTURE HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Research and notes come in S2 Organised into one knowledge base S3 Workflows run automa",
+          "02 SU A research engine that ties every claim to its source. SU gathers evidence, runs adversarial review, and keeps a traceable link between each conclusion and the material behind it. RESEARCH AI HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Sources collected S2 Evidence extracted S3 Adversarial review S4 Conclusion linked to its sources AUTOMATED STAGE A PERSON DECIDES: CONCLUSION LINKED TO ITS SOUR",
+          "03 CLINICFLOW Booking and workflow automation for clinics. ClinicFlow moves appointments, reminders and intake through one automated pipeline, with every step visible to staff. AUTOMATION SYSTEMS SECURITY ARCHITECTURE HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Patient books S2 Reminders sent S3 Intake completed S4 Staff see every step AUTOMATED STAGE A PERSON DECIDES: STAFF SEE EVERY STEP ← SU 03 / ",
+          "04 MAISOG KILAT Strategy research, testing and validation. Maisog Kilat is a research environment for developing strategies and testing them against real data before they are trusted. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Strategy proposed S2 Tested on real data S3 Results measured S4 Trusted or rejected AUTOMATED STAGE A PERSON DECIDES: TRUSTED OR REJECTED ← Cl",
+          "05 MAISOG GUILD An opportunity and quest platform. Maisog Guild turns opportunities into structured quests that people can discover, take on and complete. SYSTEMS AUTOMATION HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 Opportunity posted S2 Structured into a quest S3 Taken on by a person S4 Completion confirmed AUTOMATED STAGE A PERSON DECIDES: COMPLETION CONFIRMED ← Maisog Kilat 05 / 05 Sentinel / De"
+        ],
+        "backToEntry": true
+      },
+      "mldata": {
+        "proj": [
+          "Sentinel / DevOS",
+          "SU",
+          "ClinicFlow",
+          "Maisog Kilat",
+          "Maisog Guild"
+        ],
+        "email": "maisog36@gmail.com"
+      }
+    }
+  },
+  {
+    "variant": "candidate-raw",
+    "viewport": "1280x720",
+    "errors": [],
+    "failed": [
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED",
+      "http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED"
+    ],
+    "checks": {
+      "entry": {
+        "lowerLeftText": "Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftHtml": "Paulo Maisog — AI Automation &amp; Technical Systems Builder<br>Building practical AI workflows, cloud automation, and technical systems for real-world business processes.",
+        "lowerLeftRenderedLines": 5,
+        "stack": [
+          "AI",
+          "AUTOMATION",
+          "SYSTEMS"
+        ],
+        "stackStyle": {
+          "flexDirection": "column",
+          "fontSize": "10.5px",
+          "letterSpacing": "3.36px",
+          "textTransform": "uppercase"
+        },
+        "tagline": "IDEAS IN ORBIT",
+        "wordmark": "MAISOGLABS",
+        "clipped": {
+          "p": false,
+          "stack": false
+        },
+        "inViewport": {
+          "p": true,
+          "stack": true
+        },
+        "overlap": {
+          "pWithH1": false,
+          "pWithLogo": false,
+          "pWithTagline": false,
+          "stackWithH1": false,
+          "stackWithLogo": false,
+          "stackWithTagline": false,
+          "pWithStack": false
+        },
+        "boxes": {
+          "p": {
+            "l": 51,
+            "t": 567,
+            "r": 451,
+            "b": 691
+          },
+          "stack": {
+            "l": 1102,
+            "t": 636,
+            "r": 1229,
+            "b": 691
+          },
+          "h1": {
+            "l": 287,
+            "t": 396,
+            "r": 993,
+            "b": 462
+          },
+          "logo": {
+            "l": 496,
+            "t": 122,
+            "r": 784,
+            "b": 410
+          },
+          "tagline": {
+            "l": 383,
+            "t": 471,
+            "r": 897,
+            "b": 510
+          }
+        },
+        "overflow": {
+          "sw": 1280,
+          "iw": 1280
+        },
+        "oldCopyInDom": false
+      },
+      "panels": {
+        "systems": {
+          "text": "01 / SYSTEMS IDEAS · SYSTEMS · PROJECTS · A MORE INTELLIGENT WORLD Six disciplines, one working system. Select a discipline to see what it connects to and which lab projects use it. 01 AI 02 AUTOMATION 03 RESEARCH 04 SECURITY 05 SYSTEMS 06 ARCHITECTURE SENTINEL / DEVOS SU CLINICFLOW MAISOG KILAT MAISOG GUILD AI Models and analysis AUTOMATION Turns research into tools RESEARCH SECURITY Safe, responsible use SYSTEMS Infrastructure and data ARCHITECTURE Structure and boundaries CONNECTED DISCIPLINE PROJECT USING IT SELECTED DISCIPLINE RESEARCH Evidence gathering, adversarial review, and validation used across MaisogLabs systems. CONNECTS TO AI Models and analysis Systems Infrastructure and data Security Safe, responsible use USED IN PROJECTS Sentinel / DevOS AI operating system → SU Research engine → Maisog Kilat Strategy validation →",
+          "overflow": false
+        },
+        "projects": {
+          "text": "02 / PROJECTS FROM RESEARCH TO REAL-WORLD IMPACT 01 SENTINEL / DEVOS 02 SU 03 CLINICFLOW 04 MAISOG KILAT 05 MAISOG GUILD 01 SENTINEL / DEVOS ACTIVE A research and operations system for intelligent work. Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment. AI RESEARCH AUTOMATION ARCHITECTURE HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Research and notes come in S2 Organised into one knowledge base S3 Workflows run automatically S4 Person reviews the result AUTOMATED STAGE A PERSON DECIDES: PERSON REVIEWS THE RESULT ← Maisog Guild 01 / 05 SU →",
+          "overflow": false
+        },
+        "journal": {
+          "text": "03 / RESEARCH ALL RESEARCH BUILD THOUGHTS Research Previews Field notes, technical writeups, and lessons from the lab. NOTES IN PREPARATION MAR 12, 2026 Architecture Decisions for AI Systems A practical framework for designing maintainable, auditable AI systems. ARCHITECTURE · AI · SYSTEMS FEB 28, 2026 From Research to Real Tools Notes on turning research prototypes into reliable, useful software. RESEARCH · AUTOMATION · EXECUTION FEB 10, 2026 The Role of Human Judgment Why human judgment remains essential in an age of increasingly capable AI systems. PHILOSOPHY · AI · SOCIETY",
+          "overflow": false
+        },
+        "contact": {
+          "text": "04 / CONTACT Humanity orbits higher. CORRESPONDENCE maisog36@gmail.com → Copy address For work that expands what people can understand, create, and explore.",
+          "overflow": false
+        },
+        "projectList": [
+          "01 SENTINEL / DEVOS ACTIVE A research and operations system for intelligent work. Sentinel / DevOS is a personal AI operating system that unifies research, knowledge management, and automated workflows in a single, focused environment. AI RESEARCH AUTOMATION ARCHITECTURE HOW IT WORKS FIG. 03.01 — SYSTEM FLOW S1 Research and notes come in S2 Organised into one knowledge base S3 Workflows run automa",
+          "02 SU A research engine that ties every claim to its source. SU gathers evidence, runs adversarial review, and keeps a traceable link between each conclusion and the material behind it. RESEARCH AI HOW IT WORKS FIG. 03.02 — SYSTEM FLOW S1 Sources collected S2 Evidence extracted S3 Adversarial review S4 Conclusion linked to its sources AUTOMATED STAGE A PERSON DECIDES: CONCLUSION LINKED TO ITS SOUR",
+          "03 CLINICFLOW Booking and workflow automation for clinics. ClinicFlow moves appointments, reminders and intake through one automated pipeline, with every step visible to staff. AUTOMATION SYSTEMS SECURITY ARCHITECTURE HOW IT WORKS FIG. 03.03 — SYSTEM FLOW S1 Patient books S2 Reminders sent S3 Intake completed S4 Staff see every step AUTOMATED STAGE A PERSON DECIDES: STAFF SEE EVERY STEP ← SU 03 / ",
+          "04 MAISOG KILAT Strategy research, testing and validation. Maisog Kilat is a research environment for developing strategies and testing them against real data before they are trusted. RESEARCH AI SYSTEMS ARCHITECTURE HOW IT WORKS FIG. 03.04 — SYSTEM FLOW S1 Strategy proposed S2 Tested on real data S3 Results measured S4 Trusted or rejected AUTOMATED STAGE A PERSON DECIDES: TRUSTED OR REJECTED ← Cl",
+          "05 MAISOG GUILD An opportunity and quest platform. Maisog Guild turns opportunities into structured quests that people can discover, take on and complete. SYSTEMS AUTOMATION HOW IT WORKS FIG. 03.05 — SYSTEM FLOW S1 Opportunity posted S2 Structured into a quest S3 Taken on by a person S4 Completion confirmed AUTOMATED STAGE A PERSON DECIDES: COMPLETION CONFIRMED ← Maisog Kilat 05 / 05 Sentinel / De"
+        ],
+        "backToEntry": true
+      },
+      "mldata": {
+        "proj": [
+          "Sentinel / DevOS",
+          "SU",
+          "ClinicFlow",
+          "Maisog Kilat",
+          "Maisog Guild"
+        ],
+        "email": "maisog36@gmail.com"
+      }
+    }
+  }
+]

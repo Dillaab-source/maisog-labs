@@ -16,7 +16,7 @@ const index = fs.readFileSync(path.join(SITE, "index.html"));
 const html = index.toString("utf8");
 const sha256 = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
-const ACCEPTED_SHA256 = "220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc";
+const ACCEPTED_SHA256 = "f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3";
 
 test("the promoted artifact, the bridge constants and the accepted candidate are the same bytes (D-121)", () => {
   assert.equal(sha256(index), ACCEPTED_SHA256);

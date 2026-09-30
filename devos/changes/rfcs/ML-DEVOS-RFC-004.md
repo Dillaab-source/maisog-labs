@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-004: MaisogLabs WEB-INC-002 Protected Read-Only Admin Dashboard
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

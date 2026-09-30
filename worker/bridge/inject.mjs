@@ -22,8 +22,8 @@
 // never throws, never adds keys and never evaluates data.
 import { serializeBridgePayload } from "./payload.mjs";
 
-// Promoted V10.1 artifact identity (D-121; tests/homepage-artifact.test.mjs pins the same SHA).
-export const ARTIFACT_SHA256 = "220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc";
+// Promoted V10.1 artifact identity (D-121, rebuilt with the D-129 copy edits; tests/homepage-artifact.test.mjs pins the same SHA).
+export const ARTIFACT_SHA256 = "f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3";
 export const ARTIFACT_LENGTH = 20857;
 export const INSERTION_OFFSET = 20116; // byte offset of "</head>"
 const INSERTION_MARKER = "</head>";

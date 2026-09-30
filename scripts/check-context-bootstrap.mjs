@@ -1126,17 +1126,71 @@ export class AttemptLedger {
     return this.attempts(transitionId) >= MAX_PUBLICATION_ATTEMPTS;
   }
 
-  record(transitionId, outcome) {
-    const data = this.#load();
-    const entry = data[transitionId] ?? { attempts: 0, outcomes: [] };
-    entry.attempts += 1;
-    entry.outcomes.push(outcome);
-    data[transitionId] = entry;
+  #save(data) {
     fs.mkdirSync(path.dirname(this.file), { recursive: true });
     const tmp = `${this.file}.tmp-${process.pid}`;
     fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
     fs.renameSync(tmp, this.file);
+  }
+
+  // `chain` (optional, RFC-023 BC-12) is stored only when the entry is
+  // created, so an explicit --transition-id entry stays a flat counter.
+  record(transitionId, outcome, chain) {
+    const data = this.#load();
+    const entry = data[transitionId] ?? { attempts: 0, outcomes: [] };
+    if (chain && !entry.chain) {
+      entry.chain = {
+        cycle_id: chain.cycleId,
+        origin_parent: chain.originParent,
+        target_turn: chain.targetTurn,
+        continue_on: null,
+        terminated: false,
+      };
+    }
+    entry.attempts += 1;
+    entry.outcomes.push(outcome);
+    data[transitionId] = entry;
+    this.#save(data);
     return entry.attempts;
+  }
+
+  // RFC-023 BC-12: the logical publication chain an attempt belongs to.
+  // A rebuilt candidate continues a live chain only when its parent is
+  // exactly that chain's recorded continue_on tip and CYCLE_ID and target
+  // turn both match; otherwise the key is bound to this attempt's parent,
+  // which becomes the origin of a fresh chain (or is the origin of the
+  // chain a NOT_PUBLISHED retry is already on). Terminated (PUBLISHED)
+  // chains are never continued. Old-format and explicit keys are never
+  // produced here, so they stay inert.
+  chainKey({ cycleId, parent, targetTurn }) {
+    const data = this.#load();
+    const live = Object.entries(data)
+      .filter(([, e]) => e?.chain && !e.chain.terminated
+        && e.chain.cycle_id === cycleId && e.chain.target_turn === targetTurn
+        && e.chain.continue_on === parent)
+      .sort(([ka, a], [kb, b]) => (b.attempts - a.attempts) || (ka < kb ? -1 : 1));
+    if (live.length) return live[0][0];
+    return `${cycleId}:${parent}:${targetTurn}`;
+  }
+
+  // Records how an attempt ended. On a chain entry, PUBLISHED terminates
+  // the chain; BRANCH_ADVANCED / NOT_PUBLISHED record the tip the next
+  // rebuilt candidate must be parented on (continue_on). Other outcomes
+  // (UNKNOWN_OUTCOME, FRESHNESS_UNAVAILABLE) leave the chain as it is.
+  settle(transitionId, { code, continueOn } = {}) {
+    const data = this.#load();
+    const entry = data[transitionId];
+    if (!entry) return;
+    entry.last_result = code;
+    if (entry.chain) {
+      if (code === 'PUBLISHED') {
+        entry.chain.terminated = true;
+        entry.chain.continue_on = null;
+      } else if (continueOn && (code === 'BRANCH_ADVANCED' || code === 'NOT_PUBLISHED')) {
+        entry.chain.continue_on = continueOn;
+      }
+    }
+    this.#save(data);
   }
 }
 
@@ -1161,7 +1215,7 @@ const REJECTION_RE = /\[rejected\]|non-fast-forward|fetch first|stale info|\[rem
 // expectedParent. The lease is a compare-and-swap guard only. The
 // single-parent == expectedParent check below guarantees every accepted
 // update is a fast-forward child of the expected tip, never a rewrite.
-export function publishCandidate({ git, remote, branch, candidate, expectedParent, receipt, ledger, transitionId }) {
+export function publishCandidate({ git, remote, branch, candidate, expectedParent, receipt, ledger, transitionId, chain }) {
   if (ledger.exhausted(transitionId)) {
     return fail('PUBLICATION_ATTEMPTS_EXHAUSTED', `${MAX_PUBLICATION_ATTEMPTS} attempts used for ${transitionId}; explicit fresh bootstrap required`);
   }
@@ -1173,10 +1227,16 @@ export function publishCandidate({ git, remote, branch, candidate, expectedParen
     return fail('CANDIDATE_NOT_DIRECTLY_PARENTED', `candidate parents [${parents.join(', ')}] != [${expectedParent}]`);
   }
 
-  const attempt = ledger.record(transitionId, 'started');
+  const attempt = ledger.record(transitionId, 'started', chain && { ...chain, originParent: expectedParent });
+  // RFC-023 BC-12: every counted attempt settles its ledger entry, carrying
+  // the authoritative tip a rebuilt candidate must be parented on.
+  const settle = (result, continueOn) => {
+    ledger.settle?.(transitionId, { code: result.code, continueOn });
+    return result;
+  };
   const tip = resolveRemoteTip(git, remote, branch);
   const tipCheck = checkExpectedTip({ candidateParent: expectedParent, currentTip: tip });
-  if (!tipCheck.ok) return { ...tipCheck, attempt };
+  if (!tipCheck.ok) return settle({ ...tipCheck, attempt }, tip);
 
   const push = git([
     'push', '--porcelain',
@@ -1186,14 +1246,20 @@ export function publishCandidate({ git, remote, branch, candidate, expectedParen
   const out = `${push.stdout}\n${push.stderr}`;
   if (push.status === 0) {
     const readBack = resolveRemoteTip(git, remote, branch);
-    if (readBack === candidate) return pass('PUBLISHED', { attempt, tip: candidate });
-    return reconcile(readBack, candidate, expectedParent, attempt);
+    if (readBack === candidate) return settle(pass('PUBLISHED', { attempt, tip: candidate }));
+    return settle(reconcile(readBack, candidate, expectedParent, attempt), readBack);
   }
   if (REJECTION_RE.test(out)) {
-    return fail('BRANCH_ADVANCED', 'remote rejected a non-fast-forward update; build a new candidate from a fresh snapshot', { attempt });
+    // The rejection itself is unchanged; the read-back only names the tip
+    // the chain continues on (continue_on).
+    return settle(
+      fail('BRANCH_ADVANCED', 'remote rejected a non-fast-forward update; build a new candidate from a fresh snapshot', { attempt }),
+      resolveRemoteTip(git, remote, branch),
+    );
   }
   // Ambiguous: read back before any further action.
-  return reconcile(resolveRemoteTip(git, remote, branch), candidate, expectedParent, attempt);
+  const readBack = resolveRemoteTip(git, remote, branch);
+  return settle(reconcile(readBack, candidate, expectedParent, attempt), readBack);
 }
 
 function reconcile(readBack, candidate, expectedParent, attempt) {
@@ -1201,6 +1267,17 @@ function reconcile(readBack, candidate, expectedParent, attempt) {
   if (readBack == null) return fail('UNKNOWN_OUTCOME', 'publication outcome and current tip both unknown; stop, do not retry', { attempt });
   if (readBack === expectedParent) return fail('NOT_PUBLISHED', 'read-back shows the candidate did not land', { attempt, retryable: true });
   return fail('BRANCH_ADVANCED', `read-back tip ${readBack} is neither candidate nor expected parent`, { attempt });
+}
+
+// RFC-023 BC-12: the attempt-ledger key for one publication. An explicit
+// --transition-id is a flat counter, exactly as before. Otherwise the key
+// is the logical chain (CYCLE_ID, originParent, target TURN) resolved by
+// the ledger, replacing the pre-Cycle-B CYCLE_ID:HANDOFF_ID:TURN key that
+// counted distinct transitions against one budget (D-112).
+export function publicationKey({ ledger, transitionIdOverride, state, parent }) {
+  if (transitionIdOverride) return { transitionId: transitionIdOverride, chain: undefined };
+  const chain = { cycleId: state.CYCLE_ID, targetTurn: state.TURN };
+  return { transitionId: ledger.chainKey({ ...chain, parent }), chain };
 }
 
 // Bounded loop. `prepare(tip)` must re-read a fresh snapshot at `tip`,
@@ -1439,9 +1516,10 @@ function runPublish(git, opts) {
   const receipt = makeReceipt({ checks, candidate, expectedParent: parent });
   if (!receipt.ok) return { ...report, parent, changed_files: changedFiles, checks, ok: false, publication: 'NOT_ATTEMPTED' };
   if (opts.checkOnly) return { ...report, parent, changed_files: changedFiles, checks, ok: true, publication: 'CHECK_ONLY' };
-  const transitionId = opts.transitionId ?? `${after.CYCLE_ID}:${after.HANDOFF_ID || 'NONE'}:${after.TURN}`;
+  const ledger = defaultLedger(git);
+  const { transitionId, chain } = publicationKey({ ledger, transitionIdOverride: opts.transitionId, state: after, parent });
   const result = publishCandidate({
-    git, remote: opts.remote, branch: opts.branch, candidate, expectedParent: parent, receipt, ledger: defaultLedger(git), transitionId,
+    git, remote: opts.remote, branch: opts.branch, candidate, expectedParent: parent, receipt, ledger, transitionId, chain,
   });
   return { ...report, parent, transition_id: transitionId, changed_files: changedFiles, checks, publication: result, ok: result.ok };
 }

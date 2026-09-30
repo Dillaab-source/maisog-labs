@@ -5,6 +5,7 @@ Status: `ACTIVE — PROTOCOL_VERSION 2`. Protocol V2 was activated by the `D-080
 Authority:
 - V1 kernel: `ML-DEVOS-RFC-018` (design, Architect-approved in `ML-DEVOS-AS-078`) → `D-062` (Stage A accepted in `ML-DEVOS-AS-079`/`ML-DEVOS-AS-080`).
 - V2 directive layer: `ML-DEVOS-RFC-020` (Architect-approved in `ML-DEVOS-AS-108`) → `D-079` (Stage A, accepted in `ML-DEVOS-AS-110`) → `D-080` (Stage B activation).
+- V2.1 policy amendment: `ML-DEVOS-RFC-023` (reviewed in `ML-DEVOS-AS-151`–`AS-153`) → `D-127`. Additive to V2: `PROTOCOL_VERSION` stays `2` and no STATE, directive or handoff field changes. It amends §2 (STATE body), §3 item 7 and §8 (attempt ledger), and §5 (obligation presentation) below. Its routing and evidence rules live in `brain/protocols/ARCHITECT_SYNC.md`.
 
 The RFCs are the governing text; where this summary and an RFC differ, the RFC wins.
 
@@ -50,6 +51,8 @@ applicable_review_id: ML-DEVOS-AS-NNN
 
 A packet is coherent only if `handoff_id`, `cycle_id`, `review_target_commit`, and `applicable_review_id` match field-for-field. For a Builder→Architect handoff, `review_target_commit` equals the parent of the coordination-transition commit. `applicable_review_id` is always the immutable published Sync ID of the live `ARCHITECT_REVIEW` (never a commit or a revision suffix). `CURRENT_HANDOFF: NONE` requires the selector fields to be empty. Only header fields are parsed; body text never sets authority or identity.
 
+**STATE body (`ML-DEVOS-RFC-023` BC-9).** The header schema and parser are unchanged. The body is kept short (target ≤ 800 bytes): the current Architect review and its verdict (one line), the authorizing Decision, and the next transition (one line). It does not restate prohibitions already covered by the flags, `AUTHORIZED_SCOPE` or the cited Decision; anything outside them is unauthorized by default. An open item that exists only in STATE prose must first become an `OPERATIVE_OBLIGATIONS.md` row, in or before the transition that removes it from the body.
+
 Required CURRENT_HANDOFF sections: `Objective`, `Changed files`, `Tests and evidence`, `Unresolved findings and limitations`, `Governing references`, `Evidence locations`, `Next action`. The packet must reference `coordination/OPERATIVE_OBLIGATIONS.md`. It must not restate TURN, approval status, or authorization flags.
 
 ## 3. Governed publication transaction
@@ -60,7 +63,9 @@ Required CURRENT_HANDOFF sections: `Objective`, `Changed files`, `Tests and evid
 4. Recheck that the tip is still `T`, then push with an explicit expected-old-value lease on the exact ref: `git push --force-with-lease=refs/heads/<branch>:T <remote> <candidate>:refs/heads/<branch>`. The remote updates only if the ref still equals `T`, so any movement is rejected, whether an advance or a rewind to an ancestor. The lease is a compare-and-swap guard only. Because the candidate's single parent must be `T` (step 3, checked before the push), every accepted update is a fast-forward. The lease never authorizes a history rewrite, and unleased force pushes are forbidden.
 5. Rejected, or tip moved → the attempt is void; go back to step 1 and build a new candidate from a fresh snapshot.
 6. Ambiguous result (timeout, dropped connection) → read back the tip before anything else: tip = candidate → published; tip = `T` → not published; anything else → treat as advancement; tip unknown → stop.
-7. `MAX_PUBLICATION_ATTEMPTS = 3` per transition, counted in `.git/sentinel-context-bootstrap/attempts.json` so a resumed session cannot reset it. Exhaustion is terminal and disclosed.
+7. `MAX_PUBLICATION_ATTEMPTS = 3`, counted in `.git/sentinel-context-bootstrap/attempts.json` so a resumed session cannot reset it. Exhaustion is terminal and disclosed. The limit is hard only within one persistent ledger lineage (see §8).
+   - **Adopted key (`ML-DEVOS-RFC-023` BC-12).** One logical publication chain is keyed `${CYCLE_ID}:${originParent}:${targetTurn}`, where `originParent` is the parent of the chain's first attempt. A candidate rebuilt after `BRANCH_ADVANCED` continues the same chain through the ended entry's `continue_on: <read-back tip>`. A `NOT_PUBLISHED` retry keeps the same parent and chain. `UNKNOWN_OUTCOME` keeps the read-back-then-stop behavior of step 6 exactly. `PUBLISHED` ends the chain, and a later legitimate transition starts a fresh one. `--transition-id` stays available, and old-format keys are inert.
+   - **Current checker key, until the separately authorized Cycle B implements BC-12:** `${CYCLE_ID}:${HANDOFF_ID||'NONE'}:${TURN}`. Distinct transitions that share it count against one budget, so a publisher may need an explicit `--transition-id`, disclosed in its handoff. The local ledger is never edited.
 
 A provider that cannot show this exact-tip conflict detection is advisory/read-only for governed writes.
 
@@ -74,6 +79,8 @@ Every outgoing CURRENT_HANDOFF or ARCHITECT_REVIEW is preserved byte-for-byte in
 
 `coordination/OPERATIVE_OBLIGATIONS.md` is the carry-forward index. Every transition keeps each `OPEN`/`DEFERRED` row, or changes it to `CLOSED`/`SUPERSEDED` with a cited reference. A row that stays unresolved keeps its obligation text and authoritative source byte-identical, ignoring only table-cell padding (`AS79-F002`). To change what an obligation means, close or supersede it with a citation and add a new row. Handoff summaries are navigation only.
 
+**Presentation (`ML-DEVOS-RFC-023` BC-11).** The file has two tables. `OPEN`/`DEFERRED` rows come first, fully descriptive; this is the always-loaded set. `CLOSED`/`SUPERSEDED` rows follow as five-cell stubs: ID, `—` in the obligation cell, the authoritative source, the disposition and the closure/supersession reference. A closed row's full text stays recoverable from its authoritative source. Rows are never deleted, so no ID is lost to the duplicate-ID check or reused. There is no separate closed-obligations file.
+
 ## 6. Protocol version, stale sessions, and the frozen legacy handoff
 
 Every governed writer checks `PROTOCOL_VERSION` against the version it bootstrapped on. An unsupported marker, or a mismatch, stops the session until it bootstraps fresh.
@@ -82,7 +89,7 @@ Every governed writer checks `PROTOCOL_VERSION` against the version it bootstrap
 
 ## 6a. Architect routing transitions
 
-The Architect publishes each review under a new `ML-DEVOS-AS-NNN` with its byte-identical archive, in one commit parented on the exact tip. When that routing stops selecting the Builder's handoff, STATE sets `CURRENT_HANDOFF: NONE` and empties `HANDOFF_ID`, `REVIEW_TARGET_COMMIT`, and `APPLICABLE_REVIEW_ID`. The same commit archives the deselected handoff's exact bytes under `coordination/archive/handoffs/` (checked as `OUTGOING_HANDOFF_NOT_PRESERVED` otherwise). The deselected file may stay in place. With `NONE` it is not applicable, and the Builder's next handoff replaces it.
+The Architect authors each review under a new `ML-DEVOS-AS-NNN`; it is published with its byte-identical archive, in one commit parented on the exact tip, by the Architect once its channel satisfies `OBL-012`, otherwise mechanically by the Builder or Paulo with the exact Architect-authored bytes unchanged, through CAS (`ML-DEVOS-RFC-023` BC-4). When that routing stops selecting the Builder's handoff, STATE sets `CURRENT_HANDOFF: NONE` and empties `HANDOFF_ID`, `REVIEW_TARGET_COMMIT`, and `APPLICABLE_REVIEW_ID`. The same commit archives the deselected handoff's exact bytes under `coordination/archive/handoffs/` (checked as `OUTGOING_HANDOFF_NOT_PRESERVED` otherwise). The deselected file may stay in place. With `NONE` it is not applicable, and the Builder's next handoff replaces it.
 
 ## 7. Rollback
 
@@ -118,7 +125,7 @@ The checker does not prove: legitimacy of recorded authority; that a committed a
 ### Disclosed bypasses V0 cannot prevent
 
 - Anyone with write access can hand-edit coordination files or push without running the checker. The prepublication receipt is a procedural guard, not a cryptographic one.
-- The attempt ledger lives in the local `.git` directory. A fresh clone, or a new transition ID, starts a new count.
+- The attempt ledger lives in the local `.git` directory. A fresh clone, a fresh ledger, or a new transition ID starts a new count. The attempt limit is hard only within one persistent ledger lineage; this bypass is procedural and disclosed, not mechanically prevented (`ML-DEVOS-RFC-023` BC-12).
 - Behavioral cases (forged authorization, hostile instruction-shaped evidence) depend on agent conduct. Tests cover only the parser/checker side.
 
 ## 9. Pre-cutover baseline `CBV0-BASELINE-PRE-1`

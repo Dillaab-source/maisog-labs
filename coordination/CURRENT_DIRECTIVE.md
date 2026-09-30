@@ -1,87 +1,86 @@
-# Current Directive — V10.1 Gate C (D-122)
+# Current Directive — D-130 Gate C (protected merge only)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-V101-GATE-C-0001
-cycle_id: MAISOGLABS_WEB_RFC022_CBR
-issue_parent_commit: a9351c660ae4911c5f0536285560cb2c42befa65
+directive_id: DIR-WEB-D130-GATE-C-0001
+cycle_id: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
+issue_parent_commit: a5af6f43bc2046c4111b25959904423ebe2f9fe9
 target_turn: CLAUDE
-authority_ref: D-122
-applicable_review_id: ML-DEVOS-AS-146
+authority_ref: D-130
+applicable_review_id: ML-DEVOS-AS-157
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-122 and `ML-DEVOS-AS-146`.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-130 and `ML-DEVOS-AS-157`. Claude/Builder prepared it as mechanical publisher of D-130.
 
 ## Objective
 
-Merge the AS-146-accepted V10.1 promotion into `main` through one fresh protected release PR, pinned to `FINAL_GATE_C_HEAD` (this directive's publication commit), without any production deployment or traffic change.
+Open one protected release PR `governance/maisoglabs-v0.1` → `main` with head `FINAL_GATE_C_HEAD` (the commit publishing this directive). Merge it with one normal merge commit pinned to that head, only if every D-130 pre-merge check passes. Verify that production is unchanged, and return.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `MAIN_MERGE_AUTHORIZED` is the only `YES` flag.
-- `main` is `405375998392e936b71181de387ae395b7d46e40`.
-- `public/index.html` is SHA-256 `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc` (20,857 bytes), and `worker/bridge/inject.mjs` pins `220ce809…` / `20857` / `20116`.
+- The Protocol V2 bootstrap passes; STATE selects this directive; `MAIN_MERGE_AUTHORIZED: YES` and every other action flag `NO`.
+- Read-only preflight at `a5af6f4`, before issue:
+  - `main` = `97ca982c…`; merge base `b99353e…`.
+  - `git merge-tree --write-tree main governance` has no conflicts. The merged tree `f15b966…` equals the governance tree, and `main`'s tree equals the merge base's tree (`45eeb31…`), so the merge cannot regress `main`.
+  - Active production: deployment `b0f11606…`, version `8fd31f47-a65d-4f57-83f1-17a1e0cd8043` @ 100%.
 
 ## Governing references
 
-- **T0:** Protocol V2; D-122; live STATE; `ML-DEVOS-AS-146` (Gate C readiness conditions).
-- **T1:** D-121; `ML-DEVOS-AS-145` (atomic promotion invariant); D-112 / PR #17 (Gate C precedent); `OBL-017` (separate production deploy gate).
+- **T0:** D-130; live STATE; `ML-DEVOS-AS-157`.
+- **T1:** D-129; D-122 / `H-WEB-V101-GATE-C-0001` (Gate C precedent); `ML-DEVOS-RFC-022` / `worker/bridge/inject.mjs`; `OBL-017`, `OBL-018`, `OBL-023`.
 
 ## Exact execution scope
 
 Allowed:
-- record `FINAL_GATE_C_HEAD` (the full SHA of this publication commit);
-- open exactly one fresh PR `governance/maisoglabs-v0.1 → main`;
-- read-only checks: GitHub (PR, CI, mergeability, ruleset) and Cloudflare (active deployment/version, Workers Builds; GET only);
-- one normal merge commit through the protected PR path, pinned to `FINAL_GATE_C_HEAD`;
-- one Protocol V2 Builder return on `governance/maisoglabs-v0.1` after the merge.
+- Create one PR (ready for review) and read PR, CI and ruleset status.
+- Cloudflare GET reads of deployments, versions and builds.
+- One `merge_method: merge` with `expectedHeadSha` = `FINAL_GATE_C_HEAD`.
+- One Protocol V2 Builder return on the governance branch, after the merge.
 
 Not allowed:
-- any governance-branch movement between `FINAL_GATE_C_HEAD` and the merge;
-- PR #10 (or PR #7) use or modification;
-- direct push, force push, squash, rebase, auto-merge, protection or ruleset bypass;
-- Gate D; `wrangler versions deploy`; deployment, promotion, rollback or traffic change;
-- any production D1/R2/Access/DNS/binding/secret/environment change; schema or migrations;
-- project publication or activation; contact/`site_settings` changes; email publication;
-- mobile remediation; `og:image`; unrelated cleanup.
+- any push to the governance branch between `FINAL_GATE_C_HEAD` and the merge;
+- rebase, reset, force push, squash, cherry-pick, direct push to `main`, auto-merge, protection bypass;
+- Gate D, deploy, traffic change; D1/R2; content, project, `site_settings`; DNS, Access, bindings, secrets, migrations;
+- any change to the D-129 candidate; PR #7 or PR #10 actions.
 
 ## SENTINEL Sync
 
-- **Authority:** D-122 (Paulo).
-- **Context:** AS-146 accepted the atomic promotion preparation at `49984e7` and set the Gate C conditions.
-- **Capability:** protected PR merge only.
-- **Execution:** verify every bound value, merge pinned, observe production read-only.
-- **Evidence:** PR, CI, merge commit and parents, `main` SHA, artifact identity, Workers Build/version, pre/post active version.
+- **Authority:** D-130 (Paulo), after `ML-DEVOS-AS-157`.
+- **Context:** the D-129 candidate is accepted and visually accepted; production serves `8fd31f47…`.
+- **Capability:** GitHub PR and merge through the connected integration; Cloudflare GET only.
+- **Execution:** issue → CI on the head → the 13 pre-merge checks → pinned merge → post-merge verification → return.
+- **Evidence:** PR, CI runs, merge commit and parents, the `main` tree, homepage and bridge values, production version before and after.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- **Reviewed head vs final head:** AS-146 reviewed `49984e7`; this publication (and the AS-146 publication `a9351c6`) necessarily advance the branch. D-122 resolves this: `FINAL_GATE_C_HEAD` is bound, and the diff `49984e7..FINAL_GATE_C_HEAD` must be governance-only.
-- **Merge vs production:** `main`'s Git integration uploads an inactive version (`npx wrangler versions upload`); that is not a deployment. The active production version must stay unchanged.
+- **Divergence count:** D-130 records the Architect's "23 ahead / 7 behind". A full-history count gives 23 ahead and 48 behind: `main` carries earlier pre-governance history that is already contained content-wise, since `main`'s tree equals the merge base's tree. This is not a stop condition; the merge is clean and non-regressing.
+- **Merge commit placement:** the merge commit will exist only on `main`; the return is published on the governance branch afterwards, as in D-122.
 
 ## Instructions
 
-1. Bootstrap at `FINAL_GATE_C_HEAD`; record its full SHA.
-2. Open the release PR; verify every D-122 pre-merge condition; inspect the changed-file set.
-3. Record the active production version; merge with a normal merge commit pinned to `FINAL_GATE_C_HEAD`.
-4. Record the post-merge evidence; confirm the active version is unchanged.
-5. Publish the return.
+1. Bootstrap. Confirm this commit is `FINAL_GATE_C_HEAD` and the branch has not moved.
+2. Open the PR; wait for `test-and-build` on the exact head.
+3. Run the 13 D-130 pre-merge checks immediately before merging; record the active production version.
+4. Merge (pinned); verify post-merge; confirm production is unchanged.
+5. Publish the return with `MAIN_MERGE_AUTHORIZED: NO`.
 
 ## Validation and evidence
 
-The D-122 "after merge" record list.
+D-130 § Pre-merge checks and § Post-merge verify in full.
 
 ## Stop conditions
 
-- Any bound value differs (main, head, artifact, constants, CI, mergeability, ruleset).
-- `governance/maisoglabs-v0.1` moves after `FINAL_GATE_C_HEAD` before the merge.
-- The active production version changes: stop and report without remediation.
+- Any pre-merge check fails.
+- The PR is not cleanly mergeable, or the merged tree differs from the expected tree.
+- The governance branch moves before the merge.
+- Production traffic changes.
 
 ## Next action
 
-Publish `H-WEB-V101-GATE-C-0001`. Archive and deselect this directive, reset every flag to `NO`, and route `TURN: ARCHITECT`.
+Publish `H-WEB-D130-GATE-C-0001`. Archive and deselect this directive, reset `MAIN_MERGE_AUTHORIZED` to `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.

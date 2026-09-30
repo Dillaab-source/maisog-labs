@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-007: MaisogLabs WEB-INC-004 Local Media Subsystem
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Change class: `ARCHITECTURE`
 

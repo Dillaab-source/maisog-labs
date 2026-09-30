@@ -25,7 +25,11 @@
 //
 // Every patch is an exact-match replacement that must match exactly once, so
 // the candidate is an auditable, reproducible function of the canonical
-// artifact. Usage: node scripts/build-v101-candidate.mjs
+// artifact. Usage: node scripts/build-v101-candidate.mjs [path-to-V10-artifact]
+//
+// D-129: public/index.html now holds the promoted V10.1 page, so the pinned
+// V10 artifact is passed explicitly (for example, extracted byte-exact with
+// `git show f2c13aa:public/index.html`); its SHA-256 is verified either way.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -33,7 +37,7 @@ import zlib from "node:zlib";
 import { transformSync } from "esbuild";
 
 const ROOT = path.join(import.meta.dirname, "..");
-const SOURCE = path.join(ROOT, "public/index.html");
+const SOURCE = process.argv[2] ? path.resolve(process.argv[2]) : path.join(ROOT, "public/index.html");
 const SOURCE_SHA256 = "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9";
 const CANDIDATE = path.join(ROOT, "candidates/v10.1");
 const SITE = path.join(CANDIDATE, "site");
@@ -70,11 +74,23 @@ function replaceOnce(text, find, replacement, label) {
 // 1. Research: working filters kept; no dead href="#" affordances.
 // 1b. The wordmark home control: a real URL instead of "#" (its click handler
 // already prevents navigation and returns to the entry view).
+// 1c. D-129: the two homepage copy strings, and nothing else. The lower-left
+// paragraph keeps its element and style and now holds the identity line and
+// the supporting line; the lower-right stack keeps its three-span treatment.
 function patchEntry(src) {
-  return replaceOnce(src,
+  src = replaceOnce(src,
     `<a href="#" onClick={e => { e.preventDefault(); go('entry'); }} aria-label="Maisog Labs home">`,
     `<a href="/" onClick={e => { e.preventDefault(); go('entry'); }} aria-label="Maisog Labs home">`,
     "entry: wordmark home href");
+  src = replaceOnce(src,
+    ">The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.</p>",
+    ">{'Paulo Maisog \u2014 AI Automation & Technical Systems Builder'}<br />{'Building practical AI workflows, cloud automation, and technical systems for real-world business processes.'}</p>",
+    "entry: D-129 lower-left identity + supporting line");
+  src = replaceOnce(src,
+    "<span>Humanity</span><span>Orbits</span><span>Higher</span>",
+    "<span>AI</span><span>AUTOMATION</span><span>SYSTEMS</span>",
+    "entry: D-129 lower-right stack");
+  return src;
 }
 
 function patchResearch(src) {
@@ -160,7 +176,7 @@ function jsx(code, label) {
 
 function main() {
   const artifact = fs.readFileSync(SOURCE);
-  if (sha256(artifact) !== SOURCE_SHA256) throw new Error("public/index.html is not the canonical D-093 artifact");
+  if (sha256(artifact) !== SOURCE_SHA256) throw new Error(`${SOURCE} is not the canonical D-093 artifact`);
   const html = artifact.toString("utf8");
   const manifest = JSON.parse(html.match(/<script type="__bundler\/manifest">([\s\S]*?)<\/script>/)[1]);
   let template = JSON.parse(html.match(/<script type="__bundler\/template">([\s\S]*?)<\/script>/)[1]);

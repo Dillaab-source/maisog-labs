@@ -10,6 +10,10 @@ import {
   listScannedFiles,
   listDurableReferenceFiles,
 } from "../devos/governance/traceability/generate-traceability.mjs";
+import {
+  validateRfcProjection,
+  RFC_CANONICAL_STATUS_LINE,
+} from "../devos/governance/traceability/validate-traceability.mjs";
 
 // Sentinel Traceability V1 (ML-DEVOS-RFC-012 / ML-DEVOS-AS-037 / D-036) —
 // focused tests against small synthetic temp-directory fixtures, never the
@@ -343,4 +347,142 @@ test("listDurableReferenceFiles filters by working-surface path prefix", () => {
   const durable = listDurableReferenceFiles(scanned, config);
 
   assert.deepEqual(durable, ["docs/spec.md", "worker/index.mjs"]);
+});
+
+// ---------------------------------------------------------------------------
+// ML-DEVOS-RFC-023 BC-10 (D-128): RFC lifecycle-projection checks, against
+// small synthetic fixtures only.
+
+const CANONICAL = "Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.";
+
+function rfcBody(id, statusLines = [CANONICAL], extra = "") {
+  return [`# ${id}: Fixture`, "", ...statusLines, "", "Body text.", extra].join("\n");
+}
+
+function rfcIndex(rows) {
+  return [
+    "# RFCs", "", "| RFC | Title | Class | Status | Authority refs |", "|---|---|---|---|---|",
+    ...rows.map(([id, status, refs]) => `| ${id} | Fixture | ARCHITECTURE | ${status} | ${refs} |`), "",
+  ].join("\n");
+}
+
+function projectionFixture(overrides = {}) {
+  return makeFixtureRepo("trace-rfc-", {
+    "devos/changes/rfcs/ML-DEVOS-RFC-001.md": rfcBody("ML-DEVOS-RFC-001"),
+    "devos/changes/rfcs/ML-DEVOS-RFC-002.md": rfcBody("ML-DEVOS-RFC-002"),
+    "devos/changes/rfcs/README.md": rfcIndex([
+      ["ML-DEVOS-RFC-001", "ACCEPTED", "D-001; ML-DEVOS-AS-001; ML-DEVOS-ADR-001"],
+      ["ML-DEVOS-RFC-002", "DRAFT", "D-002"],
+    ]),
+    "brain/DECISION_LOG.md": "# Decisions\n\n### D-001 — Accept\n\nAccepts ML-DEVOS-RFC-001.\n\n### D-002 — Draft\n\nAuthorizes drafting ML-DEVOS-RFC-002.\n",
+    "devos/changes/architect-syncs/ML-DEVOS-AS-001.md": "Architect Sync: ML-DEVOS-AS-001\n\nApproves ML-DEVOS-RFC-001.\n",
+    "devos/changes/architect-syncs/README.md": "Mentions ML-DEVOS-RFC-001 but is not a Sync record.\n",
+    "devos/changes/adrs/ML-DEVOS-ADR-001.md": "# ML-DEVOS-ADR-001\n\nCloses ML-DEVOS-RFC-001.\n",
+    ...overrides,
+  });
+}
+
+const codes = (list) => list.map((f) => `${f.code}:${f.rfc}`).sort();
+
+test("BC-10: the validator's canonical Status line is byte-identical to the D-128 text", () => {
+  assert.equal(RFC_CANONICAL_STATUS_LINE, CANONICAL);
+});
+
+test("BC-10 (10): a fully migrated valid fixture has zero RFC-projection findings", () => {
+  const r = validateRfcProjection(projectionFixture());
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(r.warnings, []);
+  assert.equal(r.rfcCount, 2);
+  assert.equal(r.rowCount, 2);
+});
+
+test("BC-10 (1): an RFC file with no index row is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/README.md": rfcIndex([["ML-DEVOS-RFC-001", "ACCEPTED", "D-001"]]),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_INDEX_ROW_MISSING:ML-DEVOS-RFC-002"]);
+});
+
+test("BC-10 (2): an index row for a nonexistent RFC is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/README.md": rfcIndex([
+      ["ML-DEVOS-RFC-001", "ACCEPTED", "D-001"],
+      ["ML-DEVOS-RFC-002", "DRAFT", "D-002"],
+      ["ML-DEVOS-RFC-003", "DRAFT", "D-002"],
+    ]),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_INDEX_ROW_ORPHAN:ML-DEVOS-RFC-003"]);
+});
+
+test("BC-10 (3): a duplicate RFC row is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/README.md": rfcIndex([
+      ["ML-DEVOS-RFC-001", "ACCEPTED", "D-001"],
+      ["ML-DEVOS-RFC-002", "DRAFT", "D-002"],
+      ["ML-DEVOS-RFC-002", "ACCEPTED", "D-002"],
+    ]),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_INDEX_ROW_DUPLICATE:ML-DEVOS-RFC-002"]);
+});
+
+test("BC-10 (4): a newer citing Decision / ADR / Architect Sync is a WARNING RFC_STATUS_PROJECTION_STALE, never an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "brain/DECISION_LOG.md": "# Decisions\n\n### D-001 — Accept\n\nAccepts ML-DEVOS-RFC-001.\n\n### D-002 — Draft\n\nAuthorizes drafting ML-DEVOS-RFC-002.\n\n### D-003 — Later\n\nSupersedes part of ML-DEVOS-RFC-001.\n",
+    "devos/changes/architect-syncs/ML-DEVOS-AS-002.md": "Architect Sync: ML-DEVOS-AS-002\n\nReviews ML-DEVOS-RFC-001 again.\n",
+  }));
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(codes(r.warnings), ["RFC_STATUS_PROJECTION_STALE:ML-DEVOS-RFC-001"]);
+  assert.match(r.warnings[0].message, /D-003/);
+  assert.match(r.warnings[0].message, /ML-DEVOS-AS-002/);
+});
+
+test("BC-10 (5): noncanonical body Status bytes (old lifecycle prose, trailing whitespace, CR) are ERRORs", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/ML-DEVOS-RFC-001.md": rfcBody("ML-DEVOS-RFC-001", ["Status: `ACCEPTED` — accepted by D-001."]),
+    "devos/changes/rfcs/ML-DEVOS-RFC-002.md": rfcBody("ML-DEVOS-RFC-002", [`${CANONICAL} `]),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_BODY_STATUS_NONCANONICAL:ML-DEVOS-RFC-001", "RFC_BODY_STATUS_NONCANONICAL:ML-DEVOS-RFC-002"]);
+  const crlf = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/ML-DEVOS-RFC-002.md": rfcBody("ML-DEVOS-RFC-002").replace(/\n/g, "\r\n"),
+  }));
+  assert.deepEqual(codes(crlf.errors), ["RFC_BODY_STATUS_MISSING_OR_MISPLACED:ML-DEVOS-RFC-002"]);
+});
+
+test("BC-10 (6): a missing Status line, or one not at line 3, is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/ML-DEVOS-RFC-001.md": rfcBody("ML-DEVOS-RFC-001", ["No status here."]),
+    "devos/changes/rfcs/ML-DEVOS-RFC-002.md": ["# ML-DEVOS-RFC-002: Fixture", "", "Intro.", "", CANONICAL, ""].join("\n"),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_BODY_STATUS_MISSING_OR_MISPLACED:ML-DEVOS-RFC-001", "RFC_BODY_STATUS_MISSING_OR_MISPLACED:ML-DEVOS-RFC-002"]);
+});
+
+test("BC-10 (7): a second Status line is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/ML-DEVOS-RFC-001.md": rfcBody("ML-DEVOS-RFC-001", [CANONICAL], "\nStatus: `IMPLEMENTED`\n"),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_BODY_STATUS_DUPLICATE:ML-DEVOS-RFC-001"]);
+});
+
+test("BC-10 (8): a lifecycle status outside the vocabulary is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/README.md": rfcIndex([
+      ["ML-DEVOS-RFC-001", "IMPLEMENTED AND CLOSED", "D-001"],
+      ["ML-DEVOS-RFC-002", "`DRAFT`", "D-002"],
+    ]),
+  }));
+  assert.deepEqual(codes(r.errors), ["RFC_STATUS_VOCABULARY:ML-DEVOS-RFC-001"]);
+});
+
+test("BC-10 (9): an unresolved authority ref is an ERROR", () => {
+  const r = validateRfcProjection(projectionFixture({
+    "devos/changes/rfcs/README.md": rfcIndex([
+      ["ML-DEVOS-RFC-001", "ACCEPTED", "D-001; D-099; ML-DEVOS-AS-050"],
+      ["ML-DEVOS-RFC-002", "DRAFT", "PR #7"],
+    ]),
+  }));
+  assert.deepEqual(codes(r.errors), [
+    "RFC_AUTHORITY_REF_UNRESOLVED:ML-DEVOS-RFC-001",
+    "RFC_AUTHORITY_REF_UNRESOLVED:ML-DEVOS-RFC-001",
+    "RFC_AUTHORITY_REF_UNRESOLVED:ML-DEVOS-RFC-002",
+  ]);
 });

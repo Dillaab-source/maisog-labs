@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-001 — S2 DevOS Repository Foundation
 
-Status: `IMPLEMENTED AND CLOSED` — implemented at `c76bf6a6390581963d2ded2e5db18d96b4a346b4`, technically approved by `ML-DEVOS-AS-007`, and closed at Sentinel `v1.4.0` per Paulo decision `D-017` and `devos/changes/adrs/ML-DEVOS-ADR-002.md`. The proposal text below is preserved as originally written (`CHANGE_GOVERNANCE_POLICY.md` §3: an RFC proposes, it is not silently rewritten after acceptance) — the ADR is the record of what actually became architecture and why.
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

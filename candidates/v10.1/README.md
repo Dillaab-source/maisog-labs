@@ -1,6 +1,6 @@
 # V10.1 desktop review candidate (D-120)
 
-**Status: ACCEPTED (`ML-DEVOS-AS-145`) and PROMOTED IN THE REPOSITORY (D-121).** `public/index.html`, `public/v101/`, `public/robots.txt`, `public/sitemap.xml` and `public/_headers` are byte-for-byte copies of `site/`, and the RFC-022 bridge constants pin these bytes. Production still serves the V10 artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) until a separately authorized Gate C and Gate D. `scripts/build-v101-candidate.mjs` derives from that V10 artifact, so it no longer runs against the promoted `public/index.html`: it stops at its source-hash check and writes nothing. The accepted bytes are never regenerated.
+**Status: ACCEPTED (`ML-DEVOS-AS-145`) and PROMOTED IN THE REPOSITORY (D-121).** `public/index.html`, `public/v101/`, `public/robots.txt`, `public/sitemap.xml` and `public/_headers` are byte-for-byte copies of `site/`, and the RFC-022 bridge constants pin these bytes. Production still serves the V10 artifact (SHA-256 `2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9`) until a separately authorized Gate C and Gate D. `scripts/build-v101-candidate.mjs` derives from that V10 artifact, so it no longer runs against the promoted `public/index.html`: it stops at its source-hash check and writes nothing. Under D-129 it takes the pinned V10 artifact as an explicit argument (extracted byte-exact with `git show f2c13aa:public/index.html`; SHA-256 still verified). Without the D-129 patches it reproduces the D-121 bytes exactly; with them, only the entry asset, its `index.html` reference and the derived hashes change.
 
 Authority: D-120 (Paulo), `ML-DEVOS-AS-144`, directive `DIR-WEB-V101-DESKTOP-CANDIDATE-0001`. Scope is desktop only; mobile remediation is deferred.
 
@@ -16,10 +16,10 @@ The build is deterministic: two consecutive builds produce identical bytes. It w
 
 | Item | Value |
 |---|---|
-| `site/index.html` SHA-256 | `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc` |
+| `site/index.html` SHA-256 | `f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3` (D-129; before: `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`) |
 | `site/index.html` bytes | 20,857 (the canonical artifact is 1,969,988) |
 | `</head>` byte offset (bridge insertion point) | 20,116 |
-| Fingerprinted assets | 34 files, 725,925 bytes, under `site/v101/assets/` |
+| Fingerprinted assets | 34 files, 726,003 bytes, under `site/v101/assets/` (D-129: `entry.7995859f655d.js` → `entry.e184fa740d43.js`) |
 | `site/robots.txt` | `801054c0c9a7cc4889073fb5e48f9817c3e8ea3f178c142f855a260a7aebe633` |
 | `site/sitemap.xml` | `24b7f122047ec3951c43848a43599ee0225312e9b5bc7a47fba058e4248f7fab` |
 | `site/_headers` | `4db7f4cb0bf966b81af7d897ddf734cabbcbded4de6b91a61140d4983c2a81e1` |
@@ -27,6 +27,11 @@ The build is deterministic: two consecutive builds produce identical bytes. It w
 `build-report.json` lists every asset and its size. Each asset file name carries the first 12 hex characters of its SHA-256. `tests/v101-candidate.test.mjs` checks each fingerprint against the file's content.
 
 ## Changes from V10
+
+- **D-129 homepage copy (two strings only; Entry panel patch):**
+  - lower-left: "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software." → "Paulo Maisog — AI Automation & Technical Systems Builder", a line break, then "Building practical AI workflows, cloud automation, and technical systems for real-world business processes." (same `<p>`, same style);
+  - lower-right stack: Humanity / Orbits / Higher → AI / AUTOMATION / SYSTEMS (same three spans);
+  - desktop evidence: `evidence/d129/`.
 
 Identity, layout, copy (except the two Research strings below), data and project content are unchanged.
 

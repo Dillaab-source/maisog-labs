@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-020: Canonical Directive Transport / Context Bootstrap V2
 
-Status: `ARCHITECT-APPROVED PROPOSAL (ML-DEVOS-AS-108) — STAGE A ACCEPTED (ML-DEVOS-AS-110); PROTOCOL V2 ACTIVATED UNDER D-080 (STAGE B), PENDING ARCHITECT ACTIVATION VERIFICATION`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Stage A implementation provenance (added under `D-079`):
 - Dual-version checker support, the inert `coordination/CURRENT_DIRECTIVE.md` scaffolding, the directive archive, tests, protocol documentation and Skills were implemented while live STATE remained `PROTOCOL_VERSION: 1`.

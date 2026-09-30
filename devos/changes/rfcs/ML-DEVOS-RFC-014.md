@@ -1,6 +1,6 @@
 # RFC-014: MaisogLabs Skills Foundation V0.1 Discovery (incorporating Portable Knowledge Treasury)
 
-Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-011 / D-046; explicit no Sentinel capability-baseline bump, effective baseline remains v1.5.0`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class (see `../governance/change-policy/CHANGE_GOVERNANCE_POLICY.md` §1): `ARCHITECTURE`
 
