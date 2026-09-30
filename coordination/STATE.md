@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: CLINICFLOW_V1_RECOVERY
-TURN: CLAUDE
-STATUS: READY_FOR_IMPLEMENTER
-AUTHORIZED_SCOPE: D133_CLINICFLOW_SOURCE_RECOVERY_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D133_CLINICFLOW_RECOVERY_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-CLINICFLOW-V1-RECOVERY-0001
-DIRECTIVE_ISSUE_PARENT: 2939cbe8a9c52465e6467f9cf2671cd28c7bab81
-DIRECTIVE_AUTHORITY_REF: D-133
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-160
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-CLINICFLOW-V1-RECOVERY-0001
+REVIEW_TARGET_COMMIT: ae2c24c3d12774f9a91f42ea49ea723beb16776a
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-160
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,8 +29,13 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Authority: `D-133` (Paulo) — ClinicFlow is the next product priority, with Eternal Eggs after it. This stage is **read-only source-of-truth recovery only**; it rebuilds nothing, changes no workflow, account, message or calendar, and deploys nothing. All action flags `NO`.
-- Next: the Builder executes `DIR-CLINICFLOW-V1-RECOVERY-0001` and returns `H-CLINICFLOW-V1-RECOVERY-0001` to the Architect.
-- Not resumed: S6/S7, V2.1 Revision 2, Maisog Kilat, SU expansion, Eternal Eggs implementation.
+- Return: `H-CLINICFLOW-V1-RECOVERY-0001` (D-133, read-only). The ClinicFlow implementation is **not recoverable from sources reachable in the Builder session**:
+  - there is no ClinicFlow repository, and no workflow, prompt, schema, test or screenshot was found;
+  - the n8n connector was unreachable (502), and Google, Meta and local sources are unreachable;
+  - only descriptive records survive (published D1 copy, decisions).
+
+  The handoff gives a provisional architecture, a preserve/rebuild matrix, a V1 contract, a test plan and risks, and proposes the next gate `CLINICFLOW_SOURCE_CAPTURE`.
+- Authority: D-133 is consumed. All action flags `NO`.
+- Next: the Architect reviews the recovery handoff. Nothing is rebuilt, created or connected automatically.
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
