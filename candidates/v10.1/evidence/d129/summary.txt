@@ -1,0 +1,55 @@
+D-129 desktop verification (local headless Chromium; ACTOR_REPORTED). Variants: baseline-bridge = pre-D-129 V10.1 (220ce809…) + RFC-022 bridge span (D-115 projects); candidate-bridge = D-129 candidate (f60179dd…) + same span; candidate-raw = D-129 candidate, no bridge.
+
+[baseline-bridge 1440x900]
+  lower-left: 'The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.' (4 rendered lines)
+  stack: ['HUMANITY', 'ORBITS', 'HIGHER']  tagline: 'IDEAS IN ORBIT'  wordmark: 'MAISOGLABS'
+  clipped: {'p': False, 'stack': False}  in viewport: {'p': True, 'stack': True}  scrollWidth/innerWidth: 1440/1440
+  overlaps: none  boxes: p={'l': 56, 't': 752, 'r': 456, 'b': 864} stack={'l': 1280, 't': 809, 'r': 1384, 'b': 864} logo={'l': 540, 't': 172, 'r': 900, 'b': 532} tagline={'l': 452, 't': 600, 'r': 988, 'b': 639}
+  console errors/warnings: none  failed requests: ['http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED', 'http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED']
+  panel overflow: {'systems': False, 'projects': False, 'journal': False, 'contact': False}  Escape back to entry: True  MLData.PROJ: ['ClinicFlow', 'Eternal Eggs', 'Sentinel / DevOS', 'SU', 'Maisog Kilat']
+
+[baseline-bridge 1280x720]
+  lower-left: 'The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software.' (3 rendered lines)
+  stack: ['HUMANITY', 'ORBITS', 'HIGHER']  tagline: 'IDEAS IN ORBIT'  wordmark: 'MAISOGLABS'
+  clipped: {'p': False, 'stack': False}  in viewport: {'p': True, 'stack': True}  scrollWidth/innerWidth: 1280/1280
+  overlaps: none  boxes: p={'l': 51, 't': 617, 'r': 451, 'b': 691} stack={'l': 1125, 't': 636, 'r': 1229, 'b': 691} logo={'l': 496, 't': 147, 'r': 784, 'b': 435} tagline={'l': 383, 't': 496, 'r': 897, 'b': 535}
+  console errors/warnings: none  failed requests: ['http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED', 'http://127.0.0.1:8201/assets/video/logo-mark.mp4 net::ERR_ABORTED']
+  panel overflow: {'systems': False, 'projects': False, 'journal': False, 'contact': False}  Escape back to entry: True  MLData.PROJ: ['ClinicFlow', 'Eternal Eggs', 'Sentinel / DevOS', 'SU', 'Maisog Kilat']
+
+[candidate-bridge 1440x900]
+  lower-left: 'Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.' (5 rendered lines)
+  stack: ['AI', 'AUTOMATION', 'SYSTEMS']  tagline: 'IDEAS IN ORBIT'  wordmark: 'MAISOGLABS'
+  clipped: {'p': False, 'stack': False}  in viewport: {'p': True, 'stack': True}  scrollWidth/innerWidth: 1440/1440
+  overlaps: none  boxes: p={'l': 56, 't': 725, 'r': 456, 'b': 864} stack={'l': 1257, 't': 809, 'r': 1384, 'b': 864} logo={'l': 540, 't': 158, 'r': 900, 'b': 518} tagline={'l': 452, 't': 586, 'r': 988, 'b': 625}
+  console errors/warnings: none  failed requests: ['http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED', 'http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED']
+  panel overflow: {'systems': False, 'projects': False, 'journal': False, 'contact': False}  Escape back to entry: True  MLData.PROJ: ['ClinicFlow', 'Eternal Eggs', 'Sentinel / DevOS', 'SU', 'Maisog Kilat']
+
+[candidate-bridge 1280x720]
+  lower-left: 'Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.' (5 rendered lines)
+  stack: ['AI', 'AUTOMATION', 'SYSTEMS']  tagline: 'IDEAS IN ORBIT'  wordmark: 'MAISOGLABS'
+  clipped: {'p': False, 'stack': False}  in viewport: {'p': True, 'stack': True}  scrollWidth/innerWidth: 1280/1280
+  overlaps: none  boxes: p={'l': 51, 't': 567, 'r': 451, 'b': 691} stack={'l': 1102, 't': 636, 'r': 1229, 'b': 691} logo={'l': 496, 't': 122, 'r': 784, 'b': 410} tagline={'l': 383, 't': 471, 'r': 897, 'b': 510}
+  console errors/warnings: none  failed requests: ['http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED', 'http://127.0.0.1:8202/assets/video/logo-mark.mp4 net::ERR_ABORTED']
+  panel overflow: {'systems': False, 'projects': False, 'journal': False, 'contact': False}  Escape back to entry: True  MLData.PROJ: ['ClinicFlow', 'Eternal Eggs', 'Sentinel / DevOS', 'SU', 'Maisog Kilat']
+
+[candidate-raw 1440x900]
+  lower-left: 'Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.' (5 rendered lines)
+  stack: ['AI', 'AUTOMATION', 'SYSTEMS']  tagline: 'IDEAS IN ORBIT'  wordmark: 'MAISOGLABS'
+  clipped: {'p': False, 'stack': False}  in viewport: {'p': True, 'stack': True}  scrollWidth/innerWidth: 1440/1440
+  overlaps: none  boxes: p={'l': 56, 't': 725, 'r': 456, 'b': 864} stack={'l': 1257, 't': 809, 'r': 1384, 'b': 864} logo={'l': 540, 't': 158, 'r': 900, 'b': 518} tagline={'l': 452, 't': 586, 'r': 988, 'b': 625}
+  console errors/warnings: none  failed requests: ['http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED', 'http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED']
+  panel overflow: {'systems': False, 'projects': False, 'journal': False, 'contact': False}  Escape back to entry: True  MLData.PROJ: ['Sentinel / DevOS', 'SU', 'ClinicFlow', 'Maisog Kilat', 'Maisog Guild']
+
+[candidate-raw 1280x720]
+  lower-left: 'Paulo Maisog — AI Automation & Technical Systems Builder\nBuilding practical AI workflows, cloud automation, and technical systems for real-world business processes.' (5 rendered lines)
+  stack: ['AI', 'AUTOMATION', 'SYSTEMS']  tagline: 'IDEAS IN ORBIT'  wordmark: 'MAISOGLABS'
+  clipped: {'p': False, 'stack': False}  in viewport: {'p': True, 'stack': True}  scrollWidth/innerWidth: 1280/1280
+  overlaps: none  boxes: p={'l': 51, 't': 567, 'r': 451, 'b': 691} stack={'l': 1102, 't': 636, 'r': 1229, 'b': 691} logo={'l': 496, 't': 122, 'r': 784, 'b': 410} tagline={'l': 383, 't': 471, 'r': 897, 'b': 510}
+  console errors/warnings: none  failed requests: ['http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED', 'http://127.0.0.1:8203/assets/video/logo-mark.mp4 net::ERR_ABORTED']
+  panel overflow: {'systems': False, 'projects': False, 'journal': False, 'contact': False}  Escape back to entry: True  MLData.PROJ: ['Sentinel / DevOS', 'SU', 'ClinicFlow', 'Maisog Kilat', 'Maisog Guild']
+
+[baseline-bridge vs candidate-bridge 1440x900] identical: systems=True projects=True research=True contact=True five-project list=True tagline=True wordmark=True stack style=True
+  hero shift (logo top, tagline top): 172->158, 600->586 (same size; moved by the taller lower-left block)
+
+[baseline-bridge vs candidate-bridge 1280x720] identical: systems=True projects=True research=True contact=True five-project list=True tagline=True wordmark=True stack style=True
+  hero shift (logo top, tagline top): 147->122, 496->471 (same size; moved by the taller lower-left block)

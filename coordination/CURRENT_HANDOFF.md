@@ -1,125 +1,133 @@
-# Current Handoff — RFC-023 / V2.1 Cycle B (D-128)
+# Current Handoff — D-129 homepage copy (two strings)
 
 ```yaml
 schema_version: 1
-handoff_id: H-DEVOS-RFC023-CYCLE-B-0001
-cycle_id: MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B
-input_base_commit: 140f58710de6067e0102967a5a1ff6e8ed4ce6e5
-review_target_commit: 140f58710de6067e0102967a5a1ff6e8ed4ce6e5
-applicable_review_id: ML-DEVOS-AS-155
+handoff_id: H-WEB-D129-HOMEPAGE-COPY-0001
+cycle_id: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
+input_base_commit: 08d192276d89d96de3553ebe3a5487f00465b7c4
+review_target_commit: 08d192276d89d96de3553ebe3a5487f00465b7c4
+applicable_review_id: ML-DEVOS-AS-156
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Every result below is `ACTOR_REPORTED` (Builder-run, cloud container, hermetic fixtures); none is Architect-reproduced.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. All results are `ACTOR_REPORTED` (Builder-run, cloud container, local headless Chromium); nothing is deployed and production is unchanged.
 
 ## Objective
 
-Under `DIR-DEVOS-RFC023-CYCLE-B-0001` (D-128), implement `ML-DEVOS-RFC-023` BC-12 (the attempt-ledger logical publication chain) and BC-10 (the RFC lifecycle-projection checks) with their tests, and apply the AS-155 §6a one-sentence reconciliation. No other change.
+Under `DIR-WEB-D129-HOMEPAGE-COPY-0001` (D-129): apply exactly two homepage copy edits at the canonical V10.1 source level, regenerate through the existing V10.1 build path, and verify on desktop. The result is a repository-local candidate only: no merge or deploy.
 
 ## Changed files
 
-**Issue commit `140f587` (parent `1e5a8a5`):** `brain/DECISION_LOG.md` (D-128: structured entry plus verbatim owner text), `coordination/CURRENT_DIRECTIVE.md`, `coordination/STATE.md`. New cycle; `CURRENT_REMEDIATION_CYCLE: 0`.
+The candidate commit is this return commit, parented on the issue commit `08d1922`, which published D-129 and the directive.
 
-**This return commit:**
-- `scripts/check-context-bootstrap.mjs` (B1):
-  - **`AttemptLedger`:** `record(…, chain)` stores chain metadata when an entry is created. New `chainKey({cycleId, parent, targetTurn})` and `settle(key, {code, continueOn})`.
-  - **`publishCandidate`:** accepts `chain` and settles every counted attempt. On the push-rejection path it now also reads back the tip to record `continue_on`; the returned code is unchanged.
-  - **New exported `publicationKey()`**, used by `runPublish`: an explicit `--transition-id` is a flat counter, otherwise the key is the chain key.
-  - Unchanged: `MAX_PUBLICATION_ATTEMPTS = 3`, `reconcile()`, `publishWithRetries()`.
-- `tests/context-bootstrap.test.mjs`: 9 new tests (BC-12 cases 1–8 plus the chain boundary).
-- `devos/governance/traceability/validate-traceability.mjs` (B2): new exported pure `validateRfcProjection(root)` with its constants, reported by `validate()` and the CLI. It is separate from the generator report, so the generated index and `generate-traceability.mjs` are untouched.
-- `tests/traceability.test.mjs`: 11 new tests (BC-10 cases 1–10 plus a byte check of the canonical line against the D-128 text).
-- `brain/protocols/CONTEXT_BOOTSTRAP.md` (B3): §6a, one sentence. The Architect authors; publication is by the Architect once `OBL-012` is satisfied, otherwise mechanically by the Builder or Paulo, with the exact bytes, through CAS (BC-4).
-- Directive archive (entry, provenance, index row); STATE; this handoff.
+**Source (the only hand edit):** `scripts/build-v101-candidate.mjs`.
+- Where V10.1 lives: it is defined by this script, as the canonical V10 artifact plus exact-match patches. The strings are code-owned JSX literals in the Entry panel, not D1/admin/`site_settings` data.
+- `patchEntry` gains two exact-match patches:
+  - the lower-left `<p>` text becomes the identity line, `<br />`, then the supporting line (same element, same style);
+  - the three stack `<span>`s become AI, AUTOMATION, SYSTEMS.
+- The script now also accepts the pinned V10 artifact as an explicit input path (SHA-256 `2417f7e5…` still verified), because `public/` holds the promoted V10.1 page.
 
-**Not changed:** `tests/context-bootstrap-v2.test.mjs` (not needed), `generate-traceability.mjs`, generated traceability output, `coordination/OPERATIVE_OBLIGATIONS.md` (carried forward unchanged), the RFC index and bodies, the local ledger file, and product, production or website files.
+**Direct build outputs:**
+
+| File | Change |
+|---|---|
+| `candidates/v10.1/site/v101/assets/entry.7995859f655d.js` → `entry.e184fa740d43.js` | Replaced (7,485 → 7,563 bytes) |
+| `candidates/v10.1/site/index.html` | One line: the entry `<script src>` |
+| `candidates/v10.1/build-report.json` | Index SHA, entry file name and size, asset total |
+| `public/index.html`, `public/v101/assets/entry.e184fa740d43.js` | Byte copies of `site/`; old entry asset removed; all 34 assets byte-identical to `site/` |
+
+No other asset changed. `design-system`, `data`, the panels, fonts, vendor, `robots.txt`, `sitemap.xml` and `_headers` are byte-identical.
+
+**Pinned constants that follow mechanically from the new index hash:**
+- `worker/bridge/inject.mjs`: `ARTIFACT_SHA256` and its comment. `ARTIFACT_LENGTH` (20,857) and `INSERTION_OFFSET` (20,116) are unchanged.
+- The one pinned SHA line in `tests/homepage-artifact.test.mjs` and in `tests/v101-candidate.test.mjs`.
+- `candidates/v10.1/README.md`: the table values and a D-129 note.
+
+**Evidence:** `candidates/v10.1/evidence/d129/` (`serve.mjs`, `run.cjs`, `summary.txt`, `shots/results.json`, 30 JPEG screenshots).
+
+**Bookkeeping:** STATE, this handoff, and the directive archive (entry, provenance, index row).
 
 ## Tests and evidence
 
-**Suites (after / before):**
+**Strings.**
 
-| Suite | After | Before |
+| | Before | After |
 |---|---|---|
-| `context-bootstrap` | 65/65 | 56 |
-| `context-bootstrap-v2` | 46/46 | unchanged |
-| `traceability` | 25/25 | 14 |
-| `skills` | 40/40 | — |
-| Full `npm test` | 643/655 | — |
+| Lower-left | "The independent technology laboratory of Paulo Maisog, building AI automation, research systems, and experimental software." | "Paulo Maisog — AI Automation & Technical Systems Builder" (identity line), then "Building practical AI workflows, cloud automation, and technical systems for real-world business processes." (supporting line) |
+| Lower-right stack | Humanity / Orbits / Higher | AI / AUTOMATION / SYSTEMS |
 
-The 12 full-suite failures are the same dependency-only files as in Cycle A (`Cannot find package 'wrangler'`/`'jose'`: Worker/D1 suites, no `node_modules` in this container).
+The stack keeps its existing uppercase letter-spaced style; no punctuation was added.
 
-**BC-12 (`tests/context-bootstrap.test.mjs`, real hermetic git):**
+**Artifacts.**
 
-| Case | Result |
-|---|---|
-| (1) D-112 regression | Four sequential PUBLISHED transitions in one cycle, no handoff, target CLAUDE: four distinct chain keys, each attempt 1. Same scenario with the pre-Cycle-B key `CYCLE_B:NONE:CLAUDE` → `PUBLISHED, PUBLISHED, PUBLISHED, PUBLICATION_ATTEMPTS_EXHAUSTED`. |
-| (2) three BRANCH_ADVANCED | Across rebuilt candidates and fresh `AttemptLedger` instances: the same key, attempts 1/2/3, `continue_on` = the rival tip. The fourth attempt is refused with `PUBLICATION_ATTEMPTS_EXHAUSTED`, 0 pushes. |
-| (3) NOT_PUBLISHED | Two NOT_PUBLISHED retries on the same key (attempt 2), then PUBLISHED as attempt 3 on that key. |
-| (4) UNKNOWN_OUTCOME | 1 push; entry `last_result: UNKNOWN_OUTCOME`, `continue_on: null`, not terminated. `publishWithRetries` also stops after 1 push. |
-| (5) separate process | A separate `node` process reading the same ledger resolves the same key with `attempts: 2`; the next attempt is 3. |
-| (6) `--transition-id` | `publicationKey` returns the override with no chain; the entry has no `chain` field. |
-| (7) old-format key | A pre-seeded old-format key with attempts 3 is byte-unchanged and still exhausted. The new default key differs and publishes as attempt 1. |
-| (8) PUBLISHED | Terminates the chain (`terminated: true`, `continue_on: null`); the next transition gets a new key, attempt 1. |
-| Boundary | `continue_on` is followed only for the exact parent + CYCLE_ID + target turn. A different parent, turn or cycle, or a terminated chain, gives a fresh key. |
+| | Old | New |
+|---|---|---|
+| Homepage `index.html` SHA-256 | `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc` | `f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3` |
+| `index.html` bytes | 20,857 | 20,857 (unchanged) |
+| Entry asset | `entry.7995859f655d.js` (SHA-256 `7995859f655d54b8…`) | `entry.e184fa740d43.js` (SHA-256 `e184fa740d4309d9…`) |
 
-**Ledger entry shape and example chain** (scratch run with the real module on a hermetic remote; hashes shortened):
+**Build path.**
+- Toolchain: `npm ci`, then Node 22.22.2 and esbuild 0.28.1, the same versions recorded for D-120.
+- Rebuilding from the pinned V10 artifact **without** the D-129 patches reproduced the committed V10.1 bytes exactly: `220ce809…`, all 34 assets, and `public/` identical to `site/`.
+- **With** the patches, only the entry asset, its reference and the derived hashes change.
+- An unminified comparison of the Entry panel before and after shows exactly the two string changes. The minified bundle also shows single-letter identifier renames, which is esbuild's name allocation, not a behavior change.
 
-```
-attempt 1: parent=f04abf6… key=CYCLE_B:f04abf6…:ARCHITECT -> BRANCH_ADVANCED (attempt 1)
-attempt 2: parent=21c4337… key=CYCLE_B:f04abf6…:ARCHITECT -> PUBLISHED (attempt 2)   # continued via continue_on=21c4337…
-attempt 3: parent=44faf3e… key=CYCLE_B:44faf3e…:ARCHITECT -> PUBLISHED (attempt 1)   # fresh chain after PUBLISHED
-"CYCLE_B:f04abf6…:ARCHITECT": { "attempts": 2, "outcomes": ["started","started"],
-  "chain": { "cycle_id": "CYCLE_B", "origin_parent": "f04abf6…", "target_turn": "ARCHITECT",
-             "continue_on": null, "terminated": true }, "last_result": "PUBLISHED" }
-```
+**RFC-022 compatibility: no substantive change.**
+- The bridge logic, payload, data script (`data.f804d6673bf6.js`), `MLData` keys, head (script-free) and `</head>` offset 20,116 are unchanged.
+- Only the pinned artifact SHA moves to the new index, the mechanical consequence AS-150 anticipated.
+- Verified in the browser with the unchanged `buildBridgeSpan` and the five D-115 projects: ClinicFlow, Eternal Eggs, Sentinel / DevOS, SU, Maisog Kilat.
+- Without the bridge, the candidate falls back to the artifact's built-in data, the same fallback behavior as before.
 
-**BC-10 (`tests/traceability.test.mjs`, temp-directory fixtures):**
+**Desktop verification** (`evidence/d129/summary.txt`; 1440×900 and 1280×720; baseline = pre-D-129 V10.1 plus bridge, candidate = D-129 plus the same bridge, and raw):
 
-| Case | Result |
-|---|---|
-| (1) | `RFC_INDEX_ROW_MISSING` |
-| (2) | `RFC_INDEX_ROW_ORPHAN` |
-| (3) | `RFC_INDEX_ROW_DUPLICATE` |
-| (4) | WARNING `RFC_STATUS_PROJECTION_STALE` (newer D-003 and AS-002), no errors |
-| (5) | `RFC_BODY_STATUS_NONCANONICAL` for old prose and for a trailing space. A CRLF body reports `RFC_BODY_STATUS_MISSING_OR_MISPLACED` (the CR breaks blank line 2 first); still an ERROR. |
-| (6) | `RFC_BODY_STATUS_MISSING_OR_MISPLACED` (missing; at line 5) |
-| (7) | `RFC_BODY_STATUS_DUPLICATE` |
-| (8) | `RFC_STATUS_VOCABULARY` |
-| (9) | `RFC_AUTHORITY_REF_UNRESOLVED` (`D-099`, `ML-DEVOS-AS-050`, `PR #7`) |
-| (10) | Valid fixture: 0 errors, 0 warnings |
+| # | Check | Result |
+|---|---|---|
+| 1–2 | Identity and supporting lines | Render exactly (5 lines at both viewports; natural wrapping: "Technical / Systems Builder", and at 1440 "real- / world") |
+| 3 | Stack | Renders as AI / AUTOMATION / SYSTEMS in the three-line treatment; computed style identical to baseline |
+| 4 | Clipping | None (`scrollWidth`/`scrollHeight` within the element box; both blocks inside the viewport) |
+| 5 | Horizontal overflow | None (`scrollWidth` = `innerWidth` on the entry view and every panel) |
+| 6 | Overlap | None between either block and the wordmark, logo stage or tagline |
+| 7 | "Ideas in Orbit" | Unchanged; the wordmark is unchanged |
+| 8–12 | Navigation, Systems, Projects (all five, same order and text), Research, Contact | Text identical to baseline at both viewports; Escape returns to the entry view |
+| 13 | Console | 0 errors and 0 warnings. The two `logo-mark.mp4 net::ERR_ABORTED` requests occur identically in the baseline, so they are pre-existing and not attributable |
 
-**Live tree, RFC projection:** 23 RFC files, 23 rows, **0 errors**, 16 heuristic `RFC_STATUS_PROJECTION_STALE` warnings: RFC-001–007, 013–017 and 020–023. Examples:
-- RFC-023 is cited by D-128, AS-154 and AS-155.
-- RFC-020 is cited by D-082, AS-111 and AS-112.
-- RFC-022 is cited by D-106 and D-107.
+**Tests:**
+- Full `npm test` with the locked dependencies installed: 978/978. The Worker/D1 suites that previously failed for missing packages now run and pass.
+- After the README update: the homepage/bridge suites (`homepage-artifact`, `v101-candidate`, `rfc022-bridge`, `worker-rfc022-content`) 45/45.
+- Traceability: unchanged from baseline (3 pre-existing errors, 13 warnings; RFC projection 0 errors).
+- Checker `--check-only`: every check ok before `--publish`.
 
-**Global traceability, Cycle A baseline → after:**
-- Errors 3 → 3 (`CORE-022`, `D-000`, `WEB-REQ-009`).
-- Warnings 13 → 13 (identical list).
-- Generated-index `DRIFT` is pre-existing and was not regenerated.
-- A transient `D-999` error from my own test fixture was caught and removed before commit.
-
-**Checker:** issue candidate `140f587` passed `--check-only`, published (attempt 1), and the post-publish bootstrap passed. This return candidate: `--check-only` with every check ok before `--publish`. It is the first real publication under BC-12; its default key is `MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B:140f5871…:ARCHITECT`.
-
-**Manual changed-file inspection (`OBL-023`):** this return touches exactly the 5 B1–B3 files, `coordination/STATE.md`, this handoff, and the directive archive (entry, provenance, index README). No `generate-traceability.mjs`, index, RFC, obligation, product or workflow file is in the diff.
+**Manual changed-file inspection (`OBL-023`):** the diff contains only the files listed above. No `data/`, `lib/`, `worker/` logic beyond the constant, migrations, D1/R2, `wrangler.jsonc`, governance or RFC file.
 
 ## Unresolved findings and limitations
 
-1. **The stale heuristic is noisy on history.** It compares numbers only within families already present in a row, because Decision and Sync numbering are independent sequences. Many of the 16 live warnings come from later records that cite an RFC in passing. Some may be real projection lag worth a later index update, for example RFC-023's row not yet listing D-128/AS-154/AS-155, RFC-020 vs D-082, RFC-021 vs D-090, RFC-022 vs D-106/D-107. D-128 does not authorize editing `devos/changes/rfcs/README.md`, so the index is unchanged.
-2. **Chain ambiguity (conservative).** While a chain is unfinished, a genuinely different transition built on exactly its `continue_on` tip, with the same CYCLE_ID and target turn, is counted on that chain. The design gives no mechanical way to tell it from a rebuild; `--transition-id` remains the explicit escape. It over-counts; it never under-counts.
-3. **Additive behavior.** The push-rejection path makes one extra read-back to record `continue_on` (same return code). Ledger entries gain `last_result`, and chain entries gain a `chain` object. Existing entries are never rewritten, except that an entry used again gets its `last_result` updated.
-4. **Lineage-scoped limit.** The fresh-clone / fresh-ledger bypass is unchanged and disclosed (§8). A fresh cloud container starts a new ledger lineage.
-5. **Validator wiring.** BC-10 runs in the traceability validator CLI and `validate()`, not in the Context Bootstrap checker. RFC-projection errors now also set the validator's non-zero exit. The CLI was already non-zero from the pre-existing baseline errors and drift.
-6. **Stale self-expiring wording.** `CONTEXT_BOOTSTRAP.md` §3 item 7 still describes the old default key "until … Cycle B implements BC-12". That sentence is self-expiring and was left untouched under D-128's §6a-only limit.
+1. **Hero shift (for your judgment).** The lower-left block grew from 3–4 lines to 5, so the centred hero column (logo, wordmark, tagline) moves up without resizing:
+   - 1440×900: 14 px (logo top 172 → 158);
+   - 1280×720: 25 px (147 → 122).
+
+   There is no overlap, and the gap from tagline to text is 100 px and 57 px respectively. I judged this natural wrapping, not a redesign, and the hero was not touched to compensate.
+2. **Presentation.** The identity line and the supporting line share the paragraph's existing style, separated only by a line break; nothing was added to distinguish them (D-129: no embellishment). The Architect or Paulo may prefer a visual distinction; that would be a design change beyond D-129.
+3. **Retained duplicate.** `design-system.c349f854986d.js` still carries an earlier duplicate `Entry` with the old strings. `entry.js` overwrites it at load, and it is never rendered (the DOM check confirms no old copy). It is left unchanged because editing it would change a second asset beyond D-129's minimal scope. The separate closing line "Humanity / orbits higher." in the design-system and contact bundles is also unchanged, since it was not covered by D-129.
+4. **Mobile** was not verified (deferred by D-129).
+5. **Evidence class.** Screenshots and checks are local and headless, with no production observation, as authorized.
 
 ## Governing references
 
-D-128; `ML-DEVOS-AS-155`; `ML-DEVOS-RFC-023` BC-4, BC-10, BC-12, §6; `DIR-DEVOS-RFC023-CYCLE-B-0001` (archived); `coordination/OPERATIVE_OBLIGATIONS.md` (`OBL-023`).
+D-129; `ML-DEVOS-AS-156`; D-126 (otherwise in force); D-120/D-121 and `candidates/v10.1/README.md`; `ML-DEVOS-RFC-022`, `worker/bridge/inject.mjs`; `ML-DEVOS-AS-150`; `coordination/OPERATIVE_OBLIGATIONS.md` (`OBL-023`).
 
 ## Evidence locations
 
-- Diffs: `git diff 1e5a8a5 140f587` (issue) and `git diff 140f587 <return commit>` (implementation).
-- Commands: `node --test tests/context-bootstrap.test.mjs tests/context-bootstrap-v2.test.mjs tests/traceability.test.mjs tests/skills.test.mjs`; `node devos/governance/traceability/validate-traceability.mjs`; `node scripts/check-context-bootstrap.mjs --commit <sha> --session-protocol 2`.
+- `candidates/v10.1/evidence/d129/summary.txt`, `shots/results.json` and `shots/*.jpg`:
+  - `candidate-bridge-1440x900-entry.jpg`, `candidate-bridge-1280x720-entry.jpg`;
+  - the baseline equivalents, and all panels.
+- Reproduce:
+
+  ```
+  git show f2c13aa:public/index.html > /tmp/v10.html
+  node scripts/build-v101-candidate.mjs /tmp/v10.html
+  ```
+
+  Then run `node serve.mjs` and `node run.cjs` in `evidence/d129/`.
 
 ## Next action
 
-Architect review of Cycle B against D-128 and `ML-DEVOS-RFC-023` BC-10/BC-12. If Cycle B is accepted with no blocker, D-128 treats V2.1 as frozen, and product work (ClinicFlow) is the intended next priority.
+Architect review of the D-129 candidate. Merge and deployment need a separate Paulo decision after acceptance.
