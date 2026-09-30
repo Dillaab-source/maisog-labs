@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D132_GATE_D_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D132_GATE_D_ACCEPTED_RELEASE_CLOSED_NEXT_PRODUCT_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D132-GATE-D-0001
-REVIEW_TARGET_COMMIT: 9cf8ec1823ae36602bf0c205400fff9c67905161
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-159
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,8 +29,7 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Return: `H-WEB-D132-GATE-D-0001`. D-132 Gate D is done: `666b7bef-9d41-47d0-b5ca-00b8351f9a29` @ 100% (deployment `cd4abd09…`, from `8fd31f47…`). Live checks: D-129 copy, Entry stack, `entry.e184fa740d43.js`, navigation, project order, APIs/Journal, `/admin` Access, and 0 Worker errors. No rollback. No D1/R2/config mutation.
-- Authority: D-132 is consumed. `DEPLOY_AUTHORIZED` is reset to `NO`; all action flags `NO`.
-- Next: the Architect reviews `H-WEB-D132-GATE-D-0001`. No further production action is authorized.
+- Review: `ML-DEVOS-AS-160` — `READY TO COMMIT: YES`; D-132 Gate D accepted. The D-129 homepage release sequence is complete and **closed**: `666b7bef…` @ 100% (deployment `cd4abd09…`). Runtime evidence is `ACTOR_REPORTED`. Published mechanically by the Builder under BC-4 from the Architect's base64 payload: SHA-256 `c2609b94…`, 6383 bytes, 187 lines, verified.
+- Next: Paulo makes a new product/work-priority decision outside D-132. No further website release, S6 or V2.1 Revision 2 action is authorized, and none resumes automatically. All action flags `NO`.
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
