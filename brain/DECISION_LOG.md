@@ -3030,3 +3030,229 @@ Chronological record of governance-relevant decisions. Newest entries at the bot
   - The next separate task is the **SU + Architect consolidated retrospective**: identify all lessons from the Sentinel/DevOS build; challenge each; remove duplicates; classify KEEP / SIMPLIFY / REQUIRED ROBUSTNESS / DEFER / REMOVE; propose the smallest coherent architecture amendment.
   - That amendment is **not** performed in D-126.
 - **Boundaries:** governance-only. No website/product code, D1/R2, Cloudflare change, deployment, `main` merge, S6/S7, Tier 2 implementation, new governance subsystem or additional learning file. Every authorization flag stays `NO`.
+
+### D-127 — Adopt ML-DEVOS-RFC-023 / Context Bootstrap V2.1; authorize Cycle A only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `4e8a4789e2289477b6bf10076f86a36b1e1a04d3` (live STATE `TURN: PAULO`, `PAULO_DECISION_REQUIRED`), after the Architect's final review of V2.1 revision 3 (`ACCEPTED FOR OWNER ADOPTION DECISION`, persisted as `ML-DEVOS-AS-153`). Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Relationship to D-126:** narrowly supersedes D-126's reservation that active governance architecture amendments wait for the consolidated retrospective, **only** for the already-reviewed V2.1 / RFC-023 amendment. The other D-126 learnings are **not** adopted. The SU + Architect consolidated retrospective remains pending as a separate later task.
+- **Adopted:** V2.1 revision 3 as accepted by the Architect (`ML-DEVOS-AS-151` → `AS-152` → `AS-153`), carried by `ML-DEVOS-RFC-023`: an additive governance-efficiency / policy amendment to Protocol V2. `PROTOCOL_VERSION: 2` preserved; no STATE schema change; BC-1 through BC-12 adopted as accepted.
+- **Authorized:** Cycle A only — the policy / document / record migration listed in the owner text (items 1–11).
+- **Not authorized:** Cycle B (checker, attempt-ledger, traceability-validator code and tests) — a separate Paulo decision after Cycle A review; any Authorized Work Envelope (D-127 grants none); production mutation, deployment, `main` merge, D1/R2, Access/DNS/bindings/secrets/environment, website/product changes, Tier 2, S6/S7, D-068, mobile remediation. All action flags stay `NO`.
+- **Owner clarification on review preservation (2026-09-30, Builder session):** asked about the first Architect review, whose relay contains three elided `Pasted text` quotations, Paulo answered that the three closing paragraphs are the Architect's, and chose "As relayed, gaps disclosed": persist the exact bytes as received, keep the markers verbatim, disclose that the excerpts are unrecoverable, reconstruct nothing. Persisted accordingly as `ML-DEVOS-AS-151`.
+- **Routing:** issue `DIR-DEVOS-RFC023-CYCLE-A-0001` to Claude/Builder (cycle `MAISOGLABS_DEVOS_RFC023_V21`, scope `D127_RFC023_CYCLE_A_POLICY_RECORD_MIGRATION_ONLY`); return one bounded Cycle A handoff with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; stop.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-127.
+
+D-127 — Adopt ML-DEVOS-RFC-023 / Context Bootstrap V2.1; authorize Cycle A only.
+
+RELATIONSHIP TO D-126
+
+D-127 narrowly supersedes D-126's reservation that active governance architecture amendments wait for the consolidated retrospective, ONLY for the already-reviewed V2.1 / RFC-023 amendment.
+
+Reason:
+V2.1 has already completed a separate three-revision design and Architect review cycle and directly addresses the governance/coordination overhead affecting current work.
+
+This does NOT convert the other D-126 learnings into adopted architecture.
+
+The broader SU + Architect consolidated retrospective remains pending as a separate later task.
+
+Do not represent RFC-023 as adopting all D-126 findings.
+
+ADOPTED DESIGN
+
+Adopt V2.1 Revision 3 as accepted by the Architect.
+
+Carrier:
+ML-DEVOS-RFC-023
+
+It is an additive governance-efficiency / policy amendment to Protocol V2.
+
+Preserve:
+
+PROTOCOL_VERSION: 2
+
+No STATE schema change.
+
+Adopt BC-1 through BC-12 as accepted, including:
+
+- finite ordered Authorized Work Envelopes;
+- envelope progression separate from remediation counting;
+- shared remediation budget across an envelope unless Paulo later decides otherwise;
+- evidence escalation using existing CORE-020;
+- Existing-Capability-First;
+- Author != Publisher;
+- Adaptive SENTINEL / SU;
+- Constructive Dissent;
+- Knowledge Treasury reuse;
+- unchanged archive retention;
+- Thin STATE;
+- RFC lifecycle projection;
+- Thin obligations;
+- attempt-ledger repair.
+
+==================================================
+REVIEW RECORD PRESERVATION
+==================================================
+
+The V2.1 design revisions and Architect reviews currently exist only in chat.
+
+Before treating RFC-023 as durable adopted architecture, preserve the review trail.
+
+Publish each Architect review under its own NEW immutable ML-DEVOS-AS-NNN.
+
+Do not pretend those reviews were previously repository-published.
+
+Their provenance must state that they are being durably persisted now from the earlier Architect review conversation.
+
+Preserve the actual review text faithfully.
+
+Do not reconstruct, embellish or invent missing review content.
+
+If an exact prior review cannot be recovered, STOP and report which record is missing rather than fabricating it.
+
+Revision 3 becomes the design text of ML-DEVOS-RFC-023.
+
+RFC-023 must use the accepted canonical lifecycle Status line:
+
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
+
+==================================================
+CYCLE A AUTHORIZATION
+==================================================
+
+Authorize Cycle A ONLY.
+
+Cycle A may implement the accepted POLICY / DOCUMENT / RECORD migration:
+
+1. Persist the immutable Architect review records.
+
+2. Create:
+   devos/changes/rfcs/ML-DEVOS-RFC-023.md
+
+3. Record D-127 in:
+   brain/DECISION_LOG.md
+
+4. Amend:
+   brain/protocols/ARCHITECT_SYNC.md
+   brain/protocols/CONTEXT_BOOTSTRAP.md
+   CLAUDE.md
+
+5. Amend canonical Skills only where they actually restate changed policy:
+   .agents/skills/...
+
+If canonical Skills change, regenerate the .claude/skills bridge using the existing generator.
+Never hand-edit generated bridges.
+
+6. Update:
+   coordination/OPERATIVE_OBLIGATIONS.md
+
+Add the previously STATE-only durable obligations identified in Revision 3 before thinning STATE.
+
+Then:
+- OPEN / DEFERRED rows remain fully descriptive;
+- CLOSED / SUPERSEDED rows may become the accepted compact five-cell stubs;
+- preserve every obligation ID and source/closure reference.
+
+7. Rewrite:
+   devos/changes/rfcs/README.md
+
+as the subordinate RFC lifecycle projection.
+
+Ensure every RFC file has exactly one row.
+
+The currently missing RFC-011 and RFC-020 rows must be restored.
+
+8. Replace the Status line in RFC-001 through RFC-022 with the exact canonical pointer.
+
+9. Update:
+   devos/templates/RFC_TEMPLATE.md
+
+to use that same canonical pointer.
+
+10. RFC-023 uses the pointer from creation.
+
+11. Apply the Thin STATE body policy only at the normal governed transition after all STATE-only obligations have been preserved in OPERATIVE_OBLIGATIONS.md.
+
+No STATE header/schema changes.
+
+==================================================
+NOT AUTHORIZED — CYCLE B
+==================================================
+
+Cycle B is NOT authorized.
+
+Do not yet modify:
+
+- scripts/check-context-bootstrap.mjs
+- attempt-ledger behavior
+- originParent / continue_on implementation
+- traceability validator behavior
+- context-bootstrap ledger tests
+- RFC projection validator tests
+
+Those code/test changes require a separate Paulo decision after Cycle A is reviewed.
+
+==================================================
+NO ENVELOPE GRANT YET
+==================================================
+
+Adopting RFC-023 does NOT itself create an Authorized Work Envelope.
+
+No autonomous multi-step envelope is granted by D-127.
+
+Any future envelope must be explicitly defined by a separate Paulo Decision with its finite ordered steps.
+
+==================================================
+HARD BOUNDARIES
+==================================================
+
+Not authorized:
+
+- production mutation;
+- deployment;
+- main merge;
+- D1 or R2 mutation;
+- Access / DNS / bindings / secrets / environment changes;
+- website/product changes;
+- Tier 2 website work;
+- S6 / S7;
+- D-068;
+- mobile remediation;
+- Cycle B code changes.
+
+All production action flags remain NO.
+
+This is repository-governance Cycle A only.
+
+==================================================
+VALIDATION
+==================================================
+
+Before handoff:
+
+- run the existing Context Bootstrap checker;
+- verify no STATE schema change;
+- verify PROTOCOL_VERSION remains 2;
+- verify all unresolved obligations survive;
+- verify every RFC-001 through RFC-023 has exactly one canonical Status line;
+- verify the RFC index has exactly one row for each RFC;
+- verify archive behavior is unchanged;
+- verify generated Skills bridges match canonical Skills if regeneration was required;
+- inspect the complete changed-file set manually per AS132-F003;
+- confirm no Cycle B implementation slipped into the diff.
+
+Then publish one bounded Cycle A handoff.
+
+Route:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+All action-specific production flags remain NO.
+
+STOP after the Cycle A handoff.
+````

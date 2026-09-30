@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_WEB_RFC022_CBR
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: D126_PARKED_NO_ACTION_NEXT_DECISION_ONLY
+CYCLE_ID: MAISOGLABS_DEVOS_RFC023_V21
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D127_RFC023_CYCLE_A_POLICY_RECORD_MIGRATION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,11 +14,11 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-DEVOS-RFC023-CYCLE-A-0001
+DIRECTIVE_ISSUE_PARENT: 4e8a4789e2289477b6bf10076f86a36b1e1a04d3
+DIRECTIVE_AUTHORITY_REF: D-127
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-153
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,30 +29,27 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Architect review
 
-`ML-DEVOS-AS-150`: `ACCEPTED — RFC-022 INITIAL PROJECT ACTIVATION COMPLETE`. The five recruiter-ready projects (ClinicFlow 7, Eternal Eggs 8, Sentinel / DevOS 9, SU 10, Maisog Kilat 11) are live through RFC-022. AS132-F002 is consumed; D-125 is closed. Production: `8fd31f47…` @ 100%; `main` `97ca982c9e8f1e306aaa8c8a5198f43f8e00629e`.
+`ML-DEVOS-AS-153`: `ACCEPTED FOR OWNER ADOPTION DECISION` — V2.1 revision 3 (after `ML-DEVOS-AS-151` and `AS-152`). These three reviews were never previously repository-published; they are persisted now under D-127 from the Architect review conversation (`AS-151` keeps three elided `Pasted text` relay markers, disclosed).
 
-## D-126 — parked, no action
+## D-127 — adopt RFC-023 / V2.1; Cycle A only
 
-D-126 (governance-record-only) closes the AS-150 homepage-copy local-implementation decision state:
-- **Prototype parked:** the local recruiter-copy prototype (`f1917b6a…` / `entry.87049e774a02.js`) was feasibility evidence only. Parked: no recreation, release candidate, PR, merge, upload or deploy; no Gate C / Gate D.
-- **Homepage copy deferred:** future homepage copy is deferred to RFC-022 Tier 2 `Profile / Home` Content Admin (draft → protected preview → publish, existing `site_settings` where appropriate). Tier 2 is not implemented now.
-- **Learnings captured, not adopted:** ten governance/architecture findings are recorded in `brain/DECISION_LOG.md` § D-126, pending the separate SU + Architect consolidated retrospective. They do not amend the active architecture.
+Paulo adopted V2.1 revision 3 as `ML-DEVOS-RFC-023`, an additive policy amendment to Protocol V2 (`PROTOCOL_VERSION: 2`, no STATE schema change). D-127 narrowly supersedes D-126's retrospective reservation for RFC-023 only; the other D-126 learnings stay unadopted and the SU + Architect retrospective remains pending.
 
-No website action is pending. The next task (the consolidated retrospective) needs its own separate owner decision.
+`DIR-DEVOS-RFC023-CYCLE-A-0001` authorizes Cycle A only: the policy / document / record migration (D-127 items 1–11). No Authorized Work Envelope is granted.
 
 ## Hard boundaries
 
 All action-specific authorization flags are `NO`.
 
 Not authorized:
-- recreating, committing, releasing or deploying the homepage copy prototype; Tier 2 implementation;
-- project, contact, `site_settings`, D1 or R2 mutation;
-- any deployment, promotion, rollback or traffic shift; `main` merge;
-- Access, DNS, binding, secret, environment or zone change (including robots.txt/content signals); schema or migration change;
-- mobile remediation; `og:image`;
-- amending the active governance architecture (reserved for the retrospective).
+- Cycle B: `scripts/check-context-bootstrap.mjs`, the attempt ledger, the traceability validator, any test;
+- any STATE header/schema or `PROTOCOL_VERSION` change; any archive-behavior change;
+- production mutation, deployment, promotion, rollback or traffic shift; `main` merge;
+- D1 or R2 mutation; Access, DNS, binding, secret, environment or zone change;
+- website/product changes; Tier 2; the parked homepage prototype; mobile remediation; `og:image`;
+- amending the active governance architecture beyond RFC-023.
 
-AS132-F002 is consumed. AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
+AS132-F003 remains open: publications manually inspect STATE and the changed-file set.
 
 No PR #7 or PR #10 action. No S6/S7. No D-068. A-3 and A-6 are not authorized.
 
@@ -60,4 +57,4 @@ S6 remains parked at ML-DEVOS-AS-103. O1 and O2 remain open.
 
 ## Next transition
 
-Paulo decides the next task (expected: the SU + Architect consolidated retrospective). No production mutation is authorized.
+Claude/Builder performs Cycle A and publishes `H-DEVOS-RFC023-CYCLE-A-0001`: archive and deselect the directive, keep every flag `NO`, route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
