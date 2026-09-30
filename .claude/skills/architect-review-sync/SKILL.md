@@ -40,17 +40,22 @@ This Skill packages an already-defined review procedure. It never grants review 
    - a fresh SENTINEL sync and an SU contradiction check recorded in the directive.
 
    A `BLOCKED` disposition is never issued to the Builder. The directive is transport only; it never widens authority.
-6. Publish only with exact-old-value compare-and-swap on the branch ref. A provider that cannot do this is advisory/read-only and must not publish.
+6. Publish only with exact-old-value compare-and-swap on the branch ref (`node scripts/check-context-bootstrap.mjs --publish --candidate <sha>`). Author ≠ Publisher (`devos/changes/rfcs/ML-DEVOS-RFC-023.md` BC-4):
+   - The Architect authors the review and the routing decision.
+   - Lack of an Architect CAS channel does **not** invalidate the review. While `OBL-012` remains open, the Builder or Paulo may mechanically publish the exact Architect-authored candidate.
+   - The mechanical publisher may not edit, reinterpret, approve or widen authority.
+   - Exact-tip CAS remains mandatory. If neither the Architect nor an authorized mechanical publisher can provide it, stop.
 
 ## Output
 
-A written review following `ARCHITECT_SYNC.md`'s pipeline, ending in one defined verdict, published as a new immutable Sync ID in `coordination/ARCHITECT_REVIEW.md` and its archive.
+A written review following `ARCHITECT_SYNC.md`'s pipeline, ending in one defined verdict, published as a new immutable Sync ID in `coordination/ARCHITECT_REVIEW.md` and its archive, by the Architect or, under BC-4, by a mechanical publisher.
 
 ## Stop / escalation conditions
 
 - A finding that requires a Paulo gate must be surfaced as a named blocker requiring that gate — never silently resolved by the review itself, and never treated as approved by the review's own act of noticing it.
 - Never self-certify a Builder's own reported evidence as `ARCHITECT VERIFIED` without independent inspection — that upgrade is exactly what this Skill exists to perform, not to skip.
-- Branch advanced, mixed snapshot, protocol-version mismatch, or no CAS capability: stop and re-bootstrap; do not publish.
+- Branch advanced, mixed snapshot, or protocol-version mismatch: stop and re-bootstrap; do not publish.
+- Neither the Architect nor an authorized BC-4 mechanical publisher can provide exact-tip CAS: stop; do not publish.
 
 ## Governance dependencies
 

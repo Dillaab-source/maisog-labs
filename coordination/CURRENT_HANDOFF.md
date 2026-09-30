@@ -1,106 +1,67 @@
-# Current Handoff — RFC-023 / Context Bootstrap V2.1 Cycle A (D-127)
+# Current Handoff — RFC-023 Cycle A remediation 1 (AS-154-F001)
 
 ```yaml
 schema_version: 1
-handoff_id: H-DEVOS-RFC023-CYCLE-A-0001
+handoff_id: H-DEVOS-RFC023-CYCLE-A-REM1-0001
 cycle_id: MAISOGLABS_DEVOS_RFC023_V21
-input_base_commit: 25ac69e9453dc75e7fe011b1cebeb45caaacc655
-review_target_commit: 25ac69e9453dc75e7fe011b1cebeb45caaacc655
-applicable_review_id: ML-DEVOS-AS-153
+input_base_commit: afd29a9a51c25273c71b5da03b8740216eb181ca
+review_target_commit: afd29a9a51c25273c71b5da03b8740216eb181ca
+applicable_review_id: ML-DEVOS-AS-154
 ```
 
-This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Every check below is `ACTOR_REPORTED` (Builder-run, in a cloud container with a shallow clone); none is Architect-reproduced.
+This handoff is evidence, not authority. Routing, turn, scope and flags live only in `coordination/STATE.md`. The Builder does not self-approve. Every check below is `ACTOR_REPORTED`.
 
 ## Objective
 
-Carry out `D-127` Cycle A under `DIR-DEVOS-RFC023-CYCLE-A-0001`: persist the V2.1 review trail, file `ML-DEVOS-RFC-023`, and migrate the policy text, `CLAUDE.md`, obligations and RFC lifecycle projection. No code, checker, validator, test, STATE-schema, archive-behavior or production change.
+Remediate `AS-154-F001` only, under `DIR-DEVOS-RFC023-CYCLE-A-REM1-0001`: propagate the BC-4 Author ≠ Publisher path to `CLAUDE.md`'s write gate, `ARCHITECT_SYNC.md`'s turn protocol and the `architect-review-sync` Skill, and regenerate the bridge.
 
 ## Changed files
 
-**Issue commit `25ac69e` (published, parent `4e8a478`):** `brain/DECISION_LOG.md` (D-127: structured entry plus the verbatim owner text and the owner's AS-151 clarification); `devos/changes/architect-syncs/ML-DEVOS-AS-151.md`, `-152.md`, `-153.md` (new) and the README rows; `coordination/ARCHITECT_REVIEW.md` (now AS-153, byte-identical to its archive); `coordination/CURRENT_DIRECTIVE.md`; `coordination/STATE.md`.
+**Routing commit `afd29a9` (parent `0e6711b`):** published by the Builder as **mechanical publisher only** (BC-4).
+- `ML-DEVOS-AS-154` in `coordination/ARCHITECT_REVIEW.md` and its archive, verbatim under a publisher header.
+- The `H-DEVOS-RFC023-CYCLE-A-0001` handoff archive, with its provenance file and index row.
+- `coordination/CURRENT_DIRECTIVE.md`.
+- STATE.
 
 **This return commit:**
-- `devos/changes/rfcs/ML-DEVOS-RFC-023.md` — new. Revision 3 verbatim with headings demoted one level, plus a provenance section; canonical Status line from creation.
-- `brain/protocols/ARCHITECT_SYNC.md` — new "V2.1 policy amendment" section (BC-1 Envelope, BC-3, BC-4, BC-6); BC-2 escalation added to Evidence discipline.
-- `brain/protocols/CONTEXT_BOOTSTRAP.md` — RFC-023 authority line; §2 STATE body (BC-9); §3 item 7 (BC-12 adopted key, with the current checker key stated until Cycle B); §5 presentation (BC-11); §8 bypass line (lineage-scoped limit, disclosed).
-- `CLAUDE.md` — superseded Phase 1 text (old lines 68–281) removed and replaced by a History pointer; the V1 read set compressed under the same `## Required first read` heading. That heading is kept because `--baseline` parses it.
-- `coordination/OPERATIVE_OBLIGATIONS.md` — `OBL-023` (AS132-F003), `OBL-024` (S6 parked, `DEFERRED`), `OBL-025` (O1) and `OBL-026` (O2) added. OPEN/DEFERRED rows first, byte-identical; the 9 CLOSED rows compacted to five-cell stubs.
-- `devos/changes/rfcs/README.md` — rewritten as the subordinate projection: 23 rows, restoring RFC-011 and RFC-020.
-- `devos/changes/rfcs/ML-DEVOS-RFC-001…022.md` — line 3 only (22 × 1/1 line diffs).
-- `devos/templates/RFC_TEMPLATE.md` — canonical line moved to line 3; vocabulary noted in the comment and the index.
-- `coordination/archive/directives/DIR-DEVOS-RFC023-CYCLE-A-0001.md` + `.provenance.json` + index row (`archiveDirective()`); `coordination/STATE.md` (return gate; thin body); this handoff.
+- **A. `CLAUDE.md`.** The write gate now covers Builder-authored governed work (`TURN: CLAUDE` + `IMPLEMENTER_ACTION_REQUIRED: YES`). A new "Exception — mechanical publication" paragraph carries AS-154's five conditions and its no-authority clause verbatim in substance. The "Architect writes" line now reads "Architect authors" and points to the exception.
+- **B. `brain/protocols/ARCHITECT_SYNC.md` § Turn protocol.** The Builder bullet is limited to Builder-authored writes, with the BC-4 exception noted. The Architect bullet now says the Architect *authors* the review and routing decision, and the review "is published" with its archive. A new bullet: Architect = author/reviewer; publisher = Architect once `OBL-012` is satisfied, otherwise Builder or Paulo publish the exact bytes unchanged through exact-tip CAS. The BC-4 section itself is unchanged.
+- **C. `.agents/skills/architect-review-sync/SKILL.md`.** Only the publication mechanics changed:
+  - procedure step 6 (the Architect authors; no Architect CAS channel does not invalidate the review; BC-4 mechanical publication while `OBL-012` is open; no edit, reinterpretation, approval or widening; CAS mandatory; stop if neither publisher can provide it);
+  - the Output line;
+  - the no-CAS stop condition.
 
-**Not changed:** `.agents/skills/` and `.claude/skills/`. No Skill restates a changed policy: the "at most `MAX_PUBLICATION_ATTEMPTS = 3`" line stays true, and no Skill restates routing, escalation, the STATE body or RFC status. Also untouched: `scripts/`, `tests/`, `devos/governance/traceability/`, every product file.
+  Activation gate, independent review, immutable IDs, archives, SENTINEL/SU and re-entry text are unchanged.
+- **D. `.claude/skills/architect-review-sync/SKILL.md`.** Regenerated with `node scripts/generate-claude-skills-bridge.mjs`. The other three bridges regenerated byte-identical, so there is no diff.
+- `coordination/archive/directives/DIR-DEVOS-RFC023-CYCLE-A-REM1-0001.md` + `.provenance.json` + index row; STATE; this handoff.
 
-## RFC status mapping (for Architect review)
-
-Old line 3 → projected status (template vocabulary). Full old lines: `git show 25ac69e:devos/changes/rfcs/ML-DEVOS-RFC-NNN.md`. Every ID cited in an old line is carried into that RFC's index row (checked mechanically).
-
-| RFC | Old status line (truncated) | Projected |
-|---|---|---|
-| RFC-001 | `IMPLEMENTED AND CLOSED` — implemented at `c76bf6a6390581963d2ded2e5db18d96b4a346b4`, te… | ACCEPTED (+ ADR-002) |
-| RFC-002–012 | `ACCEPTED` | ACCEPTED |
-| RFC-013 | `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-013 / D-046` | ACCEPTED (+ ADR-013) |
-| RFC-014 | `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-011 / D-046; explicit no Sentinel capability-base… | ACCEPTED (+ ADR-011) |
-| RFC-015 | `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-012 / D-046; co-effective at v1.6.0 with ML-DEVOS… | ACCEPTED (+ ADR-012/013) |
-| RFC-016 | `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051` | ACCEPTED (+ ADR-014) |
-| RFC-017 | `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-015 / D-065` | ACCEPTED (+ ADR-015) |
-| RFC-018 | `DRAFT` | ACCEPTED — judgment: AS-078 approved; D-062 implemented and activated it |
-| RFC-019 | `DRAFT` — proposal. Architect-approved in `ML-DEVOS-AS-089` after Remediation Cycles 1–3… | ACCEPTED — judgment: design accepted by AS-101; core accepted by AS-103; parked by D-075 |
-| RFC-020 | `ARCHITECT-APPROVED PROPOSAL (ML-DEVOS-AS-108) — STAGE A ACCEPTED (ML-DEVOS-AS-110); PRO… | ACCEPTED — judgment: V2 active since D-080 |
-| RFC-021 | `ACCEPTED` — independently approved by `ML-DEVOS-AS-118` and accepted by Paulo under `D-… | ACCEPTED |
-| RFC-022 | `ACCEPTED` — accepted by `ML-DEVOS-AS-132` (final architecture review), after Paulo's ow… | ACCEPTED |
-| RFC-023 | (new) | ACCEPTED (AS-151–153; D-127); class `CORE_POLICY` is a Builder projection |
+**Not changed:** RFC-023, RFC mappings and status lines, `coordination/OPERATIVE_OBLIGATIONS.md` (carried forward unchanged), `scripts/`, `tests/`, the traceability validator, product files, production.
 
 ## Tests and evidence
 
 All `ACTOR_REPORTED`:
-- **Checker.** Issue candidate `25ac69e`: `--check-only`, then `--publish` → `PUBLISHED`, attempt 1, key `MAISOGLABS_DEVOS_RFC023_V21:NONE:CLAUDE`. Post-publish bootstrap `--commit 25ac69e --session-protocol 2`: all checks ok. This return candidate: `--check-only` with every check ok before `--publish`.
-- **Obligations.** `checkObligationCarryForward(25ac69e, candidate)` → `OBLIGATIONS_CARRIED_FORWARD`; 26 rows (13 unresolved carried byte-identical, 4 added, 9 stubs).
-- **RFC status lines.** RFC-001…023: each has exactly one `^Status:` line, byte-identical to the canonical line, at line 3, with blank lines 2 and 4. No CRLF. RFC-001…022 diffs are 1/1 lines each.
-- **RFC index.** 23 rows = 23 files, no duplicates, statuses within the vocabulary; all 94 authority refs resolve to a `### D-NNN` heading, an AS archive or an ADR file.
-- **STATE.** Header field set and order unchanged; `PROTOCOL_VERSION: 2`; body 487 bytes.
-- **Traceability validator.**
-  - Errors 3 (`CORE-022`, `D-000`, `WEB-REQ-009`), identical to the clean tip `4e8a478`.
-  - The issue commit alone showed a transient fourth error (`ML-DEVOS-RFC-023` referenced before creation); it is resolved here.
-  - Warnings 14 → 13 (`D-009` now has an inbound reference).
-  - Generated-index `DRIFT` is pre-existing at `4e8a478` and was not regenerated.
-- **Skills bridge.** `node scripts/validate-claude-skills-bridge.mjs`: all four OK. No regeneration needed.
-- **Tests.**
-  - Governance suites: `context-bootstrap`, `context-bootstrap-v2`, `traceability` 116/116; `skills` 40/40.
-  - Full `npm test`: 623/635. The 12 failing files all fail on `Cannot find package 'wrangler'` / `'jose'` (no `node_modules` in this container): Worker/D1 suites, environment-only, identical before and after. No product file changed.
-- **Sizes (M6).** `CLAUDE.md` 12,456 → 4,638 B (target ≤ 4.7 KB met). STATE body 2,253 → 487 B (met). Obligations 7,480 → 7,174 B (target ≤ 5 KB **not met**: the four required new rows offset the stub savings).
-- **`--baseline`, `25ac69e` vs this candidate.** The V1 `## Required first read` set is still the same 13 files (106,941 → 96,436 B). The V2 Builder startup set (4 files) went 28,303 → 18,724 B, an estimated 7,076 → 4,681 tokens (`ceil(bytes/4)`). `CURRENT_DIRECTIVE.md` is unchanged between the two commits.
-- **AS132-F003 / OBL-023.** The Builder inspected both candidates' STATE transitions and complete changed-file sets manually (lists above). No Cycle B file is in either diff.
+- **Bridge.** Generator: "Wrote 4 bridge file(s)". `node scripts/validate-claude-skills-bridge.mjs`: all four OK.
+- **Test suites.** `node --test tests/skills.test.mjs tests/context-bootstrap.test.mjs tests/context-bootstrap-v2.test.mjs`: 142/142.
+- **Checker.** Routing candidate `afd29a9`: `--check-only` all ok, then `--publish` → `PUBLISHED`. Post-publish bootstrap on `afd29a9`: ok. This return candidate: `--check-only` with every check ok before `--publish`.
+- **Manual changed-file inspection (`OBL-023`).** This return touches exactly: the 4 files in A–D, `coordination/STATE.md`, `coordination/CURRENT_HANDOFF.md`, and the directive archive (entry, provenance, index README). No Cycle B file changed: no `scripts/`, `tests/` or `devos/governance/traceability/` path is in the diff.
 
 ## Unresolved findings and limitations
 
-1. **AS-151 relay gaps.** The relayed first review contains three `Pasted text` markers whose quoted content is unrecoverable. The markers are kept verbatim and disclosed, per the owner's clarification recorded in D-127.
-2. **AS IDs assigned by the Builder.** `ML-DEVOS-AS-151`–`153` were assigned at persistence by the Builder as mechanical publisher. The reviews had never been repository-published. AS-153 became the live `ARCHITECT_REVIEW.md` so that the directive and this handoff could bind to it.
-3. **Revisions 1 and 2 are not persisted.** Revision 1 was unavailable to this session; revision 2 exists only in the Builder session transcript.
-4. **Phase 1 text is now only in Git history** (`4e8a478:CLAUDE.md`, blob `9877e6e4…`, lines 68–281). A shallow clone may need a deeper fetch to read it. This deletion was adopted design (§4 item 6); AS51-F007 required only that the text not read as current scope.
-5. **Cycle B is not implemented.**
-   - The BC-10 validator checks and the BC-12 ledger key do not exist yet.
-   - The status lines and index were verified mechanically in this handoff only.
-   - The checker still uses the old default key (stated in CONTEXT_BOOTSTRAP §3 item 7).
-6. **Mapping judgments** (table above): RFC-018/019/020 → `ACCEPTED`; "IMPLEMENTED AND CLOSED" → `ACCEPTED` with its ADR; RFC-023 class `CORE_POLICY` (the design text states no class).
-7. **STATE body held-positions line.** PR #7 and A-3/A-6 are kept in the body. BC-9 drops only prohibitions already covered by the flags, `AUTHORIZED_SCOPE` or the cited Decision, and D-127 and the obligations index cover neither.
-8. **OBL-024 is `DEFERRED`** (parked to a separate Paulo decision), not `OPEN`: a Builder judgment.
-9. **Possibly stale text, outside Cycle A.** `CONTEXT_BOOTSTRAP.md`'s top status line still says V2 is "pending the Architect's independent activation verification". Not changed, because that edit is outside Cycle A.
-10. **Directive authorship.** The directive and its SENTINEL/SU entries were prepared by the Builder as publisher of D-127 (the D-125 precedent), not by the Architect.
-11. **Test coverage.** The 12 Worker/D1 test files could not run in this container (missing dependencies).
+1. **Residual wording, not changed** (outside AS-154 A–D, whose "Do not change" forbids broadening): `brain/protocols/CONTEXT_BOOTSTRAP.md` §6a still reads "The Architect publishes each review…". `coordination/README.md:62` and `CONTEXT_BOOTSTRAP.md:70` ("A provider that cannot … exact-tip conflict detection is advisory/read-only for governed writes") are consistent with BC-4: a provider without CAS doesn't publish, and a CAS-capable mechanical publisher does. The Architect may want §6a aligned in a later cycle.
+2. **`CLAUDE.md` size.** Now 5,167 B, above the M6 ≤ 4.7 KB target (4,638 B at Cycle A), because of the exception text AS-154 prescribes. Nothing else was trimmed, to stay within scope.
+3. **Routing bytes in `afd29a9`.** The AS-154 review text is Architect-authored and verbatim. The directive and the STATE body/fields in that commit are Builder transcriptions of the review's "Routing" and "Exact remediation" sections, as in earlier mechanically published routings. The Architect may confirm that this counts as mechanical transport under the new exception wording.
+4. **Attempt-ledger key.** The routing publication used the default key `MAISOGLABS_DEVOS_RFC023_V21:NONE:CLAUDE` and was recorded as attempt 2 on it (the D-127 issue was attempt 1). This is the R3 defect Cycle B will fix. One more Paulo/Architect→Builder transition in this cycle from this clone would exhaust the key and need an explicit `--transition-id`.
+5. **Test coverage.** The full `npm test` was not re-run here. At Cycle A its 12 failures were dependency-only (`wrangler`/`jose` missing in this container), and no product file changed.
 
 ## Governing references
 
-`D-127`; `ML-DEVOS-AS-153` (with `AS-151`, `AS-152`); `ML-DEVOS-RFC-023`; `DIR-DEVOS-RFC023-CYCLE-A-0001` (archived); `brain/protocols/CONTEXT_BOOTSTRAP.md`; `brain/protocols/ARCHITECT_SYNC.md`; `ML-DEVOS-RFC-008` CORE-020; `ML-DEVOS-AS-132` AS132-F003; `coordination/OPERATIVE_OBLIGATIONS.md`.
+`ML-DEVOS-AS-154` (`AS-154-F001`); D-127; `ML-DEVOS-RFC-023` BC-4; `OBL-012`; `OBL-023`; `coordination/OPERATIVE_OBLIGATIONS.md`.
 
 ## Evidence locations
 
-- Diffs: `git diff 4e8a478 25ac69e` (issue) and `git diff 25ac69e <return commit>` (this cycle).
-- Old RFC status lines: `git show 25ac69e:devos/changes/rfcs/ML-DEVOS-RFC-NNN.md`, line 3.
-- Directive archive: `coordination/archive/directives/DIR-DEVOS-RFC023-CYCLE-A-0001.*`.
-- Commands: `node scripts/check-context-bootstrap.mjs --commit <sha> --session-protocol 2`; `node devos/governance/traceability/validate-traceability.mjs`; `node scripts/validate-claude-skills-bridge.mjs`; `node --test tests/context-bootstrap.test.mjs tests/context-bootstrap-v2.test.mjs tests/traceability.test.mjs tests/skills.test.mjs`.
+- Diffs: `git diff 0e6711b afd29a9` (routing) and `git diff afd29a9 <return commit>` (remediation).
+- Commands: `node scripts/validate-claude-skills-bridge.mjs`; `node --test tests/skills.test.mjs tests/context-bootstrap.test.mjs tests/context-bootstrap-v2.test.mjs`; `node scripts/check-context-bootstrap.mjs --commit <sha> --session-protocol 2`.
 
 ## Next action
 
-Architect review of Cycle A against D-127 and `ML-DEVOS-AS-153`. That includes the mapping judgments (item 6), the held-positions line (item 7) and the Phase 1 removal (item 4). Cycle B needs a separate Paulo decision after that review.
+Architect review of remediation cycle 1 against `ML-DEVOS-AS-154` § Exact remediation A–D.

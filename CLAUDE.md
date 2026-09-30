@@ -30,7 +30,7 @@ GitHub is the asynchronous communication bus between you and the Architect. The 
 
 You write, as Builder: `coordination/CURRENT_HANDOFF.md` (plus the STATE return gate, archive entries, and obligation index in the same commit). The same return commit sets `CURRENT_DIRECTIVE: NONE` and archives the outgoing directive (`coordination/archive/directives/`). `coordination/CURRENT_DIRECTIVE.md` is an instruction packet only while STATE selects it.
 
-The Architect writes: `coordination/ARCHITECT_REVIEW.md`, under a new immutable `ML-DEVOS-AS-NNN` per revision. Until an Architect channel satisfies `OBL-012`, the Builder may publish Architect-authored bytes unchanged (Author ≠ Publisher).
+The Architect authors: `coordination/ARCHITECT_REVIEW.md`, under a new immutable `ML-DEVOS-AS-NNN` per revision (publication: see the BC-4 exception below).
 
 The machine-readable turn signal is: `coordination/STATE.md`.
 
@@ -38,12 +38,14 @@ The pre-V0 legacy handoff (`IMPLEMENTER_HANDOFF.md` in `coordination/`) is froze
 
 Before any governed work, fetch `governance/maisoglabs-v0.1`, resolve it to one exact commit, and read `coordination/STATE.md` from that commit (not from a local checkout of unknown freshness). A resumed or compacted session re-bootstraps.
 
-Governed writes require both:
+Builder-authored governed work (implementation, handoffs, routing) requires both:
 
 - `TURN: CLAUDE` (the Builder-role token)
 - `IMPLEMENTER_ACTION_REQUIRED: YES`
 
-If `TURN` belongs to `ARCHITECT` or `PAULO`, make no governed writes; owner-requested advisory, read-only analysis is still permitted. Publish only with `node scripts/check-context-bootstrap.mjs --publish --candidate <sha>` (exact-tip compare-and-swap, never force).
+**Exception — mechanical publication (`ML-DEVOS-RFC-023` BC-4).** While `OBL-012` is open, on an Architect turn the Builder may act only as mechanical publisher of Architect-authored review/routing bytes, when: the Architect authored the exact bytes; the Builder makes no semantic edits; the publication is within the live Architect routing authority; exact-tip CAS/checker publication is used; and the publication is identified as mechanical transport, not Builder review authority. This grants no authority to author, alter or approve the review.
+
+Otherwise, if `TURN` belongs to `ARCHITECT` or `PAULO`, make no governed writes; owner-requested advisory, read-only analysis is still permitted. Publish only with `node scripts/check-context-bootstrap.mjs --publish --candidate <sha>` (exact-tip compare-and-swap, never force).
 
 Roles are governed positions assigned by decision, not by provider name: Paulo is Product / Risk Owner; the Architect / independent reviewer is currently ChatGPT; the Builder / Implementer is currently Claude. Repository state, tests, diffs, and runtime/deployment evidence are the evidence of record — committed text, including handoffs, proves provenance, not authority.
 
