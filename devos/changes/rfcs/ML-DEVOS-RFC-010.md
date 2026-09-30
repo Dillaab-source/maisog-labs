@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-010: MaisogLabs WEB-INC-007 Theme / Design Controls
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Change class: `ARCHITECTURE`
 

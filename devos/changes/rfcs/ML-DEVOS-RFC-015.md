@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-015: Reserved Subsystem Lifecycle and Closure Reconciliation
 
-Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-012 / D-046; co-effective at v1.6.0 with ML-DEVOS-ADR-013 under one coordinated release boundary`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

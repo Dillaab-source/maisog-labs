@@ -97,6 +97,36 @@ A `CHANGE REVIEW` may return:
 
 Autonomous remediation cycles are capped at the live value of `MAX_REMEDIATION_CYCLES` in `coordination/STATE.md` (no fixed number is restated here). If the cap would be exceeded without approval, the state moves to `PAULO_DECISION_REQUIRED` and both agents stop autonomous looping. Paulo may explicitly raise the cap; neither agent may raise it unilaterally.
 
+## V2.1 policy amendment (`ML-DEVOS-RFC-023`, adopted by `D-127`)
+
+Additive Protocol V2 policy. No STATE field, directive field or `PROTOCOL_VERSION` change. `ML-DEVOS-RFC-023` is the governing text (BC-1–BC-12); where this summary and the RFC differ, the RFC wins. Adopting it granted no envelope.
+
+### Authorized Work Envelope (BC-1)
+
+- **Grant.** Only Paulo grants an envelope, by Decision. The Decision lists a finite ordered set of named steps `S1 … Sn` (each with exact scope, required action flags and acceptance criterion), any extra re-entry triggers, and whether `Sn` ends the cycle. `n` is the progression budget; there is no new counter.
+- **Step 1** is routed like any Paulo-authorized directive.
+- **Direct routing.** After accepting `Sk`, the Architect may route in the same AS directly to the next unused step `S(k+1)` only when all hold: the exact step is listed in the Decision; every flag it needs is already valid in live STATE (the Architect never sets or widens a flag); no re-entry trigger has fired; `Sk` is accepted in that AS. Otherwise acceptance returns to Paulo.
+- **Identification.** The directive's `authority_ref` names the envelope Decision; its `Governing references` section names `Envelope step: D-NNN S<k> of <n>`; the routing AS states the step accepted and the step routed.
+- **Remediation.** Progression neither increments nor resets `CURRENT_REMEDIATION_CYCLE`. Remediation inside a step works exactly as today (new AS, new `DIR-` for the same step, counter +1), so one envelope shares the remediation budget unless Paulo decides otherwise. Exceeding `MAX_REMEDIATION_CYCLES` returns to Paulo.
+- **No reordering.** Skipping, repeating, inserting or reordering steps needs a new Paulo decision. Remediating the current step is not a repeat.
+- **End.** After `Sn` is accepted the turn returns to Paulo, unless `Sn` explicitly ends the cycle.
+- **Re-entry triggers (minimum):** a needed flag change; production, remote, deploy, `main`, Access/DNS/secret or schema scope; an ESCALATED item; `BLOCKED`; the remediation cap would be exceeded; an SU contradiction or ambiguous step text; an unresolved dissent on a consequential claim; a new risk or risk-status upgrade; any deviation from the listed step.
+- **Default.** With no envelope Decision, routing is unchanged.
+
+### Existing-Capability-First (BC-3)
+
+Independent verification is already required (§ Review flow; the V2 independent SENTINEL sync). To carry it out, the Architect uses its own read capability (exact commit, files, diffs) before asking Paulo to relay anything. Every relay request states why that capability was not enough: runtime or production observation, owner intent, or governed publication (`OBL-012`). The Builder checks existing Skills, scripts and records before proposing a new mechanism.
+
+### Author ≠ Publisher (BC-4)
+
+No Architect execution channel has yet satisfied the governed-write/CAS requirement in `OBL-012`. Until one does, the Architect authors review bytes and the Builder (or Paulo) publishes them unchanged through the CAS checker. The publisher attests byte identity; publishing is not endorsement, and the publisher may not edit.
+
+### Constructive Dissent (BC-6)
+
+Any role may record a dissent, with evidence. A dissent alone does not block. An unresolved dissent on a consequential claim is an owner re-entry trigger.
+
 ## Evidence discipline
 
 Every claim in a review or handoff is one of: implementer-reported, Architect-reproduced, or production/runtime evidence (see `TEST_LEDGER.md`). A review must state which class each piece of evidence it relies on belongs to, and must not silently upgrade implementer-reported evidence to Architect-reproduced just because it inspected the surrounding code — reproduction means actually running or independently verifying the same check.
+
+**Escalation (BC-2, applying `ML-DEVOS-RFC-008` CORE-020).** STANDARD is the default. An item is ESCALATED when unavailable independent evidence is material to a consequential acceptance claim and repository/source inspection cannot provide sufficient confidence. Consequential means CORE-020's remote/production-write, destructive, credential/security or public-cutover class, plus any `VERIFIED` or `DEPLOYED` claim. Actor-reported ordinary test execution stays STANDARD when its limitation is explicit. An ESCALATED item is an owner re-entry trigger (BC-1).

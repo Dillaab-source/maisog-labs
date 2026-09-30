@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-022: V10 Published Content Bridge
 
-Status: `ACCEPTED` — accepted by `ML-DEVOS-AS-132` (final architecture review), after Paulo's owner decisions under `D-105`. Drafted under `D-104`, reviewed in `ML-DEVOS-AS-131`, amended under `D-105`. Acceptance grants no implementation authority and is subject to the mandatory conditions AS132-F001 (implementation) and AS132-F002 (release) recorded in `ML-DEVOS-AS-132`.
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

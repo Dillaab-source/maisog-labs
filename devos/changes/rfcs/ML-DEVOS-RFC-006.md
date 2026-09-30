@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-006: MaisogLabs WEB-INC-003 Project Mutation Capability
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Change class: `CAPABILITY`
 

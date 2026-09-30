@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-016: S4 State Machine Kernel
 
-Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-014 / D-051`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

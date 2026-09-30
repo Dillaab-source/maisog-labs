@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-008: Sentinel Risk Escalation Rules
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Change class: `CORE_POLICY`
 

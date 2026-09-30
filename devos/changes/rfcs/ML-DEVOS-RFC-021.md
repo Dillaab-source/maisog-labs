@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-021: V10 Canonical Visual Baseline
 
-Status: `ACCEPTED` — independently approved by `ML-DEVOS-AS-118` and accepted by Paulo under `D-089`. Acceptance grants no implementation authority.
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

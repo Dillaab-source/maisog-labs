@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-017: S5 Capability & Permission Gateway
 
-Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-015 / D-065`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

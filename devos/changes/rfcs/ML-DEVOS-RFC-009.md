@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-009: MaisogLabs WEB-INC-006 Local Journal Subsystem
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Change class: `ARCHITECTURE`
 

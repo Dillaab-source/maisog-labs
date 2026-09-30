@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-018: SENTINEL Context Plane Bootstrap V0
 
-Status: `DRAFT`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

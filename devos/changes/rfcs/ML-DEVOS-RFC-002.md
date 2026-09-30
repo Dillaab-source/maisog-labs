@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-002: MaisogLabs WEB-INC-001 Authentication Boundary
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 

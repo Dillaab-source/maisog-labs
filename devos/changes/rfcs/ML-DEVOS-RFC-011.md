@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-011: MaisogLabs Production Release Readiness Gate
 
-Status: `ACCEPTED`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Change class: `LOCAL_RULE`
 

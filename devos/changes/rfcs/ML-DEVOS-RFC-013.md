@@ -1,6 +1,6 @@
 # ML-DEVOS-RFC-013: S3 Typed Task Contracts
 
-Status: `IMPLEMENTED AND CLOSED — ML-DEVOS-ADR-013 / D-046`
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
 
 Proposed change class: `ARCHITECTURE`
 
