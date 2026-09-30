@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D129_HOMEPAGE_COPY_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D129_ACCEPTED_OWNER_VISUAL_AND_RELEASE_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D129-HOMEPAGE-COPY-0001
-REVIEW_TARGET_COMMIT: 08d192276d89d96de3553ebe3a5487f00465b7c4
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-156
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,8 +29,8 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: `ML-DEVOS-AS-156` — Context Bootstrap V2.1 frozen.
-- Authority: `D-129` — two homepage copy edits, repository-local candidate returned. No merge or deploy; production unchanged. All action flags `NO`.
+- Review: `ML-DEVOS-AS-157` — `READY TO COMMIT: YES`; the D-129 repository candidate (`a6cdb11`, homepage `f60179dd…`) is accepted. Published mechanically by the Builder under BC-4.
+- Next: Paulo (1) visually accepts or rejects the D-129 candidate as-is, including the 14–25 px hero shift from the wrapped copy; and (2) if accepted, authorizes the normal protected release sequence. No merge or deploy is authorized yet. All action flags `NO`.
+- Governance: Sentinel / DevOS stays frozen (`ML-DEVOS-AS-156`).
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
-- Next: the Architect reviews `H-WEB-D129-HOMEPAGE-COPY-0001`.
