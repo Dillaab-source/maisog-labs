@@ -1,36 +1,36 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: CLAUDE
-STATUS: READY_FOR_IMPLEMENTER
-AUTHORIZED_SCOPE: D132_D129_GATE_D_PRODUCTION_PROMOTION_ONLY
-ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: YES
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D132_GATE_D_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: NONE
-HANDOFF_ID:
-REVIEW_TARGET_COMMIT:
-APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: ACTIVE
-DIRECTIVE_ID: DIR-WEB-D132-GATE-D-0001
-DIRECTIVE_ISSUE_PARENT: 38fefb4bcc67d5b0472b150d8d630894250db56b
-DIRECTIVE_AUTHORITY_REF: D-132
-DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-159
+CURRENT_HANDOFF: ACTIVE
+HANDOFF_ID: H-WEB-D132-GATE-D-0001
+REVIEW_TARGET_COMMIT: 9cf8ec1823ae36602bf0c205400fff9c67905161
+APPLICABLE_REVIEW_ID: ML-DEVOS-AS-159
+CURRENT_DIRECTIVE: NONE
+DIRECTIVE_ID:
+DIRECTIVE_ISSUE_PARENT:
+DIRECTIVE_AUTHORITY_REF:
+DIRECTIVE_APPLICABLE_REVIEW_ID:
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
-DEPLOY_AUTHORIZED: YES
+DEPLOY_AUTHORIZED: NO
 MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: `ML-DEVOS-AS-159` — corrected Gate D decision routing; D-130 Gate C accepted.
-- Authority: `D-132` (Paulo) — exactly one Gate D promotion of `666b7bef-9d41-47d0-b5ca-00b8351f9a29` to 100%, after a fresh preflight. It is executed as the API equivalent of `wrangler versions deploy`. At most one conditional rollback to `8fd31f47…`. `DEPLOY_AUTHORIZED: YES` for that operation only; every other flag `NO`.
-- Next: the Builder executes `DIR-WEB-D132-GATE-D-0001` and returns to the Architect (scope `D132_GATE_D_ARCHITECT_REVIEW_ONLY`).
+- Return: `H-WEB-D132-GATE-D-0001`. D-132 Gate D is done: `666b7bef-9d41-47d0-b5ca-00b8351f9a29` @ 100% (deployment `cd4abd09…`, from `8fd31f47…`). Live checks: D-129 copy, Entry stack, `entry.e184fa740d43.js`, navigation, project order, APIs/Journal, `/admin` Access, and 0 Worker errors. No rollback. No D1/R2/config mutation.
+- Authority: D-132 is consumed. `DEPLOY_AUTHORIZED` is reset to `NO`; all action flags `NO`.
+- Next: the Architect reviews `H-WEB-D132-GATE-D-0001`. No further production action is authorized.
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
