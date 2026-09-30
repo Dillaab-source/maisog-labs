@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: D129_ACCEPTED_OWNER_VISUAL_AND_RELEASE_DECISION_ONLY
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D130_GATE_C_PROTECTED_MERGE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,23 +14,23 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-D130-GATE-C-0001
+DIRECTIVE_ISSUE_PARENT: a5af6f43bc2046c4111b25959904423ebe2f9fe9
+DIRECTIVE_AUTHORITY_REF: D-130
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-157
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: NO
+MAIN_MERGE_AUTHORIZED: YES
 
 ## Current
 
-- Review: `ML-DEVOS-AS-157` — `READY TO COMMIT: YES`; the D-129 repository candidate (`a6cdb11`, homepage `f60179dd…`) is accepted. Published mechanically by the Builder under BC-4.
-- Next: Paulo (1) visually accepts or rejects the D-129 candidate as-is, including the 14–25 px hero shift from the wrapped copy; and (2) if accepted, authorizes the normal protected release sequence. No merge or deploy is authorized yet. All action flags `NO`.
-- Governance: Sentinel / DevOS stays frozen (`ML-DEVOS-AS-156`).
+- Review: `ML-DEVOS-AS-157` — D-129 candidate accepted; Paulo visually accepted it as-is (D-130).
+- Authority: `D-130` — Gate C only: one protected PR `governance/maisoglabs-v0.1` → `main`, merged pinned to this commit (`FINAL_GATE_C_HEAD`) if every check passes. `MAIN_MERGE_AUTHORIZED: YES` for that merge only; `DEPLOY_AUTHORIZED: NO`; no traffic change.
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
+- Next: the Builder executes `DIR-WEB-D130-GATE-C-0001` and returns.

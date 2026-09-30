@@ -3980,3 +3980,301 @@ merge/deployment.
 After these two copy edits are live and verified, freeze the MaisogLabs
 website and move to ClinicFlow.
 ````
+
+### D-130 — Visually accept the D-129 homepage candidate; authorize the protected Gate C merge only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `a5af6f43bc2046c4111b25959904423ebe2f9fe9` (live STATE `TURN: PAULO`, scope `D129_ACCEPTED_OWNER_VISUAL_AND_RELEASE_DECISION_ONLY`), after `ML-DEVOS-AS-157`. Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Visual acceptance:** the D-129 candidate `a6cdb11a42ea55cdd8b875ccedff972d6007ea48` (homepage SHA-256 `f60179dd…`, length 20857, offset 20116) is accepted as-is, including the natural wrapping and the 14–25 px hero shift.
+- **Authorized:** Gate C only. One protected release PR `governance/maisoglabs-v0.1` → `main`, merged through the normal protected path (one merge commit, pinned to `FINAL_GATE_C_HEAD`) only if every D-130 pre-merge check passes. `MAIN_MERGE_AUTHORIZED: YES` for this merge only. `FINAL_GATE_C_HEAD` is this D-130 publication commit; any governance-branch movement before the merge invalidates the authorization.
+- **Stop conditions:** a merge conflict, or a merged tree that would regress `main`; any pre-merge check failing; any production traffic change from Gate C.
+- **Not authorized:** Gate D, deploy, promotion or traffic change; D1/R2; project publication or activation; `site_settings`/contact; DNS, Access, bindings, secrets, migrations; history rewriting, direct push, force push, squash, rebase, auto-merge or protection bypass; mobile; redesign; Sentinel/DevOS; ClinicFlow. `DEPLOY_AUTHORIZED: NO`.
+- **Return:** one bounded handoff to the Architect after the merge, with `MAIN_MERGE_AUTHORIZED` reset to `NO`; stop. Gate D stays a separate Paulo decision.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-130.
+
+D-130 — Visually accept the D-129 homepage candidate and authorize
+the protected Gate C merge only.
+
+==================================================
+OWNER VISUAL ACCEPTANCE
+==================================================
+
+I accept the existing D-129 homepage candidate as-is.
+
+Accepted candidate implementation:
+
+a6cdb11a42ea55cdd8b875ccedff972d6007ea48
+
+Accepted Architect review:
+
+ML-DEVOS-AS-157
+
+Accepted homepage artifact SHA-256:
+
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+Artifact length:
+
+20857
+
+RFC-022 insertion offset:
+
+20116
+
+I accept the natural wrapping of the new lower-left copy and the
+reported 14–25 px upward hero shift.
+
+Do not modify the D-129 candidate further.
+
+==================================================
+AUTHORIZED ACTION — GATE C ONLY
+==================================================
+
+Authorize one normal protected release PR from:
+
+governance/maisoglabs-v0.1
+
+to:
+
+main
+
+and, only if all Gate C checks pass, merge it through the normal
+protected GitHub pull-request path.
+
+MAIN_MERGE_AUTHORIZED: YES
+
+All other action-specific authorization flags remain NO.
+
+This decision does NOT authorize production deployment or traffic
+change.
+
+==================================================
+CURRENT BOUND ANCHORS
+==================================================
+
+At the time of this owner decision:
+
+Expected main:
+
+97ca982c9e8f1e306aaa8c8a5198f43f8e00629e
+
+Current governance tip carrying AS-157:
+
+a5af6f43bc2046c4111b25959904423ebe2f9fe9
+
+Reviewed D-129 implementation:
+
+a6cdb11a42ea55cdd8b875ccedff972d6007ea48
+
+Homepage SHA-256:
+
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+Artifact length:
+
+20857
+
+Insertion offset:
+
+20116
+
+Publishing D-130 and its directive may advance the governance branch
+once.
+
+Record that resulting D-130 publication commit as:
+
+FINAL_GATE_C_HEAD
+
+After FINAL_GATE_C_HEAD is established, any further governance-branch
+movement before the Gate C merge invalidates this authorization.
+
+==================================================
+KNOWN BRANCH DIVERGENCE
+==================================================
+
+The Architect independently observed before D-130:
+
+governance/maisoglabs-v0.1 is currently:
+
+23 commits ahead of main
+7 commits behind main
+
+with merge base:
+
+b99353e923607e63fb9677e22a54608d5e3e38cb
+
+This divergence is known and is NOT permission to rewrite history.
+
+Do NOT:
+
+- rebase;
+- reset;
+- force-push;
+- squash history;
+- cherry-pick into main;
+- directly push main;
+- bypass protection.
+
+Use the normal protected PR merge path only.
+
+Before merge, verify that the PR resolves the divergent histories
+cleanly and that the resulting merge tree preserves current main plus
+the intended governance/D-129 changes.
+
+If GitHub reports a merge conflict or the resulting tree would regress
+current main content:
+
+STOP and report.
+
+Do not repair or rewrite history under D-130.
+
+==================================================
+PRE-MERGE CHECKS
+==================================================
+
+Immediately before merge verify:
+
+1. main is still exactly:
+
+   97ca982c9e8f1e306aaa8c8a5198f43f8e00629e
+
+2. PR head is exactly FINAL_GATE_C_HEAD.
+
+3. D-129 implementation remains:
+
+   a6cdb11a42ea55cdd8b875ccedff972d6007ea48
+
+4. public/index.html SHA-256 remains:
+
+   f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+5. RFC-022 bridge remains:
+
+   ARTIFACT_SHA256 =
+   f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+
+   ARTIFACT_LENGTH = 20857
+
+   INSERTION_OFFSET = 20116
+
+6. The exact new Entry asset remains:
+
+   entry.e184fa740d43.js
+
+7. The five published project records and their order remain unchanged:
+
+   ClinicFlow
+   Eternal Eggs
+   Sentinel / DevOS
+   SU
+   Maisog Kilat
+
+8. No project/content/D1/R2/site_settings mutation is included.
+
+9. The fresh PR is cleanly mergeable.
+
+10. The applicable main-protection rules remain active.
+
+11. test-and-build succeeds on the exact FINAL_GATE_C_HEAD.
+
+12. Manually inspect the final changed-file set under OBL-023.
+
+13. Record the active production Worker version immediately before the
+    merge.
+
+==================================================
+MERGE RULE
+==================================================
+
+If and only if every Gate C check passes:
+
+perform one normal protected merge commit.
+
+No:
+
+- direct push;
+- force push;
+- squash;
+- rebase;
+- auto-merge;
+- protection bypass.
+
+Pin the merge to FINAL_GATE_C_HEAD.
+
+==================================================
+POST-MERGE VERIFY
+==================================================
+
+Record:
+
+- PR number;
+- FINAL_GATE_C_HEAD;
+- CI/test-and-build result;
+- merge commit SHA;
+- both merge parents;
+- resulting main SHA;
+- resulting homepage SHA;
+- resulting Entry asset;
+- RFC-022 bridge values;
+- active production Worker version before and after the merge;
+- whether Git integration created a new inactive Worker version/build.
+
+Production traffic must remain unchanged.
+
+If Gate C unexpectedly changes production traffic:
+
+STOP and report.
+
+Do not remediate or deploy under D-130.
+
+==================================================
+NOT AUTHORIZED
+==================================================
+
+D-130 does NOT authorize:
+
+- Gate D;
+- wrangler versions deploy;
+- production promotion;
+- traffic change;
+- production D1/R2 mutation;
+- project publication;
+- homepage activation;
+- site_settings/contact mutation;
+- DNS;
+- Access;
+- bindings;
+- secrets;
+- migrations;
+- mobile work;
+- homepage redesign;
+- Sentinel/DevOS work;
+- ClinicFlow implementation yet.
+
+DEPLOY_AUTHORIZED: NO
+
+==================================================
+RETURN
+==================================================
+
+After the Gate C merge, return one bounded handoff to the Architect.
+
+Route:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+Reset:
+
+MAIN_MERGE_AUTHORIZED: NO
+
+All other action flags remain NO.
+
+Then STOP.
+
+Gate D remains a separate Paulo decision after Architect review.
+````
