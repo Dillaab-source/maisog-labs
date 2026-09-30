@@ -1,86 +1,96 @@
-# Current Directive — D-130 Gate C (protected merge only)
+# Current Directive — D-132 Gate D (D-129 homepage production promotion only)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-WEB-D130-GATE-C-0001
+directive_id: DIR-WEB-D132-GATE-D-0001
 cycle_id: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-issue_parent_commit: a5af6f43bc2046c4111b25959904423ebe2f9fe9
+issue_parent_commit: 38fefb4bcc67d5b0472b150d8d630894250db56b
 target_turn: CLAUDE
-authority_ref: D-130
-applicable_review_id: ML-DEVOS-AS-157
+authority_ref: D-132
+applicable_review_id: ML-DEVOS-AS-159
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-130 and `ML-DEVOS-AS-157`. Claude/Builder prepared it as mechanical publisher of D-130.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-132 and `ML-DEVOS-AS-159`. Claude/Builder prepared it as mechanical publisher of D-132.
 
 ## Objective
 
-Open one protected release PR `governance/maisoglabs-v0.1` → `main` with head `FINAL_GATE_C_HEAD` (the commit publishing this directive). Merge it with one normal merge commit pinned to that head, only if every D-130 pre-merge check passes. Verify that production is unchanged, and return.
+Promote exactly Worker version `666b7bef-9d41-47d0-b5ca-00b8351f9a29` to 100% of production traffic, once, after a fresh preflight passes. Then verify production and return. At most one rollback to `8fd31f47…@100%`, only on a qualifying new material failure caused by this release.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `MAIN_MERGE_AUTHORIZED: YES` and every other action flag `NO`.
-- Read-only preflight at `a5af6f4`, before issue:
-  - `main` = `97ca982c…`; merge base `b99353e…`.
-  - `git merge-tree --write-tree main governance` has no conflicts. The merged tree `f15b966…` equals the governance tree, and `main`'s tree equals the merge base's tree (`45eeb31…`), so the merge cannot regress `main`.
-  - Active production: deployment `b0f11606…`, version `8fd31f47-a65d-4f57-83f1-17a1e0cd8043` @ 100%.
+- The Protocol V2 bootstrap passes; STATE selects this directive; `DEPLOY_AUTHORIZED: YES` and every other action flag `NO`.
+- The read-only preflight run before issue (03:23–03:24Z) passed:
+  - `main` is `ab1296de…`. At `main`:
+    - `public/index.html` SHA-256 is `f60179dd…`, 20,857 bytes, and references `entry.e184fa740d43.js`;
+    - `public/v101/assets/entry.e184fa740d43.js` is present;
+    - `worker/bridge/inject.mjs` pins `f60179dd…` / `20857` / `20116`.
+  - Active production is deployment `b0f11606…` with `8fd31f47…` @ 100%, one version, no split. It is the latest deployment (D-123), so nothing has been deployed since.
+  - Target `666b7bef…` (#912) exists: `wrangler` `version_upload`, alias `main`, created 02:54:37Z. It is in no deployment, so it is inactive. Build `0588b13b…` ran on branch `main`, commit `ab1296de…`, outcome `success`.
+  - Target and production bindings are identical: `ACCESS_AUD`, `ACCESS_TEAM_DOMAIN`, `ASSETS`, `DB` → `45b87574…`, `MEDIA` → `maisog-labs-web-inc-004-local`; compat date `2026-09-11`.
+  - `/admin` and `/admin/api/content` return 302 to the Access login (`jolly-disk-0469.cloudflareaccess.com`).
+  - Baseline: `/` 200 (old entry `entry.7995859f655d.js`); `/api/journal` 200; `/api/design` 200; `/journal` 200.
 
 ## Governing references
 
-- **T0:** D-130; live STATE; `ML-DEVOS-AS-157`.
-- **T1:** D-129; D-122 / `H-WEB-V101-GATE-C-0001` (Gate C precedent); `ML-DEVOS-RFC-022` / `worker/bridge/inject.mjs`; `OBL-017`, `OBL-018`, `OBL-023`.
+- **T0:** D-132; live STATE; `ML-DEVOS-AS-159`.
+- **T1:** D-130 / `ML-DEVOS-AS-158` (Gate C); D-123 / `H-WEB-V101-GATE-D-0001` (Gate D precedent, API-equivalent promotion); `ML-DEVOS-RFC-022`; `OBL-017`.
 
 ## Exact execution scope
 
 Allowed:
-- Create one PR (ready for review) and read PR, CI and ruleset status.
-- Cloudflare GET reads of deployments, versions and builds.
-- One `merge_method: merge` with `expectedHeadSha` = `FINAL_GATE_C_HEAD`.
-- One Protocol V2 Builder return on the governance branch, after the merge.
+- Cloudflare GET reads, and read-only GraphQL analytics.
+- Public HTTP GETs of `maisoglabs.com`.
+- Exactly one promotion `POST …/workers/scripts/maisog-labs/deployments`: `strategy: "percentage"`, `versions: [{ version_id: "666b7bef-9d41-47d0-b5ca-00b8351f9a29", percentage: 100 }]`. This is the API equivalent of `npx wrangler versions deploy 666b7bef…@100% --yes`; Wrangler is not authenticated in the container.
+- At most one conditional rollback in the same form to `8fd31f47…`.
+- One Protocol V2 Builder return.
 
 Not allowed:
-- any push to the governance branch between `FINAL_GATE_C_HEAD` and the merge;
-- rebase, reset, force push, squash, cherry-pick, direct push to `main`, auto-merge, protection bypass;
-- Gate D, deploy, traffic change; D1/R2; content, project, `site_settings`; DNS, Access, bindings, secrets, migrations;
-- any change to the D-129 candidate; PR #7 or PR #10 actions.
+- `wrangler deploy`; uploading or rebuilding; another version; a canary or split;
+- routes or triggers; D1, R2, Access, DNS, bindings, secrets or environment changes;
+- project, `site_settings` or contact changes; changes to `main` or the homepage;
+- AS158-F001; S6; V2.1 Revision 2; any PR merge.
 
 ## SENTINEL Sync
 
-- **Authority:** D-130 (Paulo), after `ML-DEVOS-AS-157`.
-- **Context:** the D-129 candidate is accepted and visually accepted; production serves `8fd31f47…`.
-- **Capability:** GitHub PR and merge through the connected integration; Cloudflare GET only.
-- **Execution:** issue → CI on the head → the 13 pre-merge checks → pinned merge → post-merge verification → return.
-- **Evidence:** PR, CI runs, merge commit and parents, the `main` tree, homepage and bridge values, production version before and after.
+- **Authority:** D-132 (Paulo), after `ML-DEVOS-AS-159` and D-130.
+- **Context:** the D-129 candidate is accepted and merged; production serves `8fd31f47…`.
+- **Capability:** the Cloudflare API through the connected MCP connector, with one deployment write (plus one conditional rollback).
+- **Execution:** re-read the preflight → promote → verify → return.
+- **Evidence:**
+  - deployments before and after; the target identity;
+  - live homepage copy, Entry stack and entry asset; section, project, API and Journal smoke tests;
+  - `/admin` Access; Worker analytics.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
 `BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
-- **Divergence count:** D-130 records the Architect's "23 ahead / 7 behind". A full-history count gives 23 ahead and 48 behind: `main` carries earlier pre-governance history that is already contained content-wise, since `main`'s tree equals the merge base's tree. This is not a stop condition; the merge is clean and non-regressing.
-- **Merge commit placement:** the merge commit will exist only on `main`; the return is published on the governance branch afterwards, as in D-122.
+- D-132 names the Wrangler command as the intended operation. The container cannot authenticate Wrangler, so the API equivalent is used, as at D-114/D-123 (accepted in `ML-DEVOS-AS-148`). The Builder note in D-132 records this. The target, the traffic percentage and the single-promotion limit are unchanged.
+- The target's asset bundle cannot be fetched before promotion (preview URLs are disabled). Its identity rests on the build link (`0588b13b…` → `main` `ab1296de…`) and the `main` tree. After promotion it is confirmed live: homepage SHA `f60179dd…` (on the unbridged path) or the D-129 copy, plus the entry asset.
 
 ## Instructions
 
-1. Bootstrap. Confirm this commit is `FINAL_GATE_C_HEAD` and the branch has not moved.
-2. Open the PR; wait for `test-and-build` on the exact head.
-3. Run the 13 D-130 pre-merge checks immediately before merging; record the active production version.
-4. Merge (pinned); verify post-merge; confirm production is unchanged.
-5. Publish the return with `MAIN_MERGE_AUTHORIZED: NO`.
+1. Bootstrap.
+2. Re-read deployments and target immediately before promotion. Stop on any drift.
+3. Promote once.
+4. Verify post-deploy D-132 items 1–12.
+5. Roll back only on a qualifying failure.
+6. Publish the return: reset `DEPLOY_AUTHORIZED` to `NO`, archive and deselect this directive, route `TURN: ARCHITECT`, scope `D132_GATE_D_ARCHITECT_REVIEW_ONLY`.
 
 ## Validation and evidence
 
-D-130 § Pre-merge checks and § Post-merge verify in full.
+Everything D-132 lists for the Builder return.
 
 ## Stop conditions
 
-- Any pre-merge check fails.
-- The PR is not cleanly mergeable, or the merged tree differs from the expected tree.
-- The governance branch moves before the merge.
-- Production traffic changes.
+- Any preflight value differs, or the target identity is ambiguous: stop without deploying.
+- A qualifying failure after promotion: one rollback, verify, stop. No hotfix.
+- Any step would need a non-authorized action.
 
 ## Next action
 
-Publish `H-WEB-D130-GATE-C-0001`. Archive and deselect this directive, reset `MAIN_MERGE_AUTHORIZED` to `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+Publish `H-WEB-D132-GATE-D-0001` and route to the Architect.

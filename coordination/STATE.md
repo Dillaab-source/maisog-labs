@@ -1,12 +1,12 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_WEB_D129_HOMEPAGE_COPY
-TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: D131_CORRECTED_GATE_D_DECISION_ONLY
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D132_D129_GATE_D_PRODUCTION_PROMOTION_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -14,22 +14,23 @@ CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-D132-GATE-D-0001
+DIRECTIVE_ISSUE_PARENT: 38fefb4bcc67d5b0472b150d8d630894250db56b
+DIRECTIVE_AUTHORITY_REF: D-132
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-159
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
-DEPLOY_AUTHORIZED: NO
+DEPLOY_AUTHORIZED: YES
 MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: `ML-DEVOS-AS-159` — corrective Sync under D-131, `READY TO COMMIT: YES`. The AS-158 byte-identity attestation is not accepted, and `ML-DEVOS-AS-158` stays unchanged as historical evidence. D-130 Gate C remains accepted. The D-131 Gate D hold is satisfied by this verified publication. Published mechanically by the Builder under BC-4 from the Architect's base64 payload: SHA-256 `4d692e61…`, 4314 bytes, 96 lines, verified.
-- Next: Paulo decides whether to authorize the exact Gate D production promotion for the already accepted release. Before any promotion, the active production version must be re-read fresh (AS-158/AS-159). No deployment or S6 work is authorized. All action flags `NO`.
+- Review: `ML-DEVOS-AS-159` — corrected Gate D decision routing; D-130 Gate C accepted.
+- Authority: `D-132` (Paulo) — exactly one Gate D promotion of `666b7bef-9d41-47d0-b5ca-00b8351f9a29` to 100%, after a fresh preflight. It is executed as the API equivalent of `wrangler versions deploy`. At most one conditional rollback to `8fd31f47…`. `DEPLOY_AUTHORIZED: YES` for that operation only; every other flag `NO`.
+- Next: the Builder executes `DIR-WEB-D132-GATE-D-0001` and returns to the Architect (scope `D132_GATE_D_ARCHITECT_REVIEW_ONLY`).
 - Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.

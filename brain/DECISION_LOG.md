@@ -4301,3 +4301,229 @@ Gate D remains a separate Paulo decision after Architect review.
 - **Builder note (`ACTOR_REPORTED`; evidence for the Architect, not part of Paulo's decision):**
   - The Builder kept the review text exactly as it arrived in the Builder session. That text contains none of the section titles or separator lines listed above, and the published AS-158 body is identical to it. The loss therefore appears to have happened before the text reached the Builder, in the relay.
   - The attestation in AS-158 ("reproduced verbatim as received") was nonetheless inadequate for BC-4. The Builder verified identity only against what it received, not against the Architect-authored bytes, and had no Architect-supplied hash or length to check against.
+
+### D-132 — Authorize the exact D-129 homepage release Gate D production promotion only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `38fefb4bcc67d5b0472b150d8d630894250db56b` (`main` `ab1296de8a1832291b2f4df97b726755d17c42bd`), after `ML-DEVOS-AS-159`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Flags:** `DEPLOY_AUTHORIZED: YES` for the exact operation below only. Every other action flag `NO`.
+- **Operation:** at most one promotion of Worker version `666b7bef-9d41-47d0-b5ca-00b8351f9a29` to 100% (`npx wrangler versions deploy 666b7bef-9d41-47d0-b5ca-00b8351f9a29@100% --yes`), only after every preflight passes.
+- **Rollback:** at most one rollback to `8fd31f47-a65d-4f57-83f1-17a1e0cd8043@100%`, only on a qualifying new material failure caused by this release.
+- **Directive:** `DIR-WEB-D132-GATE-D-0001`, scope `D132_D129_GATE_D_PRODUCTION_PROMOTION_ONLY`.
+- **Builder execution note (`ACTOR_REPORTED`; not part of Paulo's decision):**
+  - Wrangler is not authenticated in the Builder container: `wrangler whoami` reports "not authenticated", and `CLOUDFLARE_API_TOKEN` is unset.
+  - As at D-114 and D-123, whose Gate D returns `ML-DEVOS-AS-148` accepted, the promotion is executed as the Cloudflare API equivalent of that command through the Cloudflare MCP/API connector: one `POST /accounts/{id}/workers/scripts/maisog-labs/deployments` with `strategy: "percentage"` and `versions: [{ version_id: "666b7bef…", percentage: 100 }]`. There is no upload, rebuild, split or `wrangler deploy`.
+  - The read-only preflight run at 03:23–03:24Z, before this decision was published, passed. Details are in the directive.
+- **Decision text (verbatim as received in the Builder session):**
+
+````text
+D-132 — Authorize the exact D-129 homepage release Gate D production
+promotion only.
+Controlling Architect review:
+ML-DEVOS-AS-159
+Accepted Gate C:
+D-130
+Current main:
+ab1296de8a1832291b2f4df97b726755d17c42bd
+Accepted homepage SHA-256:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+Expected Entry asset:
+entry.e184fa740d43.js
+Expected RFC-022 bridge values:
+SHA:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+Length:
+20857
+Insertion offset:
+20116
+Exact target Worker Version:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+Builder-reported Workers Build that produced it:
+0588b13b-caf0-40cd-968b-ee68f0e21659
+Expected current production / rollback version:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043
+Previously reported deployment:
+b0f11606-80e3-4980-b617-e76bbacbf57c
+Cloudflare control-plane identities above remain ACTOR_REPORTED until
+the Builder performs the mandatory fresh preflight below.
+Before recording D-132, governance/maisoglabs-v0.1 must still resolve
+exactly to:
+38fefb4bcc67d5b0472b150d8d630894250db56b
+and main must still resolve exactly to:
+ab1296de8a1832291b2f4df97b726755d17c42bd
+If either differs:
+STOP.
+Do not publish D-132 against a stale snapshot.
+Authorize exactly one Gate D production promotion of:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+to:
+100% production traffic.
+The intended Wrangler operation is:
+npx wrangler versions deploy 666b7bef-9d41-47d0-b5ca-00b8351f9a29@100% --yes
+Run that promotion at most once and only after every preflight condition
+below passes.
+DEPLOY_AUTHORIZED: YES
+for this exact operation only.
+Every other action-specific authorization flag remains NO.
+Immediately before production promotion, perform fresh read-only
+Cloudflare and repository checks.
+Verify ALL of the following:
+
+1. main is still exactly:
+ab1296de8a1832291b2f4df97b726755d17c42bd
+2. Target Worker Version:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+still exists and is inactive.
+3. The target remains associated with the accepted main release and
+carries the expected D-129 homepage artifact.
+4. The target homepage identity remains:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+5. The expected Entry asset remains:
+entry.e184fa740d43.js
+6. RFC-022 bridge identity remains:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+/ 20857 / 20116
+7. Active production is still exactly:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043
+at 100% traffic with no traffic split.
+8. No intervening production promotion or unexpected deployment drift
+has occurred.
+9. The target's required Worker bindings/configuration remain intact
+and compatible with the current production environment.
+10. Existing Access protection for /admin remains configured.
+11. No unrelated production D1/R2, DNS, Access, bindings, secrets or
+environment mutation is required to deploy this version.
+
+If ANY value differs or any target identity is ambiguous:
+STOP WITHOUT DEPLOYING.
+Do not select another Worker version.
+Do not rebuild.
+Do not upload a replacement version.
+Do not repair the discrepancy under D-132.
+Only after all preflight checks pass:
+deploy exactly:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29@100%
+Do not:
+
+* use wrangler deploy;
+* upload a new Worker version;
+* rebuild the website;
+* deploy a newer or different main build;
+* create a canary;
+* create split traffic;
+* change routes or triggers;
+* mutate D1;
+* mutate R2;
+* change Access;
+* change DNS;
+* change bindings;
+* change secrets;
+* change environment variables;
+* publish or alter project records;
+* alter site_settings or contact data;
+* modify main;
+* modify the accepted homepage;
+* repair AS158-F001;
+* resume S6;
+* resume V2.1 Revision 2;
+* merge any PR.
+
+Immediately after promotion verify:
+
+1. active production version is exactly:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+at 100%.
+2. No unexpected traffic split exists.
+3. https://maisoglabs.com/ returns HTTP 200.
+4. The live homepage serves the accepted D-129 copy:
+Paulo Maisog — AI Automation & Technical Systems Builder
+Building practical AI workflows, cloud automation, and technical
+systems for real-world business processes.
+5. The lower-right Entry stack is exactly:
+AI
+AUTOMATION
+SYSTEMS
+6. The live page references/loads:
+entry.e184fa740d43.js
+7. Existing navigation and the following areas remain usable:
+   * Entry / homepage
+   * Systems
+   * Projects
+   * Research
+   * Contact
+8. Existing project presentation remains intact and in the accepted
+order:
+   1. ClinicFlow
+   2. Eternal Eggs
+   3. Sentinel / DevOS
+   4. SU
+   5. Maisog Kilat
+9. Existing public APIs and Journal behavior receive bounded smoke
+verification so a Worker regression is not silently accepted.
+10. /admin remains protected by the existing Access boundary.
+11. Check for new widespread Worker exceptions or required-binding
+failures attributable to this release.
+12. Confirm no D1/R2/project/contact/configuration mutation occurred.
+
+Authorize at most one rollback to:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043@100%
+ONLY if:
+
+* the Gate D promotion successfully occurs; and
+* post-promotion verification demonstrates a new material production
+failure caused by this release.
+
+Qualifying failures include:
+
+* homepage unavailable or materially broken;
+* new major failure of existing public Worker/API behavior;
+* widespread new Worker exceptions;
+* required production binding failure;
+* /admin Access protection failure caused by this release.
+
+Do NOT roll back for:
+
+* the already accepted natural homepage wrapping / hero shift;
+* AS158-F001;
+* S6 being parked;
+* a pre-existing unrelated issue;
+* deferred work outside D-132.
+
+If rollback is required, perform that one rollback, verify production is
+again exactly:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043 @ 100%
+and STOP.
+Do not hotfix.
+Record D-132 and issue one bounded Gate D directive.
+Suggested scope:
+D132_D129_GATE_D_PRODUCTION_PROMOTION_ONLY
+After the operation, publish one Builder return containing:
+
+* fresh pre-deploy active deployment and Worker version;
+* confirmation target version existed and was inactive;
+* target/build/artifact identity checks;
+* the exact deployment command/result;
+* resulting deployment ID;
+* post-deploy active Worker version and traffic allocation;
+* homepage HTTP result;
+* exact D-129 live-copy verification;
+* Entry asset verification;
+* navigation/section smoke results;
+* project presentation verification;
+* API/Journal smoke results;
+* /admin Access result;
+* Worker exception/binding result;
+* rollback status;
+* confirmation no unrelated production resource was mutated.
+
+Then reset:
+DEPLOY_AUTHORIZED: NO
+and ensure every action-specific authorization flag is NO.
+Route:
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D132_GATE_D_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: NO
+Then STOP.
+````
