@@ -3256,3 +3256,425 @@ All action-specific production flags remain NO.
 
 STOP after the Cycle A handoff.
 ````
+
+### D-128 — Authorize RFC-023 / Context Bootstrap V2.1 Cycle B (mechanical checker + RFC lifecycle validator only)
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `1e5a8a5bacb7e60cab7df4cb226613a8f72ace01` (live STATE `TURN: PAULO`, scope `D127_CYCLE_A_ACCEPTED_CYCLE_B_DECISION_ONLY`), after `ML-DEVOS-AS-155` accepted and closed Cycle A. Recorded and published by Claude/Builder as mechanical publisher. Committed text proves provenance, not authority beyond Paulo's words, which are reproduced verbatim below.
+- **Cycle:** new implementation cycle `MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B`; `CURRENT_REMEDIATION_CYCLE` reset to `0`; `MAX_REMEDIATION_CYCLES: 2` and `PROTOCOL_VERSION: 2` preserved. The attempt ledger is not edited, reset or deleted.
+- **Authorized:** B1 — the `ML-DEVOS-RFC-023` BC-12 attempt-ledger repair in `scripts/check-context-bootstrap.mjs` with Context Bootstrap tests; B2 — the BC-10 RFC lifecycle-projection checks in `devos/governance/traceability/validate-traceability.mjs` with `tests/traceability.test.mjs`; B3 — the one-line §6a wording reconciliation in `brain/protocols/CONTEXT_BOOTSTRAP.md` accepted by `ML-DEVOS-AS-155`.
+- **Not authorized:** `generate-traceability.mjs` (stop and report if it appears necessary); unrelated traceability debt or index regeneration; RFC-023 redesign; STATE schema or `PROTOCOL_VERSION` change; any new governance subsystem; any Authorized Work Envelope; product/website, production, deploy, `main` merge, D1/R2, Access/DNS/bindings/secrets/environment; S6/S7; D-068; mobile; retrospective expansion. All action flags stay `NO`.
+- **After acceptance:** if the Architect accepts Cycle B with no blocker, V2.1 is treated as **frozen**; nothing further follows automatically, and product work (ClinicFlow) is the intended next priority.
+- **Routing:** issue `DIR-DEVOS-RFC023-CYCLE-B-0001` (scope `D128_RFC023_CYCLE_B_CHECKER_VALIDATOR_ONLY`); one bounded Builder return with `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; stop.
+- **Owner decision text (verbatim, given in the Builder session):**
+
+````text
+PAULO OWNER DECISION
+
+Proceed with D-128.
+
+D-128 — Authorize RFC-023 / Context Bootstrap V2.1 Cycle B;
+mechanical checker + RFC lifecycle validator implementation only.
+
+Cycle A is accepted and closed by ML-DEVOS-AS-155.
+
+This is the final planned implementation cycle for V2.1.
+
+==================================================
+NEW CYCLE / REMEDIATION STATE
+==================================================
+
+Start a new implementation cycle:
+
+CYCLE_ID:
+MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B
+
+Reset:
+
+CURRENT_REMEDIATION_CYCLE: 0
+
+Preserve:
+
+MAX_REMEDIATION_CYCLES: 2
+PROTOCOL_VERSION: 2
+
+Reason:
+
+Cycle A is closed. Cycle B is a separately authorized implementation
+cycle, so it begins with a fresh remediation budget.
+
+Do NOT edit/reset/delete the existing attempt ledger to achieve this.
+
+The new CYCLE_ID is intentional and should naturally avoid inheriting
+Cycle A's defective old default transition key.
+
+==================================================
+AUTHORIZED SCOPE — CYCLE B ONLY
+==================================================
+
+Implement the already-adopted RFC-023 BC-12 attempt-ledger repair and
+BC-10 RFC lifecycle-projection validator.
+
+Also make the one exact non-blocking wording reconciliation accepted by
+AS-155 in CONTEXT_BOOTSTRAP §6a.
+
+No architecture redesign.
+
+No new governance subsystem.
+
+No new STATE schema fields.
+
+No protocol-version change.
+
+==================================================
+B1 — BC-12 ATTEMPT-LEDGER REPAIR
+==================================================
+
+Modify:
+
+scripts/check-context-bootstrap.mjs
+
+and the necessary Context Bootstrap tests only.
+
+Implement the accepted RFC-023 BC-12 semantics.
+
+DEFAULT LOGICAL CHAIN
+
+The default logical publication chain is identified by:
+
+CYCLE_ID
+originParent
+targetTurn
+
+where originParent is the parent of the chain's FIRST attempt.
+
+The implementation must distinguish:
+
+- a retry/rebuild that belongs to the same logical publication chain;
+- a later legitimate publication transition that merely happens to have
+  the same CYCLE_ID and target turn.
+
+BRANCH_ADVANCED
+
+When an attempted publication returns BRANCH_ADVANCED:
+
+- that attempt counts;
+- record the authoritative read-back tip as continue_on for that chain;
+- a rebuilt candidate whose parent is exactly that continue_on tip,
+  with the same CYCLE_ID and target turn, continues the SAME chain and
+  preserves the accumulated attempt count.
+
+Do not make unrelated later publications inherit that count.
+
+NOT_PUBLISHED
+
+A NOT_PUBLISHED retry remains on the same chain and consumes another
+attempt.
+
+UNKNOWN_OUTCOME
+
+Preserve the existing behavior exactly:
+
+read back first;
+if outcome remains unknown, STOP;
+do not automatically retry.
+
+PUBLISHED
+
+PUBLISHED terminates that logical chain.
+
+A later legitimate transition gets a fresh chain and attempt count,
+even when CYCLE_ID and target turn are the same.
+
+MAX
+
+MAX_PUBLICATION_ATTEMPTS remains 3.
+
+It is mechanically hard only within one persistent ledger lineage.
+
+The disclosed fresh-clone/fresh-ledger bypass remains unchanged.
+
+COMPATIBILITY
+
+Preserve:
+
+--transition-id
+
+Old-format ledger keys remain inert.
+
+Do not migrate, rewrite or delete old ledger entries.
+
+Do not silently reset counts.
+
+==================================================
+BC-12 REQUIRED REGRESSION TESTS
+==================================================
+
+At minimum implement the eight accepted RFC-023 tests:
+
+1. Sequential legitimate publications in one cycle with no handoff do
+   not falsely exhaust.
+
+2. Three BRANCH_ADVANCED attempts across rebuilt candidates and separate
+   invocations remain one logical chain.
+   A fourth attempt is refused with:
+   PUBLICATION_ATTEMPTS_EXHAUSTED.
+
+3. NOT_PUBLISHED retries consume the same chain budget.
+
+4. UNKNOWN_OUTCOME behavior remains unchanged.
+
+5. Another process sharing the same ledger cannot reset the count.
+
+6. --transition-id continues to work.
+
+7. Old-format ledger keys are inert.
+
+8. After PUBLISHED terminates a chain, the next legitimate publication
+   starts fresh and does not inherit the previous attempt count.
+
+Also test the chain boundary explicitly:
+
+A continue_on relationship may be followed only when:
+- parent == recorded continue_on;
+- CYCLE_ID matches;
+- target turn matches.
+
+A different parent or different turn must not accidentally inherit the
+old chain.
+
+==================================================
+B2 — BC-10 RFC LIFECYCLE-PROJECTION VALIDATOR
+==================================================
+
+Implement the accepted RFC-023 BC-10 checks in:
+
+devos/governance/traceability/validate-traceability.mjs
+
+with tests in:
+
+tests/traceability.test.mjs
+
+Do not redesign the traceability architecture.
+
+Do not make the RFC projection authoritative.
+
+Decisions, ADRs and immutable Architect Sync records remain authority /
+history.
+
+The RFC README is only the maintained lifecycle projection.
+
+CANONICAL STATUS LINE
+
+The validator must enforce exactly:
+
+Status: See `devos/changes/rfcs/README.md` for the current lifecycle projection; Decisions and ADRs remain authoritative.
+
+For every RFC:
+
+- exactly one Status: line;
+- exactly at line 3;
+- byte-identical;
+- no trailing whitespace;
+- no second Status: line.
+
+RFC INDEX
+
+Validate:
+
+- one row for every RFC file;
+- no missing row;
+- no row for a nonexistent RFC;
+- no duplicate RFC row;
+- lifecycle status is one of:
+
+  DRAFT
+  UNDER_ARCHITECT_SYNC
+  ACCEPTED
+  REJECTED
+  SUPERSEDED
+
+- authority references resolve.
+
+STALE PROJECTION
+
+Implement the accepted heuristic:
+
+If a Decision / ADR / immutable Architect Sync cites an RFC and is newer
+than every authority reference recorded in that RFC's projection row,
+report:
+
+RFC_STATUS_PROJECTION_STALE
+
+as a WARNING, not an ERROR.
+
+It is heuristic evidence only.
+
+==================================================
+BC-10 REQUIRED TESTS
+==================================================
+
+At minimum:
+
+1. missing index row -> ERROR
+2. extra/nonexistent RFC row -> ERROR
+3. duplicate RFC row -> ERROR
+4. stale projection -> WARNING RFC_STATUS_PROJECTION_STALE
+5. noncanonical body Status bytes, including trailing whitespace -> ERROR
+6. Status missing or not at line 3 -> ERROR
+7. second Status line -> ERROR
+8. status outside vocabulary -> ERROR
+9. unresolved authority ref -> ERROR
+10. fully migrated valid fixture -> zero RFC-projection findings
+
+Use hermetic fixtures.
+
+Do not make tests depend on the live repository being clean.
+
+==================================================
+B3 — AS-155 ONE-LINE WORDING RECONCILIATION
+==================================================
+
+In:
+
+brain/protocols/CONTEXT_BOOTSTRAP.md
+
+reconcile §6a's stale sentence:
+
+"The Architect publishes each review..."
+
+with the already-adopted BC-4 Author != Publisher semantics.
+
+Make only the minimum wording change.
+
+Meaning:
+
+- Architect authors/reviews;
+- Architect may publish when its channel satisfies OBL-012;
+- otherwise Builder or Paulo may mechanically publish the exact
+  Architect-authored routing bytes unchanged through CAS.
+
+Do not otherwise rewrite CONTEXT_BOOTSTRAP policy in Cycle B.
+
+==================================================
+FILES AUTHORIZED
+==================================================
+
+Expected implementation files:
+
+- scripts/check-context-bootstrap.mjs
+- tests/context-bootstrap.test.mjs
+- tests/context-bootstrap-v2.test.mjs ONLY if genuinely needed by the
+  existing test organization
+- devos/governance/traceability/validate-traceability.mjs
+- tests/traceability.test.mjs
+- brain/protocols/CONTEXT_BOOTSTRAP.md
+
+Plus normal governed coordination / directive / handoff / archive files.
+
+Do NOT change generate-traceability.mjs unless implementation proves
+the validator cannot satisfy the accepted BC-10 contract without it.
+
+If generate-traceability.mjs appears necessary:
+STOP and report why before widening scope.
+
+==================================================
+PRE-EXISTING TRACEABILITY DEBT
+==================================================
+
+Do NOT fix unrelated existing traceability debt in D-128.
+
+The Cycle A baseline already contains the pre-existing findings,
+including:
+
+CORE-022
+D-000
+WEB-REQ-009
+
+and pre-existing generated-index drift.
+
+Cycle B acceptance is based on DELTA:
+
+- no new unrelated traceability ERROR;
+- RFC-023 BC-10 projection checks work correctly;
+- the current migrated RFC projection passes the new RFC-specific checks.
+
+Do not regenerate derived traceability output merely to hide the
+pre-existing drift unless separately authorized.
+
+==================================================
+VALIDATION
+==================================================
+
+Before returning:
+
+Run at minimum:
+
+- Context Bootstrap test suite;
+- Context Bootstrap V2 test suite;
+- traceability test suite;
+- Skills tests if the wording-only policy change can affect them;
+- normal bootstrap checker;
+- manual changed-file inspection required by OBL-023.
+
+For BC-12 provide evidence for all eight accepted cases plus the explicit
+chain-boundary case.
+
+For BC-10 provide evidence for all ten accepted cases.
+
+Report:
+
+- exact files changed;
+- exact tests and counts;
+- before/after behavior for the D-112 false-exhaustion regression;
+- resulting ledger entry shape;
+- one example BRANCH_ADVANCED continue_on chain;
+- one example PUBLISHED -> fresh next-chain case;
+- RFC projection validator findings on the migrated live tree;
+- global traceability baseline versus after;
+- any limitation.
+
+==================================================
+HARD BOUNDARIES
+==================================================
+
+Not authorized:
+
+- product or website changes;
+- production mutation;
+- deploy;
+- main merge;
+- D1/R2;
+- Access/DNS/bindings/secrets/environment;
+- RFC-023 redesign;
+- STATE schema changes;
+- PROTOCOL_VERSION change;
+- new governance subsystem;
+- Authorized Work Envelope;
+- S6/S7;
+- D-068;
+- mobile work;
+- unrelated traceability cleanup;
+- retrospective expansion.
+
+All action-specific production flags remain NO.
+
+==================================================
+RETURN
+==================================================
+
+After implementation, publish one bounded Builder handoff:
+
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+
+Then STOP.
+
+If the Architect accepts Cycle B with no blocker, D-128's implementation
+work is complete and V2.1 should be treated as FROZEN.
+
+No V2.2, new governance feature, or retrospective implementation follows
+automatically.
+
+After V2.1 closure, return to product work — ClinicFlow is the intended
+next priority.
+````

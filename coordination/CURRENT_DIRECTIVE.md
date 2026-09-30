@@ -1,74 +1,76 @@
-# Current Directive — RFC-023 Cycle A remediation 1 (AS-154-F001)
+# Current Directive — RFC-023 / V2.1 Cycle B (D-128)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-DEVOS-RFC023-CYCLE-A-REM1-0001
-cycle_id: MAISOGLABS_DEVOS_RFC023_V21
-issue_parent_commit: 0e6711b089a52a160102c1c0cba6a7a67abf30fa
+directive_id: DIR-DEVOS-RFC023-CYCLE-B-0001
+cycle_id: MAISOGLABS_DEVOS_RFC023_V21_CYCLE_B
+issue_parent_commit: 1e5a8a5bacb7e60cab7df4cb226613a8f72ace01
 target_turn: CLAUDE
-authority_ref: D-127
-applicable_review_id: ML-DEVOS-AS-154
+authority_ref: D-128
+applicable_review_id: ML-DEVOS-AS-155
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
-su_disposition: CLEAR
+su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-127 and `ML-DEVOS-AS-154`. `ML-DEVOS-AS-154` instructed its issue. Claude/Builder prepared these bytes as publisher, restating only the review's "Exact remediation", "Do not change" and "Routing" sections.
+This directive is transport, not authority. Effective scope is the intersection of live STATE, D-128 and `ML-DEVOS-AS-155`. Claude/Builder prepared it as mechanical publisher of D-128, as for D-125 and D-127.
 
 ## Objective
 
-Remediate `AS-154-F001` only: propagate the BC-4 Author ≠ Publisher path consistently to `CLAUDE.md`'s write gate, `ARCHITECT_SYNC.md`'s turn protocol and the `architect-review-sync` Skill (plus its generated bridge). Then return.
+Implement `ML-DEVOS-RFC-023` BC-12 (the attempt-ledger chain) and BC-10 (the RFC lifecycle-projection checks), plus the AS-155 §6a one-line wording reconciliation, with tests. Then return.
 
 ## Preconditions
 
-- The Protocol V2 bootstrap passes; STATE selects this directive; `CURRENT_REMEDIATION_CYCLE: 1` of `MAX_REMEDIATION_CYCLES: 2`; every action flag is `NO`.
+- The Protocol V2 bootstrap passes; STATE selects this directive; `CURRENT_REMEDIATION_CYCLE: 0`; every action flag is `NO`.
+- The existing attempt ledger is left untouched.
 
 ## Governing references
 
-- **T0:** D-127; `ML-DEVOS-AS-154` (§ Exact remediation A–D, § Do not change, § Routing); live STATE.
-- **T1:** `ML-DEVOS-RFC-023` BC-4; `OBL-012`; `OBL-023`.
+- **T0:** D-128; `ML-DEVOS-AS-155` (follow-ups A and C); live STATE.
+- **T1:** `ML-DEVOS-RFC-023` BC-10, BC-12, BC-4 and §6 (tests); `brain/protocols/CONTEXT_BOOTSTRAP.md` §3 item 7, §6a, §8; `OBL-023`.
 
 ## Exact execution scope
 
 Allowed:
-- **A.** `CLAUDE.md`: clarify the write gate. Builder-authored governed work needs `TURN: CLAUDE` + `IMPLEMENTER_ACTION_REQUIRED: YES`. The BC-4 mechanical-publisher exception on an Architect turn applies under the five AS-154 conditions and grants no authority to author, alter or approve.
-- **B.** `brain/protocols/ARCHITECT_SYNC.md` § Turn protocol: Architect = author/reviewer; publisher = Architect if `OBL-012` is satisfied, otherwise Builder or Paulo publishes the exact bytes unchanged. The BC-4 contract itself is unchanged.
-- **C.** `.agents/skills/architect-review-sync/SKILL.md`: only the passages that restate publication mechanics, per AS-154 C, preserving the listed items.
-- **D.** Regenerate `.claude/skills/` with `node scripts/generate-claude-skills-bridge.mjs`.
-- One Protocol V2 Builder return (handoff, STATE, directive archive; obligations carried forward unchanged).
+- **B1.** `scripts/check-context-bootstrap.mjs` and `tests/context-bootstrap.test.mjs` (`tests/context-bootstrap-v2.test.mjs` only if the existing test organization genuinely needs it).
+- **B2.** `devos/governance/traceability/validate-traceability.mjs` and `tests/traceability.test.mjs`.
+- **B3.** `brain/protocols/CONTEXT_BOOTSTRAP.md` §6a, one sentence only.
+- One Protocol V2 Builder return.
 
-Not allowed: `ML-DEVOS-RFC-023`; RFC lifecycle mappings or status lines; obligation changes beyond carry-forward; the attempt ledger, the traceability validator, `scripts/check-context-bootstrap.mjs`, any test; product/website files; production resources; unrelated stale wording; any reopened Cycle A judgment.
+Not allowed: `generate-traceability.mjs` (stop and report if it appears necessary); regenerated traceability output; unrelated traceability debt; editing, resetting or deleting the ledger; RFC-023 redesign; STATE schema or `PROTOCOL_VERSION`; any envelope; product, production, deploy, `main`, D1/R2, Access/DNS/bindings/secrets/environment; S6/S7; D-068; mobile.
 
 ## SENTINEL Sync
 
-- **Authority:** D-127 Cycle A, via the `ML-DEVOS-AS-154` remediation routing (cycle 1 of 2).
-- **Context:** Cycle A is accepted apart from `AS-154-F001`.
-- **Capability:** documentation edits; the existing bridge generator and validator.
-- **Evidence:** bridge validator, `tests/skills.test.mjs`, the Context Bootstrap suites, the checker, and a manual changed-file inspection (`OBL-023`).
+- **Authority:** D-128 (Paulo), after `ML-DEVOS-AS-155`.
+- **Context:** Cycle A is accepted and closed. BC-10 and BC-12 were adopted but left unimplemented.
+- **Capability:** repository code and tests only, with hermetic fixtures.
+- **Evidence:** the three governance suites, the Skills suite, the checker, the validator delta against the Cycle A baseline, and a manual changed-file inspection.
 
 Disposition `CLEAR`.
 
 ## SU Contradiction Check
 
-`BOUNDED_CONTRADICTION`, `CLEAR`. The finding is the contradiction itself (BC-4 vs the unqualified write gate and the Skill's "must not publish"); the remediation removes it without changing BC-4.
+`BOUNDED_CONTRADICTION`, `CLEAR_WITH_NOTES`.
+- **B3 vs §3 item 7:** §3 item 7 describes the old default key as current "until the separately authorized Cycle B implements BC-12". That wording is self-expiring and stays accurate once B1 lands, so D-128's §6a-only limit holds and §3 is not edited.
 
 ## Instructions
 
 1. Bootstrap on the issue commit.
-2. Apply A, B and C minimally; run D.
-3. Validate as AS-154 § Routing requires.
-4. Publish the return.
+2. Implement B1 with the eight RFC-023 ledger tests plus the chain-boundary test.
+3. Implement B2 with the ten BC-10 tests on hermetic fixtures.
+4. Apply B3.
+5. Validate and collect the evidence D-128 § Validation lists; publish the return.
 
 ## Validation and evidence
 
-Skills bridge generator and validator; `tests/skills.test.mjs`; `tests/context-bootstrap.test.mjs` and `tests/context-bootstrap-v2.test.mjs`; checker `--check-only`; manual inspection of the exact changed-file set; confirmation that no Cycle B file changed.
+D-128 § Validation in full, including the before/after D-112 regression, the ledger entry shape, example chains, live RFC-projection findings and the global traceability delta.
 
 ## Stop conditions
 
-- Any required edit would touch a file outside A–D or the return transition.
-- The bridge cannot be regenerated with the existing generator.
-- Any check fails.
+- `generate-traceability.mjs` or any file outside the allowed set appears necessary.
+- A required behavior would change `UNKNOWN_OUTCOME` or read-back semantics.
+- Any existing test fails for a reason other than this cycle's intended change.
 
 ## Next action
 
-Publish `H-DEVOS-RFC023-CYCLE-A-REM1-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
+Publish `H-DEVOS-RFC023-CYCLE-B-0001`. Archive and deselect this directive, keep every flag `NO`, and route `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`.
