@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 import {
   AUTHORITATIVE_BRANCH,
@@ -48,6 +49,7 @@ import {
   normalizeRepository,
   parseStateFields,
   publishCandidate,
+  publicationKey,
   publishWithRetries,
   readAtCommit,
   resolveRemoteTip,
@@ -761,6 +763,229 @@ test('exhausted publication retries cannot silently reset through session resume
   assert.equal(r.code, 'PUBLICATION_ATTEMPTS_EXHAUSTED');
   assert.equal(g.pushes(), 0);
   assert.equal(resolveRemoteTip(a.git, 'origin', BRANCH), tip);
+});
+
+// ------------------------------- RFC-023 BC-12 logical publication chains
+
+const CHAIN = { CYCLE_ID: 'CYCLE_B', TURN: 'CLAUDE' };
+
+// One default-key publication attempt: the key comes from the same
+// publicationKey() the CLI's runPublish uses.
+function chainAttempt({ c, git = c.git, ledger, parent, files, state = CHAIN }) {
+  const { transitionId, chain } = publicationKey({ ledger, state, parent });
+  const cand = buildCandidate(c, parent, files);
+  const r = publishCandidate({ git, remote: 'origin', branch: BRANCH, candidate: cand, expectedParent: parent, receipt: receiptFor(cand, parent), ledger, transitionId, chain });
+  return { r, key: transitionId, cand };
+}
+
+function ledgerData(file) {
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+test('BC-12 (1): sequential legitimate publications in one cycle with no handoff do not falsely exhaust (D-112 regression)', (t) => {
+  const { clone, root } = setupRemote(t);
+  const c = clone('c');
+  const file = path.join(root, 'ledger.json');
+  const keys = [];
+  for (let i = 0; i < 4; i += 1) {
+    const parent = resolveRemoteTip(c.git, 'origin', BRANCH);
+    const { r, key } = chainAttempt({ c, ledger: new AttemptLedger(file), parent, files: { 'n.txt': String(i) } });
+    assert.equal(r.code, 'PUBLISHED');
+    assert.equal(r.attempt, 1);
+    keys.push(key);
+  }
+  assert.equal(new Set(keys).size, 4, 'each legitimate transition is its own chain');
+
+  // Before Cycle B: the default key CYCLE_ID:HANDOFF_ID|NONE:TURN is the same
+  // for all four, so the fourth legitimate publication was refused.
+  const old = clone('old');
+  const oldLedger = ledgerIn(root, 'old.json');
+  const codes = [];
+  for (let i = 0; i < 4; i += 1) {
+    const parent = resolveRemoteTip(old.git, 'origin', BRANCH);
+    const cand = buildCandidate(old, parent, { 'o.txt': String(i) });
+    codes.push(publishCandidate({ git: old.git, remote: 'origin', branch: BRANCH, candidate: cand, expectedParent: parent, receipt: receiptFor(cand, parent), ledger: oldLedger, transitionId: 'CYCLE_B:NONE:CLAUDE' }).code);
+  }
+  assert.deepEqual(codes, ['PUBLISHED', 'PUBLISHED', 'PUBLISHED', 'PUBLICATION_ATTEMPTS_EXHAUSTED']);
+});
+
+test('BC-12 (2): three BRANCH_ADVANCED attempts across rebuilt candidates and separate invocations stay one chain; the fourth is refused', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const other = clone('other');
+  const file = path.join(root, 'ledger.json');
+  let firstKey = null;
+  for (let i = 1; i <= MAX_PUBLICATION_ATTEMPTS; i += 1) {
+    const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+    // Someone else lands first after our fresh read, before our push.
+    const theirs = buildCandidate(other, parent, { 'theirs.txt': String(i) });
+    const racing = countingGit(a.git, (args, opts, git) => {
+      ok(other.git(['push', '-q', 'origin', `${theirs}:refs/heads/${BRANCH}`]));
+      return git(args, opts);
+    });
+    const { r, key } = chainAttempt({ c: a, git: racing, ledger: new AttemptLedger(file), parent, files: { 'mine.txt': String(i) } });
+    assert.equal(r.code, 'BRANCH_ADVANCED');
+    assert.equal(r.attempt, i);
+    firstKey ??= key;
+    assert.equal(key, firstKey, 'the rebuilt candidate continues the same logical chain');
+    assert.equal(ledgerData(file)[key].chain.continue_on, theirs);
+  }
+  const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const g = countingGit(a.git);
+  const { r, key } = chainAttempt({ c: a, git: g, ledger: new AttemptLedger(file), parent, files: { 'mine.txt': 'last' } });
+  assert.equal(key, firstKey);
+  assert.equal(r.code, 'PUBLICATION_ATTEMPTS_EXHAUSTED');
+  assert.equal(g.pushes(), 0);
+  assert.equal(resolveRemoteTip(a.git, 'origin', BRANCH), parent);
+});
+
+test('BC-12 (3): NOT_PUBLISHED retries consume the same chain budget', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const file = path.join(root, 'ledger.json');
+  const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const dropped = countingGit(a.git, () => ({ status: 128, stdout: '', stderr: 'timeout' }));
+  const one = chainAttempt({ c: a, git: dropped, ledger: new AttemptLedger(file), parent, files: { 'x.txt': '1' } });
+  const two = chainAttempt({ c: a, git: dropped, ledger: new AttemptLedger(file), parent, files: { 'x.txt': '2' } });
+  assert.equal(one.r.code, 'NOT_PUBLISHED');
+  assert.equal(two.r.code, 'NOT_PUBLISHED');
+  assert.equal(two.key, one.key);
+  assert.equal(two.r.attempt, 2);
+  const three = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent, files: { 'x.txt': '3' } });
+  assert.equal(three.key, one.key);
+  assert.equal(three.r.code, 'PUBLISHED');
+  assert.equal(three.r.attempt, 3);
+});
+
+test('BC-12 (4): UNKNOWN_OUTCOME is unchanged: read back first, stop, no automatic retry', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const file = path.join(root, 'ledger.json');
+  const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  let pushes = 0;
+  let pushed = false;
+  const blind = (args, opts) => {
+    if (args[0] === 'push') { pushes += 1; pushed = true; return { status: 128, stdout: '', stderr: 'timeout' }; }
+    if (args[0] === 'ls-remote' && pushed) return { status: 128, stdout: '', stderr: 'network down' };
+    return a.git(args, opts);
+  };
+  const { r, key } = chainAttempt({ c: a, git: blind, ledger: new AttemptLedger(file), parent, files: { 'x.txt': '1' } });
+  assert.equal(r.code, 'UNKNOWN_OUTCOME');
+  assert.equal(pushes, 1);
+  const entry = ledgerData(file)[key];
+  assert.equal(entry.attempts, 1);
+  assert.equal(entry.last_result, 'UNKNOWN_OUTCOME');
+  assert.equal(entry.chain.continue_on, null);
+  assert.equal(entry.chain.terminated, false);
+
+  // The bounded loop does not retry an unknown outcome either.
+  pushes = 0;
+  pushed = false;
+  const cand = buildCandidate(a, parent, { 'y.txt': '1' });
+  const loop = publishWithRetries({ git: blind, remote: 'origin', branch: BRANCH, transitionId: 'T', ledger: ledgerIn(root, 'loop.json'), prepare: () => ({ candidate: cand, receipt: receiptFor(cand, parent) }) });
+  assert.equal(loop.code, 'UNKNOWN_OUTCOME');
+  assert.equal(pushes, 1);
+});
+
+test('BC-12 (5): another process sharing the same ledger cannot reset the chain count', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const other = clone('other');
+  const file = path.join(root, 'ledger.json');
+  let key;
+  for (let i = 1; i <= 2; i += 1) {
+    const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+    const theirs = buildCandidate(other, parent, { 'theirs.txt': String(i) });
+    ok(other.git(['push', '-q', 'origin', `${theirs}:refs/heads/${BRANCH}`]));
+    ({ key } = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent, files: { 'mine.txt': String(i) } }));
+  }
+  const tip = resolveRemoteTip(a.git, 'origin', BRANCH);
+  // A genuinely separate Node process resolves the same chain and count.
+  const moduleUrl = new URL('../scripts/check-context-bootstrap.mjs', import.meta.url).href;
+  const script = `const { AttemptLedger } = await import(${JSON.stringify(moduleUrl)});
+const l = new AttemptLedger(${JSON.stringify(file)});
+const k = l.chainKey({ cycleId: 'CYCLE_B', parent: ${JSON.stringify(tip)}, targetTurn: 'CLAUDE' });
+process.stdout.write(JSON.stringify({ k, attempts: l.attempts(k) }));`;
+  const seen = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' }));
+  assert.deepEqual(seen, { k: key, attempts: 2 });
+  const last = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent: tip, files: { 'mine.txt': '3' } });
+  assert.equal(last.key, key);
+  assert.equal(last.r.attempt, 3);
+});
+
+test('BC-12 (6): --transition-id is still an explicit flat counter', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const file = path.join(root, 'ledger.json');
+  const ledger = new AttemptLedger(file);
+  assert.deepEqual(publicationKey({ ledger, transitionIdOverride: 'CYCLE_B:NONE:CLAUDE:manual-override', state: CHAIN, parent: A }), { transitionId: 'CYCLE_B:NONE:CLAUDE:manual-override', chain: undefined });
+  const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const cand = buildCandidate(a, parent, { 'x.txt': '1' });
+  const r = publishCandidate({ git: a.git, remote: 'origin', branch: BRANCH, candidate: cand, expectedParent: parent, receipt: receiptFor(cand, parent), ledger, transitionId: 'CYCLE_B:NONE:CLAUDE:manual-override' });
+  assert.equal(r.code, 'PUBLISHED');
+  const entry = ledgerData(file)['CYCLE_B:NONE:CLAUDE:manual-override'];
+  assert.equal(entry.attempts, 1);
+  assert.equal(entry.chain, undefined);
+  assert.equal(entry.last_result, 'PUBLISHED');
+});
+
+test('BC-12 (7): old-format ledger keys are inert and are not migrated, rewritten or reset', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const file = path.join(root, 'ledger.json');
+  const oldEntry = { attempts: 3, outcomes: ['started', 'started', 'started'] };
+  fs.writeFileSync(file, JSON.stringify({ 'CYCLE_B:NONE:CLAUDE': oldEntry }, null, 2));
+  const parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const { r, key } = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent, files: { 'x.txt': '1' } });
+  assert.notEqual(key, 'CYCLE_B:NONE:CLAUDE');
+  assert.equal(r.code, 'PUBLISHED');
+  assert.equal(r.attempt, 1);
+  const data = ledgerData(file);
+  assert.deepEqual(data['CYCLE_B:NONE:CLAUDE'], oldEntry);
+  assert.equal(new AttemptLedger(file).exhausted('CYCLE_B:NONE:CLAUDE'), true, 'the old count is kept, not reset');
+});
+
+test('BC-12 (8): PUBLISHED terminates the chain; the next legitimate publication starts fresh', (t) => {
+  const { clone, root } = setupRemote(t);
+  const a = clone('a');
+  const other = clone('other');
+  const file = path.join(root, 'ledger.json');
+  let parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const theirs = buildCandidate(other, parent, { 'theirs.txt': '1' });
+  ok(other.git(['push', '-q', 'origin', `${theirs}:refs/heads/${BRANCH}`]));
+  const first = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent, files: { 'mine.txt': '1' } });
+  assert.equal(first.r.code, 'BRANCH_ADVANCED');
+  parent = resolveRemoteTip(a.git, 'origin', BRANCH);
+  const second = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent, files: { 'mine.txt': '2' } });
+  assert.equal(second.key, first.key);
+  assert.equal(second.r.code, 'PUBLISHED');
+  assert.equal(second.r.attempt, 2);
+  const done = ledgerData(file)[first.key].chain;
+  assert.equal(done.terminated, true);
+  assert.equal(done.continue_on, null);
+
+  const next = chainAttempt({ c: a, ledger: new AttemptLedger(file), parent: second.cand, files: { 'mine.txt': '3' } });
+  assert.notEqual(next.key, first.key);
+  assert.equal(next.r.code, 'PUBLISHED');
+  assert.equal(next.r.attempt, 1);
+});
+
+test('BC-12 boundary: continue_on is followed only for the exact parent, CYCLE_ID and target turn', (t) => {
+  const file = path.join(tmpdir(t), 'ledger.json');
+  const ledger = new AttemptLedger(file);
+  const key = ledger.chainKey({ cycleId: 'CYCLE_B', parent: A, targetTurn: 'CLAUDE' });
+  assert.equal(key, `CYCLE_B:${A}:CLAUDE`);
+  ledger.record(key, 'started', { cycleId: 'CYCLE_B', originParent: A, targetTurn: 'CLAUDE' });
+  ledger.settle(key, { code: 'BRANCH_ADVANCED', continueOn: B });
+
+  assert.equal(ledger.chainKey({ cycleId: 'CYCLE_B', parent: B, targetTurn: 'CLAUDE' }), key, 'exact continue_on continues');
+  assert.equal(ledger.chainKey({ cycleId: 'CYCLE_B', parent: C, targetTurn: 'CLAUDE' }), `CYCLE_B:${C}:CLAUDE`, 'different parent is a fresh chain');
+  assert.equal(ledger.chainKey({ cycleId: 'CYCLE_B', parent: B, targetTurn: 'ARCHITECT' }), `CYCLE_B:${B}:ARCHITECT`, 'different turn is a fresh chain');
+  assert.equal(ledger.chainKey({ cycleId: 'OTHER', parent: B, targetTurn: 'CLAUDE' }), `OTHER:${B}:CLAUDE`, 'different cycle is a fresh chain');
+
+  // A terminated chain is never continued, even on its old continue_on.
+  ledger.settle(key, { code: 'PUBLISHED' });
+  assert.equal(ledger.chainKey({ cycleId: 'CYCLE_B', parent: B, targetTurn: 'CLAUDE' }), `CYCLE_B:${B}:CLAUDE`);
 });
 
 // ---------------------------------------------- multi-turn + rollback

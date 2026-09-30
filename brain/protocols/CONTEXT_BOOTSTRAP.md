@@ -89,7 +89,7 @@ Every governed writer checks `PROTOCOL_VERSION` against the version it bootstrap
 
 ## 6a. Architect routing transitions
 
-The Architect publishes each review under a new `ML-DEVOS-AS-NNN` with its byte-identical archive, in one commit parented on the exact tip. When that routing stops selecting the Builder's handoff, STATE sets `CURRENT_HANDOFF: NONE` and empties `HANDOFF_ID`, `REVIEW_TARGET_COMMIT`, and `APPLICABLE_REVIEW_ID`. The same commit archives the deselected handoff's exact bytes under `coordination/archive/handoffs/` (checked as `OUTGOING_HANDOFF_NOT_PRESERVED` otherwise). The deselected file may stay in place. With `NONE` it is not applicable, and the Builder's next handoff replaces it.
+The Architect authors each review under a new `ML-DEVOS-AS-NNN`; it is published with its byte-identical archive, in one commit parented on the exact tip, by the Architect once its channel satisfies `OBL-012`, otherwise mechanically by the Builder or Paulo with the exact Architect-authored bytes unchanged, through CAS (`ML-DEVOS-RFC-023` BC-4). When that routing stops selecting the Builder's handoff, STATE sets `CURRENT_HANDOFF: NONE` and empties `HANDOFF_ID`, `REVIEW_TARGET_COMMIT`, and `APPLICABLE_REVIEW_ID`. The same commit archives the deselected handoff's exact bytes under `coordination/archive/handoffs/` (checked as `OUTGOING_HANDOFF_NOT_PRESERVED` otherwise). The deselected file may stay in place. With `NONE` it is not applicable, and the Builder's next handoff replaces it.
 
 ## 7. Rollback
 
