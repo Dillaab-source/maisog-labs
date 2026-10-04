@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_CLINICFLOW_META_COMPLIANCE
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D134_CLINICFLOW_META_COMPLIANCE_BUILDER_RETURN_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D135_GATE_C_PROTECTED_MERGE_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-CLINICFLOW-META-COMPLIANCE-0001
-REVIEW_TARGET_COMMIT: 1a4fa85ee30fcd111a7854576c10b3ce06279953
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-161
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,6 +29,6 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- D-134 implementation handoff: `H-CLINICFLOW-META-COMPLIANCE-0001`, reviewed against the repository-local candidate. Public-page routes are implemented and validated locally; no deploy or main merge occurred.
-- Codex's temporary Builder assignment ends with this return. Next: independent Architect `CHANGE REVIEW`; Claude remains the default Builder outside D-134.
+- AS-162 accepts the D-134 ClinicFlow compliance candidate with follow-up: fresh protected CI/test-and-build must pass on the exact final Gate C head. No CI waiver.
+- Next: Paulo decides D-135 Gate C protected merge only. No deploy, traffic change, remote D1/R2, or Meta/n8n changes are authorized. Codex's temporary Builder assignment has ended; Claude remains default Builder.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
