@@ -1,0 +1,9 @@
+{
+  "directive_id": "DIR-CLINICFLOW-V1-RECOVERY-0001",
+  "cycle_id": "CLINICFLOW_V1_RECOVERY",
+  "source_path": "coordination/CURRENT_DIRECTIVE.md",
+  "publication_commit": "ae2c24c3d12774f9a91f42ea49ea723beb16776a",
+  "source_blob": "6b6e14294ed9623a181e806c7d3d0b00d0bb28ba",
+  "archive_blob": "6b6e14294ed9623a181e806c7d3d0b00d0bb28ba",
+  "sha256": "e95a2bb4f68c29b9f9db220a59d2b55b21e7c9b7de79da6c3e97e0dd18a7ef46"
+}

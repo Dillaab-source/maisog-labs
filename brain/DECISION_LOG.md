@@ -4278,3 +4278,478 @@ Then STOP.
 
 Gate D remains a separate Paulo decision after Architect review.
 ````
+
+### D-131 — Hold Gate D; route the AS-158 publication-integrity defect to the Architect for one review-only correction
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `3f27179aa9abea3f938210dbca7623e9ddcfcd8b`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Finding (Architect inspection, relayed by Paulo):**
+  - the published `ML-DEVOS-AS-158` fenced review body is not byte-identical to the Architect-authored review;
+  - Architect-authored section titles and separator lines are missing, among them "ARCHITECT VERIFICATION", "CHANGED-FILE / SCOPE DISPOSITION", "AS158-F001 — PRE-EXISTING S6 TIMING DEFECT", "PRODUCTION EVIDENCE BOUNDARY", "GATE C VERDICT" and "ROUTING";
+  - some bullet markers are normalized.
+
+  The substantive Gate C verdict appears preserved. However, the publication does not satisfy `ML-DEVOS-RFC-023` BC-4 ("The Architect authors review bytes, and the Builder (or Paulo) publishes them unchanged through CAS"), so the Builder's byte-identity attestation cannot be accepted as correct.
+- **Owner disposition:**
+  - Gate D is temporarily held.
+  - Do not deploy; do not promote Worker version `666b7bef…`; do not modify `main`; do not repair S6; do not resume the earlier V2.1 Revision 2 work.
+  - Do not rewrite, amend or delete the immutable `ML-DEVOS-AS-158` record or its archive.
+- **Authorized:** only the governance transition that returns this exact publication-integrity finding to the Architect. The next Architect turn's sole purpose is to issue a new immutable corrective Architect Sync for the AS-158 defect.
+- **Routing:**
+  - `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `AUTHORIZED_SCOPE: D131_AS158_PUBLICATION_INTEGRITY_REVIEW_ONLY`;
+  - `ARCHITECT_ACTION_REQUIRED: YES`, `IMPLEMENTER_ACTION_REQUIRED: NO`, `PAULO_DECISION_REQUIRED: NO`;
+  - `CURRENT_HANDOFF: NONE`, `CURRENT_DIRECTIVE: NONE`.
+- **Flags:** every action-specific flag stays `NO`, in particular `DEPLOY_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED`, `MUTATION_AUTHORIZED`, `REMOTE_D1_AUTHORIZED` and `REMOTE_R2_AUTHORIZED`.
+- **Builder note (`ACTOR_REPORTED`; evidence for the Architect, not part of Paulo's decision):**
+  - The Builder kept the review text exactly as it arrived in the Builder session. That text contains none of the section titles or separator lines listed above, and the published AS-158 body is identical to it. The loss therefore appears to have happened before the text reached the Builder, in the relay.
+  - The attestation in AS-158 ("reproduced verbatim as received") was nonetheless inadequate for BC-4. The Builder verified identity only against what it received, not against the Architect-authored bytes, and had no Architect-supplied hash or length to check against.
+
+### D-132 — Authorize the exact D-129 homepage release Gate D production promotion only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `38fefb4bcc67d5b0472b150d8d630894250db56b` (`main` `ab1296de8a1832291b2f4df97b726755d17c42bd`), after `ML-DEVOS-AS-159`. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **Flags:** `DEPLOY_AUTHORIZED: YES` for the exact operation below only. Every other action flag `NO`.
+- **Operation:** at most one promotion of Worker version `666b7bef-9d41-47d0-b5ca-00b8351f9a29` to 100% (`npx wrangler versions deploy 666b7bef-9d41-47d0-b5ca-00b8351f9a29@100% --yes`), only after every preflight passes.
+- **Rollback:** at most one rollback to `8fd31f47-a65d-4f57-83f1-17a1e0cd8043@100%`, only on a qualifying new material failure caused by this release.
+- **Directive:** `DIR-WEB-D132-GATE-D-0001`, scope `D132_D129_GATE_D_PRODUCTION_PROMOTION_ONLY`.
+- **Builder execution note (`ACTOR_REPORTED`; not part of Paulo's decision):**
+  - Wrangler is not authenticated in the Builder container: `wrangler whoami` reports "not authenticated", and `CLOUDFLARE_API_TOKEN` is unset.
+  - As at D-114 and D-123, whose Gate D returns `ML-DEVOS-AS-148` accepted, the promotion is executed as the Cloudflare API equivalent of that command through the Cloudflare MCP/API connector: one `POST /accounts/{id}/workers/scripts/maisog-labs/deployments` with `strategy: "percentage"` and `versions: [{ version_id: "666b7bef…", percentage: 100 }]`. There is no upload, rebuild, split or `wrangler deploy`.
+  - The read-only preflight run at 03:23–03:24Z, before this decision was published, passed. Details are in the directive.
+- **Decision text (verbatim as received in the Builder session):**
+
+````text
+D-132 — Authorize the exact D-129 homepage release Gate D production
+promotion only.
+Controlling Architect review:
+ML-DEVOS-AS-159
+Accepted Gate C:
+D-130
+Current main:
+ab1296de8a1832291b2f4df97b726755d17c42bd
+Accepted homepage SHA-256:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+Expected Entry asset:
+entry.e184fa740d43.js
+Expected RFC-022 bridge values:
+SHA:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+Length:
+20857
+Insertion offset:
+20116
+Exact target Worker Version:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+Builder-reported Workers Build that produced it:
+0588b13b-caf0-40cd-968b-ee68f0e21659
+Expected current production / rollback version:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043
+Previously reported deployment:
+b0f11606-80e3-4980-b617-e76bbacbf57c
+Cloudflare control-plane identities above remain ACTOR_REPORTED until
+the Builder performs the mandatory fresh preflight below.
+Before recording D-132, governance/maisoglabs-v0.1 must still resolve
+exactly to:
+38fefb4bcc67d5b0472b150d8d630894250db56b
+and main must still resolve exactly to:
+ab1296de8a1832291b2f4df97b726755d17c42bd
+If either differs:
+STOP.
+Do not publish D-132 against a stale snapshot.
+Authorize exactly one Gate D production promotion of:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+to:
+100% production traffic.
+The intended Wrangler operation is:
+npx wrangler versions deploy 666b7bef-9d41-47d0-b5ca-00b8351f9a29@100% --yes
+Run that promotion at most once and only after every preflight condition
+below passes.
+DEPLOY_AUTHORIZED: YES
+for this exact operation only.
+Every other action-specific authorization flag remains NO.
+Immediately before production promotion, perform fresh read-only
+Cloudflare and repository checks.
+Verify ALL of the following:
+
+1. main is still exactly:
+ab1296de8a1832291b2f4df97b726755d17c42bd
+2. Target Worker Version:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+still exists and is inactive.
+3. The target remains associated with the accepted main release and
+carries the expected D-129 homepage artifact.
+4. The target homepage identity remains:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+5. The expected Entry asset remains:
+entry.e184fa740d43.js
+6. RFC-022 bridge identity remains:
+f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3
+/ 20857 / 20116
+7. Active production is still exactly:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043
+at 100% traffic with no traffic split.
+8. No intervening production promotion or unexpected deployment drift
+has occurred.
+9. The target's required Worker bindings/configuration remain intact
+and compatible with the current production environment.
+10. Existing Access protection for /admin remains configured.
+11. No unrelated production D1/R2, DNS, Access, bindings, secrets or
+environment mutation is required to deploy this version.
+
+If ANY value differs or any target identity is ambiguous:
+STOP WITHOUT DEPLOYING.
+Do not select another Worker version.
+Do not rebuild.
+Do not upload a replacement version.
+Do not repair the discrepancy under D-132.
+Only after all preflight checks pass:
+deploy exactly:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29@100%
+Do not:
+
+* use wrangler deploy;
+* upload a new Worker version;
+* rebuild the website;
+* deploy a newer or different main build;
+* create a canary;
+* create split traffic;
+* change routes or triggers;
+* mutate D1;
+* mutate R2;
+* change Access;
+* change DNS;
+* change bindings;
+* change secrets;
+* change environment variables;
+* publish or alter project records;
+* alter site_settings or contact data;
+* modify main;
+* modify the accepted homepage;
+* repair AS158-F001;
+* resume S6;
+* resume V2.1 Revision 2;
+* merge any PR.
+
+Immediately after promotion verify:
+
+1. active production version is exactly:
+666b7bef-9d41-47d0-b5ca-00b8351f9a29
+at 100%.
+2. No unexpected traffic split exists.
+3. https://maisoglabs.com/ returns HTTP 200.
+4. The live homepage serves the accepted D-129 copy:
+Paulo Maisog — AI Automation & Technical Systems Builder
+Building practical AI workflows, cloud automation, and technical
+systems for real-world business processes.
+5. The lower-right Entry stack is exactly:
+AI
+AUTOMATION
+SYSTEMS
+6. The live page references/loads:
+entry.e184fa740d43.js
+7. Existing navigation and the following areas remain usable:
+   * Entry / homepage
+   * Systems
+   * Projects
+   * Research
+   * Contact
+8. Existing project presentation remains intact and in the accepted
+order:
+   1. ClinicFlow
+   2. Eternal Eggs
+   3. Sentinel / DevOS
+   4. SU
+   5. Maisog Kilat
+9. Existing public APIs and Journal behavior receive bounded smoke
+verification so a Worker regression is not silently accepted.
+10. /admin remains protected by the existing Access boundary.
+11. Check for new widespread Worker exceptions or required-binding
+failures attributable to this release.
+12. Confirm no D1/R2/project/contact/configuration mutation occurred.
+
+Authorize at most one rollback to:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043@100%
+ONLY if:
+
+* the Gate D promotion successfully occurs; and
+* post-promotion verification demonstrates a new material production
+failure caused by this release.
+
+Qualifying failures include:
+
+* homepage unavailable or materially broken;
+* new major failure of existing public Worker/API behavior;
+* widespread new Worker exceptions;
+* required production binding failure;
+* /admin Access protection failure caused by this release.
+
+Do NOT roll back for:
+
+* the already accepted natural homepage wrapping / hero shift;
+* AS158-F001;
+* S6 being parked;
+* a pre-existing unrelated issue;
+* deferred work outside D-132.
+
+If rollback is required, perform that one rollback, verify production is
+again exactly:
+8fd31f47-a65d-4f57-83f1-17a1e0cd8043 @ 100%
+and STOP.
+Do not hotfix.
+Record D-132 and issue one bounded Gate D directive.
+Suggested scope:
+D132_D129_GATE_D_PRODUCTION_PROMOTION_ONLY
+After the operation, publish one Builder return containing:
+
+* fresh pre-deploy active deployment and Worker version;
+* confirmation target version existed and was inactive;
+* target/build/artifact identity checks;
+* the exact deployment command/result;
+* resulting deployment ID;
+* post-deploy active Worker version and traffic allocation;
+* homepage HTTP result;
+* exact D-129 live-copy verification;
+* Entry asset verification;
+* navigation/section smoke results;
+* project presentation verification;
+* API/Journal smoke results;
+* /admin Access result;
+* Worker exception/binding result;
+* rollback status;
+* confirmation no unrelated production resource was mutated.
+
+Then reset:
+DEPLOY_AUTHORIZED: NO
+and ensure every action-specific authorization flag is NO.
+Route:
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+AUTHORIZED_SCOPE: D132_GATE_D_ARCHITECT_REVIEW_ONLY
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: NO
+Then STOP.
+````
+
+### D-133 — Select ClinicFlow as the next product priority; authorize bounded source-of-truth recovery / reconnaissance only
+
+- **Decided by:** Paulo (Product / Risk Owner), in the Builder session on governance tip `2939cbe8a9c52465e6467f9cf2671cd28c7bab81`, after `ML-DEVOS-AS-160` closed the D-129/D-132 website release. Published by Claude/Builder as mechanical publisher of Paulo's decision; committed text proves provenance, not authority.
+- **New cycle:** `CLINICFLOW_V1_RECOVERY`, scope `D133_CLINICFLOW_SOURCE_RECOVERY_ONLY`, `CURRENT_REMEDIATION_CYCLE` 0.
+- **Authorized:** read-only inspection of available ClinicFlow material, and one recovery handoff.
+- **Flags:** every action flag stays `NO`, including `MUTATION_AUTHORIZED`. Read-only inspection needs no write flag (D-102 precedent).
+- **Directive:** `DIR-CLINICFLOW-V1-RECOVERY-0001`, routed to Claude/Builder. The return routes to the Architect.
+- **Decision text (verbatim as received in the Builder session):**
+
+````text
+D-133 — Select ClinicFlow as the next MaisogLabs product priority and
+authorize a bounded source-of-truth recovery / reconnaissance stage only.
+The D-129 / D-132 MaisogLabs website release sequence is closed.
+The next active product priority is:
+ClinicFlow
+The intended sequence is:
+ClinicFlow first.
+Eternal Eggs follows after ClinicFlow reaches a stable,
+portfolio-ready milestone.
+Do NOT automatically resume:
+
+* SENTINEL S6;
+* S7;
+* the interrupted V2.1 Revision 2 work;
+* Maisog Kilat;
+* SU implementation expansion;
+* Eternal Eggs implementation yet.
+
+Recover the real current ClinicFlow state before authorizing a rebuild.
+ClinicFlow previously existed as an AI-assisted clinic receptionist and
+appointment workflow using components such as:
+n8n
+webhooks / chat input
+LLM receptionist
+structured appointment extraction
+conversation memory
+Google Sheets
+Google Calendar
+booking-complete logic
+staff handoff
+The previous implementation had working and partially working pieces,
+including earlier Messenger/webhook integration problems.
+Do not assume the old architecture is still correct.
+Determine what actually exists now.
+Authorize bounded inspection of available ClinicFlow material,
+including where available:
+
+* local ClinicFlow files;
+* n8n workflow exports;
+* workflow JSON;
+* prompts;
+* appointment-extraction schemas;
+* receptionist instructions;
+* Google Sheets / Calendar integration definitions;
+* webhook / Messenger integration configuration records;
+* test cases;
+* screenshots;
+* notes and documentation;
+* old repositories or branches;
+* MaisogLabs records referring to ClinicFlow.
+
+Identify:
+
+1. every surviving ClinicFlow component;
+2. where each component currently lives;
+3. which artifact should become the durable source of truth;
+4. what is demonstrably working;
+5. what is incomplete or broken;
+6. which external dependencies are required;
+7. which credentials/secrets are referenced, without exposing or
+committing their values;
+8. what can be preserved versus what should be rebuilt;
+9. whether an existing ClinicFlow Git repository exists;
+10. if no dedicated repository exists, recommend the clean repository
+/ project structure for the rebuild, but do not create it yet;
+11. the smallest end-to-end workflow required for a portfolio-ready V1;
+12. a concrete test plan for that V1.
+
+Use this as the product objective for planning, not as authorization to
+implement it yet:
+A patient starts a conversation.
+ClinicFlow safely identifies that the user is requesting an
+appointment.
+It collects the minimum required appointment information.
+Structured data is extracted deterministically.
+The workflow validates whether the booking request is complete.
+The system checks or prepares scheduling information.
+The booking is recorded through the governed scheduling path.
+Staff remain able to review or take over.
+The patient receives an appropriate confirmation.
+Duplicate or repeated messages must not accidentally create duplicate
+bookings.
+The AI receptionist must not diagnose medical conditions.
+D-133 does NOT authorize:
+
+* rewriting ClinicFlow;
+* creating production workflows;
+* changing live n8n workflows;
+* changing Facebook / Messenger configuration;
+* sending real patient messages;
+* creating real appointments;
+* modifying Google Calendar;
+* modifying Google Sheets;
+* changing OAuth configuration;
+* using production credentials;
+* deploying anything;
+* creating a new repository;
+* deleting old ClinicFlow material;
+* migrating data;
+* introducing a new LLM architecture;
+* adding a shared CSM/state platform;
+* website changes;
+* S6/S7 work.
+
+This stage is evidence gathering and architecture recovery only.
+All action-specific production/mutation flags remain NO.
+Return one bounded ClinicFlow recovery handoff containing:
+CURRENT STATE
+What exists today and where.
+SURVIVING ASSETS
+Exact files/workflows/configuration artifacts found.
+WORKING PATHS
+Anything that can still be demonstrated as functioning.
+BROKEN / INCOMPLETE PATHS
+Specific failures or missing pieces.
+SOURCE OF TRUTH
+What should become the durable ClinicFlow source of truth.
+ARCHITECTURE RECOVERY
+A diagram or concise flow of the existing architecture.
+PRESERVE / REBUILD MATRIX
+For every major component:
+PRESERVE
+REPAIR
+REBUILD
+REMOVE
+V1 CONTRACT
+The smallest useful end-to-end ClinicFlow workflow we should build.
+TEST PLAN
+Including:
+happy-path appointment request;
+missing information;
+multi-message conversation;
+duplicate/replayed messages;
+invalid date/time;
+unavailable schedule;
+staff handoff;
+LLM malformed output;
+external API failure;
+retry/idempotency behavior;
+no-medical-diagnosis boundary.
+RISKS / BLOCKERS
+Especially external-account, Messenger, OAuth, state-management and
+booking-idempotency concerns.
+PROPOSED NEXT GATE
+The smallest bounded implementation stage that should follow recovery.
+Record D-133.
+Suggested cycle:
+CLINICFLOW_V1_RECOVERY
+Suggested scope:
+D133_CLINICFLOW_SOURCE_RECOVERY_ONLY
+After the recovery work:
+TURN: ARCHITECT
+STATUS: READY_FOR_ARCHITECT
+ARCHITECT_ACTION_REQUIRED: YES
+IMPLEMENTER_ACTION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: NO
+All action-specific authorization flags remain NO.
+Then STOP.
+````
+
+### D-134 — Authorize bounded ClinicFlow Meta compliance pages; assign Codex/Work as temporary Builder
+
+- **Decided by:** Paulo (Product / Risk Owner and authorization authority), following the D-133 recovery return.
+- **New cycle:** `MAISOGLABS_CLINICFLOW_META_COMPLIANCE`, scope `D134_CLINICFLOW_META_COMPLIANCE_PAGES_IMPLEMENTATION_ONLY`.
+- **Authorized:** repository-local implementation and validation of exactly `/clinicflow/privacy`, `/clinicflow/data-deletion`, and `/clinicflow/terms`; public contact `maisoglabsclinicflow@gmail.com`.
+- **Roles:** Paulo remains Product / Risk Owner and authorization authority; ChatGPT remains Architect / Reviewer; Codex/Work is temporary Builder / Implementer for this D-134 cycle only; Claude remains the default Builder outside this cycle. The temporary assignment ends when the D-134 Builder handoff routes back to Architect.
+- **Implementation facts:** ClinicFlow processes Messenger identifiers and messages needed to operate conversation; patient name and contact number; appointment/service/date/time details; booking, reschedule and cancellation state; Google Calendar event data; local operational records; and Google Sheets appointment records. Automated booking actions are verified against the scheduling provider; some requests may be escalated to clinic staff. OpenAI may process conversation content for AI interpretation where applicable. Pages must not claim ClinicFlow diagnoses patients, gives medical advice, stores full medical records, processes card payments, verifies HMO eligibility, or replaces clinic staff. Do not invent retention periods.
+- **Restrictions:** follow Protocol V2 and live STATE; obey the exact scope; preserve evidence and provenance; validate the result; do not self-approve or expand authority. No deployment, main merge, Cloudflare traffic change, remote D1/R2, Meta settings change, ClinicFlow n8n/workflow change, Google Calendar/Sheets mutation, credential change, permanent role-topology change, or unrelated MaisogLabs work.
+- **Return:** publish the D-134 Builder handoff and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; all remote/deploy/main flags remain `NO`. No merge or deployment follows automatically.
+
+### D-135 — Authorize Gate C protected merge for the accepted D-134 ClinicFlow pages
+
+- **Decided by:** Paulo (Product / Risk Owner and authorization authority), after `ML-DEVOS-AS-162` on governance tip `2d068cdff0e3926819035b16f31e6e39cdbb4395`.
+- **Accepted candidate:** D-134 ClinicFlow Meta compliance pages at `7757aeb0ca9391d2f52e90657f8028049bf40524`, accepted by AS-162 with follow-up.
+- **Final Gate C head:** this D-135 publication commit. Any governance-branch movement after publication and before merge invalidates this exact-head authorization.
+- **Authorized:** one normal protected PR from `governance/maisoglabs-v0.1` to `main`; require fresh normal `test-and-build` CI SUCCESS on the exact final PR head; merge only if the PR is clean and all required checks pass.
+- **Merge method:** one normal merge commit, with expected head SHA pinned to the exact final PR head. No direct push to `main`, squash, rebase, force push, protection bypass, or auto-merge.
+- **Verification:** after merge, verify that `main` contains the accepted ClinicFlow compliance pages and verify production traffic/version is unchanged using read-only observations.
+- **Excluded:** do not touch PR #10. No Gate D, deployment, traffic change, remote D1/R2, Meta, n8n, Google, secrets, or credentials.
+- **Return:** publish the Gate C handoff to the Architect after the merge; stop.
+
+#### Owner decision (verbatim)
+
+PAULO DECISION — D-135
+
+Authorize Gate C protected merge only for the accepted D-134 ClinicFlow Meta compliance candidate.
+
+Requirements:
+
+- merge governance/maisoglabs-v0.1 → main through the normal protected PR path;
+- pin the merge to the exact final Gate C head;
+- require fresh normal CI / test-and-build SUCCESS on that exact head before merging;
+- do not waive protected CI;
+- use a normal merge commit only;
+- no direct push to main;
+- no squash/rebase/force push;
+- no protection bypass;
+- no auto-merge.
+
+After merge:
+- verify main contains the exact accepted compliance-page changes;
+- verify production traffic/version is unchanged;
+- return to Architect.
+
+NOT AUTHORIZED:
+- deployment / Gate D;
+- Cloudflare traffic change;
+- remote D1/R2;
+- Meta changes;
+- n8n changes;
+- Google changes;
+- secrets or credentials.
+
+MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
+DEPLOY_AUTHORIZED: NO.
