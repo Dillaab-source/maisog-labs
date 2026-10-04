@@ -1,6 +1,6 @@
 # Directive Archive (Protocol V2)
 
-This is the immutable byte-exact archive of every outgoing `coordination/CURRENT_DIRECTIVE.md` (`ML-DEVOS-RFC-020` §16). It was added as Stage A scaffolding under `D-079`. Protocol V2 is active since `D-080`; no directive has been published or archived yet.
+This is the immutable byte-exact archive of every outgoing `coordination/CURRENT_DIRECTIVE.md` (`ML-DEVOS-RFC-020` §16). It was added as Stage A scaffolding under `D-079`. Protocol V2 is active since `D-080`; the first archived directive is `DIR-CLINICFLOW-META-COMPLIANCE-0001`.
 
 **Entries:**
 - `<directive_id>.md`: the exact outgoing bytes.
@@ -61,3 +61,4 @@ This is the immutable byte-exact archive of every outgoing `coordination/CURRENT
 | DIR-WEB-D130-GATE-C-0001 | MAISOGLABS_WEB_D129_HOMEPAGE_COPY | 75d8267168ec9892ff072a9fdef56e8a3d10a952 | 5122f72926629ba80b12fbf0c568a1a26b742d7a |
 | DIR-WEB-D132-GATE-D-0001 | MAISOGLABS_WEB_D129_HOMEPAGE_COPY | 9cf8ec1823ae36602bf0c205400fff9c67905161 | 7fb3c67f6deb569a5493d6d5b323895003d74427 |
 | DIR-CLINICFLOW-V1-RECOVERY-0001 | CLINICFLOW_V1_RECOVERY | ae2c24c3d12774f9a91f42ea49ea723beb16776a | 6b6e14294ed9623a181e806c7d3d0b00d0bb28ba |
+| DIR-CLINICFLOW-META-COMPLIANCE-0001 | MAISOGLABS_CLINICFLOW_META_COMPLIANCE | 1a4fa85ee30fcd111a7854576c10b3ce06279953 | fd9770446fce60f6c8e53c2ecc9aa906b73b229b |
