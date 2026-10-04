@@ -4707,3 +4707,49 @@ Then STOP.
 - **Implementation facts:** ClinicFlow processes Messenger identifiers and messages needed to operate conversation; patient name and contact number; appointment/service/date/time details; booking, reschedule and cancellation state; Google Calendar event data; local operational records; and Google Sheets appointment records. Automated booking actions are verified against the scheduling provider; some requests may be escalated to clinic staff. OpenAI may process conversation content for AI interpretation where applicable. Pages must not claim ClinicFlow diagnoses patients, gives medical advice, stores full medical records, processes card payments, verifies HMO eligibility, or replaces clinic staff. Do not invent retention periods.
 - **Restrictions:** follow Protocol V2 and live STATE; obey the exact scope; preserve evidence and provenance; validate the result; do not self-approve or expand authority. No deployment, main merge, Cloudflare traffic change, remote D1/R2, Meta settings change, ClinicFlow n8n/workflow change, Google Calendar/Sheets mutation, credential change, permanent role-topology change, or unrelated MaisogLabs work.
 - **Return:** publish the D-134 Builder handoff and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; all remote/deploy/main flags remain `NO`. No merge or deployment follows automatically.
+
+### D-135 — Authorize Gate C protected merge for the accepted D-134 ClinicFlow pages
+
+- **Decided by:** Paulo (Product / Risk Owner and authorization authority), after `ML-DEVOS-AS-162` on governance tip `2d068cdff0e3926819035b16f31e6e39cdbb4395`.
+- **Accepted candidate:** D-134 ClinicFlow Meta compliance pages at `7757aeb0ca9391d2f52e90657f8028049bf40524`, accepted by AS-162 with follow-up.
+- **Final Gate C head:** this D-135 publication commit. Any governance-branch movement after publication and before merge invalidates this exact-head authorization.
+- **Authorized:** one normal protected PR from `governance/maisoglabs-v0.1` to `main`; require fresh normal `test-and-build` CI SUCCESS on the exact final PR head; merge only if the PR is clean and all required checks pass.
+- **Merge method:** one normal merge commit, with expected head SHA pinned to the exact final PR head. No direct push to `main`, squash, rebase, force push, protection bypass, or auto-merge.
+- **Verification:** after merge, verify that `main` contains the accepted ClinicFlow compliance pages and verify production traffic/version is unchanged using read-only observations.
+- **Excluded:** do not touch PR #10. No Gate D, deployment, traffic change, remote D1/R2, Meta, n8n, Google, secrets, or credentials.
+- **Return:** publish the Gate C handoff to the Architect after the merge; stop.
+
+#### Owner decision (verbatim)
+
+PAULO DECISION — D-135
+
+Authorize Gate C protected merge only for the accepted D-134 ClinicFlow Meta compliance candidate.
+
+Requirements:
+
+- merge governance/maisoglabs-v0.1 → main through the normal protected PR path;
+- pin the merge to the exact final Gate C head;
+- require fresh normal CI / test-and-build SUCCESS on that exact head before merging;
+- do not waive protected CI;
+- use a normal merge commit only;
+- no direct push to main;
+- no squash/rebase/force push;
+- no protection bypass;
+- no auto-merge.
+
+After merge:
+- verify main contains the exact accepted compliance-page changes;
+- verify production traffic/version is unchanged;
+- return to Architect.
+
+NOT AUTHORIZED:
+- deployment / Gate D;
+- Cloudflare traffic change;
+- remote D1/R2;
+- Meta changes;
+- n8n changes;
+- Google changes;
+- secrets or credentials.
+
+MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
+DEPLOY_AUTHORIZED: NO.
