@@ -1,26 +1,26 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: CLINICFLOW_V1_RECOVERY
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D133_CLINICFLOW_RECOVERY_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
+CYCLE_ID: MAISOGLABS_CLINICFLOW_META_COMPLIANCE
+TURN: CLAUDE
+STATUS: READY_FOR_IMPLEMENTER
+AUTHORIZED_SCOPE: D134_CLINICFLOW_META_COMPLIANCE_PAGES_IMPLEMENTATION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 0
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-CLINICFLOW-V1-RECOVERY-0001
-REVIEW_TARGET_COMMIT: ae2c24c3d12774f9a91f42ea49ea723beb16776a
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-160
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-CLINICFLOW-META-COMPLIANCE-0001
+DIRECTIVE_ISSUE_PARENT: 7f28573d0e8cf2333ab4786e39a0070972a64814
+DIRECTIVE_AUTHORITY_REF: D-134
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-161
 MEDIA_MUTATION_AUTHORIZED: NO
-MUTATION_AUTHORIZED: NO
+MUTATION_AUTHORIZED: YES
 AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
@@ -29,13 +29,7 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Return: `H-CLINICFLOW-V1-RECOVERY-0001` (D-133, read-only). The ClinicFlow implementation is **not recoverable from sources reachable in the Builder session**:
-  - there is no ClinicFlow repository, and no workflow, prompt, schema, test or screenshot was found;
-  - the n8n connector was unreachable (502), and Google, Meta and local sources are unreachable;
-  - only descriptive records survive (published D1 copy, decisions).
-
-  The handoff gives a provisional architecture, a preserve/rebuild matrix, a V1 contract, a test plan and risks, and proposes the next gate `CLINICFLOW_SOURCE_CAPTURE`.
-- Authority: D-133 is consumed. All action flags `NO`.
-- Next: the Architect reviews the recovery handoff. Nothing is rebuilt, created or connected automatically.
-- Held positions not covered by a live Decision or the obligations index: no PR #7 action; A-3 and A-6 not authorized.
+- D-134 authorizes one bounded repository-local ClinicFlow compliance-page implementation cycle. The Architect accepted D-133 within its read-only scope and routed Codex/Work as temporary Builder under `DIR-CLINICFLOW-META-COMPLIANCE-0001`.
+- Scope is limited to the three public pages and directly required local website files/tests. Deploy, main merge, remote resources, credentials, Meta, n8n and unrelated work remain unauthorized.
+- Next: Codex/Work implements and validates, then returns to `TURN: ARCHITECT` for independent review. Claude remains the default Builder outside D-134.
 - Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.

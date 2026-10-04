@@ -4697,3 +4697,13 @@ PAULO_DECISION_REQUIRED: NO
 All action-specific authorization flags remain NO.
 Then STOP.
 ````
+
+### D-134 — Authorize bounded ClinicFlow Meta compliance pages; assign Codex/Work as temporary Builder
+
+- **Decided by:** Paulo (Product / Risk Owner and authorization authority), following the D-133 recovery return.
+- **New cycle:** `MAISOGLABS_CLINICFLOW_META_COMPLIANCE`, scope `D134_CLINICFLOW_META_COMPLIANCE_PAGES_IMPLEMENTATION_ONLY`.
+- **Authorized:** repository-local implementation and validation of exactly `/clinicflow/privacy`, `/clinicflow/data-deletion`, and `/clinicflow/terms`; public contact `maisoglabsclinicflow@gmail.com`.
+- **Roles:** Paulo remains Product / Risk Owner and authorization authority; ChatGPT remains Architect / Reviewer; Codex/Work is temporary Builder / Implementer for this D-134 cycle only; Claude remains the default Builder outside this cycle. The temporary assignment ends when the D-134 Builder handoff routes back to Architect.
+- **Implementation facts:** ClinicFlow processes Messenger identifiers and messages needed to operate conversation; patient name and contact number; appointment/service/date/time details; booking, reschedule and cancellation state; Google Calendar event data; local operational records; and Google Sheets appointment records. Automated booking actions are verified against the scheduling provider; some requests may be escalated to clinic staff. OpenAI may process conversation content for AI interpretation where applicable. Pages must not claim ClinicFlow diagnoses patients, gives medical advice, stores full medical records, processes card payments, verifies HMO eligibility, or replaces clinic staff. Do not invent retention periods.
+- **Restrictions:** follow Protocol V2 and live STATE; obey the exact scope; preserve evidence and provenance; validate the result; do not self-approve or expand authority. No deployment, main merge, Cloudflare traffic change, remote D1/R2, Meta settings change, ClinicFlow n8n/workflow change, Google Calendar/Sheets mutation, credential change, permanent role-topology change, or unrelated MaisogLabs work.
+- **Return:** publish the D-134 Builder handoff and route to `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`; all remote/deploy/main flags remain `NO`. No merge or deployment follows automatically.
