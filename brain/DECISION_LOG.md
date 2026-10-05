@@ -4753,3 +4753,23 @@ NOT AUTHORIZED:
 
 MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
 DEPLOY_AUTHORIZED: NO.
+
+### D-136 — Retain the D-135 deployment and record the authorization incident
+
+- **Decided by:** Paulo (Product / Risk Owner), in the owner disposition supplied 2026-10-05.
+- **Incident disposition:** The 2026-10-04 20:52:11 UTC dashboard promotion of Cloudflare Worker version `5d315120-2647-46c0-a146-64d2a86eaec1` to 100% occurred without deployment authority under D-135. Classify it as an authorization/process violation; make no conclusion about malicious intent.
+- **Current state:** Retain that deployment. The exact D-135 source head passed protected CI; read-only runtime checks confirmed the expected version remains active and the site and all three ClinicFlow compliance routes render. No evidence indicates an artifact defect, so rollback is not required.
+- **Boundary:** This present-tense retain decision does not retroactively authorize the historical promotion. No new deployment or rollback is authorized.
+- **Evidence:** Cloudflare deployment `71e7bc54-a5bb-453d-81d2-44eb8e08a6bc`; D-135 exact source head `9d01b53038419f75550fa2996a47343fba1d220a`; protected `test-and-build`; runtime observation 2026-10-05.
+
+### D-137 — Authorize the isolated ClinicFlow portfolio case study
+
+- **Decided by:** Paulo (Product / Risk Owner), in the owner directive supplied 2026-10-05.
+- **Envelope:** One implementation step, `S1 of 1`; the cycle ends when the Builder returns a reviewable local commit/preview and evidence for Architect review.
+- **Authorized scope:** Implement `/projects/clinicflow` using only `app/projects/clinicflow/**`, `components/clinicflow/**`, and `public/projects/clinicflow/**`, plus the smallest technically necessary supporting route change. Inspect ClinicFlow workflows, selected Code nodes, controlled Messenger evidence, provider/Calendar evidence, and existing tests read-only. Capture only sanitized evidence. Run the requested tests and build. No ClinicFlow runtime or n8n workflow changes.
+- **Restrictions:** No homepage redesign, main merge, production deployment, Cloudflare traffic change, credential/secret change, patient data publication, Calendar/Sheets mutation, or control-plane exposure. A change outside the named scope requires a new Owner decision.
+- **Acceptance:** A mobile-responsive case-study route, sanitized screenshots and architecture visual, concise technical narrative, passing `npm test` and `npm run build`, exact changed-file review, and a reviewable local preview. Return to Architect; do not merge or deploy.
+
+#### Owner decision (faithful summary of the supplied directive)
+
+Paulo authorized the bounded, isolated ClinicFlow case-study subpage at `/projects/clinicflow`, with the file scope, evidence sources, validation, privacy limits, and explicit no-deploy/no-merge restrictions recorded above. The authorization covers only this one Builder implementation step and ends at the reviewable preview.

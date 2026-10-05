@@ -1,400 +1,105 @@
-# Current Directive — D-134 ClinicFlow Meta compliance pages
+# Current Directive — ClinicFlow portfolio case study
 
 ```yaml
 schema_version: 1
-directive_id: DIR-CLINICFLOW-META-COMPLIANCE-0001
-cycle_id: MAISOGLABS_CLINICFLOW_META_COMPLIANCE
-issue_parent_commit: 7f28573d0e8cf2333ab4786e39a0070972a64814
+directive_id: DIR-CLINICFLOW-PORTFOLIO-CASE-STUDY-0001
+cycle_id: MAISOGLABS_CLINICFLOW_CASE_STUDY
+issue_parent_commit: 55b7de2a2427c5198aae432c24e83447b08833ec
 target_turn: CLAUDE
-authority_ref: D-134
-applicable_review_id: ML-DEVOS-AS-161
+authority_ref: D-137
+applicable_review_id: ML-DEVOS-AS-163
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective authority is the intersection of live STATE, D-134, and ML-DEVOS-AS-161. For this cycle, the CLAUDE turn token represents Codex/Work acting as the temporary Builder assigned by D-134.
+This directive transports the D-137 scope; it does not expand authority. The direct authorization is Paulo's D-137 Owner decision.
 
 ## Objective
 
-Implement and locally validate exactly three public ClinicFlow
-compliance pages in the MaisogLabs website:
+Build a polished, evidence-led, mobile-responsive ClinicFlow case study at `/projects/clinicflow` within the existing MaisogLabs site. Prepare a local preview for review. The cycle ends with the Builder handoff; no merge or deployment follows automatically.
 
-/clinicflow/privacy
-
-/clinicflow/data-deletion
-
-/clinicflow/terms
-
-Return a repository-local candidate for Architect review.
-
-Do not merge to main.
-
-Do not deploy.
-
-==================================================
 ## Preconditions
 
-- Protocol V2 bootstrap passes at the exact live tip.
-- STATE selects this directive.
-- D-134 is durably recorded.
-- ML-DEVOS-AS-161 is durably recorded.
-- Codex/Work is acting only as the temporary Builder.
-- No deployment/main/remote flags are enabled.
-- Inspect the real current site/request architecture before deciding
-  how these routes are implemented.
+- Protocol V2 checker passes on the exact live tip.
+- STATE selects this directive and D-137 S1 of 1.
+- The work stays inside the exact file scope below.
+- ClinicFlow runtime and n8n workflows are read-only evidence sources.
+- No patient data, credentials, private identifiers, control-plane URLs, or admin screens enter public assets or copy.
 
-Do not assume WordPress.
-
-Do not assume an App Router route will automatically be served by the
-current V10.1 production architecture.
-
-==================================================
 ## Governing references
 
-T0:
+- Envelope step: D-137 S1 of 1; this step ends at Builder handoff.
+- D-136 (production retention and incident disposition).
+- D-137 (bounded case-study authorization).
+- ML-DEVOS-AS-163 (Architect acceptance of runtime evidence and routing).
+- `coordination/OPERATIVE_OBLIGATIONS.md`, especially production-release separation.
+- Existing MaisogLabs route, content, accessibility, and static-export conventions.
+- Original ClinicFlow showcase brief supplied by Paulo.
 
-- D-134
-- live STATE
-- ML-DEVOS-AS-161
-
-T1:
-
-- current MaisogLabs routing/build architecture
-- OBL-017 production-release separation
-- OBL-023 candidate-state/changed-file inspection
-- Context Bootstrap Protocol V2
-- current public ClinicFlow factual copy where relevant
-
-D-133 is historical/recovery evidence only and must not override D-134
-product facts.
-
-==================================================
 ## Exact execution scope
 
 ALLOWED:
 
-A. Add exactly these public content surfaces:
-
-- ClinicFlow Privacy Policy
-- ClinicFlow Data Deletion Instructions
-- ClinicFlow Terms of Service
-
-B. Modify only website files directly necessary to serve those exact
-public GET paths.
-
-Prefer the smallest mechanism compatible with the CURRENT deployed site
-architecture.
-
-Examples may include:
-
-- existing app/page routing;
-- existing static/public asset routing;
-- directly necessary route tests.
-
-If extensionless route support requires a bounded Worker routing change,
-the Builder may make only the smallest GET-routing change necessary for
-these three paths, provided it:
-
-- performs no authentication change;
-- touches no D1/R2;
-- touches no admin route;
-- touches no API mutation route;
-- changes no unrelated request behavior.
-
-If a broader Worker/backend change is needed:
-
-STOP and return the blocker.
-
-C. Add directly necessary tests for the three routes.
-
-D. Use/update the previously drafted compliance text when available,
-subject to D-134 factual requirements.
-
-E. Builder return/governance evidence required by Protocol V2.
+- `app/projects/clinicflow/**`
+- `components/clinicflow/**`
+- `public/projects/clinicflow/**`
+- The smallest technically necessary scoped route/supporting change; explain it in the handoff.
+- Read-only inspection of ClinicFlow n8n workflows and selected Code nodes, controlled Messenger evidence, Google Calendar/provider evidence, and existing ClinicFlow tests.
+- Capture and crop sanitized screenshots, create a page-specific architecture visual, run `npm test` and `npm run build`, and prepare a reviewable local preview.
 
 NOT ALLOWED:
 
-- ClinicFlow n8n workflow changes;
-- Messenger webhook changes;
-- Meta App configuration changes;
-- Google Calendar/Sheets mutation;
-- OpenAI configuration;
-- credential changes;
-- remote Cloudflare changes;
-- D1/R2 writes;
-- DNS or Access changes;
-- deployment;
-- main merge;
-- unrelated homepage redesign;
-- unrelated project copy;
-- general legal-site framework;
-- new dependency unless strictly required and returned as a blocker
-  before adding it.
+- MaisogLabs homepage redesign or unrelated project/content edits.
+- ClinicFlow runtime, n8n workflow, Messenger webhook, Meta settings, Calendar/Sheets, credentials, secrets, production resources, D1/R2, DNS, or Access changes.
+- Main merge, any production deployment or traffic change.
+- Public patient data, real names/phone numbers, IDs, tokens, OAuth information, private URLs, n8n editor screenshots, or internal admin endpoints.
+- Claims such as “production-grade,” “enterprise-ready,” or unsupported reliability guarantees.
 
-==================================================
-## Public-content requirements
-
-Public contact:
-
-maisoglabsclinicflow@gmail.com
-
-PRIVACY POLICY
-
-Accurately describe, where applicable:
-
-- Meta / Messenger identifiers used for conversation handling;
-- patient message content needed to interpret requests;
-- patient name;
-- patient contact number;
-- requested service;
-- appointment date/time;
-- booking/reschedule/cancellation state;
-- Google Calendar event information;
-- local ClinicFlow operational appointment records;
-- Google Sheets appointment records.
-
-Relevant service providers may include:
-
-- Meta / Messenger;
-- Google Calendar;
-- Google Sheets;
-- n8n;
-- OpenAI.
-
-State that OpenAI may process conversation content for AI
-interpretation where applicable.
-
-Do not claim ClinicFlow:
-
-- diagnoses patients;
-- gives medical advice;
-- stores full medical records;
-- processes credit-card payments;
-- verifies HMO eligibility;
-- replaces clinic staff.
-
-Do not invent retention periods.
-
-DATA DELETION
-
-Provide a clear deletion-request process using:
-
-maisoglabsclinicflow@gmail.com
-
-Explain enough information for a requester to identify the relevant
-ClinicFlow data.
-
-Do not invent retention durations.
-
-Cautious language about retention for legitimate operational,
-security, or legal purposes is acceptable without inventing specific
-periods.
-
-TERMS
-
-Plain-English terms suitable for a pilot/demo appointment automation
-service.
-
-Cover:
-
-- appointment automation purpose;
-- no medical diagnosis/advice;
-- clinic/provider responsibility;
-- booking/reschedule/cancellation limitations;
-- third-party service dependencies;
-- acceptable use;
-- service availability/outages;
-- reasonable limitations;
-- contact information.
-
-==================================================
-## Repository safety gate
-
-Before commit, inspect the exact diff.
-
-The diff must contain PUBLIC WEBSITE CONTENT ONLY plus directly
-necessary route/test/governance files.
-
-Never commit:
-
-- .env files;
-- API keys;
-- OpenAI keys;
-- Meta App Secret;
-- Meta Page Access Token;
-- webhook verification tokens;
-- OAuth secrets;
-- Google refresh/access tokens;
-- n8n credential values;
-- n8n encryption keys;
-- credential exports;
-- patient names;
-- real patient phone numbers;
-- Messenger user IDs;
-- booking IDs;
-- Calendar event IDs;
-- Google Sheet records/data;
-- production execution payloads;
-- database dumps;
-- private screenshots.
-
-Do not place ClinicFlow operational data in GitHub.
-
-Run existing repository secret/security checks where available.
-
-If any credential, secret or real personal data appears:
-
-STOP BEFORE COMMIT.
-
-==================================================
 ## SENTINEL Sync
 
-Authority:
-D-134, issued by Paulo.
+Disposition: CLEAR for this bounded local case-study task. The Owner scope is explicit. The public page must show product evidence, not operational control planes. Redact or replace identifiers and personal data before saving any evidence.
 
-Context:
-The current task is public compliance content required for Meta
-publishing. ClinicFlow runtime development is outside scope.
-
-Capability:
-Repository/local implementation, local tests/build and governed Git
-publication only.
-
-No remote production action is authorized.
-
-Evidence:
-Exact diff, tests, build, route checks, secret scan, personal-data scan,
-and Builder handoff.
-
-Disposition:
-CLEAR.
-
-==================================================
 ## SU Contradiction Check
 
-Mode:
-BOUNDED_CONTRADICTION
+Mode: BOUNDED_CONTRADICTION
+Disposition: CLEAR_WITH_NOTES
 
-Disposition:
-CLEAR_WITH_NOTES
+- Explain AI interpretation separately from deterministic booking control and provider read-back.
+- Only claim behavior demonstrated by the inspected workflow, source nodes, and test evidence.
+- If an evidence source contains personal or secret data, do not capture it; return the limitation.
+- If the route requires broad Worker/backend, auth, data, or homepage changes, stop and return a blocker.
 
-Notes:
-
-1. D-133 could not access the actual ClinicFlow implementation.
-   D-134 supplies later owner-approved facts for compliance copy.
-   Use D-134 for those facts.
-
-2. A static V10.1 site may not automatically serve framework routes.
-   Inspect actual routing first.
-
-3. Legal/compliance pages must not require authentication.
-
-4. OpenAI can be named as a service provider without publishing any API
-   key, project id or credential metadata.
-
-5. "Public policy page" does not authorize production deployment.
-   Public reachability is verified only at a later release/deploy gate.
-
-==================================================
 ## Instructions
 
-1. Bootstrap from the exact governance tip.
+1. Bootstrap from the exact governance tip and inspect existing project routing and the current ClinicFlow candidate.
+2. Inspect the actual authorized ClinicFlow evidence sources read-only; map the clearest proven path: conversation → intent → availability → slot → confirmation → revalidation → Calendar mutation → read-back → confirmed appointment.
+3. Capture sanitized, legible evidence. Each screenshot must prove a specific step; do not use decorative screenshots. Prefer Messenger interaction, high-level workflow, booking/confirmation, verified Calendar result, and one reliability/recovery artifact.
+4. Build `/projects/clinicflow` as a recruiter-facing case study. First viewport must say what the project does, why its transaction boundary matters, and show real system evidence.
+5. Use the exact positioning: “ClinicFlow is a conversational appointment engine that turns natural patient requests into verified appointments in the clinic's real calendar.”
+6. Feature the principle: “AI understands the patient. ClinicFlow controls the appointment. Calendar proves the result.” Explain Messenger and the AI as adapters around a deterministic booking core.
+7. Include the problem, a clear architecture flow, evidence-led walkthrough, engineering safeguards, concise technology list, and demo CTA. Create a short 20–30 second video only if the actual sanitized assets support it without delaying the page.
+8. Keep page-specific components and assets inside the authorized scope; ensure mobile and desktop layouts.
+9. Run `npm test`, `npm run build`, route checks, secret/personal-data scans, and `git diff --check`. Inspect the exact changed-file set.
+10. Open the local preview for Paulo's review. Do not merge or deploy.
+11. Publish the Builder handoff through Protocol V2 exact-tip CAS with changed files, evidence, tests, limitations, and all production/merge flags `NO`.
 
-2. Inspect current website request/build routing.
-
-3. Determine the smallest valid implementation for the three exact
-   paths.
-
-4. Prepare/update the three compliance pages.
-
-5. Keep design consistent with MaisogLabs while prioritizing readable,
-   mobile-friendly legal text.
-
-6. Add directly necessary tests.
-
-7. Run repository safety scans.
-
-8. Run required validation.
-
-9. Inspect the exact changed-file set manually.
-
-10. Publish one Protocol V2 Builder return.
-
-Do not open a deployment gate automatically.
-
-==================================================
 ## Validation and evidence
 
-At minimum run and report:
+Report actual results for `npm test`, `npm run build`, `/projects/clinicflow` route, mobile/desktop preview, secret scan, personal-data scan, and exact diff.
 
-- npm test
-- npm run build
-- git diff --check
-- applicable Context Bootstrap/repository validators
-- targeted tests for all three compliance routes
+Security report:
 
-Also verify locally:
+- SECRET SCAN: PASS / FAIL
+- PERSONAL DATA SCAN: PASS / FAIL
+- PUBLIC CONTENT ONLY: YES / NO
 
-- privacy route returns/render successfully;
-- deletion route returns/render successfully;
-- terms route returns/render successfully;
-- no authentication required;
-- mobile/readable layout;
-- correct ClinicFlow email;
-- OpenAI disclosure appears where required;
-- no placeholder content;
-- no secret values;
-- no real personal/patient data.
+Classify evidence as Builder-reported, Architect-reproduced, or production/runtime evidence. Do not claim an actual booking unless the evidence visibly and safely proves it.
 
-Security report must include:
-
-SECRET SCAN: PASS / FAIL
-PERSONAL DATA SCAN: PASS / FAIL
-PUBLIC CONTENT ONLY: YES / NO
-
-Evidence from Builder tests remains ACTOR_REPORTED until Architect
-review.
-
-==================================================
 ## Stop conditions
 
-STOP and return without widening scope if:
+Stop and return a blocker if a required fact is unclear; evidence includes any private data or secret; the allowed scope cannot support the route; a broad Worker/backend/auth or homepage change is needed; a dependency or external write is required; the governance tip moves; or the checker refuses publication. Do not widen scope.
 
-- serving the routes requires a broad Worker/backend redesign;
-- a new database/schema is required;
-- remote D1/R2 is required;
-- authentication changes are required;
-- a new dependency is materially required;
-- factual ClinicFlow behavior is unclear and would require invention;
-- legal copy would require an unsupported product claim;
-- a secret or personal record appears in the candidate diff;
-- the governance branch moves during publication;
-- the Context Bootstrap checker refuses the transition.
-
-==================================================
 ## Next action
 
-On successful bounded implementation, publish:
-
-H-CLINICFLOW-META-COMPLIANCE-0001
-
-unless an unused deterministic handoff ID is mechanically required.
-
-Return STATE to:
-
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-
-ARCHITECT_ACTION_REQUIRED: YES
-IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
-
-Set CURRENT_HANDOFF ACTIVE with the matching identity tuple.
-
-Set CURRENT_DIRECTIVE NONE and archive this directive byte-for-byte
-with provenance/index according to Protocol V2.
-
-All remote/deploy/main flags must be NO on return.
-
-No merge or deploy follows automatically.
+Return one Builder handoff, archive this directive per Protocol V2, set `TURN: ARCHITECT`, `STATUS: READY_FOR_ARCHITECT`, `CURRENT_DIRECTIVE: NONE`, and keep deploy, merge, Cloudflare traffic, remote D1/R2, and ClinicFlow runtime flags `NO`. The case-study cycle ends at the reviewable local preview; wait for a later Owner decision before release actions.
