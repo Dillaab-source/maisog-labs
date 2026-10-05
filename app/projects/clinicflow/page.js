@@ -32,11 +32,11 @@ const evidence = [
     number: "01",
     featured: true,
     kind: "3,000-call reliability benchmark · real model execution",
-    title: "Executed; initial frozen verdict: FAIL",
+    title: "3,000-call reliability benchmark",
     detail:
-      "3,000 real model calls completed with 0 skipped calls and 0 API errors. The initial run measured 100% schema validity, 97.45425616547335% service accuracy against a 98% gate, and 39/40 emergency recall. After a targeted no-call safety fix, offline replay reached 40/40 emergency recall; service accuracy remains below its gate.",
+      "Initial frozen verdict: FAIL. 3,000 real model calls completed with 0 skipped calls and 0 API errors. Schema validity reached 100%, while service accuracy was 97.45% against the frozen 98% gate and emergency recall was 39/40. After a targeted no-call safety fix, offline replay reached 40/40 emergency recall; the service-accuracy gate remains open.",
     result:
-      "$0.34080639999999895 total model cost · 6,680,657 input · 5,305,231 cached · 300,363 output tokens · latency p50/p95/p99: 2,143 / 2,868 / 3,636 ms",
+      "Initial frozen verdict: FAIL · $0.3408 model cost · 6.68M input tokens · 5.31M cached · 300K output · p95 latency 2.87s",
   },
   {
     number: "02",
