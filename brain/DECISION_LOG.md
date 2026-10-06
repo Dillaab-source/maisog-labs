@@ -4814,3 +4814,19 @@ DEPLOY_AUTHORIZED: NO.
 - **Not authorized:** production/remote D1 or R2 mutation; main merge; PR merge; deployment or traffic changes; DNS, Access, bindings, secrets, environment variables; ClinicFlow runtime/workflow, n8n, Meta or Google changes; arbitrary/external CTA URLs; unrelated redesign; or Protocol V2.2 adoption/change.
 - **Flags:** MAIN_MERGE_AUTHORIZED: NO; DEPLOY_AUTHORIZED: NO; REMOTE_D1_AUTHORIZED: NO; REMOTE_R2_AUTHORIZED: NO. Every other action-specific flag remains NO.
 - **Acceptance and return:** Prove the registry/route binding, strict server-side allowlist, revision/draft/publish semantics, bridge fail-closed behavior and additive schema compatibility; run the authorized tests/build; verify desktop and narrow layouts, exact ClinicFlow href, no CTA on another project, and no horizontal overflow. Inspect the full diff. Return one Builder handoff to Architect. No Gate C or later release action is authorized.
+
+### D-141 — Authorize D-140 Gate C protected merge only
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, after Architect acceptance `ML-DEVOS-AS-168`.
+- **Governance baseline:** `4654af016ef9bcc8784cd1305c187f305c7ccb09` on `governance/maisoglabs-v0.1`.
+- **Accepted implementation:** `d0bf93ee6951279180c97e5d4a10635be6c68339`, accepted by `ML-DEVOS-AS-168`; corrected CI run `37419973994` passed (990 passed, 0 failed, 1 skipped).
+- **Authorized:** Gate C only for this accepted D-140 implementation: one pull request from `governance/maisoglabs-v0.1` to `main`, complete diff and exact final head inspection, fresh success of all required checks on that exact head, and merge only through the normal protected PR path when all protection requirements are satisfied.
+- **Exact head:** the D-141 publication commit is the final Gate C PR head. Any governance-branch movement after publication and before merge invalidates this exact-head authorization and requires a new Owner decision.
+- **Merge method:** normal merge commit only, pinned to the exact final PR head. No direct push to `main`, force push, squash, rebase, auto-merge, administrator override, or protection bypass.
+- **After merge:** verify PR merge status, merge commit and resulting `main` SHA; confirm `main` contains the accepted D-140 implementation and the exact reviewed source. Publish a Builder handoff to the Architect and stop.
+- **Not authorized:** production deployment or Worker version promotion; applying migration 0007 to remote D1; production D1/R2 mutation; Cloudflare production changes; DNS, Access, secrets or bindings; ClinicFlow runtime/n8n/Meta/Calendar changes; unrelated website work; Protocol V2.2 changes; or Gate D.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. `DEPLOY_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `REMOTE_R2_AUTHORIZED`, and every other action-specific flag remain `NO`.
+
+#### Owner decision (faithful record of Paulo's authorization)
+
+Paulo authorizes Gate C only for the AS-168-accepted D-140 reusable project case-study CTA implementation. This permits the governed GitHub PR review and protected merge process into `main`, subject to all required checks. It does not authorize production deployment, remote database migration, or other production changes. The process must freshly verify the exact PR head, `main` baseline, full diff, required CI, and branch protections; merge normally only when every gate is satisfied. If any required precondition cannot be verified, stop and report the blocker. After success, verify the merge and resulting `main`, publish the evidence to the Architect, and stop. Gate C does not imply Gate D.
