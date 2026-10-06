@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_PROJECT_CASE_STUDY_CTA
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D142_GATE_D_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D142_GATE_D_ACCEPTED_RELEASE_CLOSED_CONTENT_PUBLICATION_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D142-GATE-D-0001
-REVIEW_TARGET_COMMIT: 3f703d4d66e40f8466ed0c9f601af74e44542884
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-169
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,14 +29,5 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: ML-DEVOS-AS-169 accepts and closes D-141 Gate C; Architect review of the D-142 Gate D execution handoff is now required.
-- Owner authority: D-142 authorized only production migration 0007, the exact pinned Worker promotion, bounded verification, and a conditional rollback to the pinned prior version.
-- Production execution is complete. The Builder handoff records the migration, deployment, checks, limitations, and mutation inventory. No Gate D acceptance is claimed.
-- All action-specific authorization flags are NO. Do not enable or publish the ClinicFlow CTA; do not perform another production operation.
-
-## Current handoff
-
-- Handoff: H-WEB-D142-GATE-D-0001
-- Review target / publication parent: 3f703d4d66e40f8466ed0c9f601af74e44542884
-- Applicable review: ML-DEVOS-AS-169
-- Protocol V2 obligations: coordination/OPERATIVE_OBLIGATIONS.md
+- D-142 Gate D production code release is accepted and closed under ML-DEVOS-AS-170.
+- The ClinicFlow CTA remains disabled; Paulo must decide separately whether to activate and publish it.
