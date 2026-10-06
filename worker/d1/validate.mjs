@@ -232,7 +232,8 @@ export function validateProjectRevisionContent(value) {
   // also fit its bounds (name/kind 40, description 400), so a homepage-eligible
   // revision can never fail the bridge's own validation.
   if (value.v10 !== undefined && value.v10 !== null) {
-    validateV10ProjectFields(value.v10);
+    const normalizedV10 = validateV10ProjectFields(value.v10);
+    value.v10 = normalizedV10;
     assertField(value.title, v => v === v.trim() && v.length <= PROJECT_LIMITS.name, "projectRevision.title (V10)");
     assertField(value.category, v => v === v.trim() && v.length <= PROJECT_LIMITS.kind, "projectRevision.category (V10)");
     assertField(value.summary, v => v === v.trim() && v.length <= PROJECT_LIMITS.description, "projectRevision.summary (V10)");

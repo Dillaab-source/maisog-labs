@@ -11,11 +11,12 @@
 // asset-path or layout input. Every save is a draft; nothing is public until
 // Publish, and drafts are visible only in the protected /admin/preview/home.
 import { useCallback, useEffect, useState } from "react";
+import { caseStudyHref, hasCaseStudy } from "../../worker/projects/case-studies.mjs";
 
 const TABS = ["Profile / Home", "Projects", "About", "Navigation", "Contact"];
 // Display labels for the artifact's code-owned discipline indices (MLData.DISC order).
 const DISCIPLINES = ["AI", "Automation", "Research", "Security", "Systems", "Architecture"];
-const EMPTY_V10 = { tagline: "", status: "", disciplines: [], flow: ["", "", "", ""] };
+const EMPTY_V10 = { tagline: "", status: "", disciplines: [], flow: ["", "", "", ""], caseStudyEnabled: false };
 
 const styles = {
   root: { marginTop: "2.5rem", borderTop: "1px solid #ccc", paddingTop: "1.5rem" },
@@ -80,7 +81,7 @@ function projectFormFrom(project) {
     stack: source?.stack ?? [],
     accent: source?.accent ?? "blue",
     icon: source?.icon ?? "lab",
-    v10: source?.v10 && !source.v10.malformed ? { ...source.v10, flow: [...source.v10.flow], disciplines: [...source.v10.disciplines] } : { ...EMPTY_V10, flow: [...EMPTY_V10.flow] },
+    v10: source?.v10 && !source.v10.malformed ? { ...source.v10, caseStudyEnabled: source.v10.caseStudyEnabled ?? false, flow: [...source.v10.flow], disciplines: [...source.v10.disciplines] } : { ...EMPTY_V10, flow: [...EMPTY_V10.flow] },
   };
 }
 
@@ -92,11 +93,13 @@ function ProjectEditor({ project, onChanged }) {
   const [busy, setBusy] = useState(false);
   const set = (key, value) => setForm(current => ({ ...current, [key]: value }));
   const setV10 = (key, value) => setForm(current => ({ ...current, v10: { ...current.v10, [key]: value } }));
+  const caseStudySlug = isNew ? ids.slug : project.slug;
+  const caseStudyAvailable = hasCaseStudy(caseStudySlug);
 
   // A completely blank V10 section is sent as `null` (not a homepage project),
   // so non-homepage/legacy projects stay editable without homepage fields.
   // Any partially filled section is sent as-is and validated by the server.
-  const v10Blank = !form.v10.tagline.trim() && !form.v10.status && form.v10.disciplines.length === 0 && form.v10.flow.every(stage => !stage.trim());
+  const v10Blank = !form.v10.tagline.trim() && !form.v10.status && form.v10.disciplines.length === 0 && form.v10.flow.every(stage => !stage.trim()) && !form.v10.caseStudyEnabled;
   const body = () => ({
     order: Number(form.order),
     category: form.category.trim(),
@@ -113,6 +116,7 @@ function ProjectEditor({ project, onChanged }) {
           status: form.v10.status,
           disciplines: [...form.v10.disciplines].sort((a, b) => a - b),
           flow: form.v10.flow.map(stage => stage.trim()),
+          caseStudyEnabled: form.v10.caseStudyEnabled,
         },
   });
 
@@ -173,6 +177,19 @@ function ProjectEditor({ project, onChanged }) {
           {field("Slug", ids.slug, value => setIds(current => ({ ...current, slug: value })), { maxLength: 80 })}
         </>
       )}
+      <fieldset style={{ ...styles.label, border: "1px solid #ddd" }}>
+        <legend>Case study</legend>
+        {caseStudyAvailable ? (
+          <>
+            <label>
+              <input type="checkbox" checked={form.v10.caseStudyEnabled} onChange={event => setV10("caseStudyEnabled", event.target.checked)} /> Show case study button
+            </label>
+            <p style={styles.note}>Destination: {caseStudyHref(caseStudySlug)}</p>
+          </>
+        ) : (
+          <p style={styles.note}>Case study unavailable. A released /projects/{caseStudySlug || "&lt;slug&gt;"} page must be registered before this can be enabled.</p>
+        )}
+      </fieldset>
       {field("Name (max 40)", form.title, value => set("title", value), { maxLength: 40 })}
       {field("Kind (max 40)", form.category, value => set("category", value), { maxLength: 40 })}
       {field("Tagline (max 160)", form.v10.tagline, value => setV10("tagline", value), { maxLength: 160 })}

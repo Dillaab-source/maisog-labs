@@ -28,6 +28,7 @@ const MEDIA_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", 
 const JOURNAL_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0004_web_inc_006_journal.sql");
 const THEME_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0005_web_inc_007_theme.sql");
 const V10_PROJECT_FIELDS_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0006_rfc022_v10_project_fields.sql");
+const CASE_STUDY_MIGRATION_SQL_PATH = path.join(__dirname, "..", "..", "migrations", "0007_project_revisions_case_study_enabled.sql");
 
 // Exactly the 14 tables authorized by D-024 / ML-DEVOS-AS-013 (AS13-F002).
 // Order matches the authorized inventory in coordination/STATE.md.
@@ -230,4 +231,27 @@ export async function applyV10ProjectFieldsMigration(db) {
 export async function applyRfc022Schema(db) {
   await applyCompleteSchema(db);
   await applyV10ProjectFieldsMigration(db);
+}
+
+export function readCaseStudyMigrationSql() {
+  return fs.readFileSync(CASE_STUDY_MIGRATION_SQL_PATH, "utf8");
+}
+
+export async function applyCaseStudyMigration(db) {
+  const statements = unstable_splitSqlQuery(readCaseStudyMigrationSql()).filter(statement => statement.trim().length > 0);
+  await db.batch(statements.map(statement => db.prepare(statement)));
+}
+
+export async function applyCaseStudySchema(db) {
+  await applyRfc022Schema(db);
+  await applyCaseStudyMigration(db);
+}
+
+// Apply only the project/admin base schema plus the project revision fields
+// used by this feature; this intentionally omits the separate journal/theme
+// tables that applyRfc022Schema includes for deployments using the full stack.
+export async function applyProjectCaseStudyMigrations(db) {
+  await applyAllMigrations(db);
+  await applyV10ProjectFieldsMigration(db);
+  await applyCaseStudyMigration(db);
 }

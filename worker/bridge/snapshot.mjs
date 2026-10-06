@@ -17,7 +17,7 @@ const ADMIN_ACTOR_PREFIX = "cf-access:";
 
 function projectsSql(pointer) {
   return (
-    "SELECT r.title, r.category, r.summary, r.tagline, r.status, r.disciplines_json, r.flow_json " +
+    "SELECT p.slug, r.title, r.category, r.summary, r.tagline, r.status, r.disciplines_json, r.flow_json, r.case_study_enabled " +
     "FROM projects p JOIN project_revisions r ON r.id = " +
     pointer +
     " AND r.project_id = p.id " +
@@ -36,13 +36,15 @@ function siteSql(pointer) {
 }
 
 function rowToProject(row) {
+  if (row.case_study_enabled !== 0 && row.case_study_enabled !== 1) throw new Error("case study flag: invalid stored value");
   const v10 = validateV10ProjectFields({
     tagline: row.tagline,
     status: row.status,
     disciplines: JSON.parse(row.disciplines_json),
     flow: JSON.parse(row.flow_json),
+    caseStudyEnabled: row.case_study_enabled === 1,
   });
-  return { name: row.title, kind: row.category, description: row.summary, ...v10 };
+  return { name: row.title, kind: row.category, slug: row.slug, description: row.summary, ...v10 };
 }
 
 // mode "published": published pointers only (public `/`).

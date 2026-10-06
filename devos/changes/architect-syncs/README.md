@@ -178,3 +178,10 @@ A durable sync record, once written, is not silently rewritten. A later correcti
 
 - ML-DEVOS-AS-163.md — D-135 deployment incident disposition, current runtime verification, D-135 closure, and D-137 S1 case-study routing. The Oct 4 promotion remains unauthorized; Paulo's D-136 decision retains the deployed artifact without retroactive authorization. Case-study scope is local and bounded; no deploy or merge.
 - ML-DEVOS-AS-164.md — final D-137 ClinicFlow case-study S1 review. Remediation cycle 1 is accepted, evidence limitations remain disclosed, and S1 is closed. Routes to Paulo for the separate Gate C release decision only; no main merge or deployment is authorized.
+
+- ML-DEVOS-AS-165.md — D-138 ClinicFlow case-study Gate C return accepted; routes to Paulo for the separate Gate D Owner decision only. No Gate D authorization. Architect disposition published mechanically under BC-4 from the supplied review text; SHA-256 a2dab1a7c0366aa0ab6c5d274cf6beb878aca08712b1a4659ca7407bd6e0f108 (4048 bytes, 149 lines).
+
+- ML-DEVOS-AS-166.md — D-139 ClinicFlow case-study Gate D return accepted; release closed; routes to Paulo for a separate Owner decision on the next governance-friction review. No Protocol V2.2 work authorized. Architect disposition published mechanically under BC-4 from the supplied review text; SHA-256 0498dc774e32b5f59d414fa762e1c40ca1743641d1bb137a8b1e77de402b89ac (7346 bytes, 226 lines).
+
+- ML-DEVOS-AS-167.md — D-140 bounded remediation disposition; CHANGES_REQUESTED for F001/F002 only. Routes remediation cycle 2 of 2 to Builder under existing D-140 authority; no main merge, deployment, remote migration, production mutation, or Protocol V2.2. Architect-authored disposition mechanically published under BC-4 from the supplied text.
+- `ML-DEVOS-AS-168.md` — D-140 implementation accepted; AS-167 F001/F002 resolved. Routes to Paulo for a separate Gate C Owner decision only. No PR merge, remote migration, deployment, or production mutation authorized. Architect-authored disposition mechanically published under BC-4 from the supplied review text.

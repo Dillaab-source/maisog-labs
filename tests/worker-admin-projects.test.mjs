@@ -11,8 +11,9 @@ import path from "node:path";
 import { getPlatformProxy } from "wrangler";
 import { SignJWT, generateKeyPair, exportJWK, createLocalJWKSet } from "jose";
 import { handleRequest, ACCESS_ASSERTION_HEADER } from "../worker/auth.mjs";
+import { readBridgeSnapshot } from "../worker/bridge/snapshot.mjs";
 import { handleAdminDispatch, buildDashboardPayload, DASHBOARD_PATH } from "../worker/admin/dashboard.mjs";
-import { applyAllMigrations, ALL_PRODUCT_TABLE_NAMES, applyJournalMigration, applyThemeMigration } from "../worker/d1/schema.mjs";
+import { applyAllMigrations, ALL_PRODUCT_TABLE_NAMES, applyJournalMigration, applyThemeMigration, applyProjectCaseStudyMigrations } from "../worker/d1/schema.mjs";
 
 const WRANGLER_CONFIG_PATH = path.join(import.meta.dirname, "..", "wrangler.jsonc");
 const ORIGIN = "https://maisoglabs.example";
@@ -88,7 +89,7 @@ async function openTestDb() {
     persist: { path: statePath },
     remoteBindings: false,
   });
-  await applyAllMigrations(proxy.env.DB);
+  await applyProjectCaseStudyMigrations(proxy.env.DB);
   return {
     db: proxy.env.DB,
     async cleanup() {
@@ -445,6 +446,119 @@ test("POST /admin/api/projects creates one project + one immutable revision + on
     assert.equal(auditRows[0].result, "success");
     assert.equal(auditRows[0].revision_id, body.draftRevisionId);
     assert.equal(auditRows[0].actor, "cf-access:creator-1");
+  } finally {
+    await cleanup();
+  }
+});
+
+test("case-study enablement is server-allowlisted, revisioned, default-off, and inherited by text-only edits", async () => {
+  const { db, cleanup } = await openTestDb();
+  try {
+    const { privateKey, jwks } = await buildTestIdentity();
+    const token = await signToken(privateKey);
+    const v10 = { tagline: "Appointment engine", status: "Active", disciplines: [0, 1], flow: ["Request", "Understand", "Verify", "Human confirms"], caseStudyEnabled: false };
+    const enabledV10 = { ...v10, caseStudyEnabled: true };
+    const rejected = await callAdmin(mutationRequest("/admin/api/projects", {
+      method: "POST", token, body: validProjectPayload({ slug: "other-project", v10: enabledV10 }),
+    }), { db, jwks });
+    assert.equal(rejected.response.status, 400, "direct API cannot enable an unregistered project");
+    assert.equal(await countRows(db, "projects"), 0);
+
+    const unregistered = await callAdmin(mutationRequest("/admin/api/projects", {
+      method: "POST", token,
+      body: validProjectPayload({ id: "project-unregistered", slug: "other-project", v10: { ...v10, caseStudyEnabled: false } }),
+    }), { db, jwks });
+    assert.equal(unregistered.response.status, 201);
+    const unregisteredStatus = await unregistered.response.json();
+    const rejectedEdit = await callAdmin(mutationRequest("/admin/api/projects/project-unregistered/draft", {
+      method: "PUT", token,
+      body: {
+        ...validProjectPayload({ id: "project-unregistered", slug: "other-project", v10: enabledV10 }),
+        expectedPublishedRevisionId: null,
+        expectedDraftRevisionId: unregisteredStatus.draftRevisionId,
+      },
+    }), { db, jwks });
+    assert.equal(rejectedEdit.response.status, 400, "direct draft API cannot enable an unregistered project");
+    assert.equal(await countRows(db, "project_revisions", "WHERE project_id = ?", "project-unregistered"), 1, "rejected edit writes no revision");
+
+    const created = await callAdmin(mutationRequest("/admin/api/projects", {
+      method: "POST", token, body: validProjectPayload({ id: "project-clinicflow", slug: "clinicflow", featured: true, v10 }),
+    }), { db, jwks });
+    assert.equal(created.response.status, 201);
+    const status = await created.response.json();
+    let revision = await db.prepare("SELECT case_study_enabled FROM project_revisions WHERE id = ?").bind(status.draftRevisionId).first();
+    assert.equal(revision.case_study_enabled, 0, "existing/default revision is disabled");
+
+    // Seed a previously activated published pointer. This test isolates the
+    // revision/pointer behavior; D-111's separate suite covers the five-row
+    // initial activation guard.
+    await db.prepare("UPDATE projects SET published_revision_id = ?, draft_revision_id = NULL WHERE id = ?")
+      .bind(status.draftRevisionId, "project-clinicflow").run();
+    await db.prepare("INSERT INTO audit_log (occurred_at, actor, action, entity_type, entity_id, revision_id, result) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(new Date().toISOString(), "cf-access:fixture", "homepage_initial_activation", "homepage", "home", status.draftRevisionId, "success").run();
+
+    let publicSnapshot = await readBridgeSnapshot(db, { mode: "published" });
+    assert.equal(publicSnapshot.projects[0].caseStudyEnabled, false);
+    const enabled = await callAdmin(mutationRequest("/admin/api/projects/project-clinicflow/draft", {
+      method: "PUT", token,
+      body: {
+        ...validProjectPayload({ id: "project-clinicflow", slug: "clinicflow", title: "ClinicFlow", featured: true, v10: enabledV10 }),
+        expectedPublishedRevisionId: status.draftRevisionId,
+        expectedDraftRevisionId: null,
+      },
+    }), { db, jwks });
+    assert.equal(enabled.response.status, 200);
+    const enabledStatus = await enabled.response.json();
+    revision = await db.prepare("SELECT case_study_enabled FROM project_revisions WHERE id = ?").bind(enabledStatus.draftRevisionId).first();
+    assert.equal(revision.case_study_enabled, 1);
+    const draftSnapshot = await readBridgeSnapshot(db, { mode: "draft" });
+    assert.equal(draftSnapshot.projects[0].slug, "clinicflow");
+    assert.equal(draftSnapshot.projects[0].caseStudyEnabled, true);
+    publicSnapshot = await readBridgeSnapshot(db, { mode: "published" });
+    assert.equal(publicSnapshot.projects[0].caseStudyEnabled, false, "public continues to read its disabled published revision");
+
+    const inherited = await callAdmin(mutationRequest("/admin/api/projects/project-clinicflow/draft", {
+      method: "PUT", token,
+      body: { ...validProjectPayload({ id: "project-clinicflow", slug: "clinicflow", title: "ClinicFlow renamed", featured: true }), expectedPublishedRevisionId: status.draftRevisionId, expectedDraftRevisionId: enabledStatus.draftRevisionId },
+    }), { db, jwks });
+    assert.equal(inherited.response.status, 200);
+    const edited = await inherited.response.json();
+    revision = await db.prepare("SELECT case_study_enabled FROM project_revisions WHERE id = ?").bind(edited.draftRevisionId).first();
+    assert.equal(revision.case_study_enabled, 1, "text-only edit inherits the toggle while route identity remains slug based");
+    assert.equal((await readBridgeSnapshot(db, { mode: "draft" })).projects[0].caseStudyEnabled, true);
+    assert.equal((await readBridgeSnapshot(db, { mode: "published" })).projects[0].caseStudyEnabled, false);
+
+    const publishEnabled = await callAdmin(mutationRequest("/admin/api/projects/project-clinicflow/publish", {
+      method: "POST", token,
+      body: { expectedPublishedRevisionId: status.draftRevisionId, expectedDraftRevisionId: edited.draftRevisionId },
+    }), { db, jwks });
+    assert.equal(publishEnabled.response.status, 200);
+    assert.equal((await readBridgeSnapshot(db, { mode: "published" })).projects[0].caseStudyEnabled, true, "publish promotes the enabled revision to public");
+
+    const disabled = await callAdmin(mutationRequest("/admin/api/projects/project-clinicflow/draft", {
+      method: "PUT", token,
+      body: {
+        ...validProjectPayload({ id: "project-clinicflow", slug: "clinicflow", title: "ClinicFlow renamed", featured: true, v10 }),
+        expectedPublishedRevisionId: edited.draftRevisionId,
+        expectedDraftRevisionId: null,
+      },
+    }), { db, jwks });
+    assert.equal(disabled.response.status, 200);
+    const disabledStatus = await disabled.response.json();
+    assert.equal((await readBridgeSnapshot(db, { mode: "draft" })).projects[0].caseStudyEnabled, false, "preview removes the disabled draft CTA");
+    assert.equal((await readBridgeSnapshot(db, { mode: "published" })).projects[0].caseStudyEnabled, true, "public retains CTA until disablement is published");
+    const publishDisabled = await callAdmin(mutationRequest("/admin/api/projects/project-clinicflow/publish", {
+      method: "POST", token,
+      body: { expectedPublishedRevisionId: edited.draftRevisionId, expectedDraftRevisionId: disabledStatus.draftRevisionId },
+    }), { db, jwks });
+    assert.equal(publishDisabled.response.status, 200);
+    assert.equal((await readBridgeSnapshot(db, { mode: "published" })).projects[0].caseStudyEnabled, false, "publishing disablement removes the public CTA");
+
+    const oldWorkerWrite = await db.prepare("INSERT INTO projects (id, slug, created_at) VALUES (?, ?, ?)").bind("project-old-worker", "old-worker", new Date().toISOString()).run();
+    assert.ok(oldWorkerWrite);
+    await db.prepare("INSERT INTO project_revisions (project_id, revision_number, sort_order, category, title, summary, stack_json, accent, icon, featured, created_at, created_by) VALUES (?, 1, 0, 'Test', 'Old row', 'Old row', '[]', 'blue', 'lab', 0, ?, 'old-worker')").bind("project-old-worker", new Date().toISOString()).run();
+    const defaulted = await db.prepare("SELECT case_study_enabled FROM project_revisions WHERE project_id = ?").bind("project-old-worker").first();
+    assert.equal(defaulted.case_study_enabled, 0, "old explicit insert gets the migration default");
   } finally {
     await cleanup();
   }

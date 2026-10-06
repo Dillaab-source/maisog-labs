@@ -21,22 +21,26 @@
 // group) and EMAIL (contact group) are replaced only if they re-validate. It
 // never throws, never adds keys and never evaluates data.
 import { serializeBridgePayload } from "./payload.mjs";
+import { CASE_STUDY_SLUGS } from "../projects/case-studies.mjs";
 
 // Promoted V10.1 artifact identity (D-121, rebuilt with the D-129 copy edits; tests/homepage-artifact.test.mjs pins the same SHA).
-export const ARTIFACT_SHA256 = "f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3";
+export const ARTIFACT_SHA256 = "7598a6c87fcdf7a80533dea697fc59d19e5400af59f6cd722297c373563fc283";
 export const ARTIFACT_LENGTH = 20857;
 export const INSERTION_OFFSET = 20116; // byte offset of "</head>"
 const INSERTION_MARKER = "</head>";
 
-export const HOOK_SOURCE =
-  "(function(){" +
+export function createHookSource(approvedCaseStudySlugs = CASE_STUDY_SLUGS) {
+  return "(function(){" +
+  "var approvedCaseStudySlugs=" + JSON.stringify(approvedCaseStudySlugs) + ";" +
   "var P=null;" +
   "try{var el=document.getElementById('ml-published');if(el){var d=JSON.parse(el.textContent);if(d&&d.schemaVersion===1)P=d;}}catch(e){P=null;}" +
   "if(!P)return;" +
   "function txt(v,m){return typeof v==='string'&&v.length>=1&&v.length<=m&&v===v.trim()&&!/[\\u0000-\\u001f\\u007f<>]/.test(v);}" +
+  "function validProjectSlug(v){return typeof v==='string'&&v.length<=80&&/^[a-z][a-z0-9-]*$/.test(v);}" +
   "function okProjects(a,disc){if(!Array.isArray(a)||a.length<1||a.length>5)return false;var seen={};" +
   "for(var i=0;i<a.length;i++){var p=a[i];if(!p||typeof p!=='object')return false;" +
   "if(!txt(p.name,40)||!txt(p.kind,40)||!txt(p.tagline,160)||!txt(p.description,400))return false;" +
+  "if(!validProjectSlug(p.slug)||typeof p.caseStudyEnabled!=='boolean'||(p.caseStudyEnabled&&approvedCaseStudySlugs.indexOf(p.slug)===-1))return false;" +
   "if(p.status!==''&&p.status!=='Active')return false;var k=p.name.toLowerCase();if(seen[k])return false;seen[k]=1;" +
   "if(!Array.isArray(p.disciplines)||p.disciplines.length<1||p.disciplines.length>6)return false;var ds={};" +
   "for(var j=0;j<p.disciplines.length;j++){var x=p.disciplines[j];if(typeof x!=='number'||x%1!==0||x<0||x>=disc||ds[x])return false;ds[x]=1;}" +
@@ -46,13 +50,16 @@ export const HOOK_SOURCE =
   "function merge(b){try{if(!b||typeof b!=='object')return b;var o={};for(var key in b){if(Object.prototype.hasOwnProperty.call(b,key))o[key]=b[key];}" +
   "var disc=Array.isArray(b.DISC)?b.DISC.length:0;" +
   "if(P.projects&&disc===6&&Array.isArray(b.PROJ)&&Array.isArray(b.FLOW)&&Array.isArray(b.PSLOTS)&&P.projects.length<=b.PSLOTS.length&&okProjects(P.projects,disc)){" +
-  "o.PROJ=P.projects.map(function(p){return{name:p.name,kind:p.kind,status:p.status,tags:p.disciplines.slice(),tag:p.tagline,desc:p.description};});" +
+    "o.PROJ=P.projects.map(function(p){return{name:p.name,kind:p.kind,slug:p.slug,caseStudyEnabled:p.caseStudyEnabled,status:p.status,tags:p.disciplines.slice(),tag:p.tagline,desc:p.description};});" +
   "o.FLOW=P.projects.map(function(p){return p.flow.slice();});}" +
   "if(P.contact&&okEmail(P.contact.email)&&typeof b.EMAIL==='string')o.EMAIL=P.contact.email;" +
   "return o;}catch(e){return b;}}" +
   "try{var V;Object.defineProperty(window,'MLData',{configurable:true,enumerable:true," +
   "get:function(){return V;},set:function(v){V=merge(v);}});}catch(e){}" +
   "})();";
+}
+
+export const HOOK_SOURCE = createHookSource();
 
 export function buildBridgeSpan(payload) {
   return `<script type="application/json" id="ml-published">${serializeBridgePayload(payload)}</script><script>${HOOK_SOURCE}</script>`;

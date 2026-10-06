@@ -1,24 +1,24 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_CLINICFLOW_CASE_STUDY
-TURN: PAULO
-STATUS: GATE_C_AUTHORIZED
-AUTHORIZED_SCOPE: D138_GATE_C_PROTECTED_MERGE_ONLY
+CYCLE_ID: MAISOGLABS_PROJECT_CASE_STUDY_CTA
+TURN: CLAUDE
+STATUS: ACTIVE
+AUTHORIZED_SCOPE: D140_GATE_C_PROTECTED_MERGE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
-IMPLEMENTER_ACTION_REQUIRED: NO
+IMPLEMENTER_ACTION_REQUIRED: YES
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 1
+CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
 CURRENT_HANDOFF: NONE
 HANDOFF_ID:
 REVIEW_TARGET_COMMIT:
 APPLICABLE_REVIEW_ID:
-CURRENT_DIRECTIVE: NONE
-DIRECTIVE_ID:
-DIRECTIVE_ISSUE_PARENT:
-DIRECTIVE_AUTHORITY_REF:
-DIRECTIVE_APPLICABLE_REVIEW_ID:
+CURRENT_DIRECTIVE: ACTIVE
+DIRECTIVE_ID: DIR-WEB-D140-GATE-C-0001
+DIRECTIVE_ISSUE_PARENT: 4654af016ef9bcc8784cd1305c187f305c7ccb09
+DIRECTIVE_AUTHORITY_REF: D-141
+DIRECTIVE_APPLICABLE_REVIEW_ID: ML-DEVOS-AS-168
 MEDIA_MUTATION_AUTHORIZED: NO
 MUTATION_AUTHORIZED: NO
 AUDIT_APPEND_AUTHORIZED: NO
@@ -29,4 +29,6 @@ MAIN_MERGE_AUTHORIZED: YES
 
 ## Current
 
-D-138 authorizes Gate C only for accepted ClinicFlow case-study candidate `56c03089c88d186eb25f3a919cc76cc8ef07e968` (ML-DEVOS-AS-164). Require fresh `test-and-build` SUCCESS on the exact final PR head and use only the normal protected PR/merge path. Deployment/Gate D remains unauthorized. After merge, verify `main` and verify production traffic/version unchanged, then return the Gate C result to Architect.
+- Review: ML-DEVOS-AS-168 accepts D-140 implementation d0bf93ee6951279180c97e5d4a10635be6c68339; D-141 authorizes its exact protected Gate C merge only.
+- Authority: one normal PR merge into main after all exact-head protections and checks pass. D-141 publication is the pinned source head.
+- Next: execute DIR-WEB-D140-GATE-C-0001; return evidence to Architect. All production, deployment, and remote migration flags remain NO.

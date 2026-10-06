@@ -20,6 +20,7 @@ import {
   ARTIFACT_LENGTH,
   INSERTION_OFFSET,
   HOOK_SOURCE,
+  createHookSource,
   buildBridgeSpan,
   isApprovedArtifact,
   spliceArtifact,
@@ -33,6 +34,8 @@ export function project(name, overrides = {}) {
   return {
     name,
     kind: "Lab project",
+    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+    caseStudyEnabled: false,
     status: "",
     tagline: `${name} tagline.`,
     description: `${name} description.`,
@@ -55,12 +58,12 @@ function artifactMLDataSource() {
 
 // Runs the hook against an island, then executes the artifact's own MLData
 // assignment, exactly as the page would.
-function runHookThenArtifact(islandText) {
+function runHookThenArtifact(islandText, hookSource = HOOK_SOURCE) {
   const island = islandText === null ? null : { textContent: islandText };
   const sandbox = { document: { getElementById: id => (id === "ml-published" ? island : null) } };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
-  if (islandText !== null) vm.runInContext(HOOK_SOURCE, sandbox);
+  if (islandText !== null) vm.runInContext(hookSource, sandbox);
   vm.runInContext(artifactMLDataSource(), sandbox);
   return sandbox.window.MLData;
 }
@@ -184,7 +187,7 @@ test("hook: merges published projects/flow/email into the artifact's own MLData 
     merged.PROJ.map(p => p.name),
     INITIAL_ACTIVATION_PROJECT_NAMES.slice()
   );
-  assert.deepEqual(merged.PROJ[0], { name: "ClinicFlow", kind: "Lab project", status: "", tags: [0, 2], tag: "ClinicFlow tagline.", desc: "ClinicFlow description." });
+  assert.deepEqual(merged.PROJ[0], { name: "ClinicFlow", kind: "Lab project", slug: "clinicflow", caseStudyEnabled: false, status: "", tags: [0, 2], tag: "ClinicFlow tagline.", desc: "ClinicFlow description." });
   assert.equal(merged.FLOW.length, 5);
   assert.ok(merged.FLOW.every(stages => stages.length === 4));
   assert.equal(merged.EMAIL, "owner@example.com");
@@ -208,6 +211,31 @@ test("hook: malformed, hostile or oversized islands leave the artifact's MLData 
   ];
   for (const island of islands) {
     assert.equal(JSON.stringify(runHookThenArtifact(island)), original, island.slice(0, 60));
+  }
+});
+
+test("hook independently validates case-study fields and supports a second registry-approved slug", () => {
+  const genericHook = createHookSource(["clinicflow", "second-study"]);
+  const second = project("Second Study", { slug: "second-study", caseStudyEnabled: true });
+  const payload = JSON.stringify({ schemaVersion: 1, projects: [second] });
+  const merged = JSON.parse(JSON.stringify(runHookThenArtifact(payload, genericHook)));
+  assert.equal(merged.PROJ[0].slug, "second-study");
+  assert.equal(merged.PROJ[0].caseStudyEnabled, true);
+
+  const original = JSON.stringify(runHookThenArtifact(null));
+  const malformed = [
+    [project("Bad Slug", { slug: "../clinicflow" }), genericHook],
+    [project("Too Long Slug", { slug: "a".repeat(81) }), genericHook],
+    [project("Bad Boolean", { caseStudyEnabled: 1 }), genericHook],
+    [project("String Boolean", { caseStudyEnabled: "true" }), genericHook],
+    [project("Unregistered Enabled", { slug: "second-study", caseStudyEnabled: true }), HOOK_SOURCE],
+  ];
+  const validClinicFlow = project("ClinicFlow", { caseStudyEnabled: true });
+  const malformedGroup = { schemaVersion: 1, projects: [validClinicFlow, project("Unregistered Enabled", { slug: "second-study", caseStudyEnabled: true })] };
+  assert.equal(JSON.stringify(runHookThenArtifact(JSON.stringify(malformedGroup))), original, "one unregistered enabled project falls back the whole group");
+  for (const [badProject, hookSource] of malformed) {
+    const result = runHookThenArtifact(JSON.stringify({ schemaVersion: 1, projects: [badProject] }), hookSource);
+    assert.equal(JSON.stringify(result), original, JSON.stringify(badProject));
   }
 });
 

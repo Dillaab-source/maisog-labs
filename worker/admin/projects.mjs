@@ -29,6 +29,7 @@ import {
 import { countPublishedHomepageProjects } from "../bridge/snapshot.mjs";
 import { MAX_HOMEPAGE_PROJECTS, INITIAL_ACTIVATION_PROJECT_NAMES, initialReleaseReadiness } from "../bridge/payload.mjs";
 import { validateMediaSnapshotEntries, readActiveMediaRowsByIds, readProjectMediaSnapshot } from "../d1/media.mjs";
+import { validateCaseStudyEnabled } from "../projects/case-studies.mjs";
 
 const PROJECTS_ROOT_PATH = "/admin/api/projects";
 // D-111 (AS137-F001): the one initial homepage activation route. A single
@@ -293,6 +294,7 @@ async function handleCreateDraft({ request, url, db, sub }) {
       featured: body.featured,
       v10: body.v10,
     });
+    validateCaseStudyEnabled(validSlug, fields.v10?.caseStudyEnabled ?? false);
   } catch {
     await tryAppendFailureAudit(db, { actor: auditActor(sub), action: "project_create_draft", entityId: auditEntityId });
     return jsonResponse(400, { error: "Validation failed" });
@@ -380,6 +382,7 @@ async function handleEditDraft({ request, url, db, sub, id }) {
       featured: body.featured,
       v10,
     });
+    validateCaseStudyEnabled(row.slug, fields.v10?.caseStudyEnabled ?? false);
   } catch {
     await tryAppendFailureAudit(db, { actor, action: "project_update_draft", entityId: id });
     return jsonResponse(400, { error: "Validation failed" });
@@ -402,6 +405,7 @@ async function handleEditDraft({ request, url, db, sub, id }) {
   try {
     statements = await buildEditDraftBatch(db, {
       id,
+      slug: row.slug,
       fields,
       createdAt,
       createdBy: actor,
@@ -710,10 +714,10 @@ async function handleInitialActivation({ request, url, db, sub }) {
       return jsonResponse(500, { error: "Internal Server Error" });
     }
     if (!isHomepageEligible(fields)) return conflict("NOT_HOMEPAGE_ELIGIBLE");
-    prepared.push({ ...entry, draftRevisionId: row.draft_revision_id, fields });
+    prepared.push({ ...entry, slug: row.slug, draftRevisionId: row.draft_revision_id, fields });
   }
 
-  const group = prepared.map(({ fields }) => ({ name: fields.title, kind: fields.category, description: fields.summary, ...fields.v10 }));
+  const group = prepared.map(({ fields, slug }) => ({ name: fields.title, kind: fields.category, slug, description: fields.summary, ...fields.v10 }));
   if (!initialReleaseReadiness(group) || !isRenderedInRequestOrder(prepared)) {
     await tryAppendInitialActivationFailureAudit(db, actor);
     return jsonResponse(400, { error: "Validation failed", reason: "INITIAL_SET_MISMATCH" });

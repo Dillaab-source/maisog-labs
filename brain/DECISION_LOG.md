@@ -4791,3 +4791,42 @@ NOT AUTHORIZED: deployment / Gate D; Cloudflare traffic or DNS changes; homepage
 
 MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
 DEPLOY_AUTHORIZED: NO.
+
+### D-139 — Authorize ClinicFlow case-study Gate D production promotion only
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, after ML-DEVOS-AS-165 accepted D-138 Gate C.
+- **Bound release:** exact main commit 7d494d012588f513e5e4db3453abb21da5f149bb; accepted Gate C decision D-138; controlling Architect review ML-DEVOS-AS-165.
+- **Bound Worker target:** 5368e6c8-7cb4-4a0c-b2da-70f65bb8023f, proven by successful Workers Build eddc11b5-49d0-496f-88ba-f4c6a3623ce2 on main at the exact commit above. The build output includes /projects/clinicflow.
+- **Pre-deploy production baseline:** deployment 71e7bc54-a5bb-453d-81d2-44eb8e08a6bc; Worker version 5d315120-2647-46c0-a146-64d2a86eaec1 at 100%.
+- **Authorized:** after the directive is published and immediate pre-deploy checks still pass, exactly one production promotion of the exact target version to 100%; read-only verification of production; and at most one rollback to 5d315120-2647-46c0-a146-64d2a86eaec1 at 100% only if that promotion occurs and verification proves a new material production failure attributable to this release.
+- **Not authorized:** rebuild/upload, another Worker version, canary/split, main or PR changes, DNS/routes/triggers, D1/R2, Access, bindings, secrets, environment variables, n8n, Meta, Google Calendar/Sheets, or unrelated website changes. No forward hotfix.
+- **Flags:** DEPLOY_AUTHORIZED: YES for the single exact promotion and conditional rollback above only. Every other action flag remains NO.
+- **Return:** one Gate D Builder handoff after successful verification or authorized rollback; reset every action flag to NO and route to the Architect for D-139 review.
+
+### D-140 — Authorize reusable project case-study CTA implementation/review only
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, in the explicit Owner decision supplied for the reusable project case-study CTA cycle.
+- **Purpose:** Add the reusable, code-owned project-panel mechanism so ClinicFlow can show a homepage case-study CTA now and future registered case studies can opt in through the protected admin.
+- **Data and route boundary:** Store only a revisioned boolean, `caseStudyEnabled`, on project revisions. Admin has no URL field. A small code-owned case-study registry initially contains only `clinicflow`; links are derived as `/projects/{project.slug}` only for valid registered slugs. The public label is code-owned: `VIEW CASE STUDY →`.
+- **Initial content:** ClinicFlow's case-study CTA may be enabled as a draft for `/projects/clinicflow`. Other projects default disabled; enabling an unregistered project is rejected server-side.
+- **Authorized scope:** One bounded repository implementation/review cycle: local additive migration 0007; project revision domain, validation, persistence and admin toggle; shared code-owned case-study registry; bounded RFC-022 bridge slug/boolean fields; deterministic V10.1 ProjectsPanel builder patch and generated candidate/public artifact files; focused tests, local migration tests, npm test, npm run build, local/protected-preview verification and evidence. Save/preview/publish continues to use the existing revision lifecycle. Return one Builder handoff to Architect.
+- **Compatibility/release boundary:** Existing revisions read disabled. Old Worker code must tolerate the additive column by omitting/ignoring it; the future release sequence must apply the remote migration before deploying the new Worker. The remote migration is not part of this decision.
+- **Not authorized:** production/remote D1 or R2 mutation; main merge; PR merge; deployment or traffic changes; DNS, Access, bindings, secrets, environment variables; ClinicFlow runtime/workflow, n8n, Meta or Google changes; arbitrary/external CTA URLs; unrelated redesign; or Protocol V2.2 adoption/change.
+- **Flags:** MAIN_MERGE_AUTHORIZED: NO; DEPLOY_AUTHORIZED: NO; REMOTE_D1_AUTHORIZED: NO; REMOTE_R2_AUTHORIZED: NO. Every other action-specific flag remains NO.
+- **Acceptance and return:** Prove the registry/route binding, strict server-side allowlist, revision/draft/publish semantics, bridge fail-closed behavior and additive schema compatibility; run the authorized tests/build; verify desktop and narrow layouts, exact ClinicFlow href, no CTA on another project, and no horizontal overflow. Inspect the full diff. Return one Builder handoff to Architect. No Gate C or later release action is authorized.
+
+### D-141 — Authorize D-140 Gate C protected merge only
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, after Architect acceptance `ML-DEVOS-AS-168`.
+- **Governance baseline:** `4654af016ef9bcc8784cd1305c187f305c7ccb09` on `governance/maisoglabs-v0.1`.
+- **Accepted implementation:** `d0bf93ee6951279180c97e5d4a10635be6c68339`, accepted by `ML-DEVOS-AS-168`; corrected CI run `37419973994` passed (990 passed, 0 failed, 1 skipped).
+- **Authorized:** Gate C only for this accepted D-140 implementation: one pull request from `governance/maisoglabs-v0.1` to `main`, complete diff and exact final head inspection, fresh success of all required checks on that exact head, and merge only through the normal protected PR path when all protection requirements are satisfied.
+- **Exact head:** the D-141 publication commit is the final Gate C PR head. Any governance-branch movement after publication and before merge invalidates this exact-head authorization and requires a new Owner decision.
+- **Merge method:** normal merge commit only, pinned to the exact final PR head. No direct push to `main`, force push, squash, rebase, auto-merge, administrator override, or protection bypass.
+- **After merge:** verify PR merge status, merge commit and resulting `main` SHA; confirm `main` contains the accepted D-140 implementation and the exact reviewed source. Publish a Builder handoff to the Architect and stop.
+- **Not authorized:** production deployment or Worker version promotion; applying migration 0007 to remote D1; production D1/R2 mutation; Cloudflare production changes; DNS, Access, secrets or bindings; ClinicFlow runtime/n8n/Meta/Calendar changes; unrelated website work; Protocol V2.2 changes; or Gate D.
+- **Flags:** `MAIN_MERGE_AUTHORIZED: YES` for this exact Gate C only. `DEPLOY_AUTHORIZED`, `REMOTE_D1_AUTHORIZED`, `REMOTE_R2_AUTHORIZED`, and every other action-specific flag remain `NO`.
+
+#### Owner decision (faithful record of Paulo's authorization)
+
+Paulo authorizes Gate C only for the AS-168-accepted D-140 reusable project case-study CTA implementation. This permits the governed GitHub PR review and protected merge process into `main`, subject to all required checks. It does not authorize production deployment, remote database migration, or other production changes. The process must freshly verify the exact PR head, `main` baseline, full diff, required CI, and branch protections; merge normally only when every gate is satisfied. If any required precondition cannot be verified, stop and report the blocker. After success, verify the merge and resulting `main`, publish the evidence to the Architect, and stop. Gate C does not imply Gate D.
