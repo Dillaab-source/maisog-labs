@@ -4791,3 +4791,14 @@ NOT AUTHORIZED: deployment / Gate D; Cloudflare traffic or DNS changes; homepage
 
 MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
 DEPLOY_AUTHORIZED: NO.
+
+### D-139 — Authorize ClinicFlow case-study Gate D production promotion only
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, after ML-DEVOS-AS-165 accepted D-138 Gate C.
+- **Bound release:** exact main commit 7d494d012588f513e5e4db3453abb21da5f149bb; accepted Gate C decision D-138; controlling Architect review ML-DEVOS-AS-165.
+- **Bound Worker target:** 5368e6c8-7cb4-4a0c-b2da-70f65bb8023f, proven by successful Workers Build eddc11b5-49d0-496f-88ba-f4c6a3623ce2 on main at the exact commit above. The build output includes /projects/clinicflow.
+- **Pre-deploy production baseline:** deployment 71e7bc54-a5bb-453d-81d2-44eb8e08a6bc; Worker version 5d315120-2647-46c0-a146-64d2a86eaec1 at 100%.
+- **Authorized:** after the directive is published and immediate pre-deploy checks still pass, exactly one production promotion of the exact target version to 100%; read-only verification of production; and at most one rollback to 5d315120-2647-46c0-a146-64d2a86eaec1 at 100% only if that promotion occurs and verification proves a new material production failure attributable to this release.
+- **Not authorized:** rebuild/upload, another Worker version, canary/split, main or PR changes, DNS/routes/triggers, D1/R2, Access, bindings, secrets, environment variables, n8n, Meta, Google Calendar/Sheets, or unrelated website changes. No forward hotfix.
+- **Flags:** DEPLOY_AUTHORIZED: YES for the single exact promotion and conditional rollback above only. Every other action flag remains NO.
+- **Return:** one Gate D Builder handoff after successful verification or authorized rollback; reset every action flag to NO and route to the Architect for D-139 review.
