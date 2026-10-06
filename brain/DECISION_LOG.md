@@ -4773,3 +4773,21 @@ DEPLOY_AUTHORIZED: NO.
 #### Owner decision (faithful summary of the supplied directive)
 
 Paulo authorized the bounded, isolated ClinicFlow case-study subpage at `/projects/clinicflow`, with the file scope, evidence sources, validation, privacy limits, and explicit no-deploy/no-merge restrictions recorded above. The authorization covers only this one Builder implementation step and ends at the reviewable preview.
+
+### D-138 — Authorize Gate C protected merge for the accepted ClinicFlow case study
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, after Architect acceptance `ML-DEVOS-AS-164`.
+- **Accepted candidate:** `56c03089c88d186eb25f3a919cc76cc8ef07e968`.
+- **Authorized:** one normal protected PR from `governance/maisoglabs-v0.1` to `main`; verify the exact final PR head and complete changed-file scope; require fresh `test-and-build` SUCCESS on that exact final head and all other required checks; ensure the PR is clean and mergeable; merge only through the normal protected path as a normal merge commit. No direct push to `main`, protection bypass, force push, squash, rebase, or auto-merge.
+- **Exact head:** the final Gate C PR head is this D-138 publication commit. Any governance-branch movement before merge invalidates this exact-head authorization and requires a fresh Owner decision.
+- **After merge:** verify read-only that `main` contains the accepted ClinicFlow case-study changes and that production traffic/version was not changed by Gate C; return the Gate C result to the Architect.
+- **Not authorized:** deployment / Gate D; Cloudflare traffic or DNS changes; homepage changes; ClinicFlow runtime, n8n, or Meta changes; Google Calendar/Sheets or remote D1/R2 changes; secrets/credentials; unrelated repository changes.
+
+#### Owner decision
+
+Paulo authorizes Gate C only for the accepted ClinicFlow case-study candidate `56c03089c88d186eb25f3a919cc76cc8ef07e968`, accepted by `ML-DEVOS-AS-164). Create and review one protected PR from `governance/maisoglabs-v0.1` to `main`; verify the exact final PR head and changed-file set; require fresh `test-and-build` SUCCESS and all required checks on that exact head; and merge only if clean and mergeable through the normal protected path as a normal merge commit. Do not push directly to main, bypass protections, force-push, squash, rebase, or auto-merge. After merge, verify main contains the accepted case-study changes, verify production traffic/version was not changed, and return the result to Architect.
+
+NOT AUTHORIZED: deployment / Gate D; Cloudflare traffic or DNS changes; homepage changes; ClinicFlow runtime, n8n, Meta, Google Calendar/Sheets, remote D1/R2, secrets/credentials, or unrelated repository changes.
+
+MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
+DEPLOY_AUTHORIZED: NO.

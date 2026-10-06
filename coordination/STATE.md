@@ -2,11 +2,11 @@
 
 CYCLE_ID: MAISOGLABS_CLINICFLOW_CASE_STUDY
 TURN: PAULO
-STATUS: PAULO_DECISION_REQUIRED
-AUTHORIZED_SCOPE: D137_S1_ACCEPTED_GATE_C_OWNER_DECISION_ONLY
+STATUS: GATE_C_AUTHORIZED
+AUTHORIZED_SCOPE: D138_GATE_C_PROTECTED_MERGE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: YES
+PAULO_DECISION_REQUIRED: NO
 CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
@@ -25,10 +25,8 @@ AUDIT_APPEND_AUTHORIZED: NO
 REMOTE_R2_AUTHORIZED: NO
 REMOTE_D1_AUTHORIZED: NO
 DEPLOY_AUTHORIZED: NO
-MAIN_MERGE_AUTHORIZED: NO
+MAIN_MERGE_AUTHORIZED: YES
 
 ## Current
 
-ML-DEVOS-AS-164 accepts D-137 ClinicFlow case-study S1 after remediation cycle 1. The accepted presentation correction leaves evidence semantics unchanged; known evidence limitations and the previously failing full-suite status remain disclosed.
-
-Next: Paulo decides whether to authorize Gate C for the exact accepted candidate `56c03089c88d186eb25f3a919cc76cc8ef07e968`: create/review a release PR and merge through the protected main path only if checks pass. No merge or deployment is authorized; Gate D remains separate.
+D-138 authorizes Gate C only for accepted ClinicFlow case-study candidate `56c03089c88d186eb25f3a919cc76cc8ef07e968` (ML-DEVOS-AS-164). Require fresh `test-and-build` SUCCESS on the exact final PR head and use only the normal protected PR/merge path. Deployment/Gate D remains unauthorized. After merge, verify `main` and verify production traffic/version unchanged, then return the Gate C result to Architect.
