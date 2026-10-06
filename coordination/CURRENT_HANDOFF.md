@@ -1,74 +1,134 @@
-# Builder Handoff — D-140 F001/F002 bounded remediation
+# Builder Handoff — D-140 Gate C protected merge
 
 ```yaml
 schema_version: 1
-handoff_id: H-WEB-D140-CASE-STUDY-CTA-REM1-0001
+handoff_id: H-WEB-D140-GATE-C-0001
 cycle_id: MAISOGLABS_PROJECT_CASE_STUDY_CTA
-input_base_commit: d0bf93ee6951279180c97e5d4a10635be6c68339
-review_target_commit: d0bf93ee6951279180c97e5d4a10635be6c68339
-applicable_review_id: ML-DEVOS-AS-167
+input_base_commit: 0674445d716e4f9b22b3dd73ebd1a699aa1c834e
+review_target_commit: 0674445d716e4f9b22b3dd73ebd1a699aa1c834e
+applicable_review_id: ML-DEVOS-AS-168
 ```
 
-This handoff records implementation evidence. Routing and authority remain in `coordination/STATE.md`.
+This handoff records Gate C execution evidence. Routing and authority are in coordination/STATE.md. Evidence below is actor-reported from repository, GitHub API/connector and local checker observations; no production/runtime verification is claimed.
 
 ## Objective
 
-Return D-140 remediation cycle 2 for independent Architect review. Address only AS-167 F001 and F002. No main merge, deployment, remote migration, or production mutation occurred.
+Execute DIR-WEB-D140-GATE-C-0001 under Owner Decision D-141: review the exact authorized source head through the required GitHub PR checks and protections, merge by the normal protected PR path, and return evidence for independent Architect review. Stop before Gate D.
 
-## Changed files
+## Result
 
-Implementation commit `d0bf93ee6951279180c97e5d4a10635be6c68339` changed:
-- `candidates/v10.1/README.md`
-- `candidates/v10.1/build-report.json`
-- `candidates/v10.1/site/index.html`
-- `candidates/v10.1/site/v101/assets/projects.05aad04529b5.js` (removed)
-- `candidates/v10.1/site/v101/assets/projects.238cd7b2b5fa.js` (added)
-- `public/index.html`
-- `public/v101/assets/projects.05aad04529b5.js` (removed)
-- `public/v101/assets/projects.238cd7b2b5fa.js` (added)
-- `scripts/build-v101-candidate.mjs`
-- `tests/homepage-artifact.test.mjs`
-- `tests/rfc022-bridge.test.mjs`
-- `tests/v101-candidate.test.mjs`
-- `worker/bridge/inject.mjs`
+**Gate C completed.** PR #22 merged through GitHub's normal pull request merge operation as a merge commit, with the authorized head pinned. No production deployment, remote migration, D1/R2 mutation, Worker promotion, or Cloudflare configuration change was performed.
 
-The Builder return publication will also update `coordination/CURRENT_HANDOFF.md` and `coordination/STATE.md`, and archive the outgoing directive with provenance/index updates.
+| Evidence | Observed value |
+|---|---|
+| Starting governance tip / D-141 publication head | 0674445d716e4f9b22b3dd73ebd1a699aa1c834e |
+| Owner Decision / directive | D-141 / DIR-WEB-D140-GATE-C-0001 |
+| Accepted Architect review / implementation | ML-DEVOS-AS-168 / d0bf93ee6951279180c97e5d4a10635be6c68339 |
+| PR | [#22](https://github.com/Dillaab-source/maisog-labs/pull/22), governance/maisoglabs-v0.1 → main |
+| Exact reviewed PR head | 0674445d716e4f9b22b3dd73ebd1a699aa1c834e |
+| main base immediately before merge | 7d494d012588f513e5e4db3453abb21da5f149bb |
+| Active protection | Ruleset 23740878 main-protection, active on refs/heads/main; pull request required; 0 fixed approvals; required status test-and-build (integration 15368); deletion and non-fast-forward prohibited |
+| Required exact-head CI | test-and-build: success, PR run 37422431585 (job 112134545822), completed 2026-10-06T06:14:38Z; head was exactly 0674445d716e4f9b22b3dd73ebd1a699aa1c834e |
+| Additional exact-head checks | Push-triggered test-and-build run 37422153381: success. Workers Builds: maisog-labs: success (not a production promotion) |
+| Review/mergeability | PR was open, non-draft, targeted main; GitHub reported mergeable: true, mergeable_state: clean; no reviews or unresolved review threads; ruleset required 0 fixed approvals |
+| Merge operation | GitHub PR merge endpoint, merge_method: merge, expected head pinned to 0674445d716e4f9b22b3dd73ebd1a699aa1c834e |
+| Merge commit and parents | d7d30e7c1d0a894e628fab82dbd8ed380cc878af, parents 7d494d012588f513e5e4db3453abb21da5f149bb and 0674445d716e4f9b22b3dd73ebd1a699aa1c834e |
+| Resulting main / PR status | main at d7d30e7c1d0a894e628fab82dbd8ed380cc878af; PR merged at 2026-10-06T06:17:00Z |
+| D-140 implementation present | Merge commit has the exact D-141 source commit as its second parent; accepted implementation d0bf93ee6951279180c97e5d4a10635be6c68339 is included in that history |
+
+The active ruleset listed a repository-role bypass actor with pull-request scope. The operation used the standard merge action and did not request an administrator override or bypass. No fixed approval requirement was configured; GitHub reported a clean merge state after the required check passed.
 
 ## Tests and evidence
 
-- Governance: AS-167 and `DIR-WEB-PROJECT-CASE-STUDY-CTA-REM1-0001` were published by Protocol V2 exact-tip CAS at `cf085b4ac5b25c4acd6adc1fab0132386a6cef82`. The implementation commit is its single child and was published by the checker’s exact-tip CAS. Remediation cycle is 2 of 2.
-- F001: the deterministic ProjectsPanel patch no longer compares `cp.slug` to `clinicflow`; it renders the existing semantic CTA for a true enabled flag and string slug. The browser bridge validates server-published data before it reaches the panel.
-- F002: the browser hook derives its approved slug list from `worker/projects/case-studies.mjs`. It independently enforces bounded slug syntax (1–80 characters, lowercase leading letter and lowercase alphanumeric/hyphen remainder), a strict boolean `caseStudyEnabled`, and shared-registry membership for enabled slugs. Invalid values preserve the existing whole-project-group fallback. No URL/destination field or override is accepted.
-- Regression coverage: focused bridge, project case-study, artifact, and candidate tests passed 33/33. The bridge test accepts a hypothetical second registry-approved slug and rejects malformed/overlong slugs, non-boolean values, and an enabled unregistered slug; a bad member in a multi-project group leaves the full prior group intact. The candidate test asserts no ClinicFlow-only condition in the generated ProjectsPanel bundle.
-- `npm run build`: passed; static output includes `/admin`, `/journal`, and `/projects/clinicflow`.
-- Full `npm test`: completed with exit code 1. Failures are in unchanged Windows-sensitive DevOS process/filesystem/Git fixture tests and skill-frontmatter checks that assume LF bytes. The new bridge and artifact tests passed. No changed file belongs to those failing subsystems.
-- Desktop preview, 1440×900: ClinicFlow panel and `VIEW CASE STUDY →` are visible; href is `/projects/clinicflow`; project selector/pager remain available; document width equals viewport width.
-- Narrow preview, 390×844: CTA is legible and fits between tags and flow figure; document width and client width are both 390. Existing top navigation clipping remains visible at this width.
-- Functional preview: clicking the CTA loaded `/projects/clinicflow` from the local harness. Eternal Eggs has no CTA. The disabled ClinicFlow preview has no CTA.
-- Artifact identity: homepage SHA-256 `7598a6c87fcdf7a80533dea697fc59d19e5400af59f6cd722297c373563fc283`, 20,857 bytes; bridge insertion offset remains 20,116. Projects asset `projects.238cd7b2b5fa.js`, SHA-256 `238cd7b2b5fa9a02f6d909f959ccbbd99ea05077de0c82915f0d336de950fad4`, 4,832 bytes; previous D-140 asset was `projects.05aad04529b5.js`, 4,830 bytes. Candidate and `public/` copies match byte-for-byte.
-- No source outside F001/F002 and the required generated asset identity was changed. Production D1/R2, Cloudflare, DNS, Access, secrets, bindings, ClinicFlow runtime/workflows, main, PRs, and deployment were untouched.
+- Fresh Protocol V2 status check passed at exact governance tip 0674445d716e4f9b22b3dd73ebd1a699aa1c834e.
+- GitHub's required test-and-build check completed successfully on the exact final PR head. The accepted implementation's earlier Architect-recorded CI run 37419973994 is preserved in AS-168; this handoff relies on the fresh D-141-head run for Gate C.
+- The PR changed-file API returned the complete 52-path set listed below. The changes comprise the accepted D-140 feature, its generated assets and tests, and associated governance records. No unrelated product area was present in that list.
+- The local repository history shows d0bf93ee6951279180c97e5d4a10635be6c68339 is included before D-141's publication head. AS-168 independently accepted F001/F002; this Gate C did not alter their implementation.
+- GitHub confirmed the normal merge commit, both parents, closed/merged PR state and resulting main SHA.
+- No post-merge production runtime verification was performed or required for Gate C.
+
+## Complete PR changed-file set
+
+- app/admin/ContentClient.js
+- brain/DECISION_LOG.md
+- candidates/v10.1/README.md
+- candidates/v10.1/build-report.json
+- candidates/v10.1/evidence/harness/serve.mjs
+- candidates/v10.1/site/index.html
+- candidates/v10.1/site/v101/assets/projects.238cd7b2b5fa.js
+- candidates/v10.1/site/v101/assets/projects.f30288d8da5f.js
+- coordination/ARCHITECT_REVIEW.md
+- coordination/CURRENT_DIRECTIVE.md
+- coordination/CURRENT_HANDOFF.md
+- coordination/STATE.md
+- coordination/archive/directives/DIR-CLINICFLOW-D139-GATE-D-0001.md
+- coordination/archive/directives/DIR-CLINICFLOW-D139-GATE-D-0001.provenance.json
+- coordination/archive/directives/DIR-WEB-PROJECT-CASE-STUDY-CTA-0001.md
+- coordination/archive/directives/DIR-WEB-PROJECT-CASE-STUDY-CTA-0001.provenance.json
+- coordination/archive/directives/DIR-WEB-PROJECT-CASE-STUDY-CTA-REM1-0001.md
+- coordination/archive/directives/DIR-WEB-PROJECT-CASE-STUDY-CTA-REM1-0001.provenance.json
+- coordination/archive/directives/README.md
+- coordination/archive/handoffs/H-CLINICFLOW-D138-GATE-C-0001.md
+- coordination/archive/handoffs/H-CLINICFLOW-D138-GATE-C-0001.provenance.json
+- coordination/archive/handoffs/H-CLINICFLOW-D139-GATE-D-0001.md
+- coordination/archive/handoffs/H-CLINICFLOW-D139-GATE-D-0001.provenance.json
+- coordination/archive/handoffs/H-WEB-D140-CASE-STUDY-CTA-0001.md
+- coordination/archive/handoffs/H-WEB-D140-CASE-STUDY-CTA-0001.provenance.json
+- coordination/archive/handoffs/H-WEB-D140-CASE-STUDY-CTA-REM1-0001.md
+- coordination/archive/handoffs/H-WEB-D140-CASE-STUDY-CTA-REM1-0001.provenance.json
+- coordination/archive/handoffs/README.md
+- devos/changes/architect-syncs/ML-DEVOS-AS-165.md
+- devos/changes/architect-syncs/ML-DEVOS-AS-166.md
+- devos/changes/architect-syncs/ML-DEVOS-AS-167.md
+- devos/changes/architect-syncs/ML-DEVOS-AS-168.md
+- devos/changes/architect-syncs/README.md
+- migrations/0007_project_revisions_case_study_enabled.sql
+- public/index.html
+- public/v101/assets/projects.238cd7b2b5fa.js
+- public/v101/assets/projects.f30288d8da5f.js
+- scripts/build-v101-candidate.mjs
+- tests/homepage-artifact.test.mjs
+- tests/project-case-study.test.mjs
+- tests/rfc022-bridge.test.mjs
+- tests/v101-candidate.test.mjs
+- tests/worker-admin-projects.test.mjs
+- tests/worker-rfc022-content.test.mjs
+- worker/admin/projects.mjs
+- worker/bridge/inject.mjs
+- worker/bridge/payload.mjs
+- worker/bridge/snapshot.mjs
+- worker/d1/projects.mjs
+- worker/d1/schema.mjs
+- worker/d1/validate.mjs
+- worker/projects/case-studies.mjs
+
+## Changed files
+
+This governance return changes only the coordination handoff/state and the required byte-exact outgoing directive archive with provenance/index entry. It makes no product, test, migration, deployment, or runtime change. The governance publication SHA will be reported after exact-tip CAS publication.
 
 ## Unresolved findings and limitations
 
-- Full `npm test` is not green in this Windows environment for the unrelated failures listed above. Architect should retain this evidence limitation; the supplied CI success applies to the pre-remediation implementation commit.
-- Narrow preview retains the existing clipped top navigation; the CTA itself introduces no horizontal document overflow.
-- This is a local implementation candidate only. No production preview, migration, release, merge, or deployment was performed.
-- D-140 remediation cycle 2 of 2 is consumed. Any further remediation requires the applicable Owner authorization; do not autonomously start another cycle.
+- This Gate C return does not claim that the case-study CTA is active in production or that migration 0007 has been applied remotely.
+- GitHub showed a successful Workers Builds status on the PR head. No Worker version promotion or deployment was requested or performed.
+- No production runtime, remote D1/R2, DNS, Access, secret, binding, or Cloudflare configuration verification was performed.
+- This handoff awaits independent Architect review. All Gate C and production action flags are reset to NO in STATE.
 
 ## Governing references
 
-- D-140 and `DIR-WEB-PROJECT-CASE-STUDY-CTA-0001`.
-- `ML-DEVOS-AS-167`, findings F001 and F002.
-- `coordination/OPERATIVE_OBLIGATIONS.md`, including OBL-017, OBL-019–021, and OBL-023–026.
-- Protocol V2: `brain/protocols/CONTEXT_BOOTSTRAP.md` and `brain/protocols/ARCHITECT_SYNC.md`.
+- Owner Decision D-141 and DIR-WEB-D140-GATE-C-0001.
+- ML-DEVOS-AS-168, which accepts the D-140 implementation and F001/F002 remediation.
+- coordination/OPERATIVE_OBLIGATIONS.md, including the separately gated production release obligation OBL-017.
+- Protocol V2: brain/protocols/CONTEXT_BOOTSTRAP.md; Architect routing: brain/protocols/ARCHITECT_SYNC.md; BC-4: ML-DEVOS-RFC-023.
 
 ## Evidence locations
 
-- Implementation diff: `d0bf93ee6951279180c97e5d4a10635be6c68339` on `governance/maisoglabs-v0.1`.
-- Deterministic build report and assets: `candidates/v10.1/build-report.json`, `candidates/v10.1/site/`, and matching `public/` files.
-- Bridge regression and artifact checks: `tests/rfc022-bridge.test.mjs`, `tests/project-case-study.test.mjs`, `tests/homepage-artifact.test.mjs`, and `tests/v101-candidate.test.mjs`.
-- Local desktop and narrow previews were reproduced using `candidates/v10.1/evidence/harness/serve.mjs` and the Codex in-app browser.
+- PR #22: https://github.com/Dillaab-source/maisog-labs/pull/22
+- Required CI run: https://github.com/Dillaab-source/maisog-labs/actions/runs/37422431585
+- Active ruleset: 23740878 main-protection.
+- Merge commit: d7d30e7c1d0a894e628fab82dbd8ed380cc878af, parents recorded above.
+- Accepted implementation: d0bf93ee6951279180c97e5d4a10635be6c68339.
+- Governance publication: parent/tip 0674445d716e4f9b22b3dd73ebd1a699aa1c834e; resulting SHA will be reported after publication.
 
 ## Next action
 
-The Architect independently reviews implementation commit `d0bf93ee6951279180c97e5d4a10635be6c68339`, the stated evidence, and the full-suite limitation, then records a new immutable Sync. No further Builder remediation is authorized autonomously. Keep all production and release flags NO.
+The Architect independently reviews this D-140 Gate C evidence and records the next governed disposition. No Gate D, deployment, remote migration, or production action is requested or authorized by this handoff.
