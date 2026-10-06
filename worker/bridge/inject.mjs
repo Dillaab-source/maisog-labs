@@ -23,7 +23,7 @@
 import { serializeBridgePayload } from "./payload.mjs";
 
 // Promoted V10.1 artifact identity (D-121, rebuilt with the D-129 copy edits; tests/homepage-artifact.test.mjs pins the same SHA).
-export const ARTIFACT_SHA256 = "f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3";
+export const ARTIFACT_SHA256 = "98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820";
 export const ARTIFACT_LENGTH = 20857;
 export const INSERTION_OFFSET = 20116; // byte offset of "</head>"
 const INSERTION_MARKER = "</head>";
@@ -46,7 +46,7 @@ export const HOOK_SOURCE =
   "function merge(b){try{if(!b||typeof b!=='object')return b;var o={};for(var key in b){if(Object.prototype.hasOwnProperty.call(b,key))o[key]=b[key];}" +
   "var disc=Array.isArray(b.DISC)?b.DISC.length:0;" +
   "if(P.projects&&disc===6&&Array.isArray(b.PROJ)&&Array.isArray(b.FLOW)&&Array.isArray(b.PSLOTS)&&P.projects.length<=b.PSLOTS.length&&okProjects(P.projects,disc)){" +
-  "o.PROJ=P.projects.map(function(p){return{name:p.name,kind:p.kind,status:p.status,tags:p.disciplines.slice(),tag:p.tagline,desc:p.description};});" +
+    "o.PROJ=P.projects.map(function(p){return{name:p.name,kind:p.kind,slug:p.slug,caseStudyEnabled:p.caseStudyEnabled,status:p.status,tags:p.disciplines.slice(),tag:p.tagline,desc:p.description};});" +
   "o.FLOW=P.projects.map(function(p){return p.flow.slice();});}" +
   "if(P.contact&&okEmail(P.contact.email)&&typeof b.EMAIL==='string')o.EMAIL=P.contact.email;" +
   "return o;}catch(e){return b;}}" +

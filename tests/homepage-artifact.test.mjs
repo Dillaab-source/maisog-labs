@@ -20,7 +20,7 @@ const read = file => fs.readFileSync(url(file));
 const sha = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
 const ARTIFACT = "public/index.html";
-const ARTIFACT_SHA256 = "f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3";
+const ARTIFACT_SHA256 = "98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820";
 const CANDIDATE = "candidates/v10.1/site/index.html";
 const V10_SOURCE_SHA256 = "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9";
 const ASSET_DIR = "public/v101/assets";

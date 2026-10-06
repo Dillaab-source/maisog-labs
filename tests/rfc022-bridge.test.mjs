@@ -33,6 +33,8 @@ export function project(name, overrides = {}) {
   return {
     name,
     kind: "Lab project",
+    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+    caseStudyEnabled: false,
     status: "",
     tagline: `${name} tagline.`,
     description: `${name} description.`,
@@ -184,7 +186,7 @@ test("hook: merges published projects/flow/email into the artifact's own MLData 
     merged.PROJ.map(p => p.name),
     INITIAL_ACTIVATION_PROJECT_NAMES.slice()
   );
-  assert.deepEqual(merged.PROJ[0], { name: "ClinicFlow", kind: "Lab project", status: "", tags: [0, 2], tag: "ClinicFlow tagline.", desc: "ClinicFlow description." });
+  assert.deepEqual(merged.PROJ[0], { name: "ClinicFlow", kind: "Lab project", slug: "clinicflow", caseStudyEnabled: false, status: "", tags: [0, 2], tag: "ClinicFlow tagline.", desc: "ClinicFlow description." });
   assert.equal(merged.FLOW.length, 5);
   assert.ok(merged.FLOW.every(stages => stages.length === 4));
   assert.equal(merged.EMAIL, "owner@example.com");

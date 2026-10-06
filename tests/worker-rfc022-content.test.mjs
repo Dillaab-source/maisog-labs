@@ -17,7 +17,7 @@ import { getPlatformProxy } from "wrangler";
 import { handleRequest } from "../worker/auth.mjs";
 import { handleAdminDispatch } from "../worker/admin/dashboard.mjs";
 import { handlePublicHome } from "../worker/public/home.mjs";
-import { applyRfc022Schema } from "../worker/d1/schema.mjs";
+import { applyProjectCaseStudyMigrations } from "../worker/d1/schema.mjs";
 import { migrateCurrentContent, canonicalSiteSettingsRevisionColumns } from "../worker/d1/migrate.mjs";
 import { buildPublishBatch } from "../worker/d1/projects.mjs";
 import { siteContent } from "../data/site.js";
@@ -51,7 +51,7 @@ function artifactAssets() {
 async function openDb({ seed = false } = {}) {
   const statePath = fs.mkdtempSync(path.join(os.tmpdir(), "rfc022-d1-test-"));
   const proxy = await getPlatformProxy({ configPath: WRANGLER_CONFIG_PATH, persist: { path: statePath }, remoteBindings: false });
-  await applyRfc022Schema(proxy.env.DB);
+  await applyProjectCaseStudyMigrations(proxy.env.DB);
   if (seed) await migrateCurrentContent(proxy.env.DB, siteContent);
   return {
     db: proxy.env.DB,
@@ -90,7 +90,7 @@ function projectBody(name, i, overrides = {}) {
     accent: "blue",
     icon: "lab",
     featured: true,
-    v10: { tagline: `${name} tagline.`, status: i === 1 ? "Active" : "", disciplines: [0, 2], flow: ["Stage one", "Stage two", "Stage three", "Person reviews"] },
+    v10: { tagline: `${name} tagline.`, status: i === 1 ? "Active" : "", disciplines: [0, 2], flow: ["Stage one", "Stage two", "Stage three", "Person reviews"], caseStudyEnabled: false },
     ...overrides,
   };
 }

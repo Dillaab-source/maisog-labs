@@ -25,6 +25,7 @@
 import { validateProjectId, validateProjectSlug, validateProjectRevisionContent } from "./validate.mjs";
 import { buildProjectRevisionAuditStatement, buildAuditAppendStatement } from "./audit.mjs";
 import { buildProjectMediaInsertStatements } from "./media.mjs";
+import { validateCaseStudyEnabled } from "../projects/case-studies.mjs";
 
 // RFC-022 Tier 1 (migration 0006): the four V10 columns are written only when
 // the revision carries V10 fields, so a legacy-shaped write never references
@@ -45,6 +46,7 @@ function projectRevisionColumns(fields) {
     columns.status = fields.v10.status;
     columns.disciplines_json = JSON.stringify(fields.v10.disciplines);
     columns.flow_json = JSON.stringify(fields.v10.flow);
+    columns.case_study_enabled = fields.v10.caseStudyEnabled ? 1 : 0;
   }
   return columns;
 }
@@ -68,7 +70,7 @@ export function revisionRowToDomainFields(row) {
     const set = [row.tagline, row.status, row.disciplines_json, row.flow_json].filter(v => v !== null && v !== undefined).length;
     if (set === 0) fields.v10 = null;
     else if (set === 4) {
-      fields.v10 = { tagline: row.tagline, status: row.status, disciplines: JSON.parse(row.disciplines_json), flow: JSON.parse(row.flow_json) };
+      fields.v10 = { tagline: row.tagline, status: row.status, disciplines: JSON.parse(row.disciplines_json), flow: JSON.parse(row.flow_json), caseStudyEnabled: Boolean(row.case_study_enabled ?? 0) };
     } else fields.v10 = { malformed: true };
   }
   return fields;
@@ -113,6 +115,7 @@ export function buildCreateDraftBatch(db, { id, slug, fields, createdAt, created
   const validId = validateProjectId(id);
   const validSlug = validateProjectSlug(slug);
   validateProjectRevisionContent(fields);
+  validateCaseStudyEnabled(validSlug, fields.v10?.caseStudyEnabled ?? false);
   const revisionColumns = projectRevisionColumns(fields);
   const revisionColumnNames = Object.keys(revisionColumns);
   const revisionValues = Object.values(revisionColumns);
@@ -191,9 +194,10 @@ function stalePointerGuardedSlugAssignment() {
 // project_media rows (AS20-F005, AS23-F005).
 export async function buildEditDraftBatch(
   db,
-  { id, fields, createdAt, createdBy, actor, expectedPublishedRevisionId, expectedDraftRevisionId, mediaEntries = [] }
+  { id, slug, fields, createdAt, createdBy, actor, expectedPublishedRevisionId, expectedDraftRevisionId, mediaEntries = [] }
 ) {
   validateProjectRevisionContent(fields);
+  validateCaseStudyEnabled(validateProjectSlug(slug), fields.v10?.caseStudyEnabled ?? false);
   const revisionColumns = projectRevisionColumns(fields);
   const revisionColumnNames = Object.keys(revisionColumns);
   const revisionValues = Object.values(revisionColumns);

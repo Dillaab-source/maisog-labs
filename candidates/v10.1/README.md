@@ -16,10 +16,10 @@ The build is deterministic: two consecutive builds produce identical bytes. It w
 
 | Item | Value |
 |---|---|
-| `site/index.html` SHA-256 | `f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3` (D-129; before: `220ce809e7a64104dbce954d2b30a56aa753c70b64646a99cffdeee5017f3dcc`) |
+| `site/index.html` SHA-256 | `98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820` (D-140; before: `f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3`) |
 | `site/index.html` bytes | 20,857 (the canonical artifact is 1,969,988) |
 | `</head>` byte offset (bridge insertion point) | 20,116 |
-| Fingerprinted assets | 34 files, 726,003 bytes, under `site/v101/assets/` (D-129: `entry.7995859f655d.js` → `entry.e184fa740d43.js`) |
+| Fingerprinted assets | 34 files, 726,375 bytes, under `site/v101/assets/` (`projects.f30288d8da5f.js` → `projects.05aad04529b5.js`; D-129 entry asset unchanged) |
 | `site/robots.txt` | `801054c0c9a7cc4889073fb5e48f9817c3e8ea3f178c142f855a260a7aebe633` |
 | `site/sitemap.xml` | `24b7f122047ec3951c43848a43599ee0225312e9b5bc7a47fba058e4248f7fab` |
 | `site/_headers` | `4db7f4cb0bf966b81af7d897ddf734cabbcbded4de6b91a61140d4983c2a81e1` |

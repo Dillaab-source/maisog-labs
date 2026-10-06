@@ -18,6 +18,7 @@ export const MAX_HOMEPAGE_PROJECTS = 5;
 export const FLOW_STAGE_COUNT = 4;
 export const DISCIPLINE_COUNT = 6;
 export const PROJECT_STATUS_VALUES = ["", "Active"];
+import { hasCaseStudy } from "../projects/case-studies.mjs";
 
 export const PROJECT_LIMITS = Object.freeze({ name: 40, kind: 40, tagline: 160, description: 400, flowStage: 60 });
 
@@ -49,7 +50,9 @@ function hasExactKeys(value, keys) {
 // Validates the V10 homepage fields of one project (the `v10` group stored on
 // project_revisions by migration 0006). Returns the normalized value or throws.
 export function validateV10ProjectFields(value) {
-  if (!hasExactKeys(value, ["tagline", "status", "disciplines", "flow"])) throw new Error("v10: invalid shape");
+  const legacyKeys = ["tagline", "status", "disciplines", "flow"];
+  const currentKeys = [...legacyKeys, "caseStudyEnabled"];
+  if (!hasExactKeys(value, legacyKeys) && !hasExactKeys(value, currentKeys)) throw new Error("v10: invalid shape");
   if (!boundedText(value.tagline, PROJECT_LIMITS.tagline)) throw new Error("v10.tagline: invalid value");
   if (!PROJECT_STATUS_VALUES.includes(value.status)) throw new Error("v10.status: invalid value");
   const { disciplines, flow } = value;
@@ -65,18 +68,23 @@ export function validateV10ProjectFields(value) {
   if (!Array.isArray(flow) || flow.length !== FLOW_STAGE_COUNT || !flow.every(stage => boundedText(stage, PROJECT_LIMITS.flowStage))) {
     throw new Error("v10.flow: invalid value");
   }
-  return { tagline: value.tagline, status: value.status, disciplines: [...disciplines], flow: [...flow] };
+  const caseStudyEnabled = Object.hasOwn(value, "caseStudyEnabled") ? value.caseStudyEnabled : false;
+  if (typeof caseStudyEnabled !== "boolean") throw new Error("v10.caseStudyEnabled: invalid value");
+  return { tagline: value.tagline, status: value.status, disciplines: [...disciplines], flow: [...flow], caseStudyEnabled };
 }
 
 function validateBridgeProject(value) {
-  if (!hasExactKeys(value, ["name", "kind", "status", "tagline", "description", "disciplines", "flow"])) {
+  if (!hasExactKeys(value, ["name", "kind", "slug", "status", "tagline", "description", "disciplines", "flow", "caseStudyEnabled"])) {
     throw new Error("project: invalid shape");
   }
   if (!boundedText(value.name, PROJECT_LIMITS.name)) throw new Error("project.name: invalid value");
   if (!boundedText(value.kind, PROJECT_LIMITS.kind)) throw new Error("project.kind: invalid value");
   if (!boundedText(value.description, PROJECT_LIMITS.description)) throw new Error("project.description: invalid value");
-  const v10 = validateV10ProjectFields({ tagline: value.tagline, status: value.status, disciplines: value.disciplines, flow: value.flow });
-  return { name: value.name, kind: value.kind, description: value.description, ...v10 };
+  if (typeof value.slug !== "string" || !/^[a-z][a-z0-9-]{0,79}$/.test(value.slug) || ["home", "projects", "process", "about", "main-content"].includes(value.slug)) throw new Error("project.slug: invalid value");
+  if (typeof value.caseStudyEnabled !== "boolean") throw new Error("project.caseStudyEnabled: invalid value");
+  if (value.caseStudyEnabled && !hasCaseStudy(value.slug)) throw new Error("project.caseStudyEnabled: unregistered slug");
+  const v10 = validateV10ProjectFields({ tagline: value.tagline, status: value.status, disciplines: value.disciplines, flow: value.flow, caseStudyEnabled: value.caseStudyEnabled });
+  return { name: value.name, kind: value.kind, slug: value.slug, description: value.description, ...v10 };
 }
 
 // Projects group (all-or-nothing): 1..5 projects, unique names
