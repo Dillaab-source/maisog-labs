@@ -14,9 +14,11 @@ const SITE = path.join(ROOT, "candidates/v10.1/site");
 const report = JSON.parse(fs.readFileSync(path.join(ROOT, "candidates/v10.1/build-report.json"), "utf8"));
 const index = fs.readFileSync(path.join(SITE, "index.html"));
 const html = index.toString("utf8");
+const projectAsset = html.match(/<script src="(\/v101\/assets\/projects\.[0-9a-f]{12}\.js)"><\/script>/)?.[1];
+const projectBundle = projectAsset ? fs.readFileSync(path.join(ROOT, "public", projectAsset.slice(1)), "utf8") : "";
 const sha256 = bytes => crypto.createHash("sha256").update(bytes).digest("hex");
 
-const ACCEPTED_SHA256 = "98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820";
+const ACCEPTED_SHA256 = "7598a6c87fcdf7a80533dea697fc59d19e5400af59f6cd722297c373563fc283";
 
 test("the promoted artifact, the bridge constants and the accepted candidate are the same bytes (D-121)", () => {
   assert.equal(sha256(index), ACCEPTED_SHA256);
@@ -37,6 +39,15 @@ test("the promoted artifact, the bridge constants and the accepted candidate are
 test("the committed candidate matches its build report", () => {
   assert.equal(sha256(index), report.candidateIndexSha256);
   assert.equal(index.length, report.candidateIndexBytes);
+});
+
+test("ProjectsPanel case-study CTA has no ClinicFlow-only condition", () => {
+  assert.ok(projectAsset, "fingerprinted ProjectsPanel asset is referenced");
+  assert.match(projectBundle, /caseStudyEnabled===!0/);
+  assert.match(projectBundle, /typeof \w+\.slug=="string"/);
+  assert.match(projectBundle, /"\/projects\/"\+\w+\.slug/);
+  assert.match(projectBundle, /VIEW CASE STUDY/);
+  assert.doesNotMatch(projectBundle, /clinicflow/i);
 });
 
 test("the RFC-022 seam holds: script-free head, </head> at the reported offset", () => {

@@ -16,10 +16,10 @@ The build is deterministic: two consecutive builds produce identical bytes. It w
 
 | Item | Value |
 |---|---|
-| `site/index.html` SHA-256 | `98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820` (D-140; before: `f60179dd6f9e71c9f94d72eb66ac4686bb119a9a5dc781d315803f59df4d2fe3`) |
+| `site/index.html` SHA-256 | `7598a6c87fcdf7a80533dea697fc59d19e5400af59f6cd722297c373563fc283` (D-140 F001/F002 remediation; prior: `98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820`) |
 | `site/index.html` bytes | 20,857 (the canonical artifact is 1,969,988) |
 | `</head>` byte offset (bridge insertion point) | 20,116 |
-| Fingerprinted assets | 34 files, 726,375 bytes, under `site/v101/assets/` (`projects.f30288d8da5f.js` → `projects.05aad04529b5.js`; D-129 entry asset unchanged) |
+| Fingerprinted assets | 34 files, 726,377 bytes, under `site/v101/assets/` (`projects.05aad04529b5.js` → `projects.238cd7b2b5fa.js`; D-129 entry asset unchanged) |
 | `site/robots.txt` | `801054c0c9a7cc4889073fb5e48f9817c3e8ea3f178c142f855a260a7aebe633` |
 | `site/sitemap.xml` | `24b7f122047ec3951c43848a43599ee0225312e9b5bc7a47fba058e4248f7fab` |
 | `site/_headers` | `4db7f4cb0bf966b81af7d897ddf734cabbcbded4de6b91a61140d4983c2a81e1` |
@@ -33,7 +33,9 @@ The build is deterministic: two consecutive builds produce identical bytes. It w
   - lower-right stack: Humanity / Orbits / Higher → AI / AUTOMATION / SYSTEMS (same three spans);
   - desktop evidence: `evidence/d129/`.
 
-Identity, layout, copy (except the two Research strings below), data and project content are unchanged.
+Other than the documented changes, identity, layout, copy, data, and project content remain unchanged.
+
+- **D-140 case-study CTA remediation:** ProjectsPanel now renders from the enabled project fields without a ClinicFlow-specific slug check. The browser bridge validates bounded slug shape and a strict boolean, checks enabled slugs against the shared code-owned registry, and preserves whole-project-group fallback for invalid values. No destination URL field or override was added.
 
 - **Research:**
   - heading "Research Notes" → "Research Previews";

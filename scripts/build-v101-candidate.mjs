@@ -106,8 +106,8 @@ function patchResearch(src) {
 function patchProjects(src) {
   return replaceOnce(src,
     "          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>{cp.tags.map(k => <Tag key={k}>{D[k].name}</Tag>)}</div>\n          <BlueprintFigure style={{ marginTop: 24 }}",
-    "          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>{cp.tags.map(k => <Tag key={k}>{D[k].name}</Tag>)}</div>\n          {cp.caseStudyEnabled === true && cp.slug === 'clinicflow' && <a href={'/projects/' + cp.slug} style={{ display: 'inline-flex', alignItems: 'center', maxWidth: '100%', marginTop: 18, padding: '8px 0', color: '#9FC0FF', borderBottom: '1px solid rgba(147,180,255,.45)', fontFamily: 'var(--ml-font-mono)', fontSize: 12, letterSpacing: '.12em', textDecoration: 'none' }}>VIEW CASE STUDY →</a>}\n          <BlueprintFigure style={{ marginTop: 24 }}",
-    "projects: code-owned case-study CTA");
+    "          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>{cp.tags.map(k => <Tag key={k}>{D[k].name}</Tag>)}</div>\n          {cp.caseStudyEnabled === true && typeof cp.slug === 'string' && <a href={'/projects/' + cp.slug} style={{ display: 'inline-flex', alignItems: 'center', maxWidth: '100%', marginTop: 18, padding: '8px 0', color: '#9FC0FF', borderBottom: '1px solid rgba(147,180,255,.45)', fontFamily: 'var(--ml-font-mono)', fontSize: 12, letterSpacing: '.12em', textDecoration: 'none' }}>VIEW CASE STUDY →</a>}\n          <BlueprintFigure style={{ marginTop: 24 }}",
+    "projects: registered case-study CTA");
 }
 
 // NoteCard (design system): no destination => not a link. The card renders a

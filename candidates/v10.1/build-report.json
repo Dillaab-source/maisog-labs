@@ -1,6 +1,6 @@
 {
   "sourceArtifactSha256": "2417f7e50ff032bf4af8c9f64446550b3695fcf5597c95f4b21901f7093259f9",
-  "candidateIndexSha256": "98c60c4c6574471fad5ec199fc30f51d60f869af79e365cf500230a837ab3820",
+  "candidateIndexSha256": "7598a6c87fcdf7a80533dea697fc59d19e5400af59f6cd722297c373563fc283",
   "candidateIndexBytes": 20857,
   "insertionOffset": 20116,
   "assets": [
@@ -125,8 +125,8 @@
       "bytes": 7361
     },
     {
-      "file": "projects.05aad04529b5.js",
-      "bytes": 4830
+      "file": "projects.238cd7b2b5fa.js",
+      "bytes": 4832
     },
     {
       "file": "research.7506383efa2f.js",
@@ -141,5 +141,5 @@
       "bytes": 1658
     }
   ],
-  "totalAssetBytes": 726375
+  "totalAssetBytes": 726377
 }
