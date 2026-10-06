@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_PROJECT_CASE_STUDY_CTA
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: D140_GATE_C_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D141_GATE_C_ACCEPTED_GATE_D_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D140-GATE-C-0001
-REVIEW_TARGET_COMMIT: 0674445d716e4f9b22b3dd73ebd1a699aa1c834e
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-168
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,7 +29,6 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: ML-DEVOS-AS-168 accepts the D-140 F001/F002 implementation; D-141 authorized only its exact-head protected Gate C merge.
-- Result: PR #22 merged as d7d30e7c1d0a894e628fab82dbd8ed380cc878af; resulting main is at that merge commit.
-- Routing: the D-140 Gate C Builder evidence is ready for independent Architect review. All action-specific authorization flags are NO.
-- Next: Architect reviews H-WEB-D140-GATE-C-0001. Gate D and all production actions require separate Paulo authority.
+- Review: ML-DEVOS-AS-169 accepts and closes D-141 Gate C. This is a separate Architect disposition; it does not authorize Gate D.
+- Routing: return to Paulo for a separate Gate D Owner decision. No Gate D directive or production action is selected.
+- All action-specific authorization flags remain NO.
