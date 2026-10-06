@@ -4754,6 +4754,7 @@ NOT AUTHORIZED:
 MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
 DEPLOY_AUTHORIZED: NO.
 
+
 ### D-136 — Retain the D-135 deployment and record the authorization incident
 
 - **Decided by:** Paulo (Product / Risk Owner), in the owner disposition supplied 2026-10-05.
@@ -4830,3 +4831,17 @@ DEPLOY_AUTHORIZED: NO.
 #### Owner decision (faithful record of Paulo's authorization)
 
 Paulo authorizes Gate C only for the AS-168-accepted D-140 reusable project case-study CTA implementation. This permits the governed GitHub PR review and protected merge process into `main`, subject to all required checks. It does not authorize production deployment, remote database migration, or other production changes. The process must freshly verify the exact PR head, `main` baseline, full diff, required CI, and branch protections; merge normally only when every gate is satisfied. If any required precondition cannot be verified, stop and report the blocker. After success, verify the merge and resulting `main`, publish the evidence to the Architect, and stop. Gate C does not imply Gate D.
+
+### D-142 — Authorize D-140 Gate D production migration and Worker promotion only
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, following ML-DEVOS-AS-169 acceptance of D-141 Gate C.
+- **Bound release:** AS-169-accepted D-140 reusable ClinicFlow case-study CTA; accepted `main` SHA `d7d30e7c1d0a894e628fab82dbd8ed380cc878af`.
+- **Exact Worker candidate:** `maisog-labs` version `cd018d5e-eb3d-4e01-9697-9550f0cc618e` (#949), bound by Cloudflare Builds lookup to successful build `ffbc9945-7e0d-4a8a-b532-17ab4c8204dc` on `main` at the exact accepted SHA above. The build ran `npm run build` and `npx wrangler versions upload`; the candidate is deployable and has not been deployed.
+- **Production baseline:** latest deployment `e6f47552-39aa-41ba-9aa7-4842bbf7cf43`, serving version `5368e6c8-7cb4-4a0c-b2da-70f65bb8023f` at 100%. This exact version is the only authorized conditional rollback target.
+- **Production D1:** account `fb7234ae9117baf1481ab3b169a9824a`, database `maisog-labs-web-inc-005-local`, UUID `45b87574-e573-4e0f-9bb6-fbba2df29523`. Migrations 0001–0006 are recorded; 0007 is absent. The 0007 migration is limited to adding `project_revisions.case_study_enabled INTEGER NOT NULL DEFAULT 0 CHECK (case_study_enabled IN (0, 1))` and its matching migration-history record.
+- **Configuration preflight:** candidate and active baseline have matching runtime settings and bindings, including the same D1 UUID and R2 binding. D1 remains the only authorized mutation target; R2 is excluded.
+- **Authorized:** after this D-142 authority is published and immediate preconditions still match, apply migration 0007 once if absent; verify schema, default-off rows, existing content and active Worker health; then promote exactly the candidate version to 100%; conduct bounded read-only production verification; and, only for a new material failure attributable to the promotion, roll back at most once to baseline version `5368e6c8-7cb4-4a0c-b2da-70f65bb8023f` at 100%.
+- **Not authorized:** any other Worker version, build/upload, split traffic, Worker/configuration/binding/secret/Access/DNS/route change, D1 change beyond migration 0007 and its ledger row, R2 mutation, main/PR change, admin content publication, ClinicFlow workflow/n8n/Meta/Google change, or unrelated change. No destructive D1 rollback, hotfix or replacement version.
+- **SENTINEL / SU:** SENTINEL `CLEAR`; bounded contradiction review `CLEAR_WITH_NOTES`. Exact source, target, production baseline, database identity, additive operation and rollback target are pinned. Wrangler's local credential is expired; connected Cloudflare API reads and exact-version deployment are available. Any inability to perform or verify only the authorized migration/deployment stops the release.
+- **Flags:** `REMOTE_D1_AUTHORIZED: YES` for migration 0007 and its matching history row only; `DEPLOY_AUTHORIZED: YES` for the exact single promotion and conditional rollback only. `MUTATION_AUTHORIZED`, `REMOTE_R2_AUTHORIZED`, `MAIN_MERGE_AUTHORIZED`, and all other action-specific flags remain `NO`.
+- **Return:** publish one evidence-complete Gate D Builder handoff to the Architect after verification or authorized rollback; reset every action-specific flag to `NO`. This decision does not constitute Gate D acceptance.
