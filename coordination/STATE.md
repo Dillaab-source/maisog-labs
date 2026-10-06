@@ -1,13 +1,13 @@
 # MaisogLabs Agent Coordination State
 
-CYCLE_ID: MAISOGLABS_CLINICFLOW_META_COMPLIANCE
+CYCLE_ID: MAISOGLABS_CLINICFLOW_CASE_STUDY
 TURN: PAULO
 STATUS: GATE_C_AUTHORIZED
-AUTHORIZED_SCOPE: D135_GATE_C_PROTECTED_MERGE_ONLY
+AUTHORIZED_SCOPE: D138_GATE_C_PROTECTED_MERGE_ONLY
 ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
 PAULO_DECISION_REQUIRED: NO
-CURRENT_REMEDIATION_CYCLE: 0
+CURRENT_REMEDIATION_CYCLE: 1
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
 CURRENT_HANDOFF: NONE
@@ -29,8 +29,4 @@ MAIN_MERGE_AUTHORIZED: YES
 
 ## Current
 
-- D-135 authorizes Gate C only for the accepted D-134 ClinicFlow pages. The final Gate C head is this D-135 publication commit; any later governance-branch movement before the merge invalidates the authorization.
-- Require a fresh normal `test-and-build` SUCCESS on the exact final PR head; do not waive protected CI. Merge only through a clean protected PR with one normal merge commit and the expected head SHA pinned.
-- After merge, verify `main` contains the accepted ClinicFlow pages and read-only verify production traffic/version is unchanged. Return the Gate C handoff to Architect, then stop.
-- PR #10 is excluded. Deployment / Gate D, traffic changes, remote D1/R2, Meta/n8n/Google changes, secrets, and credentials remain unauthorized.
-- Open items: `coordination/OPERATIVE_OBLIGATIONS.md`.
+D-138 authorizes Gate C only for accepted ClinicFlow case-study candidate `56c03089c88d186eb25f3a919cc76cc8ef07e968` (ML-DEVOS-AS-164). Require fresh `test-and-build` SUCCESS on the exact final PR head and use only the normal protected PR/merge path. Deployment/Gate D remains unauthorized. After merge, verify `main` and verify production traffic/version unchanged, then return the Gate C result to Architect.

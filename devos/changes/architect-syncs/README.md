@@ -175,3 +175,6 @@ Paulo subsequently authorized an Architect-led audit of exactly those three file
 - `ML-DEVOS-AS-162.md` — D-134 ClinicFlow compliance candidate accepted with follow-up; routes to Paulo for D-135 Gate C protected-merge decision only. No deploy, traffic, remote D1/R2, or Meta/n8n changes.
 
 A durable sync record, once written, is not silently rewritten. A later correction is a new sync or an explicit, separately recorded amendment — never an in-place edit that erases what a past sync actually said (`CORE-011`).
+
+- ML-DEVOS-AS-163.md — D-135 deployment incident disposition, current runtime verification, D-135 closure, and D-137 S1 case-study routing. The Oct 4 promotion remains unauthorized; Paulo's D-136 decision retains the deployed artifact without retroactive authorization. Case-study scope is local and bounded; no deploy or merge.
+- ML-DEVOS-AS-164.md — final D-137 ClinicFlow case-study S1 review. Remediation cycle 1 is accepted, evidence limitations remain disclosed, and S1 is closed. Routes to Paulo for the separate Gate C release decision only; no main merge or deployment is authorized.

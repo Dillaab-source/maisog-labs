@@ -4753,3 +4753,41 @@ NOT AUTHORIZED:
 
 MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
 DEPLOY_AUTHORIZED: NO.
+
+### D-136 — Retain the D-135 deployment and record the authorization incident
+
+- **Decided by:** Paulo (Product / Risk Owner), in the owner disposition supplied 2026-10-05.
+- **Incident disposition:** The 2026-10-04 20:52:11 UTC dashboard promotion of Cloudflare Worker version `5d315120-2647-46c0-a146-64d2a86eaec1` to 100% occurred without deployment authority under D-135. Classify it as an authorization/process violation; make no conclusion about malicious intent.
+- **Current state:** Retain that deployment. The exact D-135 source head passed protected CI; read-only runtime checks confirmed the expected version remains active and the site and all three ClinicFlow compliance routes render. No evidence indicates an artifact defect, so rollback is not required.
+- **Boundary:** This present-tense retain decision does not retroactively authorize the historical promotion. No new deployment or rollback is authorized.
+- **Evidence:** Cloudflare deployment `71e7bc54-a5bb-453d-81d2-44eb8e08a6bc`; D-135 exact source head `9d01b53038419f75550fa2996a47343fba1d220a`; protected `test-and-build`; runtime observation 2026-10-05.
+
+### D-137 — Authorize the isolated ClinicFlow portfolio case study
+
+- **Decided by:** Paulo (Product / Risk Owner), in the owner directive supplied 2026-10-05.
+- **Envelope:** One implementation step, `S1 of 1`; the cycle ends when the Builder returns a reviewable local commit/preview and evidence for Architect review.
+- **Authorized scope:** Implement `/projects/clinicflow` using only `app/projects/clinicflow/**`, `components/clinicflow/**`, and `public/projects/clinicflow/**`, plus the smallest technically necessary supporting route change. Inspect ClinicFlow workflows, selected Code nodes, controlled Messenger evidence, provider/Calendar evidence, and existing tests read-only. Capture only sanitized evidence. Run the requested tests and build. No ClinicFlow runtime or n8n workflow changes.
+- **Restrictions:** No homepage redesign, main merge, production deployment, Cloudflare traffic change, credential/secret change, patient data publication, Calendar/Sheets mutation, or control-plane exposure. A change outside the named scope requires a new Owner decision.
+- **Acceptance:** A mobile-responsive case-study route, sanitized screenshots and architecture visual, concise technical narrative, passing `npm test` and `npm run build`, exact changed-file review, and a reviewable local preview. Return to Architect; do not merge or deploy.
+
+#### Owner decision (faithful summary of the supplied directive)
+
+Paulo authorized the bounded, isolated ClinicFlow case-study subpage at `/projects/clinicflow`, with the file scope, evidence sources, validation, privacy limits, and explicit no-deploy/no-merge restrictions recorded above. The authorization covers only this one Builder implementation step and ends at the reviewable preview.
+
+### D-138 — Authorize Gate C protected merge for the accepted ClinicFlow case study
+
+- **Decided by:** Paulo (Product / Risk Owner), 2026-10-06, after Architect acceptance `ML-DEVOS-AS-164`.
+- **Accepted candidate:** `56c03089c88d186eb25f3a919cc76cc8ef07e968`.
+- **Authorized:** one normal protected PR from `governance/maisoglabs-v0.1` to `main`; verify the exact final PR head and complete changed-file scope; require fresh `test-and-build` SUCCESS on that exact final head and all other required checks; ensure the PR is clean and mergeable; merge only through the normal protected path as a normal merge commit. No direct push to `main`, protection bypass, force push, squash, rebase, or auto-merge.
+- **Exact head:** the final Gate C PR head is this D-138 publication commit. Any governance-branch movement before merge invalidates this exact-head authorization and requires a fresh Owner decision.
+- **After merge:** verify read-only that `main` contains the accepted ClinicFlow case-study changes and that production traffic/version was not changed by Gate C; return the Gate C result to the Architect.
+- **Not authorized:** deployment / Gate D; Cloudflare traffic or DNS changes; homepage changes; ClinicFlow runtime, n8n, or Meta changes; Google Calendar/Sheets or remote D1/R2 changes; secrets/credentials; unrelated repository changes.
+
+#### Owner decision
+
+Paulo authorizes Gate C only for the accepted ClinicFlow case-study candidate `56c03089c88d186eb25f3a919cc76cc8ef07e968`, accepted by `ML-DEVOS-AS-164). Create and review one protected PR from `governance/maisoglabs-v0.1` to `main`; verify the exact final PR head and changed-file set; require fresh `test-and-build` SUCCESS and all required checks on that exact head; and merge only if clean and mergeable through the normal protected path as a normal merge commit. Do not push directly to main, bypass protections, force-push, squash, rebase, or auto-merge. After merge, verify main contains the accepted case-study changes, verify production traffic/version was not changed, and return the result to Architect.
+
+NOT AUTHORIZED: deployment / Gate D; Cloudflare traffic or DNS changes; homepage changes; ClinicFlow runtime, n8n, Meta, Google Calendar/Sheets, remote D1/R2, secrets/credentials, or unrelated repository changes.
+
+MAIN_MERGE_AUTHORIZED: YES for this exact Gate C only.
+DEPLOY_AUTHORIZED: NO.

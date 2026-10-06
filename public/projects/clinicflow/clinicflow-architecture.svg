@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+  <title id="title">ClinicFlow verified appointment path</title>
+  <desc id="desc">Patient, Messenger, structured AI intent, deterministic booking core, real availability, explicit patient confirmation, provider revalidation, Google Calendar event, and read-back verified appointment.</desc>
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#93b4ff" stroke-opacity=".055"/></pattern>
+    <linearGradient id="line"><stop stop-color="#3b82f6" stop-opacity=".45"/><stop offset="1" stop-color="#93b4ff" stop-opacity=".9"/></linearGradient>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 8 4 0 8z" fill="#93b4ff"/></marker>
+    <style>
+      .rail{fill:none;stroke:url(#line);stroke-width:1.5;marker-end:url(#arrow)}.node{fill:#07112a;stroke:#93b4ff;stroke-width:1.5}.core{fill:#102858;stroke:#6ea8ff;stroke-width:1.6}.cal{fill:#102858;stroke:#93b4ff;stroke-width:1.6}.final{fill:#f8faff;stroke:#93b4ff;stroke-width:1.5}.txt{fill:#f8faff;font:500 14px Arial,sans-serif}.small{fill:#93b4ff;font:10px monospace;letter-spacing:1px}.muted{fill:#a0adcf;font:11px Arial,sans-serif}
+    </style>
+  </defs>
+  <rect x="1" y="1" width="1118" height="518" rx="4" fill="#060f27" stroke="#93b4ff" stroke-opacity=".25"/>
+  <rect x="2" y="2" width="1116" height="516" rx="4" fill="url(#grid)"/>
+  <path d="M16 32V16h16M1088 16h16v16M16 488v16h16m1056 0h16v-16" fill="none" stroke="#93b4ff" stroke-opacity=".5"/>
+  <text class="small" x="36" y="47">BOOKING PATH / REQUEST → PROVIDER PROOF</text><text class="small" x="1084" y="47" text-anchor="end">FIG. 01</text>
+  <path class="rail" d="M122 164H998M998 164v192M998 356H122"/>
+  <g><circle class="node" cx="122" cy="164" r="9"/><circle class="node" cx="341" cy="164" r="9"/><circle class="core" cx="560" cy="164" r="11"/><circle class="core" cx="779" cy="164" r="11"/><circle class="cal" cx="998" cy="164" r="10"/><circle class="node" cx="998" cy="356" r="9"/><circle class="core" cx="706" cy="356" r="11"/><circle class="cal" cx="414" cy="356" r="10"/><path class="final" d="m122 344 12 12-12 12-12-12z"/></g>
+  <g text-anchor="middle">
+    <text class="small" x="122" y="121">01 / REQUEST</text><text class="txt" x="122" y="190">Patient</text><text class="muted" x="122" y="209">Natural language</text>
+    <text class="small" x="341" y="121">02 / CHANNEL</text><text class="txt" x="341" y="190">Messenger</text><text class="muted" x="341" y="209">Channel adapter</text>
+    <text class="small" x="560" y="121">03 / INTERPRET</text><text class="txt" x="560" y="190">AI intent</text><text class="muted" x="560" y="209">Structured request</text>
+    <text class="small" x="779" y="121">04 / BOOKING CORE</text><text class="txt" x="779" y="190">Deterministic state</text><text class="muted" x="779" y="209">Draft · dedupe · claim</text>
+    <text class="small" x="998" y="121">05 / AVAILABILITY</text><text class="txt" x="998" y="190">Real calendar</text><text class="muted" x="998" y="209">Provider check</text>
+    <text class="small" x="998" y="313">06 / CONFIRM</text><text class="txt" x="998" y="385">Patient confirms</text><text class="muted" x="998" y="404">Current offer only</text>
+    <text class="small" x="706" y="313">07 / REVALIDATE</text><text class="txt" x="706" y="385">Exact-slot check</text><text class="muted" x="706" y="404">Immediately before create</text>
+    <text class="small" x="414" y="313">08 / MUTATE</text><text class="txt" x="414" y="385">Google Calendar</text><text class="muted" x="414" y="404">Deterministic event</text>
+    <text class="small" x="122" y="313">09 / READ BACK</text><text class="txt" x="122" y="385">Verified appointment</text><text class="muted" x="122" y="404">Provider proves success</text>
+  </g>
+  <text class="small" x="36" y="476">AI INTERPRETS</text><text class="muted" x="150" y="476">·</text><text class="small" x="168" y="476">CORE COMMITS</text><text class="muted" x="282" y="476">·</text><text class="small" x="300" y="476">CALENDAR VERIFIES</text>
+</svg>
