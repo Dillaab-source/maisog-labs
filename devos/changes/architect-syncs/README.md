@@ -178,3 +178,5 @@ A durable sync record, once written, is not silently rewritten. A later correcti
 
 - ML-DEVOS-AS-163.md — D-135 deployment incident disposition, current runtime verification, D-135 closure, and D-137 S1 case-study routing. The Oct 4 promotion remains unauthorized; Paulo's D-136 decision retains the deployed artifact without retroactive authorization. Case-study scope is local and bounded; no deploy or merge.
 - ML-DEVOS-AS-164.md — final D-137 ClinicFlow case-study S1 review. Remediation cycle 1 is accepted, evidence limitations remain disclosed, and S1 is closed. Routes to Paulo for the separate Gate C release decision only; no main merge or deployment is authorized.
+
+- ML-DEVOS-AS-165.md — D-138 ClinicFlow case-study Gate C return accepted; routes to Paulo for the separate Gate D Owner decision only. No Gate D authorization. Architect disposition published mechanically under BC-4 from the supplied review text; SHA-256 a2dab1a7c0366aa0ab6c5d274cf6beb878aca08712b1a4659ca7407bd6e0f108 (4048 bytes, 149 lines).
