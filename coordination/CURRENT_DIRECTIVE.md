@@ -1,98 +1,106 @@
-# Current Directive — D-139 ClinicFlow case-study Gate D production promotion only
+# Current Directive — Reusable project case-study CTA implementation (D-140)
 
 ```yaml
 schema_version: 1
-directive_id: DIR-CLINICFLOW-D139-GATE-D-0001
-cycle_id: MAISOGLABS_CLINICFLOW_CASE_STUDY
-issue_parent_commit: 8d3a8c67d1ff76cd08fde074ce0cc2ddd39b467f
+directive_id: DIR-WEB-PROJECT-CASE-STUDY-CTA-0001
+cycle_id: MAISOGLABS_PROJECT_CASE_STUDY_CTA
+issue_parent_commit: 7628958f618c497d14e73d707edc368844c0426c
 target_turn: CLAUDE
-authority_ref: D-139
-applicable_review_id: ML-DEVOS-AS-165
+authority_ref: D-140
+applicable_review_id: ML-DEVOS-AS-166
 sentinel_disposition: CLEAR
 su_mode: BOUNDED_CONTRADICTION
 su_disposition: CLEAR_WITH_NOTES
 ```
 
-This directive is transport, not authority. Effective scope is the intersection of live STATE, D-139, and ML-DEVOS-AS-165.
-
 ## Objective
 
-Promote exactly Worker version 5368e6c8-7cb4-4a0c-b2da-70f65bb8023f to 100% of production traffic exactly once, after the immediate pre-deploy checks pass. Verify production and return. At most one conditional rollback to 5d315120-2647-46c0-a146-64d2a86eaec1 at 100% is authorized only for a new material production failure attributable to this release.
+Implement one reusable, code-owned homepage project case-study CTA capability. ClinicFlow is the only initially registered destination and may be enabled by a revisioned admin checkbox. The exact public label is VIEW CASE STUDY → and its destination is derived as /projects/{project.slug}. Return validated implementation and preview evidence to Architect.
 
 ## Preconditions
 
-- Governance publication read-back confirms this directive is selected, D-139 exists, DEPLOY_AUTHORIZED: YES, and every other action flag is NO.
-- main is exactly 7d494d012588f513e5e4db3453abb21da5f149bb.
-- The exact target is 5368e6c8-7cb4-4a0c-b2da-70f65bb8023f, inactive and deployable; successful Workers Build eddc11b5-49d0-496f-88ba-f4c6a3623ce2 binds it to that exact main commit and its output includes /projects/clinicflow.
-- The fresh pre-deploy baseline is deployment 71e7bc54-a5bb-453d-81d2-44eb8e08a6bc, version 5d315120-2647-46c0-a146-64d2a86eaec1 at 100%, with no split.
-- Candidate and baseline configuration/bindings match, including the existing D1 UUID and R2 bucket; no configuration or resource change is needed.
-- The Protocol V2 connector-native publication read-back succeeds before any production mutation.
+- STATE selects this directive and D-140; protocol remains V2.
+- Fresh governance branch tip equals the parent used to publish this directive.
+- Main baseline inspected for this task is 7d494d012588f513e5e4db3453abb21da5f149bb; do not merge or deploy it.
+- Current migrations end at 0006; the authorized local migration is the next additive migration, 0007.
+- Existing route app/projects/clinicflow/page.js exists. Initial code-owned registry contains only clinicflow.
+- No production D1 call or remote migration is permitted. Main merge and deployment remain NO.
+- AS-166 closes D-139 only; D-140 is the separate authority for this cycle. Do not infer any authority from AS-166.
 
 ## Governing references
 
-- D-139; live STATE; ML-DEVOS-AS-165.
-- D-138 and ML-DEVOS-AS-164 (accepted Gate C); OBL-017; Protocol V2 in brain/protocols/CONTEXT_BOOTSTRAP.md and brain/protocols/ARCHITECT_SYNC.md.
-- Cloudflare Workers Build eddc11b5-49d0-496f-88ba-f4c6a3623ce2 and the exact target/baseline version and deployment records.
+- D-140, live STATE, and ML-DEVOS-AS-166 as the current immutable review identity.
+- RFC-022 bridge, current project revision lifecycle, migration 0006, and V10.1 artifact contract/builder.
+- brain/protocols/CONTEXT_BOOTSTRAP.md and brain/protocols/ARCHITECT_SYNC.md.
+- The authorized implementation and adversarial acceptance matrix in Paulo's D-140 Owner decision.
 
 ## Exact execution scope
 
 Allowed:
-- Cloudflare GET reads and public HTTP GET verification.
-- Exactly one Cloudflare Worker deployment API promotion with strategy: "percentage" and versions: [{version_id: "5368e6c8-7cb4-4a0c-b2da-70f65bb8023f", percentage: 100}].
-- At most one conditional rollback using the same mechanism to 5d315120-2647-46c0-a146-64d2a86eaec1 at 100%.
-- One Protocol V2 Builder return.
+- One dependency-free shared, code-owned case-study slug registry with bounded helpers; initially only clinicflow.
+- Local additive migration 0007 on project_revisions: INTEGER NOT NULL DEFAULT 0 CHECK (case_study_enabled IN (0,1)).
+- Revision domain, normalization, strict validation, create/edit persistence and inheritance for the boolean.
+- Protected admin checkbox only for registered slugs, with read-only derived destination; unregistered projects show unavailable state.
+- Public/draft RFC-022 bridge fields limited to slug and caseStudyEnabled; validate before use and preserve whole-project-group fallback behavior.
+- Deterministic V10.1 builder exact-match ProjectsPanel patch; regenerate fingerprinted candidate/public assets and only required identity, build-report and test references.
+- Focused local tests, npm test, npm run build, local or protected preview, desktop/narrow visual and functional checks, evidence, and one Builder handoff.
 
-Not allowed: rebuild, upload, another version, canary/split, wrangler deploy, route/trigger changes, main/PR changes, DNS, D1/R2, Access, bindings, secrets, environment changes, n8n, Meta, Google Calendar/Sheets, unrelated website changes, or hotfix.
+Forbidden:
+- Any URL input, external destination, arbitrary caller href, HTML/JS destination override, or unregistered enabled slug.
+- Applying migration remotely; any production D1/R2, Cloudflare, DNS, Access, binding, secret or environment mutation.
+- Main/PR merge, deployment, traffic change, Gate C, ClinicFlow runtime/workflow, n8n, Meta, Google, Protocol V2.2, or unrelated redesign.
+- Editing a fingerprinted V10.1 minified file as the source of truth.
 
 ## SENTINEL Sync
 
-- Authority: Paulo's D-139 after ML-DEVOS-AS-165 accepted D-138.
-- Context: exact main, target, inactive status, 100% rollback baseline, and matching configuration/bindings were freshly re-read.
-- Capability: connector-native exact-tip GitHub CAS publication; Cloudflare API supports a single exact-version promotion.
-- Scope: promote once, verify, conditionally rollback once only on qualifying attributable failure, and return.
-- Evidence: governance CAS/read-back; deployment/version records; public route and compliance-page GETs; Access boundary response; bounded Worker error/exception inspection.
-- No unrelated mutation is needed.
-
 Disposition: CLEAR.
+
+The bounded design keeps behavior/routes code-owned and stores only a boolean in the existing revision lifecycle. Destination construction is gated by a shared slug allowlist plus existing slug validation. The admin displays the derived destination but cannot edit it. Draft, preview and publish pointers remain authoritative. Existing revisions and old Worker reads default/ignore the additive column safely; deploy ordering is migration first, new Worker second. Production resources remain out of scope.
 
 ## SU Contradiction Check
 
 Mode: BOUNDED_CONTRADICTION.
+Disposition: CLEAR_WITH_NOTES.
 
-Checked: stale governance/main; wrong or active target; build provenance mismatch; missing ClinicFlow route; production drift or split; required rebuild/upload; binding/config mismatch; unrelated DNS/D1/R2/Access/secret/environment/n8n/Meta/Google mutation; rollback ambiguity; and unguarded governance publication.
+Plan tests/reasoning for:
+- arbitrary https URL, javascript: URL, ../ traversal, malformed slug, and unknown fields;
+- unregistered slug with enabled=true through a direct API request;
+- draft-enabled/published-disabled, later disable, and publish transitions;
+- project rename and stable base-row slug identity;
+- missing registered route and missing registry entry;
+- stale draft/publish pointers;
+- old Worker after the additive migration, and the new Worker before it;
+- malformed/stale bridge payload and all-or-nothing safe fallback;
+- accidental CTA on neighboring projects;
+- mobile overflow, keyboard focus, real anchor navigation and no pager/selector interference.
 
-Disposition: CLEAR_WITH_NOTES. The local Git origin cannot resolve GitHub and the local checker cannot validate the remote snapshot. Paulo explicitly authorizes this one connector-native publication path, which preserves a single-parent candidate and exact expected-tip ref-update CAS; no unguarded update is permitted. Any CAS rejection or post-publication read-back mismatch stops the release before deployment.
+Compatibility decision to verify and document: keep BRIDGE_SCHEMA_VERSION 1 if slug and caseStudyEnabled are additive optional project properties, the new bridge strictly validates them, and the existing hook safely ignores them. If inspection or tests show v1 cannot preserve old-hook fallback behavior, stop and report before changing the version or widening scope.
 
 ## Instructions
 
-1. Confirm the published D-139 and directive by reading the governance branch after the expected-tip CAS.
-2. Immediately re-read main, deployments, target version/deployability/inactivity, build provenance, and candidate/baseline configuration. Stop if anything moved or became ambiguous.
-3. Promote the exact target once to 100%; do not rebuild or upload.
-4. Verify all items below using read-only checks.
-5. If and only if a qualifying new material failure attributable to this release appears, perform the one authorized rollback to the pinned baseline at 100%, verify recovery, and stop. Do not hotfix.
-6. Publish one Builder return through exact-tip CAS; archive this directive byte-for-byte with its provenance and index row; reset all action flags to NO and route to the Architect.
+1. Build the shared case-study registry; route helpers must only return /projects/<slug> for a valid registered slug. Add a repository structural test that every registered slug has app/projects/<slug>/page.js.
+2. Add migration 0007 with default-off checked storage. Existing rows/revisions must read false.
+3. Carry caseStudyEnabled through the existing v10 project revision shape and migration-aware read/write mapping. API/domain input must be strictly boolean. Reject enabled=true when the owning projects.slug is not registered, including create and edit API paths. Text-only edits inherit the source revision value. Keep pointer guards and atomic publish behavior.
+4. Extend admin with “Show case study button” only for registered projects and read-only “Destination: /projects/clinicflow”. Unregistered projects show the unavailable message. Saving remains draft-only; protected preview consumes draft pointers; public reads published pointers only.
+5. Add only project.slug and caseStudyEnabled to the bounded bridge. Snapshot SQL reads p.slug. Validate both and the complete project group; server bridge/hook never accept or construct caller URLs. Preserve fail-closed fallback and decide/document the schema version per SU above.
+6. Use scripts/build-v101-candidate.mjs as the source mechanism. Add an exact-match patch to ProjectsPanel. Render a semantic, keyboard-focusable real anchor only for a validated enabled registered project; label exactly VIEW CASE STUDY →. Do not make the whole card clickable. Missing fields in static data mean no CTA. Preserve unrelated asset bytes and update only generated references/report/identity required by the builder.
+7. Test migration locally: old rows false; old-shaped revision safe; new writes store 0/1; omitted boolean inherits; old Worker explicit writes/reads tolerate the column; new Worker before migration fails closed/no CTA; no production D1 call.
+8. Add deterministic cases for all items 1–20 in the Owner decision test matrix, covering registry/route, URL rejection, default/validation, lifecycle and preview/public differences, bridge validation/fallback, exact label/href, non-enabled projects, asset fingerprint, dead href scan, pager and selector.
+9. Record old/new Projects fingerprint, old/new homepage SHA-256, byte length and insertion offset. If index identity changes, update bridge ARTIFACT_SHA256, ARTIFACT_LENGTH, INSERTION_OFFSET and tests atomically; do not change insertion behavior.
+10. Run the focused tests, full npm test, and npm run build. Do not dismiss failures. Attribute any pre-existing unrelated failure with evidence.
+11. Verify at 1440x900 and 390x844 or equivalent: enabled ClinicFlow draft CTA exact label/href, clean layout, no overflow, pager/list use and visible keyboard focus; another project has no CTA; link navigates to /projects/clinicflow; disabled published simulation has no CTA. Use local/protected preview only.
+12. Inspect complete changed paths and exact diff. If work outside the authorized categories is needed, stop.
+13. Publish one Builder handoff via fresh exact-tip local Protocol V2 checker/CAS. Archive and preserve rolling records as required, set TURN: ARCHITECT and STATUS: READY_FOR_ARCHITECT, and keep every action flag NO. Do not reuse connector-native D-139 exception.
+14. Stop after the handoff. No Gate C, merge, remote migration or deploy.
 
 ## Validation and evidence
 
-Record:
-- resulting deployment ID, active Worker version, and allocation; confirm no split;
-- https://maisoglabs.com/ and https://maisoglabs.com/projects/clinicflow success;
-- accepted positioning: “ClinicFlow is a conversational appointment engine that turns natural patient requests into verified appointments in the clinic's real calendar.”;
-- principle: “AI understands the patient. ClinicFlow controls the appointment. Calendar proves the result.”;
-- architecture/evidence section and /projects/clinicflow/clinicflow-architecture.svg load;
-- bounded main navigation smoke;
-- /clinicflow/privacy, /clinicflow/data-deletion, and /clinicflow/terms remain available;
-- /admin remains behind the existing Access protection boundary;
-- Worker exceptions and binding health;
-- no D1/R2/DNS/Access/secret/configuration or n8n/Meta/Google mutation;
-- rollback status and recovery verification, if applicable.
-
-Do not claim production availability before successful verification.
+Report the migration and migration-order compatibility; server-side rejection tests for unregistered enabled slugs; revision inheritance/publish behavior; bridge schema decision and fallback; exact current and generated asset fingerprints plus artifact identities; focused/full test and build results; desktop and narrow evidence; exact href navigation; disabled and neighboring-project results; complete changed-file inventory; and confirmation production D1 and all production resources stayed untouched.
 
 ## Stop conditions
 
-Stop before promotion on any publication/CAS/read-back issue; any changed main, target, baseline, allocation, provenance, or configuration; candidate activation or split; missing route; or need for any unapproved mutation. After promotion, rollback only for a qualifying new material attributable failure, then verify recovery and stop. No unrelated action or forward fix is authorized.
+Stop on any ambiguous governance tip, checker or CAS failure; scope expansion; need for a production/remote write; a missing /projects/<slug> route; inability to enforce the server-side registry; incompatible old/new Worker migration behavior; bridge behavior that cannot fail closed; preview/publish lifecycle bypass; unbounded URL input; unrelated test failure that cannot be isolated; or responsive/accessibility regression that requires redesign. Do not merge, deploy, run a remote migration, or route to Gate C.
 
 ## Next action
 
-After verification or the authorized rollback, publish H-CLINICFLOW-D139-GATE-D-0001, archive and deselect this directive, reset all action flags to NO, and route to TURN: ARCHITECT, STATUS: READY_FOR_ARCHITECT, AUTHORIZED_SCOPE: D139_GATE_D_ARCHITECT_REVIEW_ONLY.
+After implementation and required evidence pass, publish one complete Builder handoff, reset all action flags to NO, route to Architect for review, and stop.
