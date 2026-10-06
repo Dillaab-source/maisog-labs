@@ -180,3 +180,5 @@ A durable sync record, once written, is not silently rewritten. A later correcti
 - ML-DEVOS-AS-164.md — final D-137 ClinicFlow case-study S1 review. Remediation cycle 1 is accepted, evidence limitations remain disclosed, and S1 is closed. Routes to Paulo for the separate Gate C release decision only; no main merge or deployment is authorized.
 
 - ML-DEVOS-AS-165.md — D-138 ClinicFlow case-study Gate C return accepted; routes to Paulo for the separate Gate D Owner decision only. No Gate D authorization. Architect disposition published mechanically under BC-4 from the supplied review text; SHA-256 a2dab1a7c0366aa0ab6c5d274cf6beb878aca08712b1a4659ca7407bd6e0f108 (4048 bytes, 149 lines).
+
+- ML-DEVOS-AS-166.md — D-139 ClinicFlow case-study Gate D return accepted; release closed; routes to Paulo for a separate Owner decision on the next governance-friction review. No Protocol V2.2 work authorized. Architect disposition published mechanically under BC-4 from the supplied review text; SHA-256 0498dc774e32b5f59d414fa762e1c40ca1743641d1bb137a8b1e77de402b89ac (7346 bytes, 226 lines).
