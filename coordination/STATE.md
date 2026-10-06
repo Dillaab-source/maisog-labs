@@ -1,19 +1,19 @@
 # MaisogLabs Agent Coordination State
 
 CYCLE_ID: MAISOGLABS_PROJECT_CASE_STUDY_CTA
-TURN: ARCHITECT
-STATUS: READY_FOR_ARCHITECT
-AUTHORIZED_SCOPE: PROJECT_CASE_STUDY_CTA_ARCHITECT_REVIEW_ONLY
-ARCHITECT_ACTION_REQUIRED: YES
+TURN: PAULO
+STATUS: PAULO_DECISION_REQUIRED
+AUTHORIZED_SCOPE: D140_IMPLEMENTATION_ACCEPTED_GATE_C_OWNER_DECISION_ONLY
+ARCHITECT_ACTION_REQUIRED: NO
 IMPLEMENTER_ACTION_REQUIRED: NO
-PAULO_DECISION_REQUIRED: NO
+PAULO_DECISION_REQUIRED: YES
 CURRENT_REMEDIATION_CYCLE: 2
 MAX_REMEDIATION_CYCLES: 2
 PROTOCOL_VERSION: 2
-CURRENT_HANDOFF: ACTIVE
-HANDOFF_ID: H-WEB-D140-CASE-STUDY-CTA-REM1-0001
-REVIEW_TARGET_COMMIT: d0bf93ee6951279180c97e5d4a10635be6c68339
-APPLICABLE_REVIEW_ID: ML-DEVOS-AS-167
+CURRENT_HANDOFF: NONE
+HANDOFF_ID:
+REVIEW_TARGET_COMMIT:
+APPLICABLE_REVIEW_ID:
 CURRENT_DIRECTIVE: NONE
 DIRECTIVE_ID:
 DIRECTIVE_ISSUE_PARENT:
@@ -29,6 +29,6 @@ MAIN_MERGE_AUTHORIZED: NO
 
 ## Current
 
-- Review: ML-DEVOS-AS-167 F001/F002 remediation returned for independent review at d0bf93ee6951279180c97e5d4a10635be6c68339.
-- Authority: D-140 remediation cycle 2 of 2; no further autonomous remediation. Main merge, deployment, remote migration, and production mutation remain NO.
-- Next: Architect reviews the corrected implementation and records the next immutable Sync.
+- Review: ML-DEVOS-AS-168 accepts D-140 implementation commit d0bf93ee6951279180c97e5d4a10635be6c68339 after resolving AS-167 F001/F002.
+- Authority: D-140 implementation review is complete; Paulo must make a separate Gate C decision. Remediation cycle 2 of 2 is consumed.
+- Next: Paulo decides Gate C only. Main merge, deployment, remote D1/R2 migration, and production mutation are not authorized.
